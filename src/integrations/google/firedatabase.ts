@@ -93,33 +93,49 @@ const omitWhereEntry = (where: WhereClause | undefined, field: string): WhereCla
     return Object.keys(rest).length ? rest : undefined;
 };
 
+const normalizeCondition = (raw: Condition | OperatorValue): { condition: Condition; clientCondition?: Condition } => {
+    const condition = typeof raw === "object" && raw !== null && !Array.isArray(raw)
+        ? raw
+        : Array.isArray(raw)
+            ? { in: raw }
+            : { eq: raw };
+
+    let clientCondition: Condition | undefined;
+    if (condition.gt !== undefined) clientCondition = { ...clientCondition, gt: condition.gt };
+    if (condition.lt !== undefined) clientCondition = { ...clientCondition, lt: condition.lt };
+    if (condition.in !== undefined) clientCondition = { ...clientCondition, in: condition.in };
+    if (condition.nin !== undefined) clientCondition = { ...clientCondition, nin: condition.nin };
+
+    return {
+        condition,
+        clientCondition
+    };
+};
+
+const getOrderedRef = (
+    ref: firebase.database.Reference,
+    field: string
+): firebase.database.Query => {
+    switch (field) {
+        case SYSTEM_FIELDS.key:
+            return ref.orderByKey();
+        case SYSTEM_FIELDS.value:
+            return ref.orderByValue();
+        default:
+            return ref.orderByChild(field);
+    }
+};
+
 const buildQueryPlan = (
     ref: firebase.database.Reference,
     order?: OrderClause,
     where?: WhereClause
 ): QueryPlan => {
     const [firstOrder] = Object.entries(order || {}) as OrderEntry[];
-    if (!firstOrder) {
-        return {
-            dbRef: ref.orderByKey(),
-            clientWhere: where
-        };
-    }
+    if (!firstOrder) return { dbRef: ref, clientWhere: where };
 
     const [field] = firstOrder;
-    let dbRef: firebase.database.Query;
-    switch (field) {
-        case SYSTEM_FIELDS.key:
-            dbRef = ref.orderByKey();
-            break;
-        case SYSTEM_FIELDS.value:
-            dbRef = ref.orderByValue();
-            break;
-        default:
-            dbRef = ref.orderByChild(field);
-            break;
-    }
-
+    let dbRef = getOrderedRef(ref, field);
     const raw = where?.[field];
     if (raw == null) {
         return {
@@ -128,37 +144,45 @@ const buildQueryPlan = (
         };
     }
 
-    const condition = typeof raw === "object" && raw !== null && !Array.isArray(raw) ? raw : { eq: raw };
-    const [[op, val]] = Object.entries(condition);
-    if (Array.isArray(val)) {
-        return {
-            dbRef,
-            clientWhere: where
-        };
-    }
+    const { condition, clientCondition } = normalizeCondition(raw);
 
-    switch (op as Operator) {
-        case "eq":
-            dbRef = ref.equalTo(val);
-            break;
-        case "gt":
-        case "gte":
-            dbRef = ref.startAt(val);
-            break;
-        case "lt":
-        case "lte":
-            dbRef = ref.endAt(val);
-            break;
-        default:
+    switch (true) {
+        case condition.eq !== undefined:
             return {
-                dbRef,
-                clientWhere: where
+                dbRef: dbRef.equalTo(condition.eq),
+                clientWhere: omitWhereEntry(where, field)
             };
+        case condition.gte !== undefined && condition.lte !== undefined:
+            dbRef = dbRef.startAt(condition.gte).endAt(condition.lte);
+            break;
+        case condition.gte !== undefined && condition.lt !== undefined:
+            dbRef = dbRef.startAt(condition.gte).endAt(condition.lt);
+            break;
+        case condition.gt !== undefined && condition.lte !== undefined:
+            dbRef = dbRef.startAt(condition.gt).endAt(condition.lte);
+            break;
+        case condition.gt !== undefined && condition.lt !== undefined:
+            dbRef = dbRef.startAt(condition.gt).endAt(condition.lt);
+            break;
+        case condition.gte !== undefined:
+            dbRef = dbRef.startAt(condition.gte);
+            break;
+        case condition.gt !== undefined:
+            dbRef = dbRef.startAt(condition.gt);
+            break;
+        case condition.lte !== undefined:
+            dbRef = dbRef.endAt(condition.lte);
+            break;
+        case condition.lt !== undefined:
+            dbRef = dbRef.endAt(condition.lt);
+            break;
     }
 
     return {
         dbRef,
-        clientWhere: omitWhereEntry(where, field)
+        clientWhere: clientCondition
+            ? { ...(omitWhereEntry(where, field) || {}), [field]: clientCondition }
+            : omitWhereEntry(where, field)
     };
 };
 
@@ -462,19 +486,23 @@ const db = {
                 };
             };
 
+            let unsubscribeData: (() => void) | undefined;
             // Listener for authentication state changes
             const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+                unsubscribeData?.();
+                unsubscribeData = undefined;
                 if (!user) {
                     // If user is not authenticated, clear records
                     setRecords([]);
                 } else {
                     // User is authenticated, fetch data (if needed)
-                    fetchData();
+                    unsubscribeData = fetchData();
                 }
             });
 
             // Cleanup function to remove listeners
             return () => {
+                unsubscribeData?.();
                 unsubscribeAuth(); // Clean up authentication listener
             };
         }, [path, setRecords, fieldMap, onLoad, order, where]);

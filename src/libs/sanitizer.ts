@@ -129,9 +129,6 @@ export class Sanitizer {
   constructor(config: SanitizerConfig = {}, matches: SanitizerMatch[] = []) {
     this.config = { ...defaultRules, ...config };
     this.matches = [...defaultMatches, ...matches];
-    console.log('COSTRUT', config)
-    console.log('DEFAULTRULES', defaultRules)
-    console.log('UNION', { ...defaultRules, ...config })
   }
 
   /* ----------------------------------------------
@@ -143,15 +140,11 @@ export class Sanitizer {
       //console.warn(`Rule "${String(ruleName)}" not found`);
       return autoCast ? smartTypeCast(value) : value;
     }
-    console.log('CONFFF', this.config)
 
     let result = value;
-    console.log('VALUE: ', value)
-    console.log('RULE: ', rule)
 
     // 🔹 1. visual normalization always first
     result = normalizeVisualChars(result);
-    console.log('FIRST RESULT: ', result)
 
     // 🔹 2. exclusions check
     const exclusions = rule.exclusions;
