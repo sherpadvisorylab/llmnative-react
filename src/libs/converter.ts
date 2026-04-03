@@ -113,7 +113,7 @@ interface ConverterCore {
 }
 
 interface Converter extends ConverterCore {
-    parse: (values: Record<string, string>, pattern: string, target?: {key: string, value: any, hideEmpty: boolean}) => string;
+    parse: (values: Record<string, any>, pattern: string, target?: {key: string, value: any, hideEmpty: boolean}) => string;
     truncate: (str: string, length?: number) => string;
     splitLast: (str: string, seps: string | string[], regException?: RegExp) => [string, string];
     splitFirst: (str: string, seps: string | string[], regException?: RegExp) => [string, string];

@@ -20,12 +20,31 @@ type FirebaseValue<T> =
     | undefined;            // no value
 
 type Operator = "eq" | "lt" | "lte" | "gt" | "gte" | "nin" | "in";
-type OperatorValue = string | number | boolean | null | string[] | number[];
+type ScalarValue = string | number | boolean | null;
+type RangeValue = string | number | boolean;
+type ListValue = string[] | number[];
+type OperatorValue = ScalarValue | ListValue;
 type Condition = {
-    [op in Operator]?: OperatorValue;
+    eq?: ScalarValue;
+    lt?: RangeValue;
+    lte?: RangeValue;
+    gt?: RangeValue;
+    gte?: RangeValue;
+    nin?: ListValue;
+    in?: ListValue;
 };
 type WhereClause = {
     [field: string]: Condition | OperatorValue;
+};
+type OrderDir = "asc" | "desc";
+type OrderClause = {
+    [field: string]: OrderDir;
+};
+type WhereEntry = [string, Condition | OperatorValue];
+type OrderEntry = [string, OrderDir];
+type QueryPlan = {
+    dbRef: firebase.database.Query;
+    clientWhere?: WhereClause;
 };
 
 type FieldMap = Record<string, any>;
@@ -34,10 +53,11 @@ export type RecordProps = FieldMap & { _key?: string, _index?: number };
 export type RecordArray = Array<RecordProps>;
 
 type RecordFN<T extends RecordProps = RecordProps> = (records: T[]) => void;
-export interface DatabaseOptions<T extends RecordProps = RecordProps> {
+export interface DatabaseOptions {
     where?: WhereClause;
+    order?: OrderClause;
     fieldMap?: Record<string, string>;
-    onLoad?: (data: T[]) => T[];
+    onLoad?: (data: RecordObject) =>RecordObject;
 }
 
 type SetDatabaseMessage = SetMessagePayload & { chunkDone?: number; totalChunks?: number };
@@ -67,37 +87,170 @@ const getDatabase = (): firebase.database.Database => {
     return databaseInstance;
 };
 
-const query = (
-    dbRef: firebase.database.Reference,
+const omitWhereEntry = (where: WhereClause | undefined, field: string): WhereClause | undefined => {
+    if (!where || !(field in where)) return where;
+    const { [field]: _omitted, ...rest } = where;
+    return Object.keys(rest).length ? rest : undefined;
+};
+
+const buildQueryPlan = (
+    ref: firebase.database.Reference,
+    order?: OrderClause,
     where?: WhereClause
-): firebase.database.Query => {
-    if (!where) return dbRef;
+): QueryPlan => {
+    const [firstOrder] = Object.entries(order || {}) as OrderEntry[];
+    if (!firstOrder) {
+        return {
+            dbRef: ref.orderByKey(),
+            clientWhere: where
+        };
+    }
 
-    const [[field, raw]] = Object.entries(where);
+    const [field] = firstOrder;
+    let dbRef: firebase.database.Query;
+    switch (field) {
+        case SYSTEM_FIELDS.key:
+            dbRef = ref.orderByKey();
+            break;
+        case SYSTEM_FIELDS.value:
+            dbRef = ref.orderByValue();
+            break;
+        default:
+            dbRef = ref.orderByChild(field);
+            break;
+    }
 
-    let ref: firebase.database.Query = dbRef.orderByChild(field);
-    if (raw === null) return ref;
+    const raw = where?.[field];
+    if (raw == null) {
+        return {
+            dbRef,
+            clientWhere: where
+        };
+    }
 
-    const condition = typeof raw === "object" ? raw : { eq: raw ?? null };
-
+    const condition = typeof raw === "object" && raw !== null && !Array.isArray(raw) ? raw : { eq: raw };
     const [[op, val]] = Object.entries(condition);
     if (Array.isArray(val)) {
-        //todo: da gestire i where complessi col filter
-        return ref;
+        return {
+            dbRef,
+            clientWhere: where
+        };
     }
-    switch (op) {
+
+    switch (op as Operator) {
         case "eq":
-            return ref.equalTo(val);
+            dbRef = ref.equalTo(val);
+            break;
         case "gt":
         case "gte":
-            return ref.startAt(val);
+            dbRef = ref.startAt(val);
+            break;
         case "lt":
         case "lte":
-            return ref.endAt(val);
+            dbRef = ref.endAt(val);
+            break;
         default:
-            console.warn(`Unsupported operator '${op}'`);
-            return dbRef;
+            return {
+                dbRef,
+                clientWhere: where
+            };
     }
+
+    return {
+        dbRef,
+        clientWhere: omitWhereEntry(where, field)
+    };
+};
+
+const getEntryValue = (value: any, field: string) => {
+    if (!field) return value;
+    const parts = field.split(".");
+    let current = value;
+
+    for (let i = 0; i < parts.length; i++) {
+        if (current == null) return undefined;
+        current = current[parts[i]];
+    }
+
+    return current;
+};
+
+const compareValues = (left: any, right: any): number => {
+    if (left === right) return 0;
+    if (left == null) return -1;
+    if (right == null) return 1;
+    if (typeof left === "number" && typeof right === "number") return left - right;
+    if (typeof left === "boolean" && typeof right === "boolean") return Number(left) - Number(right);
+    return globalThis.String(left).localeCompare(globalThis.String(right), undefined, { numeric: true, sensitivity: "base" });
+};
+
+const matchWhere = (value: any, raw: Condition | OperatorValue): boolean => {
+    const condition = typeof raw === "object" && raw !== null && !Array.isArray(raw) ? raw : { eq: raw };
+
+    for (const [op, target] of Object.entries(condition as Record<string, OperatorValue>)) {
+        switch (op as Operator) {
+            case "eq":
+                if (value !== target) return false;
+                break;
+            case "gt":
+                if (!(value > (target as RangeValue))) return false;
+                break;
+            case "gte":
+                if (!(value >= (target as RangeValue))) return false;
+                break;
+            case "lt":
+                if (!(value < (target as RangeValue))) return false;
+                break;
+            case "lte":
+                if (!(value <= (target as RangeValue))) return false;
+                break;
+            case "in":
+                if (!Array.isArray(target) || !(target as Array<string | number>).includes(value)) return false;
+                break;
+            case "nin":
+                if (Array.isArray(target) && (target as Array<string | number>).includes(value)) return false;
+                break;
+            default:
+                return false;
+        }
+    }
+
+    return true;
+};
+
+const processRecordObject = (
+    val: RecordObject,
+    where?: WhereClause,
+    order?: OrderClause
+): RecordObject => {
+    const [firstOrder, ...restOrder] = Object.entries(order || {}) as OrderEntry[];
+    const whereEntries = Object.entries(where || {}) as WhereEntry[];
+    const entries = Object.entries(val);
+    let filtered = entries;
+
+    if (whereEntries.length) {
+        filtered = filtered.filter(([, value]) => {
+            for (let i = 0; i < whereEntries.length; i++) {
+                const [field, raw] = whereEntries[i];
+                if (!matchWhere(getEntryValue(value, field), raw)) return false;
+            }
+            return true;
+        });
+    }
+
+    if (firstOrder) {
+        const orderEntries = [firstOrder, ...restOrder];
+        filtered.sort((left, right) => {
+            for (let i = 0; i < orderEntries.length; i++) {
+                const [field, dir] = orderEntries[i];
+                const result = compareValues(getEntryValue(left[1], field), getEntryValue(right[1], field));
+                if (result) return dir === "desc" ? -result : result;
+            }
+            return 0;
+        });
+    }
+
+    return Object.fromEntries(filtered);
 };
 
 const buildShallowURL = (path: string, auth?: string): string => {
@@ -130,24 +283,27 @@ const db = {
         path: string,
         {
             where       = undefined,
+            order       = undefined,
             toArray     = false,
             exception   = false
         }: {
             where?: WhereClause;
+            order?: OrderClause;
             toArray?: boolean;
             exception?: boolean;
         } = {}
     ): Promise<FirebaseValue<T>> => {
-        const dbRef = query(getDatabase().ref(path), where);
+        const { dbRef, clientWhere } = buildQueryPlan(getDatabase().ref(path), order, where);
         try {
             const snapshot = await dbRef.get();
             if (snapshot.exists()) {
                 consoleLog(`Info: Data found in Firebase for path ${path}`);
+                const processed = processRecordObject(snapshot.val(), clientWhere, order);
 
                 return (toArray
-                        ? Object.values(snapshot.val())
-                        : snapshot.val()
-                );
+                        ? Object.values(processed)
+                        : processed
+                ) as FirebaseValue<T>;
             } else if (exception) {
                 handleError(`Data not found in Firebase for path ${path}`, null, exception);
             }
@@ -221,9 +377,10 @@ const db = {
         setRecords: RecordFN<T>,
         {
             where       = undefined,
+            order       = undefined,
             fieldMap    = undefined,
             onLoad      = undefined
-        }: DatabaseOptions<T> = {}
+        }: DatabaseOptions = {}
     ) => {
         const auth = useMemo(() => getSafeAuth(), []);
         if (!auth) return;
@@ -232,7 +389,7 @@ const db = {
             if (!path) return;
 
             const fetchData = () => {
-                const dbRef = query(getDatabase().ref(path), where);
+                const { dbRef, clientWhere } = buildQueryPlan(getDatabase().ref(path), order, where);
 
                 const onValueChange = (snapshot: firebase.database.DataSnapshot) => {
                     const val: RecordObject = snapshot.val();
@@ -241,46 +398,61 @@ const db = {
                         setRecords([]);
                         return;
                     }
+                    const data = onLoad ? onLoad(processRecordObject(val, clientWhere, order)) : processRecordObject(val, clientWhere, order);
 
                     if (!fieldMap) {
-                        const records: T[] = Object.entries(val).map(
-                            ([key, value], index) => ({
-                                _index: index,
-                                _key: key,
-                                ...value
-                            }) as T
-                        );
+                        const entries = Object.entries(data);
+                        const records = new Array(entries.length) as T[];
+                    
+                        for (let index = 0; index < entries.length; index++) {
+                            const [key, value] = entries[index];
+                    
+                            records[index] = (
+                                typeof value === "object" && value !== null
+                                    ? { _index: index, _key: key, ...value }
+                                    : { _index: index, _key: key, [SYSTEM_FIELDS.value]: value }
+                            ) as T
+                        }
+                    
                         console.log("firedatabase: set records simple");
-                        setRecords(onLoad ? onLoad(records) : records);
+                        setRecords(records);
                         return;
                     }
+                    
 
+                    const entries = Object.entries(data);
                     const mapKeys = Object.keys(fieldMap);
-                    const records: T[] = [];
-                    let index = 0;
+                    const records = new Array(entries.length) as T[];
 
-                    for (const [key, value] of Object.entries(val)) {
+                    for (let index = 0; index < entries.length; index++) {
+                        const [key, value] = entries[index];
                         const mapped: FieldMap = {};
+                        const source = typeof value === "object" && value !== null
+                            ? { [SYSTEM_FIELDS.key]: key, ...value }
+                            : { [SYSTEM_FIELDS.key]: key, [SYSTEM_FIELDS.value]: value };
 
                         for (let i = 0; i < mapKeys.length; i++) {
                             const prop = mapKeys[i];
                             const field = fieldMap[prop];
+
                             mapped[prop] = field.includes("{")
-                                ? converter.parse(typeof value === "object" 
-                                    ? { [SYSTEM_FIELDS.key]: key, ...value } 
-                                    : { [SYSTEM_FIELDS.key]: key, [SYSTEM_FIELDS.value]: value } 
-                                , field)
-                                : (field === SYSTEM_FIELDS.key ? key : field === SYSTEM_FIELDS.value ? value : value[field]);
+                                ? converter.parse(source, field)
+                                : field === SYSTEM_FIELDS.key
+                                    ? key
+                                    : field === SYSTEM_FIELDS.value
+                                        ? value
+                                        : source[field];
                         }
 
-                        records.push({
+                        records[index] = {
                             _key: key,
-                            _index: index++,
+                            _index: index,
                             ...mapped
-                        } as T);
+                        } as T;
                     }
+
                     console.log("firedatabase: set records mapped");
-                    setRecords(onLoad ? onLoad(records) : records);
+                    setRecords(records);
                 };
 
                 dbRef.on("value", onValueChange);
@@ -305,7 +477,7 @@ const db = {
             return () => {
                 unsubscribeAuth(); // Clean up authentication listener
             };
-        }, [path, setRecords, fieldMap, onLoad, where]);
+        }, [path, setRecords, fieldMap, onLoad, order, where]);
     }
 };
 

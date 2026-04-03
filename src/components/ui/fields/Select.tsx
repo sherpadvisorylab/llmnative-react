@@ -12,7 +12,7 @@ interface Option extends RecordProps {
     value: string;
 }
 
-interface DBConfig<T extends RecordProps = RecordProps> extends DatabaseOptions<T> {
+interface DBConfig extends DatabaseOptions {
     srcPath: string;
 }
 
@@ -27,7 +27,7 @@ interface BaseProps extends FormFieldProps {
     title?: string;
     feedback?: string;
     options?: Option[] | string[] | number[];
-    db?: DBConfig<Option>;
+    db?: DBConfig;
     order?: OrderConfig;
 }
 
@@ -72,8 +72,8 @@ const normalizeOption = (
 };
 
 function getOptionsDB(
-    db?: DBConfig<Option>
-): DatabaseOptions<Option> {
+    db?: DBConfig
+): DatabaseOptions {
     return {
         fieldMap: normalizeOption(db?.fieldMap),
         where: db?.where,
