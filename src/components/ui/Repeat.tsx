@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { ActionButton } from './Buttons';
 import { FieldOnChange, setFormFieldsName, useFormContext } from '../widgets/Form';
 import { Col, Row } from './GridSystem';
@@ -33,7 +33,6 @@ const Repeat = ({
     readOnly = false,
 }: RepeatProps) => {
     const { value, handleChange } = useFormContext({ name, onChange });
-    const [release, setRelease] = useState(0);
 
     const renderChildren = (index: number, wrapClass?: string) => {
         return setFormFieldsName({
@@ -66,7 +65,7 @@ const Repeat = ({
             return <Row className={`ps-2`}>
                 {renderChildren(index, 'col')}
                 {canRemove && (
-                    <Col xs='auto' className='d-flex align-items-center justify-content-end'>
+                    <Col xs='auto' className='d-flex align-items-start justify-content-end pt-1'>
                         <ActionButton
                             className="btn-close p-0"
                             onClick={() => handleRemove(index)}
@@ -82,7 +81,7 @@ const Repeat = ({
         const canRemove = !readOnly && index >= (min || 0);
 
         return (
-            <React.Fragment key={`${name}-${index}-${release}`}>
+            <React.Fragment key={`${name}-${index}`}>
                 {renderLayout(index, canRemove)}
             </React.Fragment>
         );
@@ -94,13 +93,11 @@ const Repeat = ({
             : Array.from({ length: components.length + 1 }, () => ({}));
         onAdd?.(next);
         handleChange({ target: { name: `${name}.${next.length - 1}`, value: {} } });
-        setRelease(prev => prev + 1);
     };
 
     const handleRemove = (index: number) => {
         onRemove?.(index);
         handleChange({ target: { name: `${name}.${index}` } });
-        setRelease(prev => prev + 1);
     };
 
     const addButton = useMemo(() => {
@@ -113,7 +110,7 @@ const Repeat = ({
 
     return (
         <div className={className}>
-            {label && <h6 className='d-flex align-items-center justify-content-between'>{label}{addButton}</h6>}
+            {label && <><h6 className='d-flex align-items-center justify-content-between'>{label}{addButton}</h6><hr /></>}
             {components}
             {!label && addButton}
         </div>

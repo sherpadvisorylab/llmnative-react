@@ -21,6 +21,8 @@ interface OrderConfig {
     dir: 'asc' | 'desc';
 }
 
+const DEFAULT_ORDER: OrderConfig = { field: "label", dir: "asc" };
+
 interface BaseProps extends FormFieldProps {
     updatable?: boolean;
     disabled?: boolean;
@@ -77,24 +79,48 @@ function getOptionsDB(
     return {
         fieldMap: normalizeOption(db?.fieldMap),
         where: db?.where,
+        order: db?.order,
         onLoad: db?.onLoad,
     };
 }
+
+const isDbOrdered = (
+    fieldMap: DatabaseOptions["fieldMap"],
+    dbOrder: DBConfig["order"],
+    order: OrderConfig
+) => {
+    const mappedField = fieldMap?.[order.field];
+    const [firstDbOrder] = Object.entries(dbOrder || {});
+
+    if (!firstDbOrder || !mappedField) return false;
+
+    const [dbField, dbDir] = firstDbOrder;
+    return dbField === mappedField && dbDir === order.dir;
+};
 
 
 const getOptions = (
     options: Array<string | number | Option>,
     lookup: Option[],
-    order?: OrderConfig
+    order?: OrderConfig,
+    dbOrder?: DBConfig["order"],
+    fieldMap?: DatabaseOptions["fieldMap"]
 ): Option[] => {
-    return [
+    const effectiveOrder = order || DEFAULT_ORDER;
+    const combined = [
         ...options.map(normalizeOption),
         ...lookup
-    ].sort((a, b) => {
-        const field = order?.field || "label";
+    ];
+
+    if (options.length === 0 && isDbOrdered(fieldMap, dbOrder, effectiveOrder)) {
+        return combined;
+    }
+
+    return combined.sort((a, b) => {
+        const field = effectiveOrder.field;
         const aVal = (a[field] ?? "").toString();
         const bVal = (b[field] ?? "").toString();
-        return order?.dir === "desc"
+        return effectiveOrder.dir === "desc"
             ? bVal.localeCompare(aVal)
             : aVal.localeCompare(bVal)
     });
@@ -126,12 +152,12 @@ export const Select = ({
 
     const theme = useTheme("select");
 
-    const dbOptions = useMemo(() => getOptionsDB(db), [db?.fieldMap, db?.where, db?.onLoad]);
+    const dbOptions = useMemo(() => getOptionsDB(db), [db?.fieldMap, db?.where, db?.order, db?.onLoad]);
     const [lookup, setLookup] = useState<Option[]>([]);
     database.useListener(db?.srcPath, setLookup, dbOptions);
 
     const opts = useMemo(() => {
-        const combinedOptions = getOptions(options, lookup, order);
+        const combinedOptions = getOptions(options, lookup, order, db?.order, dbOptions.fieldMap);
 
         return arrayUnique(
             value && !combinedOptions.length
@@ -139,7 +165,7 @@ export const Select = ({
                 : combinedOptions
         );
 
-    }, [options, lookup, order]);
+    }, [options, lookup, order, db?.order, dbOptions.fieldMap, value]);
 
     if (!value && !optionEmpty && opts.length > 0) {
         handleChange?.({ target: { name, value: opts[0].value } });
@@ -204,14 +230,14 @@ export const Autocomplete = ({
         }
     }, [valueArray]);
 
-    const dbOptions = useMemo(() => getOptionsDB(db), [db?.fieldMap, db?.where, db?.onLoad]);
+    const dbOptions = useMemo(() => getOptionsDB(db), [db?.fieldMap, db?.where, db?.order, db?.onLoad]);
     const [lookup, setLookup] = useState<Option[]>([]);
     database.useListener(db?.srcPath, setLookup, dbOptions);
 
     const opts = useMemo(() => {
-        const combinedOptions = getOptions(options, lookup, order);
+        const combinedOptions = getOptions(options, lookup, order, db?.order, dbOptions.fieldMap);
         return arrayUnique(combinedOptions, 'value');
-    }, [options, lookup]);
+    }, [options, lookup, order, db?.order, dbOptions.fieldMap]);
 
     const handleAutocompleteChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const currentValue = e.target.value;
@@ -309,14 +335,14 @@ export const Checklist = ({
         }
     }, [valueArray]);
 
-    const dbOptions = useMemo(() => getOptionsDB(db), [db?.fieldMap, db?.where, db?.onLoad]);
+    const dbOptions = useMemo(() => getOptionsDB(db), [db?.fieldMap, db?.where, db?.order, db?.onLoad]);
     const [lookup, setLookup] = useState<Option[]>([]);
     database.useListener(db?.srcPath, setLookup, dbOptions);
 
     const opts = useMemo(() => {
-        const combinedOptions = getOptions(options, lookup, order);
+        const combinedOptions = getOptions(options, lookup, order, db?.order, dbOptions.fieldMap);
         return arrayUnique(combinedOptions, 'value');
-    }, [options, lookup]);
+    }, [options, lookup, order, db?.order, dbOptions.fieldMap]);
 
     const removeItem = (currentValue: string) => {
         setSelectedItems(prevState => {

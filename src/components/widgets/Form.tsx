@@ -38,6 +38,64 @@
         record: RecordProps;
     }
 
+    const cloneContainer = (value: any) => (
+        Array.isArray(value)
+            ? [...value]
+            : (value && typeof value === "object")
+                ? { ...value }
+                : {}
+    );
+
+    const isArrayIndex = (value: string) => !Number.isNaN(Number(value));
+
+    const normalizeInputValue = (rawValue: string, inputType: InputType) => {
+        if (!["number", "range"].includes(inputType)) return rawValue;
+        return rawValue === "" || rawValue == null ? "" : Number(rawValue);
+    };
+
+    const createContainer = (nextKey?: string) => {
+        return nextKey !== undefined && isArrayIndex(nextKey) ? [] : {};
+    };
+
+    const applyChangeToRecord = (
+        source: RecordProps | undefined,
+        event: ChangeHandler,
+        inputType: InputType
+    ): RecordProps => {
+        const path = event.target.name.split(".");
+        const nextValue = normalizeInputValue(event.target.value, inputType);
+
+        const root = cloneContainer(source ?? {}) as RecordProps;
+        let cursor: any = root;
+        // Dynamic path traversal across nested objects/arrays.
+
+        for (let i = 0; i < path.length - 1; i++) {
+            const key = path[i];
+            const nextKey = path[i + 1];
+            const currentValue = cursor[key];
+
+            cursor[key] =
+                currentValue != null && typeof currentValue === "object"
+                    ? cloneContainer(currentValue)
+                    : createContainer(nextKey);
+
+            cursor = cursor[key];
+        }
+
+        const finalKey = path[path.length - 1];
+        if (nextValue == null || nextValue === "") {
+            if (Array.isArray(cursor) && isArrayIndex(finalKey)) {
+                cursor.splice(Number(finalKey), 1);
+            } else {
+                delete cursor[finalKey];
+            }
+        } else {
+            cursor[finalKey] = nextValue;
+        }
+
+        return root;
+    };
+
     export interface FormFieldProps extends UIProps {
         name: string;
         label?: string;
@@ -57,46 +115,16 @@
     const FormContext = createContext<FormProviderProps | null>(null);
     
 
-    export const useFormContext = ({name, onChange, wrapClass, inputType = "text", defaultValue}: FormContextProps): FormContextResult => {
-        const ctx = useContext(FormContext);
-        if (!ctx) throw new Error("useFormContext must be used within a FormContext.Provider");
-        if (!name) throw new Error("useFormContext: name is required");
+export const useFormContext = ({name, onChange, wrapClass, inputType = "text", defaultValue}: FormContextProps): FormContextResult => {
+    const ctx = useContext(FormContext);
+    if (!ctx) throw new Error("useFormContext must be used within a FormContext.Provider");
+    if (!name) throw new Error("useFormContext: name is required");
 
-        const record = {...ctx.record};
-        //const initialized = useRef(false);
-
-        const formChange = (event: ChangeHandler) => {
-            const path = event.target.name.split(".");
-            
-            const value = ["number", "range"].includes(inputType) ? Number(event.target.value) : event.target.value;
-            
-            let target = record;
-            for (let i = 0; i < path.length - 1; i++) {
-                const key = path[i];
-                const nextKey = path[i + 1];
-            
-                if (!target[key] || (typeof target[key] !== "object" && nextKey !== undefined)) {
-                    target[key] = !isNaN(Number(nextKey))
-                    ? Array.from({ length: Number(nextKey) + 1 }, () => ({}))
-                    : {};
-                }
-                target = target[key];
-            }
-            
-        
-            const lastKey = path[path.length - 1];
-            if (value == null || value === "") {
-                if (Array.isArray(target) && !isNaN(Number(lastKey))) {
-                    target.splice(Number(lastKey), 1);
-                } else {
-                    delete (target as Record<string, any>)[lastKey];
-                }
-            } else {
-                target[lastKey] = value;
-            }
-            
-            console.log("FORM handleChange", path, value, record);
-        }
+    const formChange = (event: ChangeHandler, sourceRecord?: RecordProps) => {
+        const nextRecord = applyChangeToRecord(sourceRecord ?? ctx.record, event, inputType);
+        console.log("FORM handleChange", event.target.name, event.target.value, nextRecord);
+        return nextRecord;
+    }
 /*
         const currentValue = name.split(".").reduce((acc, key) => acc?.[key], ctx.record);
         if (!initialized.current && currentValue === undefined && defaultValue !== undefined) {
@@ -124,13 +152,23 @@
         return {
             value,
             handleChange: (event) => {
-                formChange(event);
-                onChange?.({event, name, value, record, onChange: formChange});
-
-                ctx.setRecord({...record});
+                let nextRecord = ctx.record;
+                ctx.setRecord((prev) => {
+                    nextRecord = formChange(event, prev);
+                    return nextRecord;
+                });
+                onChange?.({
+                    event,
+                    name,
+                    value: event.target.value,
+                    record: nextRecord ?? {},
+                    onChange: (nextEvent) => {
+                        ctx.setRecord((prev) => formChange(nextEvent, prev));
+                    }
+                });
             },
             formWrapClass: [wrapClass, ctx.wrapClass].filter(Boolean).join(" "),
-            record: record,
+            record: ctx.record ?? {},
         };  
     };
 
@@ -401,7 +439,7 @@
                 //return false;
             }
             const action = isNewRecord ? "create" : "update";
-            const recordStoragePath = onSave 
+            /*const recordStoragePath = onSave 
                 ? await onSave({
                     record: recordRef.current, 
                     prevRecord: defaultValues,
@@ -411,6 +449,19 @@
                 : savePath 
                     ? savePath?.({record: recordRef.current ?? {}, storagePath: dataStoragePath})
                     : dataStoragePath;
+*/
+            const recordStoragePath =
+                (onSave && await onSave({
+                    record: recordRef.current,
+                    prevRecord: defaultValues,
+                    action,
+                    storagePath: dataStoragePath,
+                }))
+                ?? savePath?.({
+                    record: recordRef.current ?? {},
+                    storagePath: dataStoragePath,
+                })
+                ?? dataStoragePath;
 
             recordStoragePath && await db.set(recordStoragePath, cleanRecord(recordRef.current));
             return await handleFinally(action);
