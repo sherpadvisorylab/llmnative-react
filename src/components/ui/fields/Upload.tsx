@@ -11,6 +11,7 @@ import { base64ToUrl, render2Base64 } from "../../../libs/utils";
 import { PLACEHOLDER_IMAGE } from "../../../Theme";
 import Icon from "../Icon";
 import { FormFieldProps, FieldOnChange, useFormContext } from "../../widgets/Form";
+import { useStorageProvider } from "../../../providers/storage/StorageProviderContext";
 
 export interface FileProps {
     key: string;
@@ -25,14 +26,15 @@ export interface FileProps {
 
 const useFileUpload = <T extends FileProps>(
     name: string,
-    //value?: Array<T>,
     onChange?: FieldOnChange,
-    wrapClass?: string
+    wrapClass?: string,
+    storagePath?: string
 ) => {
     const { value, handleChange, formWrapClass } = useFormContext({name, onChange, wrapClass});
     const [files, setFiles] = useState<T[]>(value || []);
     const [currentFile, setCurrentFile] = useState<T | null>(null);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
+    const storageProvider = useStorageProvider();
     
     const updateFile = (key: string, updates: Partial<T>) => {
         setFiles(prev => {
@@ -96,11 +98,15 @@ const useFileUpload = <T extends FileProps>(
 
                 reader.onloadend = () => {
                     updateFile(newFile.key, { progress: 99 } as Partial<T>);
-                    setTimeout(() => {
-                        updateFile(newFile.key, {
-                            progress: 100,
-                            base64: `data:${file.type};base64,${render2Base64(reader.result as ArrayBuffer)}`
-                        } as Partial<T>);
+                    const base64 = `data:${file.type};base64,${render2Base64(reader.result as ArrayBuffer)}`;
+                    setTimeout(async () => {
+                        if (storageProvider && storagePath) {
+                            const filePath = `${storagePath}/${file.name}`;
+                            const url = await storageProvider.upload(base64, filePath);
+                            updateFile(newFile.key, { progress: 100, base64, url: url ?? '' } as Partial<T>);
+                        } else {
+                            updateFile(newFile.key, { progress: 100, base64 } as Partial<T>);
+                        }
                     }, 500);
                 };
 
@@ -134,6 +140,7 @@ export interface UploadDocumentProps extends FormFieldProps {
     multiple?: boolean;
     accept?: string;
     max?: number;
+    storagePath?: string;
 }
 
 export interface UploadImageProps extends UploadDocumentProps {
@@ -268,7 +275,6 @@ export const getFileUrl = (file: FileProps, suffix: string = "origin"): string =
 
 export const UploadDocument = ({
     name,
-    //value       = undefined,
     onChange    = undefined,
     label       = undefined,
     required    = false,
@@ -276,12 +282,13 @@ export const UploadDocument = ({
     multiple    = false,
     max         = 100,
     accept      = ".pdf,.doc,.docx,.txt,.iso",
+    storagePath = undefined,
     pre         = undefined,
     post        = undefined,
     wrapClass   = undefined,
     className   = undefined,
 }: UploadDocumentProps) => {
-    const { files, currentFile, fileInputRef, formWrapClass, handleUploadChange, handleUpload, handleRemove, handleSave, handleEdit, handleClose } = useFileUpload<FileProps>(name, onChange, wrapClass);
+    const { files, currentFile, fileInputRef, formWrapClass, handleUploadChange, handleUpload, handleRemove, handleSave, handleEdit, handleClose } = useFileUpload<FileProps>(name, onChange, wrapClass, storagePath);
 
     return (
         <Wrapper className={formWrapClass}>
@@ -339,7 +346,6 @@ export const UploadDocument = ({
 
 export const UploadImage = ({
     name,
-    //value           = undefined,
     onChange        = undefined,
     label           = undefined,
     editable        = false,
@@ -349,12 +355,13 @@ export const UploadImage = ({
     max             = 100,
     previewHeight   = 100,
     previewWidth    = 100,
+    storagePath     = undefined,
     pre             = undefined,
     post            = undefined,
     wrapClass       = undefined,
     className       = undefined,
 }: UploadImageProps) => {
-    const { files, currentFile, fileInputRef, formWrapClass, handleUploadChange, handleUpload, handleRemove, handleSave, handleEdit, handleClose } = useFileUpload<FileProps>(name, onChange, wrapClass);
+    const { files, currentFile, fileInputRef, formWrapClass, handleUploadChange, handleUpload, handleRemove, handleSave, handleEdit, handleClose } = useFileUpload<FileProps>(name, onChange, wrapClass, storagePath);
 
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 

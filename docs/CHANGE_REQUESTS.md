@@ -147,7 +147,7 @@ export interface StorageProvider {
 - [x] Scrivere `providers/storage/supabase.ts`
 - [x] Aggiornare `Form.tsx` — sostituire `import db` con `useDataProvider()`
 - [x] Aggiornare `Grid.tsx` — sostituire `import db` con `useDataProvider()`
-- [ ] Aggiornare `Upload.tsx` — sostituire storage diretto con `useStorageProvider()`
+- [x] Aggiornare `Upload.tsx` — sostituire storage diretto con `useStorageProvider()`
 - [x] Aggiornare `App.tsx` — accettare `dataProvider` e `storageProvider` come prop
 - [x] Spostare `integrations/ai.ts` → `providers/ai/index.ts`
 - [x] Spostare `integrations/google/GoogleAuth.tsx` → `providers/auth/google/`
