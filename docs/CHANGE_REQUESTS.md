@@ -10,7 +10,7 @@
 
 | CR | Titolo | Priorità | Dipende da | Stato |
 |----|--------|----------|-----------|-------|
-| [CR-001](#cr-001--documentazione-ai-first) | Documentazione AI-first | Alta | — | ⬜ |
+| [CR-001](#cr-001--documentazione-ai-first) | Documentazione AI-first | Alta | — | ✅ |
 | [CR-002](#cr-002--provider-abstraction-layer) | Provider abstraction layer | Critica | — | ⬜ |
 | [CR-003](#cr-003--typescript-strict) | TypeScript strict | Alta | — | ⬜ |
 | [CR-004](#cr-004--shadcnui--tailwind-css) | shadcn/ui + Tailwind CSS | Alta | CR-002 | ⬜ |
@@ -22,8 +22,8 @@
 
 ## CR-001 — Documentazione AI-first
 
-**Stato:** ⬜ todo  
-**Branch:** `modernize/docs`  
+**Stato:** ✅ done  
+**Branch:** `modernize/cr-001-docs`  
 **Priorità:** Alta — inizia subito, parallela a tutto  
 **Stima:** 2–3 giorni  
 
@@ -43,14 +43,14 @@ Un AI che lavora su questo progetto ha zero training data su react-firestrap. Se
 - `docs/examples/custom-provider.md` — come scrivere un DataProvider custom
 
 ### Checklist
-- [ ] Scrivere `CLAUDE.md`
-- [ ] Scrivere `docs/overview.md`
-- [ ] Scrivere `docs/architecture.md`
-- [ ] Scrivere `docs/patterns.md`
-- [ ] Scrivere `docs/components.md`
-- [ ] Scrivere `docs/examples/crud-basic.md`
-- [ ] Scrivere `docs/examples/crud-modal.md`
-- [ ] Scrivere `docs/examples/form-nested.md`
+- [x] Scrivere `CLAUDE.md`
+- [x] Scrivere `docs/overview.md`
+- [x] Scrivere `docs/architecture.md`
+- [x] Scrivere `docs/patterns.md`
+- [x] Scrivere `docs/components.md`
+- [x] Scrivere `docs/examples/crud-basic.md`
+- [x] Scrivere `docs/examples/crud-modal.md`
+- [x] Scrivere `docs/examples/form-nested.md`
 - [ ] Aggiornare `docs/providers.md` dopo CR-002
 - [ ] Scrivere `docs/examples/custom-provider.md` dopo CR-002
 
