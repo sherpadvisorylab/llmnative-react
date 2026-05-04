@@ -56,6 +56,20 @@ type MenuConfig = {
     })[];
 };
 
+type ProviderMap = {
+    data?: Record<string, DataProvider>;
+    storage?: Record<string, StorageProvider>;
+    auth?: Record<string, AuthProvider>;
+    email?: Record<string, EmailProvider>;
+};
+
+type DefaultProviderKeys = {
+    data?: string;
+    storage?: string;
+    auth?: string;
+    email?: string;
+};
+
 type AppProps = {
     firebaseConfig?: FirebaseConfig;
     oAuth2?: GoogleOAuth2;
@@ -69,20 +83,54 @@ type AppProps = {
     importTheme?: () => Promise<{ theme: object }>;
     LayoutDefault?: React.ComponentType;
     menuConfig: MenuConfig;
+    // Single-provider shorthand (backward compat)
     dataProvider?: DataProvider;
     storageProvider?: StorageProvider;
     authProvider?: AuthProvider;
     emailProvider?: EmailProvider;
+    // Named registry: multiple providers of the same type
+    providers?: ProviderMap;
+    // Which name to use as default — consumer can drive this from env vars
+    defaultProviders?: DefaultProviderKeys;
 };
 
+function buildRegistry<T>(
+    single: T | undefined,
+    map: Record<string, T> | undefined,
+    defaultKey: string | undefined,
+    fallback: T
+): { registry: Record<string, T>; defaultKey: string } {
+    if (map && Object.keys(map).length > 0) {
+        return { registry: map, defaultKey: defaultKey ?? Object.keys(map)[0] };
+    }
+    const resolved = single ?? fallback;
+    return { registry: { default: resolved }, defaultKey: 'default' };
+}
+
+function buildOptionalRegistry<T>(
+    single: T | undefined,
+    map: Record<string, T> | undefined,
+    defaultKey: string | undefined
+): { registry: Record<string, T>; defaultKey: string } {
+    if (map && Object.keys(map).length > 0) {
+        return { registry: map, defaultKey: defaultKey ?? Object.keys(map)[0] };
+    }
+    if (single) {
+        return { registry: { default: single }, defaultKey: 'default' };
+    }
+    return { registry: {}, defaultKey: 'default' };
+}
+
 const MaybeEmailProvider = ({
-    provider,
+    registry,
+    defaultKey,
     children,
 }: {
-    provider: EmailProvider | undefined;
+    registry: Record<string, EmailProvider>;
+    defaultKey: string;
     children: React.ReactNode;
-}) => provider
-    ? <EmailProviderProvider provider={provider}>{children}</EmailProviderProvider>
+}) => Object.keys(registry).length > 0
+    ? <EmailProviderProvider registry={registry} defaultKey={defaultKey}>{children}</EmailProviderProvider>
     : <>{children}</>;
 
 let menu: MenuConfig = {};
@@ -113,10 +161,13 @@ function App({
                  storageProvider,
                  authProvider,
                  emailProvider,
+                 providers,
+                 defaultProviders,
 }: AppProps) {
-    const resolvedDataProvider = dataProvider ?? new FirebaseDataProvider();
-    const resolvedStorageProvider = storageProvider ?? new FirebaseStorageProvider();
-    const resolvedAuthProvider = authProvider ?? new GoogleAuthProvider();
+    const dataRegistry    = buildRegistry(dataProvider, providers?.data, defaultProviders?.data, new FirebaseDataProvider());
+    const storageRegistry = buildOptionalRegistry(storageProvider, providers?.storage, defaultProviders?.storage);
+    const authRegistry    = buildRegistry(authProvider, providers?.auth, defaultProviders?.auth, new GoogleAuthProvider());
+    const emailRegistry   = buildOptionalRegistry(emailProvider, providers?.email, defaultProviders?.email);
     setStaticMenu(menuConfig);
 
     const LayoutEmpty = ({ children }: { children: React.ReactNode }) => <>{children}</>;
@@ -186,10 +237,10 @@ function App({
                 proxyURI: proxyURI
             }} tenantsURI={tenantsURI}>
                 <GlobalProvider>
-                    <AuthProviderProvider provider={resolvedAuthProvider}>
-                    <DataProviderProvider provider={resolvedDataProvider}>
-                    <StorageProviderProvider provider={resolvedStorageProvider}>
-                    <MaybeEmailProvider provider={emailProvider}>
+                    <AuthProviderProvider {...authRegistry}>
+                    <DataProviderProvider {...dataRegistry}>
+                    <StorageProviderProvider {...storageRegistry}>
+                    <MaybeEmailProvider registry={emailRegistry.registry} defaultKey={emailRegistry.defaultKey}>
                     <ThemeProvider importTheme={importTheme}>
                         <Routes>
                             <Route path={AUTH_REDIRECT_URI} element={<Authorize />}></Route>

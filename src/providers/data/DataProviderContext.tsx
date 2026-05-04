@@ -1,19 +1,29 @@
 import React, { createContext, useContext } from 'react';
 import { DataProvider } from './DataProvider';
 
-const DataProviderContext = createContext<DataProvider | null>(null);
+type DataProviderRegistry = {
+    registry: Record<string, DataProvider>;
+    defaultKey: string;
+};
 
-export const DataProviderProvider = ({ provider, children }: { provider: DataProvider; children: React.ReactNode }) => (
-    <DataProviderContext.Provider value={provider}>
+const DataProviderContext = createContext<DataProviderRegistry | null>(null);
+
+export const DataProviderProvider = ({
+    registry,
+    defaultKey,
+    children,
+}: DataProviderRegistry & { children: React.ReactNode }) => (
+    <DataProviderContext.Provider value={{ registry, defaultKey }}>
         {children}
     </DataProviderContext.Provider>
 );
 
-export const useDataProvider = (): DataProvider => {
-    const provider = useContext(DataProviderContext);
-    if (!provider) {
-        throw new Error('useDataProvider must be used inside <App> with a dataProvider prop.');
-    }
+export const useDataProvider = (name?: string): DataProvider => {
+    const ctx = useContext(DataProviderContext);
+    if (!ctx) throw new Error('useDataProvider must be used inside <App>.');
+    const key = name ?? ctx.defaultKey;
+    const provider = ctx.registry[key];
+    if (!provider) throw new Error(`DataProvider '${key}' is not registered. Available: ${Object.keys(ctx.registry).join(', ')}`);
     return provider;
 };
 
