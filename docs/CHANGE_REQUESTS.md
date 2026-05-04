@@ -13,6 +13,7 @@
 | [CR-001](#cr-001--documentazione-ai-first) | Documentazione AI-first | Alta | — | ✅ |
 | [CR-002](#cr-002--provider-abstraction-layer) | Provider abstraction layer | Critica | — | ✅ |
 | [CR-002b](#cr-002b--authprovider--emailprovider-interfaces) | AuthProvider + EmailProvider interfaces | Alta | CR-002 | ✅ |
+| [CR-008](#cr-008--conversione-temi-bootstrap--tailwind--shadcnui) | Conversione temi Bootstrap → Tailwind + shadcn/ui | Media | CR-004 | ⬜ |
 | [CR-003](#cr-003--typescript-strict) | TypeScript strict | Alta | — | ✅ |
 | [CR-004](#cr-004--shadcnui--tailwind-css) | shadcn/ui + Tailwind CSS | Alta | CR-002 | ⬜ |
 | [CR-005](#cr-005--cli-update-e-scaffolding) | CLI update e scaffolding | Media | CR-002, CR-004 | ⬜ |
@@ -723,3 +724,95 @@ Il codice generato live è particolarmente utile per l'AI: un developer (o un AI
 - [ ] Home page con overview e quick links
 - [ ] Deploy della playground (GitHub Pages o Vercel)
 - [ ] Link alla playground da `CLAUDE.md` e `docs/`
+
+---
+
+## CR-008 — Conversione temi Bootstrap → Tailwind + shadcn/ui
+
+**Stato:** ⬜ todo  
+**Branch:** `modernize/themes-tailwind`  
+**Priorità:** Media  
+**Dipende da:** CR-004 (shadcn/ui + Tailwind installati e funzionanti nel framework)  
+**Breaking change:** No per il framework — sì per chi ha customizzato i temi Bootstrap
+
+### Motivazione
+
+I 4 temi esistenti (`empty`, `default`, `flat`, `cyber`) usano Bootstrap 5 per layout, utility classes e componenti JS (offcanvas, dropdown, collapse). Dopo CR-004 il framework usa Tailwind + shadcn/ui — i temi devono essere allineati per:
+- eliminare la dipendenza da Bootstrap CDN/bundle nei progetti scaffoldati
+- usare le stesse utility class del framework (Tailwind) invece di due sistemi paralleli
+- rendere il look dei temi coerente con i componenti shadcn/ui
+
+### Strategia di conversione per ogni tema
+
+Per ogni tema la conversione tocca **due layer separati**:
+
+1. **`theme.js`** — mappa i token visivi del framework (classi bottoni, tabelle, menu, ecc.)  
+   → sostituire classi Bootstrap (`btn btn-primary`, `table table-striped`) con classi Tailwind equivalenti  
+   → questo è il layer che il framework usa per renderizzare i suoi componenti (Form, Grid, Menu, ecc.)
+
+2. **Componenti JSX** (`layouts/`, `sections/`) — il layout dell'app scaffoldata  
+   → sostituire utility Bootstrap (`d-flex`, `navbar`, `offcanvas`) con Tailwind (`flex`, componenti shadcn)  
+   → il CSS bundle Bootstrap (CDN o locale) viene rimosso da `index.html`
+
+### Analisi per tema
+
+| Tema | Struttura attuale | Dipendenze Bootstrap | Effort stimato |
+|------|------------------|---------------------|---------------|
+| `empty` | Solo passthrough `{children}` | Bootstrap 5.3 CDN + app.min.css | **1 giorno** — rimuovere CDN, convertire reset CSS |
+| `default` | Navbar + Sidebar offcanvas + Layout flex | Bootstrap 5.3 CDN + app.min.css | **2-3 giorni** — navbar → shadcn, offcanvas → Sheet, utility → Tailwind |
+| `flat` | Admin dashboard completo — sidebar collassabile, header, pageheader, preloader, preset colori | CSS locale 10K+ righe (style.css + style-preset.css) + pcoded.js | **2-3 settimane** — ricostruire sidebar menu, header, layout system, sistema preset colori |
+| `cyber` | Admin dashboard completo — simile a flat con Bootstrap Icons e stile "cyberpunk" | vendor.min.css + app.min.css + bootstrap.bundle.min.js | **2-3 settimane** — idem flat ma con palette diversa e icone Bootstrap Icons |
+
+### Componenti shadcn/ui da usare nelle conversioni
+
+| Bootstrap | shadcn/ui equivalente |
+|-----------|----------------------|
+| `Offcanvas` (sidebar mobile) | `Sheet` |
+| `Dropdown` | `DropdownMenu` |
+| `Collapse` (submenu) | `Collapsible` |
+| `Modal` | `Dialog` (già in CR-004) |
+| `Navbar` | custom Tailwind flex |
+| `.d-flex`, `.align-items-center` ecc. | Tailwind utilities dirette |
+| `data-bs-toggle` JS behaviors | stato React (`useState`) |
+
+### Implicazioni sul sistema preset colori (flat/cyber)
+
+`flat` e `cyber` usano un sistema di preset colori via `data-pc-preset="preset-N"` con CSS variables. La versione Tailwind userebbe:
+- `tailwind.config.js` con `extend.colors` per le palette
+- CSS variables shadcn per il tema dinamico (già supportato da shadcn out of the box con `next-themes` o equivalente)
+
+### Checklist
+
+**Tema `empty`:**
+- [ ] Rimuovere Bootstrap CDN da `public/index.html`
+- [ ] Convertire `app.min.css` → `globals.css` Tailwind base
+- [ ] Aggiornare `theme.js` con token Tailwind vuoti (passthrough)
+
+**Tema `default`:**
+- [ ] Rimuovere Bootstrap CDN da `public/index.html`
+- [ ] Convertire `Header.js` → Tailwind flex navbar + shadcn `DropdownMenu`
+- [ ] Convertire `Sidebar.js` → shadcn `Sheet` per mobile offcanvas, flex fisso per desktop
+- [ ] Convertire `Default.js` layout → Tailwind flex/grid
+- [ ] Convertire `theme.js` — tutti i token Bootstrap → Tailwind
+- [ ] Rimuovere `app.min.css`, aggiungere `globals.css` Tailwind
+
+**Tema `flat`:**
+- [ ] Rimuovere `style.css`, `style-preset.css`, `pcoded.js` da `public/`
+- [ ] Ricostruire sistema layout (`.app`, `.app-content`, `.pc-container`) in Tailwind
+- [ ] Ricostruire `Sidebar.js` — menu gerarchico con `Collapsible` shadcn per i submenu
+- [ ] Ricostruire `Header.js` — top bar con shadcn `DropdownMenu`, `Sheet` per mobile
+- [ ] Ricostruire `PreLoader.js` — animazione Tailwind animate-*
+- [ ] Ricostruire sistema preset colori → `tailwind.config.js` + CSS variables shadcn
+- [ ] Sostituire Phosphor icons con Lucide (già incluso in shadcn)
+- [ ] Convertire `theme.js` — token Bootstrap → Tailwind
+- [ ] Aggiornare `public/index.html` — rimuovere tutti i bundle Bootstrap
+
+**Tema `cyber`:**
+- [ ] Rimuovere `vendor.min.css`, `app.min.css`, `bootstrap.bundle.min.js` da `public/`
+- [ ] Ricostruire sistema layout come per flat (struttura `.pc-*` identica)
+- [ ] Ricostruire `Sidebar.js` — menu con stile "cyber" (bordi, glow effects in Tailwind)
+- [ ] Ricostruire `Header.js` — top bar cyber style
+- [ ] Convertire palette "cyberpunk" → Tailwind config + CSS variables shadcn
+- [ ] Sostituire Bootstrap Icons (`bi bi-*`) con Lucide o mantenere come font esterno
+- [ ] Convertire `theme.js` — token Bootstrap → Tailwind
+- [ ] Aggiornare `public/index.html`
