@@ -28,31 +28,22 @@ Rendere react-firestrap un framework React **provider-agnostic**, **AI-friendly*
 
 ```
 main
-└── v2                                  ← branch base di integrazione, merge finale su main
-    ├── modernize/cr-001-docs           ← FASE 0, inizia subito, parallela a tutto
-    ├── modernize/cr-002-providers      ← FASE 1, fondamenta (CR-002)
-    ├── modernize/cr-003-typescript     ← FASE 2, parallela a providers (CR-003)
-    ├── modernize/cr-004-tailwind       ← FASE 3, dopo providers stabile (CR-004)
-    ├── modernize/cr-006-tests          ← FASE 4, dopo providers + typescript (CR-006)
-    ├── modernize/cr-005-cli            ← FASE 5, dopo tailwind (CR-005)
-    └── modernize/cr-007-playground     ← FASE 6, dopo tutto stabile (CR-007)
+└── modernize    ← unico branch di lavoro, merge finale su main quando v2.0 è stabile
 ```
 
-> **Nota branch:** Git non permette un branch `modernize` e sub-branch `modernize/X` coesistere.
-> Il branch base di integrazione si chiama `v2`. I feature branch usano il prefisso `modernize/`.
+Tutto il refactoring avviene in sequenza su `modernize`, una CR alla volta.
+Nessun sub-branch — ogni CR è tracciata dai commit e dalla checklist in CHANGE_REQUESTS.md.
 
-### Ordine di esecuzione e parallelismo
+### Ordine di esecuzione (sequenziale su `modernize`)
 
 ```
-Timeline →
-
-[FASE 0] docs          ──────────────────────────────────────── ongoing
-[FASE 1] providers     ████████████
-[FASE 2] typescript        ████████████ (parallela a providers)
-[FASE 3] tailwind                    ████████████████████
-[FASE 4] tests                               ████████████████
-[FASE 5] cli                                         ████████
-[FASE 6] playground                                      ████████████████████
+CR-001 docs        ✅ done
+CR-002 providers   ← prossima
+CR-003 typescript
+CR-004 tailwind
+CR-006 tests
+CR-005 cli
+CR-007 playground
 ```
 
 ---
