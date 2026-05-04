@@ -22,6 +22,12 @@ import {
     GoogleServiceAccount,
     ScrapeConfig
 } from "./Config";
+import { DataProvider } from "./providers/data/DataProvider";
+import { DataProviderProvider } from "./providers/data/DataProviderContext";
+import { StorageProvider } from "./providers/storage/StorageProvider";
+import { StorageProviderProvider } from "./providers/storage/StorageProviderContext";
+import { FirebaseDataProvider } from "./providers/data/firebase";
+import { FirebaseStorageProvider } from "./providers/storage/firebase";
 
 
 
@@ -46,8 +52,8 @@ type MenuConfig = {
 };
 
 type AppProps = {
-    firebaseConfig: FirebaseConfig;
-    oAuth2: GoogleOAuth2;
+    firebaseConfig?: FirebaseConfig;
+    oAuth2?: GoogleOAuth2;
     serviceAccount?: GoogleServiceAccount;
     dropBoxConfig?: DropboxConfig;
     aiConfig?: AIConfig;
@@ -58,6 +64,8 @@ type AppProps = {
     importTheme?: () => Promise<{ theme: object }>;
     LayoutDefault?: React.ComponentType;
     menuConfig: MenuConfig;
+    dataProvider?: DataProvider;
+    storageProvider?: StorageProvider;
 };
 
 let menu: MenuConfig = {};
@@ -84,7 +92,11 @@ function App({
                  tenantsURI         = undefined,
                  proxyURI           = undefined,
                  menuConfig         = {},
+                 dataProvider,
+                 storageProvider,
 }: AppProps) {
+    const resolvedDataProvider = dataProvider ?? new FirebaseDataProvider();
+    const resolvedStorageProvider = storageProvider ?? new FirebaseStorageProvider();
     setStaticMenu(menuConfig);
 
     const LayoutEmpty = ({ children }: { children: React.ReactNode }) => <>{children}</>;
@@ -154,6 +166,8 @@ function App({
                 proxyURI: proxyURI
             }} tenantsURI={tenantsURI}>
                 <GlobalProvider>
+                    <DataProviderProvider provider={resolvedDataProvider}>
+                    <StorageProviderProvider provider={resolvedStorageProvider}>
                     <ThemeProvider importTheme={importTheme}>
                         <Routes>
                             <Route path={AUTH_REDIRECT_URI} element={<Authorize />}></Route>
@@ -172,6 +186,8 @@ function App({
                             <Route path='*' element={<NotFound />}></Route>
                         </Routes>
                     </ThemeProvider>
+                    </StorageProviderProvider>
+                    </DataProviderProvider>
                 </GlobalProvider>
             </ConfigProvider>
         </BrowserRouter>

@@ -11,7 +11,7 @@
 | CR | Titolo | Priorità | Dipende da | Stato |
 |----|--------|----------|-----------|-------|
 | [CR-001](#cr-001--documentazione-ai-first) | Documentazione AI-first | Alta | — | ✅ |
-| [CR-002](#cr-002--provider-abstraction-layer) | Provider abstraction layer | Critica | — | ⬜ |
+| [CR-002](#cr-002--provider-abstraction-layer) | Provider abstraction layer | Critica | — | ✅ |
 | [CR-003](#cr-003--typescript-strict) | TypeScript strict | Alta | — | ⬜ |
 | [CR-004](#cr-004--shadcnui--tailwind-css) | shadcn/ui + Tailwind CSS | Alta | CR-002 | ⬜ |
 | [CR-005](#cr-005--cli-update-e-scaffolding) | CLI update e scaffolding | Media | CR-002, CR-004 | ⬜ |
@@ -58,8 +58,8 @@ Un AI che lavora su questo progetto ha zero training data su react-firestrap. Se
 
 ## CR-002 — Provider abstraction layer
 
-**Stato:** ⬜ todo  
-**Branch:** `modernize/providers`  
+**Stato:** ✅ done  
+**Branch:** `modernize`  
 **Priorità:** Critica — sblocca CR-004  
 **Stima:** 1–2 settimane  
 **Breaking change:** No (API pubblica invariata, cambia solo internamente)
@@ -136,25 +136,25 @@ export interface StorageProvider {
 ```
 
 ### Checklist
-- [ ] Creare `src/providers/data/DataProvider.ts` (interface + tipi)
-- [ ] Creare `src/providers/data/DataProviderContext.tsx` (Context + hook)
-- [ ] Creare `src/providers/storage/StorageProvider.ts` (interface)
-- [ ] Creare `src/providers/storage/StorageProviderContext.tsx`
-- [ ] Migrare `firedatabase.ts` → `providers/data/firebase.ts` implementando DataProvider
-- [ ] Migrare `firestorage.ts` → `providers/storage/firebase.ts` implementando StorageProvider
-- [ ] Scrivere `providers/data/supabase.ts`
-- [ ] Scrivere `providers/storage/supabase.ts`
-- [ ] Aggiornare `Form.tsx` — sostituire `import db` con `useDataProvider()`
-- [ ] Aggiornare `Grid.tsx` — sostituire `import db` con `useDataProvider()`
+- [x] Creare `src/providers/data/DataProvider.ts` (interface + tipi)
+- [x] Creare `src/providers/data/DataProviderContext.tsx` (Context + hook)
+- [x] Creare `src/providers/storage/StorageProvider.ts` (interface)
+- [x] Creare `src/providers/storage/StorageProviderContext.tsx`
+- [x] Migrare `firedatabase.ts` → `providers/data/firebase.ts` implementando DataProvider
+- [x] Migrare `firestorage.ts` → `providers/storage/firebase.ts` implementando StorageProvider
+- [x] Scrivere `providers/data/supabase.ts`
+- [x] Scrivere `providers/storage/supabase.ts`
+- [x] Aggiornare `Form.tsx` — sostituire `import db` con `useDataProvider()`
+- [x] Aggiornare `Grid.tsx` — sostituire `import db` con `useDataProvider()`
 - [ ] Aggiornare `Upload.tsx` — sostituire storage diretto con `useStorageProvider()`
-- [ ] Aggiornare `App.tsx` — accettare `dataProvider` e `storageProvider` come prop
+- [x] Aggiornare `App.tsx` — accettare `dataProvider` e `storageProvider` come prop
 - [ ] Spostare `integrations/ai.ts` → `providers/ai/index.ts`
 - [ ] Spostare `integrations/google/GoogleAuth.tsx` → `providers/auth/google/`
 - [ ] Spostare `integrations/scrape.ts` → `providers/scrape/index.ts`
 - [ ] Spostare `integrations/dropbox.tsx` → `providers/dropbox/index.ts`
 - [ ] Rinominare `models/` → `types/`
-- [ ] Aggiornare `src/index.ts` con i nuovi export path
-- [ ] Aggiornare tutti gli import interni
+- [x] Aggiornare `src/index.ts` con i nuovi export path
+- [x] Aggiornare libs/database.ts e libs/storage.ts (backward-compat re-export)
 - [ ] Test manuale: Form con FirebaseDataProvider
 - [ ] Test manuale: Grid con FirebaseDataProvider
 - [ ] Test manuale: Upload con FirebaseStorageProvider

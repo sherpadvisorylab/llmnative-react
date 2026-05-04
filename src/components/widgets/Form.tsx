@@ -2,13 +2,13 @@
     import { useLocation } from "react-router-dom";
     import { Wrapper } from "../ui/GridSystem";
     import { trimSlash, cleanRecord } from "../../libs/utils";
-    import db from "../../libs/database";
+    import { useDataProvider } from "../../providers/data/DataProviderContext";
     import Card from "../ui/Card";
     import { BackLink, LoadingButton } from "../ui/Buttons";
     import setLog from "../../libs/log";
     import { useTheme } from "../../Theme";
     import Alert from "../ui/Alert";
-    import { RecordProps } from "../../integrations/google/firedatabase";
+    import { RecordProps } from "../../providers/data/DataProvider";
     import {FormTree, ModelProps, buildFormFields} from "../Component";
     import Breadcrumbs from "../blocks/Breadcrumbs";
     import { UIProps } from '../';
@@ -353,9 +353,10 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
 
     export const FormDatabase = forwardRef<FormRef, FormDatabaseProps>((props, ref) => {
         const { dataStoragePath, defaultValues, ...rest } = props;
-        
+        const db = useDataProvider();
+
         const [record, setRecord] = useState<RecordProps | undefined>(undefined);
-        
+
         useEffect(() => {
             db.read(dataStoragePath).then(data => {
                 setRecord({ ...defaultValues, ...data});
@@ -402,6 +403,7 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
         footerClass = undefined
     }, ref) => {
         const theme = useTheme("form");
+        const db = useDataProvider();
 
         const [record, setRecord] = useState<RecordProps | undefined>(defaultValues);
         const isNewRecord = !dataStoragePath;

@@ -3,13 +3,13 @@ import { useTheme } from "../../Theme";
 import Table, { TableHeaderProp } from "../ui/Table";
 import Gallery from "../ui/Gallery";
 import Card from "../ui/Card";
-import db from "../../libs/database";
+import { useDataProvider } from "../../providers/data/DataProviderContext";
 import Modal from "../ui/Modal";
 import { getRecordValue, safeClone, trimSlash } from "../../libs/utils";
 import { useLocation, useNavigate } from "react-router-dom";
 import { converter } from "../../libs/converter";
 import FormEnhancer, { extractComponentProps } from "../FormEnhancer";
-import { RecordArray, RecordProps } from "../../integrations/google/firedatabase";
+import { RecordArray, RecordProps } from "../../providers/data/DataProvider";
 import Form, { FormRef } from "./Form";
 import { PaginationParams } from '../ui/Pagination';
 
@@ -74,6 +74,7 @@ const Grid = (props: GridProps) => {
 const GridDatabase = (props: Omit<GridProps, 'dataArray'>) => {
     const { dataStoragePath, ...rest } = props;
     const location = useLocation();
+    const db = useDataProvider();
     console.log("GRID: GridDatabase", props);
     const dbStoragePath = dataStoragePath || trimSlash(location.pathname);
     const [records, setRecords] = useState<RecordArray | undefined>(undefined);
