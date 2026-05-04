@@ -161,41 +161,29 @@ function applyTheme(params) {
 }
 
 function createEnvFile(params) {
-    ensureFile(path.join(root, '.env'), `
-# 🔐 Firebase Config (required)
-REACT_APP_FIREBASE_APIKEY='${params.firebase.apikey}'
-REACT_APP_FIREBASE_AUTH_DOMAIN='${params.firebase.authDomain}'
-REACT_APP_FIREBASE_PROJECT_ID='${params.firebase.projId}'
-REACT_APP_FIREBASE_MESSAGING_SENDER_ID='${params.firebase.messSenderId}'
-REACT_APP_FIREBASE_APP_ID='${params.firebase.appId}'
-REACT_APP_FIREBASE_MEASUREMENT_ID='${params.firebase.measurementId}'
+    const templatePath = path.resolve(__dirname, '../../.env.template');
+    if (!fs.existsSync(templatePath)) {
+        console.error('❌ .env.template not found at', templatePath);
+        return;
+    }
 
-# 📦 Database (required)
-REACT_APP_FIREBASE_DATABASE_URL='${params.firebase.dbUrl}'
+    const substitutions = {
+        FIREBASE_APIKEY:            params.firebase.apikey,
+        FIREBASE_AUTH_DOMAIN:       params.firebase.authDomain,
+        FIREBASE_DATABASE_URL:      params.firebase.dbUrl,
+        FIREBASE_PROJECT_ID:        params.firebase.projId,
+        FIREBASE_MESSAGING_SENDER_ID: params.firebase.messSenderId,
+        FIREBASE_APP_ID:            params.firebase.appId,
+        FIREBASE_MEASUREMENT_ID:    params.firebase.measurementId,
+        GOOGLE_CLIENT_ID:           params.firebase.googleClientId,
+    };
 
-# 📦 Storage (optional)
-REACT_APP_FIREBASE_STORAGE_BUCKET=
+    let content = fs.readFileSync(templatePath, 'utf8');
+    for (const [key, value] of Object.entries(substitutions)) {
+        content = content.replace(new RegExp(`\\[${key}\\]`, 'g'), value || '');
+    }
 
-# 🧩 OAuth (required)
-REACT_APP_GOOGLE_CLIENT_ID='${params.firebase.googleClientId}'
-REACT_APP_GOOGLE_SCOPE='https://www.googleapis.com/auth/doubleclicksearch https://www.googleapis.com/auth/analytics'
-
-# 🧩 Dropbox (optional)
-REACT_APP_DROPBOX_CLIENT_ID=
-REACT_APP_DROPBOX_CLIENT_SECRET=
-REACT_APP_DROPBOX_BASE_PATH=
-
-# 🧩 AI (optional)
-REACT_APP_GEMINI_API_KEY=
-REACT_APP_OPENAI_API_KEY=
-REACT_APP_DEEPSEEK_API_KEY=
-REACT_APP_ANTHROPIC_API_KEY=
-REACT_APP_MISTRAL_API_KEY=
-
-# 🧩 Scrape (optional)
-REACT_APP_SERPAPI_API_KEY=
-
-  `);
+    ensureFile(path.join(root, '.env'), content);
 }
 
 function normalizeFirebaseProjectId(projectName) {
