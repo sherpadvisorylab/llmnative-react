@@ -28,15 +28,18 @@ Rendere react-firestrap un framework React **provider-agnostic**, **AI-friendly*
 
 ```
 main
-└── modernize                    ← base di tutte le fasi, merge finale su main
-    ├── modernize/docs            ← FASE 0, inizia subito, parallela a tutto
-    ├── modernize/providers       ← FASE 1, fondamenta (CR-002)
-    ├── modernize/typescript      ← FASE 2, parallela a providers (CR-003)
-    ├── modernize/tailwind        ← FASE 3, dopo providers stabile (CR-004)
-    ├── modernize/tests           ← FASE 4, dopo providers + typescript (CR-006)
-    ├── modernize/cli             ← FASE 5, dopo tailwind (CR-005)
-    └── modernize/playground      ← FASE 6, dopo tutto stabile (CR-007)
+└── v2                                  ← branch base di integrazione, merge finale su main
+    ├── modernize/cr-001-docs           ← FASE 0, inizia subito, parallela a tutto
+    ├── modernize/cr-002-providers      ← FASE 1, fondamenta (CR-002)
+    ├── modernize/cr-003-typescript     ← FASE 2, parallela a providers (CR-003)
+    ├── modernize/cr-004-tailwind       ← FASE 3, dopo providers stabile (CR-004)
+    ├── modernize/cr-006-tests          ← FASE 4, dopo providers + typescript (CR-006)
+    ├── modernize/cr-005-cli            ← FASE 5, dopo tailwind (CR-005)
+    └── modernize/cr-007-playground     ← FASE 6, dopo tutto stabile (CR-007)
 ```
+
+> **Nota branch:** Git non permette un branch `modernize` e sub-branch `modernize/X` coesistere.
+> Il branch base di integrazione si chiama `v2`. I feature branch usano il prefisso `modernize/`.
 
 ### Ordine di esecuzione e parallelismo
 
