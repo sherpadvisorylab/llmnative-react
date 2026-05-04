@@ -21,9 +21,19 @@ src/
     Component.tsx   ← FieldAdapter pattern per schema-driven forms
     FormEnhancer.tsx
     Template.tsx
-  integrations/  ← Firebase, AI (OpenAI/Gemini/Anthropic/DeepSeek/Mistral), Dropbox, Scrape
+  providers/     ← Ports & Adapters: interfacce + implementazioni concrete, per dominio
+    data/        ← DataProvider interface + FirebaseDataProvider
+    storage/     ← StorageProvider interface + FirebaseStorageProvider, dropbox.tsx
+    auth/        ← AuthProvider interface + google/GoogleAuthProvider
+    email/       ← EmailProvider interface + google/GmailEmailProvider
+    ai/          ← AI multi-provider (OpenAI/Gemini/Anthropic/DeepSeek/Mistral)
+    seo/         ← Google Ads keyword, Trends
+    scrape/      ← SerpAPI scraping
+    firebase-init.ts  ← inizializzazione Firebase app
+  integrations/  ← stub backward-compat (re-export da providers/) — non modificare
+  types/         ← TypeScript types e interfaces (ex models/)
+  models/        ← stub backward-compat (re-export da types/) — non modificare
   libs/          ← utilities pure senza dipendenze React (converter, path, sanitizer, cache…)
-  models/        ← TypeScript types e interfaces
   conf/          ← configurazioni statiche (prompt templates)
   Theme.tsx      ← sistema tema via React Context
   Config.tsx     ← ConfigProvider: Firebase, Google OAuth, AI, Dropbox
@@ -31,7 +41,8 @@ src/
   App.tsx        ← entry point con routing e provider
 ```
 
-**Regola di dipendenza:** `libs/` non conosce React · `components/` non importa da `integrations/` direttamente · tutto fluisce verso l'alto
+**Regola di dipendenza:** `libs/` non conosce React · `components/` non importa da `providers/` direttamente · tutto fluisce verso l'alto  
+**Nota:** `integrations/` e `models/` sono stub di backward-compat — tutta la logica è in `providers/` e `types/`.
 
 ---
 
@@ -272,6 +283,90 @@ Provider configurati in `Config.tsx` via `AIConfig` (geminiApiKey, openaiApiKey,
 
 ---
 
+## Provider Registry (CR-002 / CR-002b)
+
+Tutti i provider seguono il pattern **Ports & Adapters**: un'interfaccia (port) + implementazioni concrete (adapters) iniettate via React Context.
+
+### Configurazione base (shorthand — backward compat)
+
+```tsx
+import { App } from 'react-firestrap'
+import { FirebaseDataProvider } from 'react-firestrap/providers/data/firebase'
+import { GmailEmailProvider } from 'react-firestrap/providers/email/google/GmailEmailProvider'
+
+<App
+  dataProvider={new FirebaseDataProvider()}
+  emailProvider={new GmailEmailProvider()}
+  ...
+/>
+```
+
+### Configurazione multi-provider (Named Registry)
+
+Registra più provider dello stesso tipo, seleziona quale usare per ogni operazione:
+
+```tsx
+import { SupabaseDataProvider } from './my-providers/SupabaseDataProvider'
+
+<App
+  providers={{
+    data: {
+      firebase: new FirebaseDataProvider(),
+      supabase: new SupabaseDataProvider(),
+    },
+    email: {
+      gmail: new GmailEmailProvider(),
+    },
+  }}
+  defaultProviders={{
+    data: process.env.REACT_APP_DATA_PROVIDER || 'firebase',
+  }}
+  ...
+/>
+```
+
+### Consumo nei componenti
+
+```tsx
+import { useDataProvider, useAuthProvider, useStorageProvider, useEmailProvider } from 'react-firestrap'
+
+// provider di default
+const data = useDataProvider()
+
+// provider specifico per nome
+const supabase = useDataProvider('supabase')
+
+// provider opzionali (tornano null se non configurati)
+const storage = useStorageProvider()        // null se non configurato
+const email   = useEmailProvider('gmail')   // null se 'gmail' non registrato
+```
+
+### Implementare un provider custom
+
+```typescript
+// my-providers/SupabaseDataProvider.ts
+import { DataProvider, RecordData, RecordArray } from 'react-firestrap'
+
+export class SupabaseDataProvider implements DataProvider {
+  async get(path: string, id: string): Promise<RecordData> { /* ... */ }
+  async list(path: string): Promise<RecordArray> { /* ... */ }
+  async save(path: string, id: string, data: RecordData): Promise<void> { /* ... */ }
+  async delete(path: string, id: string): Promise<void> { /* ... */ }
+  subscribe(path: string, cb: (data: RecordArray) => void): () => void { /* ... */ }
+}
+```
+
+### Interfacce disponibili
+
+| Interfaccia | Path | Obbligatorio |
+|-------------|------|--------------|
+| `DataProvider` | `providers/data/DataProvider.ts` | sì (fallback: FirebaseDataProvider) |
+| `StorageProvider` | `providers/storage/StorageProvider.ts` | no (null se assente) |
+| `AuthProvider` | `providers/auth/AuthProvider.ts` | sì (fallback: GoogleAuthProvider) |
+| `EmailProvider` | `providers/email/EmailProvider.ts` | no (null se assente) |
+
+---
+
 ## Dove cercare
 
 | Cosa stai cercando | Dove guardare |
@@ -279,13 +374,20 @@ Provider configurati in `Config.tsx` via `AIConfig` (geminiApiKey, openaiApiKey,
 | Come funziona Form | `src/components/widgets/Form.tsx` |
 | Come funziona Grid | `src/components/widgets/Grid.tsx` |
 | Un campo specifico | `src/components/ui/fields/` |
-| Logica Firebase DB | `src/integrations/google/firedatabase.ts` |
-| Logica Firebase Storage | `src/integrations/google/firestorage.ts` |
-| Integrazione AI | `src/integrations/ai.ts` |
+| Logica Firebase DB | `src/providers/data/firebase/` |
+| Logica Firebase Storage | `src/providers/storage/firebase/` |
+| Interfaccia DataProvider | `src/providers/data/DataProvider.ts` |
+| Interfaccia AuthProvider | `src/providers/auth/AuthProvider.ts` |
+| Interfaccia EmailProvider | `src/providers/email/EmailProvider.ts` |
+| Integrazione AI | `src/providers/ai/index.ts` |
+| Auth Google (UI + token) | `src/providers/auth/google/` |
+| Email Gmail | `src/providers/email/google/GmailEmailProvider.ts` |
+| Scraping | `src/providers/scrape/index.ts` |
+| SEO / Keywords | `src/providers/seo/google/` |
 | Utilities pure | `src/libs/` |
 | Sistema tema | `src/Theme.tsx` |
 | Configurazione app | `src/Config.tsx` |
-| Tipi e interfaces | `src/models/` |
+| Tipi e interfaces | `src/types/` |
 
 ---
 
@@ -295,8 +397,9 @@ In corso sul branch `modernize`. Vedi `docs/CHANGE_REQUESTS.md` per i dettagli.
 
 | CR | Descrizione | Stato |
 |----|-------------|-------|
-| CR-001 | Documentazione AI-first (questo file) | 🔄 in progress |
-| CR-002 | Provider abstraction layer (DataProvider interface) | ⬜ todo |
+| CR-001 | Documentazione AI-first (questo file) | ✅ done |
+| CR-002 | Provider abstraction layer (DataProvider, StorageProvider + Named Registry) | ✅ done |
+| CR-002b | AuthProvider + EmailProvider interface + Named Registry | ✅ done |
 | CR-003 | TypeScript strict | ⬜ todo |
 | CR-004 | shadcn/ui + Tailwind (rimpiazza Bootstrap) | ⬜ todo |
 | CR-005 | CLI aggiornato | ⬜ todo |
