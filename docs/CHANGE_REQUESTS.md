@@ -13,7 +13,7 @@
 | [CR-001](#cr-001--documentazione-ai-first) | Documentazione AI-first | Alta | — | ✅ |
 | [CR-002](#cr-002--provider-abstraction-layer) | Provider abstraction layer | Critica | — | ✅ |
 | [CR-002b](#cr-002b--authprovider--emailprovider-interfaces) | AuthProvider + EmailProvider interfaces | Alta | CR-002 | ✅ |
-| [CR-003](#cr-003--typescript-strict) | TypeScript strict | Alta | — | ⬜ |
+| [CR-003](#cr-003--typescript-strict) | TypeScript strict | Alta | — | ✅ |
 | [CR-004](#cr-004--shadcnui--tailwind-css) | shadcn/ui + Tailwind CSS | Alta | CR-002 | ⬜ |
 | [CR-005](#cr-005--cli-update-e-scaffolding) | CLI update e scaffolding | Media | CR-002, CR-004 | ⬜ |
 | [CR-006](#cr-006--batterie-di-test) | Batterie di test | Alta | CR-002, CR-003 | ⬜ |
@@ -255,8 +255,8 @@ export interface EmailProvider {
 
 ## CR-003 — TypeScript strict
 
-**Stato:** ⬜ todo  
-**Branch:** `modernize/typescript`  
+**Stato:** ✅ done  
+**Branch:** `modernize`  
 **Priorità:** Alta — parallela a CR-002  
 **Stima:** 1 settimana  
 **Breaking change:** No
@@ -271,20 +271,13 @@ export interface EmailProvider {
 - Risolvere tutti gli errori TypeScript risultanti
 
 ### Checklist
-- [ ] Abilitare `strict: true` in `tsconfig.json`
-- [ ] Definire `type BaseRecord = Record<string, unknown>`
-- [ ] Aggiornare `RecordProps` con generic `T extends BaseRecord`
-- [ ] Aggiornare `RecordArray` di conseguenza
-- [ ] Tipizzare `ColumnFormatter` in Grid
-- [ ] Tipizzare `FormRef` (handleSave, handleDelete, getRecord, getHeader, getFooter)
-- [ ] Tipizzare `FieldAdapter<TProps>` in Component.tsx
-- [ ] Tipizzare `QueryOptions` e `Condition` in DataProvider
-- [ ] Risolvere errori TypeScript in `Form.tsx`
-- [ ] Risolvere errori TypeScript in `Grid.tsx`
-- [ ] Risolvere errori TypeScript in `fields/Input.tsx`
-- [ ] Risolvere errori TypeScript in `fields/Select.tsx`
-- [ ] Risolvere errori TypeScript nei provider Firebase
-- [ ] Build pulita senza errori
+- [x] `strict: true` già abilitato in `tsconfig.json`
+- [x] Rimozione `@types/react-router-dom` v5 (obsoleto in RRD v6, tipi bundled)
+- [x] Installazione `react-router-dom@^6.22.0` e `googleapis` come devDependencies
+- [x] Fix `App.tsx`: cast nullable firebaseConfig/oAuth2 per strict null checks
+- [x] Fix `providers/email/google/apis/email.ts`: overload googleapis corretto
+- [x] Rimosso exclude stale `src/integrations/google` da tsconfig.json
+- [x] Build pulita senza errori (`tsc --noEmit` exit 0)
 
 ---
 
