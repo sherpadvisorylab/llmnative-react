@@ -13,8 +13,7 @@ export async function sendEmail({ to, subject, message }: SendEmailOptions) {
         scopes: ['https://www.googleapis.com/auth/gmail.send'],
     });
 
-    const client = await auth.getClient();
-    const gmail = google.gmail({ version: 'v1', auth: client });
+    const gmail = google.gmail({ version: 'v1', auth });
 
     const email = [
         `To: ${to}`,

@@ -15,7 +15,7 @@
   },
   "bin": {
     "react-firestrap": "./bin/cli.js"
-  }, 
+  },
   "files": [
     "dist",
     "dist/**/*.map",
@@ -73,8 +73,8 @@
     "@types/prismjs": "^1.26.5",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
-    "@types/react-router-dom": "^6.22.0",
     "babel-loader": "^9.2.1",
+    "googleapis": "^171.4.0",
     "react-router-dom": "^6.22.0",
     "ts-loader": "^9.5.1",
     "typescript": "^5.6.2",

@@ -229,8 +229,8 @@ function App({
         <BrowserRouter>
             <ConfigProvider defaultConfig={{
                 title: "Default",
-                firebase: firebaseConfig,
-                google: { oAuth2, serviceAccount },
+                firebase: firebaseConfig as FirebaseConfig,
+                google: { oAuth2: oAuth2 as GoogleOAuth2, serviceAccount },
                 dropbox: dropBoxConfig,
                 ai: aiConfig,
                 scrape: scrapeConfig,

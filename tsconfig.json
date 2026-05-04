@@ -17,9 +17,8 @@
   "include": [                                // Include all files in src folder
     "src/**/*"
   ],
-  "exclude": [                                // Exclude these folders
+  "exclude": [
     "node_modules",
-    "dist",
-    "src/integrations/google"                 //da mettere a posto quando viene implementato gli account di servizio google
+    "dist"
   ]
 }
