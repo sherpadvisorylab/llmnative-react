@@ -19,7 +19,6 @@ export { GoogleAuthProvider } from './providers/auth/google/GoogleAuthProvider';
 export type { EmailProvider, EmailSendParams } from './providers/email/EmailProvider';
 export { useEmailProvider } from './providers/email/EmailProviderContext';
 export { GmailEmailProvider } from './providers/email/google/GmailEmailProvider';
-// New public surface not previously exported (dropBox/AI/scrape come from export * ./integrations)
 export type { AIFetchConfig } from './providers/ai';
 export { default as GoogleAuth } from './providers/auth/google/GoogleAuth';
 export { googleGetAccessToken } from './providers/auth/google/GoogleAuth';
@@ -27,7 +26,11 @@ export { sendEmail } from './providers/email/google/email';
 export { getKeywordIdeas } from './providers/seo/google/keyword';
 export { getGoogleTrendsData, getGoogleTrendsRelated } from './providers/seo/google/trend';
 
-export * from './integrations';
+export { default as db } from './providers/data/firebase';
+export { default as storage } from './providers/storage/firebase';
+export { dropBox, useDropBoxConnect, DropBoxConnectButton } from './providers/storage/dropbox';
+export { AI } from './providers/ai';
+export { default as scrape } from './providers/scrape';
 export * from './components';
 export * from './libs';
 export * from './pages';
