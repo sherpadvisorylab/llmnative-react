@@ -1,6 +1,6 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import componentLayout , {ComponentLayoutMap} from '../types/componentLayout';
-import componentFormFields , {ComponentFormFieldsMap} from '../types/componentFormFields';
+import componentLayout , {ComponentLayoutMap} from '../types/Layout';
+import componentFormFields , {ComponentFormFieldsMap} from '../types/FormFields';
 import { FormDatabase } from './widgets/Form';
 import db from "../libs/database";
 
