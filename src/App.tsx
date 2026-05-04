@@ -28,6 +28,11 @@ import { StorageProvider } from "./providers/storage/StorageProvider";
 import { StorageProviderProvider } from "./providers/storage/StorageProviderContext";
 import { FirebaseDataProvider } from "./providers/data/firebase";
 import { FirebaseStorageProvider } from "./providers/storage/firebase";
+import { AuthProvider } from "./providers/auth/AuthProvider";
+import { AuthProviderProvider } from "./providers/auth/AuthProviderContext";
+import { GoogleAuthProvider } from "./providers/auth/google/GoogleAuthProvider";
+import { EmailProvider } from "./providers/email/EmailProvider";
+import { EmailProviderProvider } from "./providers/email/EmailProviderContext";
 
 
 
@@ -66,7 +71,19 @@ type AppProps = {
     menuConfig: MenuConfig;
     dataProvider?: DataProvider;
     storageProvider?: StorageProvider;
+    authProvider?: AuthProvider;
+    emailProvider?: EmailProvider;
 };
+
+const MaybeEmailProvider = ({
+    provider,
+    children,
+}: {
+    provider: EmailProvider | undefined;
+    children: React.ReactNode;
+}) => provider
+    ? <EmailProviderProvider provider={provider}>{children}</EmailProviderProvider>
+    : <>{children}</>;
 
 let menu: MenuConfig = {};
 export const setStaticMenu = (config: MenuConfig) => {
@@ -94,9 +111,12 @@ function App({
                  menuConfig         = {},
                  dataProvider,
                  storageProvider,
+                 authProvider,
+                 emailProvider,
 }: AppProps) {
     const resolvedDataProvider = dataProvider ?? new FirebaseDataProvider();
     const resolvedStorageProvider = storageProvider ?? new FirebaseStorageProvider();
+    const resolvedAuthProvider = authProvider ?? new GoogleAuthProvider();
     setStaticMenu(menuConfig);
 
     const LayoutEmpty = ({ children }: { children: React.ReactNode }) => <>{children}</>;
@@ -166,8 +186,10 @@ function App({
                 proxyURI: proxyURI
             }} tenantsURI={tenantsURI}>
                 <GlobalProvider>
+                    <AuthProviderProvider provider={resolvedAuthProvider}>
                     <DataProviderProvider provider={resolvedDataProvider}>
                     <StorageProviderProvider provider={resolvedStorageProvider}>
+                    <MaybeEmailProvider provider={emailProvider}>
                     <ThemeProvider importTheme={importTheme}>
                         <Routes>
                             <Route path={AUTH_REDIRECT_URI} element={<Authorize />}></Route>
@@ -186,8 +208,10 @@ function App({
                             <Route path='*' element={<NotFound />}></Route>
                         </Routes>
                     </ThemeProvider>
+                    </MaybeEmailProvider>
                     </StorageProviderProvider>
                     </DataProviderProvider>
+                    </AuthProviderProvider>
                 </GlobalProvider>
             </ConfigProvider>
         </BrowserRouter>

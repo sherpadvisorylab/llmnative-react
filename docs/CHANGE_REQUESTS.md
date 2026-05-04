@@ -12,6 +12,7 @@
 |----|--------|----------|-----------|-------|
 | [CR-001](#cr-001--documentazione-ai-first) | Documentazione AI-first | Alta | — | ✅ |
 | [CR-002](#cr-002--provider-abstraction-layer) | Provider abstraction layer | Critica | — | ✅ |
+| [CR-002b](#cr-002b--authprovider--emailprovider-interfaces) | AuthProvider + EmailProvider interfaces | Alta | CR-002 | ✅ |
 | [CR-003](#cr-003--typescript-strict) | TypeScript strict | Alta | — | ⬜ |
 | [CR-004](#cr-004--shadcnui--tailwind-css) | shadcn/ui + Tailwind CSS | Alta | CR-002 | ⬜ |
 | [CR-005](#cr-005--cli-update-e-scaffolding) | CLI update e scaffolding | Media | CR-002, CR-004 | ⬜ |
@@ -165,6 +166,90 @@ export interface StorageProvider {
 - [ ] Test manuale: Grid con FirebaseDataProvider
 - [ ] Test manuale: Upload con FirebaseStorageProvider
 - [ ] Test manuale: Form con SupabaseDataProvider
+
+---
+
+## CR-002b — AuthProvider + EmailProvider interfaces
+
+**Stato:** ✅ done  
+**Branch:** `modernize`  
+**Priorità:** Alta  
+**Dipende da:** CR-002  
+**Breaking change:** No
+
+### Motivazione
+`GoogleAuth.tsx` e `email.ts` sono implementazioni concrete senza contratto. Non è possibile sostituire l'autenticazione (es. GitHub OAuth, email+password) o il provider email (SendGrid, Mailgun) senza riscrivere i componenti che li usano. Si applica lo stesso pattern Ports & Adapters già usato per DataProvider e StorageProvider.
+
+### Scope
+
+```
+providers/
+  auth/
+    AuthProvider.ts           ← interface: UserProfile, AuthProvider
+    AuthProviderContext.tsx   ← React Context + useAuthProvider() hook
+    google/
+      GoogleAuthProvider.ts  ← GoogleAuthProvider implements AuthProvider
+  email/
+    EmailProvider.ts          ← interface: EmailSendParams, EmailProvider
+    EmailProviderContext.tsx  ← React Context + useEmailProvider() hook
+    google/
+      GmailEmailProvider.ts  ← GmailEmailProvider implements EmailProvider
+```
+
+### AuthProvider interface
+
+```typescript
+export interface UserProfile {
+  uid?: string;
+  email?: string;
+  displayName?: string;
+  photoURL?: string;
+  [key: string]: any;
+}
+
+export interface AuthProvider {
+  getUser(): UserProfile | null;
+  signOut(): Promise<void>;
+  onAuthChange(callback: (user: UserProfile | null) => void): () => void;
+  getAccessToken?(scopes?: string[]): Promise<string>;
+}
+```
+
+### EmailProvider interface
+
+```typescript
+export interface EmailSendParams {
+  to: string | string[];
+  bcc?: string | string[];
+  subject: string;
+  message: string;
+}
+
+export interface EmailProvider {
+  send(params: EmailSendParams): Promise<void>;
+}
+```
+
+### Iniezione in App.tsx
+
+```tsx
+<App
+  authProvider={new GoogleAuthProvider()}
+  emailProvider={new GmailEmailProvider()}
+  ...
+/>
+```
+
+### Checklist
+
+- [x] Creare `providers/auth/AuthProvider.ts`
+- [x] Creare `providers/auth/AuthProviderContext.tsx`
+- [x] Creare `providers/auth/google/GoogleAuthProvider.ts`
+- [x] Creare `providers/email/EmailProvider.ts`
+- [x] Creare `providers/email/EmailProviderContext.tsx`
+- [x] Creare `providers/email/google/GmailEmailProvider.ts`
+- [x] Aggiornare `App.tsx` — accettare `authProvider` e `emailProvider` come prop
+- [x] Aggiornare `src/index.ts` con nuovi export
 
 ---
 

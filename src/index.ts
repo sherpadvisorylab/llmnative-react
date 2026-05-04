@@ -13,6 +13,12 @@ export type { StorageProvider } from './providers/storage/StorageProvider';
 export { FirebaseStorageProvider } from './providers/storage/firebase';
 export { SupabaseStorageProvider } from './providers/storage/supabase';
 export { useStorageProvider } from './providers/storage/StorageProviderContext';
+export type { AuthProvider, UserProfile } from './providers/auth/AuthProvider';
+export { useAuthProvider } from './providers/auth/AuthProviderContext';
+export { GoogleAuthProvider } from './providers/auth/google/GoogleAuthProvider';
+export type { EmailProvider, EmailSendParams } from './providers/email/EmailProvider';
+export { useEmailProvider } from './providers/email/EmailProviderContext';
+export { GmailEmailProvider } from './providers/email/google/GmailEmailProvider';
 // New public surface not previously exported (dropBox/AI/scrape come from export * ./integrations)
 export type { AIFetchConfig } from './providers/ai';
 export { default as GoogleAuth } from './providers/auth/google/GoogleAuth';
