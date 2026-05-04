@@ -13,15 +13,13 @@ export type { StorageProvider } from './providers/storage/StorageProvider';
 export { FirebaseStorageProvider } from './providers/storage/firebase';
 export { SupabaseStorageProvider } from './providers/storage/supabase';
 export { useStorageProvider } from './providers/storage/StorageProviderContext';
-export { dropBox, useDropBoxConnect, DropBoxConnectButton } from './providers/storage/dropbox';
-export { AI } from './providers/ai';
+// New public surface not previously exported (dropBox/AI/scrape come from export * ./integrations)
 export type { AIFetchConfig } from './providers/ai';
 export { default as GoogleAuth } from './providers/auth/google/GoogleAuth';
 export { googleGetAccessToken } from './providers/auth/google/GoogleAuth';
 export { sendEmail } from './providers/email/google/email';
 export { getKeywordIdeas } from './providers/seo/google/keyword';
 export { getGoogleTrendsData, getGoogleTrendsRelated } from './providers/seo/google/trend';
-export { default as scrape } from './providers/scrape';
 
 export * from './integrations';
 export * from './components';
