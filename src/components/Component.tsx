@@ -1,8 +1,8 @@
 import React from "react";
-import componentLayout from "../models/componentLayout";
-import componentFormFields from "../models/componentFormFields";
-import componentBlock from "../models/componentBlock";
-import componentSection from "../models/componentSection";
+import componentLayout from "../types/componentLayout";
+import componentFormFields from "../types/componentFormFields";
+import componentBlock from "../types/componentBlock";
+import componentSection from "../types/componentSection";
 
 import Form  from "./widgets/Form";
 

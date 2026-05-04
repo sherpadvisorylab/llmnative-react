@@ -4,7 +4,7 @@ import { Label } from "./Input";
 import { Col, Wrapper } from "../GridSystem"
 import { useTheme } from "../../../Theme";
 import { arraysEqual, arrayUnique, isEmpty, sanitizeKey } from "../../../libs/utils";
-import { DatabaseOptions, RecordProps } from "../../../integrations/google/firedatabase";
+import { DatabaseOptions, RecordProps } from "../../../providers/data/DataProvider";
 import { FormFieldProps, useFormContext } from '../../widgets/Form';
 
 interface Option extends RecordProps {

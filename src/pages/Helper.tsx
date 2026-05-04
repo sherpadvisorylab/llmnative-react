@@ -29,7 +29,7 @@ import { PLACEHOLDER_BRAND, PLACEHOLDER_IMAGE } from '../Theme';
 import Menu from '../components/blocks/Menu';
 import Code from '../components/ui/Code';
 import Pagination from '../components/ui/Pagination';
-import { RecordArray } from '../integrations/google/firedatabase';
+import { RecordArray } from '../providers/data/DataProvider';
 
 
 declare global {

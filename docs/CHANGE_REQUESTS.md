@@ -148,11 +148,17 @@ export interface StorageProvider {
 - [x] Aggiornare `Grid.tsx` — sostituire `import db` con `useDataProvider()`
 - [ ] Aggiornare `Upload.tsx` — sostituire storage diretto con `useStorageProvider()`
 - [x] Aggiornare `App.tsx` — accettare `dataProvider` e `storageProvider` come prop
-- [ ] Spostare `integrations/ai.ts` → `providers/ai/index.ts`
-- [ ] Spostare `integrations/google/GoogleAuth.tsx` → `providers/auth/google/`
-- [ ] Spostare `integrations/scrape.ts` → `providers/scrape/index.ts`
-- [ ] Spostare `integrations/dropbox.tsx` → `providers/dropbox/index.ts`
-- [ ] Rinominare `models/` → `types/`
+- [x] Spostare `integrations/ai.ts` → `providers/ai/index.ts`
+- [x] Spostare `integrations/google/GoogleAuth.tsx` → `providers/auth/google/`
+- [x] Spostare `integrations/google/auth.ts` → `providers/auth/google/auth.ts`
+- [x] Spostare `integrations/google/firebase.ts` → `providers/firebase-init.ts`
+- [x] Spostare `integrations/google/email.ts` → `providers/email/google/email.ts`
+- [x] Spostare `integrations/google/keyword.ts` → `providers/seo/google/keyword.ts`
+- [x] Spostare `integrations/google/trend.ts` → `providers/seo/google/trend.ts`
+- [x] Spostare `integrations/scrape.ts` → `providers/scrape/index.ts`
+- [x] Spostare `integrations/dropbox.tsx` → `providers/storage/dropbox.ts`
+- [x] Rinominare `models/` → `types/` (backward-compat stubs in models/)
+- [x] Creare backward-compat stubs in integrations/ per tutti i file spostati
 - [x] Aggiornare `src/index.ts` con i nuovi export path
 - [x] Aggiornare libs/database.ts e libs/storage.ts (backward-compat re-export)
 - [ ] Test manuale: Form con FirebaseDataProvider

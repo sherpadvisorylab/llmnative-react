@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Label, ListGroup, TextArea } from './Input';
 import { ActionButton, LoadingButton } from '../Buttons';
 import { getPrompt, PROMPTS, setPrompt } from '../../../conf/Prompt';
-import fetchAI from '../../../integrations/ai';
+import fetchAI from '../../../providers/ai';
 import FormEnhancer from '../../FormEnhancer';
 import Loader from '../Loader';
 import Carousel from '../../blocks/Carousel';

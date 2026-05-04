@@ -1,7 +1,7 @@
 import firebase from "firebase/compat/app";
 import "firebase/compat/storage";
 import { Config, onConfigChange } from "../../Config";
-import init from "../../integrations/google/firebase";
+import init from "../firebase-init";
 import { StorageProvider } from "./StorageProvider";
 
 let storageInstance: firebase.storage.Storage | undefined;

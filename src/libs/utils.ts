@@ -1,7 +1,7 @@
 import React from 'react';
 import {converter} from "./converter";
 import {getConfig} from "../Config";
-import { RecordProps } from '../integrations/google/firedatabase';
+import { RecordProps } from '../providers/data/DataProvider';
 
 export const decodeJWT = (token: string): any => {
     try {

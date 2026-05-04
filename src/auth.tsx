@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import {fetchRest} from "./libs/fetch";
 import {ActionButton, IButton} from "./components/ui/Buttons";
 import {getGlobalVars, setGlobalVars, useGlobalVars} from "./Global";
-import GoogleAuth from './integrations/google/GoogleAuth';
+import GoogleAuth from './providers/auth/google/GoogleAuth';
 
 export { GoogleAuth as SignInButton };
 

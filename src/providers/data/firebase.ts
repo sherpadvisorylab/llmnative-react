@@ -5,7 +5,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { converter } from "../../libs/converter";
 import { consoleLog } from "../../constant";
 import { Config, onConfigChange } from "../../Config";
-import init, { getSafeAuth } from "../../integrations/google/firebase";
+import init, { getSafeAuth } from "../firebase-init";
 import { cleanRecord } from "../../libs/utils";
 import { SetMessagePayload } from "../../components/ui/Buttons";
 import {

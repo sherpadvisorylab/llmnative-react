@@ -3,7 +3,7 @@ import { useTheme } from "../../Theme";
 import Carousel from "../blocks/Carousel";
 import { Wrapper } from "../ui/GridSystem";
 import { converter } from "../../libs/converter";
-import { RecordProps } from "../../integrations/google/firedatabase";
+import { RecordProps } from "../../providers/data/DataProvider";
 import Pagination, { PaginationParams } from './Pagination';
 import { UIProps } from '../';
 

@@ -1,7 +1,7 @@
 import Grid from '../components/widgets/Grid';
 import React, { useState } from 'react'
 import BlogPost from './BlogPost'
-import { RecordProps } from 'integrations/google/firedatabase';
+import { RecordProps } from '../providers/data/DataProvider';
 
 interface Post {
     title: string;

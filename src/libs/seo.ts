@@ -1,5 +1,5 @@
-import {getKeywordIdeas} from "../integrations/google/keyword";
-import {getGoogleTrendsData} from "../integrations/google/trend";
+import {getKeywordIdeas} from "../providers/seo/google/keyword";
+import {getGoogleTrendsData} from "../providers/seo/google/trend";
 
 const seo = {
     keyword: getKeywordIdeas,

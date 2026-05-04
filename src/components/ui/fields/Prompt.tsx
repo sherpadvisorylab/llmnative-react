@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Switch, TextArea, Wrapper, LoadingButton, Dropdown, DropdownItem, Select, Range, ActionButton } from '../..';
 import {useTheme} from "../../../Theme";
-import { AI, AIFetchConfig } from '../../../integrations/ai';
+import { AI, AIFetchConfig } from '../../../providers/ai';
 import { PROMPT_CLEANUP, PROMPT_NO_REFERENCE, PromptVariables } from '../../../conf/Prompt';
 import { FormFieldProps, useFormContext } from '../../widgets/Form';
-import { RecordProps } from '../../../integrations/google/firedatabase';
+import { RecordProps } from '../../../providers/data/DataProvider';
 
 export enum PromptMode {
     EDITOR = "editor",

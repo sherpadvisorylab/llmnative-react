@@ -1,4 +1,4 @@
-import {sendEmail as emailSender} from '../integrations/google/email';
+import {sendEmail as emailSender} from '../providers/email/google/email';
 import ReactDOMServer from 'react-dom/server';
 
 type Recipient = { email: string; name?: string };

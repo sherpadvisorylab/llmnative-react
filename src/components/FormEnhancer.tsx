@@ -1,5 +1,5 @@
 import React from 'react';
-import {RecordProps} from "../integrations/google/firedatabase";
+import {RecordProps} from "../providers/data/DataProvider";
 import { FormRef, ChangeHandler } from './widgets/Form';
 import { getRecordValue } from '../libs/utils';
 

@@ -1,7 +1,7 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { useTheme } from "../../Theme";
 import { Wrapper } from "./GridSystem";
-import { RecordArray, RecordProps } from "../../integrations/google/firedatabase";
+import { RecordArray, RecordProps } from "../../providers/data/DataProvider";
 import { UIProps } from '../';
 import Pagination, { PaginationParams } from './Pagination';
 
