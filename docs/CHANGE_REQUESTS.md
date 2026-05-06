@@ -27,7 +27,7 @@
 | [CR-014](#cr-014--raffinazione-componenti--props-e-comportamenti) | Raffinazione componenti — props e comportamenti | Media | CR-007 | ⬜ |
 | [CR-015](#cr-015--vite-toolchain-framework--scaffolding) | Vite toolchain framework + scaffolding | Alta | CR-003, CR-004, CR-006 | ⬜ |
 | [CR-016](#cr-016--showcase-vite--scaffold-first) | Showcase Vite + scaffold-first | Alta | CR-012, CR-015 | ⬜ |
-| [CR-017](#cr-017--app-managed-theme--icon-registries) | App-managed theme + icon registries | Alta | CR-004, CR-013 | ⬜ |
+| [CR-017](#cr-017--app-managed-theme--icon-registries) | App-managed theme + icon registries | Alta | CR-004, CR-013 | ✅ |
 
 ---
 
@@ -1405,7 +1405,7 @@ clients/showcase/
 
 ## CR-017 — App-managed theme + icon registries
 
-**Stato:** ⬜ todo
+**Stato:** ✅ done
 **Branch:** `modernize/cr-017-app-theme-icon-registries`
 **Priorità:** Alta
 **Dipende da:** CR-004, CR-013
@@ -1596,9 +1596,9 @@ icons.registerProvider('heroicons', new HeroIconProvider());
 - [x] Aggiornare `clients/showcase/src/index.tsx` con `iconProvider="lucide"` e `themeProvider="default"` o preset desiderato
 - [x] Aggiornare `ThemePanel` per usare hook framework
 - [x] Rimuovere provider icon/theme duplicati dallo showcase
-- [ ] Aggiornare pagina docs Icons
-- [ ] Aggiungere pagina docs Theme o completare stub esistente
-- [ ] Aggiornare `CLAUDE.md`
+- [x] Aggiornare pagina docs Icons
+- [x] Aggiungere pagina docs Theme o completare stub esistente
+- [x] Aggiornare `CLAUDE.md`
 - [x] Aggiungere test unitari per resolver string/object config
 - [x] Eseguire `npm run build`
 - [x] Eseguire `npm run test`

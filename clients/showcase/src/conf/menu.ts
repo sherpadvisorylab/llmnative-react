@@ -5,6 +5,7 @@ import Home               from '../pages/Home';
 import DocsOverview       from '../pages/docs/DocsOverview';
 import Installation       from '../pages/docs/Installation';
 import Icons              from '../pages/docs/Icons';
+import ThemeDocs          from '../pages/docs/Theme';
 import Stub               from '../pages/docs/Stub';
 import ProvidersOverview  from '../pages/providers/ProvidersOverview';
 import ExamplesOverview   from '../pages/examples/ExamplesOverview';
@@ -42,7 +43,7 @@ export const menu = {
         { path: '/docs/scaffolding',        title: 'Scaffolding',       page: s('Scaffolding',    'CLI tool to bootstrap a new project with react-firestrap pre-configured.'), group: 'Getting started' },
         { path: '/docs/architecture',       title: 'Folder structure',  page: s('Folder structure', 'How src/ is organised and the dependency rules between layers.'),    group: 'Architecture' },
         { path: '/docs/providers',          title: 'Provider pattern',  page: s('Provider pattern', 'Ports & Adapters explained — how to read, write and swap providers.'), group: 'Architecture' },
-        { path: '/docs/theme',              title: 'Theme system',      page: s('Theme system',     'How importTheme() and CSS variables work. Full token reference.'),    group: 'Architecture' },
+        { path: '/docs/theme',              title: 'Theme system',      page: ThemeDocs,                                                                                                  group: 'Architecture' },
         { path: '/docs/icons',              title: 'Icon system',       page: Icons,                                                                                                       group: 'Architecture' },
         { path: '/docs/patterns/grid',      title: 'CRUD Grid',         page: s('CRUD Grid pattern',      'The most common pattern: schema-driven list with add/edit/delete.'), group: 'Core patterns' },
         { path: '/docs/patterns/form',      title: 'Standalone Form',   page: s('Standalone Form pattern', 'Load from Firebase, validate, save, redirect.'),               group: 'Core patterns' },

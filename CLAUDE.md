@@ -248,23 +248,50 @@ export default function UserForm() {
 
 ---
 
-## Tema — personalizzazione
+## Tema e icone - App managed
 
 ```tsx
-// App.tsx
+// Uso semplice: App orchestra registry interni e default.
 <App
   firebaseConfig={config.firebase}
-  importTheme={() => import('./my-theme')}   // lazy import del tema custom
+  iconProvider="phosphor" // default: lucide
+  themeProvider="cyber"   // default: default
   menuConfig={menuConfig}
   importPage={(path) => import(path)}
 />
 
-// my-theme.ts — sovrascrive solo le chiavi che vuoi
-export const theme = {
-  Form: { buttonSaveClass: 'btn btn-primary px-5' },
-  Grid: { Table: { wrapperClass: 'table-responsive shadow' } },
-}
+// Uso avanzato: aggiungi o sovrascrivi provider e preset built-in.
+<App
+  iconProvider={{
+    default: 'heroicons',
+    providers: { heroicons: new HeroIconProvider() },
+    aliases: { delete: 'trash', edit: 'pencil' },
+  }}
+  themeProvider={{
+    defaultMode: 'dark',
+    defaultPreset: 'brand',
+    presets: {
+      brand: {
+        primary: '346.8 77.2% 49.8%',
+        radius: 0.75,
+        theme: { Button: { className: 'font-semibold' } },
+      },
+    },
+    theme: { Modal: { size: 'xl' } },
+  }}
+/>
+
+const theme = useThemeController()
+theme.applyPreset('flat')
+theme.setMode('dark')
+
+const icons = useIconController()
+icons.setProvider('lucide')
 ```
+
+Built-in icon provider: `lucide`, `phosphor`.
+Built-in theme preset: `default`, `flat`, `cyber`.
+`importTheme={() => import('./my-theme')}` resta supportato come override legacy asincrono finale.
 
 ---
 
