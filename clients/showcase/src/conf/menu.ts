@@ -11,6 +11,7 @@ import Icons              from '../pages/docs/Icons';
 import ThemeDocs          from '../pages/docs/Theme';
 import Stub               from '../pages/docs/Stub';
 import ProvidersOverview  from '../pages/providers/ProvidersOverview';
+import DataProviderPage   from '../pages/providers/DataProviderPage';
 import ExamplesOverview   from '../pages/examples/ExamplesOverview';
 
 import AlertPage      from '../pages/components/AlertPage';
@@ -75,7 +76,7 @@ export const menu = {
 
     providers: [
         { path: '/providers',                   title: 'Overview',                  page: ProvidersOverview, group: 'Overview' },
-        { path: '/providers/data',              title: 'DataProvider interface',    page: s('DataProvider interface',    'get, list, save, delete, subscribe — the full contract.'),         group: 'Data' },
+        { path: '/providers/data',              title: 'DataProvider interface',    page: DataProviderPage,                                                                            group: 'Data' },
         { path: '/providers/data/firebase',     title: 'FirebaseDataProvider',      page: s('FirebaseDataProvider',      'Real-time Realtime Database implementation.'),                      group: 'Data' },
         { path: '/providers/data/supabase',     title: 'SupabaseDataProvider',      page: s('SupabaseDataProvider',      'Supabase PostgreSQL implementation.'),                              group: 'Data' },
         { path: '/providers/data/custom',       title: 'Custom provider',           page: s('Custom DataProvider',       'How to implement and register your own DataProvider.'),             group: 'Data' },
