@@ -15,7 +15,10 @@ export function renderWithProviders(
 ) {
     function Wrapper({ children }: { children: React.ReactNode }) {
         return (
-            <MemoryRouter initialEntries={[route]}>
+            <MemoryRouter
+                initialEntries={[route]}
+                future={{ v7_relativeSplatPath: true, v7_startTransition: true }}
+            >
                 <DataProviderProvider registry={{ default: provider }} defaultKey="default">
                     {children}
                 </DataProviderProvider>

@@ -75,7 +75,6 @@ const GridDatabase = (props: Omit<GridProps, 'dataArray'>) => {
     const { dataStoragePath, ...rest } = props;
     const location = useLocation();
     const db = useDataProvider();
-    console.log("GRID: GridDatabase", props);
     const dbStoragePath = dataStoragePath || trimSlash(location.pathname);
     const [records, setRecords] = useState<RecordArray | undefined>(undefined);
 
@@ -130,7 +129,6 @@ const GridArray = ({
     const [beforeRecords, setBeforeRecords] = useState<RecordArray | undefined>(undefined);
     useEffect(() => {
         if (!dataArray || !onDisplayBefore) return;
-        console.log("GRID: onDisplayBefore", dataArray);
         onDisplayBefore(safeClone(dataArray), setBeforeRecords, setLoader);
     }, [dataArray, onDisplayBefore]);
 
@@ -276,7 +274,6 @@ const GridArray = ({
 
     const setFormRefCallback = useCallback((ref: FormRef | null) => {
         setFormRef(ref ?? undefined);
-        console.log("GRID: formRef callback", ref);
     }, []);
 
     const headerActionComponent = useMemo(() => {
@@ -397,8 +394,6 @@ const GridArray = ({
     }, [modalData, modal?.mode, modal?.onOpen, children, log, onSave, onDelete, onFinally, setPrimaryKey, setFormRefCallback, dataStoragePath]);
 
     const { record: currentRecord, isNewRecord } = formRef?.getRecord() ?? {};
-
-    console.log("GRID: formRef", formRef, modalData, currentRecord, isNewRecord);
 
     return (<>
         <Card

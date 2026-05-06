@@ -54,6 +54,9 @@ module.exports = {
             '@phosphor-icons/react':   path.resolve(__dirname, 'node_modules/@phosphor-icons/react/dist/index.es.js'),
         },
     },
+    performance: {
+        hints: false,
+    },
     plugins: [
         new HtmlWebpackPlugin({ template: './public/index.html' }),
         new webpack.DefinePlugin({

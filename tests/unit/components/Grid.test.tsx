@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { screen, waitFor, fireEvent } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 
 vi.mock('../../../src/Config', () => ({
@@ -158,8 +158,9 @@ describe('Grid — real-time updates', () => {
 
         await waitFor(() => expect(screen.getByText('Alice')).toBeInTheDocument());
 
-        // Add a new record directly on the provider
-        await provider.set('/users/u4', { name: 'Dave', role: 'admin', status: 'active' });
+        await act(async () => {
+            await provider.set('/users/u4', { name: 'Dave', role: 'admin', status: 'active' });
+        });
 
         await waitFor(() => {
             expect(screen.getByText('Dave')).toBeInTheDocument();
@@ -175,7 +176,9 @@ describe('Grid — real-time updates', () => {
 
         await waitFor(() => expect(screen.getByText('Bob')).toBeInTheDocument());
 
-        await provider.remove('/users/u2');
+        await act(async () => {
+            await provider.remove('/users/u2');
+        });
 
         await waitFor(() => {
             expect(screen.queryByText('Bob')).not.toBeInTheDocument();

@@ -122,7 +122,6 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
 
     const formChange = (event: ChangeHandler, sourceRecord?: RecordProps) => {
         const nextRecord = applyChangeToRecord(sourceRecord ?? ctx.record, event, inputType);
-        console.log("FORM handleChange", event.target.name, event.target.value, nextRecord);
         return nextRecord;
     }
 /*
@@ -371,8 +370,6 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
             return <p className={"p-4"}><i className={"spinner-border spinner-border-sm"}></i> Caricamento in corso...</p>;
         }
 
-        console.log("FormDatabase", dataStoragePath, defaultValues, record);
-
         return <FormData {...rest} defaultValues={record} dataStoragePath={dataStoragePath} ref={ref} />;
     });
 
@@ -415,7 +412,6 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
             }
         }, [defaultValues]);
         
-        console.log("FormData", defaultValues, record, dataStoragePath, children);
         const recordRef = useRef(record);
         useEffect(() => { 
             recordRef.current = record;
@@ -484,7 +480,6 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
 
         const handleFinally = useCallback(async (action: 'create' | 'update' | 'delete') => {
             log && dataStoragePath && setLog(dataStoragePath, action, recordRef.current);
-            console.log("handleFinally", onFinally, action, recordRef.current);
 
             notice({ message: `Record ${action}ed successfully`, type: "success" });
 
@@ -498,8 +493,6 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
             getRecord: handlers?.getRecord ?? (() => ({record: recordRef.current ?? {}, isNewRecord})),
             getFooter: handlers?.getFooter ?? (() => footer),
         }), [handleSave, handleDelete, handlers]);
-
-        console.log("FORMMMMMM", defaultValues, record, recordRef.current, "REFF", ref);
 
         const components = <FormContext.Provider value={{ record, setRecord, wrapClass: "mb-3" }}>
                                 {typeof children === 'function' ? children({record}) : children}
