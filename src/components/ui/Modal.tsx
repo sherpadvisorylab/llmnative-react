@@ -127,6 +127,8 @@ const ModalDefault = ({
     }
 
     const pos = positions[sizeClass === "fullscreen" ? "center" : (position || theme.Modal.position) as keyof typeof positions];
+    const hasHeader = Boolean(header || title || buttonFullscreen || onClose);
+    const hasFooter = Boolean(footer || onSave || onDelete || (onClose && footerClose));
 
     useEffect(() => {
         document.body.style.overflow = "hidden";
@@ -140,7 +142,7 @@ const ModalDefault = ({
             <div className={pos.dialogClass}>
                 {pre}
                 <Wrapper className={pos.contentClass}>
-                    {(header || title || buttonFullscreen || onClose) && <div className={pos.headerClass}>
+                    {hasHeader && <div className={pos.headerClass}>
                         <div>
                             {title && <h3 className={pos.titleClass}>{title}</h3>}
                             {(title && header) && <div className={pos.subTitleClass}>{header}</div>}
@@ -163,7 +165,7 @@ const ModalDefault = ({
                         </div>}
                     </div>}
                     <div className={pos.bodyClass}>{children}</div>
-                    {(footer || onSave || onDelete || onClose) && <div className={pos.footerClass}>
+                    {hasFooter && <div className={pos.footerClass}>
                         {footer}
                         {onSave && <LoadingButton
                             className="btn-primary"
