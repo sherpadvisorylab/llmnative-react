@@ -3,12 +3,15 @@
 Framework React per UI data-driven. Schema-driven: definisci i campi → ottieni UI + persistenza con pochissimo codice.
 
 **Branch attivo:** `modernize` (v2 in sviluppo — vedi `docs/ROADMAP.md`)  
-**Stack attuale:** React 18 + Firebase Realtime DB + Tailwind CSS (Bootstrap compatibility layer)  
-**Stack target v2:** React 18 + DataProvider pattern + shadcn/ui + Tailwind
+**Stack attuale:** React 18 + Vite library build + Firebase/DataProvider + Tailwind CSS (Bootstrap compatibility layer)
+**Stack target v2:** React 18 + Vite-first scaffolding + DataProvider pattern + shadcn/ui + Tailwind
 
 > **CR-004 in corso:** Bootstrap è stato rimosso come dipendenza runtime. Il CSS è ora generato da Tailwind v4  
 > tramite `@layer components` che ricrea le stesse classi Bootstrap (`.btn`, `.badge`, `.alert`, `.modal`, ecc.).  
 > I consumer devono importare `react-firestrap/dist/index.css` una sola volta.
+>
+> **CR-015:** la build root e lo scaffolding ufficiale sono Vite-first. Webpack resta solo come comando legacy
+> `npm run build:webpack` per confronto temporaneo.
 
 ---
 
@@ -44,6 +47,27 @@ src/
   Global.tsx     ← stato globale localStorage-backed
   App.tsx        ← entry point con routing e provider
 ```
+
+## Toolchain
+
+```bash
+npm run build         # Vite library mode: dist/index.mjs, dist/index.js, dist/index.css + types
+npm run build:dev     # Vite development build + declarations
+npm run watch:dev     # Vite build in watch mode
+npm run build:webpack # legacy comparison build
+npm run test          # Vitest
+```
+
+Lo scaffold ufficiale genera app Vite:
+
+```bash
+npx react-firestrap create
+npx react-firestrap create --yes --provider=mock
+npx react-firestrap devtools
+```
+
+Lo scaffold crea `index.html`, `vite.config.ts`, `src/index.tsx`, `src/conf/menu.ts`, `src/layout/`,
+`src/pages/`, `src/globals.css` e provider config tramite env `VITE_*`.
 
 **Regola di dipendenza:** `libs/` non conosce React · `components/` non importa da `providers/` direttamente · tutto fluisce verso l'alto  
 **Nota:** `integrations/` e `models/` sono stub di backward-compat — tutta la logica è in `providers/` e `types/`.

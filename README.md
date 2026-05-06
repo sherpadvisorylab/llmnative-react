@@ -4,6 +4,31 @@
 
 ---
 
+## Vite-first Quick Start
+
+```bash
+npx react-firestrap create
+cd my-app
+npm install
+npm run dev
+```
+
+The CLI now scaffolds a Vite + React + TypeScript app with `src/index.tsx`, `src/conf/menu.ts`, `src/layout/`, `src/pages/`, `src/globals.css`, and `vite.config.ts`.
+
+```bash
+npx react-firestrap create --yes --provider=mock
+npx react-firestrap devtools
+```
+
+Library builds are Vite-based:
+
+```bash
+npm run build
+npm run build:webpack # temporary legacy comparison
+```
+
+---
+
 ## 🔧 Initial Setup Guide
 
 To fully use React FireStrap, you need to configure a Firebase project with **Realtime Database** and **Google Authentication**. Additional integrations like ChatGPT, SerpApi, Dropbox, etc., are supported but optional.

@@ -12,7 +12,17 @@ Versioning basato su [Semantic Versioning](https://semver.org/lang/it/).
 > Modifiche in corso sul branch `modernize`. Non ancora rilasciate su `main`.
 
 ### In Progress
-- Nessuna modifica attiva al momento.
+- CR-015: toolchain framework e scaffolding Vite-first.
+
+### Added
+- Build libreria Vite in library mode con output ESM/CJS: `dist/index.mjs` e `dist/index.js`.
+- CSS bundle mantenuto come `dist/index.css`.
+- CLI scaffold Vite-first con provider selection (`firebase`, `supabase`, `mock`, `custom`).
+- Comando non interattivo `npx react-firestrap create --yes --provider=mock`.
+
+### Changed
+- `npm run build` usa Vite + TypeScript declarations.
+- Webpack resta disponibile come `npm run build:webpack` per confronto temporaneo.
 
 ---
 

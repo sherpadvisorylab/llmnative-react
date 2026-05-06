@@ -6,83 +6,87 @@ const root = process.cwd();
 function ensureFile(filePath, content) {
     if (!fs.existsSync(filePath)) {
         fs.writeFileSync(filePath, content.trimStart());
-        console.log(`📄 File creato: ${filePath}`);
+        console.log(`Created file: ${filePath}`);
     }
 }
 
 function setupDevTools() {
-    console.log('🛠️  Setup Webpack + Babel + TSConfig');
+    console.log('Setting up Vite + React + TypeScript');
 
-    // tsconfig.json
     ensureFile(path.join(root, 'tsconfig.json'), `
 {
   "compilerOptions": {
     "target": "ES2021",
-    "module": "ESNext",
-    "jsx": "react",
-    "strict": true,
-    "moduleResolution": "node",
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
+    "useDefineForClassFields": true,
+    "lib": ["DOM", "DOM.Iterable", "ES2021"],
+    "allowJs": false,
     "skipLibCheck": true,
-    "outDir": "./dist",
-    "baseUrl": "./src",
+    "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "declaration": true,
-    "declarationDir": "./dist/types"
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx"
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src"],
+  "references": [{ "path": "./tsconfig.node.json" }]
 }
     `);
 
-    // webpack.config.js
-    ensureFile(path.join(root, 'webpack.config.js'), `
-const path = require('path');
-
-module.exports = {
-  entry: './src/index.js',
-  output: {
-    path: path.resolve(__dirname, 'dist'),
-    filename: 'index.js',
-  },
-  resolve: {
-    extensions: ['.js', '.jsx', '.ts', '.tsx'],
-    alias: {
-      '@pages': path.resolve(__dirname, 'src/pages')
-    }
-  },
-  module: {
-    rules: [
-      {
-        test: /\\.jsx?$/,
-        exclude: /node_modules/,
-        use: 'babel-loader'
-      },
-      {
-        test: /\\.tsx?$/,
-        exclude: /node_modules/,
-        use: 'ts-loader'
-      }
-    ]
-  },
-  devtool: 'source-map'
-};
-    `);
-
-    // .babelrc
-    ensureFile(path.join(root, '.babelrc'), `
+    ensureFile(path.join(root, 'tsconfig.node.json'), `
 {
-  "presets": [
-    "@babel/preset-env",
-    "@babel/preset-react",
-    "@babel/preset-typescript"
-  ],
-  "plugins": [
-    "@babel/plugin-proposal-class-properties",
-    "@babel/plugin-proposal-object-rest-spread"
-  ]
+  "compilerOptions": {
+    "composite": true,
+    "skipLibCheck": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "allowSyntheticDefaultImports": true,
+    "strict": true
+  },
+  "include": ["vite.config.ts"]
 }
+    `);
+
+    ensureFile(path.join(root, 'vite.config.ts'), `
+import { defineConfig, loadEnv } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '');
+  const clientEnv = Object.fromEntries(
+    Object.entries(env).filter(([key]) => key.startsWith('REACT_APP_'))
+  );
+
+  return {
+    plugins: [react()],
+    resolve: {
+      dedupe: ['react', 'react-dom', 'react-router-dom'],
+    },
+    build: {
+      cssMinify: false,
+      chunkSizeWarningLimit: 10000,
+    },
+    define: {
+      'process.env': JSON.stringify({
+        NODE_ENV: mode === 'production' ? 'production' : 'development',
+        ...clientEnv,
+      }),
+    },
+  };
+});
+    `);
+
+    ensureFile(path.join(root, 'postcss.config.js'), `
+export default {
+  plugins: {
+    '@tailwindcss/postcss': {},
+    autoprefixer: {},
+  },
+};
     `);
 }
 

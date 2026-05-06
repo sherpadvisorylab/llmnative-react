@@ -4,6 +4,19 @@
 
 ---
 
+## Pattern 0 — Vite scaffold
+
+Per un nuovo consumer usa lo scaffold ufficiale:
+
+```bash
+npx react-firestrap create
+npx react-firestrap create --yes --provider=mock
+```
+
+La app generata monta `<App>` in `src/index.tsx`, tiene il menu in `src/conf/menu.ts`, importa `src/globals.css` e usa `vite.config.ts` con dedupe React. Provider, icone e tema vengono scelti via prompt o env `VITE_*`.
+
+---
+
 ## Pattern 1 — Grid CRUD completo
 
 Il pattern più comune: lista con add/edit/delete, modal automatico, real-time updates.

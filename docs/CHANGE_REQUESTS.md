@@ -25,7 +25,7 @@
 | [CR-012](#cr-012--showcase-refactor--react-firestrap-native) | Showcase refactor — react-firestrap native | Alta | CR-004, CR-007 | ⬜ |
 | [CR-013](#cr-013--icon-provider-system) | Icon provider system | Media | CR-004 | 🔄 |
 | [CR-014](#cr-014--raffinazione-componenti--props-e-comportamenti) | Raffinazione componenti — props e comportamenti | Media | CR-007 | ⬜ |
-| [CR-015](#cr-015--vite-toolchain-framework--scaffolding) | Vite toolchain framework + scaffolding | Alta | CR-003, CR-004, CR-006 | ⬜ |
+| [CR-015](#cr-015--vite-toolchain-framework--scaffolding) | Vite toolchain framework + scaffolding | Alta | CR-003, CR-004, CR-006 | ✅ |
 | [CR-016](#cr-016--showcase-vite--scaffold-first) | Showcase Vite + scaffold-first | Alta | CR-012, CR-015 | ⬜ |
 | [CR-017](#cr-017--app-managed-theme--icon-registries) | App-managed theme + icon registries | Alta | CR-004, CR-013 | ✅ |
 
@@ -1186,7 +1186,7 @@ Per ogni componente: aprire un sotto-task nella checklist, aggiornare il tipo, a
 
 ## CR-015 — Vite toolchain framework + scaffolding
 
-**Stato:** ⬜ todo
+**Stato:** ✅ done
 **Branch:** `modernize/cr-015-vite-toolchain`
 **Priorità:** Alta
 **Dipende da:** CR-003, CR-004, CR-006
@@ -1213,7 +1213,7 @@ Migrare la toolchain del framework a un modello Vite-first:
 ### Scope
 
 **Incluso:**
-- Aggiungere `vite.config.ts` per la libreria root
+- Aggiungere `vite.config.mts` per la libreria root
 - Valutare e rimuovere `webpack.config.js` dalla build principale solo quando Vite produce output equivalente
 - Aggiornare `package.json` root: script `build`, `build:dev`, `watch/dev`, export ESM/CJS se necessari
 - Verificare peer dependencies e externalization di React, ReactDOM, React Router, Firebase, icon libraries
@@ -1233,7 +1233,7 @@ Migrare la toolchain del framework a un modello Vite-first:
 
 ```
 react-firestrap/
-  vite.config.ts              ← build libreria Vite-first
+  vite.config.mts             ← build libreria Vite-first
   tsconfig.json               ← strict + declarations
   package.json                ← exports coerenti con dist ESM/CSS/types
   src/
@@ -1267,34 +1267,34 @@ my-app/
 
 ### Checklist
 
-- [ ] Audit output webpack attuale: file prodotti, CSS, declarations, externals, export map
-- [ ] Aggiungere `vite.config.ts` root in library mode
-- [ ] Configurare externals per React, ReactDOM, React Router, Firebase, Lucide, Phosphor
-- [ ] Verificare generazione `dist/index.js` o decidere nuova export map ESM/CJS
-- [ ] Verificare generazione `dist/index.css`
-- [ ] Verificare generazione `dist/types`
-- [ ] Aggiornare `package.json` root: `main`, `module`, `types`, `style`, `exports`
-- [ ] Aggiornare script root: `build`, `build:dev`, `watch:dev`
-- [ ] Mantenere un comando legacy webpack temporaneo solo se serve confronto (`build:webpack`)
-- [ ] Eseguire build Vite e confrontare API pubbliche esportate
+- [x] Audit output webpack attuale: file prodotti, CSS, declarations, externals, export map
+- [x] Aggiungere `vite.config.mts` root in library mode
+- [x] Configurare externals per React, ReactDOM, React Router, Firebase, Lucide, Phosphor
+- [x] Verificare generazione `dist/index.js` o decidere nuova export map ESM/CJS
+- [x] Verificare generazione `dist/index.css`
+- [x] Verificare generazione `dist/types`
+- [x] Aggiornare `package.json` root: `main`, `module`, `types`, `style`, `exports`
+- [x] Aggiornare script root: `build`, `build:dev`, `watch:dev`
+- [x] Mantenere un comando legacy webpack temporaneo solo se serve confronto (`build:webpack`)
+- [x] Eseguire build Vite e confrontare API pubbliche esportate
 - [x] Eseguire `npm run test`
-- [ ] Aggiornare CLI scaffolding a Vite-first
-- [ ] Aggiungere prompt provider nello scaffolding: Firebase / Supabase / Mock / Custom
-- [ ] Generare `src/conf/menu.ts` nello scaffold
-- [ ] Generare `src/index.tsx` con `<App>` e provider config
-- [ ] Generare `vite.config.ts` consumer con alias/dedupe minimi
-- [ ] Aggiornare docs e README con Vite come percorso raccomandato
-- [ ] Aggiornare `CLAUDE.md` con la nuova toolchain
-- [ ] Aggiornare `CHANGELOG.md`
+- [x] Aggiornare CLI scaffolding a Vite-first
+- [x] Aggiungere prompt provider nello scaffolding: Firebase / Supabase / Mock / Custom
+- [x] Generare `src/conf/menu.ts` nello scaffold
+- [x] Generare `src/index.tsx` con `<App>` e provider config
+- [x] Generare `vite.config.ts` consumer con alias/dedupe minimi
+- [x] Aggiornare docs e README con Vite come percorso raccomandato
+- [x] Aggiornare `CLAUDE.md` con la nuova toolchain
+- [x] Aggiornare `CHANGELOG.md`
 
 ### Criteri di accettazione
 
-- [ ] `npm run build` root passa con Vite
-- [ ] `npm run test` passa
-- [ ] `npm pack --dry-run` contiene `dist`, types, CSS, CLI e themes previsti
-- [ ] Uno scaffold generato installa dipendenze e parte con `npm run dev`
-- [ ] Un consumer Vite importa `react-firestrap` senza doppia istanza React
-- [ ] Gli import CSS documentati funzionano: `import 'react-firestrap/dist/index.css'`
+- [x] `npm run build` root passa con Vite
+- [x] `npm run test` passa
+- [x] `npm pack --dry-run` contiene `dist`, types, CSS, CLI e themes previsti
+- [x] Uno scaffold generato installa dipendenze e parte con `npm run dev`
+- [x] Un consumer Vite importa `react-firestrap` senza doppia istanza React
+- [x] Gli import CSS documentati funzionano: `import 'react-firestrap/dist/index.css'`
 
 ---
 

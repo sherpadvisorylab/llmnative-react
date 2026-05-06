@@ -30,12 +30,13 @@ switch (cmd) {
 Available commands:
 
   create     - Generates the full project structure (src/, public/, .env, etc.)
-  devtools   - Generates tsconfig.json, webpack.config.js, and .babelrc only
+  devtools   - Generates Vite, TypeScript, and PostCSS config only
   version    - Prints the installed react-firestrap version
   help       - Displays this help message
 
 Examples:
   npx react-firestrap create
+  npx react-firestrap create --yes --provider=mock
   npx react-firestrap devtools
   npx react-firestrap version
     `);
