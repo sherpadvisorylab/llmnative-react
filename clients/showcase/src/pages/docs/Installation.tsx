@@ -43,7 +43,7 @@ import 'react-firestrap/dist/index.css';`}
                 }
                 code={`import { App, FirebaseDataProvider } from 'react-firestrap';
 import { menu } from './conf/menu';
-import AppLayout from './layout/AppLayout';
+import AppLayout from './layouts/AppLayout';
 
 const firebaseConfig = {
     apiKey: import.meta.env.VITE_FIREBASE_APIKEY,

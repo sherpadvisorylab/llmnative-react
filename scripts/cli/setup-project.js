@@ -251,7 +251,7 @@ function createSourceFiles(params) {
 /// <reference types="vite/client" />
     `);
 
-    ensureFile(path.join(root, 'src/globals.css'), `
+    ensureFile(path.join(root, 'src/styles/globals.css'), `
 @import 'react-firestrap/dist/index.css';
 
 html,
@@ -267,22 +267,95 @@ body {
 }
     `);
 
-    ensureFile(path.join(root, 'src/pages/Home.tsx'), `
+    ensureFile(path.join(root, 'src/components/PageHeader.tsx'), `
 import React from 'react';
 
-export default function Home() {
+interface PageHeaderProps {
+  title: string;
+  description?: string;
+}
+
+export default function PageHeader({ title, description }: PageHeaderProps) {
   return (
-    <section className="mx-auto max-w-5xl px-6 py-10">
-      <h1 className="text-2xl font-semibold">Welcome to ${params.projectname}</h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        This app was scaffolded with react-firestrap and Vite.
-      </p>
+    <header className="space-y-2">
+      <h1 className="text-2xl font-semibold tracking-normal">{title}</h1>
+      {description && <p className="max-w-2xl text-sm text-muted-foreground">{description}</p>}
+    </header>
+  );
+}
+    `);
+
+    ensureFile(path.join(root, 'src/components/EmptyState.tsx'), `
+import React from 'react';
+
+interface EmptyStateProps {
+  title: string;
+  description?: string;
+}
+
+export default function EmptyState({ title, description }: EmptyStateProps) {
+  return (
+    <div className="rounded-md border border-dashed p-6 text-center">
+      <p className="text-sm font-medium">{title}</p>
+      {description && <p className="mt-1 text-xs text-muted-foreground">{description}</p>}
+    </div>
+  );
+}
+    `);
+
+    ensureFile(path.join(root, 'src/data/mockData.ts'), `
+export const mockData = {
+  '/tasks': [
+    { id: 'task-1', title: 'Review scaffold structure', status: 'done' },
+    { id: 'task-2', title: 'Connect your first provider', status: 'next' },
+  ],
+};
+    `);
+
+    ensureFile(path.join(root, 'src/sections/home/TasksSection.tsx'), `
+import React from 'react';
+import EmptyState from '../../components/EmptyState';
+import { mockData } from '../../data/mockData';
+
+export default function TasksSection() {
+  const tasks = mockData['/tasks'];
+
+  if (!tasks.length) {
+    return <EmptyState title="No tasks yet" description="Add your first dataset in src/data/mockData.ts." />;
+  }
+
+  return (
+    <section className="grid gap-3 md:grid-cols-2">
+      {tasks.map((task) => (
+        <article key={task.id} className="rounded-md border bg-card p-4">
+          <p className="text-sm font-medium">{task.title}</p>
+          <p className="mt-1 text-xs uppercase tracking-wider text-muted-foreground">{task.status}</p>
+        </article>
+      ))}
     </section>
   );
 }
     `);
 
-    ensureFile(path.join(root, 'src/layout/AppLayout.tsx'), `
+    ensureFile(path.join(root, 'src/pages/home/HomePage.tsx'), `
+import React from 'react';
+import PageHeader from '../../components/PageHeader';
+import TasksSection from '../../sections/home/TasksSection';
+
+export default function HomePage() {
+  return (
+    <div className="mx-auto max-w-5xl space-y-8 px-6 py-10">
+      <PageHeader
+        title="Welcome to ${params.projectname}"
+        description="This Vite app was scaffolded with react-firestrap using App-managed theme, icon and provider configuration."
+      />
+      <TasksSection />
+    </div>
+  );
+}
+    `);
+
+    ensureFile(path.join(root, 'src/layouts/AppLayout.tsx'), `
 import React from 'react';
 
 export default function AppLayout({ children }: { children?: React.ReactNode }) {
@@ -299,12 +372,22 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 }
     `);
 
+    ensureFile(path.join(root, 'src/conf/app.ts'), `
+const env = import.meta.env;
+
+export const appConfig = {
+  dataProvider: env.VITE_DATA_PROVIDER ?? '${params.provider}',
+  iconProvider: env.VITE_ICON_PROVIDER ?? '${params.iconProvider}',
+  themeProvider: env.VITE_THEME_PROVIDER ?? '${params.themeProvider}',
+};
+    `);
+
     ensureFile(path.join(root, 'src/conf/menu.ts'), `
-import Home from '../pages/Home';
+import HomePage from '../pages/home/HomePage';
 
 export const menu = {
   main: [
-    { path: '/', title: 'Home', page: Home },
+    { path: '/', title: 'Home', page: HomePage },
   ],
 };
     `);
@@ -317,18 +400,19 @@ import {
   MockDataProvider,
   SupabaseDataProvider,
 } from 'react-firestrap';
-import './globals.css';
+import './styles/globals.css';
 
-import AppLayout from './layout/AppLayout';
+import AppLayout from './layouts/AppLayout';
+import { appConfig } from './conf/app';
 import { menu } from './conf/menu';
+import { mockData } from './data/mockData';
 
 const env = import.meta.env;
-const dataProviderId = env.VITE_DATA_PROVIDER ?? '${params.provider}';
 
 const dataProvider =
-  dataProviderId === 'mock'
-    ? new MockDataProvider({})
-    : dataProviderId === 'supabase'
+  appConfig.dataProvider === 'mock'
+    ? new MockDataProvider(mockData)
+    : appConfig.dataProvider === 'supabase'
       ? new SupabaseDataProvider({
           url: env.VITE_SUPABASE_URL ?? '',
           anonKey: env.VITE_SUPABASE_ANON_KEY ?? '',
@@ -342,8 +426,8 @@ createRoot(document.getElementById('root')!).render(
       LayoutDefault={AppLayout}
       menuConfig={menu}
       dataProvider={dataProvider}
-      iconProvider={env.VITE_ICON_PROVIDER ?? '${params.iconProvider}'}
-      themeProvider={env.VITE_THEME_PROVIDER ?? '${params.themeProvider}'}
+      iconProvider={appConfig.iconProvider}
+      themeProvider={appConfig.themeProvider}
       firebaseConfig={{
         apiKey: env.VITE_FIREBASE_APIKEY ?? '',
         authDomain: env.VITE_FIREBASE_AUTH_DOMAIN ?? '',

@@ -11,7 +11,7 @@ La build del framework e lo scaffolding ufficiale sono Vite-first.
 - Root: `npm run build` esegue `vite build` in library mode e poi genera `dist/types`.
 - Output pubblico: `dist/index.mjs`, `dist/index.js`, `dist/index.css`, `dist/types/index.d.ts`.
 - Webpack resta solo come confronto temporaneo: `npm run build:webpack`.
-- Consumer scaffoldati: `index.html`, `vite.config.ts`, `src/index.tsx`, `src/conf/menu.ts`, `src/layout/`, `src/pages/`, `src/globals.css`.
+- Consumer scaffoldati: `index.html`, `vite.config.ts`, `src/index.tsx`, `src/conf/`, `src/layouts/`, `src/pages/`, `src/sections/`, `src/components/`, `src/data/`, `src/styles/globals.css`.
 - Il consumer Vite usa `resolve.dedupe` per `react`, `react-dom`, `react-router-dom`.
 
 ---

@@ -6,7 +6,7 @@ export default function Scaffolding() {
     return (
         <PageLayout
             title="Scaffolding"
-            description="The official CLI generates a Vite-first react-firestrap consumer with App, menuConfig, layout and provider configuration already wired."
+            description="The official CLI generates a Vite-first react-firestrap consumer with App, menuConfig, layouts and provider configuration already wired."
         >
             <Section
                 title="Create a project"
@@ -28,10 +28,10 @@ npx react-firestrap create --yes --provider=mock`}
 
             <Section
                 title="Generated structure"
-                description="The showcase mirrors this structure so it can validate the scaffold while acting as documentation."
+                description="The scaffold uses familiar React boundaries: configuration, layouts, routable pages, page sections, shared components, local data and styles."
                 preview={
                     <div className="alert alert-info text-sm w-full">
-                        The generated app uses the same entry, menu and layout boundaries as this showcase.
+                        Provider implementations stay inside react-firestrap by default; the consumer configures them from App.
                     </div>
                 }
                 code={`my-app/
@@ -40,13 +40,43 @@ npx react-firestrap create --yes --provider=mock`}
   package.json
   src/
     index.tsx
-    globals.css
     conf/
+      app.ts
       menu.ts
-    layout/
+    layouts/
       AppLayout.tsx
     pages/
-      Home.tsx`}
+      home/
+        HomePage.tsx
+    sections/
+      home/
+        TasksSection.tsx
+    components/
+      EmptyState.tsx
+      PageHeader.tsx
+    data/
+      mockData.ts
+    styles/
+      globals.css`}
+            />
+
+            <Section
+                title="Folder roles"
+                description="Keep provider customization optional. Most apps only need App configuration and app-local data."
+                preview={
+                    <div className="grid gap-2 text-sm md:grid-cols-2">
+                        {['conf = wiring', 'pages = routes', 'sections = page blocks', 'components = shared UI'].map((item) => (
+                            <div key={item} className="rounded-md border bg-card p-3">{item}</div>
+                        ))}
+                    </div>
+                }
+                code={`src/conf       # App wiring: menu, theme, icons, env choices
+src/layouts    # Application shells and page chrome
+src/pages      # Routable pages referenced by menuConfig
+src/sections   # Page/feature-specific composition blocks
+src/components # Shared reusable UI
+src/data       # Mock data and local fixtures
+src/styles     # App CSS and framework stylesheet import`}
             />
 
             <Section

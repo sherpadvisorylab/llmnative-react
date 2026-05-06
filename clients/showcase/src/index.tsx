@@ -4,7 +4,7 @@ import { App, MockDataProvider } from 'react-firestrap';
 import 'react-firestrap/dist/index.css';
 import './globals.css';
 
-import ShowcaseLayout from './layout/ShowcaseLayout';
+import ShowcaseLayout from './layouts/ShowcaseLayout';
 import { menu } from './conf/menu';
 
 const env = import.meta.env;

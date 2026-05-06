@@ -13,7 +13,7 @@ npm install
 npm run dev
 ```
 
-The CLI now scaffolds a Vite + React + TypeScript app with `src/index.tsx`, `src/conf/menu.ts`, `src/layout/`, `src/pages/`, `src/globals.css`, and `vite.config.ts`.
+The CLI now scaffolds a Vite + React + TypeScript app with `src/index.tsx`, `src/conf/`, `src/layouts/`, `src/pages/`, `src/sections/`, `src/components/`, `src/data/`, `src/styles/globals.css`, and `vite.config.ts`.
 
 ```bash
 npx react-firestrap create --yes --provider=mock
@@ -47,12 +47,12 @@ To fully use React FireStrap, you need to configure a Firebase project with **Re
 4. Copy the Firebase config values and add them to your `.env` file:
 
 ```env
-REACT_APP_FIREBASE_APIKEY=XXXXXXXXXXXXXXXXXXXXXXXX
-REACT_APP_FIREBASE_AUTH_DOMAIN=XXXX.firebaseapp.com
-REACT_APP_FIREBASE_PROJECT_ID=XXXX
-REACT_APP_FIREBASE_MESSAGING_SENDER_ID=000000000000
-REACT_APP_FIREBASE_APP_ID=1:XXXXXXXXXXXX:web:XXXXXXXX
-REACT_APP_FIREBASE_MEASUREMENT_ID=G-XXXXXXXXXX
+VITE_FIREBASE_APIKEY=XXXXXXXXXXXXXXXXXXXXXXXX
+VITE_FIREBASE_AUTH_DOMAIN=XXXX.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=XXXX
+VITE_FIREBASE_MESSAGING_SENDER_ID=000000000000
+VITE_FIREBASE_APP_ID=1:XXXXXXXXXXXX:web:XXXXXXXX
+VITE_FIREBASE_MEASUREMENT_ID=G-XXXXXXXXXX
 ```
 
 ---
@@ -64,7 +64,7 @@ REACT_APP_FIREBASE_MEASUREMENT_ID=G-XXXXXXXXXX
 3. Add the following line to your `.env` file:
 
 ```env
-REACT_APP_FIREBASE_DATABASE_URL=https://[PROJECT_ID]-default-rtdb.[REGION].firebasedatabase.app
+VITE_FIREBASE_DATABASE_URL=https://[PROJECT_ID]-default-rtdb.[REGION].firebasedatabase.app
 ```
 
 ---
@@ -76,7 +76,7 @@ REACT_APP_FIREBASE_DATABASE_URL=https://[PROJECT_ID]-default-rtdb.[REGION].fireb
 3. Copy the **Web Client ID** and add it to your `.env` file:
 
 ```env
-REACT_APP_GOOGLE_CLIENT_ID=000000000000-XXXXXXXXXXXX.apps.googleusercontent.com
+VITE_GOOGLE_CLIENT_ID=000000000000-XXXXXXXXXXXX.apps.googleusercontent.com
 ```
 
 ---
@@ -131,7 +131,7 @@ To upload and manage files:
 2. Add to `.env`:
 
 ```env
-REACT_APP_FIREBASE_STORAGE_BUCKET=your-app.appspot.com
+VITE_FIREBASE_STORAGE_BUCKET=your-app.appspot.com
 ```
 
 ---
@@ -142,7 +142,7 @@ REACT_APP_FIREBASE_STORAGE_BUCKET=your-app.appspot.com
 2. Add to `.env`:
 
 ```env
-REACT_APP_OPENAI_API_KEY=sk-XXXXXXXXXXXXXXXX
+VITE_OPENAI_API_KEY=sk-XXXXXXXXXXXXXXXX
 ```
 
 ---
@@ -153,7 +153,7 @@ REACT_APP_OPENAI_API_KEY=sk-XXXXXXXXXXXXXXXX
 2. Add to `.env`:
 
 ```env
-REACT_APP_SERPAPI_API_KEY=XXXXXXXXXXXXXXXX
+VITE_SERPAPI_API_KEY=XXXXXXXXXXXXXXXX
 ```
 
 ---
@@ -165,7 +165,7 @@ REACT_APP_SERPAPI_API_KEY=XXXXXXXXXXXXXXXX
 3. Add to `.env`:
 
 ```env
-REACT_APP_DROPBOX_ACCESS_TOKEN=sl.AAAAAAAAAAAA
+VITE_DROPBOX_ACCESS_TOKEN=sl.AAAAAAAAAAAA
 ```
 
 ---
@@ -176,7 +176,7 @@ REACT_APP_DROPBOX_ACCESS_TOKEN=sl.AAAAAAAAAAAA
 2. Add to `.env`:
 
 ```env
-REACT_APP_DEEPSEEK_API_KEY=sk-XXXXXXXXXXXXXXXX
+VITE_DEEPSEEK_API_KEY=sk-XXXXXXXXXXXXXXXX
 ```
 
 ---
@@ -187,7 +187,7 @@ REACT_APP_DEEPSEEK_API_KEY=sk-XXXXXXXXXXXXXXXX
 2. Generate your API key and add to `.env`:
 
 ```env
-REACT_APP_GEMINI_API_KEY=AIzaSyXXXXXXXXXXXX
+VITE_GEMINI_API_KEY=AIzaSyXXXXXXXXXXXX
 ```
 
 ---
@@ -195,20 +195,20 @@ REACT_APP_GEMINI_API_KEY=AIzaSyXXXXXXXXXXXX
 ## ✅ Final `.env` Example
 
 ```env
-REACT_APP_FIREBASE_APIKEY=...
-REACT_APP_FIREBASE_AUTH_DOMAIN=...
-REACT_APP_FIREBASE_PROJECT_ID=...
-REACT_APP_FIREBASE_MESSAGING_SENDER_ID=...
-REACT_APP_FIREBASE_APP_ID=...
-REACT_APP_FIREBASE_DATABASE_URL=...
-REACT_APP_FIREBASE_STORAGE_BUCKET=...               # Optional
-REACT_APP_GOOGLE_CLIENT_ID=...
+VITE_FIREBASE_APIKEY=...
+VITE_FIREBASE_AUTH_DOMAIN=...
+VITE_FIREBASE_PROJECT_ID=...
+VITE_FIREBASE_MESSAGING_SENDER_ID=...
+VITE_FIREBASE_APP_ID=...
+VITE_FIREBASE_DATABASE_URL=...
+VITE_FIREBASE_STORAGE_BUCKET=...               # Optional
+VITE_GOOGLE_CLIENT_ID=...
 
-REACT_APP_OPENAI_API_KEY=...                        # Optional
-REACT_APP_SERPAPI_API_KEY=...                       # Optional
-REACT_APP_DROPBOX_ACCESS_TOKEN=...                  # Optional
-REACT_APP_DEEPSEEK_API_KEY=...                      # Optional
-REACT_APP_GEMINI_API_KEY=...                        # Optional
+VITE_OPENAI_API_KEY=...                        # Optional
+VITE_SERPAPI_API_KEY=...                       # Optional
+VITE_DROPBOX_ACCESS_TOKEN=...                  # Optional
+VITE_DEEPSEEK_API_KEY=...                      # Optional
+VITE_GEMINI_API_KEY=...                        # Optional
 ```
 
 ---

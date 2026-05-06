@@ -66,11 +66,11 @@ npx react-firestrap create --yes --provider=mock
 npx react-firestrap devtools
 ```
 
-Lo scaffold crea `index.html`, `vite.config.ts`, `src/index.tsx`, `src/conf/menu.ts`, `src/layout/`,
-`src/pages/`, `src/globals.css` e provider config tramite env `VITE_*`.
+Lo scaffold crea `index.html`, `vite.config.ts`, `src/index.tsx`, `src/conf/`, `src/layouts/`,
+`src/pages/`, `src/sections/`, `src/components/`, `src/data/`, `src/styles/globals.css` e provider config tramite env `VITE_*`.
 
 `clients/showcase` segue lo stesso modello scaffold-first: Vite, entry unica `src/index.tsx`, menu unico
-`src/conf/menu.ts`, layout in `src/layout/ShowcaseLayout.tsx`, tema e icone gestiti da `<App>`.
+`src/conf/menu.ts`, layout in `src/layouts/ShowcaseLayout.tsx`, tema e icone gestiti da `<App>`.
 
 **Regola di dipendenza:** `libs/` non conosce React · `components/` non importa da `providers/` direttamente · tutto fluisce verso l'alto  
 **Nota:** `integrations/` e `models/` sono stub di backward-compat — tutta la logica è in `providers/` e `types/`.
@@ -377,7 +377,7 @@ import { SupabaseDataProvider } from './my-providers/SupabaseDataProvider'
     },
   }}
   defaultProviders={{
-    data: process.env.REACT_APP_DATA_PROVIDER || 'firebase',
+    data: import.meta.env.VITE_DATA_PROVIDER || 'firebase',
   }}
   ...
 />

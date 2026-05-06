@@ -13,7 +13,7 @@ npx react-firestrap create
 npx react-firestrap create --yes --provider=mock
 ```
 
-La app generata monta `<App>` in `src/index.tsx`, tiene il menu in `src/conf/menu.ts`, importa `src/globals.css` e usa `vite.config.ts` con dedupe React. Provider, icone e tema vengono scelti via prompt o env `VITE_*`.
+La app generata monta `<App>` in `src/index.tsx`, tiene il wiring in `src/conf/`, importa `src/styles/globals.css` e usa `vite.config.ts` con dedupe React. La struttura separa `pages/`, `sections/`, `components/`, `layouts/` e `data/`; provider, icone e tema vengono scelti via prompt o env `VITE_*`.
 
 ---
 

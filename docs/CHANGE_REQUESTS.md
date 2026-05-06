@@ -1220,7 +1220,7 @@ Migrare la toolchain del framework a un modello Vite-first:
 - Mantenere `src/index.ts` come entry pubblica della libreria
 - Aggiornare generazione CSS Tailwind in `dist/index.css`
 - Aggiornare `bin/cli.js` e `scripts/cli/*` per scaffold Vite-first
-- Lo scaffold deve creare `src/index.tsx`, `src/conf/menu.ts`, `src/layout/`, `src/pages/`, `src/globals.css`
+- Lo scaffold deve creare `src/index.tsx`, `src/conf/`, `src/layouts/`, `src/pages/`, `src/sections/`, `src/components/`, `src/data/`, `src/styles/globals.css`
 - Lo scaffold deve configurare provider selezionati: Firebase, Supabase, mock/custom
 - Aggiornare `README.md`, `CLAUDE.md`, `docs/patterns.md`, `docs/architecture.md`
 
@@ -1253,16 +1253,24 @@ my-app/
   package.json
   src/
     index.tsx                 ← render <App>
-    globals.css               ← import CSS app + eventuali override
     conf/
-      menu.ts                 ← menuConfig
-    layout/
-      AppLayout.tsx           ← LayoutDefault consumer
+      app.ts                  - App wiring: provider, icone, tema
+      menu.ts                 - menuConfig
+    layouts/
+      AppLayout.tsx           - LayoutDefault consumer
     pages/
-      Home.tsx
-    providers/
-      firebase.ts             ← opzionale, se scelto Firebase
-      supabase.ts             ← opzionale, se scelto Supabase
+      home/
+        HomePage.tsx
+    sections/
+      home/
+        TasksSection.tsx
+    components/
+      EmptyState.tsx
+      PageHeader.tsx
+    data/
+      mockData.ts
+    styles/
+      globals.css             - import CSS app + eventuali override
 ```
 
 ### Checklist
@@ -1320,7 +1328,7 @@ Ricostruire `clients/showcase/` come app Vite scaffold-first:
 - struttura uguale o quasi uguale a quella generata dal CLI aggiornato in CR-015
 - entry `src/index.tsx`
 - menu canonico in `src/conf/menu.ts`
-- layout custom in `src/layout/ShowcaseLayout.tsx`
+- layout custom in `src/layouts/ShowcaseLayout.tsx`
 - providers mock/offline configurati come in un consumer reale
 - pagine componenti, provider, temi e docs migrate senza routing custom parallelo
 
