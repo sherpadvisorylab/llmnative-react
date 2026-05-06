@@ -27,7 +27,7 @@ const defaultTheme = {
         Card: {
             wrapClass: "",
             className: "",
-            headerClass: "d-flex justify-content-between",
+            headerClass: "flex justify-between",
             bodyClass: "p-0",
             footerClass: "",
             showArrow: false
@@ -48,19 +48,19 @@ const defaultTheme = {
             headerClass: "",
             bodyClass: "",
             footerClass: "",
-            selectedClass: "bg-primary",
+            selectedClass: "bg-primary/20",
             gutterSize: "1",
             rowCols: "4"
         },
         Modal: {
             mode: "form",
-            size: "lg", 
+            size: "lg",
             position: "center",
             wrapClass: "",
             className: "",
             headerClass: "",
             titleClass: "",
-            subTitleClass: "pe-1 text-muted",
+            subTitleClass: "pr-1 text-muted-foreground",
             bodyClass: "",
             footerClass: "",
             iconExpand: "fullscreen",
@@ -88,7 +88,7 @@ const defaultTheme = {
         headerClass: "",
         bodyClass: "",
         footerClass: "",
-        selectedClass: "bg-primary",
+        selectedClass: "bg-primary/20",
         gutterSize: "4",
         rowCols: "2"
     },
@@ -112,8 +112,8 @@ const defaultTheme = {
     Card: {
         wrapClass: "",
         className: "",
-        headerClass: "d-flex justify-content-between bg-white bg-opacity-15 fw-400",
-        bodyClass: "d-flex flex-column",
+        headerClass: "flex justify-between bg-white/[.15] font-normal",
+        bodyClass: "flex flex-col",
         footerClass: "",
         showLoader: false,
         showArrow: false
@@ -127,11 +127,11 @@ const defaultTheme = {
     },
     ActionButton: {
         className: "",
-        badgeClass: "rounded-pill bg-danger",
+        badgeClass: "rounded-full bg-destructive text-destructive-foreground",
     },
     LoadingButton: {
         className: "",
-        badgeClass: "rounded-pill bg-danger",
+        badgeClass: "rounded-full bg-destructive text-destructive-foreground",
         spinnerClass: "spinner-border spinner-border-sm"
     },
     LinkButton: {
@@ -150,7 +150,7 @@ const defaultTheme = {
         className: "",
         headerClass: "",
         titleClass: "",
-        subTitleClass: "pe-1 text-muted",
+        subTitleClass: "pr-1 text-muted-foreground",
         bodyClass: "",
         footerClass: "",
         iconExpand: "fullscreen",
@@ -160,7 +160,7 @@ const defaultTheme = {
         wrapClass: "",
         className: "",
         buttonClass: "",
-        badgeClass: "position-absolute me-1 top-0 end-0",
+        badgeClass: "absolute mr-1 top-0 right-0",
         menuClass: "",
         menuHeaderClass: "",
         menuItemClass: "",
@@ -169,11 +169,11 @@ const defaultTheme = {
         footerClass: "",
         Menu: {
             wrapClass: "",
-            className: "list-unstyled",
+            className: "list-none p-0 m-0",
             headerClass: "",
             itemClass: "",
             linkClass: "dropdown-item",
-            iconClass: "me-1",
+            iconClass: "mr-1",
             textClass: "",
             badgeClass: "",
             arrowClass: "",
@@ -204,7 +204,7 @@ const defaultTheme = {
         Card: {
             headerClass: "",
             bodyClass: "",
-            footerClass: "text-end",
+            footerClass: "text-right",
         },
         i18n: {
             headerNewRecord: "Nuovo Record",
@@ -220,11 +220,11 @@ const defaultTheme = {
         headerClass: "",
         itemClass: "nav-item",
         linkClass: "nav-link",
-        iconClass: "me-1",
+        iconClass: "mr-1",
         textClass: "flex-grow-1",
-        badgeClass: "ms-1",
+        badgeClass: "ml-1",
         arrowClass: "",
-        submenuClass: "nav flex-column ms-4",
+        submenuClass: "nav flex-column ml-4",
     },
     Brand: {
         wrapClass: "",
@@ -233,8 +233,8 @@ const defaultTheme = {
         labelClass: "navbar-text",
     },
     SignIn: {
-        className: "d-flex align-items-center",
-        avatarClass: "avatar rounded-circle mx-2",
+        className: "flex items-center",
+        avatarClass: "avatar rounded-full mx-2",
     },
     Image: {
         wrapClass: "",

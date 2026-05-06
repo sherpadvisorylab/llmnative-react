@@ -33,6 +33,8 @@ import { AuthProviderProvider } from "./providers/auth/AuthProviderContext";
 import { GoogleAuthProvider } from "./providers/auth/google/GoogleAuthProvider";
 import { EmailProvider } from "./providers/email/EmailProvider";
 import { EmailProviderProvider } from "./providers/email/EmailProviderContext";
+import type { IconProvider } from "./providers/icon/IconProvider";
+import { IconProviderProvider } from "./providers/icon/IconProviderContext";
 
 
 
@@ -92,6 +94,8 @@ type AppProps = {
     providers?: ProviderMap;
     // Which name to use as default — consumer can drive this from env vars
     defaultProviders?: DefaultProviderKeys;
+    /** Icon provider — defaults to null (no icons). Use LucideIconProvider or PhosphorIconProvider. */
+    iconProvider?: IconProvider;
 };
 
 function buildRegistry<T>(
@@ -133,6 +137,16 @@ const MaybeEmailProvider = ({
     ? <EmailProviderProvider registry={registry} defaultKey={defaultKey}>{children}</EmailProviderProvider>
     : <>{children}</>;
 
+const MaybeIconProvider = ({
+    provider,
+    children,
+}: {
+    provider: IconProvider | undefined;
+    children: React.ReactNode;
+}) => provider
+    ? <IconProviderProvider provider={provider}>{children}</IconProviderProvider>
+    : <>{children}</>;
+
 let menu: MenuConfig = {};
 export const setStaticMenu = (config: MenuConfig) => {
     menu = config;
@@ -163,6 +177,7 @@ function App({
                  emailProvider,
                  providers,
                  defaultProviders,
+                 iconProvider,
 }: AppProps) {
     const dataRegistry    = buildRegistry(dataProvider, providers?.data, defaultProviders?.data, new FirebaseDataProvider());
     const storageRegistry = buildOptionalRegistry(storageProvider, providers?.storage, defaultProviders?.storage);
@@ -241,6 +256,7 @@ function App({
                     <DataProviderProvider {...dataRegistry}>
                     <StorageProviderProvider {...storageRegistry}>
                     <MaybeEmailProvider registry={emailRegistry.registry} defaultKey={emailRegistry.defaultKey}>
+                    <MaybeIconProvider provider={iconProvider}>
                     <ThemeProvider importTheme={importTheme}>
                         <Routes>
                             <Route path={AUTH_REDIRECT_URI} element={<Authorize />}></Route>
@@ -259,6 +275,7 @@ function App({
                             <Route path='*' element={<NotFound />}></Route>
                         </Routes>
                     </ThemeProvider>
+                    </MaybeIconProvider>
                     </MaybeEmailProvider>
                     </StorageProviderProvider>
                     </DataProviderProvider>

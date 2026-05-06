@@ -1,6 +1,7 @@
 const path = require('path');
 const nodeExternals = require('webpack-node-externals');
 const webpack = require('webpack');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 module.exports = {
     entry: {
@@ -27,18 +28,22 @@ module.exports = {
     module: {
         rules: [
             {
-                test: /\.(ts|tsx)$/, // Modifica qui per includere i file .ts e .tsx
+                test: /\.(ts|tsx)$/,
                 exclude: /node_modules/,
-                use: {
-                    loader: 'ts-loader', // Usa ts-loader per gestire i file TypeScript
-                },
+                use: { loader: 'ts-loader' },
             },
             {
-                test: /\.(js|jsx)$/, // Regola per i file JavaScript
+                test: /\.(js|jsx)$/,
                 exclude: /node_modules/,
-                use: {
-                    loader: 'babel-loader',
-                },
+                use: { loader: 'babel-loader' },
+            },
+            {
+                test: /\.css$/,
+                use: [
+                    MiniCssExtractPlugin.loader,
+                    'css-loader',
+                    'postcss-loader',
+                ],
             },
         ],
     },
@@ -46,5 +51,6 @@ module.exports = {
         extensions: ['.js', '.jsx', '.ts', '.tsx'],
     },
     plugins: [
+        new MiniCssExtractPlugin({ filename: 'index.css' }),
     ],
 };

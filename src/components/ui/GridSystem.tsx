@@ -4,6 +4,7 @@ type ContainerProps = {
     children?: ReactNode;
     className?: string;
     style?: CSSProperties;
+    onClick?: () => void;
 };
 
 type ColProps = ContainerProps & {
@@ -19,10 +20,11 @@ type ColProps = ContainerProps & {
 export const Wrapper = ({
                             children    = undefined,
                             className   = undefined,
-                            style       = undefined
+                            style       = undefined,
+                            onClick     = undefined,
 } : ContainerProps) => {
     return className
-        ? <div className={className} style={style}>{children}</div>
+        ? <div className={className} style={style} onClick={onClick}>{children}</div>
         : <>{children}</>;
 };
 

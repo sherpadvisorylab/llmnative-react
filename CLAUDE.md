@@ -3,8 +3,12 @@
 Framework React per UI data-driven. Schema-driven: definisci i campi → ottieni UI + persistenza con pochissimo codice.
 
 **Branch attivo:** `modernize` (v2 in sviluppo — vedi `docs/ROADMAP.md`)  
-**Stack attuale:** React 18 + Firebase Realtime DB + Bootstrap  
+**Stack attuale:** React 18 + Firebase Realtime DB + Tailwind CSS (Bootstrap compatibility layer)  
 **Stack target v2:** React 18 + DataProvider pattern + shadcn/ui + Tailwind
+
+> **CR-004 in corso:** Bootstrap è stato rimosso come dipendenza runtime. Il CSS è ora generato da Tailwind v4  
+> tramite `@layer components` che ricrea le stesse classi Bootstrap (`.btn`, `.badge`, `.alert`, `.modal`, ecc.).  
+> I consumer devono importare `react-firestrap/dist/index.css` una sola volta.
 
 ---
 
@@ -401,7 +405,7 @@ In corso sul branch `modernize`. Vedi `docs/CHANGE_REQUESTS.md` per i dettagli.
 | CR-002 | Provider abstraction layer (DataProvider, StorageProvider + Named Registry) | ✅ done |
 | CR-002b | AuthProvider + EmailProvider interface + Named Registry | ✅ done |
 | CR-003 | TypeScript strict | ⬜ todo |
-| CR-004 | shadcn/ui + Tailwind (rimpiazza Bootstrap) | ⬜ todo |
+| CR-004 | shadcn/ui + Tailwind (rimpiazza Bootstrap) | 🔄 in progress |
 | CR-005 | CLI aggiornato | ⬜ todo |
 | CR-006 | Batterie di test (unit + integration contract + component) | ⬜ todo |
 | CR-007 | Showcase app con tutti i componenti e corner case | ⬜ todo |

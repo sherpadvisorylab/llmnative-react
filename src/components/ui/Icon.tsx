@@ -1,21 +1,27 @@
-import React from "react";
-import { UIProps, Wrapper } from "..";
-import { useTheme } from "../../Theme";
+import React from 'react';
+import { useIconProvider } from '../../providers/icon/IconProviderContext';
+import type { IconProvider } from '../../providers/icon/IconProvider';
 
-interface IconProps extends UIProps {
-    icon: string;
-    label?: string;
+interface IconProps {
+    name?: string;
+    /** @deprecated use name */
+    icon?: string;
+    size?: number;
     className?: string;
+    /** Override the global icon provider for this instance only */
+    provider?: IconProvider;
+    label?: string;
 }
 
-const Icon = ({ icon, label, pre, post, wrapClass, className}: IconProps) => {
-    const theme = useTheme('icon');
-    return <Wrapper className={wrapClass}>
-        {pre}
-        <i className={`${theme.getIcon(icon)}${label ? " me-1" : ""}${className ? " " + className : ""}`}></i>
-        {label && <span>{label}</span>}
-        {post}
-    </Wrapper>
-}
+const Icon = ({ name, icon, size = 16, className, provider: overrideProvider }: IconProps) => {
+    const resolvedName = name ?? icon ?? '';
+    const nameProp = resolvedName; // local alias for clarity
+    const contextProvider = useIconProvider();
+    const provider = overrideProvider ?? contextProvider;
+    if (!provider || !nameProp) return null;
+    const Component = provider.resolve(nameProp);
+    if (!Component) return null;
+    return <Component size={size} className={className} />;
+};
 
 export default Icon;

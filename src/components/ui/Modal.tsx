@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import { createPortal } from 'react-dom';
 import {useTheme} from "../../Theme";
 import {ActionButton, LoadingButton} from "./Buttons";
@@ -16,6 +16,7 @@ interface ModalProps extends UIProps {
     size?: "sm" | "md" | "lg" | "xl" | "fullscreen";
     position?: "center" | "top" | "left" | "right" | "bottom";
     buttonFullscreen?: boolean;
+    footerClose?: boolean;
     headerClass?: string;
     titleClass?: string;
     subTitleClass?: string;
@@ -52,6 +53,7 @@ const ModalDefault = ({
                           size              = undefined,
                           position          = undefined,
                           buttonFullscreen  = true,
+                          footerClose       = true,
                           pre               = undefined,
                           post              = undefined,
                           wrapClass         = undefined,
@@ -126,11 +128,12 @@ const ModalDefault = ({
 
     const pos = positions[sizeClass === "fullscreen" ? "center" : (position || theme.Modal.position) as keyof typeof positions];
 
-    window.document.body.style.overflow = "hidden";
-    const handleClose = () => {
-        window.document.body.style.overflow = "auto";
-        onClose?.();
-    }
+    useEffect(() => {
+        document.body.style.overflow = "hidden";
+        return () => { document.body.style.overflow = ""; };
+    }, []);
+
+    const handleClose = () => { onClose?.(); }
 
     return createPortal(<>
         <Wrapper className={pos.coverClass}>
@@ -153,7 +156,8 @@ const ModalDefault = ({
                                 }}
                             />}
                             {onClose && <ActionButton
-                                className="btn-close"
+                                className="border-0 p-1.5 text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
+                                label="✕"
                                 onClick={handleClose}
                             />}
                         </div>}
@@ -181,7 +185,7 @@ const ModalDefault = ({
                                 handleClose()
                             }}
                         />}
-                        {onClose && <ActionButton
+                        {onClose && footerClose && <ActionButton
                             className="btn-link"
                             label={"Cancel"}
                             onClick={handleClose}
@@ -191,7 +195,7 @@ const ModalDefault = ({
                 {post}
             </div>
         </Wrapper>
-        <Wrapper className={pos.backdropClass}/>
+        <Wrapper className={pos.backdropClass} onClick={handleClose} />
     </>, document.body);
 };
 

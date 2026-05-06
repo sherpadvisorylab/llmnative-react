@@ -2,7 +2,7 @@
 
 > Ogni CR rappresenta un'unità di lavoro autonoma con motivazione, scope e checklist.  
 > Stato: `⬜ todo` · `🔄 in progress` · `✅ done` · `🚫 cancelled`  
-> Ultima revisione: 2026-05-04
+> Ultima revisione: 2026-05-05
 
 ---
 
@@ -14,14 +14,17 @@
 | [CR-002](#cr-002--provider-abstraction-layer) | Provider abstraction layer | Critica | — | ✅ |
 | [CR-002b](#cr-002b--authprovider--emailprovider-interfaces) | AuthProvider + EmailProvider interfaces | Alta | CR-002 | ✅ |
 | [CR-003](#cr-003--typescript-strict) | TypeScript strict | Alta | — | ✅ |
-| [CR-004](#cr-004--shadcnui--tailwind-css) | shadcn/ui + Tailwind CSS | Alta | CR-002 | ⬜ |
+| [CR-004](#cr-004--shadcnui--tailwind-css) | shadcn/ui + Tailwind CSS | Alta | CR-002 | 🔄 |
 | [CR-005](#cr-005--cli-update-e-scaffolding) | CLI update e scaffolding | Media | CR-002, CR-004 | ⬜ |
-| [CR-006](#cr-006--batterie-di-test) | Batterie di test | Alta | CR-002, CR-003 | ⬜ |
-| [CR-007](#cr-007--showcase-app) | Showcase app | Media | CR-002, CR-004, CR-006 | ⬜ |
+| [CR-006](#cr-006--batterie-di-test) | Batterie di test | Alta | CR-002, CR-003 | 🔄 |
+| [CR-007](#cr-007--showcase-app) | Showcase app | Alta | CR-002, CR-004 | 🔄 |
 | [CR-008](#cr-008--tema-empty--tailwind--shadcnui) | Tema `empty` → Tailwind + shadcn/ui | Bassa | CR-004 | ⬜ |
 | [CR-009](#cr-009--tema-default--tailwind--shadcnui) | Tema `default` → Tailwind + shadcn/ui | Bassa | CR-004 | ⬜ |
 | [CR-010](#cr-010--tema-flat--tailwind--shadcnui) | Tema `flat` → Tailwind + shadcn/ui | Bassa | CR-004 | ⬜ |
 | [CR-011](#cr-011--tema-cyber--tailwind--shadcnui) | Tema `cyber` → Tailwind + shadcn/ui | Bassa | CR-004 | ⬜ |
+| [CR-012](#cr-012--showcase-refactor--react-firestrap-native) | Showcase refactor — react-firestrap native | Alta | CR-004, CR-007 | ⬜ |
+| [CR-013](#cr-013--icon-provider-system) | Icon provider system | Media | CR-004 | 🔄 |
+| [CR-014](#cr-014--raffinazione-componenti--props-e-comportamenti) | Raffinazione componenti — props e comportamenti | Media | CR-007 | ⬜ |
 
 ---
 
@@ -287,8 +290,8 @@ export interface EmailProvider {
 
 ## CR-004 — shadcn/ui + Tailwind CSS
 
-**Stato:** ⬜ todo  
-**Branch:** `modernize/tailwind`  
+**Stato:** 🔄 in progress  
+**Branch:** `modernize`  
 **Priorità:** Alta — dopo CR-002 stabile  
 **Stima:** 2–3 settimane  
 **Dipende da:** CR-002 completata  
@@ -322,28 +325,46 @@ Bootstrap è in declino nell'ecosistema React. shadcn/ui + Tailwind è lo standa
 | Upload | custom Tailwind | UI custom con drop zone |
 | Loader | custom Tailwind | spinner o skeleton |
 
+### Approccio scelto: Bootstrap compatibility layer via Tailwind `@layer components`
+
+Invece di usare i componenti shadcn/ui direttamente (che richiederebbe riscrivere i file `.tsx`),  
+si definiscono le stesse classi Bootstrap (`.btn`, `.badge`, `.alert`, `.modal`, `.card`, ecc.)  
+come macro Tailwind via `@apply` in `@layer components`. Questo significa:
+- Nessun cambiamento al codice dei componenti `.tsx`
+- CSS generato da Tailwind (tree-shaking, zero Bootstrap runtime)
+- `importTheme()` continua a funzionare — i valori delle classi nel tema sono ora Tailwind puri
+- Consumatori che usano `cn()` possono usare utilities Tailwind direttamente
+
+### Schema architetturale
+```
+src/globals.css          ← @import "tailwindcss" + @theme (colori) + @layer components (Bootstrap compat)
+src/libs/cn.ts           ← helper clsx + tailwind-merge
+src/Theme.tsx            ← defaultTheme aggiornato con classi Tailwind-compat
+dist/index.css           ← CSS estratto da MiniCssExtractPlugin (consumer lo importa una volta)
+dist/index.js            ← bundle JS invariato
+```
+
+### Consumer setup
+```tsx
+// main.tsx / App.tsx del consumer
+import 'react-firestrap/dist/index.css';   // ← un solo import
+```
+
 ### Checklist
-- [ ] Installare Tailwind CSS + configurare `tailwind.config.js`
-- [ ] Installare shadcn/ui + configurare `components.json`
-- [ ] Aggiungere CSS variables shadcn in `globals.css`
-- [ ] Riscrivere `Theme.tsx` — tutti i valori Bootstrap → classi Tailwind
-- [ ] Migrare `Buttons.tsx` → shadcn Button
-- [ ] Migrare `ui/fields/Input.tsx` → shadcn Input
-- [ ] Migrare `ui/fields/Select.tsx` → shadcn Select + Combobox
-- [ ] Migrare `ui/Modal.tsx` → shadcn Dialog
-- [ ] Migrare `ui/Card.tsx` → shadcn Card
-- [ ] Migrare `ui/Badge.tsx` → shadcn Badge
-- [ ] Migrare `ui/Alert.tsx` → shadcn Alert
-- [ ] Migrare `ui/Table.tsx` → shadcn Table
-- [ ] Migrare `ui/Tab.tsx` e `TabDynamic.tsx` → shadcn Tabs
-- [ ] Migrare `ui/Pagination.tsx` → custom Tailwind
-- [ ] Migrare `ui/fields/Upload.tsx` → custom Tailwind
-- [ ] Migrare `ui/Loader.tsx` → custom Tailwind
-- [ ] Rimuovere Bootstrap da `package.json`
-- [ ] Verificare che `importTheme()` funzioni ancora con nuovi valori Tailwind
-- [ ] Verificare dark mode via CSS variables shadcn
-- [ ] Test visivo completo di tutti i componenti
-- [ ] Aggiornare `docs/patterns.md` con esempi Tailwind
+- [x] Installare Tailwind CSS v4 + `@tailwindcss/postcss` + autoprefixer
+- [x] Installare `clsx` + `tailwind-merge`
+- [x] Configurare `tailwind.config.js` (content scan `src/**/*.{ts,tsx}`)
+- [x] Configurare `postcss.config.js`
+- [x] Aggiornare `webpack.config.js` — aggiungere `css-loader`, `postcss-loader`, `MiniCssExtractPlugin`
+- [x] Creare `src/globals.css` — `@import "tailwindcss"` + `@theme inline` (colori) + `@layer components` (Bootstrap compat layer completo)
+- [x] Creare `src/libs/cn.ts` — helper `cn()` esportato
+- [x] Aggiornare `src/index.ts` — aggiungere `import './globals.css'`
+- [x] Aggiornare `Theme.tsx` defaultTheme — tutti i valori Bootstrap → classi Tailwind-compat
+- [x] Aggiornare `package.json` — aggiungere `"style"` + `"exports"` fields
+- [x] Build pulita (webpack dev + prod, 0 errori)
+- [ ] Test visivo completo di tutti i componenti nel consumer
+- [ ] Aggiornare `docs/patterns.md` con nota import CSS
+- [ ] Verificare dark mode via `.dark` class override delle `--rf-*` variables
 
 ---
 
@@ -370,8 +391,8 @@ Il CLI (`npx react-firestrap create`) genera struttura con Bootstrap e Firebase 
 
 ## CR-006 — Batterie di test
 
-**Stato:** ⬜ todo  
-**Branch:** `modernize/tests`  
+**Stato:** 🔄 in progress  
+**Branch:** `modernize`  
 **Priorità:** Alta  
 **Stima:** 2–3 settimane  
 **Dipende da:** CR-002 (i test testano le interface, non Firebase direttamente), CR-003 (TypeScript strict aiuta la correttezza dei test)  
@@ -561,20 +582,21 @@ it('array index — name="items.0.name" aggiorna primo elemento array', async ()
 
 ### Checklist
 
-- [ ] Configurare Vitest + React Testing Library + msw
+- [x] Configurare Vitest 2.x + React Testing Library + happy-dom (`vitest.config.ts`)
 - [ ] Configurare Firebase Emulator per test di integrazione
-- [ ] Creare `createMockDataProvider()` utility
-- [ ] Scrivere `DataProvider.contract.ts` (contract test parametrico)
-- [ ] Unit test: `converter.ts`
+- [x] Creare `MockDataProvider` — implementazione in-memory completa (`src/providers/data/mock.ts`)
+- [x] Scrivere `DataProvider.contract.ts` — contract test parametrico (14 test)
+- [x] `MockDataProvider.test.ts` — MockDataProvider supera il contract + test useListener (22 test)
+- [x] Unit test: `utils.ts` — trimSlash, normalizePath, normalizeKey, isEmpty, safeClone (23 test)
+- [x] Unit test: `converter.ts` — toCamel, toUpper, toLower, toSlug, truncate, toQueryString, parse, subStringCount (16 test)
 - [ ] Unit test: `path.ts`
 - [ ] Unit test: `sanitizer.ts`
 - [ ] Unit test: `cache.ts`
-- [ ] Unit test: `utils.ts`
 - [ ] Integration test: `FirebaseDataProvider` contro emulatore
 - [ ] Integration test: `SupabaseDataProvider` contro istanza test
-- [ ] Component test: `Form.tsx` — tutti i corner case elencati
-- [ ] Component test: `Grid.tsx` — tutti i corner case elencati
-- [ ] Component test: `Input.tsx`
+- [x] Component test: `Form.tsx` — defaultValues, FormDatabase loading, save, onFinally, nested dot notation (9 test)
+- [x] Component test: `Grid.tsx` — headers, rows, empty state, dataArray, onDisplay formatter, real-time add/remove, allowedActions (8 test)
+- [x] Component test: `Input.tsx` — rendering, labels, types, placeholder, disabled, user interaction (8 test)
 - [ ] Component test: `Select.tsx`
 - [ ] Component test: `Upload.tsx`
 - [ ] Component test: `Prompt.tsx`
@@ -582,30 +604,30 @@ it('array index — name="items.0.name" aggiorna primo elemento array', async ()
 - [ ] Configurare Playwright per smoke test E2E
 - [ ] E2E: flusso CRUD completo (add → edit → delete)
 - [ ] E2E: login Google
-- [ ] Aggiungere script `test`, `test:unit`, `test:integration`, `test:e2e` in `package.json`
+- [x] Aggiungere script `test`, `test:watch`, `test:coverage` in `package.json`
 - [ ] Aggiungere CI check (GitHub Actions o equivalente)
 
 ---
 
 ## CR-007 — Showcase app
 
-**Stato:** ⬜ todo  
-**Branch:** `modernize/playground`  
-**Priorità:** Media — ultimo step, dopo che tutto è stabile  
+**Stato:** 🔄 in progress  
+**Branch:** `modernize`  
+**Priorità:** Alta — anticipata per testare visivamente CR-004  
 **Stima:** 3–4 settimane  
-**Dipende da:** CR-002, CR-004, CR-006  
+**Dipende da:** CR-002, CR-004 (rimossa dipendenza da CR-006 — la showcase serve anche come test visivo)  
 **Breaking change:** No (app separata)
 
 ### Motivazione
-Una showcase app serve a tre cose contemporaneamente: documentazione interattiva per sviluppatori, test manuale visivo di ogni componente con ogni combinazione di props, e stress test di corner case reali. È anche il modo più efficace per mostrare il framework a chi non lo conosce.
+Una showcase app serve a tre cose contemporaneamente: documentazione interattiva per sviluppatori, test manuale visivo di ogni componente con ogni combinazione di props, e stress test di corner case reali. È anche il modo più efficace per mostrare il framework a chi non lo conosce. Anticipata rispetto a CR-006 perché è necessaria per verificare visivamente CR-004 (Tailwind migration).
 
 ### Struttura
 
-App separata in `playground/` nella root del repo (non dentro `src/`). Usa il framework stesso come dipendenza locale:
+App separata in `clients/showcase/` nella root del repo (non dentro `src/`). Usa il framework stesso come dipendenza locale:
 
 ```
-playground/
-  package.json                   ← dipendenza: "react-firestrap": "file:../"
+clients/showcase/
+  package.json                   ← dipendenza: "react-firestrap": "file:../../"
   vite.config.ts
   src/
     App.tsx                      ← router principale con sidebar navigazione
@@ -709,24 +731,34 @@ Il codice generato live è particolarmente utile per l'AI: un developer (o un AI
 
 ### Checklist
 
-- [ ] Creare `playground/` con Vite + React + Tailwind
-- [ ] Collegare come dipendenza locale (`file:../`)
-- [ ] Configurare router (react-router-dom) con sidebar
-- [ ] Creare layout: sidebar navigazione + area preview + pannello props
-- [ ] Creare componente `PropsPanel` — controlli dinamici (testo, toggle, select, number)
-- [ ] Creare componente `CodePreview` — mostra codice aggiornato live
-- [ ] Pagine Input: tutti i tipi (string, number, email, password, color, date, datetime, week, month)
-- [ ] Pagine Select: basic, from-db, autocomplete, checklist
+- [x] Creare `clients/showcase/` con Vite + React + Tailwind
+- [x] Collegare come dipendenza locale (`file:../../`)
+- [x] Configurare router (react-router-dom) con sidebar
+- [x] Creare layout: sidebar navigazione + area preview + blocco codice copiabile
+- [x] Creare componente `PageLayout` — header pagina con titolo e descrizione
+- [x] Creare componente `Section` — preview live + codice con pulsante copia
+- [x] Home page con overview, quick links e quick start
+- [x] Pagina Alert: tutte le varianti, senza icona, con timeout
+- [x] Pagina Badge: tutte le varianti, in contesto con testo e bottoni
+- [x] Pagina Button: solid, outline, link, disabilitato, stato loading
+- [x] Pagina Card: base, con header/footer, griglia di card
+- [x] Pagina Loader: spinner inline, Loader come wrapper
+- [x] Pagina Modal: tutte le posizioni (center/left/right/top/bottom), ModalYesNo
+- [x] Pagina Pagination: demo interattiva 50 record, spiegazione sticky
+- [x] Pagina Tab: tutte le posizioni (default/top/left/right/bottom)
+- [x] Pagina Table: striping, selezione riga, colonne custom
+- [x] Build Vite production pulita (0 errori)
+- [x] Pagine Input: tutti i tipi (string, number, email, password, color, date, datetime, week, month)
+- [x] Pagine Select: basic, static options, checklist
+- [ ] Pagine Select: from-db (richiede DataProvider live), autocomplete
 - [ ] Pagine Upload: image (con crop), document, CSV
-- [ ] Pagine Form: basic, nested-objects, arrays, validation, callbacks, ref, custom-save-path, custom-primary-key
-- [ ] Pagine Grid: basic, sorting, pagination, group-by, real-time, modal-form, custom-columns, gallery, allowed-actions
-- [ ] Pagine Prompt: editor-mode, live-mode, template-vars
+- [x] Pagine Form: basic, nested-objects, edit existing record, lifecycle hooks — powered by MockDataProvider
+- [x] Pagine Grid: read-only table, full CRUD, pagination, column formatters, in-memory dataArray — powered by MockDataProvider
+- [x] MockDataProvider: implementazione in-memory del DataProvider per showcase offline
 - [ ] Pagine Providers: confronto Firebase vs Supabase side-by-side
-- [ ] Pagine Corner cases: tutti gli 8 scenari elencati
 - [ ] Pagina Theme: switch tema live + custom theme
-- [ ] Home page con overview e quick links
-- [ ] Deploy della playground (GitHub Pages o Vercel)
-- [ ] Link alla playground da `CLAUDE.md` e `docs/`
+- [ ] Deploy (GitHub Pages o Vercel)
+- [ ] Link alla showcase da `CLAUDE.md` e `docs/`
 
 ---
 
@@ -867,3 +899,276 @@ Riusa la struttura React ricostruita in CR-010 (stesso sistema `.pc-*`), cambia:
 - [ ] Convertire `theme.js` — token Bootstrap → Tailwind con classi cyber
 - [ ] Aggiornare `public/index.html`
 - [ ] Test visivo: dark theme, accenti neon, responsive
+
+---
+
+## CR-012 — Showcase refactor — react-firestrap native
+
+**Stato:** ⬜ todo  
+**Branch:** `modernize/cr-012-showcase-native`  
+**Priorità:** Alta  
+**Dipende da:** CR-004, CR-007  
+**Stima:** 3–5 giorni  
+
+### Motivazione
+
+Il client `clients/showcase/` è nato come prototipo Vite standalone per sviluppare e testare i componenti visivamente. Nel corso del suo sviluppo è cresciuto in modo organico usando HTML grezzo, classi Bootstrap manuali e un routing custom — tutto materiale che non ha nulla a che fare con il framework stesso.
+
+Questo è un problema su due livelli:
+
+1. **Non è una prova autentica del framework.** Se il progetto più visibile di react-firestrap non usa react-firestrap, il framework perde credibilità come strumento di sviluppo reale.
+2. **Duplicazione di soluzioni.** Ogni cosa costruita nello showcase da zero (layout, routing, menu, modal, form) è già risolta dal framework. Riscriverla in parallelo è spreco di codice e crea divergenza.
+
+L'obiettivo di CR-012 è ricostruire `clients/showcase/` *integralmente* usando solo i pattern e i componenti descritti in `CLAUDE.md`: `<App>`, `menuConfig`, `LayoutDefault`, `Grid`, `Form`, `Modal`, provider, ecc. Lo showcase diventa così la documentazione vivente più credibile del framework — ogni feature esposta è una feature dimostrata in produzione.
+
+### Scope
+
+**Incluso:**
+- Eliminare tutto il codice che non usa react-firestrap nativamente (routing custom, layout a mano, classi Bootstrap scritte a mano)
+- Adottare `<App>` come entry point con `menuConfig` per la navigazione laterale
+- Usare `LayoutDefault` (o un `importLayout` custom minimo) per header, sidebar, breadcrumb
+- Ogni pagina del catalogo componenti dimostra il componente usando react-firestrap direttamente
+- La pagina "Providers" mostra una configurazione reale con `DataProvider`, `StorageProvider`, ecc.
+- La pagina "Theme" usa il `ThemePanel` collegato a CSS variables reali di react-firestrap
+- Il deploy rimane Vite (non webpack) per semplicità del client — il framework stesso non impone il bundler
+
+**Escluso:**
+- Modifiche al core del framework (se serve cambiare qualcosa nel core, aprire CR separata)
+- Firebase reale (lo showcase usa `dataArray` statici o un mock `DataProvider`)
+
+### Architettura target
+
+```
+clients/showcase/
+  src/
+    index.tsx           ← <App> entry point, zero routing custom
+    menu.ts             ← menuConfig con voci per ogni sezione
+    layout/
+      ShowcaseLayout.tsx  ← LayoutDefault wrapper con Topbar e ThemePanel
+    pages/
+      components/       ← una pagina per componente (Alert, Badge, Card, ...)
+      providers/        ← demo configurazione provider
+      theme/            ← pannello tema con live CSS variables
+      grid/             ← Grid CRUD demo con dataArray
+      form/             ← Form demo con schema
+    globals.css         ← solo @import tailwindcss + @theme inline (niente layout custom)
+  vite.config.ts        ← preserveSymlinks + optimizeDeps (invariato)
+  tsconfig.json         ← paths per react-firestrap (invariato)
+```
+
+### Decisione bundler
+
+Lo showcase usa **Vite** (non webpack). Motivi:
+- Il framework supporta sia webpack (CLI scaffolding) che Vite (client showcase)
+- Vite è più veloce in dev, non richiede configurazione Firebase obbligatoria
+- Il `vite.config.ts` già risolve correttamente la dipendenza da react-firestrap via symlink
+
+La differenza webpack/Vite è un dettaglio di tooling del client, non un'API del framework. Non condiziona la dimostrazione dei pattern react-firestrap.
+
+### Checklist
+
+#### Setup
+- [ ] Creare branch `modernize/cr-012-showcase-native`
+- [ ] Rimuovere il routing custom da `App.tsx` dello showcase
+- [ ] Adottare `<App>` di react-firestrap come entry point
+- [ ] Definire `menuConfig` in `src/menu.ts` con tutte le sezioni del catalogo
+
+#### Layout
+- [ ] Implementare `ShowcaseLayout.tsx` usando `LayoutDefault` (o il wrapper minimo equivalente)
+- [ ] Integrare `Topbar` e `ThemePanel` nel layout custom
+- [ ] Verificare dark mode, responsive, z-index sidebar
+
+#### Pagine componenti
+- [ ] `AlertPage` — usa `<Alert>` di react-firestrap, mostra tutte le varianti
+- [ ] `BadgePage` — usa `<Badge>` di react-firestrap
+- [ ] `CardPage` — usa `<Card>` di react-firestrap
+- [ ] `ButtonPage` — usa `<LoadingButton>`, `<ActionButton>` di react-firestrap
+- [ ] `ModalPage` — usa `<Modal>`, `<ModalYesNo>`, `<ModalOk>` con tutte le posizioni
+- [ ] `InputPage` — usa `<Input>` con tutti gli `inputType`
+- [ ] `SelectPage` — usa `<Select>`, `<Select.Autocomplete>`, `<Select.Checklist>`
+- [ ] `UploadPage` — usa `<Upload>`, `<Upload.Image>`, `<Upload.Document>`
+- [ ] `TablePage` — usa `<Grid type="table">` con `dataArray` statico
+- [ ] `GalleryPage` — usa `<Grid type="gallery">` con `dataArray` statico
+
+#### Pagine avanzate
+- [ ] `FormPage` — Form standalone con schema reale, `onLoad`, `onSave`, `onFinally`
+- [ ] `GridCrudPage` — Grid con `allowedActions`, `modal`, `groupBy`, `pagination`
+- [ ] `ProvidersPage` — Descrive e dimostra la configurazione dei provider
+- [ ] `ThemePage` — Live CSS variables con `ThemePanel` integrato
+
+#### Qualità
+- [ ] Zero classi Bootstrap scritte a mano nelle pagine (tutto passa dai componenti)
+- [ ] Nessun routing custom (tutto gestito da `<App>` e `menuConfig`)
+- [ ] TypeScript senza errori (`tsc --noEmit` pulito)
+- [ ] Test visivo completo: light/dark, tutti i preset tema, tutte le icon library
+- [ ] Aggiornare `docs/CHANGE_REQUESTS.md` — stato CR-007 e CR-012 a ✅
+
+---
+
+## CR-013 — Icon provider system
+
+**Stato:** 🔄 in progress  
+**Branch:** `modernize`  
+**Priorità:** Media  
+**Dipende da:** CR-004  
+
+### Motivazione
+
+Il sistema di icone precedente usava classi Bootstrap (`<i className="bi-...">`) con risoluzione attraverso il tema. Non aveva nessuna astrazione portabile: cambiare libreria di icone significava modificare ogni componente.
+
+La modernizzazione CR-004 (Tailwind) richiede SVG-based icons. La scelta della libreria (Lucide, Phosphor, Heroicons...) deve essere una decisione dell'app consumer, non della libreria, esattamente come avviene per DataProvider e StorageProvider.
+
+### Principio di design: convention over configuration
+
+Per evitare la mappatura manuale di ogni icona, il provider usa **auto-risoluzione PascalCase**:
+
+```
+"arrow-right"   → ArrowRight   ✓  (auto)
+"check-circle"  → CheckCircle  ✓  (auto)
+"sun"           → Sun          ✓  (auto)
+```
+
+Solo i nomi che **divergono per convenzione** tra librerie entrano nell'alias map (~10-15 per libreria, non 200+).
+
+### Scope
+
+#### Library (`src/`)
+
+```
+src/providers/icon/
+  IconProvider.ts           ← interface: id, resolve(name)
+  IconProviderContext.tsx   ← React Context + useIconProvider() hook
+  IconProviderProvider      ← wrapper componente
+  LucideIconProvider.tsx    ← impl Lucide: auto-PascalCase + alias map
+  PhosphorIconProvider.tsx  ← impl Phosphor: auto-PascalCase + alias map + weight
+  index.ts                  ← barrel export
+
+src/components/ui/Icon.tsx  ← riscritto: usa useIconProvider(), props: name, size, className, provider?
+src/App.tsx                 ← aggiunto iconProvider?: IconProvider prop → MaybeIconProvider wrapper
+src/index.ts                ← export dei nuovi tipi e classi
+package.json                ← lucide-react e @phosphor-icons/react come optionalPeerDependencies + devDependencies
+```
+
+#### Showcase (`clients/showcase/`)
+
+```
+src/context/ThemeContext.tsx  ← aggiunto iconLibraryId state + setIconLibrary() + IconProviderProvider wrapper
+src/components/Icon.tsx       ← semplificato: re-export da react-firestrap (rimosse map locali)
+src/components/ThemePanel.tsx ← usa setIconLibrary() da ThemeContext invece di setIconLibrary() locale
+src/pages/docs/Icons.tsx      ← NUOVA pagina documentazione completa
+src/conf/menu.ts              ← aggiunta voce /docs/icons
+```
+
+### Architettura
+
+```
+ShowcaseThemeProvider (stato iconProvider)
+  └── IconProviderProvider (context)
+        └── App
+              └── Icon name="search"
+                    └── useIconProvider() → provider.resolve("search") → <Search size={16} />
+```
+
+Il consumer sceglie il provider una volta sola. Tutto il codice consumer usa `<Icon name="...">` senza mai importare dalla libreria specifica.
+
+### PhosphorIconProvider — feature weight
+
+Phosphor supporta 6 pesi (thin, light, regular, bold, fill, duotone). Si passa al costruttore:
+
+```ts
+new PhosphorIconProvider('bold')   // tutti i componenti dell'app avranno icone bold
+new PhosphorIconProvider('fill')   // icone filled
+```
+
+Il PhosphorIconProvider fa caching dei componenti wrappati per evitare re-render.
+
+### Provider custom
+
+```ts
+import type { IconProvider, IconComponentProps } from 'react-firestrap';
+
+export class HeroIconProvider implements IconProvider {
+    readonly id = 'heroicons';
+    resolve(name: string) {
+        const key = toPascalCase(name) + 'Icon';
+        return (HeroIcons as any)[key] ?? null;
+    }
+}
+```
+
+### Checklist
+
+- [x] Creare `src/providers/icon/IconProvider.ts`
+- [x] Creare `src/providers/icon/LucideIconProvider.tsx`
+- [x] Creare `src/providers/icon/PhosphorIconProvider.tsx`
+- [x] Creare `src/providers/icon/IconProviderContext.tsx`
+- [x] Creare `src/providers/icon/index.ts`
+- [x] Riscrivere `src/components/ui/Icon.tsx`
+- [x] Aggiornare `src/App.tsx` — prop `iconProvider` + `MaybeIconProvider`
+- [x] Aggiornare `src/index.ts` — export nuovi tipi
+- [x] Aggiornare `package.json` — optionalPeerDependencies + devDependencies
+- [x] Aggiornare `clients/showcase/src/context/ThemeContext.tsx`
+- [x] Semplificare `clients/showcase/src/components/Icon.tsx`
+- [x] Aggiornare `clients/showcase/src/components/ThemePanel.tsx`
+- [x] Creare `clients/showcase/src/pages/docs/Icons.tsx`
+- [x] Aggiornare `clients/showcase/src/conf/menu.ts`
+- [ ] Rebuild libreria (`npm run build`) — verificare zero errori TypeScript
+- [ ] Test visivo showcase: switch Lucide ↔ Phosphor, tutti i pesi Phosphor
+- [ ] Aggiornare `CLAUDE.md` con il pattern IconProvider
+
+---
+
+## CR-014 — Raffinazione componenti — props e comportamenti
+
+**Stato:** ⬜ todo  
+**Branch:** `modernize/cr-014-component-refinement`  
+**Priorità:** Media  
+**Dipende da:** CR-007 (serve la showcase per avere visibilità su ogni componente)  
+**Stima:** ongoing — affrontata per componente dopo CR-007 completa  
+**Breaking change:** Potenziale — props rinominate o tipi più stretti
+
+### Motivazione
+
+Durante lo sviluppo della showcase (CR-007) è emerso che diversi componenti hanno props non dichiarate nel tipo, comportamenti impliciti non documentati, o mancano di varianti già usate internamente ma non esposte all'esterno. La showcase serve da "specchio": ogni sezione di demo rivela cosa manca o è inconsistente nell'API pubblica.
+
+Questa CR è un **contenitore evolutivo**: non ha una deadline fissa, ma raccoglie tutto il debito di API che emerge man mano che la showcase viene completata e i test (CR-006) vengono scritti.
+
+### Scope
+
+Per ogni componente censito, verificare e correggere:
+
+1. **Completezza dei tipi** — tutte le props usabili devono essere dichiarate nell'interfaccia TypeScript esportata
+2. **Documentazione inline** — JSDoc minimo sulle props non ovvie
+3. **Comportamenti impliciti** — es. `updatable` di Input, `optionEmpty` di Select, `setPrimaryKey` di Form: vanno testati e documentati
+4. **Consistenza naming** — verificare che le props seguano una convenzione uniforme tra componenti (es. `wrapClass` vs `className`, `label` vs `title`)
+5. **Default sensati** — props opzionali con default ragionevoli invece di `undefined` silenzioso
+
+### Componenti da rivedere (censimento iniziale)
+
+| Componente | Issue noti | Priorità |
+|------------|-----------|----------|
+| `Input` | `type` vs `inputType` usati in modo inconsistente nella codebase consumer | Alta |
+| `Select` | `placeholder` non esposto su `SelectProps` (solo su `AutocompleteProps`) | Alta |
+| `Select` | `db` prop usa `srcPath` invece di `path` come nel DataProvider | Media |
+| `Form` | `aspect="none"` non valido (solo `"card" \| "empty"`) — manca un terzo valore o il bare layout | Media |
+| `Grid` | `pagination.perPage` non esiste — si usa `limit` ma la docs dice `perPage` | Alta |
+| `Grid` | `groupBy` non testato nella showcase | Media |
+| `Modal` | `footerClose` prop aggiunta ma non nei tipi esportati | Bassa |
+| `Icon` | `icon` prop (deprecated) ancora in uso in `Input`, `Upload`, `UploadCSV` | Bassa |
+
+### Processo
+
+Per ogni componente: aprire un sotto-task nella checklist, aggiornare il tipo, aggiornare la showcase, aggiornare i test (CR-006).
+
+### Checklist
+
+- [ ] Audit completo di tutti i componenti in `src/components/ui/` e `src/components/ui/fields/`
+- [ ] Fix `Input`: chiarire `type` vs deprecato `inputType`
+- [ ] Fix `Select`: esporre `placeholder` su `SelectProps` o documentare perché non c'è
+- [ ] Fix `Select`: allineare naming `db.srcPath` → `db.path` (o documentare il mismatch)
+- [ ] Fix `Form`: aggiungere `aspect="none"` o rinominare la variante bare
+- [ ] Fix `Grid`: rinominare `pagination.limit` → `pagination.perPage` (o viceversa, con alias)
+- [ ] Fix `Modal`: aggiungere `footerClose` ai tipi esportati
+- [ ] Fix `Icon`: completare deprecazione `icon` prop, rimuovere dopo migration
+- [ ] Aggiornare showcase per ogni fix — le pagine di demo diventano smoke test visivi
+- [ ] Aggiornare `CLAUDE.md` con le API corrette dopo ogni fix
