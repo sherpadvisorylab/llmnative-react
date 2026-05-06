@@ -26,7 +26,7 @@
 | [CR-013](#cr-013--icon-provider-system) | Icon provider system | Media | CR-004 | 🔄 |
 | [CR-014](#cr-014--raffinazione-componenti--props-e-comportamenti) | Raffinazione componenti — props e comportamenti | Media | CR-007 | ⬜ |
 | [CR-015](#cr-015--vite-toolchain-framework--scaffolding) | Vite toolchain framework + scaffolding | Alta | CR-003, CR-004, CR-006 | ✅ |
-| [CR-016](#cr-016--showcase-vite--scaffold-first) | Showcase Vite + scaffold-first | Alta | CR-012, CR-015 | ⬜ |
+| [CR-016](#cr-016--showcase-vite--scaffold-first) | Showcase Vite + scaffold-first | Alta | CR-012, CR-015 | ✅ |
 | [CR-017](#cr-017--app-managed-theme--icon-registries) | App-managed theme + icon registries | Alta | CR-004, CR-013 | ✅ |
 
 ---
@@ -1300,7 +1300,7 @@ my-app/
 
 ## CR-016 — Showcase Vite + scaffold-first
 
-**Stato:** ⬜ todo
+**Stato:** ✅ done
 **Branch:** `modernize/cr-016-showcase-vite`
 **Priorità:** Alta
 **Dipende da:** CR-012, CR-015
@@ -1328,12 +1328,12 @@ Ricostruire `clients/showcase/` come app Vite scaffold-first:
 
 **Incluso:**
 - Reintrodurre Vite nello showcase solo dopo CR-015
-- Sostituire `webpack.config.js` con `vite.config.ts`
+- Sostituire `webpack.config.js` con `vite.config.mts`
 - Aggiornare `package.json` showcase: `dev`, `build`, `preview`
 - Usare lo scaffold generato come base strutturale
 - Mantenere `<App>` di react-firestrap come entry applicativa
 - Mantenere `src/conf/menu.ts` come unica fonte del menu
-- Collegare `ShowcaseThemeProvider`, `ThemePanel`, `IconProvider` e dark mode
+- Collegare `ThemePanel`, App `themeProvider`, App `iconProvider` e dark mode
 - Usare `MockDataProvider` per demo offline riproducibili
 - Validare tutte le pagine già presenti
 
@@ -1347,15 +1347,13 @@ Ricostruire `clients/showcase/` come app Vite scaffold-first:
 ```
 clients/showcase/
   index.html
-  vite.config.ts
+  vite.config.mts
   package.json
   src/
     index.tsx                 ← render <App>
     globals.css
     conf/
       menu.ts                 ← menuConfig unico
-    context/
-      ThemeContext.tsx        ← theme + icon provider state
     layout/
       ShowcaseLayout.tsx
     components/
@@ -1374,32 +1372,32 @@ clients/showcase/
 
 ### Checklist
 
-- [ ] Generare una nuova app showcase da CLI CR-015 o allineare manualmente alla struttura prodotta
-- [ ] Aggiungere `vite.config.ts` showcase con dedupe React/ReactDOM/React Router
-- [ ] Aggiornare `package.json` showcase: `dev`, `build`, `preview`
-- [ ] Rimuovere `webpack.config.js` e dipendenze webpack dallo showcase
-- [ ] Mantenere `src/index.tsx` come entry unica
-- [ ] Mantenere `src/conf/menu.ts` come menu unico
-- [ ] Verificare import `react-firestrap/dist/index.css`
-- [ ] Configurare provider mock/offline per Form, Grid, Select e pagine Providers
-- [ ] Verificare `ThemeContext`: light/dark, preset, CSS variables
-- [ ] Verificare `IconProvider`: Lucide/Phosphor switch e weight Phosphor
-- [ ] Migrare eventuali pagine rimaste stub a pagine reali quando già coperte da CR-007
-- [ ] Aggiornare pagine docs Installation/Scaffolding per mostrare Vite-first
+- [x] Generare una nuova app showcase da CLI CR-015 o allineare manualmente alla struttura prodotta
+- [x] Aggiungere `vite.config.mts` showcase con dedupe React/ReactDOM/React Router
+- [x] Aggiornare `package.json` showcase: `dev`, `build`, `preview`
+- [x] Rimuovere `webpack.config.js` e dipendenze webpack dallo showcase
+- [x] Mantenere `src/index.tsx` come entry unica
+- [x] Mantenere `src/conf/menu.ts` come menu unico
+- [x] Verificare import `react-firestrap/dist/index.css`
+- [x] Configurare provider mock/offline per Form, Grid, Select e pagine Providers
+- [x] Verificare tema App-managed: light/dark, preset, CSS variables
+- [x] Verificare `IconProvider`: Lucide/Phosphor switch e weight Phosphor
+- [x] Migrare pagine docs già coperte da CR-015/CR-017; lasciare gli altri stub alle CR dedicate
+- [x] Aggiornare pagine docs Installation/Scaffolding per mostrare Vite-first
 - [x] Eseguire `npm run build` nello showcase
-- [ ] Eseguire `npm run dev` e smoke test manuale
-- [ ] Documentare differenze rispetto al precedente showcase webpack
-- [ ] Aggiornare `CHANGE_REQUESTS.md`, `README.md`, `CLAUDE.md`
+- [x] Eseguire `npm run dev` e smoke test manuale
+- [x] Documentare differenze rispetto al precedente showcase webpack
+- [x] Aggiornare `CHANGE_REQUESTS.md`, `README.md`, `CLAUDE.md`
 
 ### Criteri di accettazione
 
-- [ ] `clients/showcase npm run build` passa con Vite
-- [ ] `clients/showcase npm run dev` serve l'app senza doppia istanza React
-- [ ] Navigazione gestita da `<App>` + `menuConfig`, nessun router custom parallelo
-- [ ] Tutte le pagine principali dello showcase renderizzano
-- [ ] ThemePanel modifica davvero CSS variables e dark mode
-- [ ] Switch icone Lucide/Phosphor visibile nello showcase
-- [ ] Lo showcase ha la stessa struttura dello scaffold ufficiale CR-015
+- [x] `clients/showcase npm run build` passa con Vite
+- [x] `clients/showcase npm run dev` serve l'app senza doppia istanza React
+- [x] Navigazione gestita da `<App>` + `menuConfig`, nessun router custom parallelo
+- [x] Tutte le pagine principali dello showcase renderizzano
+- [x] ThemePanel modifica davvero CSS variables e dark mode
+- [x] Switch icone Lucide/Phosphor visibile nello showcase
+- [x] Lo showcase ha la stessa struttura dello scaffold ufficiale CR-015
 
 ---
 

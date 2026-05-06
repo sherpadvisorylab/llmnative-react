@@ -69,7 +69,7 @@ export default function ProvidersOverview() {
         },
     }}
     defaultProviders={{
-        data: process.env.REACT_APP_DATA_PROVIDER ?? 'firebase',
+        data: import.meta.env.VITE_DATA_PROVIDER ?? 'firebase',
     }}
 />
 

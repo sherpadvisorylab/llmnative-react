@@ -1,40 +1,53 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { App } from 'react-firestrap';
+import { App, MockDataProvider } from 'react-firestrap';
 import 'react-firestrap/dist/index.css';
 import './globals.css';
 
 import ShowcaseLayout from './layout/ShowcaseLayout';
 import { menu } from './conf/menu';
 
+const env = import.meta.env;
+const dataProvider = new MockDataProvider({
+    '/showcase/users': {
+        alice: { name: 'Alice', role: 'admin', status: 'active' },
+        bob: { name: 'Bob', role: 'editor', status: 'inactive' },
+    },
+});
+
+function importPage(pageSource: string): Promise<{ default: React.ComponentType }> {
+    return Promise.reject(new Error(`Showcase pages must be declared in src/conf/menu.ts: ${pageSource}`));
+}
+
 const root = createRoot(document.getElementById('root')!);
 root.render(
     <App
-        importPage={(pageSource) => import(`${pageSource}`)}
+        importPage={importPage}
         LayoutDefault={ShowcaseLayout}
         menuConfig={menu}
+        dataProvider={dataProvider}
         iconProvider="lucide"
         themeProvider="default"
         firebaseConfig={{
-            apiKey:            process.env.REACT_APP_FIREBASE_APIKEY            ?? '',
-            authDomain:        process.env.REACT_APP_FIREBASE_AUTH_DOMAIN       ?? '',
-            databaseURL:       process.env.REACT_APP_FIREBASE_DATABASE_URL      ?? '',
-            projectId:         process.env.REACT_APP_FIREBASE_PROJECT_ID        ?? '',
-            storageBucket:     process.env.REACT_APP_FIREBASE_STORAGE_BUCKET    ?? '',
-            messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID ?? '',
-            appId:             process.env.REACT_APP_FIREBASE_APP_ID            ?? '',
-            measurementId:     process.env.REACT_APP_FIREBASE_MEASUREMENT_ID    ?? '',
+            apiKey:            env.VITE_FIREBASE_APIKEY            ?? '',
+            authDomain:        env.VITE_FIREBASE_AUTH_DOMAIN       ?? '',
+            databaseURL:       env.VITE_FIREBASE_DATABASE_URL      ?? '',
+            projectId:         env.VITE_FIREBASE_PROJECT_ID        ?? '',
+            storageBucket:     env.VITE_FIREBASE_STORAGE_BUCKET    ?? '',
+            messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID ?? '',
+            appId:             env.VITE_FIREBASE_APP_ID            ?? '',
+            measurementId:     env.VITE_FIREBASE_MEASUREMENT_ID    ?? '',
         }}
         oAuth2={{
-            clientId: process.env.REACT_APP_GOOGLE_CLIENT_ID ?? '',
-            scope:    process.env.REACT_APP_GOOGLE_SCOPE      ?? '',
+            clientId: env.VITE_GOOGLE_CLIENT_ID ?? '',
+            scope:    env.VITE_GOOGLE_SCOPE      ?? '',
         }}
         aiConfig={{
-            geminiApiKey:    process.env.REACT_APP_GEMINI_API_KEY,
-            openaiApiKey:    process.env.REACT_APP_OPENAI_API_KEY,
-            deepSeekApiKey:  process.env.REACT_APP_DEEPSEEK_API_KEY,
-            anthropicApiKey: process.env.REACT_APP_ANTHROPIC_API_KEY,
-            mistralApiKey:   process.env.REACT_APP_MISTRAL_API_KEY,
+            geminiApiKey:    env.VITE_GEMINI_API_KEY,
+            openaiApiKey:    env.VITE_OPENAI_API_KEY,
+            deepSeekApiKey:  env.VITE_DEEPSEEK_API_KEY,
+            anthropicApiKey: env.VITE_ANTHROPIC_API_KEY,
+            mistralApiKey:   env.VITE_MISTRAL_API_KEY,
         }}
     />
 );

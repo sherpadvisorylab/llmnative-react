@@ -4,6 +4,7 @@ import { Navigate } from 'react-router-dom';
 import Home               from '../pages/Home';
 import DocsOverview       from '../pages/docs/DocsOverview';
 import Installation       from '../pages/docs/Installation';
+import Scaffolding        from '../pages/docs/Scaffolding';
 import Icons              from '../pages/docs/Icons';
 import ThemeDocs          from '../pages/docs/Theme';
 import Stub               from '../pages/docs/Stub';
@@ -40,7 +41,7 @@ export const menu = {
     docs: [
         { path: '/docs',                    title: 'Overview',          page: DocsOverview,  group: 'Getting started', end: true },
         { path: '/docs/installation',       title: 'Installation',      page: Installation,  group: 'Getting started' },
-        { path: '/docs/scaffolding',        title: 'Scaffolding',       page: s('Scaffolding',    'CLI tool to bootstrap a new project with react-firestrap pre-configured.'), group: 'Getting started' },
+        { path: '/docs/scaffolding',        title: 'Scaffolding',       page: Scaffolding,                                                                                                 group: 'Getting started' },
         { path: '/docs/architecture',       title: 'Folder structure',  page: s('Folder structure', 'How src/ is organised and the dependency rules between layers.'),    group: 'Architecture' },
         { path: '/docs/providers',          title: 'Provider pattern',  page: s('Provider pattern', 'Ports & Adapters explained — how to read, write and swap providers.'), group: 'Architecture' },
         { path: '/docs/theme',              title: 'Theme system',      page: ThemeDocs,                                                                                                  group: 'Architecture' },

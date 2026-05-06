@@ -12,7 +12,7 @@ Versioning basato su [Semantic Versioning](https://semver.org/lang/it/).
 > Modifiche in corso sul branch `modernize`. Non ancora rilasciate su `main`.
 
 ### In Progress
-- CR-015: toolchain framework e scaffolding Vite-first.
+- CR-016: showcase migrato a Vite e allineato allo scaffold ufficiale.
 
 ### Added
 - Build libreria Vite in library mode con output ESM/CJS: `dist/index.mjs` e `dist/index.js`.
@@ -23,6 +23,7 @@ Versioning basato su [Semantic Versioning](https://semver.org/lang/it/).
 ### Changed
 - `npm run build` usa Vite + TypeScript declarations.
 - Webpack resta disponibile come `npm run build:webpack` per confronto temporaneo.
+- `clients/showcase` usa Vite con `src/index.tsx`, `src/conf/menu.ts` e `vite.config.mts`; Webpack è stato rimosso dal client.
 
 ---
 

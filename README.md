@@ -27,6 +27,8 @@ npm run build
 npm run build:webpack # temporary legacy comparison
 ```
 
+The bundled showcase in `clients/showcase` is also Vite-first and mirrors the generated scaffold structure.
+
 ---
 
 ## 🔧 Initial Setup Guide

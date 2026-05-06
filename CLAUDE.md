@@ -69,6 +69,9 @@ npx react-firestrap devtools
 Lo scaffold crea `index.html`, `vite.config.ts`, `src/index.tsx`, `src/conf/menu.ts`, `src/layout/`,
 `src/pages/`, `src/globals.css` e provider config tramite env `VITE_*`.
 
+`clients/showcase` segue lo stesso modello scaffold-first: Vite, entry unica `src/index.tsx`, menu unico
+`src/conf/menu.ts`, layout in `src/layout/ShowcaseLayout.tsx`, tema e icone gestiti da `<App>`.
+
 **Regola di dipendenza:** `libs/` non conosce React · `components/` non importa da `providers/` direttamente · tutto fluisce verso l'alto  
 **Nota:** `integrations/` e `models/` sono stub di backward-compat — tutta la logica è in `providers/` e `types/`.
 
