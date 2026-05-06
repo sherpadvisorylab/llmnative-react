@@ -2,7 +2,7 @@
 
 > Ogni CR rappresenta un'unità di lavoro autonoma con motivazione, scope e checklist.  
 > Stato: `⬜ todo` · `🔄 in progress` · `✅ done` · `🚫 cancelled`  
-> Ultima revisione: 2026-05-05
+> Ultima revisione: 2026-05-06
 
 ---
 
@@ -25,6 +25,9 @@
 | [CR-012](#cr-012--showcase-refactor--react-firestrap-native) | Showcase refactor — react-firestrap native | Alta | CR-004, CR-007 | ⬜ |
 | [CR-013](#cr-013--icon-provider-system) | Icon provider system | Media | CR-004 | 🔄 |
 | [CR-014](#cr-014--raffinazione-componenti--props-e-comportamenti) | Raffinazione componenti — props e comportamenti | Media | CR-007 | ⬜ |
+| [CR-015](#cr-015--vite-toolchain-framework--scaffolding) | Vite toolchain framework + scaffolding | Alta | CR-003, CR-004, CR-006 | ⬜ |
+| [CR-016](#cr-016--showcase-vite--scaffold-first) | Showcase Vite + scaffold-first | Alta | CR-012, CR-015 | ⬜ |
+| [CR-017](#cr-017--app-managed-theme--icon-registries) | App-managed theme + icon registries | Alta | CR-004, CR-013 | ⬜ |
 
 ---
 
@@ -628,9 +631,13 @@ App separata in `clients/showcase/` nella root del repo (non dentro `src/`). Usa
 ```
 clients/showcase/
   package.json                   ← dipendenza: "react-firestrap": "file:../../"
-  vite.config.ts
+  webpack.config.js              ← dev/build webpack, entry `src/index.tsx`
   src/
-    App.tsx                      ← router principale con sidebar navigazione
+    index.tsx                    ← entry `<App>` react-firestrap + provider/env config
+    conf/
+      menu.ts                    ← menuConfig canonico per navigazione e pagine
+    layout/
+      ShowcaseLayout.tsx         ← LayoutDefault custom con sidebar/topbar
     pages/
       index.tsx                  ← home: overview del framework, link rapidi
       components/
@@ -731,7 +738,7 @@ Il codice generato live è particolarmente utile per l'AI: un developer (o un AI
 
 ### Checklist
 
-- [x] Creare `clients/showcase/` con Vite + React + Tailwind
+- [x] Creare `clients/showcase/` con webpack + React + Tailwind
 - [x] Collegare come dipendenza locale (`file:../../`)
 - [x] Configurare router (react-router-dom) con sidebar
 - [x] Creare layout: sidebar navigazione + area preview + blocco codice copiabile
@@ -747,7 +754,7 @@ Il codice generato live è particolarmente utile per l'AI: un developer (o un AI
 - [x] Pagina Pagination: demo interattiva 50 record, spiegazione sticky
 - [x] Pagina Tab: tutte le posizioni (default/top/left/right/bottom)
 - [x] Pagina Table: striping, selezione riga, colonne custom
-- [x] Build Vite production pulita (0 errori)
+- [x] Build webpack production pulita (0 errori)
 - [x] Pagine Input: tutti i tipi (string, number, email, password, color, date, datetime, week, month)
 - [x] Pagine Select: basic, static options, checklist
 - [ ] Pagine Select: from-db (richiede DataProvider live), autocomplete
@@ -930,7 +937,7 @@ L'obiettivo di CR-012 è ricostruire `clients/showcase/` *integralmente* usando 
 - Ogni pagina del catalogo componenti dimostra il componente usando react-firestrap direttamente
 - La pagina "Providers" mostra una configurazione reale con `DataProvider`, `StorageProvider`, ecc.
 - La pagina "Theme" usa il `ThemePanel` collegato a CSS variables reali di react-firestrap
-- Il deploy rimane Vite (non webpack) per semplicità del client — il framework stesso non impone il bundler
+- Il client usa webpack come bundler unico dello showcase (`webpack.config.js` + `src/index.tsx`)
 
 **Escluso:**
 - Modifiche al core del framework (se serve cambiare qualcosa nel core, aprire CR separata)
@@ -942,7 +949,8 @@ L'obiettivo di CR-012 è ricostruire `clients/showcase/` *integralmente* usando 
 clients/showcase/
   src/
     index.tsx           ← <App> entry point, zero routing custom
-    menu.ts             ← menuConfig con voci per ogni sezione
+    conf/
+      menu.ts           ← menuConfig con voci per ogni sezione
     layout/
       ShowcaseLayout.tsx  ← LayoutDefault wrapper con Topbar e ThemePanel
     pages/
@@ -952,18 +960,19 @@ clients/showcase/
       grid/             ← Grid CRUD demo con dataArray
       form/             ← Form demo con schema
     globals.css         ← solo @import tailwindcss + @theme inline (niente layout custom)
-  vite.config.ts        ← preserveSymlinks + optimizeDeps (invariato)
+  webpack.config.js     ← entry `src/index.tsx`, alias peer deps, HtmlWebpackPlugin
   tsconfig.json         ← paths per react-firestrap (invariato)
 ```
 
 ### Decisione bundler
 
-Lo showcase usa **Vite** (non webpack). Motivi:
-- Il framework supporta sia webpack (CLI scaffolding) che Vite (client showcase)
-- Vite è più veloce in dev, non richiede configurazione Firebase obbligatoria
-- Il `vite.config.ts` già risolve correttamente la dipendenza da react-firestrap via symlink
+Lo showcase usa **webpack**. Motivi:
+- Gli script effettivi del client (`dev`, `start`, `build`) puntano a `webpack serve` / `webpack --mode production`
+- `webpack.config.js` usa `src/index.tsx`, che contiene la configurazione consumer completa (env Firebase, OAuth, AI, layout e menu)
+- Il client showcase deve validare anche il percorso webpack storico usato dallo scaffolding del framework
+- I residui Vite (`vite.config.ts`, `index.html`, `src/main.tsx`) sono stati rimossi per mantenere una sola entry point
 
-La differenza webpack/Vite è un dettaglio di tooling del client, non un'API del framework. Non condiziona la dimostrazione dei pattern react-firestrap.
+La scelta webpack è un dettaglio di tooling del client, non un'API del framework. Non condiziona la dimostrazione dei pattern react-firestrap.
 
 ### Checklist
 
@@ -971,7 +980,7 @@ La differenza webpack/Vite è un dettaglio di tooling del client, non un'API del
 - [ ] Creare branch `modernize/cr-012-showcase-native`
 - [ ] Rimuovere il routing custom da `App.tsx` dello showcase
 - [ ] Adottare `<App>` di react-firestrap come entry point
-- [ ] Definire `menuConfig` in `src/menu.ts` con tutte le sezioni del catalogo
+- [ ] Definire `menuConfig` in `src/conf/menu.ts` con tutte le sezioni del catalogo
 
 #### Layout
 - [ ] Implementare `ShowcaseLayout.tsx` usando `LayoutDefault` (o il wrapper minimo equivalente)
@@ -1172,3 +1181,436 @@ Per ogni componente: aprire un sotto-task nella checklist, aggiornare il tipo, a
 - [ ] Fix `Icon`: completare deprecazione `icon` prop, rimuovere dopo migration
 - [ ] Aggiornare showcase per ogni fix — le pagine di demo diventano smoke test visivi
 - [ ] Aggiornare `CLAUDE.md` con le API corrette dopo ogni fix
+
+---
+
+## CR-015 — Vite toolchain framework + scaffolding
+
+**Stato:** ⬜ todo
+**Branch:** `modernize/cr-015-vite-toolchain`
+**Priorità:** Alta
+**Dipende da:** CR-003, CR-004, CR-006
+**Stima:** 3–5 giorni
+**Breaking change:** Potenziale — cambia la toolchain di build e lo scaffold generato, non le API React pubbliche
+
+### Motivazione
+
+La modernizzazione del framework non deve fermarsi ai componenti e ai provider. Oggi la libreria e lo showcase vivono ancora su webpack, mentre lo stack React moderno usa sempre più spesso Vite per sviluppo rapido, build prevedibili e setup minimale.
+
+Portare react-firestrap a Vite rende coerenti framework, consumer e scaffolding: un nuovo progetto generato dal CLI deve nascere già con la stessa toolchain che usiamo per validare il framework stesso.
+
+### Obiettivo
+
+Migrare la toolchain del framework a un modello Vite-first:
+
+- build libreria con Vite library mode, oppure alternativa leggera equivalente se motivata (`tsup` solo se produce un risultato più pulito)
+- output `dist/` compatibile con gli export pubblici attuali
+- CSS bundle `dist/index.css` mantenuto
+- dichiarazioni TypeScript `.d.ts` generate e pubblicate
+- test Vitest invariati o semplificati
+- CLI/scaffolding aggiornato per generare app Vite + React + Tailwind + provider configuration
+
+### Scope
+
+**Incluso:**
+- Aggiungere `vite.config.ts` per la libreria root
+- Valutare e rimuovere `webpack.config.js` dalla build principale solo quando Vite produce output equivalente
+- Aggiornare `package.json` root: script `build`, `build:dev`, `watch/dev`, export ESM/CJS se necessari
+- Verificare peer dependencies e externalization di React, ReactDOM, React Router, Firebase, icon libraries
+- Mantenere `src/index.ts` come entry pubblica della libreria
+- Aggiornare generazione CSS Tailwind in `dist/index.css`
+- Aggiornare `bin/cli.js` e `scripts/cli/*` per scaffold Vite-first
+- Lo scaffold deve creare `src/index.tsx`, `src/conf/menu.ts`, `src/layout/`, `src/pages/`, `src/globals.css`
+- Lo scaffold deve configurare provider selezionati: Firebase, Supabase, mock/custom
+- Aggiornare `README.md`, `CLAUDE.md`, `docs/patterns.md`, `docs/architecture.md`
+
+**Escluso:**
+- Riscrivere lo showcase: viene fatto in CR-016
+- Cambiare API pubbliche di `App`, `Form`, `Grid`, providers o componenti UI
+- Migrare i temi legacy `default`, `flat`, `cyber`, `empty` oltre quanto serve per buildare
+
+### Architettura target root
+
+```
+react-firestrap/
+  vite.config.ts              ← build libreria Vite-first
+  tsconfig.json               ← strict + declarations
+  package.json                ← exports coerenti con dist ESM/CSS/types
+  src/
+    index.ts                  ← public entry invariata
+    globals.css               ← Tailwind/theme source
+  scripts/cli/
+    setup-project.js          ← genera consumer Vite
+    templates/                ← se necessario, template scaffold
+```
+
+### Scaffold target
+
+```
+my-app/
+  index.html
+  vite.config.ts
+  package.json
+  src/
+    index.tsx                 ← render <App>
+    globals.css               ← import CSS app + eventuali override
+    conf/
+      menu.ts                 ← menuConfig
+    layout/
+      AppLayout.tsx           ← LayoutDefault consumer
+    pages/
+      Home.tsx
+    providers/
+      firebase.ts             ← opzionale, se scelto Firebase
+      supabase.ts             ← opzionale, se scelto Supabase
+```
+
+### Checklist
+
+- [ ] Audit output webpack attuale: file prodotti, CSS, declarations, externals, export map
+- [ ] Aggiungere `vite.config.ts` root in library mode
+- [ ] Configurare externals per React, ReactDOM, React Router, Firebase, Lucide, Phosphor
+- [ ] Verificare generazione `dist/index.js` o decidere nuova export map ESM/CJS
+- [ ] Verificare generazione `dist/index.css`
+- [ ] Verificare generazione `dist/types`
+- [ ] Aggiornare `package.json` root: `main`, `module`, `types`, `style`, `exports`
+- [ ] Aggiornare script root: `build`, `build:dev`, `watch:dev`
+- [ ] Mantenere un comando legacy webpack temporaneo solo se serve confronto (`build:webpack`)
+- [ ] Eseguire build Vite e confrontare API pubbliche esportate
+- [ ] Eseguire `npm run test`
+- [ ] Aggiornare CLI scaffolding a Vite-first
+- [ ] Aggiungere prompt provider nello scaffolding: Firebase / Supabase / Mock / Custom
+- [ ] Generare `src/conf/menu.ts` nello scaffold
+- [ ] Generare `src/index.tsx` con `<App>` e provider config
+- [ ] Generare `vite.config.ts` consumer con alias/dedupe minimi
+- [ ] Aggiornare docs e README con Vite come percorso raccomandato
+- [ ] Aggiornare `CLAUDE.md` con la nuova toolchain
+- [ ] Aggiornare `CHANGELOG.md`
+
+### Criteri di accettazione
+
+- [ ] `npm run build` root passa con Vite
+- [ ] `npm run test` passa
+- [ ] `npm pack --dry-run` contiene `dist`, types, CSS, CLI e themes previsti
+- [ ] Uno scaffold generato installa dipendenze e parte con `npm run dev`
+- [ ] Un consumer Vite importa `react-firestrap` senza doppia istanza React
+- [ ] Gli import CSS documentati funzionano: `import 'react-firestrap/dist/index.css'`
+
+---
+
+## CR-016 — Showcase Vite + scaffold-first
+
+**Stato:** ⬜ todo
+**Branch:** `modernize/cr-016-showcase-vite`
+**Priorità:** Alta
+**Dipende da:** CR-012, CR-015
+**Stima:** 2–4 giorni
+**Breaking change:** No per la libreria; cambia la struttura interna di `clients/showcase`
+
+### Motivazione
+
+Dopo CR-015, lo showcase deve diventare il primo consumer reale dello scaffold Vite generato dal framework. Non deve essere un client speciale mantenuto a mano: deve dimostrare che un'app nata dallo scaffolding ufficiale può documentare, validare e usare react-firestrap in modo completo.
+
+Questo chiude il cerchio del refactoring: il framework usa Vite, lo scaffolding genera Vite, e lo showcase viene ricostruito con quella stessa struttura.
+
+### Obiettivo
+
+Ricostruire `clients/showcase/` come app Vite scaffold-first:
+
+- struttura uguale o quasi uguale a quella generata dal CLI aggiornato in CR-015
+- entry `src/index.tsx`
+- menu canonico in `src/conf/menu.ts`
+- layout custom in `src/layout/ShowcaseLayout.tsx`
+- providers mock/offline configurati come in un consumer reale
+- pagine componenti, provider, temi e docs migrate senza routing custom parallelo
+
+### Scope
+
+**Incluso:**
+- Reintrodurre Vite nello showcase solo dopo CR-015
+- Sostituire `webpack.config.js` con `vite.config.ts`
+- Aggiornare `package.json` showcase: `dev`, `build`, `preview`
+- Usare lo scaffold generato come base strutturale
+- Mantenere `<App>` di react-firestrap come entry applicativa
+- Mantenere `src/conf/menu.ts` come unica fonte del menu
+- Collegare `ShowcaseThemeProvider`, `ThemePanel`, `IconProvider` e dark mode
+- Usare `MockDataProvider` per demo offline riproducibili
+- Validare tutte le pagine già presenti
+
+**Escluso:**
+- Cambiare build root della libreria: già coperto da CR-015
+- Aggiungere nuove API ai componenti: aprire/aggiornare CR-014 se emerge debito
+- Deploy pubblico: può restare task CR-007 o CR separata
+
+### Architettura target showcase
+
+```
+clients/showcase/
+  index.html
+  vite.config.ts
+  package.json
+  src/
+    index.tsx                 ← render <App>
+    globals.css
+    conf/
+      menu.ts                 ← menuConfig unico
+    context/
+      ThemeContext.tsx        ← theme + icon provider state
+    layout/
+      ShowcaseLayout.tsx
+    components/
+      Topbar.tsx
+      Sidebar.tsx
+      ThemePanel.tsx
+      PageLayout.tsx
+      Section.tsx
+    pages/
+      docs/
+      components/
+      providers/
+      examples/
+      theme/
+```
+
+### Checklist
+
+- [ ] Generare una nuova app showcase da CLI CR-015 o allineare manualmente alla struttura prodotta
+- [ ] Aggiungere `vite.config.ts` showcase con dedupe React/ReactDOM/React Router
+- [ ] Aggiornare `package.json` showcase: `dev`, `build`, `preview`
+- [ ] Rimuovere `webpack.config.js` e dipendenze webpack dallo showcase
+- [ ] Mantenere `src/index.tsx` come entry unica
+- [ ] Mantenere `src/conf/menu.ts` come menu unico
+- [ ] Verificare import `react-firestrap/dist/index.css`
+- [ ] Configurare provider mock/offline per Form, Grid, Select e pagine Providers
+- [ ] Verificare `ThemeContext`: light/dark, preset, CSS variables
+- [ ] Verificare `IconProvider`: Lucide/Phosphor switch e weight Phosphor
+- [ ] Migrare eventuali pagine rimaste stub a pagine reali quando già coperte da CR-007
+- [ ] Aggiornare pagine docs Installation/Scaffolding per mostrare Vite-first
+- [ ] Eseguire `npm run build` nello showcase
+- [ ] Eseguire `npm run dev` e smoke test manuale
+- [ ] Documentare differenze rispetto al precedente showcase webpack
+- [ ] Aggiornare `CHANGE_REQUESTS.md`, `README.md`, `CLAUDE.md`
+
+### Criteri di accettazione
+
+- [ ] `clients/showcase npm run build` passa con Vite
+- [ ] `clients/showcase npm run dev` serve l'app senza doppia istanza React
+- [ ] Navigazione gestita da `<App>` + `menuConfig`, nessun router custom parallelo
+- [ ] Tutte le pagine principali dello showcase renderizzano
+- [ ] ThemePanel modifica davvero CSS variables e dark mode
+- [ ] Switch icone Lucide/Phosphor visibile nello showcase
+- [ ] Lo showcase ha la stessa struttura dello scaffold ufficiale CR-015
+
+---
+
+## CR-017 — App-managed theme + icon registries
+
+**Stato:** ⬜ todo
+**Branch:** `modernize/cr-017-app-theme-icon-registries`
+**Priorità:** Alta
+**Dipende da:** CR-004, CR-013
+**Stima:** 2–4 giorni
+**Breaking change:** No — estende `App` mantenendo compatibilità con `importTheme` e `iconProvider` esistente
+
+### Motivazione
+
+`App` è già l'orchestratore dei provider principali: data, storage, auth, email e icon provider statico. Tema e icone devono seguire lo stesso principio: il framework offre default sensati, ma il consumer può scegliere, estendere o sovrascrivere tutto da un solo punto.
+
+Oggi lo showcase mantiene un `ThemeContext` locale che gestisce light/dark, preset colore, radius e icon library. Questa logica è utile, ma non deve vivere solo nello showcase: deve diventare una funzionalità del framework, esposta da `App` e controllabile con hook pubblici.
+
+### API target
+
+Uso semplice:
+
+```tsx
+<App iconProvider="phosphor" themeProvider="cyber" />
+```
+
+Equivalente esplicito:
+
+```tsx
+<App
+  iconProvider={{ default: 'phosphor' }}
+  themeProvider={{ defaultPreset: 'cyber' }}
+/>
+```
+
+Uso avanzato:
+
+```tsx
+<App
+  iconProvider={{
+    default: 'heroicons',
+    providers: {
+      heroicons: new HeroIconProvider(),
+    },
+    aliases: {
+      delete: 'trash',
+      edit: 'pencil',
+    },
+  }}
+  themeProvider={{
+    defaultMode: 'dark',
+    defaultPreset: 'brand',
+    presets: {
+      brand: {
+        primary: '346.8 77.2% 49.8%',
+        radius: 0.75,
+        theme: {
+          Button: { className: 'font-semibold' },
+          Card: { className: 'shadow-sm' },
+        },
+      },
+    },
+    theme: {
+      Modal: { size: 'xl' },
+    },
+  }}
+/>
+```
+
+### Regole icon registry
+
+Il framework espone provider built-in:
+
+```ts
+{
+  lucide: new LucideIconProvider(),
+  phosphor: new PhosphorIconProvider(),
+}
+```
+
+`App.iconProvider` accetta:
+
+```ts
+type AppIconProviderConfig =
+  | string
+  | {
+      default?: string;
+      providers?: Record<string, IconProvider>;
+      aliases?: Record<string, string>;
+    };
+```
+
+Comportamento:
+
+- `undefined` usa `lucide`
+- stringa usa quel valore come provider default
+- oggetto fa merge con i provider built-in
+- `providers` custom aggiungono o sovrascrivono provider built-in
+- `aliases` custom si fondono con alias default
+- se il provider richiesto non esiste, fallback a `lucide` con warning in development
+
+### Regole theme registry
+
+Il framework espone preset built-in:
+
+```ts
+{
+  default: { mode: 'light', primary: '221.2 83.2% 53.3%', radius: 0.5 },
+  flat:    { mode: 'light', primary: '215 25% 27%',        radius: 0.125 },
+  cyber:   { mode: 'dark',  primary: '160 84% 39%',        radius: 0 },
+}
+```
+
+`App.themeProvider` accetta:
+
+```ts
+type AppThemeProviderConfig =
+  | string
+  | {
+      defaultMode?: 'light' | 'dark' | 'system';
+      defaultPreset?: string;
+      presets?: Record<string, ThemePresetConfig>;
+      theme?: Partial<Theme>;
+    };
+```
+
+Comportamento:
+
+- `undefined` usa preset `default` e mode `light`
+- stringa usa quel valore come `defaultPreset`
+- oggetto fa merge con i preset built-in
+- `presets` custom aggiungono o sovrascrivono preset built-in
+- `theme` è un override globale applicato dopo il preset
+- applica `.dark` su `document.documentElement`
+- applica CSS variables principali, almeno `--rf-primary`, `--rf-primary-foreground`, `--radius`
+- mantiene `importTheme` come compatibilità legacy, applicandolo come override asincrono finale
+
+### Hook pubblici
+
+```ts
+const theme = useThemeController();
+
+theme.mode;
+theme.preset;
+theme.primary;
+theme.radius;
+theme.setMode('dark');
+theme.applyPreset('cyber');
+theme.setPrimary('346.8 77.2% 49.8%');
+theme.setRadius(0.75);
+```
+
+```ts
+const icons = useIconController();
+
+icons.providerId;
+icons.setProvider('phosphor');
+icons.registerProvider('heroicons', new HeroIconProvider());
+```
+
+### Scope
+
+**Incluso:**
+- Estendere `src/Theme.tsx` con theme registry, preset built-in e controller hook
+- Estendere `src/App.tsx` con `themeProvider?: AppThemeProviderConfig`
+- Evolvere `iconProvider` in `App` per accettare stringa o config avanzata
+- Aggiungere un controller per cambiare icon provider a runtime
+- Esportare tipi e hook da `src/index.ts`
+- Migrare `clients/showcase` a usare `App iconProvider=... themeProvider=...`
+- Rimuovere `IconProviderProvider` dal `ShowcaseThemeProvider`
+- Ridurre `clients/showcase/src/context/ThemeContext.tsx` a state UI locale, o eliminarlo se `ThemePanel` può usare solo hook framework
+- Aggiornare `ThemePanel` per usare `useThemeController()` e `useIconController()`
+- Aggiornare docs e `CLAUDE.md`
+
+**Escluso:**
+- Migrazione Vite dello showcase: CR-016
+- Conversione dei temi legacy completi: CR-008/009/010/011
+- Redesign visuale dei componenti: CR-014
+
+### Checklist
+
+- [ ] Definire tipi `AppIconProviderConfig`, `AppThemeProviderConfig`, `ThemePresetConfig`
+- [ ] Aggiungere registry icon built-in: `lucide`, `phosphor`
+- [ ] Aggiornare `App.iconProvider` per accettare stringa o config
+- [ ] Aggiungere `IconRegistryProvider` o estendere `IconProviderContext`
+- [ ] Aggiungere `useIconController()`
+- [ ] Aggiungere registry theme built-in: `default`, `flat`, `cyber`
+- [ ] Aggiornare `ThemeProvider` per accettare config diretta oltre a `importTheme`
+- [ ] Aggiungere `useThemeController()`
+- [ ] Applicare `.dark` e CSS variables dal provider framework
+- [ ] Mantenere backward compatibility di `useTheme(section)`
+- [ ] Mantenere backward compatibility di `importTheme`
+- [ ] Aggiornare `src/index.ts` con export tipi/hook
+- [ ] Aggiornare `clients/showcase/src/index.tsx` con `iconProvider="lucide"` e `themeProvider="default"` o preset desiderato
+- [ ] Aggiornare `ThemePanel` per usare hook framework
+- [ ] Rimuovere provider icon/theme duplicati dallo showcase
+- [ ] Aggiornare pagina docs Icons
+- [ ] Aggiungere pagina docs Theme o completare stub esistente
+- [ ] Aggiornare `CLAUDE.md`
+- [ ] Aggiungere test unitari per resolver string/object config
+- [ ] Eseguire `npm run build`
+- [ ] Eseguire `npm run test`
+- [ ] Eseguire `clients/showcase npm run build`
+
+### Criteri di accettazione
+
+- [ ] `<App />` usa Lucide + preset `default`
+- [ ] `<App iconProvider="phosphor" />` cambia provider icone senza configurazione extra
+- [ ] `<App themeProvider="cyber" />` applica preset `cyber`
+- [ ] Config avanzate aggiungono provider/preset custom senza perdere quelli built-in
+- [ ] `ThemePanel` dello showcase controlla tema e icone tramite hook del framework
+- [ ] Nessun `IconProviderProvider` custom è necessario nello showcase
+- [ ] Backward compatibility: `importTheme` continua a funzionare
+- [ ] Backward compatibility: `useTheme(section)` continua a restituire classi e `getIcon`
