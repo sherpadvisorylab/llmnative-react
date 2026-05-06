@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { Modal, Icon, PhosphorIconProvider, useIconController, useThemeController } from 'react-firestrap';
 import type { PhosphorWeight } from 'react-firestrap';
 
@@ -47,30 +47,57 @@ const PHOSPHOR_WEIGHTS: { label: string; value: PhosphorWeight }[] = [
 export default function ThemePanel({ open, onClose }: ThemePanelProps) {
     const { resolvedMode, primary, radius, preset, toggleMode, setPrimary, setRadius, applyPreset } = useThemeController();
     const { providerId, setProvider, registerProvider } = useIconController();
+    const [copied, setCopied] = useState(false);
     const iconLibraryId = (providerId === 'phosphor' ? 'phosphor' : 'lucide') as IconLibraryId;
+
+    const appConfiguration = useMemo(() => {
+        return `import { App } from 'react-firestrap';
+
+<App
+    iconProvider="${iconLibraryId}"
+    themeProvider={{
+        defaultPreset: '${preset}',
+        mode: '${resolvedMode}',
+        primary: '${primary}',
+        radius: ${Number(radius.toFixed(2))},
+    }}
+/>`;
+    }, [iconLibraryId, preset, primary, radius, resolvedMode]);
+
+    const copyConfiguration = () => {
+        navigator.clipboard.writeText(appConfiguration.trim());
+        setCopied(true);
+        window.setTimeout(() => setCopied(false), 1600);
+    };
 
     if (!open) return null;
 
-    const footer = (
-        <div className="w-full">
-            <p className="text-xs text-muted-foreground mb-2">Active CSS variables</p>
-            <pre className="text-xs bg-muted rounded p-2 overflow-x-auto leading-relaxed w-full">
-{`--rf-primary: ${primary};
---radius: ${radius.toFixed(2)}rem;`}
-            </pre>
+    const header = (
+        <div className="flex min-w-0 items-center gap-3">
+            <div className="min-w-0">
+                <h3 className="offcanvas-title truncate">Customize</h3>
+                <div className="offcanvas-sub-title truncate">Live CSS variables, no reload.</div>
+            </div>
+            <button
+                type="button"
+                title={copied ? 'Configuration copied' : 'Copy App configuration'}
+                aria-label={copied ? 'Configuration copied' : 'Copy App configuration'}
+                onClick={copyConfiguration}
+                className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+            >
+                <Icon name={copied ? 'check' : 'copy'} size={15} />
+            </button>
         </div>
     );
 
     return (
         <Modal
             position="right"
-            title="Customize"
-            header="Live CSS variables — no reload."
+            header={header}
             onClose={onClose}
             buttonFullscreen={false}
             footerClose={false}
             headerClass="h-14 !py-0 px-4"
-            footer={footer}
         >
             <div className="space-y-6">
 
