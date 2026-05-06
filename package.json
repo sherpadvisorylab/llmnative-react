@@ -4,6 +4,11 @@
   "description": "React FireStrap is a powerful framework that accelerates the creation of interactive user interfaces. Built with React and Bootstrap, it features native authentication support and smooth integration with services like Firebase, Dropbox, and messaging systems. Developers are free to implement any Bootstrap theme, allowing for endless customization possibilities. With React FireStrap, you can effortlessly design dynamic layouts and customize templates with modular components, making it the ultimate toolkit for efficiently building responsive and engaging applications.",
   "main": "dist/index.js",
   "types": "dist/types/index.d.ts",
+  "style": "dist/index.css",
+  "exports": {
+    ".": "./dist/index.js",
+    "./dist/index.css": "./dist/index.css"
+  },
   "scripts": {
     "prebuild": "node scripts/dev/build-local.js --restore-only",
     "build": "webpack --mode production",
@@ -11,7 +16,10 @@
     "watch:dev": "webpack --watch --mode development",
     "build:local": "node scripts/dev/build-local.js",
     "prepublishOnly": "npm run build",
-    "updateReadme": "node scripts/dev/updateReadme.js"
+    "updateReadme": "node scripts/dev/updateReadme.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "bin": {
     "react-firestrap": "./bin/cli.js"
@@ -57,10 +65,20 @@
   },
   "homepage": "https://github.com/sherpadvisorylab/react-quicksuite#readme",
   "peerDependencies": {
+    "@phosphor-icons/react": "^2.0.0",
     "firebase": "^10.14.0",
+    "lucide-react": "^0.400.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.22.0"
+  },
+  "peerDependenciesMeta": {
+    "@phosphor-icons/react": {
+      "optional": true
+    },
+    "lucide-react": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@babel/core": "^7.25.7",
@@ -69,23 +87,43 @@
     "@babel/preset-env": "^7.25.7",
     "@babel/preset-react": "^7.25.7",
     "@babel/preset-typescript": "^7.25.7",
+    "@phosphor-icons/react": "^2.1.10",
+    "@tailwindcss/postcss": "^4.2.4",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/papaparse": "^5.3.16",
     "@types/prismjs": "^1.26.5",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
+    "@vitest/coverage-v8": "2.1",
+    "autoprefixer": "^10.5.0",
     "babel-loader": "^9.2.1",
+    "css-loader": "^7.1.4",
     "googleapis": "^171.4.0",
-    "react-router-dom": "^6.22.0",
+    "happy-dom": "^20.9.0",
+    "jsdom": "^29.1.1",
+    "lucide-react": "^1.14.0",
+    "mini-css-extract-plugin": "^2.10.2",
+    "postcss": "^8.5.14",
+    "postcss-loader": "^8.2.1",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "react-router-dom": "^6.30.3",
+    "tailwindcss": "^4.2.4",
     "ts-loader": "^9.5.1",
     "typescript": "^5.6.2",
+    "vitest": "2.1",
     "webpack": "^5.99.5",
     "webpack-cli": "^5.1.4",
     "webpack-node-externals": "^3.0.0"
   },
   "dependencies": {
     "buffer": "^6.0.3",
+    "clsx": "^2.1.1",
     "papaparse": "^5.5.3",
     "prismjs": "^ 1.30.0",
+    "tailwind-merge": "^3.5.0",
     "tui-image-editor": "^3.15.3"
   }
 }

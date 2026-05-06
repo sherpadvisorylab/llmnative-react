@@ -1,3 +1,4 @@
+import './globals.css';
 export { default as App } from './App';
 export { useMenu } from './App';
 export { useTheme } from './Theme';
@@ -8,7 +9,8 @@ export { useGlobalVars, getGlobalVars, setGlobalVars, removeGlobalVars} from './
 export type { DataProvider, RecordProps, RecordArray, DatabaseOptions, WhereClause, OrderClause, Condition } from './providers/data/DataProvider';
 export { FirebaseDataProvider } from './providers/data/firebase';
 export { SupabaseDataProvider } from './providers/data/supabase';
-export { useDataProvider } from './providers/data/DataProviderContext';
+export { MockDataProvider } from './providers/data/mock';
+export { useDataProvider, DataProviderProvider } from './providers/data/DataProviderContext';
 export type { StorageProvider } from './providers/storage/StorageProvider';
 export { FirebaseStorageProvider } from './providers/storage/firebase';
 export { SupabaseStorageProvider } from './providers/storage/supabase';
@@ -17,6 +19,11 @@ export type { AuthProvider, UserProfile } from './providers/auth/AuthProvider';
 export { useAuthProvider } from './providers/auth/AuthProviderContext';
 export { GoogleAuthProvider } from './providers/auth/google/GoogleAuthProvider';
 export type { EmailProvider, EmailSendParams } from './providers/email/EmailProvider';
+export type { IconProvider, IconComponentProps } from './providers/icon/IconProvider';
+export { LucideIconProvider } from './providers/icon/LucideIconProvider';
+export { PhosphorIconProvider } from './providers/icon/PhosphorIconProvider';
+export type { PhosphorWeight } from './providers/icon/PhosphorIconProvider';
+export { IconProviderProvider, useIconProvider } from './providers/icon/IconProviderContext';
 export { useEmailProvider } from './providers/email/EmailProviderContext';
 export { GmailEmailProvider } from './providers/email/google/GmailEmailProvider';
 export type { AIFetchConfig } from './providers/ai';
