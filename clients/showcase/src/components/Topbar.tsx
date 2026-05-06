@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { useShowcaseTheme } from '../context/ThemeContext';
+import { useThemeController } from 'react-firestrap';
 import Icon from './Icon';
 
 interface TopbarProps {
@@ -22,7 +22,7 @@ const activeLinkClass = ({ isActive }: { isActive: boolean }) =>
     }`;
 
 export default function Topbar({ onOpenThemePanel }: TopbarProps) {
-    const { mode, toggleMode } = useShowcaseTheme();
+    const { resolvedMode, toggleMode } = useThemeController();
 
     return (
         <header className="sticky top-0 z-30 h-14 border-b bg-card/80 backdrop-blur-sm flex items-center px-6 gap-8">
@@ -48,10 +48,10 @@ export default function Topbar({ onOpenThemePanel }: TopbarProps) {
                 <button
                     onClick={toggleMode}
                     className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-accent transition-colors text-muted-foreground hover:text-foreground cursor-pointer"
-                    title={`Switch to ${mode === 'light' ? 'dark' : 'light'} mode`}
+                    title={`Switch to ${resolvedMode === 'light' ? 'dark' : 'light'} mode`}
                     aria-label="Toggle color mode"
                 >
-                    <Icon name={mode === 'light' ? 'moon' : 'sun'} size={16} />
+                    <Icon name={resolvedMode === 'light' ? 'moon' : 'sun'} size={16} />
                 </button>
 
                 {/* Theme customizer */}

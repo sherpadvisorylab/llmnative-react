@@ -1,7 +1,8 @@
 import './globals.css';
 export { default as App } from './App';
 export { useMenu } from './App';
-export { useTheme } from './Theme';
+export { useTheme, useThemeController, BUILT_IN_THEME_PRESETS } from './Theme';
+export type { AppThemeProviderConfig, Theme, ThemeController, ThemeMode, ThemePresetConfig } from './Theme';
 export { SignInButton, AuthButton, useAccessToken, getAccessToken } from './auth';
 export { useGlobalVars, getGlobalVars, setGlobalVars, removeGlobalVars} from './Global';
 
@@ -23,7 +24,8 @@ export type { IconProvider, IconComponentProps } from './providers/icon/IconProv
 export { LucideIconProvider } from './providers/icon/LucideIconProvider';
 export { PhosphorIconProvider } from './providers/icon/PhosphorIconProvider';
 export type { PhosphorWeight } from './providers/icon/PhosphorIconProvider';
-export { IconProviderProvider, useIconProvider } from './providers/icon/IconProviderContext';
+export { IconProviderProvider, useIconProvider, useIconController } from './providers/icon/IconProviderContext';
+export type { AppIconProviderConfig, IconController } from './providers/icon/IconProviderContext';
 export { useEmailProvider } from './providers/email/EmailProviderContext';
 export { GmailEmailProvider } from './providers/email/google/GmailEmailProvider';
 export type { AIFetchConfig } from './providers/ai';

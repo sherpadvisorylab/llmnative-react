@@ -1277,7 +1277,7 @@ my-app/
 - [ ] Aggiornare script root: `build`, `build:dev`, `watch:dev`
 - [ ] Mantenere un comando legacy webpack temporaneo solo se serve confronto (`build:webpack`)
 - [ ] Eseguire build Vite e confrontare API pubbliche esportate
-- [ ] Eseguire `npm run test`
+- [x] Eseguire `npm run test`
 - [ ] Aggiornare CLI scaffolding a Vite-first
 - [ ] Aggiungere prompt provider nello scaffolding: Firebase / Supabase / Mock / Custom
 - [ ] Generare `src/conf/menu.ts` nello scaffold
@@ -1386,7 +1386,7 @@ clients/showcase/
 - [ ] Verificare `IconProvider`: Lucide/Phosphor switch e weight Phosphor
 - [ ] Migrare eventuali pagine rimaste stub a pagine reali quando già coperte da CR-007
 - [ ] Aggiornare pagine docs Installation/Scaffolding per mostrare Vite-first
-- [ ] Eseguire `npm run build` nello showcase
+- [x] Eseguire `npm run build` nello showcase
 - [ ] Eseguire `npm run dev` e smoke test manuale
 - [ ] Documentare differenze rispetto al precedente showcase webpack
 - [ ] Aggiornare `CHANGE_REQUESTS.md`, `README.md`, `CLAUDE.md`
@@ -1581,36 +1581,36 @@ icons.registerProvider('heroicons', new HeroIconProvider());
 
 ### Checklist
 
-- [ ] Definire tipi `AppIconProviderConfig`, `AppThemeProviderConfig`, `ThemePresetConfig`
-- [ ] Aggiungere registry icon built-in: `lucide`, `phosphor`
-- [ ] Aggiornare `App.iconProvider` per accettare stringa o config
-- [ ] Aggiungere `IconRegistryProvider` o estendere `IconProviderContext`
-- [ ] Aggiungere `useIconController()`
-- [ ] Aggiungere registry theme built-in: `default`, `flat`, `cyber`
-- [ ] Aggiornare `ThemeProvider` per accettare config diretta oltre a `importTheme`
-- [ ] Aggiungere `useThemeController()`
-- [ ] Applicare `.dark` e CSS variables dal provider framework
-- [ ] Mantenere backward compatibility di `useTheme(section)`
-- [ ] Mantenere backward compatibility di `importTheme`
-- [ ] Aggiornare `src/index.ts` con export tipi/hook
-- [ ] Aggiornare `clients/showcase/src/index.tsx` con `iconProvider="lucide"` e `themeProvider="default"` o preset desiderato
-- [ ] Aggiornare `ThemePanel` per usare hook framework
-- [ ] Rimuovere provider icon/theme duplicati dallo showcase
+- [x] Definire tipi `AppIconProviderConfig`, `AppThemeProviderConfig`, `ThemePresetConfig`
+- [x] Aggiungere registry icon built-in: `lucide`, `phosphor`
+- [x] Aggiornare `App.iconProvider` per accettare stringa o config
+- [x] Aggiungere `IconRegistryProvider` o estendere `IconProviderContext`
+- [x] Aggiungere `useIconController()`
+- [x] Aggiungere registry theme built-in: `default`, `flat`, `cyber`
+- [x] Aggiornare `ThemeProvider` per accettare config diretta oltre a `importTheme`
+- [x] Aggiungere `useThemeController()`
+- [x] Applicare `.dark` e CSS variables dal provider framework
+- [x] Mantenere backward compatibility di `useTheme(section)`
+- [x] Mantenere backward compatibility di `importTheme`
+- [x] Aggiornare `src/index.ts` con export tipi/hook
+- [x] Aggiornare `clients/showcase/src/index.tsx` con `iconProvider="lucide"` e `themeProvider="default"` o preset desiderato
+- [x] Aggiornare `ThemePanel` per usare hook framework
+- [x] Rimuovere provider icon/theme duplicati dallo showcase
 - [ ] Aggiornare pagina docs Icons
 - [ ] Aggiungere pagina docs Theme o completare stub esistente
 - [ ] Aggiornare `CLAUDE.md`
-- [ ] Aggiungere test unitari per resolver string/object config
-- [ ] Eseguire `npm run build`
-- [ ] Eseguire `npm run test`
-- [ ] Eseguire `clients/showcase npm run build`
+- [x] Aggiungere test unitari per resolver string/object config
+- [x] Eseguire `npm run build`
+- [x] Eseguire `npm run test`
+- [x] Eseguire `clients/showcase npm run build`
 
 ### Criteri di accettazione
 
-- [ ] `<App />` usa Lucide + preset `default`
-- [ ] `<App iconProvider="phosphor" />` cambia provider icone senza configurazione extra
-- [ ] `<App themeProvider="cyber" />` applica preset `cyber`
-- [ ] Config avanzate aggiungono provider/preset custom senza perdere quelli built-in
-- [ ] `ThemePanel` dello showcase controlla tema e icone tramite hook del framework
-- [ ] Nessun `IconProviderProvider` custom è necessario nello showcase
-- [ ] Backward compatibility: `importTheme` continua a funzionare
-- [ ] Backward compatibility: `useTheme(section)` continua a restituire classi e `getIcon`
+- [x] `<App />` usa Lucide + preset `default`
+- [x] `<App iconProvider="phosphor" />` cambia provider icone senza configurazione extra
+- [x] `<App themeProvider="cyber" />` applica preset `cyber`
+- [x] Config avanzate aggiungono provider/preset custom senza perdere quelli built-in
+- [x] `ThemePanel` dello showcase controlla tema e icone tramite hook del framework
+- [x] Nessun `IconProviderProvider` custom è necessario nello showcase
+- [x] Backward compatibility: `importTheme` continua a funzionare
+- [x] Backward compatibility: `useTheme(section)` continua a restituire classi e `getIcon`

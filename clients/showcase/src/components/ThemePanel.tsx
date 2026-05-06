@@ -1,17 +1,29 @@
 import React from 'react';
-import { Modal, Icon } from 'react-firestrap';
-import {
-    useShowcaseTheme,
-    COLOR_SWATCHES,
-    ThemePreset,
-    IconLibraryId,
-} from '../context/ThemeContext';
+import { Modal, Icon, PhosphorIconProvider, useIconController, useThemeController } from 'react-firestrap';
 import type { PhosphorWeight } from 'react-firestrap';
 
 interface ThemePanelProps {
     open: boolean;
     onClose: () => void;
 }
+
+type ThemePreset = 'default' | 'flat' | 'cyber';
+type IconLibraryId = 'lucide' | 'phosphor';
+
+interface ColorSwatch {
+    label: string;
+    value: string;
+    hex: string;
+}
+
+const COLOR_SWATCHES: ColorSwatch[] = [
+    { label: 'Blue',   value: '221.2 83.2% 53.3%', hex: '#3b82f6' },
+    { label: 'Violet', value: '262.1 83.3% 57.8%', hex: '#8b5cf6' },
+    { label: 'Green',  value: '142.1 76.2% 36.3%', hex: '#16a34a' },
+    { label: 'Rose',   value: '346.8 77.2% 49.8%', hex: '#e11d48' },
+    { label: 'Orange', value: '24.6 95% 53.1%',    hex: '#f97316' },
+    { label: 'Slate',  value: '215.4 16.3% 46.9%', hex: '#64748b' },
+];
 
 const PRESETS: { label: string; value: ThemePreset; description: string }[] = [
     { label: 'Default', value: 'default', description: 'Clean, rounded, blue primary' },
@@ -33,7 +45,9 @@ const PHOSPHOR_WEIGHTS: { label: string; value: PhosphorWeight }[] = [
 ];
 
 export default function ThemePanel({ open, onClose }: ThemePanelProps) {
-    const { mode, primary, radius, preset, iconLibraryId, toggleMode, setPrimary, setRadius, applyPreset, setIconLibrary } = useShowcaseTheme();
+    const { resolvedMode, primary, radius, preset, toggleMode, setPrimary, setRadius, applyPreset } = useThemeController();
+    const { providerId, setProvider, registerProvider } = useIconController();
+    const iconLibraryId = (providerId === 'phosphor' ? 'phosphor' : 'lucide') as IconLibraryId;
 
     if (!open) return null;
 
@@ -69,9 +83,9 @@ export default function ThemePanel({ open, onClose }: ThemePanelProps) {
                         {(['light', 'dark'] as const).map((m) => (
                             <button
                                 key={m}
-                                onClick={() => mode !== m && toggleMode()}
+                                onClick={() => resolvedMode !== m && toggleMode()}
                                 className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-md border text-sm font-medium transition-colors
-                                    ${mode === m
+                                    ${resolvedMode === m
                                         ? 'border-primary bg-primary/10 text-primary'
                                         : 'border-border text-muted-foreground hover:bg-accent'}`}
                             >
@@ -162,7 +176,7 @@ export default function ThemePanel({ open, onClose }: ThemePanelProps) {
                         {ICON_LIBRARIES.map((lib) => (
                             <button
                                 key={lib.value}
-                                onClick={() => setIconLibrary(lib.value)}
+                                onClick={() => setProvider(lib.value)}
                                 className={`w-full text-left px-3 py-2.5 rounded-md border text-sm transition-colors
                                     ${iconLibraryId === lib.value
                                         ? 'border-primary bg-primary/10'
@@ -187,7 +201,10 @@ export default function ThemePanel({ open, onClose }: ThemePanelProps) {
                                 {PHOSPHOR_WEIGHTS.map((w) => (
                                     <button
                                         key={w.value}
-                                        onClick={() => setIconLibrary('phosphor')}
+                                        onClick={() => {
+                                            registerProvider('phosphor', new PhosphorIconProvider(w.value));
+                                            setProvider('phosphor');
+                                        }}
                                         className="px-2 py-1 text-xs rounded border border-border hover:bg-accent transition-colors"
                                     >
                                         {w.label}
