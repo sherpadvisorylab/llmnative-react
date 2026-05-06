@@ -15,9 +15,25 @@ npm run dev
 
 The CLI now scaffolds a Vite + React + TypeScript app with `src/index.tsx`, `src/conf/`, `src/layouts/`, `src/pages/`, `src/sections/`, `src/components/`, `src/data/`, `src/styles/globals.css`, and `vite.config.ts`.
 
+Interactive mode asks for the project name, data provider, icon provider, theme preset, and provider credentials. It writes Vite-compatible `VITE_*` variables to `.env` and wires them through `src/conf/app.ts`.
+
 ```bash
 npx react-firestrap create --yes --provider=mock
+npx react-firestrap create --yes --provider=supabase --supabase-url=... --supabase-anon-key=...
 npx react-firestrap devtools
+```
+
+Common scaffold env values:
+
+```env
+VITE_DATA_PROVIDER=mock
+VITE_ICON_PROVIDER=lucide
+VITE_THEME_PROVIDER=default
+VITE_FIREBASE_APIKEY=
+VITE_FIREBASE_DATABASE_URL=
+VITE_GOOGLE_CLIENT_ID=
+VITE_SUPABASE_URL=
+VITE_SUPABASE_ANON_KEY=
 ```
 
 Library builds are Vite-based:
