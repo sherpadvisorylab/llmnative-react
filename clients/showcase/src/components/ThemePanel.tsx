@@ -1,0 +1,211 @@
+import React from 'react';
+import { Modal, Icon } from 'react-firestrap';
+import {
+    useShowcaseTheme,
+    COLOR_SWATCHES,
+    ThemePreset,
+    IconLibraryId,
+} from '../context/ThemeContext';
+import type { PhosphorWeight } from 'react-firestrap';
+
+interface ThemePanelProps {
+    open: boolean;
+    onClose: () => void;
+}
+
+const PRESETS: { label: string; value: ThemePreset; description: string }[] = [
+    { label: 'Default', value: 'default', description: 'Clean, rounded, blue primary' },
+    { label: 'Flat',    value: 'flat',    description: 'Sharp corners, slate tones' },
+    { label: 'Cyber',   value: 'cyber',   description: 'Zero radius, green neon' },
+];
+
+const ICON_LIBRARIES: { label: string; value: IconLibraryId; description: string }[] = [
+    { label: 'Lucide',   value: 'lucide',   description: 'shadcn/ui default, 1000+ icons' },
+    { label: 'Phosphor', value: 'phosphor', description: 'Flexible weights, 1400+ icons' },
+];
+
+const PHOSPHOR_WEIGHTS: { label: string; value: PhosphorWeight }[] = [
+    { label: 'Thin',    value: 'thin' },
+    { label: 'Light',   value: 'light' },
+    { label: 'Regular', value: 'regular' },
+    { label: 'Bold',    value: 'bold' },
+    { label: 'Fill',    value: 'fill' },
+];
+
+export default function ThemePanel({ open, onClose }: ThemePanelProps) {
+    const { mode, primary, radius, preset, iconLibraryId, toggleMode, setPrimary, setRadius, applyPreset, setIconLibrary } = useShowcaseTheme();
+
+    if (!open) return null;
+
+    const footer = (
+        <div className="w-full">
+            <p className="text-xs text-muted-foreground mb-2">Active CSS variables</p>
+            <pre className="text-xs bg-muted rounded p-2 overflow-x-auto leading-relaxed w-full">
+{`--rf-primary: ${primary};
+--radius: ${radius.toFixed(2)}rem;`}
+            </pre>
+        </div>
+    );
+
+    return (
+        <Modal
+            position="right"
+            title="Customize"
+            header="Live CSS variables — no reload."
+            onClose={onClose}
+            buttonFullscreen={false}
+            footerClose={false}
+            headerClass="h-14 !py-0 px-4"
+            footer={footer}
+        >
+            <div className="space-y-6">
+
+                {/* Mode */}
+                <div>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 block">
+                        Color mode
+                    </label>
+                    <div className="flex gap-2">
+                        {(['light', 'dark'] as const).map((m) => (
+                            <button
+                                key={m}
+                                onClick={() => mode !== m && toggleMode()}
+                                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-md border text-sm font-medium transition-colors
+                                    ${mode === m
+                                        ? 'border-primary bg-primary/10 text-primary'
+                                        : 'border-border text-muted-foreground hover:bg-accent'}`}
+                            >
+                                <Icon name={m === 'light' ? 'sun' : 'moon'} size={14} />
+                                {m.charAt(0).toUpperCase() + m.slice(1)}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Primary color */}
+                <div>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 block">
+                        Primary color
+                    </label>
+                    <div className="flex gap-2 flex-wrap">
+                        {COLOR_SWATCHES.map((swatch) => (
+                            <button
+                                key={swatch.label}
+                                onClick={() => setPrimary(swatch.value)}
+                                title={swatch.label}
+                                className={`w-8 h-8 rounded-full border-2 transition-transform hover:scale-110
+                                    ${primary === swatch.value ? 'border-foreground scale-110' : 'border-transparent'}`}
+                                style={{ backgroundColor: swatch.hex }}
+                                aria-label={swatch.label}
+                            />
+                        ))}
+                    </div>
+                </div>
+
+                {/* Border radius */}
+                <div>
+                    <div className="flex items-center justify-between mb-3">
+                        <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                            Border radius
+                        </label>
+                        <span className="text-xs font-mono text-muted-foreground">
+                            {radius.toFixed(2)}rem
+                        </span>
+                    </div>
+                    <input
+                        type="range"
+                        min={0}
+                        max={1}
+                        step={0.05}
+                        value={radius}
+                        onChange={(e) => setRadius(parseFloat(e.target.value))}
+                        className="w-full accent-primary"
+                    />
+                    <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                        <span>Sharp</span>
+                        <span>Rounded</span>
+                    </div>
+                </div>
+
+                {/* Theme preset */}
+                <div>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 block">
+                        Theme preset
+                    </label>
+                    <div className="space-y-2">
+                        {PRESETS.map((p) => (
+                            <button
+                                key={p.value}
+                                onClick={() => applyPreset(p.value)}
+                                className={`w-full text-left px-3 py-2.5 rounded-md border text-sm transition-colors
+                                    ${preset === p.value
+                                        ? 'border-primary bg-primary/10'
+                                        : 'border-border hover:bg-accent'}`}
+                            >
+                                <span className={`font-medium ${preset === p.value ? 'text-primary' : 'text-foreground'}`}>
+                                    {p.label}
+                                </span>
+                                <span className="block text-xs text-muted-foreground mt-0.5">
+                                    {p.description}
+                                </span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Icon library */}
+                <div>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 block">
+                        Icon library
+                    </label>
+                    <div className="space-y-2">
+                        {ICON_LIBRARIES.map((lib) => (
+                            <button
+                                key={lib.value}
+                                onClick={() => setIconLibrary(lib.value)}
+                                className={`w-full text-left px-3 py-2.5 rounded-md border text-sm transition-colors
+                                    ${iconLibraryId === lib.value
+                                        ? 'border-primary bg-primary/10'
+                                        : 'border-border hover:bg-accent'}`}
+                            >
+                                <span className={`font-medium flex items-center gap-2 ${iconLibraryId === lib.value ? 'text-primary' : 'text-foreground'}`}>
+                                    <Icon name="palette" size={12} />
+                                    {lib.label}
+                                </span>
+                                <span className="block text-xs text-muted-foreground mt-0.5">
+                                    {lib.description}
+                                </span>
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Weight picker — only when Phosphor is active */}
+                    {iconLibraryId === 'phosphor' && (
+                        <div className="mt-3">
+                            <p className="text-xs text-muted-foreground mb-2">Weight</p>
+                            <div className="flex gap-1 flex-wrap">
+                                {PHOSPHOR_WEIGHTS.map((w) => (
+                                    <button
+                                        key={w.value}
+                                        onClick={() => setIconLibrary('phosphor')}
+                                        className="px-2 py-1 text-xs rounded border border-border hover:bg-accent transition-colors"
+                                    >
+                                        {w.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Icon preview row */}
+                    <div className="mt-3 flex items-center gap-3 px-1">
+                        {(['sun', 'moon', 'bell', 'settings', 'search', 'trash'] as const).map((name) => (
+                            <Icon key={name} name={name} size={16} className="text-muted-foreground" />
+                        ))}
+                    </div>
+                </div>
+
+            </div>
+        </Modal>
+    );
+}
