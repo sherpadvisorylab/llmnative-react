@@ -233,7 +233,7 @@ function App({
         );
 
     return (
-        <BrowserRouter>
+        <BrowserRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
             <ConfigProvider defaultConfig={{
                 title: "Default",
                 firebase: firebaseConfig as FirebaseConfig,
