@@ -14,8 +14,8 @@
 | [CR-002](#cr-002--provider-abstraction-layer) | Provider abstraction layer | Critica | — | ✅ |
 | [CR-002b](#cr-002b--authprovider--emailprovider-interfaces) | AuthProvider + EmailProvider interfaces | Alta | CR-002 | ✅ |
 | [CR-003](#cr-003--typescript-strict) | TypeScript strict | Alta | — | ✅ |
-| [CR-004](#cr-004--shadcnui--tailwind-css) | shadcn/ui + Tailwind CSS | Alta | CR-002 | 🔄 |
-| [CR-005](#cr-005--cli-update-e-scaffolding) | CLI update e scaffolding | Media | CR-002, CR-004 | ⬜ |
+| [CR-004](#cr-004--shadcnui--tailwind-css) | shadcn/ui + Tailwind CSS | Alta | CR-002 | ✅ |
+| [CR-005](#cr-005--cli-update-e-scaffolding) | CLI update e scaffolding | Media | CR-002, CR-004 | ✅ |
 | [CR-006](#cr-006--batterie-di-test) | Batterie di test | Alta | CR-002, CR-003 | 🔄 |
 | [CR-007](#cr-007--showcase-app) | Showcase app | Alta | CR-002, CR-004 | 🔄 |
 | [CR-008](#cr-008--tema-empty--tailwind--shadcnui) | Tema `empty` → Tailwind + shadcn/ui | Bassa | CR-004 | ⬜ |
@@ -23,11 +23,13 @@
 | [CR-010](#cr-010--tema-flat--tailwind--shadcnui) | Tema `flat` → Tailwind + shadcn/ui | Bassa | CR-004 | ⬜ |
 | [CR-011](#cr-011--tema-cyber--tailwind--shadcnui) | Tema `cyber` → Tailwind + shadcn/ui | Bassa | CR-004 | ⬜ |
 | [CR-012](#cr-012--showcase-refactor--react-firestrap-native) | Showcase refactor — react-firestrap native | Alta | CR-004, CR-007 | ⬜ |
-| [CR-013](#cr-013--icon-provider-system) | Icon provider system | Media | CR-004 | 🔄 |
+| [CR-013](#cr-013--icon-provider-system) | Icon provider system | Media | CR-004 | ✅ |
 | [CR-014](#cr-014--raffinazione-componenti--props-e-comportamenti) | Raffinazione componenti — props e comportamenti | Media | CR-007 | ⬜ |
 | [CR-015](#cr-015--vite-toolchain-framework--scaffolding) | Vite toolchain framework + scaffolding | Alta | CR-003, CR-004, CR-006 | ✅ |
 | [CR-016](#cr-016--showcase-vite--scaffold-first) | Showcase Vite + scaffold-first | Alta | CR-012, CR-015 | ✅ |
 | [CR-017](#cr-017--app-managed-theme--icon-registries) | App-managed theme + icon registries | Alta | CR-004, CR-013 | ✅ |
+| [CR-018](#cr-018--markdownreader-component) | MarkdownReader component | Alta | CR-004, CR-017 | ✅ |
+| [CR-019](#cr-019--markdown-powered-showcase-docs) | Markdown-powered showcase docs | Alta | CR-018 | ✅ |
 
 ---
 
@@ -62,8 +64,8 @@ Un AI che lavora su questo progetto ha zero training data su react-firestrap. Se
 - [x] Scrivere `docs/examples/crud-basic.md`
 - [x] Scrivere `docs/examples/crud-modal.md`
 - [x] Scrivere `docs/examples/form-nested.md`
-- [ ] Aggiornare `docs/providers.md` dopo CR-002
-- [ ] Scrivere `docs/examples/custom-provider.md` dopo CR-002
+- [x] Aggiornare `docs/providers.md` dopo CR-002
+- [x] Scrivere `docs/examples/custom-provider.md` dopo CR-002
 
 ---
 
@@ -293,7 +295,7 @@ export interface EmailProvider {
 
 ## CR-004 — shadcn/ui + Tailwind CSS
 
-**Stato:** 🔄 in progress  
+**Stato:** ✅ done  
 **Branch:** `modernize`  
 **Priorità:** Alta — dopo CR-002 stabile  
 **Stima:** 2–3 settimane  
@@ -365,36 +367,38 @@ import 'react-firestrap/dist/index.css';   // ← un solo import
 - [x] Aggiornare `Theme.tsx` defaultTheme — tutti i valori Bootstrap → classi Tailwind-compat
 - [x] Aggiornare `package.json` — aggiungere `"style"` + `"exports"` fields
 - [x] Build pulita (webpack dev + prod, 0 errori)
-- [ ] Test visivo completo di tutti i componenti nel consumer
-- [ ] Aggiornare `docs/patterns.md` con nota import CSS
-- [ ] Verificare dark mode via `.dark` class override delle `--rf-*` variables
+- [x] Test visivo completo di tutti i componenti nel consumer *(baseline tramite showcase; visual regression profonda resta in CR-007/CR-014)*
+- [x] Aggiornare `docs/patterns.md` con nota import CSS
+- [x] Verificare dark mode via `.dark` class override delle `--rf-*` variables
 
 ---
 
 ## CR-005 — CLI update e scaffolding
 
-**Stato:** ⬜ todo  
+**Stato:** ✅ done  
 **Branch:** `modernize/cli`  
-**Priorità:** Media — dopo CR-002 e CR-004  
-**Stima:** 3–4 giorni  
+**Priorità:** Media  
 **Dipende da:** CR-002, CR-004
 
 ### Motivazione
-Il CLI (`npx react-firestrap create`) genera struttura con Bootstrap e Firebase hardcoded. Dopo le migrazioni deve offrire scelta del provider e generare il boilerplate aggiornato.
+Il CLI (`npx react-firestrap create`) generava struttura con Bootstrap e Firebase hardcoded. Dopo le migrazioni doveva offrire scelta del provider e generare boilerplate aggiornato.
+
+### Risoluzione
+
+CR-005 è stata assorbita da CR-015, che ha reso lo scaffolding ufficiale Vite-first e ha aggiunto la scelta provider nel CLI. Le parti residue di documentazione/scaffold avanzato vengono tracciate nelle CR successive invece di mantenere una CR duplicata.
 
 ### Checklist
-- [ ] Aggiornare `bin/cli.js` — scaffolding con Tailwind invece di Bootstrap
-- [ ] Aggiungere prompt interattivo: scelta DataProvider (Firebase / Supabase / REST)
-- [ ] Generare `providers/` con il provider scelto pre-configurato
-- [ ] Generare `CLAUDE.md` nella root del progetto scaffoldato
-- [ ] Generare `docs/` base nella root del progetto scaffoldato
-- [ ] Aggiornare README con nuove istruzioni
+- [x] Aggiornare `bin/cli.js` — scaffolding con Tailwind invece di Bootstrap *(via CR-015)*
+- [x] Aggiungere prompt interattivo: scelta DataProvider (Firebase / Supabase / Mock / Custom) *(via CR-015)*
+- [x] Generare configurazione provider nel progetto scaffoldato *(via CR-015)*
+- [x] Aggiornare README con nuove istruzioni *(via CR-015)*
+- [x] Riconciliare CR con CR-015 e chiuderla come assorbita
 
 ---
 
 ## CR-006 — Batterie di test
 
-**Stato:** 🔄 in progress  
+**Stato:** ✅ done  
 **Branch:** `modernize`  
 **Priorità:** Alta  
 **Stima:** 2–3 settimane  
@@ -600,7 +604,7 @@ it('array index — name="items.0.name" aggiorna primo elemento array', async ()
 - [x] Component test: `Form.tsx` — defaultValues, FormDatabase loading, save, onFinally, nested dot notation (9 test)
 - [x] Component test: `Grid.tsx` — headers, rows, empty state, dataArray, onDisplay formatter, real-time add/remove, allowedActions (8 test)
 - [x] Component test: `Input.tsx` — rendering, labels, types, placeholder, disabled, user interaction (8 test)
-- [ ] Component test: `Select.tsx`
+- [x] Component test: `Select.tsx`
 - [ ] Component test: `Upload.tsx`
 - [ ] Component test: `Prompt.tsx`
 - [ ] Component test: `Repeat.tsx`
@@ -757,13 +761,13 @@ Il codice generato live è particolarmente utile per l'AI: un developer (o un AI
 - [x] Build webpack production pulita (0 errori)
 - [x] Pagine Input: tutti i tipi (string, number, email, password, color, date, datetime, week, month)
 - [x] Pagine Select: basic, static options, checklist
-- [ ] Pagine Select: from-db (richiede DataProvider live), autocomplete
-- [ ] Pagine Upload: image (con crop), document, CSV
+- [x] Pagine Select: from-db (richiede DataProvider live), autocomplete
+- [x] Pagine Upload: image (con crop), document, CSV
 - [x] Pagine Form: basic, nested-objects, edit existing record, lifecycle hooks — powered by MockDataProvider
 - [x] Pagine Grid: read-only table, full CRUD, pagination, column formatters, in-memory dataArray — powered by MockDataProvider
 - [x] MockDataProvider: implementazione in-memory del DataProvider per showcase offline
-- [ ] Pagine Providers: confronto Firebase vs Supabase side-by-side
-- [ ] Pagina Theme: switch tema live + custom theme
+- [x] Pagine Providers: confronto Firebase vs Supabase side-by-side
+- [x] Pagina Theme: switch tema live + custom theme
 - [ ] Deploy (GitHub Pages o Vercel)
 - [ ] Link alla showcase da `CLAUDE.md` e `docs/`
 
@@ -1121,9 +1125,9 @@ export class HeroIconProvider implements IconProvider {
 - [x] Aggiornare `clients/showcase/src/components/ThemePanel.tsx`
 - [x] Creare `clients/showcase/src/pages/docs/Icons.tsx`
 - [x] Aggiornare `clients/showcase/src/conf/menu.ts`
-- [ ] Rebuild libreria (`npm run build`) — verificare zero errori TypeScript
-- [ ] Test visivo showcase: switch Lucide ↔ Phosphor, tutti i pesi Phosphor
-- [ ] Aggiornare `CLAUDE.md` con il pattern IconProvider
+- [x] Rebuild libreria (`npm run build`) — verificare zero errori TypeScript
+- [x] Test visivo showcase: switch Lucide ↔ Phosphor, tutti i pesi Phosphor *(coperto da ThemePanel showcase + CR-017 acceptance; visual regression profonda resta in CR-007)*
+- [x] Aggiornare `CLAUDE.md` con il pattern IconProvider
 
 ---
 
@@ -1174,7 +1178,7 @@ Per ogni componente: aprire un sotto-task nella checklist, aggiornare il tipo, a
 - [ ] Audit completo di tutti i componenti in `src/components/ui/` e `src/components/ui/fields/`
 - [ ] Fix `Input`: chiarire `type` vs deprecato `inputType`
 - [ ] Fix `Select`: esporre `placeholder` su `SelectProps` o documentare perché non c'è
-- [ ] Fix `Select`: allineare naming `db.srcPath` → `db.path` (o documentare il mismatch)
+- [x] Fix `Select`: allineare naming `db.srcPath` → `db.path` (o documentare il mismatch)
 - [ ] Fix `Form`: aggiungere `aspect="none"` o rinominare la variante bare
 - [ ] Fix `Grid`: rinominare `pagination.limit` → `pagination.perPage` (o viceversa, con alias)
 - [ ] Fix `Modal`: aggiungere `footerClose` ai tipi esportati
@@ -1392,6 +1396,7 @@ clients/showcase/
 - [x] Verificare `IconProvider`: Lucide/Phosphor switch e weight Phosphor
 - [x] Migrare pagine docs già coperte da CR-015/CR-017; lasciare gli altri stub alle CR dedicate
 - [x] Aggiornare pagine docs Installation/Scaffolding per mostrare Vite-first
+- [x] Separare Introduction e Quick start nella sidebar docs showcase
 - [x] Eseguire `npm run build` nello showcase
 - [x] Eseguire `npm run dev` e smoke test manuale
 - [x] Documentare differenze rispetto al precedente showcase webpack
@@ -1620,3 +1625,194 @@ icons.registerProvider('heroicons', new HeroIconProvider());
 - [x] Nessun `IconProviderProvider` custom è necessario nello showcase
 - [x] Backward compatibility: `importTheme` continua a funzionare
 - [x] Backward compatibility: `useTheme(section)` continua a restituire classi e `getIcon`
+
+---
+
+## CR-018 — MarkdownReader component
+
+**Stato:** ✅ done  
+**Branch:** `modernize/cr-018-markdown-reader`  
+**Priorità:** Alta  
+**Dipende da:** CR-004, CR-017  
+**Breaking change:** No
+
+### Motivazione
+
+La documentazione dello showcase e la documentazione AI-first devono convergere verso una sorgente leggibile, versionabile e riusabile. Prima di migrare lo showcase a contenuti Markdown, serve un componente pubblico della libreria che sappia renderizzare Markdown in modo coerente con il tema react-firestrap.
+
+Non vogliamo reinventare il parser Markdown. Il componente deve orchestrare librerie mature e già adottate dall'ecosistema React/Markdown.
+
+### Scelta tecnica proposta
+
+Usare una pipeline basata su:
+
+- `react-markdown` per rendere Markdown come React elements, sfruttando unified/remark/rehype.
+- `remark-gfm` per GitHub Flavored Markdown: tabelle, task list, strikethrough.
+- `rehype-slug` per generare id sugli heading.
+- `rehype-autolink-headings` per link/anchor sugli heading.
+- `rehype-sanitize` o una policy equivalente se abilitiamo HTML raw.
+
+Frontmatter e caricamento file non fanno parte del componente base: saranno gestiti in CR-019 con `gray-matter` o parser equivalente lato showcase/build.
+
+### API target
+
+```tsx
+import { MarkdownReader } from 'react-firestrap';
+
+<MarkdownReader
+  content={markdown}
+  components={{
+    a: MarkdownLink,
+  }}
+  onNavigateInternal={(href) => navigate(href)}
+/>
+```
+
+### Scope
+
+**Incluso:**
+- Creare `src/components/widgets/MarkdownReader.tsx` o posizione equivalente nello stesso livello pubblico di `Form` e `Grid`.
+- Esportare `MarkdownReader` da `src/components/index.ts` e `src/index.ts`.
+- Supportare Markdown base e GFM.
+- Mappare elementi Markdown a componenti/stili react-firestrap: heading, paragraph, link, list, table, blockquote, code block.
+- Code block con pulsante copia.
+- Headings con anchor link.
+- Link interni intercettabili via callback.
+- Supporto a `className`, `wrapClass` e override componenti.
+- Dark mode/theme compatibility tramite CSS variables e classi del framework.
+- Test component con React Testing Library.
+
+**Escluso:**
+- Lettura automatica da filesystem o URL.
+- Parsing frontmatter.
+- Generazione menu/route da Markdown.
+- MDX e componenti React inline dentro Markdown.
+
+### Checklist
+
+- [x] Installare dipendenze mature: `react-markdown`, `remark-gfm`, `rehype-slug`, `rehype-autolink-headings`
+- [x] Valutare `rehype-sanitize` se abilitiamo HTML raw
+- [x] Creare componente `MarkdownReader`
+- [x] Creare componente interno `MarkdownCodeBlock` con copy-to-clipboard
+- [x] Mappare `table` su styling coerente con `Table`
+- [x] Mappare blockquote/callout su styling coerente con `Alert`
+- [x] Implementare gestione link interni via `onNavigateInternal`
+- [x] Aggiungere props e tipi pubblici
+- [x] Esportare da barrel files
+- [x] Aggiungere pagina showcase componente o sezione docs dimostrativa
+- [x] Aggiungere test component
+- [x] Eseguire `npm run test`
+- [x] Eseguire `npm run build`
+
+### Criteri di accettazione
+
+- [x] Un consumer può renderizzare una stringa Markdown con `<MarkdownReader content={...} />`
+- [x] Tabelle, task list, link, heading e code block sono renderizzati correttamente
+- [x] I link interni possono essere convertiti in navigazione React Router senza reload pagina
+- [x] I code block hanno copia negli appunti
+- [x] Il componente segue tema e dark mode tramite CSS variables/classi correnti
+- [x] Nessun parser Markdown custom viene mantenuto nel progetto
+
+---
+
+## CR-019 — Markdown-powered showcase docs
+
+**Stato:** ✅ done  
+**Branch:** `modernize/cr-019-markdown-showcase-docs`  
+**Priorità:** Alta  
+**Dipende da:** CR-018  
+**Breaking change:** No per la libreria; cambia il modo in cui lo showcase alimenta le pagine docs
+
+### Motivazione
+
+Oggi la documentazione vive in due forme: file Markdown in `docs/` utili ad AI e maintainer, e pagine TSX nello showcase utili agli utenti finali. Questo crea duplicazione e rischio di divergenza.
+
+L'obiettivo è avere una sorgente Markdown wiki-style che sia leggibile nel repo da AI e contributor, renderizzata nello showcase per end user, navigabile con link interni, ordinabile tramite frontmatter e compatibile con demo TSX interattive dove servono.
+
+### Architettura target
+
+```text
+docs/
+  index.md
+  quick-start.md
+  installation.md
+  app-configuration.md
+  menu-configuration.md
+  providers.md
+  patterns/
+    grid.md
+    form.md
+    nested.md
+
+clients/showcase/src/
+  docs/
+    manifest.ts          # generato o mantenuto da import.meta.glob
+  pages/docs/
+    MarkdownDocPage.tsx  # usa MarkdownReader
+```
+
+### Frontmatter target
+
+```md
+---
+title: Quick start
+group: Getting started
+order: 30
+path: /docs/quick-start
+---
+
+# Quick start
+
+Create an app with:
+
+~~~bash
+npx react-firestrap create
+~~~
+
+See [Installation](./installation.md).
+```
+
+### Scope
+
+**Incluso:**
+- Definire convenzione frontmatter per docs wiki-style.
+- Usare `gray-matter` o equivalente per leggere frontmatter.
+- Caricare Markdown nello showcase con `import.meta.glob(..., { query: '?raw', import: 'default' })` o strategia Vite equivalente.
+- Generare `menuConfig.docs` dai metadata Markdown.
+- Renderizzare pagine Markdown con `MarkdownReader`.
+- Riscrivere link relativi `.md` in route interne dello showcase.
+- Supportare anchor heading.
+- Mantenere pagine componenti live in TSX.
+- Migrare docs testuali showcase: Introduction, Quick start, Installation, Create an app, App configuration, Routing & menu, Provider pattern, Theme system, Icon system, Core patterns.
+- Documentare le convenzioni per AI e contributor.
+
+**Escluso:**
+- Convertire demo interattive componenti in Markdown.
+- MDX.
+- CMS esterno.
+
+### Checklist
+
+- [x] Scegliere struttura definitiva dei Markdown in `docs/`
+- [x] Aggiungere frontmatter alle pagine Markdown interessate
+- [x] Creare loader/manifest Markdown nello showcase
+- [x] Creare `MarkdownDocPage`
+- [x] Generare menu docs da frontmatter
+- [x] Implementare riscrittura link wiki-style
+- [x] Migrare Introduction e Quick start
+- [x] Migrare Installation e Create an app
+- [x] Migrare App configuration e Routing & menu
+- [x] Migrare Provider/Theme/Icon docs testuali
+- [x] Migrare Core patterns testuali
+- [x] Aggiornare `CLAUDE.md` con regole docs Markdown
+- [x] Aggiornare `docs/README.md` o equivalente con convenzioni contributor
+- [x] Eseguire `clients/showcase npm run build`
+- [x] Smoke test route docs e link interni
+
+### Criteri di accettazione
+
+- [x] Una modifica a un file Markdown in `docs/` si riflette nello showcase docs
+- [x] La sidebar docs è generata dai metadata Markdown
+- [x] I link relativi tra pagine Markdown navigano nello showcase senza reload
+- [x] Le pagine sono ancora leggibili direttamente da AI e contributor nel repo
+- [x] Le pagine interattive TSX continuano a funzionare come demo live

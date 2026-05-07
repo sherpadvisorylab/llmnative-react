@@ -11,18 +11,28 @@ Versioning basato su [Semantic Versioning](https://semver.org/lang/it/).
 
 > Modifiche in corso sul branch `modernize`. Non ancora rilasciate su `main`.
 
-### In Progress
-- CR-016: showcase migrato a Vite e allineato allo scaffold ufficiale.
-
 ### Added
 - Build libreria Vite in library mode con output ESM/CJS: `dist/index.mjs` e `dist/index.js`.
 - CSS bundle mantenuto come `dist/index.css`.
 - CLI scaffold Vite-first con provider selection (`firebase`, `supabase`, `mock`, `custom`).
 - Comando non interattivo `npx react-firestrap create --yes --provider=mock`.
+- Docs provider pattern aggiornate dopo CR-002.
+- Esempio `docs/examples/custom-provider.md` per implementare un DataProvider custom.
+- Pagina showcase Upload con demo image, document e CSV.
+- Demo showcase Select autocomplete e DataProvider-backed con MockDataProvider.
+- Confronto provider side-by-side nella showcase.
+- Pagina docs Quick start nello showcase.
+- MarkdownReader pubblico basato su `react-markdown`/remark/rehype, con GFM, heading anchor, code copy e link interni intercettabili.
+- Pagina showcase MarkdownReader.
+- Loader Markdown showcase con frontmatter, route docs generate e link wiki-style interni.
+- Convenzioni docs Markdown in `docs/README.md`.
 
 ### Changed
 - `npm run build` usa Vite + TypeScript declarations.
 - Webpack resta disponibile come `npm run build:webpack` per confronto temporaneo.
+- `Select`, `Autocomplete` e `Checklist` leggono le opzioni `db` dal DataProvider registrato e accettano sia `db.srcPath` sia `db.path`.
+- Sidebar docs dello showcase riallineata a pattern standard: Introduction, Installation, Quick start, Create an app, App configuration, Routing & menu.
+- Pagine testuali Docs dello showcase migrate da TSX/stub a Markdown in `docs/`.
 - `clients/showcase` usa Vite con `src/index.tsx`, `src/conf/menu.ts` e `vite.config.mts`; Webpack è stato rimosso dal client.
 
 ---

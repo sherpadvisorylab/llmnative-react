@@ -1,10 +1,10 @@
 import React, { useEffect, useId, useMemo, useState } from 'react';
-import database from "../../../libs/database";
 import { Label } from "./Input";
 import { Col, Wrapper } from "../GridSystem"
 import { useTheme } from "../../../Theme";
 import { arraysEqual, arrayUnique, isEmpty, sanitizeKey } from "../../../libs/utils";
 import { DatabaseOptions, RecordProps } from "../../../providers/data/DataProvider";
+import { useDataProvider } from "../../../providers/data/DataProviderContext";
 import { FormFieldProps, useFormContext } from '../../widgets/Form';
 
 interface Option extends RecordProps {
@@ -13,7 +13,8 @@ interface Option extends RecordProps {
 }
 
 interface DBConfig extends DatabaseOptions {
-    srcPath: string;
+    srcPath?: string;
+    path?: string;
 }
 
 interface OrderConfig {
@@ -72,6 +73,12 @@ const normalizeOption = (
         value: fieldMap?.value?.toString() || ''
     };
 };
+
+const normalizeLookup = (records: RecordProps[]): Option[] =>
+    records.map((record) => normalizeOption({
+        label: record.label ?? record.name ?? record.title ?? record._key ?? '',
+        value: record.value ?? record._key ?? record.label ?? record.name ?? '',
+    }));
 
 function getOptionsDB(
     db?: DBConfig
@@ -153,8 +160,9 @@ export const Select = ({
     const theme = useTheme("select");
 
     const dbOptions = useMemo(() => getOptionsDB(db), [db?.fieldMap, db?.where, db?.order, db?.onLoad]);
+    const database = useDataProvider();
     const [lookup, setLookup] = useState<Option[]>([]);
-    database.useListener(db?.srcPath, setLookup, dbOptions);
+    database.useListener(db?.srcPath ?? db?.path, (records) => setLookup(normalizeLookup(records)), dbOptions);
 
     const opts = useMemo(() => {
         const combinedOptions = getOptions(options, lookup, order, db?.order, dbOptions.fieldMap);
@@ -231,8 +239,9 @@ export const Autocomplete = ({
     }, [valueArray]);
 
     const dbOptions = useMemo(() => getOptionsDB(db), [db?.fieldMap, db?.where, db?.order, db?.onLoad]);
+    const database = useDataProvider();
     const [lookup, setLookup] = useState<Option[]>([]);
-    database.useListener(db?.srcPath, setLookup, dbOptions);
+    database.useListener(db?.srcPath ?? db?.path, (records) => setLookup(normalizeLookup(records)), dbOptions);
 
     const opts = useMemo(() => {
         const combinedOptions = getOptions(options, lookup, order, db?.order, dbOptions.fieldMap);
@@ -336,8 +345,9 @@ export const Checklist = ({
     }, [valueArray]);
 
     const dbOptions = useMemo(() => getOptionsDB(db), [db?.fieldMap, db?.where, db?.order, db?.onLoad]);
+    const database = useDataProvider();
     const [lookup, setLookup] = useState<Option[]>([]);
-    database.useListener(db?.srcPath, setLookup, dbOptions);
+    database.useListener(db?.srcPath ?? db?.path, (records) => setLookup(normalizeLookup(records)), dbOptions);
 
     const opts = useMemo(() => {
         const combinedOptions = getOptions(options, lookup, order, db?.order, dbOptions.fieldMap);

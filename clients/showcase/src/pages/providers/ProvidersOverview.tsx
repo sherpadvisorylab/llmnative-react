@@ -1,4 +1,5 @@
 import React from 'react';
+import { useDataProvider } from 'react-firestrap';
 import PageLayout from '../../components/PageLayout';
 
 const PROVIDERS = [
@@ -31,6 +32,80 @@ const PROVIDERS = [
         desc: 'Transactional email sending. Optional — app works without it.',
     },
 ];
+
+function ProviderComparison() {
+    const data = useDataProvider();
+    const [count, setCount] = React.useState<number | null>(null);
+
+    React.useEffect(() => {
+        data.read('/showcase/users').then((records) => {
+            setCount(Object.keys(records ?? {}).length);
+        });
+    }, [data]);
+
+    const rows = [
+        {
+            name: 'MockDataProvider',
+            status: 'live in showcase',
+            backend: 'In-memory',
+            realtime: 'Yes',
+            credentials: 'No',
+            note: `${count ?? 0} seeded users loaded from /showcase/users`,
+        },
+        {
+            name: 'FirebaseDataProvider',
+            status: 'built-in adapter',
+            backend: 'Firebase Realtime Database',
+            realtime: 'Yes',
+            credentials: 'Firebase config',
+            note: 'Use VITE_FIREBASE_* values in a real app.',
+        },
+        {
+            name: 'SupabaseDataProvider',
+            status: 'partial adapter',
+            backend: 'Supabase REST',
+            realtime: 'Polling fallback',
+            credentials: 'Supabase URL + anon key',
+            note: 'Needs integration tests before being treated as production-ready.',
+        },
+    ];
+
+    return (
+        <div className="card p-5">
+            <div className="mb-4">
+                <h3 className="font-semibold text-foreground">Provider comparison</h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                    The showcase uses MockDataProvider so every demo works offline; production apps can swap the adapter at App level.
+                </p>
+            </div>
+            <div className="grid gap-3 lg:grid-cols-3">
+                {rows.map((row) => (
+                    <div key={row.name} className="rounded-md border bg-background p-4">
+                        <div className="mb-3 flex items-start justify-between gap-3">
+                            <h4 className="text-sm font-semibold">{row.name}</h4>
+                            <span className="badge bg-secondary text-[11px]">{row.status}</span>
+                        </div>
+                        <dl className="space-y-2 text-xs">
+                            <div className="flex justify-between gap-3">
+                                <dt className="text-muted-foreground">Backend</dt>
+                                <dd className="text-right font-medium">{row.backend}</dd>
+                            </div>
+                            <div className="flex justify-between gap-3">
+                                <dt className="text-muted-foreground">Realtime</dt>
+                                <dd className="text-right font-medium">{row.realtime}</dd>
+                            </div>
+                            <div className="flex justify-between gap-3">
+                                <dt className="text-muted-foreground">Credentials</dt>
+                                <dd className="text-right font-medium">{row.credentials}</dd>
+                            </div>
+                        </dl>
+                        <p className="mt-3 text-xs text-muted-foreground">{row.note}</p>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
 
 export default function ProvidersOverview() {
     return (
@@ -77,6 +152,8 @@ export default function ProvidersOverview() {
 const data     = useDataProvider();           // default provider
 const supabase = useDataProvider('supabase'); // named provider`}</pre>
                 </div>
+
+                <ProviderComparison />
             </div>
         </PageLayout>
     );

@@ -18,7 +18,7 @@ type ParseFieldProp = [key: string, value: CsvCell];
 interface UploadCSVProps extends UIProps {
   name: string;
   onDataLoaded: (results: UploadCSVData) => void;
-  onParseField: (field: ParseFieldProp) => ParseFieldProp | undefined;
+  onParseField?: (field: ParseFieldProp) => ParseFieldProp | undefined;
   label?: string;
   icon?: string;
   delimiter?: string;

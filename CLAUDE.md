@@ -72,6 +72,10 @@ Lo scaffold crea `index.html`, `vite.config.ts`, `src/index.tsx`, `src/conf/`, `
 `clients/showcase` segue lo stesso modello scaffold-first: Vite, entry unica `src/index.tsx`, menu unico
 `src/conf/menu.ts`, layout in `src/layouts/ShowcaseLayout.tsx`, tema e icone gestiti da `<App>`.
 
+Le pagine testuali della sezione Docs dello showcase sono generate dai Markdown in `docs/` con frontmatter
+`title`, `group`, `order`, `path`, `description`. I link relativi `.md` vengono riscritti in route interne
+dallo showcase. Le pagine componenti/live restano TSX. Vedi `docs/README.md` per la convenzione contributor.
+
 **Regola di dipendenza:** `libs/` non conosce React · `components/` non importa da `providers/` direttamente · tutto fluisce verso l'alto  
 **Nota:** `integrations/` e `models/` sono stub di backward-compat — tutta la logica è in `providers/` e `types/`.
 
@@ -402,15 +406,17 @@ const email   = useEmailProvider('gmail')   // null se 'gmail' non registrato
 ### Implementare un provider custom
 
 ```typescript
-// my-providers/SupabaseDataProvider.ts
-import { DataProvider, RecordData, RecordArray } from 'react-firestrap'
+// my-providers/RestDataProvider.ts
+import { DataProvider, RecordArray } from 'react-firestrap'
 
-export class SupabaseDataProvider implements DataProvider {
-  async get(path: string, id: string): Promise<RecordData> { /* ... */ }
-  async list(path: string): Promise<RecordArray> { /* ... */ }
-  async save(path: string, id: string, data: RecordData): Promise<void> { /* ... */ }
-  async delete(path: string, id: string): Promise<void> { /* ... */ }
-  subscribe(path: string, cb: (data: RecordArray) => void): () => void { /* ... */ }
+export class RestDataProvider implements DataProvider {
+  async read(path: string): Promise<any> { /* ... */ }
+  async set(path: string, data: object): Promise<void> { /* ... */ }
+  async update(path: string, data: object): Promise<void> { /* ... */ }
+  async remove(path: string): Promise<void> { /* ... */ }
+  useListener(path: string | undefined, callback: (records: RecordArray) => void): void {
+    // Use React.useEffect internally if the provider polls/subscribes.
+  }
 }
 ```
 
@@ -458,8 +464,11 @@ In corso sul branch `modernize`. Vedi `docs/CHANGE_REQUESTS.md` per i dettagli.
 | CR-001 | Documentazione AI-first (questo file) | ✅ done |
 | CR-002 | Provider abstraction layer (DataProvider, StorageProvider + Named Registry) | ✅ done |
 | CR-002b | AuthProvider + EmailProvider interface + Named Registry | ✅ done |
-| CR-003 | TypeScript strict | ⬜ todo |
+| CR-003 | TypeScript strict | ✅ done |
 | CR-004 | shadcn/ui + Tailwind (rimpiazza Bootstrap) | 🔄 in progress |
-| CR-005 | CLI aggiornato | ⬜ todo |
-| CR-006 | Batterie di test (unit + integration contract + component) | ⬜ todo |
-| CR-007 | Showcase app con tutti i componenti e corner case | ⬜ todo |
+| CR-005 | CLI aggiornato | ⬜ todo / da riconciliare con CR-015 |
+| CR-006 | Batterie di test (unit + integration contract + component) | 🔄 in progress |
+| CR-007 | Showcase app con tutti i componenti e corner case | 🔄 in progress |
+| CR-015 | Vite toolchain framework + scaffolding | ✅ done |
+| CR-016 | Showcase Vite + scaffold-first | ✅ done |
+| CR-017 | App-managed theme + icon registries | ✅ done |

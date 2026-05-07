@@ -13,6 +13,11 @@ const dataProvider = new MockDataProvider({
         alice: { name: 'Alice', role: 'admin', status: 'active' },
         bob: { name: 'Bob', role: 'editor', status: 'inactive' },
     },
+    '/showcase/categories': {
+        ops:     { label: 'Operations', value: 'ops' },
+        sales:   { label: 'Sales', value: 'sales' },
+        support: { label: 'Support', value: 'support' },
+    },
 });
 
 function importPage(pageSource: string): Promise<{ default: React.ComponentType }> {

@@ -1,7 +1,10 @@
 # Roadmap
 
-> Documento vivo. Aggiornare ad ogni cambio di priorità o completamento di fase.
-> Ultima revisione: 2026-05-04
+> Documento vivo. Aggiornare ad ogni cambio di priorita o completamento di fase.
+> Ultima revisione: 2026-05-07
+>
+> Nota: per lo stato operativo aggiornato usare `docs/STATUS.md` e `docs/CHANGE_REQUESTS.md`.
+> Le sezioni di fase sotto mantengono il piano originale e possono contenere checklist storiche.
 
 ---
 
@@ -10,7 +13,7 @@
 Rendere react-firestrap un framework React **provider-agnostic**, **AI-friendly** e **moderno** che mantiene il suo vantaggio principale: costruire interfacce data-driven complesse con il minimo codice possibile, in modo omogeneo e rapido.
 
 **Prima:** Firebase + Bootstrap + zero astrazione  
-**Dopo:** Qualsiasi backend + shadcn/ui + Tailwind + DataProvider pattern + documentazione AI-first
+**Dopo:** Vite-first + DataProvider pattern + provider registry + Tailwind/shadcn + documentazione AI-first
 
 ---
 
@@ -37,13 +40,21 @@ Nessun sub-branch — ogni CR è tracciata dai commit e dalla checklist in CHANG
 ### Ordine di esecuzione (sequenziale su `modernize`)
 
 ```
-CR-001 docs        ✅ done
-CR-002 providers   ← prossima
-CR-003 typescript
-CR-004 tailwind
-CR-006 tests
-CR-005 cli
-CR-007 playground
+CR-001 docs                         done
+CR-002 providers                    done
+CR-002b auth/email providers        done
+CR-003 typescript                   done
+CR-004 tailwind                     done
+CR-006 tests                        in progress
+CR-007 showcase                     in progress
+CR-013 icon provider                done
+CR-015 vite toolchain/scaffolding   done
+CR-016 showcase vite/scaffold       done
+CR-017 app-managed theme/icons      done
+CR-018 markdown reader              done
+CR-019 markdown showcase docs       done
+CR-005 cli                          done via CR-015
+CR-008..CR-012, CR-014              todo
 ```
 
 ---

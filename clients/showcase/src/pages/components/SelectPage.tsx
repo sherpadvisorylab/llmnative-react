@@ -1,5 +1,5 @@
 import React from 'react';
-import { Form, Select, Checklist } from 'react-firestrap';
+import { Autocomplete, Form, Select, Checklist } from 'react-firestrap';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 
@@ -98,23 +98,60 @@ const ROLES = [
                 <Checklist name="tags" label="Technologies" options={TAGS} />
             </LiveForm>
 
+            <LiveForm
+                title="Autocomplete"
+                description="Uses a datalist and stores selected values as an array."
+                code={`import { Autocomplete, Form } from 'react-firestrap';
+
+<Form defaultValues={{ assignees: ['alice'] }}>
+    <Autocomplete
+        name="assignees"
+        label="Assignees"
+        placeholder="Type a person..."
+        options={[
+            { label: 'Alice', value: 'alice' },
+            { label: 'Bob', value: 'bob' },
+            { label: 'Carla', value: 'carla' },
+        ]}
+        max={3}
+    />
+</Form>`}
+            >
+                <Autocomplete
+                    name="assignees"
+                    label="Assignees"
+                    placeholder="Type a person..."
+                    options={[
+                        { label: 'Alice', value: 'alice' },
+                        { label: 'Bob', value: 'bob' },
+                        { label: 'Carla', value: 'carla' },
+                    ]}
+                    max={3}
+                />
+            </LiveForm>
+
             <Section
-                title="DataProvider-backed (runtime data)"
-                description="Pass a db prop instead of options to fetch from your registered DataProvider. The component subscribes to real-time updates automatically."
+                title="DataProvider-backed"
+                description="Pass a db prop instead of options to fetch from the registered DataProvider. This demo uses the showcase MockDataProvider."
                 preview={
-                    <div className="text-sm text-muted-foreground italic p-4">
-                        Requires a DataProvider context with a collection at the given path.
-                        Use the Grid/Form demo below for a live DataProvider example.
+                    <div className="w-full max-w-md">
+                        <Form defaultValues={{ categoryId: 'ops' }}>
+                            <Select
+                                name="categoryId"
+                                label="Category"
+                                db={{ path: '/showcase/categories' }}
+                            />
+                        </Form>
                     </div>
                 }
                 code={`import { Form, Select } from 'react-firestrap';
 
-// Fetches { label: record.name, value: record._key } from /categories
-<Form dataStoragePath="/products/prod_1">
+// Fetches { label, value } records from the active DataProvider.
+<Form defaultValues={{ categoryId: 'ops' }}>
     <Select
         name="categoryId"
         label="Category"
-        db={{ path: '/categories', labelField: 'name', valueField: '_key' }}
+        db={{ path: '/showcase/categories' }}
     />
 </Form>`}
             />

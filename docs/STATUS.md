@@ -1,155 +1,128 @@
 # Status del progetto
 
-> Snapshot dello stato attuale vs target. Aggiornare ad ogni CR completata.  
-> Ultima revisione: 2026-05-04
+> Snapshot dello stato attuale vs target. Aggiornare ad ogni CR completata.
+> Ultima revisione: 2026-05-07
 
 ---
 
 ## Stato generale
 
 | Area | Stato attuale | Target | CR |
-|------|--------------|--------|----|
-| Database layer | Firebase Realtime DB hardcoded | DataProvider interface + Firebase/Supabase | CR-002 |
-| Storage layer | Firebase Storage hardcoded | StorageProvider interface + Firebase/Supabase | CR-002 |
-| UI library | Bootstrap 5 | shadcn/ui + Tailwind CSS | CR-004 |
-| TypeScript | Quasi-any (`FieldMap`) | Strict + generics | CR-003 |
-| Documentazione AI | Assente | CLAUDE.md + docs/ wiki | CR-001 |
-| Struttura cartelle | `integrations/` + `models/` | `providers/` + `types/` | CR-002 |
-| Test | Assenti | Unit + Integration contract + Component + E2E | CR-006 |
-| CLI scaffolding | Firebase + Bootstrap fissi | Provider a scelta + Tailwind | CR-005 |
-| Showcase app | Assente | `playground/` con tutte le pagine componenti + corner case | CR-007 |
+|------|---------------|--------|----|
+| Database layer | DataProvider interface con FirebaseDataProvider, MockDataProvider e SupabaseDataProvider parziale | Provider registry stabile + integrazioni testate | CR-002 |
+| Storage layer | StorageProvider interface con Firebase/Supabase/Dropbox adapters | Provider registry stabile + test integrazione | CR-002 |
+| Auth/Email layer | AuthProvider ed EmailProvider con registry e implementazioni Google/Gmail | Provider alternativi documentati/testati | CR-002b |
+| UI library | Tailwind v4 genera il CSS runtime tramite Bootstrap compatibility layer | shadcn/ui/Tailwind pienamente verificati visivamente | CR-004 |
+| TypeScript | `strict: true`, build tipi pulita | Generics e API pubbliche ulteriormente raffinate | CR-003 / CR-014 |
+| Documentazione AI | `CLAUDE.md` + docs wiki presenti | Docs mantenute in pari con ogni CR | CR-001 |
+| Struttura cartelle | Logica in `providers/` e `types/`, stub legacy in `integrations/` e `models/` | Stub legacy rimossi solo in major successiva | CR-002 |
+| Test | Vitest configurato, unit/provider/component test passano | Integration Firebase/Supabase, E2E Playwright e CI | CR-006 |
+| CLI scaffolding | Vite-first con scelta provider, tema e icone | Rifiniture CLI residue tracciate nelle CR successive | CR-015 |
+| Showcase app | `clients/showcase` Vite scaffold-first con App/menu/layout, Select/Upload/Form/Grid e provider comparison reali | Catalogo completo, corner case, deploy pubblico | CR-007 / CR-012 / CR-016 |
 
 ---
 
-## Struttura cartelle attuale vs target
+## Change request completate
 
-### Attuale
+| CR | Stato | Nota |
+|----|-------|------|
+| CR-001 | Done | Documentazione AI-first creata. |
+| CR-002 | Done | Provider abstraction layer per data/storage e registry base. |
+| CR-002b | Done | AuthProvider ed EmailProvider con context/registry. |
+| CR-003 | Done | TypeScript strict e build tipi pulita. |
+| CR-004 | Done | Tailwind runtime/CSS compatibility layer, CSS import docs e dark mode verificati. |
+| CR-005 | Done | Assorbita da CR-015: CLI/scaffold Vite-first con scelta provider. |
+| CR-013 | Done | Icon provider system assorbito/completato con CR-017 e ThemePanel showcase. |
+| CR-015 | Done | Build libreria e scaffolding Vite-first. |
+| CR-016 | Done | Showcase riallineato allo scaffold Vite. |
+| CR-017 | Done | Theme e icon registries gestiti da `<App>`. |
+| CR-018 | Done | Componente pubblico `MarkdownReader` basato su librerie mature per rendering Markdown. |
+| CR-019 | Done | Showcase docs alimentate da Markdown wiki-style in `docs/`, con sidebar generata da frontmatter. |
+
+---
+
+## Change request aperte
+
+| CR | Stato | Cosa manca |
+|----|-------|------------|
+| CR-006 | In progress | Integration test Firebase/Supabase, test Upload/Prompt/Repeat, Playwright E2E, CI. |
+| CR-007 | In progress | Restano deploy, link docs, route example/provider ancora stub e corner case finali. |
+| CR-008..CR-011 | Todo | Migrazione dei temi `empty`, `default`, `flat`, `cyber` a Tailwind/shadcn. |
+| CR-012 | Todo | Refactor showcase per eliminare residui di pagine stub e usare solo pattern/componenti react-firestrap. |
+| CR-014 | Todo | Audit API componenti emerso dalla showcase. |
+
+---
+
+## Struttura attuale
+
 ```
 src/
-  App.tsx
-  Config.tsx
-  Global.tsx
-  Theme.tsx                        ← Bootstrap class names
-  auth.tsx
+  App.tsx                  # entry point: routing, config, provider registries, theme/icon registries
+  Config.tsx               # Firebase, OAuth, AI, Dropbox config
+  Global.tsx               # stato globale localStorage-backed
+  Theme.tsx                # ThemeProvider, preset registry, useTheme/useThemeController
   components/
-    Component.tsx
-    FormEnhancer.tsx
-    Template.tsx
-    blocks/                        ← Brand, Menu, Breadcrumbs, Notifications, Search, Carousel, Dropdown
-    ui/                            ← Alert, Badge, Buttons, Card, Code, Gallery, GridSystem, Icon,
-    │                                 Image, ImageAvatar, LayoutBuilder, Loader, Modal, Pagination,
-    │                                 Percentage, Repeat, Tab, TabDynamic, Table
-    ui/fields/                     ← AssistantAI, Command, Crop, ImageUrl, Input, Prompt, Select,
-    │                                 Upload, UploadCSV
-    widgets/                       ← Form, Grid, ImageEditor
-  conf/
-    Prompt.ts
-  integrations/                    ← ⚠️ target: da rinominare/riorganizzare in providers/
-    ai.ts
-    dropbox.tsx
-    scrape.ts
-    google/
-      GoogleAuth.tsx
-      auth.ts
-      email.ts
-      firebase.ts
-      firedatabase.ts              ← ⚠️ coupling diretto con Form.tsx e Grid.tsx
-      firestorage.ts               ← ⚠️ coupling diretto con Upload.tsx
-      keyword.ts
-      trend.ts
-      apis/
-  libs/
-    cache.ts
-    converter.ts
-    database.ts                    ← ⚠️ wrapper Firebase importato direttamente dai widget
-    email.ts
-    fetch.ts
-    locale.ts
-    log.ts
-    path.ts
-    sanitizer.ts
-    seo.ts
-    storage.ts
-    utils.ts
-  models/                          ← ⚠️ target: rinominare in types/
-    componentBlock.tsx
-    componentFormFields.tsx
-    componentLayout.tsx
-    componentSection.tsx
-  pages/
-    Blog.tsx, BlogPost.tsx, Helper.tsx, NotFound.tsx, Users.tsx
-```
+    ui/                    # primitivi presentazionali
+    ui/fields/             # Input, Select, Upload, Prompt, AssistantAI, UploadCSV
+    blocks/                # Brand, Menu, Breadcrumbs, Notifications, Search, Carousel, Dropdown
+    widgets/               # Form, Grid, ImageEditor
+  providers/
+    data/                  # DataProvider, FirebaseDataProvider, MockDataProvider, SupabaseDataProvider
+    storage/               # StorageProvider, Firebase/Supabase/Dropbox adapters
+    auth/                  # AuthProvider + GoogleAuthProvider
+    email/                 # EmailProvider + GmailEmailProvider
+    icon/                  # Lucide/Phosphor icon providers
+    ai/                    # AI multi-provider
+    seo/                   # Google keyword/trend helpers
+    scrape/                # SerpAPI scraping
+    firebase-init.ts
+  integrations/            # backward-compatible re-export stubs
+  types/                   # TypeScript types e interfaces
+  models/                  # backward-compatible re-export stubs
+  libs/                    # utilities pure
+  conf/                    # configurazioni statiche
 
-### Target
-```
-src/
-  App.tsx                          ← accetta dataProvider e storageProvider come prop
-  Config.tsx
-  Global.tsx
-  Theme.tsx                        ← Tailwind class names
-  auth.tsx
-  components/                      ← invariato
-    ...
-  conf/
-    Prompt.ts
-  providers/                       ← NUOVA, sostituisce integrations/
-    data/
-      DataProvider.ts              ← interface
-      DataProviderContext.tsx      ← Context + useDataProvider() hook
-      firebase.ts                  ← implementazione Firebase
-      supabase.ts                  ← implementazione Supabase
-    storage/
-      StorageProvider.ts           ← interface
-      StorageProviderContext.tsx
-      firebase.ts
-      supabase.ts
-    ai/
-      index.ts                     ← attuale integrations/ai.ts
-    auth/
-      google/
-    scrape/
-      index.ts
-    dropbox/
-      index.ts
-  libs/                            ← invariato (utilities pure)
-  types/                           ← RINOMINATA da models/
-  pages/
+clients/showcase/
+  src/index.tsx            # consumer Vite reale basato su <App>
+  src/conf/menu.ts         # menu unico dello showcase
+  src/layouts/             # ShowcaseLayout
+  src/pages/               # docs, componenti, provider, esempi
 ```
 
 ---
 
-## Dipendenze problematiche attuali
+## Dipendenze legacy residue
 
-Queste sono le righe di codice che bloccano la portabilità. CR-002 le risolve tutte.
+CR-002 ha rimosso il coupling diretto da `Form` e `Grid`, che ora usano `useDataProvider()`.
+Rimangono alcuni import backward-compatible da `libs/database` in componenti storici:
 
-| File | Import problematico | Cosa fa |
-|------|-------------------|---------|
-| [src/components/widgets/Form.tsx](../src/components/widgets/Form.tsx) | `import db from "../../libs/database"` | Chiama `db.read()`, `db.set()`, `db.remove()` |
-| [src/components/widgets/Grid.tsx](../src/components/widgets/Grid.tsx) | `import db from "../../libs/database"` | Chiama `db.useListener()` per real-time |
-| [src/components/ui/fields/Upload.tsx](../src/components/ui/fields/Upload.tsx) | Firebase Storage diretto | Upload file hardcoded su Firebase |
-| [src/libs/database.ts](../src/libs/database.ts) | `import firedatabase` | Proxy diretto verso Firebase SDK |
-
----
-
-## Versioni
-
-| Versione | Data | Descrizione |
-|----------|------|-------------|
-| 1.x.x | attuale | Firebase + Bootstrap, nessun abstraction layer, zero test |
-| 2.0.0-alpha | target | CR-002: Provider abstraction layer |
-| 2.0.0-beta | target | CR-002 + CR-003: Provider + TypeScript strict |
-| 2.0.0-rc | target | + CR-004: shadcn/ui + Tailwind |
-| 2.0.0 | target | + CR-001 + CR-006: Docs AI-first + test completi |
-| 2.1.0 | target | CR-005: CLI aggiornato |
-| 2.2.0 | target | CR-007: Showcase app pubblica |
+| File | Import | Nota |
+|------|--------|------|
+| `src/components/Component.tsx` | `libs/database` | Schema/template legacy. Da valutare in CR-014. |
+| `src/components/Template.tsx` | `libs/database` | Template generati da database. Da valutare in CR-014. |
+| `src/components/ui/fields/Select.tsx` | `libs/database` | Select `db` legacy; candidato a `useDataProvider()` in CR-014. |
 
 ---
 
-## Come aggiornare questo file
+## Verifica corrente
 
-Quando una CR viene completata:
-1. Aggiornare la tabella "Stato generale" — cambiare stato nella colonna Target
-2. Aggiornare la struttura cartelle se cambia
-3. Rimuovere dalla tabella "Dipendenze problematiche" le righe risolte
-4. Aggiornare la tabella "Versioni" con data di completamento
-5. Aggiornare `CHANGELOG.md` nella root con le modifiche effettive
+Ultima verifica manuale eseguita il 2026-05-07:
+
+| Comando | Esito |
+|---------|-------|
+| `npm run test` | Passa: 11 file, 103 test. |
+| `npm run build` | Passa: Vite library build + declarations. |
+| `cd clients/showcase && npm run build` | Passa: Vite production build. |
+
+---
+
+## Versioni target
+
+| Versione | Stato | Descrizione |
+|----------|-------|-------------|
+| 1.5.8 | current package | Modernizzazione in corso sul branch `modernize`. |
+| 2.0.0-alpha | raggiunta internamente | Provider abstraction + TypeScript strict. |
+| 2.0.0-rc | in progress | Tailwind/shadcn compatibility + test visivo. |
+| 2.0.0 | target | Docs, tests e showcase completi. |
+| 2.1.0 | target | CLI rifinita e documentata. |
+| 2.2.0 | target | Showcase pubblica completa. |

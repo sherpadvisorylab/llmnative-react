@@ -7,7 +7,7 @@ export { SignInButton, AuthButton, useAccessToken, getAccessToken } from './auth
 export { useGlobalVars, getGlobalVars, setGlobalVars, removeGlobalVars} from './Global';
 
 // Providers
-export type { DataProvider, RecordProps, RecordArray, DatabaseOptions, WhereClause, OrderClause, Condition } from './providers/data/DataProvider';
+export type { DataProvider, RecordProps, RecordArray, DatabaseOptions, ReadOptions, WhereClause, OrderClause, Condition } from './providers/data/DataProvider';
 export { FirebaseDataProvider } from './providers/data/firebase';
 export { SupabaseDataProvider } from './providers/data/supabase';
 export { MockDataProvider } from './providers/data/mock';
