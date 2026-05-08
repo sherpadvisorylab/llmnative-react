@@ -1,7 +1,7 @@
-import { EmailProvider, EmailSendParams } from '../EmailProvider';
+import { EmailProviderAdapter, EmailSendParams } from '../EmailProvider';
 import { sendEmail as gmailSend } from './email';
 
-export class GmailEmailProvider implements EmailProvider {
+export class GmailEmailProvider implements EmailProviderAdapter {
     async send(params: EmailSendParams): Promise<void> {
         await gmailSend({
             to: Array.isArray(params.to) ? params.to : [params.to],

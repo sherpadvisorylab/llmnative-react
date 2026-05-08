@@ -21,7 +21,7 @@ export default function AppConfiguration() {
                     }
                     code={`import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { App, MockDataProvider } from 'react-firestrap';
+import { App } from 'react-firestrap';
 import './styles/globals.css';
 
 import AppLayout from './layouts/AppLayout';
@@ -29,15 +29,16 @@ import { appConfig } from './conf/app';
 import { menu } from './conf/menu';
 import { mockData } from './data/mockData';
 
-const dataProvider = new MockDataProvider(mockData);
-
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <App
       importPage={(pageSource) => import(/* @vite-ignore */ pageSource)}
       LayoutDefault={AppLayout}
       menuConfig={menu}
-      dataProvider={dataProvider}
+      providers={{
+        default: appConfig.provider,
+        mock: { data: mockData },
+      }}
       iconProvider={appConfig.iconProvider}
       themeProvider={appConfig.themeProvider}
     />
@@ -57,13 +58,13 @@ createRoot(document.getElementById('root')!).render(
 const env = import.meta.env;
 
 export const appConfig = {
-  dataProvider: env.VITE_DATA_PROVIDER ?? 'mock',
+  provider: env.VITE_PROVIDER ?? 'mock',
   iconProvider: env.VITE_ICON_PROVIDER ?? 'lucide',
   themeProvider: env.VITE_THEME_PROVIDER ?? 'default',
 };
 
 // .env
-VITE_DATA_PROVIDER=mock
+VITE_PROVIDER=mock
 VITE_ICON_PROVIDER=lucide
 VITE_THEME_PROVIDER=default`}
                 />
@@ -106,8 +107,8 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 />
 
                 <Section
-                    title="Provider shorthand"
-                    description="Use strings when you only need built-in defaults. This is the recommended scaffold path."
+                    title="Provider configuration"
+                    description="Declare available backends and choose which backend powers each service."
                     preview={
                         <div className="flex flex-wrap gap-2">
                             {['themeProvider="default"', 'themeProvider="cyber"', 'iconProvider="lucide"', 'iconProvider="phosphor"'].map((item) => (
@@ -118,7 +119,10 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                     code={`<App
   menuConfig={menu}
   LayoutDefault={AppLayout}
-  dataProvider={dataProvider}
+  providers={{
+    default: 'mock',
+    mock: { data: mockData },
+  }}
   iconProvider="lucide"
   themeProvider="default"
 />`}
@@ -135,7 +139,16 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                     code={`<App
   menuConfig={menu}
   LayoutDefault={AppLayout}
-  dataProvider={dataProvider}
+  providers={{
+    firebase: { config: firebaseConfig },
+    supabase: { config: supabaseConfig },
+    google: { oAuth2: googleOAuth2 },
+    services: {
+      data: 'firebase',
+      storage: 'supabase',
+      auth: 'google',
+    },
+  }}
   iconProvider={{
     default: 'phosphor-bold',
     providers: {
@@ -163,7 +176,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                     description="Pass service configuration to App when the app uses Firebase, OAuth2, AI or other framework integrations."
                     preview={
                         <div className="grid gap-2 text-sm md:grid-cols-4 w-full">
-                            {['firebaseConfig', 'oAuth2', 'aiConfig', 'dropBoxConfig'].map((item) => (
+                            {['providers.firebase', 'providers.google', 'aiConfig', 'providers.dropbox'].map((item) => (
                                 <div key={item} className="rounded-md border bg-card p-3">{item}</div>
                             ))}
                         </div>
@@ -173,26 +186,32 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 <App
   menuConfig={menu}
   LayoutDefault={AppLayout}
-  firebaseConfig={{
-    apiKey: env.VITE_FIREBASE_APIKEY,
-    authDomain: env.VITE_FIREBASE_AUTH_DOMAIN,
-    databaseURL: env.VITE_FIREBASE_DATABASE_URL,
-    projectId: env.VITE_FIREBASE_PROJECT_ID,
-    storageBucket: env.VITE_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-    appId: env.VITE_FIREBASE_APP_ID,
-    measurementId: env.VITE_FIREBASE_MEASUREMENT_ID,
-  }}
-  oAuth2={{
-    clientId: env.VITE_GOOGLE_CLIENT_ID,
-    scope: env.VITE_GOOGLE_SCOPE,
+  providers={{
+    firebase: {
+      config: {
+        apiKey: env.VITE_FIREBASE_APIKEY,
+        authDomain: env.VITE_FIREBASE_AUTH_DOMAIN,
+        databaseURL: env.VITE_FIREBASE_DATABASE_URL,
+        projectId: env.VITE_FIREBASE_PROJECT_ID,
+        storageBucket: env.VITE_FIREBASE_STORAGE_BUCKET,
+        messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+        appId: env.VITE_FIREBASE_APP_ID,
+        measurementId: env.VITE_FIREBASE_MEASUREMENT_ID,
+      },
+    },
+    google: {
+      oAuth2: {
+        clientId: env.VITE_GOOGLE_CLIENT_ID,
+        scope: env.VITE_GOOGLE_SCOPE,
+      },
+    },
   }}
 />`}
                 />
 
                 <Section
                     title="Page loading"
-                    description="For scaffolded apps, pages are usually imported directly in menuConfig. importPage remains available for dynamic legacy paths."
+                    description="For scaffolded apps, pages are usually imported directly in menuConfig. importPage remains available as a dynamic fallback."
                     preview={
                         <div className="alert alert-warning text-sm w-full">
                             Prefer explicit page imports in src/conf/menu.ts when using Vite.
@@ -205,7 +224,7 @@ export const menu = {
   main: [{ path: '/', title: 'Home', page: HomePage }],
 };
 
-// Dynamic fallback for legacy menu items without page
+// Dynamic fallback for menu items without page
 <App
   menuConfig={menu}
   importPage={(pageSource) => import(/* @vite-ignore */ pageSource)}

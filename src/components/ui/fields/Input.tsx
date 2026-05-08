@@ -384,7 +384,7 @@ export const ListGroup = ({
                         onDragStart={draggable ? (e) => handleDragStart(e, extractText(child)) : undefined}
                         style={{ cursor: draggable ? 'grab' : 'default' }}
                     >
-                        {draggable && <Icon icon='grip-vertical' />}
+                        {draggable && <Icon name='grip-vertical' />}
                         {child}
                     </span>
             })}

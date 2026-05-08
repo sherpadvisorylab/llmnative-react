@@ -1,5 +1,5 @@
 import React from 'react';
-import { Grid, Badge, MockDataProvider, DataProviderProvider } from 'react-firestrap';
+import { Grid, Badge, MockDataProvider, DataProviderAdapter } from 'react-firestrap';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 
@@ -33,9 +33,9 @@ const ROLE_COLOR: Record<string, string> = {
 function WithMock({ seed, children }: { seed: Record<string, Record<string, any>>; children: React.ReactNode }) {
     const provider = React.useMemo(() => new MockDataProvider(seed), []);
     return (
-        <DataProviderProvider registry={{ default: provider }} defaultKey="default">
+        <DataProvider registry={{ default: provider }} defaultKey="default">
             {children}
-        </DataProviderProvider>
+        </DataProvider>
     );
 }
 
@@ -65,11 +65,11 @@ export default function GridPage() {
                         />
                     </WithMock>
                 }
-                code={`import { Grid, Badge, DataProviderProvider, MockDataProvider } from 'react-firestrap';
+                code={`import { Grid, Badge, DataProvider, MockDataProvider } from 'react-firestrap';
 
 const provider = new MockDataProvider({ '/users': USERS_SEED });
 
-<DataProviderProvider registry={{ default: provider }} defaultKey="default">
+<DataProvider registry={{ default: provider }} defaultKey="default">
     <Grid
         dataStoragePath="/users"
         columns={[
@@ -82,7 +82,7 @@ const provider = new MockDataProvider({ '/users': USERS_SEED });
         ]}
         type="table"
     />
-</DataProviderProvider>`}
+</DataProvider>`}
             />
 
             {/* ── Full CRUD ── */}

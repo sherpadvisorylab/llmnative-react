@@ -5,6 +5,6 @@ export interface EmailSendParams {
     message: string;
 }
 
-export interface EmailProvider {
+export interface EmailProviderAdapter {
     send(params: EmailSendParams): Promise<void>;
 }

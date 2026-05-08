@@ -6,6 +6,7 @@ import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import rehypeSanitize from 'rehype-sanitize';
 import { cn } from '../../libs/cn';
 import { copyToClipboard } from '../../libs/utils';
+import { useHead, type PageMetadataState } from '../../Head';
 
 type MarkdownComponents = Components;
 
@@ -14,6 +15,7 @@ export interface MarkdownReaderProps {
     components?: MarkdownComponents;
     className?: string;
     wrapClass?: string;
+    head?: PageMetadataState;
     onNavigateInternal?: (href: string, event: React.MouseEvent<HTMLAnchorElement>) => void;
 }
 
@@ -139,8 +141,11 @@ export default function MarkdownReader({
     components,
     className,
     wrapClass,
+    head,
     onNavigateInternal,
 }: MarkdownReaderProps) {
+    useHead(head);
+
     const defaultComponents = React.useMemo(
         () => createDefaultComponents(onNavigateInternal),
         [onNavigateInternal]

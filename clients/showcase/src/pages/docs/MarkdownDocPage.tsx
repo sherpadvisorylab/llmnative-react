@@ -13,9 +13,13 @@ export default function MarkdownDocPage({ doc }: MarkdownDocPageProps) {
     const navigate = useNavigate();
 
     return (
-        <PageLayout title={doc.meta.title} description={doc.meta.description}>
+        <PageLayout title={doc.meta.title} description={doc.meta.description} showHeader={false}>
             <MarkdownReader
                 content={doc.content}
+                head={{
+                    title: doc.meta.title,
+                    description: doc.meta.description,
+                }}
                 onNavigateInternal={(href, event) => {
                     const nextPath = resolveMarkdownDocHref(href, doc.meta.path);
                     if (nextPath.startsWith('/docs')) {

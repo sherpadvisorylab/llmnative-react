@@ -1,24 +1,24 @@
 import React, { createContext, useContext } from 'react';
-import { EmailProvider } from './EmailProvider';
+import type { EmailProviderAdapter } from './EmailProvider';
 
-type EmailProviderRegistry = {
-    registry: Record<string, EmailProvider>;
+type EmailProviderContextValue = {
+    registry: Record<string, EmailProviderAdapter>;
     defaultKey: string;
 };
 
-const EmailProviderContext = createContext<EmailProviderRegistry | null>(null);
+const EmailProviderContext = createContext<EmailProviderContextValue | null>(null);
 
-export const EmailProviderProvider = ({
+export const EmailProvider = ({
     registry,
     defaultKey,
     children,
-}: EmailProviderRegistry & { children: React.ReactNode }) => (
+}: EmailProviderContextValue & { children: React.ReactNode }) => (
     <EmailProviderContext.Provider value={{ registry, defaultKey }}>
         {children}
     </EmailProviderContext.Provider>
 );
 
-export const useEmailProvider = (name?: string): EmailProvider | null => {
+export const useEmailProvider = (name?: string): EmailProviderAdapter | null => {
     const ctx = useContext(EmailProviderContext);
     if (!ctx) return null;
     const key = name ?? ctx.defaultKey;

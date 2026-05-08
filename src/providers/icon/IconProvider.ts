@@ -6,7 +6,7 @@ export interface IconComponentProps {
     [key: string]: unknown;
 }
 
-export interface IconProvider {
+export interface IconProviderAdapter {
     readonly id: string;
     resolve(name: string): React.ComponentType<IconComponentProps> | null;
 }

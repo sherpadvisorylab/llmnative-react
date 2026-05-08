@@ -45,6 +45,10 @@ export default function MarkdownReaderPage() {
                     <div className="w-full">
                         <MarkdownReader
                             content={markdown}
+                            head={{
+                                title: 'MarkdownReader',
+                                description: 'Render Markdown with GFM support and themed components.',
+                            }}
                             onNavigateInternal={(href) => setLastNavigation(href)}
                         />
                         {lastNavigation && (
@@ -58,6 +62,10 @@ export default function MarkdownReaderPage() {
 
 <MarkdownReader
   content={markdown}
+  head={{
+    title: 'MarkdownReader',
+    description: 'Render Markdown with GFM support and themed components.',
+  }}
   onNavigateInternal={(href) => navigate(href)}
 />`}
             />

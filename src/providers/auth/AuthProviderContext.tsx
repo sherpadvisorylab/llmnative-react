@@ -1,26 +1,26 @@
 import React, { createContext, useContext } from 'react';
-import { AuthProvider } from './AuthProvider';
+import type { AuthProviderAdapter } from './AuthProvider';
 
-type AuthProviderRegistry = {
-    registry: Record<string, AuthProvider>;
+type AuthProviderContextValue = {
+    registry: Record<string, AuthProviderAdapter>;
     defaultKey: string;
 };
 
-const AuthProviderContext = createContext<AuthProviderRegistry | null>(null);
+const AuthProviderContext = createContext<AuthProviderContextValue | null>(null);
 
-export const AuthProviderProvider = ({
+export const AuthProvider = ({
     registry,
     defaultKey,
     children,
-}: AuthProviderRegistry & { children: React.ReactNode }) => (
+}: AuthProviderContextValue & { children: React.ReactNode }) => (
     <AuthProviderContext.Provider value={{ registry, defaultKey }}>
         {children}
     </AuthProviderContext.Provider>
 );
 
-export const useAuthProvider = (name?: string): AuthProvider => {
+export const useAuthProvider = (name?: string): AuthProviderAdapter => {
     const ctx = useContext(AuthProviderContext);
-    if (!ctx) throw new Error('useAuthProvider must be used inside <App authProvider={...} />.');
+    if (!ctx) throw new Error('useAuthProvider must be used inside <App providers={...} />.');
     const key = name ?? ctx.defaultKey;
     const provider = ctx.registry[key];
     if (!provider) throw new Error(`AuthProvider '${key}' is not registered. Available: ${Object.keys(ctx.registry).join(', ')}`);

@@ -4,14 +4,13 @@ Framework React per UI data-driven. Schema-driven: definisci i campi → ottieni
 
 **Branch attivo:** `modernize` (v2 in sviluppo — vedi `docs/ROADMAP.md`)  
 **Stack attuale:** React 18 + Vite library build + Firebase/DataProvider + Tailwind CSS (Bootstrap compatibility layer)
-**Stack target v2:** React 18 + Vite-first scaffolding + DataProvider pattern + shadcn/ui + Tailwind
+**Stack target v2:** React 18 + Vite-first scaffolding + DataProvider pattern + Tailwind compatibility layer
 
-> **CR-004 in corso:** Bootstrap è stato rimosso come dipendenza runtime. Il CSS è ora generato da Tailwind v4  
+> **CR-004 completata come compatibility layer:** Bootstrap e' stato rimosso come dipendenza runtime. Il CSS e' ora generato da Tailwind v4  
 > tramite `@layer components` che ricrea le stesse classi Bootstrap (`.btn`, `.badge`, `.alert`, `.modal`, ecc.).  
 > I consumer devono importare `react-firestrap/dist/index.css` una sola volta.
 >
-> **CR-015:** la build root e lo scaffolding ufficiale sono Vite-first. Webpack resta solo come comando legacy
-> `npm run build:webpack` per confronto temporaneo.
+> **CR-015:** la build root e lo scaffolding ufficiale sono Vite-first.
 
 ---
 
@@ -24,26 +23,24 @@ src/
     │               Pagination, Table, Gallery, Tab, Repeat, GridSystem
     ui/fields/   ← form fields: Input, Select, Upload, Prompt, AssistantAI, UploadCSV
     blocks/      ← composizioni: Menu, Brand, Breadcrumbs, Notifications, Search, Carousel
-    widgets/     ← smart components: Form, Grid, ImageEditor
+    widgets/     ← smart components: Form, Grid, MarkdownReader, ImageEditor
     Component.tsx   ← FieldAdapter pattern per schema-driven forms
     FormEnhancer.tsx
     Template.tsx
   providers/     ← Ports & Adapters: interfacce + implementazioni concrete, per dominio
-    data/        ← DataProvider interface + FirebaseDataProvider
-    storage/     ← StorageProvider interface + FirebaseStorageProvider, dropbox.tsx
-    auth/        ← AuthProvider interface + google/GoogleAuthProvider
-    email/       ← EmailProvider interface + google/GmailEmailProvider
+    data/        ← DataProviderAdapter contract + FirebaseDataProvider, MockDataProvider, SupabaseDataProvider
+    storage/     ← StorageProviderAdapter contract + FirebaseStorageProvider, SupabaseStorageProvider, dropbox.tsx
+    auth/        ← AuthProviderAdapter contract + google/GoogleAuthProvider
+    email/       ← EmailProviderAdapter contract + google/GmailEmailProvider
     ai/          ← AI multi-provider (OpenAI/Gemini/Anthropic/DeepSeek/Mistral)
     seo/         ← Google Ads keyword, Trends
     scrape/      ← SerpAPI scraping
     firebase-init.ts  ← inizializzazione Firebase app
-  integrations/  ← stub backward-compat (re-export da providers/) — non modificare
   types/         ← TypeScript types e interfaces (ex models/)
-  models/        ← stub backward-compat (re-export da types/) — non modificare
   libs/          ← utilities pure senza dipendenze React (converter, path, sanitizer, cache…)
   conf/          ← configurazioni statiche (prompt templates)
   Theme.tsx      ← sistema tema via React Context
-  Config.tsx     ← ConfigProvider: Firebase, Google OAuth, AI, Dropbox
+  Config.tsx     ← RuntimeProvider: tenant config, Firebase, Google OAuth, AI, Dropbox
   Global.tsx     ← stato globale localStorage-backed
   App.tsx        ← entry point con routing e provider
 ```
@@ -54,7 +51,6 @@ src/
 npm run build         # Vite library mode: dist/index.mjs, dist/index.js, dist/index.css + types
 npm run build:dev     # Vite development build + declarations
 npm run watch:dev     # Vite build in watch mode
-npm run build:webpack # legacy comparison build
 npm run test          # Vitest
 ```
 
@@ -77,7 +73,7 @@ Le pagine testuali della sezione Docs dello showcase sono generate dai Markdown 
 dallo showcase. Le pagine componenti/live restano TSX. Vedi `docs/README.md` per la convenzione contributor.
 
 **Regola di dipendenza:** `libs/` non conosce React · `components/` non importa da `providers/` direttamente · tutto fluisce verso l'alto  
-**Nota:** `integrations/` e `models/` sono stub di backward-compat — tutta la logica è in `providers/` e `types/`.
+**Nota verificata 2026-05-08:** `src/integrations/` e `src/models/` non esistono piu' in questa codebase. Le API pubbliche correnti passano da `providers/`, `types/`, `Head.tsx`, `Theme.tsx` e `App.tsx`.
 
 ---
 
@@ -284,7 +280,10 @@ export default function UserForm() {
 ```tsx
 // Uso semplice: App orchestra registry interni e default.
 <App
-  firebaseConfig={config.firebase}
+  providers={{
+    firebase: { config: config.firebase },
+    services: { data: 'firebase', storage: 'firebase', auth: 'firebase' },
+  }}
   iconProvider="phosphor" // default: lucide
   themeProvider="cyber"   // default: default
   menuConfig={menuConfig}
@@ -322,7 +321,7 @@ icons.setProvider('lucide')
 
 Built-in icon provider: `lucide`, `phosphor`.
 Built-in theme preset: `default`, `flat`, `cyber`.
-`importTheme={() => import('./my-theme')}` resta supportato come override legacy asincrono finale.
+`themeProvider` e `iconProvider` sono la configurazione raccomandata per preset, provider custom e alias.
 
 ---
 
@@ -345,45 +344,52 @@ Provider configurati in `Config.tsx` via `AIConfig` (geminiApiKey, openaiApiKey,
 
 ---
 
-## Provider Registry (CR-002 / CR-002b)
+## Provider Registry (CR-002 / CR-002b / CR-020)
 
-Tutti i provider seguono il pattern **Ports & Adapters**: un'interfaccia (port) + implementazioni concrete (adapters) iniettate via React Context.
+Tutti i provider seguono il pattern **Ports & Adapters**: un'interfaccia (port) + implementazioni concrete (adapters) selezionate da `<App providers={{ ... }}>`.
 
-### Configurazione base (shorthand — backward compat)
+### Configurazione dichiarativa
 
 ```tsx
 import { App } from 'react-firestrap'
-import { FirebaseDataProvider } from 'react-firestrap/providers/data/firebase'
-import { GmailEmailProvider } from 'react-firestrap/providers/email/google/GmailEmailProvider'
-
-<App
-  dataProvider={new FirebaseDataProvider()}
-  emailProvider={new GmailEmailProvider()}
-  ...
-/>
-```
-
-### Configurazione multi-provider (Named Registry)
-
-Registra più provider dello stesso tipo, seleziona quale usare per ogni operazione:
-
-```tsx
-import { SupabaseDataProvider } from './my-providers/SupabaseDataProvider'
 
 <App
   providers={{
-    data: {
-      firebase: new FirebaseDataProvider(),
-      supabase: new SupabaseDataProvider(),
-    },
-    email: {
-      gmail: new GmailEmailProvider(),
+    firebase: { config: firebaseConfig },
+    google: { oAuth2: googleOAuth2 },
+    gmail: { enabled: true },
+    services: {
+      data: 'firebase',
+      storage: 'firebase',
+      auth: 'google',
+      email: 'gmail',
     },
   }}
-  defaultProviders={{
-    data: import.meta.env.VITE_DATA_PROVIDER || 'firebase',
+/>
+```
+
+### Configurazione multi-provider
+
+Registra piu' backend e seleziona quale usare per ogni servizio:
+
+```tsx
+<App
+  providers={{
+    mock: {
+      data: mockData,
+    },
+    firebase: {
+      config: firebaseConfig,
+    },
+    supabase: {
+      config: supabaseConfig,
+    },
+    services: {
+      data: import.meta.env.VITE_PROVIDER || 'mock',
+      storage: 'firebase',
+      auth: 'google',
+    },
   }}
-  ...
 />
 ```
 
@@ -407,9 +413,9 @@ const email   = useEmailProvider('gmail')   // null se 'gmail' non registrato
 
 ```typescript
 // my-providers/RestDataProvider.ts
-import { DataProvider, RecordArray } from 'react-firestrap'
+import { DataProviderAdapter, RecordArray } from 'react-firestrap'
 
-export class RestDataProvider implements DataProvider {
+export class RestDataProvider implements DataProviderAdapter {
   async read(path: string): Promise<any> { /* ... */ }
   async set(path: string, data: object): Promise<void> { /* ... */ }
   async update(path: string, data: object): Promise<void> { /* ... */ }
@@ -424,10 +430,21 @@ export class RestDataProvider implements DataProvider {
 
 | Interfaccia | Path | Obbligatorio |
 |-------------|------|--------------|
-| `DataProvider` | `providers/data/DataProvider.ts` | sì (fallback: FirebaseDataProvider) |
-| `StorageProvider` | `providers/storage/StorageProvider.ts` | no (null se assente) |
-| `AuthProvider` | `providers/auth/AuthProvider.ts` | sì (fallback: GoogleAuthProvider) |
-| `EmailProvider` | `providers/email/EmailProvider.ts` | no (null se assente) |
+| `DataProviderAdapter` | `providers/data/DataProvider.ts` | sì (fallback: MockDataProvider) |
+| `StorageProviderAdapter` | `providers/storage/StorageProvider.ts` | no (null se assente) |
+| `AuthProviderAdapter` | `providers/auth/AuthProvider.ts` | sì (fallback: GoogleAuthProvider) |
+| `EmailProviderAdapter` | `providers/email/EmailProvider.ts` | no (null se assente) |
+
+StorageProvider reale:
+
+```typescript
+export interface StorageProviderAdapter {
+  upload(file: string, path: string): Promise<string | undefined>
+  getURL(path: string): Promise<string | undefined>
+  download(path: string): Promise<Blob | undefined>
+  delete(path: string): Promise<boolean>
+}
+```
 
 ---
 
@@ -438,11 +455,11 @@ export class RestDataProvider implements DataProvider {
 | Come funziona Form | `src/components/widgets/Form.tsx` |
 | Come funziona Grid | `src/components/widgets/Grid.tsx` |
 | Un campo specifico | `src/components/ui/fields/` |
-| Logica Firebase DB | `src/providers/data/firebase/` |
-| Logica Firebase Storage | `src/providers/storage/firebase/` |
-| Interfaccia DataProvider | `src/providers/data/DataProvider.ts` |
-| Interfaccia AuthProvider | `src/providers/auth/AuthProvider.ts` |
-| Interfaccia EmailProvider | `src/providers/email/EmailProvider.ts` |
+| Logica Firebase DB | `src/providers/data/firebase.ts` |
+| Logica Firebase Storage | `src/providers/storage/firebase.ts` |
+| Contratto DataProviderAdapter | `src/providers/data/DataProvider.ts` |
+| Contratto AuthProviderAdapter | `src/providers/auth/AuthProvider.ts` |
+| Contratto EmailProviderAdapter | `src/providers/email/EmailProvider.ts` |
 | Integrazione AI | `src/providers/ai/index.ts` |
 | Auth Google (UI + token) | `src/providers/auth/google/` |
 | Email Gmail | `src/providers/email/google/GmailEmailProvider.ts` |
@@ -463,9 +480,9 @@ In corso sul branch `modernize`. Vedi `docs/CHANGE_REQUESTS.md` per i dettagli.
 |----|-------------|-------|
 | CR-001 | Documentazione AI-first (questo file) | ✅ done |
 | CR-002 | Provider abstraction layer (DataProvider, StorageProvider + Named Registry) | ✅ done |
-| CR-002b | AuthProvider + EmailProvider interface + Named Registry | ✅ done |
+| CR-002b | AuthProviderAdapter + EmailProviderAdapter contracts + named provider config | ✅ done |
 | CR-003 | TypeScript strict | ✅ done |
-| CR-004 | shadcn/ui + Tailwind (rimpiazza Bootstrap) | 🔄 in progress |
+| CR-004 | Tailwind compatibility layer (Bootstrap runtime rimosso) | ✅ done |
 | CR-005 | CLI aggiornato | ⬜ todo / da riconciliare con CR-015 |
 | CR-006 | Batterie di test (unit + integration contract + component) | 🔄 in progress |
 | CR-007 | Showcase app con tutti i componenti e corner case | 🔄 in progress |

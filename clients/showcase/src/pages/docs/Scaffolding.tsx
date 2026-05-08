@@ -53,10 +53,10 @@ theme preset: default | flat | cyber
                 description="The scaffold writes Vite-compatible client variables. src/conf/app.ts reads these values and passes them to App from src/index.tsx."
                 preview={
                     <div className="alert alert-success text-sm w-full">
-                        Use VITE_* names in Vite consumers; REACT_APP_* is legacy CRA/Webpack naming.
+                        Use VITE_* names in Vite consumers.
                     </div>
                 }
-                code={`VITE_DATA_PROVIDER=firebase
+                code={`VITE_PROVIDER=firebase
 VITE_ICON_PROVIDER=lucide
 VITE_THEME_PROVIDER=default
 
@@ -170,10 +170,10 @@ npx react-firestrap create --yes \\
                         ))}
                     </div>
                 }
-                code={`dataProvider="firebase"  # Firebase Realtime Database
-dataProvider="supabase"  # Supabase
-dataProvider="mock"      # In-memory data from src/data/mockData.ts
-dataProvider="custom"    # Provide your own dataProvider to App
+                code={`providers.default="firebase"      # Firebase for all supported services
+providers.default="supabase"      # Supabase for data/storage
+providers.default="mock"          # In-memory data from src/data/mockData.ts
+providers.services.data="custom"  # Select a custom DataProviderAdapter
 
 # Theme and icons are App-managed
 iconProvider="lucide"

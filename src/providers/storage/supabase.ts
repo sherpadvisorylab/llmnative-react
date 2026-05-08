@@ -1,4 +1,4 @@
-import { StorageProvider } from "./StorageProvider";
+import { StorageProviderAdapter } from "./StorageProvider";
 
 interface SupabaseStorageConfig {
     url: string;
@@ -9,7 +9,7 @@ interface SupabaseStorageConfig {
 const warn = (method: string) =>
     console.warn(`SupabaseStorageProvider.${method}: not fully implemented yet.`);
 
-export class SupabaseStorageProvider implements StorageProvider {
+export class SupabaseStorageProvider implements StorageProviderAdapter {
     private config: SupabaseStorageConfig;
 
     constructor(config: SupabaseStorageConfig) {

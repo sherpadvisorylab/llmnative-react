@@ -1,6 +1,6 @@
 import React from 'react';
 import * as PhosphorIcons from '@phosphor-icons/react';
-import type { IconProvider, IconComponentProps } from './IconProvider';
+import type { IconProviderAdapter, IconComponentProps } from './IconProvider';
 
 export type PhosphorWeight = 'thin' | 'light' | 'regular' | 'bold' | 'fill' | 'duotone';
 
@@ -25,7 +25,7 @@ function toPascalCase(name: string): string {
     return name.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join('');
 }
 
-export class PhosphorIconProvider implements IconProvider {
+export class PhosphorIconProvider implements IconProviderAdapter {
     readonly id = 'phosphor' as const;
     private readonly _cache = new Map<string, React.ComponentType<IconComponentProps>>();
 

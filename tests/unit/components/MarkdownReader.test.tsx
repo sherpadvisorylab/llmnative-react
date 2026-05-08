@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { fireEvent, screen } from '@testing-library/react';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import MarkdownReader from '../../../src/components/widgets/MarkdownReader';
 import { renderWithProviders } from '../../helpers/renderWithProviders';
@@ -24,6 +24,54 @@ describe('MarkdownReader', () => {
 
         expect(screen.getByRole('heading', { name: 'Introduction' })).toBeInTheDocument();
         expect(screen.getByText('world')).toBeInTheDocument();
+    });
+
+    it('sets document head metadata when head is provided', async () => {
+        renderWithProviders(
+            <MarkdownReader
+                content={'# Installation'}
+                head={{
+                    title: 'Installation',
+                    description: 'Install react-firestrap in a Vite app.',
+                }}
+            />
+        );
+
+        await waitFor(() => {
+            expect(document.title).toBe('Installation');
+        });
+        expect(document.head.querySelector('meta[name="description"]')).toHaveAttribute(
+            'content',
+            'Install react-firestrap in a Vite app.'
+        );
+    });
+
+    it('restores an existing head value when a markdown page unmounts', async () => {
+        function Shell({ showPage }: { showPage: boolean }) {
+            return (
+                <>
+                    <MarkdownReader content="" head={{ title: 'Showcase default' }} />
+                    {showPage && (
+                        <MarkdownReader
+                            content="# Installation"
+                            head={{ title: 'Installation', description: 'Install page' }}
+                        />
+                    )}
+                </>
+            );
+        }
+
+        const { rerender } = renderWithProviders(<Shell showPage={true} />);
+
+        await waitFor(() => {
+            expect(document.title).toBe('Installation');
+        });
+
+        rerender(<Shell showPage={false} />);
+
+        await waitFor(() => {
+            expect(document.title).toBe('Showcase default');
+        });
     });
 
     it('renders GFM tables and task lists', () => {

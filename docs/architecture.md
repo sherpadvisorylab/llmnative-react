@@ -41,10 +41,9 @@ react-firestrap/
       email/
       icon/
       ai/
+    Head.tsx
     libs/
     types/
-    integrations/
-    models/
   docs/
   clients/
     showcase/
@@ -68,7 +67,7 @@ react-firestrap/
 - UI primitives must not import widgets.
 - Components should not talk directly to concrete Firebase or Supabase SDKs.
 - New persistence behavior should go through provider interfaces.
-- `integrations/` and `models/` are backward-compatible re-export areas; new logic belongs in `providers/` and `types/`.
+- New persistence behavior should stay in `providers/`; shared public types belong in `types/`.
 
 ## Toolchain
 

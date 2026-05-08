@@ -1,24 +1,24 @@
 import React, { createContext, useContext } from 'react';
-import { DataProvider } from './DataProvider';
+import type { DataProviderAdapter } from './DataProvider';
 
-type DataProviderRegistry = {
-    registry: Record<string, DataProvider>;
+type DataProviderContextValue = {
+    registry: Record<string, DataProviderAdapter>;
     defaultKey: string;
 };
 
-const DataProviderContext = createContext<DataProviderRegistry | null>(null);
+const DataProviderContext = createContext<DataProviderContextValue | null>(null);
 
-export const DataProviderProvider = ({
+export const DataProvider = ({
     registry,
     defaultKey,
     children,
-}: DataProviderRegistry & { children: React.ReactNode }) => (
+}: DataProviderContextValue & { children: React.ReactNode }) => (
     <DataProviderContext.Provider value={{ registry, defaultKey }}>
         {children}
     </DataProviderContext.Provider>
 );
 
-export const useDataProvider = (name?: string): DataProvider => {
+export const useDataProvider = (name?: string): DataProviderAdapter => {
     const ctx = useContext(DataProviderContext);
     if (!ctx) throw new Error('useDataProvider must be used inside <App>.');
     const key = name ?? ctx.defaultKey;

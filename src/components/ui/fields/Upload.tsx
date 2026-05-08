@@ -400,7 +400,7 @@ export const UploadImage = ({
                                     
                                     
                                     <div className="bg-dark opacity-75 position-absolute top-0 start-0 bottom-0 end-0 justify-content-end align-items-start" style={{ display: hoveredIndex === i ? "flex" : "none" }}>
-                                        <a href={getFileUrl(img)} target="_blank" className="p-1 text-white" rel="noopener noreferrer"><Icon icon="eye" /></a>
+                                        <a href={getFileUrl(img)} target="_blank" className="p-1 text-white" rel="noopener noreferrer"><Icon name="eye" /></a>
                                         {editable && <ActionButton onClick={() => handleEdit(i)} icon='pencil' className="p-1" />}
                                         <ActionButton onClick={() => handleRemove(img.key)} icon='x' className="p-1" />
                                         {editable && <div className="position-absolute bottom-0 start-0 w-100 p-1 d-flex align-items-center justify-content-between">

@@ -138,18 +138,17 @@ export default function ProvidersOverview() {
                     <h3 className="font-semibold mb-3">Named registry — multiple providers</h3>
                     <pre className="text-xs bg-muted rounded p-4 overflow-x-auto leading-relaxed">{`<App
     providers={{
-        data: {
-            firebase: new FirebaseDataProvider(),
-            supabase: new SupabaseDataProvider(),
+        firebase: { config: firebaseConfig },
+        supabase: { config: supabaseConfig },
+        services: {
+            data: import.meta.env.VITE_PROVIDER ?? 'firebase',
+            storage: 'supabase',
         },
-    }}
-    defaultProviders={{
-        data: import.meta.env.VITE_DATA_PROVIDER ?? 'firebase',
     }}
 />
 
 // Consume in any component
-const data     = useDataProvider();           // default provider
+const data     = useDataProvider();           // selected provider
 const supabase = useDataProvider('supabase'); // named provider`}</pre>
                 </div>
 

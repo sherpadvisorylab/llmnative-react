@@ -1,10 +1,10 @@
 import { onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth';
-import { AuthProvider, UserProfile } from '../AuthProvider';
+import { AuthProviderAdapter, UserProfile } from '../AuthProvider';
 import { getGlobalVars, removeGlobalVars } from '../../../Global';
 import { getSafeAuth } from '../../firebase-init';
 import { googleGetAccessToken } from './GoogleAuth';
 
-export class GoogleAuthProvider implements AuthProvider {
+export class GoogleAuthProvider implements AuthProviderAdapter {
     getUser(): UserProfile | null {
         const stored = getGlobalVars("user");
         if (!stored) return null;

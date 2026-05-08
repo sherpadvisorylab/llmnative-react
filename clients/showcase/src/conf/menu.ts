@@ -68,15 +68,15 @@ export const menu = {
 
     providers: [
         { path: '/providers', title: 'Overview', page: ProvidersOverview, group: 'Overview' },
-        { path: '/providers/data', title: 'DataProvider interface', page: DataProviderPage, group: 'Data' },
+        { path: '/providers/data', title: 'DataProviderAdapter contract', page: DataProviderPage, group: 'Data' },
         { path: '/providers/data/firebase', title: 'FirebaseDataProvider', page: s('FirebaseDataProvider', 'Real-time Realtime Database implementation.'), group: 'Data' },
         { path: '/providers/data/supabase', title: 'SupabaseDataProvider', page: s('SupabaseDataProvider', 'Supabase PostgreSQL implementation.'), group: 'Data' },
         { path: '/providers/data/custom', title: 'Custom provider', page: s('Custom DataProvider', 'How to implement and register your own DataProvider.'), group: 'Data' },
-        { path: '/providers/storage', title: 'StorageProvider interface', page: s('StorageProvider interface', 'upload, getUrl - the storage contract.'), group: 'Storage' },
+        { path: '/providers/storage', title: 'StorageProviderAdapter contract', page: s('StorageProviderAdapter contract', 'upload, getURL, delete - the storage contract.'), group: 'Storage' },
         { path: '/providers/storage/firebase', title: 'FirebaseStorageProvider', page: s('FirebaseStorageProvider', 'Firebase Storage implementation.'), group: 'Storage' },
-        { path: '/providers/auth', title: 'AuthProvider interface', page: s('AuthProvider interface', 'signIn, signOut, onAuthStateChanged - the auth contract.'), group: 'Auth' },
+        { path: '/providers/auth', title: 'AuthProviderAdapter contract', page: s('AuthProviderAdapter contract', 'signIn, signOut, onAuthStateChanged - the auth contract.'), group: 'Auth' },
         { path: '/providers/auth/google', title: 'GoogleAuthProvider', page: s('GoogleAuthProvider', 'OAuth2 Google sign-in implementation.'), group: 'Auth' },
-        { path: '/providers/email', title: 'EmailProvider', page: s('EmailProvider interface', 'send - the email contract.'), group: 'Email & AI' },
+        { path: '/providers/email', title: 'EmailProviderAdapter', page: s('EmailProviderAdapter contract', 'send - the email contract.'), group: 'Email & AI' },
         { path: '/providers/ai', title: 'AI integration', page: s('AI integration', 'AI.fetch, AI.json, AI.array - multi-provider (OpenAI, Gemini, Anthropic).'), group: 'Email & AI' },
     ],
 

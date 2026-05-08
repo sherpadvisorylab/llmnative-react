@@ -5,8 +5,8 @@ import Section from '../../components/Section';
 export default function DataProviderPage() {
     return (
         <PageLayout
-            title="DataProvider interface"
-            description="DataProvider is the data access contract used by Form, Grid and application code. App registers the default provider once, then components consume it through framework hooks."
+            title="DataProviderAdapter contract"
+            description="DataProviderAdapter is the data access contract used by Form, Grid and application code. App registers the default provider once, then components consume it through framework hooks."
         >
             <div className="space-y-8">
                 <Section
@@ -19,7 +19,7 @@ export default function DataProviderPage() {
                             ))}
                         </div>
                     }
-                    code={`export interface DataProvider {
+                    code={`export interface DataProviderAdapter {
   read(path: string, options?: ReadOptions): Promise<any>;
   set(path: string, data: object, exception?: boolean): Promise<void>;
   update(path: string, data: object, exception?: boolean): Promise<void>;
@@ -53,21 +53,22 @@ export const mockData = {
 };
 
 // src/index.tsx
-import { App, MockDataProvider } from 'react-firestrap';
+import { App } from 'react-firestrap';
 import { mockData } from './data/mockData';
-
-const dataProvider = new MockDataProvider(mockData);
 
 <App
   menuConfig={menu}
   LayoutDefault={AppLayout}
-  dataProvider={dataProvider}
+  providers={{
+    default: 'mock',
+    mock: { data: mockData },
+  }}
 />`}
                 />
 
                 <Section
                     title="Provider selection"
-                    description="Drive provider choice from VITE_DATA_PROVIDER and register one or more adapters in App."
+                    description="Drive provider choice from VITE_PROVIDER and declare available backends in App."
                     preview={
                         <div className="grid gap-2 text-sm md:grid-cols-4 w-full">
                             {['firebase', 'supabase', 'mock', 'custom'].map((provider) => (
@@ -75,12 +76,7 @@ const dataProvider = new MockDataProvider(mockData);
                             ))}
                         </div>
                     }
-                    code={`import {
-  App,
-  FirebaseDataProvider,
-  MockDataProvider,
-  SupabaseDataProvider,
-} from 'react-firestrap';
+                    code={`import { App } from 'react-firestrap';
 
 const env = import.meta.env;
 
@@ -88,17 +84,17 @@ const env = import.meta.env;
   menuConfig={menu}
   LayoutDefault={AppLayout}
   providers={{
-    data: {
-      firebase: new FirebaseDataProvider(),
-      mock: new MockDataProvider(mockData),
-      supabase: new SupabaseDataProvider({
+    mock: { data: mockData },
+    firebase: { config: firebaseConfig },
+    supabase: {
+      config: {
         url: env.VITE_SUPABASE_URL,
         anonKey: env.VITE_SUPABASE_ANON_KEY,
-      }),
+      },
     },
-  }}
-  defaultProviders={{
-    data: env.VITE_DATA_PROVIDER ?? 'mock',
+    services: {
+      data: env.VITE_PROVIDER ?? 'mock',
+    },
   }}
 />`}
                 />
@@ -164,7 +160,7 @@ function UsersList() {
 
                 <Section
                     title="Framework widgets"
-                    description="Grid and Form are provider-agnostic. They only need a storage path; the active DataProvider handles the backend."
+                    description="Grid and Form are provider-agnostic. They only need a storage path; the active DataProviderAdapter handles the backend."
                     preview={
                         <div className="flex flex-wrap gap-2">
                             {['Grid', 'Form', 'dataStoragePath'].map((item) => (
@@ -198,15 +194,15 @@ function UsersGrid() {
 
                 <Section
                     title="Custom provider"
-                    description="Implement DataProvider when an app needs a backend that is not built into react-firestrap."
+                    description="Implement DataProviderAdapter when an app needs a backend that is not built into react-firestrap."
                     preview={
                         <div className="alert alert-warning text-sm w-full">
                             Custom providers belong to the consumer app only when the built-ins are not enough.
                         </div>
                     }
-                    code={`import type { DataProvider, RecordArray } from 'react-firestrap';
+                    code={`import type { DataProviderAdapter, RecordArray } from 'react-firestrap';
 
-export class RestDataProvider implements DataProvider {
+export class RestDataProvider implements DataProviderAdapter {
   async read(path: string) {
     return fetch('/api' + path).then((res) => res.json());
   }

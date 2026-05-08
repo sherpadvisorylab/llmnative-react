@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import {
     Icon,
-    IconProviderProvider,
+    IconProvider,
     LucideIconProvider,
     PhosphorIconProvider,
     useIconController,
 } from 'react-firestrap';
-import type { IconProvider, PhosphorWeight } from 'react-firestrap';
+import type { IconProviderAdapter, PhosphorWeight } from 'react-firestrap';
 import PageLayout from '../../components/PageLayout';
 
 const PREVIEW_ICONS = [
@@ -37,9 +37,9 @@ function CodeBlock({ code }: { code: string }) {
     );
 }
 
-function IconGrid({ provider }: { provider: IconProvider }) {
+function IconGrid({ provider }: { provider: IconProviderAdapter }) {
     return (
-        <IconProviderProvider provider={provider}>
+        <IconProvider provider={provider}>
             <div className="grid grid-cols-6 gap-3">
                 {PREVIEW_ICONS.map((name) => (
                     <div key={name} className="flex flex-col items-center gap-1.5 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-default">
@@ -48,7 +48,7 @@ function IconGrid({ provider }: { provider: IconProvider }) {
                     </div>
                 ))}
             </div>
-        </IconProviderProvider>
+        </IconProvider>
     );
 }
 
@@ -219,16 +219,16 @@ function Preferences() {
                 <section>
                     <h2 className="text-base font-semibold mb-3">Custom provider</h2>
                     <p className="text-sm text-muted-foreground mb-4">
-                        Implement <code className="text-xs bg-muted px-1 py-0.5 rounded">IconProvider</code> to use any icon library.
+                        Implement <code className="text-xs bg-muted px-1 py-0.5 rounded">IconProviderAdapter</code> to use any icon library.
                     </p>
-                    <CodeBlock code={`import type { IconProvider, IconComponentProps } from 'react-firestrap';
+                    <CodeBlock code={`import type { IconProviderAdapter, IconComponentProps } from 'react-firestrap';
 import * as HeroIcons from '@heroicons/react/24/outline';
 
 function toPascalCase(name: string) {
   return name.split('-').map((part) => part[0].toUpperCase() + part.slice(1)).join('');
 }
 
-export class HeroIconProvider implements IconProvider {
+export class HeroIconProvider implements IconProviderAdapter {
   readonly id = 'heroicons';
 
   resolve(name: string): React.ComponentType<IconComponentProps> | null {
@@ -251,9 +251,9 @@ export class HeroIconProvider implements IconProvider {
                     </p>
                     <CodeBlock code={`<Icon name="star" provider={new PhosphorIconProvider('fill')} />
 
-<IconProviderProvider provider={new PhosphorIconProvider('bold')}>
+<IconProvider provider={new PhosphorIconProvider('bold')}>
   <SidebarPreview />
-</IconProviderProvider>`} />
+</IconProvider>`} />
                 </section>
             </div>
         </PageLayout>

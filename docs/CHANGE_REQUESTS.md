@@ -2,7 +2,7 @@
 
 > Ogni CR rappresenta un'unità di lavoro autonoma con motivazione, scope e checklist.  
 > Stato: `⬜ todo` · `🔄 in progress` · `✅ done` · `🚫 cancelled`  
-> Ultima revisione: 2026-05-06
+> Ultima revisione: 2026-05-08
 
 ---
 
@@ -12,7 +12,7 @@
 |----|--------|----------|-----------|-------|
 | [CR-001](#cr-001--documentazione-ai-first) | Documentazione AI-first | Alta | — | ✅ |
 | [CR-002](#cr-002--provider-abstraction-layer) | Provider abstraction layer | Critica | — | ✅ |
-| [CR-002b](#cr-002b--authprovider--emailprovider-interfaces) | AuthProvider + EmailProvider interfaces | Alta | CR-002 | ✅ |
+| [CR-002b](#cr-002b--authprovideradapter--emailprovideradapter-contracts) | AuthProviderAdapter + EmailProviderAdapter contracts | Alta | CR-002 | ✅ |
 | [CR-003](#cr-003--typescript-strict) | TypeScript strict | Alta | — | ✅ |
 | [CR-004](#cr-004--shadcnui--tailwind-css) | shadcn/ui + Tailwind CSS | Alta | CR-002 | ✅ |
 | [CR-005](#cr-005--cli-update-e-scaffolding) | CLI update e scaffolding | Media | CR-002, CR-004 | ✅ |
@@ -30,6 +30,7 @@
 | [CR-017](#cr-017--app-managed-theme--icon-registries) | App-managed theme + icon registries | Alta | CR-004, CR-013 | ✅ |
 | [CR-018](#cr-018--markdownreader-component) | MarkdownReader component | Alta | CR-004, CR-017 | ✅ |
 | [CR-019](#cr-019--markdown-powered-showcase-docs) | Markdown-powered showcase docs | Alta | CR-018 | ✅ |
+| [CR-020](#cr-020--head-management--declarative-provider-config) | Head management + declarative provider config | Alta | CR-017, CR-019 | ✅ |
 
 ---
 
@@ -106,7 +107,7 @@ src/
   types/                      ← RINOMINATA da models/
 ```
 
-### DataProvider interface
+### DataProviderAdapter contract
 
 ```typescript
 // src/providers/data/DataProvider.ts
@@ -117,7 +118,7 @@ export interface QueryOptions {
   fieldMap?: Record<string, string>
 }
 
-export interface DataProvider {
+export interface DataProviderAdapter {
   read(path: string): Promise<Record<string, any> | null>
   set(path: string, data: object): Promise<void>
   remove(path: string): Promise<void>
@@ -127,26 +128,36 @@ export interface DataProvider {
 }
 ```
 
-### StorageProvider interface
+### StorageProviderAdapter contract
 
 ```typescript
 // src/providers/storage/StorageProvider.ts
-export interface StorageProvider {
-  upload(path: string, file: File, onProgress?: (pct: number) => void): Promise<string>
-  getUrl(path: string): Promise<string>
-  remove(path: string): Promise<void>
+export interface StorageProviderAdapter {
+  upload(file: string, path: string): Promise<string | undefined>
+  getURL(path: string): Promise<string | undefined>
+  download(path: string): Promise<Blob | undefined>
+  delete(path: string): Promise<boolean>
 }
 ```
+
+Nota di audit 2026-05-08: questa e' la surface reale verificata in `src/providers/storage/StorageProvider.ts`. Le bozze iniziali usavano `getUrl`/`remove`, ma non corrispondono alla codebase attuale.
 
 ### Iniezione in App.tsx
 
 ```tsx
 <App
-  dataProvider={new FirebaseDataProvider(firebaseConfig)}
-  storageProvider={new FirebaseStorageProvider(firebaseConfig)}
-  ...
+  providers={{
+    firebase: { config: firebaseConfig },
+    supabase: { config: supabaseConfig },
+    services: {
+      data: 'firebase',
+      storage: 'supabase',
+    },
+  }}
 />
 ```
+
+Nota di audit 2026-05-08: la API pubblica corrente non richiede piu' `new FirebaseDataProvider()` o `storageProvider`. Gli adapter built-in vengono creati internamente a partire da `providers`.
 
 ### Checklist
 - [x] Creare `src/providers/data/DataProvider.ts` (interface + tipi)
@@ -160,7 +171,7 @@ export interface StorageProvider {
 - [x] Aggiornare `Form.tsx` — sostituire `import db` con `useDataProvider()`
 - [x] Aggiornare `Grid.tsx` — sostituire `import db` con `useDataProvider()`
 - [x] Aggiornare `Upload.tsx` — sostituire storage diretto con `useStorageProvider()`
-- [x] Aggiornare `App.tsx` — accettare `dataProvider` e `storageProvider` come prop
+- [x] Aggiornare `App.tsx` — accettare configurazione dichiarativa `providers`
 - [x] Spostare `integrations/ai.ts` → `providers/ai/index.ts`
 - [x] Spostare `integrations/google/GoogleAuth.tsx` → `providers/auth/google/`
 - [x] Spostare `integrations/google/auth.ts` → `providers/auth/google/auth.ts`
@@ -181,7 +192,7 @@ export interface StorageProvider {
 
 ---
 
-## CR-002b — AuthProvider + EmailProvider interfaces
+## CR-002b — AuthProviderAdapter + EmailProviderAdapter contracts
 
 **Stato:** ✅ done  
 **Branch:** `modernize`  
@@ -200,15 +211,15 @@ providers/
     AuthProvider.ts           ← interface: UserProfile, AuthProvider
     AuthProviderContext.tsx   ← React Context + useAuthProvider() hook
     google/
-      GoogleAuthProvider.ts  ← GoogleAuthProvider implements AuthProvider
+      GoogleAuthProvider.ts  ← GoogleAuthProvider implements AuthProviderAdapter
   email/
     EmailProvider.ts          ← interface: EmailSendParams, EmailProvider
     EmailProviderContext.tsx  ← React Context + useEmailProvider() hook
     google/
-      GmailEmailProvider.ts  ← GmailEmailProvider implements EmailProvider
+      GmailEmailProvider.ts  ← GmailEmailProvider implements EmailProviderAdapter
 ```
 
-### AuthProvider interface
+### AuthProviderAdapter contract
 
 ```typescript
 export interface UserProfile {
@@ -219,7 +230,7 @@ export interface UserProfile {
   [key: string]: any;
 }
 
-export interface AuthProvider {
+export interface AuthProviderAdapter {
   getUser(): UserProfile | null;
   signOut(): Promise<void>;
   onAuthChange(callback: (user: UserProfile | null) => void): () => void;
@@ -227,7 +238,7 @@ export interface AuthProvider {
 }
 ```
 
-### EmailProvider interface
+### EmailProviderAdapter contract
 
 ```typescript
 export interface EmailSendParams {
@@ -237,7 +248,7 @@ export interface EmailSendParams {
   message: string;
 }
 
-export interface EmailProvider {
+export interface EmailProviderAdapter {
   send(params: EmailSendParams): Promise<void>;
 }
 ```
@@ -246,11 +257,18 @@ export interface EmailProvider {
 
 ```tsx
 <App
-  authProvider={new GoogleAuthProvider()}
-  emailProvider={new GmailEmailProvider()}
-  ...
+  providers={{
+    google: { oAuth2: googleOAuth2 },
+    gmail: { enabled: true },
+    services: {
+      auth: 'google',
+      email: 'gmail',
+    },
+  }}
 />
 ```
+
+Nota di audit 2026-05-08: anche Auth/Email passano dalla configurazione dichiarativa `providers`.
 
 ### Checklist
 
@@ -398,7 +416,7 @@ CR-005 è stata assorbita da CR-015, che ha reso lo scaffolding ufficiale Vite-f
 
 ## CR-006 — Batterie di test
 
-**Stato:** ✅ done  
+**Stato:** 🔄 in progress  
 **Branch:** `modernize`  
 **Priorità:** Alta  
 **Stima:** 2–3 settimane  
@@ -408,16 +426,16 @@ CR-005 è stata assorbita da CR-015, che ha reso lo scaffolding ufficiale Vite-f
 ### Motivazione
 Senza test ogni refactor è un salto nel vuoto. I test devono essere scritti **dopo** CR-002 perché testano le interface (`DataProvider`, `StorageProvider`) e non l'implementazione Firebase — così rimangono validi quando aggiungi Supabase o altri provider. Tre livelli: unit (funzioni pure), integration (provider contract), component (UI con Testing Library).
 
-### Stack di test
+### Stack di test verificato
 
 ```
-Vitest          ← test runner (più veloce di Jest, Vite-native)
-React Testing Library  ← componenti React
-@testing-library/user-event  ← interazioni utente realistiche
-msw             ← mock service worker per intercettare fetch (AI, scrape)
-vitest-firebase ← emulatore Firebase locale per test di integrazione
-playwright      ← E2E (smoke test sui flussi critici)
+Vitest                  ← test runner Vite-native
+React Testing Library   ← componenti React
+@testing-library/user-event ← interazioni utente realistiche
+happy-dom               ← environment DOM dei test
 ```
+
+Non ancora configurati in codebase: `msw`, Firebase Emulator/vitest-firebase, Playwright E2E e CI.
 
 ### Struttura cartelle test
 
@@ -453,11 +471,11 @@ Il `DataProvider.contract.ts` è un set di test parametrici che ogni implementaz
 ```typescript
 // src/__tests__/unit/providers/DataProvider.contract.ts
 export function runDataProviderContract(
-  createProvider: () => DataProvider,
+  createProvider: () => DataProviderAdapter,
   cleanup: () => Promise<void>
 ) {
   describe('DataProvider contract', () => {
-    let provider: DataProvider
+    let provider: DataProviderAdapter
 
     beforeEach(() => { provider = createProvider() })
     afterEach(cleanup)
@@ -1051,13 +1069,13 @@ Solo i nomi che **divergono per convenzione** tra librerie entrano nell'alias ma
 src/providers/icon/
   IconProvider.ts           ← interface: id, resolve(name)
   IconProviderContext.tsx   ← React Context + useIconProvider() hook
-  IconProviderProvider      ← wrapper componente
+  IconProvider             ← wrapper componente
   LucideIconProvider.tsx    ← impl Lucide: auto-PascalCase + alias map
   PhosphorIconProvider.tsx  ← impl Phosphor: auto-PascalCase + alias map + weight
   index.ts                  ← barrel export
 
 src/components/ui/Icon.tsx  ← riscritto: usa useIconProvider(), props: name, size, className, provider?
-src/App.tsx                 ← aggiunto iconProvider?: IconProvider prop → MaybeIconProvider wrapper
+src/App.tsx                 ← aggiunto iconProvider?: IconProviderAdapter prop → MaybeIconProvider wrapper
 src/index.ts                ← export dei nuovi tipi e classi
 package.json                ← lucide-react e @phosphor-icons/react come optionalPeerDependencies + devDependencies
 ```
@@ -1065,7 +1083,7 @@ package.json                ← lucide-react e @phosphor-icons/react come option
 #### Showcase (`clients/showcase/`)
 
 ```
-src/context/ThemeContext.tsx  ← aggiunto iconLibraryId state + setIconLibrary() + IconProviderProvider wrapper
+src/context/ThemeContext.tsx  ← aggiunto iconLibraryId state + setIconLibrary() + IconProvider wrapper
 src/components/Icon.tsx       ← semplificato: re-export da react-firestrap (rimosse map locali)
 src/components/ThemePanel.tsx ← usa setIconLibrary() da ThemeContext invece di setIconLibrary() locale
 src/pages/docs/Icons.tsx      ← NUOVA pagina documentazione completa
@@ -1076,7 +1094,7 @@ src/conf/menu.ts              ← aggiunta voce /docs/icons
 
 ```
 ShowcaseThemeProvider (stato iconProvider)
-  └── IconProviderProvider (context)
+  └── IconProvider (context)
         └── App
               └── Icon name="search"
                     └── useIconProvider() → provider.resolve("search") → <Search size={16} />
@@ -1098,9 +1116,9 @@ Il PhosphorIconProvider fa caching dei componenti wrappati per evitare re-render
 ### Provider custom
 
 ```ts
-import type { IconProvider, IconComponentProps } from 'react-firestrap';
+import type { IconProviderAdapter, IconComponentProps } from 'react-firestrap';
 
-export class HeroIconProvider implements IconProvider {
+export class HeroIconProvider implements IconProviderAdapter {
     readonly id = 'heroicons';
     resolve(name: string) {
         const key = toPascalCase(name) + 'Icon';
@@ -1167,7 +1185,7 @@ Per ogni componente censito, verificare e correggere:
 | `Grid` | `pagination.perPage` non esiste — si usa `limit` ma la docs dice `perPage` | Alta |
 | `Grid` | `groupBy` non testato nella showcase | Media |
 | `Modal` | `footerClose` prop aggiunta ma non nei tipi esportati | Bassa |
-| `Icon` | `icon` prop (deprecated) ancora in uso in `Input`, `Upload`, `UploadCSV` | Bassa |
+| `Icon` | prop unica `name`; la prop `icon` e' stata rimossa dal componente `Icon` | Done |
 
 ### Processo
 
@@ -1182,7 +1200,7 @@ Per ogni componente: aprire un sotto-task nella checklist, aggiornare il tipo, a
 - [ ] Fix `Form`: aggiungere `aspect="none"` o rinominare la variante bare
 - [ ] Fix `Grid`: rinominare `pagination.limit` → `pagination.perPage` (o viceversa, con alias)
 - [ ] Fix `Modal`: aggiungere `footerClose` ai tipi esportati
-- [ ] Fix `Icon`: completare deprecazione `icon` prop, rimuovere dopo migration
+- [x] Fix `Icon`: rimuovere la prop `icon` dal componente `Icon` e migrare gli usi interni a `name`
 - [ ] Aggiornare showcase per ogni fix — le pagine di demo diventano smoke test visivi
 - [ ] Aggiornare `CLAUDE.md` con le API corrette dopo ogni fix
 
@@ -1199,7 +1217,7 @@ Per ogni componente: aprire un sotto-task nella checklist, aggiornare il tipo, a
 
 ### Motivazione
 
-La modernizzazione del framework non deve fermarsi ai componenti e ai provider. Oggi la libreria e lo showcase vivono ancora su webpack, mentre lo stack React moderno usa sempre più spesso Vite per sviluppo rapido, build prevedibili e setup minimale.
+La modernizzazione del framework non deve fermarsi ai componenti e ai provider. La libreria e lo showcase sono stati riallineati a Vite, lo stack usato per sviluppo rapido, build prevedibili e setup minimale.
 
 Portare react-firestrap a Vite rende coerenti framework, consumer e scaffolding: un nuovo progetto generato dal CLI deve nascere già con la stessa toolchain che usiamo per validare il framework stesso.
 
@@ -1218,7 +1236,7 @@ Migrare la toolchain del framework a un modello Vite-first:
 
 **Incluso:**
 - Aggiungere `vite.config.mts` per la libreria root
-- Valutare e rimuovere `webpack.config.js` dalla build principale solo quando Vite produce output equivalente
+- Rimuovere `webpack.config.js` dalla build principale quando Vite produce output equivalente
 - Aggiornare `package.json` root: script `build`, `build:dev`, `watch/dev`, export ESM/CJS se necessari
 - Verificare peer dependencies e externalization di React, ReactDOM, React Router, Firebase, icon libraries
 - Mantenere `src/index.ts` come entry pubblica della libreria
@@ -1287,7 +1305,7 @@ my-app/
 - [x] Verificare generazione `dist/types`
 - [x] Aggiornare `package.json` root: `main`, `module`, `types`, `style`, `exports`
 - [x] Aggiornare script root: `build`, `build:dev`, `watch:dev`
-- [x] Mantenere un comando legacy webpack temporaneo solo se serve confronto (`build:webpack`)
+- [x] Rimuovere il comando webpack temporaneo dopo la verifica dell'output Vite
 - [x] Eseguire build Vite e confrontare API pubbliche esportate
 - [x] Eseguire `npm run test`
 - [x] Aggiornare CLI scaffolding a Vite-first
@@ -1498,7 +1516,7 @@ type AppIconProviderConfig =
   | string
   | {
       default?: string;
-      providers?: Record<string, IconProvider>;
+      providers?: Record<string, IconProviderAdapter>;
       aliases?: Record<string, string>;
     };
 ```
@@ -1580,7 +1598,7 @@ icons.registerProvider('heroicons', new HeroIconProvider());
 - Aggiungere un controller per cambiare icon provider a runtime
 - Esportare tipi e hook da `src/index.ts`
 - Migrare `clients/showcase` a usare `App iconProvider=... themeProvider=...`
-- Rimuovere `IconProviderProvider` dal `ShowcaseThemeProvider`
+- Rimuovere `IconProvider` dal `ShowcaseThemeProvider`
 - Ridurre `clients/showcase/src/context/ThemeContext.tsx` a state UI locale, o eliminarlo se `ThemePanel` può usare solo hook framework
 - Aggiornare `ThemePanel` per usare `useThemeController()` e `useIconController()`
 - Aggiornare docs e `CLAUDE.md`
@@ -1622,7 +1640,7 @@ icons.registerProvider('heroicons', new HeroIconProvider());
 - [x] `<App themeProvider="cyber" />` applica preset `cyber`
 - [x] Config avanzate aggiungono provider/preset custom senza perdere quelli built-in
 - [x] `ThemePanel` dello showcase controlla tema e icone tramite hook del framework
-- [x] Nessun `IconProviderProvider` custom è necessario nello showcase
+- [x] Nessun `IconProvider` custom è necessario nello showcase
 - [x] Backward compatibility: `importTheme` continua a funzionare
 - [x] Backward compatibility: `useTheme(section)` continua a restituire classi e `getIcon`
 
@@ -1661,6 +1679,10 @@ import { MarkdownReader } from 'react-firestrap';
 
 <MarkdownReader
   content={markdown}
+  head={{
+    title: 'Quick start',
+    description: 'Create a Vite consumer app with react-firestrap.',
+  }}
   components={{
     a: MarkdownLink,
   }}
@@ -1678,6 +1700,7 @@ import { MarkdownReader } from 'react-firestrap';
 - Code block con pulsante copia.
 - Headings con anchor link.
 - Link interni intercettabili via callback.
+- Metadata HTML head opzionali tramite `head`.
 - Supporto a `className`, `wrapClass` e override componenti.
 - Dark mode/theme compatibility tramite CSS variables e classi del framework.
 - Test component con React Testing Library.
@@ -1697,6 +1720,7 @@ import { MarkdownReader } from 'react-firestrap';
 - [x] Mappare `table` su styling coerente con `Table`
 - [x] Mappare blockquote/callout su styling coerente con `Alert`
 - [x] Implementare gestione link interni via `onNavigateInternal`
+- [x] Aggiungere integrazione opzionale con head dinamico (`head.title`, `head.description`, `head.meta`)
 - [x] Aggiungere props e tipi pubblici
 - [x] Esportare da barrel files
 - [x] Aggiungere pagina showcase componente o sezione docs dimostrativa
@@ -1709,6 +1733,7 @@ import { MarkdownReader } from 'react-firestrap';
 - [x] Un consumer può renderizzare una stringa Markdown con `<MarkdownReader content={...} />`
 - [x] Tabelle, task list, link, heading e code block sono renderizzati correttamente
 - [x] I link interni possono essere convertiti in navigazione React Router senza reload pagina
+- [x] Un consumer puo' impostare `document.title` e meta description tramite `head`
 - [x] I code block hanno copia negli appunti
 - [x] Il componente segue tema e dark mode tramite CSS variables/classi correnti
 - [x] Nessun parser Markdown custom viene mantenuto nel progetto
@@ -1816,3 +1841,69 @@ See [Installation](./installation.md).
 - [x] I link relativi tra pagine Markdown navigano nello showcase senza reload
 - [x] Le pagine sono ancora leggibili direttamente da AI e contributor nel repo
 - [x] Le pagine interattive TSX continuano a funzionare come demo live
+
+---
+
+## CR-020 — Head management + declarative provider config
+
+**Stato:** ✅ done  
+**Branch:** `modernize`  
+**Priorità:** Alta  
+**Dipende da:** CR-017, CR-019  
+**Breaking change:** Sì, per la API di configurazione di `<App>`: i provider built-in ora si dichiarano sotto `providers`.
+
+### Motivazione
+La configurazione pubblica era diventata troppo frammentata: `firebaseConfig`, `oAuth2`, `dataProvider`, `storageProvider`, `authProvider`, `defaultProviders` e adapter istanziati dal consumer esponevano dettagli interni e aumentavano la curva di apprendimento. Inoltre il browser `<head>` non aveva una responsabilità centrale abbastanza strutturata.
+
+### Scope
+- Introdurre configurazione dichiarativa:
+
+```tsx
+<App
+  providers={{
+    firebase: { config: firebaseConfig },
+    supabase: { config: supabaseConfig },
+    google: { oAuth2: googleOAuth2 },
+    mock: { data: mockData },
+    services: {
+      data: 'firebase',
+      storage: 'supabase',
+      auth: 'google',
+    },
+  }}
+/>
+```
+
+- Spostare la config Firebase dentro `providers.firebase.config`.
+- Tenere Google separato in `providers.google`, non annidato in Firebase.
+- Lasciare gli adapter custom sotto `providers.custom`.
+- Comporre config runtime e global vars con `RuntimeProvider`.
+- Introdurre head management centralizzato con `HeadProvider` e hook dedicati:
+  - `useHead`
+  - `useDocumentHead`
+  - `useSocialHead`
+  - `useLanguageHead`
+  - `usePaginationHead`
+  - `useAssetsHead`
+  - `usePwaHead`
+  - `useSchemaOrgHead`
+- Aggiornare `MarkdownReader` per impostare metadata pagina da Markdown frontmatter.
+- Aggiornare scaffold, README, docs Markdown e showcase examples.
+
+### Checklist
+- [x] `AppProps` usa `providers?: AppProvidersConfig`.
+- [x] Rimossi ingressi pubblici diretti `firebaseConfig`, `dataProvider`, `storageProvider`, `authProvider`, `emailProvider`, `defaultProviders`.
+- [x] `providers.firebase`, `providers.supabase`, `providers.google`, `providers.gmail`, `providers.mock`, `providers.custom` registrano i servizi interni.
+- [x] `providers.services` seleziona data/storage/auth/email.
+- [x] `RuntimeProvider` compone `ConfigContext` e `GlobalProvider`.
+- [x] `HeadProvider` genera `<head>` via JSX portal.
+- [x] Aggiunta pagina `docs/head.md`.
+- [x] Aggiornati README e docs operative.
+- [x] Aggiornato `scripts/cli/setup-project.js`.
+- [x] Verifica scaffold temporanea con `VITE_PROVIDER` e `<App providers={{ ... }}>`.
+
+### Criteri di accettazione
+- [x] `npm run test` passa.
+- [x] `npm run build` passa.
+- [x] `cd clients/showcase && npm run build` passa.
+- [x] Lo scaffold generato non contiene piu' la vecchia API `dataProvider` / `firebaseConfig`.

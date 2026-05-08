@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import {
-    DataProvider,
+    DataProviderAdapter,
     DatabaseOptions,
     ReadOptions,
     RecordProps,
@@ -25,7 +25,7 @@ function toRecordArray(col: Record<string, any>): RecordArray {
     }));
 }
 
-export class MockDataProvider implements DataProvider {
+export class MockDataProvider implements DataProviderAdapter {
     private store: CollectionStore = {};
     private listeners: Map<string, ListenerSet> = new Map();
 

@@ -41,14 +41,20 @@ import 'react-firestrap/dist/index.css';
 Then mount `App` with menu, layout and provider configuration:
 
 ```tsx
-import { App, FirebaseDataProvider } from 'react-firestrap';
+import { App } from 'react-firestrap';
 import { menu } from './conf/menu';
 import AppLayout from './layouts/AppLayout';
+import { firebaseConfig } from './conf/firebase';
 
 <App
   menuConfig={menu}
   LayoutDefault={AppLayout}
-  dataProvider={new FirebaseDataProvider()}
+  providers={{
+    default: 'firebase',
+    firebase: {
+      config: firebaseConfig,
+    },
+  }}
   iconProvider="lucide"
   themeProvider="default"
 />;

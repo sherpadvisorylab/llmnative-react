@@ -9,7 +9,7 @@ import init, { getSafeAuth } from "../firebase-init";
 import { cleanRecord } from "../../libs/utils";
 import { SetMessagePayload } from "../../components/ui/Buttons";
 import {
-    DataProvider,
+    DataProviderAdapter,
     DatabaseOptions,
     ReadOptions,
     SetChunksOptions,
@@ -36,7 +36,7 @@ export const SYSTEM_FIELDS = {
 
 let databaseInstance: firebase.database.Database;
 onConfigChange((newConfig: Config) => {
-    init(newConfig.firebase);
+    if (newConfig.firebase) init(newConfig.firebase);
 });
 
 const getDatabase = (): firebase.database.Database => {
@@ -191,7 +191,7 @@ const buildShallowURL = (path: string, auth?: string): string => {
     return u.toString();
 };
 
-export class FirebaseDataProvider implements DataProvider {
+export class FirebaseDataProvider implements DataProviderAdapter {
     readShallow = async (path: string, exception = false): Promise<string[]> => {
         try {
             const auth = getSafeAuth();

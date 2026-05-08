@@ -1,46 +1,46 @@
 import React from 'react';
-import type { IconProvider } from './IconProvider';
+import type { IconProviderAdapter } from './IconProvider';
 import { LucideIconProvider } from './LucideIconProvider';
 import { PhosphorIconProvider } from './PhosphorIconProvider';
 
-const IconProviderContext = React.createContext<IconProvider | null>(null);
+const IconProviderContext = React.createContext<IconProviderAdapter | null>(null);
 const IconControllerContext = React.createContext<IconController | null>(null);
 
 export type AppIconProviderConfig =
     | string
-    | IconProvider
+    | IconProviderAdapter
     | {
         default?: string;
-        providers?: Record<string, IconProvider>;
+        providers?: Record<string, IconProviderAdapter>;
         aliases?: Record<string, string>;
     };
 
 export interface IconController {
     providerId: string;
-    providers: Record<string, IconProvider>;
+    providers: Record<string, IconProviderAdapter>;
     aliases: Record<string, string>;
     setProvider: (id: string) => void;
-    registerProvider: (id: string, provider: IconProvider) => void;
-    resolve: IconProvider['resolve'];
+    registerProvider: (id: string, provider: IconProviderAdapter) => void;
+    resolve: IconProviderAdapter['resolve'];
 }
 
-const BUILT_IN_ICON_PROVIDERS: Record<string, IconProvider> = {
+const BUILT_IN_ICON_PROVIDERS: Record<string, IconProviderAdapter> = {
     lucide: new LucideIconProvider(),
     phosphor: new PhosphorIconProvider(),
 };
 
 const DEFAULT_ICON_PROVIDER_ID = 'lucide';
 
-function isIconProvider(value: unknown): value is IconProvider {
+function isIconProvider(value: unknown): value is IconProviderAdapter {
     return Boolean(value)
         && typeof value === 'object'
-        && typeof (value as IconProvider).id === 'string'
-        && typeof (value as IconProvider).resolve === 'function';
+        && typeof (value as IconProviderAdapter).id === 'string'
+        && typeof (value as IconProviderAdapter).resolve === 'function';
 }
 
 function normalizeIconProviderConfig(config?: AppIconProviderConfig): {
     defaultId: string;
-    providers: Record<string, IconProvider>;
+    providers: Record<string, IconProviderAdapter>;
     aliases: Record<string, string>;
 } {
     if (typeof config === 'string') {
@@ -66,7 +66,7 @@ function normalizeIconProviderConfig(config?: AppIconProviderConfig): {
     };
 }
 
-function createAliasedProvider(provider: IconProvider, aliases: Record<string, string>): IconProvider {
+function createAliasedProvider(provider: IconProviderAdapter, aliases: Record<string, string>): IconProviderAdapter {
     if (Object.keys(aliases).length === 0) return provider;
 
     return {
@@ -77,12 +77,12 @@ function createAliasedProvider(provider: IconProvider, aliases: Record<string, s
     };
 }
 
-export function IconProviderProvider({
+export function IconProvider({
     provider,
     config,
     children,
 }: {
-    provider?: IconProvider;
+    provider?: IconProviderAdapter;
     config?: AppIconProviderConfig;
     children: React.ReactNode;
 }) {
@@ -119,7 +119,7 @@ export function IconProviderProvider({
             }
             setProviderId(DEFAULT_ICON_PROVIDER_ID);
         },
-        registerProvider(id: string, registeredProvider: IconProvider) {
+        registerProvider(id: string, registeredProvider: IconProviderAdapter) {
             setProviders((current) => ({ ...current, [id]: registeredProvider }));
         },
         resolve(name: string) {
@@ -136,14 +136,14 @@ export function IconProviderProvider({
     );
 }
 
-export function useIconProvider(): IconProvider | null {
+export function useIconProvider(): IconProviderAdapter | null {
     return React.useContext(IconProviderContext);
 }
 
 export function useIconController(): IconController {
     const controller = React.useContext(IconControllerContext);
     if (!controller) {
-        throw new Error('useIconController must be used inside <App> or <IconProviderProvider>.');
+        throw new Error('useIconController must be used inside <App> or <IconProvider>.');
     }
     return controller;
 }

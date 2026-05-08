@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { DataProvider, DatabaseOptions, ReadOptions, RecordArray, RecordProps } from "./DataProvider";
+import { DataProviderAdapter, DatabaseOptions, ReadOptions, RecordArray, RecordProps } from "./DataProvider";
 
 interface SupabaseConfig {
     url: string;
@@ -9,7 +9,7 @@ interface SupabaseConfig {
 const warn = (method: string) =>
     console.warn(`SupabaseDataProvider.${method}: not fully implemented yet.`);
 
-export class SupabaseDataProvider implements DataProvider {
+export class SupabaseDataProvider implements DataProviderAdapter {
     private config: SupabaseConfig;
 
     constructor(config: SupabaseConfig) {

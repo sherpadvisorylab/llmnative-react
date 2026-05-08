@@ -58,7 +58,7 @@ import 'react-firestrap/dist/index.css';`}
                         App sets up routing plus data, storage, auth, email, icon and theme providers.
                     </div>
                 }
-                code={`import { App, FirebaseDataProvider } from 'react-firestrap';
+                code={`import { App } from 'react-firestrap';
 import { menu } from './conf/menu';
 import AppLayout from './layouts/AppLayout';
 
@@ -73,8 +73,12 @@ const firebaseConfig = {
 };
 
 <App
-    firebaseConfig={firebaseConfig}
-    dataProvider={new FirebaseDataProvider()}
+    providers={{
+        default: 'firebase',
+        firebase: {
+            config: firebaseConfig,
+        },
+    }}
     menuConfig={menu}
     LayoutDefault={AppLayout}
     iconProvider="lucide"

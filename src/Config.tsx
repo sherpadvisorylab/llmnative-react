@@ -1,6 +1,7 @@
 import React, {createContext, useContext, useState, ReactNode, useRef, useEffect} from 'react';
 import {fetchJson} from "./libs/fetch";
 import {DropdownHeader, DropdownItem} from "./components/blocks/Dropdown";
+import {GlobalProvider} from "./Global";
 
 export type FirebaseConfig = {
     apiKey: string;
@@ -56,8 +57,8 @@ export type ScrapeConfig = {
 
 export type Config = {
     title: string;
-    firebase: FirebaseConfig;
-    google: GoogleConfig;
+    firebase?: FirebaseConfig;
+    google?: GoogleConfig;
     dropbox?: DropboxConfig;
     ai?: AIConfig;
     scrape?: ScrapeConfig;
@@ -92,7 +93,7 @@ export const onConfigChange = (fn: ConfigChangeHandler) => {
 const useConfig = () => useContext(ConfigContext);
 const useSetConfig = () => useContext(ConfigUpdateContext);
 
-export const ConfigProvider = ({
+export const RuntimeProvider = ({
                                    children,
                                    defaultConfig,
                                    tenantsURI
@@ -120,7 +121,9 @@ export const ConfigProvider = ({
     return (
         <ConfigContext.Provider value={config}>
             <ConfigUpdateContext.Provider value={setConfig}>
-                {children}
+                <GlobalProvider>
+                    {children}
+                </GlobalProvider>
             </ConfigUpdateContext.Provider>
         </ConfigContext.Provider>
     );
@@ -170,7 +173,7 @@ const useTenants = (setTenants: (items: TenantMenuItem[]) => void): void => {
         tenantsMenu = tenantsConfig.map((tenant, index) => ({
             title: tenant.title || `Tenant ${index}`,
             icon: "folder",
-            active: tenant.firebase.appId === currentConfig?.firebase.appId,
+            active: tenant.firebase?.appId === currentConfig?.firebase?.appId,
             onClick: () => {
                 const selectedConfig = tenantsConfig[index];
                 setConfig(selectedConfig);

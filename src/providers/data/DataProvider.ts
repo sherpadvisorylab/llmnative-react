@@ -45,7 +45,7 @@ export interface SetChunksOptions {
     onProgress?: (done: number, total: number, message: string) => void;
 }
 
-export interface DataProvider {
+export interface DataProviderAdapter {
     read(path: string, options?: ReadOptions): Promise<any>;
     set(path: string, data: object, exception?: boolean): Promise<void>;
     update(path: string, data: object, exception?: boolean): Promise<void>;

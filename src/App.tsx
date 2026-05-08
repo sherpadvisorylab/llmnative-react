@@ -11,29 +11,33 @@ import {converter as convert} from "./libs/converter";
 import { AppThemeProviderConfig, ThemeProvider } from "./Theme";
 import Users from "./pages/Users";
 import NotFound from './pages/NotFound';
-import { GlobalProvider } from "./Global";
 import Alert from "./components/ui/Alert";
 import {
     AIConfig,
-    ConfigProvider,
     DropboxConfig,
     FirebaseConfig,
     GoogleOAuth2,
     GoogleServiceAccount,
+    RuntimeProvider,
     ScrapeConfig
 } from "./Config";
-import { DataProvider } from "./providers/data/DataProvider";
-import { DataProviderProvider } from "./providers/data/DataProviderContext";
-import { StorageProvider } from "./providers/storage/StorageProvider";
-import { StorageProviderProvider } from "./providers/storage/StorageProviderContext";
+import type { DataProviderAdapter } from "./providers/data/DataProvider";
+import { DataProvider } from "./providers/data/DataProviderContext";
+import type { StorageProviderAdapter } from "./providers/storage/StorageProvider";
+import { StorageProvider } from "./providers/storage/StorageProviderContext";
 import { FirebaseDataProvider } from "./providers/data/firebase";
+import { SupabaseDataProvider } from "./providers/data/supabase";
+import { MockDataProvider } from "./providers/data/mock";
 import { FirebaseStorageProvider } from "./providers/storage/firebase";
-import { AuthProvider } from "./providers/auth/AuthProvider";
-import { AuthProviderProvider } from "./providers/auth/AuthProviderContext";
+import { SupabaseStorageProvider } from "./providers/storage/supabase";
+import type { AuthProviderAdapter } from "./providers/auth/AuthProvider";
+import { AuthProvider } from "./providers/auth/AuthProviderContext";
 import { GoogleAuthProvider } from "./providers/auth/google/GoogleAuthProvider";
-import { EmailProvider } from "./providers/email/EmailProvider";
-import { EmailProviderProvider } from "./providers/email/EmailProviderContext";
-import { IconProviderProvider, type AppIconProviderConfig } from "./providers/icon/IconProviderContext";
+import type { EmailProviderAdapter } from "./providers/email/EmailProvider";
+import { EmailProvider } from "./providers/email/EmailProviderContext";
+import { GmailEmailProvider } from "./providers/email/google/GmailEmailProvider";
+import { IconProvider, type AppIconProviderConfig } from "./providers/icon/IconProviderContext";
+import { HeadProvider } from "./Head";
 
 
 
@@ -57,25 +61,49 @@ type MenuConfig = {
     })[];
 };
 
-type ProviderMap = {
-    data?: Record<string, DataProvider>;
-    storage?: Record<string, StorageProvider>;
-    auth?: Record<string, AuthProvider>;
-    email?: Record<string, EmailProvider>;
+export type SupabaseProviderConfig = {
+    url: string;
+    anonKey: string;
+    bucket?: string;
 };
 
-type DefaultProviderKeys = {
-    data?: string;
-    storage?: string;
-    auth?: string;
-    email?: string;
+export type AppProvidersConfig = {
+    default?: string;
+    firebase?: {
+        config: FirebaseConfig;
+    };
+    supabase?: {
+        config: SupabaseProviderConfig;
+    };
+    google?: {
+        oAuth2: GoogleOAuth2;
+        serviceAccount?: GoogleServiceAccount;
+        developerToken?: string;
+    };
+    dropbox?: {
+        config: DropboxConfig;
+    };
+    gmail?: {
+        enabled?: boolean;
+    };
+    mock?: {
+        data?: ConstructorParameters<typeof MockDataProvider>[0];
+    };
+    custom?: {
+        data?: Record<string, DataProviderAdapter> | DataProviderAdapter;
+        storage?: Record<string, StorageProviderAdapter> | StorageProviderAdapter;
+        auth?: Record<string, AuthProviderAdapter> | AuthProviderAdapter;
+        email?: Record<string, EmailProviderAdapter> | EmailProviderAdapter;
+    };
+    services?: {
+        data?: string;
+        storage?: string;
+        auth?: string;
+        email?: string;
+    };
 };
-
-type AppProps = {
-    firebaseConfig?: FirebaseConfig;
-    oAuth2?: GoogleOAuth2;
-    serviceAccount?: GoogleServiceAccount;
-    dropBoxConfig?: DropboxConfig;
+export type AppProps = {
+    appName?: string;
     aiConfig?: AIConfig;
     scrapeConfig?: ScrapeConfig;
     tenantsURI?: string;
@@ -84,58 +112,101 @@ type AppProps = {
     importTheme?: () => Promise<{ theme: object }>;
     LayoutDefault?: React.ComponentType;
     menuConfig: MenuConfig;
-    // Single-provider shorthand (backward compat)
-    dataProvider?: DataProvider;
-    storageProvider?: StorageProvider;
-    authProvider?: AuthProvider;
-    emailProvider?: EmailProvider;
-    // Named registry: multiple providers of the same type
-    providers?: ProviderMap;
-    // Which name to use as default — consumer can drive this from env vars
-    defaultProviders?: DefaultProviderKeys;
+    providers?: AppProvidersConfig;
     /** Icon provider registry config. String shorthand selects the default provider id. */
     iconProvider?: AppIconProviderConfig;
     /** Theme registry config. String shorthand selects the default preset id. */
     themeProvider?: AppThemeProviderConfig;
+    children?: React.ReactNode;
 };
+function addCustomProviders<T>(registry: Record<string, T>, custom?: Record<string, T> | T): void {
+    if (!custom) return;
+    const candidate = custom as Record<string, T>;
+    const entries = typeof custom === 'object' && !Array.isArray(custom) ? Object.entries(candidate) : [];
+    const isNamedMap = entries.length > 0 && entries.every(([, value]) => typeof value === 'object' && value !== null);
 
-function buildRegistry<T>(
-    single: T | undefined,
-    map: Record<string, T> | undefined,
-    defaultKey: string | undefined,
-    fallback: T
-): { registry: Record<string, T>; defaultKey: string } {
-    if (map && Object.keys(map).length > 0) {
-        return { registry: map, defaultKey: defaultKey ?? Object.keys(map)[0] };
+    if (isNamedMap) {
+        Object.assign(registry, candidate);
+        return;
     }
-    const resolved = single ?? fallback;
-    return { registry: { default: resolved }, defaultKey: 'default' };
+
+    registry.custom = custom as T;
 }
 
-function buildOptionalRegistry<T>(
-    single: T | undefined,
-    map: Record<string, T> | undefined,
-    defaultKey: string | undefined
-): { registry: Record<string, T>; defaultKey: string } {
-    if (map && Object.keys(map).length > 0) {
-        return { registry: map, defaultKey: defaultKey ?? Object.keys(map)[0] };
-    }
-    if (single) {
-        return { registry: { default: single }, defaultKey: 'default' };
-    }
-    return { registry: {}, defaultKey: 'default' };
+function selectDefaultKey<T>(registry: Record<string, T>, preferred?: string, fallback?: string): string {
+    if (preferred && registry[preferred]) return preferred;
+    if (fallback && registry[fallback]) return fallback;
+    return Object.keys(registry)[0] ?? 'default';
 }
 
+function resolveProviderRegistries(providers: AppProvidersConfig = {}) {
+    const data: Record<string, DataProviderAdapter> = {};
+    const storage: Record<string, StorageProviderAdapter> = {};
+    const auth: Record<string, AuthProviderAdapter> = {};
+    const email: Record<string, EmailProviderAdapter> = {};
+
+    if (providers.firebase) {
+        data.firebase = new FirebaseDataProvider();
+        storage.firebase = new FirebaseStorageProvider();
+        auth.firebase = new GoogleAuthProvider();
+    }
+
+    if (providers.supabase) {
+        data.supabase = new SupabaseDataProvider(providers.supabase.config);
+        storage.supabase = new SupabaseStorageProvider(providers.supabase.config);
+    }
+
+    if (providers.google) {
+        auth.google = new GoogleAuthProvider();
+    }
+
+    if (providers.gmail?.enabled) {
+        email.gmail = new GmailEmailProvider();
+    }
+
+    if (providers.mock) {
+        data.mock = new MockDataProvider(providers.mock.data);
+    }
+
+    addCustomProviders(data, providers.custom?.data);
+    addCustomProviders(storage, providers.custom?.storage);
+    addCustomProviders(auth, providers.custom?.auth);
+    addCustomProviders(email, providers.custom?.email);
+
+    if (Object.keys(data).length === 0) data.mock = new MockDataProvider();
+    if (Object.keys(auth).length === 0) auth.google = new GoogleAuthProvider();
+
+    const defaultProvider = providers.default;
+
+    return {
+        data: {
+            registry: data,
+            defaultKey: selectDefaultKey(data, providers.services?.data, defaultProvider),
+        },
+        storage: {
+            registry: storage,
+            defaultKey: selectDefaultKey(storage, providers.services?.storage, defaultProvider),
+        },
+        auth: {
+            registry: auth,
+            defaultKey: selectDefaultKey(auth, providers.services?.auth, providers.google ? 'google' : defaultProvider),
+        },
+        email: {
+            registry: email,
+            defaultKey: selectDefaultKey(email, providers.services?.email, providers.gmail ? 'gmail' : defaultProvider),
+        },
+    };
+}
 const MaybeEmailProvider = ({
     registry,
     defaultKey,
     children,
 }: {
-    registry: Record<string, EmailProvider>;
+    registry: Record<string, EmailProviderAdapter>;
     defaultKey: string;
     children: React.ReactNode;
 }) => Object.keys(registry).length > 0
-    ? <EmailProviderProvider registry={registry} defaultKey={defaultKey}>{children}</EmailProviderProvider>
+    ? <EmailProvider registry={registry} defaultKey={defaultKey}>{children}</EmailProvider>
     : <>{children}</>;
 
 let menu: MenuConfig = {};
@@ -151,30 +222,24 @@ export const getContextMenu = (): string[] => {
 
 function App({
                  importPage,
-                 firebaseConfig,
-                 oAuth2,
                  importTheme        = undefined,
                  LayoutDefault      = undefined,
-                 serviceAccount     = undefined,
-                 dropBoxConfig      = undefined,
                  aiConfig           = undefined,
                  scrapeConfig       = undefined,
                  tenantsURI         = undefined,
                  proxyURI           = undefined,
+                 appName            = "react-firestrap",
                  menuConfig         = {},
-                 dataProvider,
-                 storageProvider,
-                 authProvider,
-                 emailProvider,
-                 providers,
-                 defaultProviders,
+                 providers          = {},
                  iconProvider,
                  themeProvider,
+                 children,
 }: AppProps) {
-    const dataRegistry    = buildRegistry(dataProvider, providers?.data, defaultProviders?.data, new FirebaseDataProvider());
-    const storageRegistry = buildOptionalRegistry(storageProvider, providers?.storage, defaultProviders?.storage);
-    const authRegistry    = buildRegistry(authProvider, providers?.auth, defaultProviders?.auth, new GoogleAuthProvider());
-    const emailRegistry   = buildOptionalRegistry(emailProvider, providers?.email, defaultProviders?.email);
+    const providerRegistries = resolveProviderRegistries(providers);
+    const dataRegistry = providerRegistries.data;
+    const storageRegistry = providerRegistries.storage;
+    const authRegistry = providerRegistries.auth;
+    const emailRegistry = providerRegistries.email;
     setStaticMenu(menuConfig);
 
     const LayoutEmpty = ({ children }: { children: React.ReactNode }) => <>{children}</>;
@@ -234,22 +299,29 @@ function App({
 
     return (
         <BrowserRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
-            <ConfigProvider defaultConfig={{
-                title: "Default",
-                firebase: firebaseConfig as FirebaseConfig,
-                google: { oAuth2: oAuth2 as GoogleOAuth2, serviceAccount },
-                dropbox: dropBoxConfig,
+            <RuntimeProvider defaultConfig={{
+                title: appName,
+                firebase: providers.firebase?.config as FirebaseConfig,
+                google: providers.google
+                    ? {
+                        oAuth2: providers.google.oAuth2,
+                        serviceAccount: providers.google.serviceAccount,
+                        developerToken: providers.google.developerToken,
+                    }
+                    : undefined,
+                dropbox: providers.dropbox?.config,
                 ai: aiConfig,
                 scrape: scrapeConfig,
                 proxyURI: proxyURI
             }} tenantsURI={tenantsURI}>
-                <GlobalProvider>
-                    <AuthProviderProvider {...authRegistry}>
-                    <DataProviderProvider {...dataRegistry}>
-                    <StorageProviderProvider {...storageRegistry}>
+                    <AuthProvider {...authRegistry}>
+                    <DataProvider {...dataRegistry}>
+                    <StorageProvider {...storageRegistry}>
                     <MaybeEmailProvider registry={emailRegistry.registry} defaultKey={emailRegistry.defaultKey}>
-                    <IconProviderProvider config={iconProvider}>
+                    <IconProvider config={iconProvider}>
+                    <HeadProvider appName={appName}>
                     <ThemeProvider importTheme={importTheme} config={themeProvider}>
+                        {children}
                         <Routes>
                             <Route path={AUTH_REDIRECT_URI} element={<Authorize />}></Route>
                             <>
@@ -267,13 +339,13 @@ function App({
                             <Route path='*' element={<NotFound />}></Route>
                         </Routes>
                     </ThemeProvider>
-                    </IconProviderProvider>
+                    </HeadProvider>
+                    </IconProvider>
                     </MaybeEmailProvider>
-                    </StorageProviderProvider>
-                    </DataProviderProvider>
-                    </AuthProviderProvider>
-                </GlobalProvider>
-            </ConfigProvider>
+                    </StorageProvider>
+                    </DataProvider>
+                    </AuthProvider>
+            </RuntimeProvider>
         </BrowserRouter>
     );
 }

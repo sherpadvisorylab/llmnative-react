@@ -1,8 +1,9 @@
 import React from 'react';
 import { render, RenderOptions } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { DataProviderProvider } from '../../src/providers/data/DataProviderContext';
+import { DataProvider } from '../../src/providers/data/DataProviderContext';
 import { MockDataProvider } from '../../src/providers/data/mock';
+import { HeadProvider } from '../../src/Head';
 
 interface Options extends Omit<RenderOptions, 'wrapper'> {
     provider?: MockDataProvider;
@@ -19,9 +20,11 @@ export function renderWithProviders(
                 initialEntries={[route]}
                 future={{ v7_relativeSplatPath: true, v7_startTransition: true }}
             >
-                <DataProviderProvider registry={{ default: provider }} defaultKey="default">
-                    {children}
-                </DataProviderProvider>
+                <DataProvider registry={{ default: provider }} defaultKey="default">
+                    <HeadProvider>
+                        {children}
+                    </HeadProvider>
+                </DataProvider>
             </MemoryRouter>
         );
     }

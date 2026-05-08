@@ -19,27 +19,32 @@ npm run dev
 
 ## Mount App
 
-`App` orchestrates routing, providers, theme and icons. To start without external services, use `MockDataProvider`.
+`App` orchestrates routing, providers, theme and icons. To start without external services, configure the built-in mock provider.
 
 ```tsx
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { App, MockDataProvider } from 'react-firestrap';
+import { App } from 'react-firestrap';
 import 'react-firestrap/dist/index.css';
 import { menu } from './conf/menu';
 import AppLayout from './layouts/AppLayout';
 
-const dataProvider = new MockDataProvider({
+const mockData = {
   '/users': {
     alice: { name: 'Alice', email: 'alice@example.com', role: 'admin' },
   },
-});
+};
 
 createRoot(document.getElementById('root')!).render(
   <App
     LayoutDefault={AppLayout}
     menuConfig={menu}
-    dataProvider={dataProvider}
+    providers={{
+      default: 'mock',
+      mock: {
+        data: mockData,
+      },
+    }}
     iconProvider="lucide"
     themeProvider="default"
   />

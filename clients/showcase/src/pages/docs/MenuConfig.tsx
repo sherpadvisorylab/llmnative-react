@@ -168,7 +168,7 @@ export const menu = {
 
                 <Section
                     title="Dynamic fallback"
-                    description="importPage is still available for legacy menu items without a page component, but it should be the fallback path in Vite consumers."
+                    description="importPage is still available for menu items without a page component, but explicit imports should be the main path in Vite consumers."
                     preview={
                         <div className="alert alert-warning text-sm w-full">
                             If a menu item has page, App uses it directly and does not call importPage.

@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Form, Input, Select, TextArea, MockDataProvider, DataProviderProvider } from 'react-firestrap';
+import { Form, Input, Select, TextArea, MockDataProvider, DataProviderAdapter } from 'react-firestrap';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 
@@ -30,9 +30,9 @@ const mockProvider = new MockDataProvider({
 
 function WithMock({ children }: { children: React.ReactNode }) {
     return (
-        <DataProviderProvider registry={{ default: mockProvider }} defaultKey="default">
+        <DataProvider registry={{ default: mockProvider }} defaultKey="default">
             {children}
-        </DataProviderProvider>
+        </DataProvider>
     );
 }
 
@@ -65,11 +65,11 @@ export default function FormPage() {
                         </div>
                     </WithMock>
                 }
-                code={`import { MockDataProvider, DataProviderProvider, Form, Input, Select, TextArea } from 'react-firestrap';
+                code={`import { MockDataProvider, DataProvider, Form, Input, Select, TextArea } from 'react-firestrap';
 
 const mockProvider = new MockDataProvider();
 
-<DataProviderProvider registry={{ default: mockProvider }} defaultKey="default">
+<DataProvider registry={{ default: mockProvider }} defaultKey="default">
     <Form
         dataStoragePath="/users"
         defaultValues={{ role: 'viewer', status: 'active' }}
@@ -82,7 +82,7 @@ const mockProvider = new MockDataProvider();
         <Select  name="status" label="Status" options={STATUS}  />
         <TextArea name="bio"   label="Bio" rows={3} />
     </Form>
-</DataProviderProvider>`}
+</DataProvider>`}
             />
 
             {/* ── Edit existing record ── */}

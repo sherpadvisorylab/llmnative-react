@@ -6,7 +6,7 @@ const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
 
 let config: GoogleServiceAccount | undefined = undefined;
 onConfigChange((newConfig: Config) => {
-    config = newConfig.google.serviceAccount;
+    config = newConfig.google?.serviceAccount;
 });
 
 /**

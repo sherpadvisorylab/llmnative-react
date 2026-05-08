@@ -53,4 +53,4 @@ my-app/
       globals.css
 ```
 
-Public client variables use the `VITE_*` prefix. `REACT_APP_*` remains legacy CRA/Webpack naming.
+Public client variables use the `VITE_*` prefix.

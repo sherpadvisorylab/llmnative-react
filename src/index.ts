@@ -1,32 +1,74 @@
 import './globals.css';
 export { default as App } from './App';
 export { useMenu } from './App';
+export type { AppProps, AppProvidersConfig, SupabaseProviderConfig } from './App';
+export {
+    Head,
+    HeadProvider,
+    DEFAULT_DOCUMENT_HEAD,
+    DEFAULT_HEAD_APP_NAME,
+    DEFAULT_LANGUAGE_HEAD,
+    useAssetsHead,
+    useDocumentHead,
+    useHead,
+    useHeadLinks,
+    useLanguageHead,
+    usePaginationHead,
+    usePwaHead,
+    useSchemaOrgHead,
+    useSocialHead,
+} from './Head';
+export type {
+    HeadController,
+    AssetsHeadState,
+    DocumentBaseHead,
+    DocumentHeadState,
+    DocumentHttpEquivMeta,
+    HeadFontAsset,
+    HeadLinkDescriptor,
+    HeadLinksState,
+    HeadMetaAttributes,
+    HeadProviderProps,
+    HeadScriptAsset,
+    HeadStyleAsset,
+    LanguageAlternateLink,
+    LanguageHeadState,
+    OpenGraphHeadState,
+    PageMetadataState,
+    PaginationHeadState,
+    PwaIconLink,
+    PwaHeadState,
+    SchemaOrgHeadState,
+    SchemaOrgJson,
+    SocialHeadState,
+    TwitterHeadState,
+} from './Head';
 export { useTheme, useThemeController, BUILT_IN_THEME_PRESETS } from './Theme';
 export type { AppThemeProviderConfig, Theme, ThemeController, ThemeMode, ThemePresetConfig } from './Theme';
 export { SignInButton, AuthButton, useAccessToken, getAccessToken } from './auth';
 export { useGlobalVars, getGlobalVars, setGlobalVars, removeGlobalVars} from './Global';
 
 // Providers
-export type { DataProvider, RecordProps, RecordArray, DatabaseOptions, ReadOptions, WhereClause, OrderClause, Condition } from './providers/data/DataProvider';
+export type { DataProviderAdapter, RecordProps, RecordArray, DatabaseOptions, ReadOptions, WhereClause, OrderClause, Condition } from './providers/data/DataProvider';
 export { FirebaseDataProvider } from './providers/data/firebase';
 export { SupabaseDataProvider } from './providers/data/supabase';
 export { MockDataProvider } from './providers/data/mock';
-export { useDataProvider, DataProviderProvider } from './providers/data/DataProviderContext';
-export type { StorageProvider } from './providers/storage/StorageProvider';
+export { useDataProvider, DataProvider } from './providers/data/DataProviderContext';
+export type { StorageProviderAdapter } from './providers/storage/StorageProvider';
 export { FirebaseStorageProvider } from './providers/storage/firebase';
 export { SupabaseStorageProvider } from './providers/storage/supabase';
-export { useStorageProvider } from './providers/storage/StorageProviderContext';
-export type { AuthProvider, UserProfile } from './providers/auth/AuthProvider';
-export { useAuthProvider } from './providers/auth/AuthProviderContext';
+export { useStorageProvider, StorageProvider } from './providers/storage/StorageProviderContext';
+export type { AuthProviderAdapter, UserProfile } from './providers/auth/AuthProvider';
+export { useAuthProvider, AuthProvider } from './providers/auth/AuthProviderContext';
 export { GoogleAuthProvider } from './providers/auth/google/GoogleAuthProvider';
-export type { EmailProvider, EmailSendParams } from './providers/email/EmailProvider';
-export type { IconProvider, IconComponentProps } from './providers/icon/IconProvider';
+export type { EmailProviderAdapter, EmailSendParams } from './providers/email/EmailProvider';
+export type { IconProviderAdapter, IconComponentProps } from './providers/icon/IconProvider';
 export { LucideIconProvider } from './providers/icon/LucideIconProvider';
 export { PhosphorIconProvider } from './providers/icon/PhosphorIconProvider';
 export type { PhosphorWeight } from './providers/icon/PhosphorIconProvider';
-export { IconProviderProvider, useIconProvider, useIconController } from './providers/icon/IconProviderContext';
+export { IconProvider, useIconProvider, useIconController } from './providers/icon/IconProviderContext';
 export type { AppIconProviderConfig, IconController } from './providers/icon/IconProviderContext';
-export { useEmailProvider } from './providers/email/EmailProviderContext';
+export { useEmailProvider, EmailProvider } from './providers/email/EmailProviderContext';
 export { GmailEmailProvider } from './providers/email/google/GmailEmailProvider';
 export type { AIFetchConfig } from './providers/ai';
 export { default as GoogleAuth } from './providers/auth/google/GoogleAuth';

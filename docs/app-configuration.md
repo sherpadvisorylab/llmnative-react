@@ -13,7 +13,7 @@ A scaffolded consumer mounts `App` from `src/index.tsx` and keeps wiring inside 
 ```tsx
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { App, MockDataProvider } from 'react-firestrap';
+import { App } from 'react-firestrap';
 import './styles/globals.css';
 
 import AppLayout from './layouts/AppLayout';
@@ -26,7 +26,12 @@ createRoot(document.getElementById('root')!).render(
     <App
       LayoutDefault={AppLayout}
       menuConfig={menu}
-      dataProvider={new MockDataProvider(mockData)}
+      providers={{
+        default: appConfig.provider,
+        mock: {
+          data: mockData,
+        },
+      }}
       iconProvider={appConfig.iconProvider}
       themeProvider={appConfig.themeProvider}
     />
@@ -42,24 +47,39 @@ Vite exposes client configuration through `import.meta.env`.
 const env = import.meta.env;
 
 export const appConfig = {
-  dataProvider: env.VITE_DATA_PROVIDER ?? 'mock',
+  provider: env.VITE_PROVIDER ?? 'mock',
   iconProvider: env.VITE_ICON_PROVIDER ?? 'lucide',
   themeProvider: env.VITE_THEME_PROVIDER ?? 'default',
 };
 ```
 
-## Provider shorthand
+## Provider Configuration
 
-Use strings when the built-in defaults are enough:
+Use `providers` to declare available backends and choose which one powers each service:
 
 ```tsx
 <App
   menuConfig={menu}
   LayoutDefault={AppLayout}
-  dataProvider={dataProvider}
+  providers={{
+    firebase: {
+      config: firebaseConfig,
+    },
+    supabase: {
+      config: supabaseConfig,
+    },
+    google: {
+      oAuth2: googleOAuth2,
+    },
+    services: {
+      data: 'firebase',
+      storage: 'supabase',
+      auth: 'google',
+    },
+  }}
   iconProvider="lucide"
   themeProvider="default"
 />;
 ```
 
-Use objects when you need custom presets, registries or overrides.
+Provider classes are created internally. Custom adapters remain available through `providers.custom`.

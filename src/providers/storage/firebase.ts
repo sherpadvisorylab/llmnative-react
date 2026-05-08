@@ -2,11 +2,11 @@ import firebase from "firebase/compat/app";
 import "firebase/compat/storage";
 import { Config, onConfigChange } from "../../Config";
 import init from "../firebase-init";
-import { StorageProvider } from "./StorageProvider";
+import { StorageProviderAdapter } from "./StorageProvider";
 
 let storageInstance: firebase.storage.Storage | undefined;
 onConfigChange((newConfig: Config) => {
-    init(newConfig.firebase);
+    if (newConfig.firebase) init(newConfig.firebase);
 });
 
 const getStorage = (): firebase.storage.Storage | undefined => {
@@ -16,7 +16,7 @@ const getStorage = (): firebase.storage.Storage | undefined => {
     return storageInstance;
 };
 
-export class FirebaseStorageProvider implements StorageProvider {
+export class FirebaseStorageProvider implements StorageProviderAdapter {
     upload = async (file: string, path: string): Promise<string | undefined> => {
         if (!file) return;
         const storageRef = getStorage()?.ref(path);

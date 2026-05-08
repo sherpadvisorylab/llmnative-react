@@ -1,9 +1,9 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import type { IconComponentProps, IconProvider } from '../../../src/providers/icon/IconProvider';
+import type { IconComponentProps, IconProviderAdapter } from '../../../src/providers/icon/IconProvider';
 import {
-    IconProviderProvider,
+    IconProvider,
     useIconController,
     useIconProvider,
 } from '../../../src/providers/icon/IconProviderContext';
@@ -22,12 +22,12 @@ function IconProbe() {
     );
 }
 
-describe('IconProviderProvider', () => {
+describe('IconProvider', () => {
     it('accepts a string shorthand for the default provider', () => {
         render(
-            <IconProviderProvider config="phosphor">
+            <IconProvider config="phosphor">
                 <IconProbe />
-            </IconProviderProvider>
+            </IconProvider>
         );
 
         expect(screen.getByTestId('provider-id')).toHaveTextContent('phosphor');
@@ -36,15 +36,15 @@ describe('IconProviderProvider', () => {
 
     it('merges custom providers with built-in providers', () => {
         const CustomIcon = (props: IconComponentProps) => <span data-testid="custom-icon" {...props} />;
-        const customProvider: IconProvider = {
+        const customProvider: IconProviderAdapter = {
             id: 'custom',
             resolve: (name) => name === 'search' ? CustomIcon : null,
         };
 
         render(
-            <IconProviderProvider config={{ default: 'custom', providers: { custom: customProvider } }}>
+            <IconProvider config={{ default: 'custom', providers: { custom: customProvider } }}>
                 <IconProbe />
-            </IconProviderProvider>
+            </IconProvider>
         );
 
         expect(screen.getByTestId('provider-id')).toHaveTextContent('custom');

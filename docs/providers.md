@@ -10,24 +10,29 @@ description: Provider interfaces keep UI, persistence and external services deco
 
 react-firestrap uses a Ports and Adapters style architecture. Components talk to stable interfaces, while Firebase, Supabase, mock data or custom services sit behind replaceable adapters.
 
-| Domain | Interface | Hook |
+| Domain | Adapter contract | Hook |
 |--------|-----------|------|
-| Data | `DataProvider` | `useDataProvider()` |
-| Storage | `StorageProvider` | `useStorageProvider()` |
-| Auth | `AuthProvider` | `useAuthProvider()` |
-| Email | `EmailProvider` | `useEmailProvider()` |
-| Icons | `IconProvider` | `useIconController()` / `Icon` |
+| Data | `DataProviderAdapter` | `useDataProvider()` |
+| Storage | `StorageProviderAdapter` | `useStorageProvider()` |
+| Auth | `AuthProviderAdapter` | `useAuthProvider()` |
+| Email | `EmailProviderAdapter` | `useEmailProvider()` |
+| Icons | `IconProviderAdapter` | `useIconController()` / `Icon` |
 
 ## Basic Setup
 
 ```tsx
-import { App, FirebaseDataProvider, FirebaseStorageProvider } from 'react-firestrap';
+import { App } from 'react-firestrap';
+import { firebaseConfig } from './conf/firebase';
 
 export default function Root() {
   return (
     <App
-      dataProvider={new FirebaseDataProvider()}
-      storageProvider={new FirebaseStorageProvider()}
+      providers={{
+        default: 'firebase',
+        firebase: {
+          config: firebaseConfig,
+        },
+      }}
       menuConfig={menu}
       importPage={(path) => import(path)}
     />
@@ -35,19 +40,14 @@ export default function Root() {
 }
 ```
 
-If no `dataProvider` is passed, `App` creates a default `FirebaseDataProvider` for backward compatibility.
+If no data backend is configured, `App` creates an internal `MockDataProvider`. Auth defaults to the Google adapter; storage and email stay unavailable until configured.
 
 ## Multi-Provider Registry
 
-When an app needs more than one backend, register named providers and choose the default provider from configuration.
+When an app needs more than one backend, declare provider configurations and choose which backend powers each service.
 
 ```tsx
-import {
-  App,
-  FirebaseDataProvider,
-  MockDataProvider,
-  SupabaseDataProvider,
-} from 'react-firestrap';
+import { App } from 'react-firestrap';
 
 const mockData = {
   '/tasks': {
@@ -60,17 +60,23 @@ export default function Root() {
   return (
     <App
       providers={{
-        data: {
-          firebase: new FirebaseDataProvider(),
-          mock: new MockDataProvider(mockData),
-          supabase: new SupabaseDataProvider({
+        mock: {
+          data: mockData,
+        },
+        firebase: {
+          config: firebaseConfig,
+        },
+        supabase: {
+          config: {
             url: import.meta.env.VITE_SUPABASE_URL,
             anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY,
-          }),
+          },
         },
-      }}
-      defaultProviders={{
-        data: import.meta.env.VITE_DATA_PROVIDER || 'mock',
+        services: {
+          data: import.meta.env.VITE_PROVIDER || 'mock',
+          storage: 'firebase',
+          auth: 'firebase',
+        },
       }}
       menuConfig={menu}
       importPage={(path) => import(path)}
@@ -92,12 +98,12 @@ export function TasksPanel() {
 }
 ```
 
-## DataProvider Surface
+## DataProviderAdapter Surface
 
-`Form` and `Grid` consume `DataProvider`. This is the minimum surface:
+`Form` and `Grid` consume `DataProviderAdapter`. This is the minimum surface:
 
 ```ts
-export interface DataProvider {
+export interface DataProviderAdapter {
   read(path: string, options?: ReadOptions): Promise<any>;
   set(path: string, data: object, exception?: boolean): Promise<void>;
   update(path: string, data: object, exception?: boolean): Promise<void>;
@@ -112,6 +118,21 @@ export interface DataProvider {
 
 Optional methods such as `count`, `readShallow` and `setChunks` are used only by specific features.
 
+## StorageProviderAdapter Surface
+
+The current storage interface in code is:
+
+```ts
+export interface StorageProviderAdapter {
+  upload(file: string, path: string): Promise<string | undefined>;
+  getURL(path: string): Promise<string | undefined>;
+  download(path: string): Promise<Blob | undefined>;
+  delete(path: string): Promise<boolean>;
+}
+```
+
+Note the exact method names: `getURL` and `delete`. Older planning notes may mention `getUrl` or `remove`; those are not the interface currently implemented in `src/providers/storage/StorageProvider.ts`.
+
 ## Available Providers
 
 | Provider | Status | Notes |
@@ -119,12 +140,13 @@ Optional methods such as `count`, `readShallow` and `setChunks` are used only by
 | `FirebaseDataProvider` | stable | Main Firebase Realtime Database adapter. |
 | `MockDataProvider` | stable | In-memory provider used by tests and offline showcase pages. |
 | `SupabaseDataProvider` | partial | Initial REST implementation; still missing integration coverage. |
-| `FirebaseStorageProvider` | stable legacy | Firebase Storage adapter. |
+| `FirebaseStorageProvider` | stable | Firebase Storage adapter. |
 | `SupabaseStorageProvider` | partial | Supabase storage adapter. |
 
 ## Practical Rules
 
 - Application components should use hooks such as `useDataProvider()` and `useStorageProvider()`.
-- `libs/` remains for pure utilities and backward compatibility, not new provider logic.
+- `libs/` remains for pure utilities; new provider logic belongs in `providers/`.
 - New providers should pass the shared provider contract tests.
+- Today the shared contract is exercised by `MockDataProvider`; Firebase/Supabase integration coverage is still pending.
 - Demos, docs and visual tests should prefer `MockDataProvider` over real services.

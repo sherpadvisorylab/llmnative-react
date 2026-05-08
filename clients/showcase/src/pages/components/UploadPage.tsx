@@ -116,7 +116,12 @@ export default function UploadPage() {
                 }
                 code={`import { App, FirebaseStorageProvider, Form, UploadImage } from 'react-firestrap';
 
-<App storageProvider={new FirebaseStorageProvider()} />
+<App
+  providers={{
+    default: 'firebase',
+    firebase: { config: firebaseConfig },
+  }}
+/>
 
 <Form defaultValues={{}}>
   <UploadImage

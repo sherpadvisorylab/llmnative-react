@@ -123,7 +123,7 @@ export const UploadCSV: React.FC<UploadCSVProps> = ({
           onChange={handleFileChange}
           accept=".csv,.tsv,text/csv,text/plain"
         />
-        <Icon icon={icon} label={label || "Drag or click to upload"} />
+        <Icon name={icon} label={label || "Drag or click to upload"} />
       </div>
 
       {error && <p style={{ color: 'red' }}>Errore: {error}</p>}

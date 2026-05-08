@@ -9,13 +9,13 @@
  *   runDataProviderContract(() => new MyProvider(), async () => {});
  */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { DataProvider } from '../../../src/providers/data/DataProvider';
+import { DataProviderAdapter } from '../../../src/providers/data/DataProvider';
 
 export function runDataProviderContract(
-    createProvider: () => DataProvider,
+    createProvider: () => DataProviderAdapter,
     cleanup: () => Promise<void> = async () => {}
 ) {
-    let provider: DataProvider;
+    let provider: DataProviderAdapter;
 
     beforeEach(() => {
         provider = createProvider();

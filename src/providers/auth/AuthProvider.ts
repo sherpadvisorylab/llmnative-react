@@ -6,7 +6,7 @@ export interface UserProfile {
     [key: string]: any;
 }
 
-export interface AuthProvider {
+export interface AuthProviderAdapter {
     getUser(): UserProfile | null;
     signOut(): Promise<void>;
     onAuthChange(callback: (user: UserProfile | null) => void): () => void;

@@ -1,5 +1,5 @@
 import * as LucideIcons from 'lucide-react';
-import type { IconProvider, IconComponentProps } from './IconProvider';
+import type { IconProviderAdapter, IconComponentProps } from './IconProvider';
 
 // Names that diverge from kebab→PascalCase convention in Lucide
 const ALIASES: Record<string, string> = {
@@ -17,7 +17,7 @@ function toPascalCase(name: string): string {
     return name.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join('');
 }
 
-export class LucideIconProvider implements IconProvider {
+export class LucideIconProvider implements IconProviderAdapter {
     readonly id = 'lucide' as const;
 
     resolve(name: string): import('react').ComponentType<IconComponentProps> | null {

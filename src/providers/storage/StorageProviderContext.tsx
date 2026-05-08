@@ -1,24 +1,24 @@
 import React, { createContext, useContext } from 'react';
-import { StorageProvider } from './StorageProvider';
+import type { StorageProviderAdapter } from './StorageProvider';
 
-type StorageProviderRegistry = {
-    registry: Record<string, StorageProvider>;
+type StorageProviderContextValue = {
+    registry: Record<string, StorageProviderAdapter>;
     defaultKey: string;
 };
 
-const StorageProviderContext = createContext<StorageProviderRegistry | null>(null);
+const StorageProviderContext = createContext<StorageProviderContextValue | null>(null);
 
-export const StorageProviderProvider = ({
+export const StorageProvider = ({
     registry,
     defaultKey,
     children,
-}: StorageProviderRegistry & { children: React.ReactNode }) => (
+}: StorageProviderContextValue & { children: React.ReactNode }) => (
     <StorageProviderContext.Provider value={{ registry, defaultKey }}>
         {children}
     </StorageProviderContext.Provider>
 );
 
-export const useStorageProvider = (name?: string): StorageProvider | null => {
+export const useStorageProvider = (name?: string): StorageProviderAdapter | null => {
     const ctx = useContext(StorageProviderContext);
     if (!ctx) return null;
     const key = name ?? ctx.defaultKey;

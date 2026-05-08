@@ -183,7 +183,7 @@ function createIndexHtml(params) {
 
 function createEnvFile(params) {
     const env = [
-        `VITE_DATA_PROVIDER=${params.provider}`,
+        `VITE_PROVIDER=${params.provider}`,
         `VITE_ICON_PROVIDER=${params.iconProvider}`,
         `VITE_THEME_PROVIDER=${params.themeProvider}`,
         `VITE_FIREBASE_APIKEY=${params.firebase.apikey ?? ''}`,
@@ -305,10 +305,10 @@ export default function EmptyState({ title, description }: EmptyStateProps) {
 
     ensureFile(path.join(root, 'src/data/mockData.ts'), `
 export const mockData = {
-  '/tasks': [
-    { id: 'task-1', title: 'Review scaffold structure', status: 'done' },
-    { id: 'task-2', title: 'Connect your first provider', status: 'next' },
-  ],
+  '/tasks': {
+    'task-1': { title: 'Review scaffold structure', status: 'done' },
+    'task-2': { title: 'Connect your first provider', status: 'next' },
+  },
 };
     `);
 
@@ -318,7 +318,10 @@ import EmptyState from '../../components/EmptyState';
 import { mockData } from '../../data/mockData';
 
 export default function TasksSection() {
-  const tasks = mockData['/tasks'];
+  const tasks = Object.entries(mockData['/tasks']).map(([id, task]) => ({
+    id,
+    ...task,
+  }));
 
   if (!tasks.length) {
     return <EmptyState title="No tasks yet" description="Add your first dataset in src/data/mockData.ts." />;
@@ -376,7 +379,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 const env = import.meta.env;
 
 export const appConfig = {
-  dataProvider: env.VITE_DATA_PROVIDER ?? '${params.provider}',
+  provider: env.VITE_PROVIDER ?? '${params.provider}',
   iconProvider: env.VITE_ICON_PROVIDER ?? '${params.iconProvider}',
   themeProvider: env.VITE_THEME_PROVIDER ?? '${params.themeProvider}',
 };
@@ -395,11 +398,7 @@ export const menu = {
     ensureFile(path.join(root, 'src/index.tsx'), `
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import {
-  App,
-  MockDataProvider,
-  SupabaseDataProvider,
-} from 'react-firestrap';
+import { App } from 'react-firestrap';
 import './styles/globals.css';
 
 import AppLayout from './layouts/AppLayout';
@@ -409,39 +408,49 @@ import { mockData } from './data/mockData';
 
 const env = import.meta.env;
 
-const dataProvider =
-  appConfig.dataProvider === 'mock'
-    ? new MockDataProvider(mockData)
-    : appConfig.dataProvider === 'supabase'
-      ? new SupabaseDataProvider({
-          url: env.VITE_SUPABASE_URL ?? '',
-          anonKey: env.VITE_SUPABASE_ANON_KEY ?? '',
-        })
-      : undefined;
-
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <App
       importPage={(pageSource) => import(/* @vite-ignore */ pageSource)}
       LayoutDefault={AppLayout}
       menuConfig={menu}
-      dataProvider={dataProvider}
+      providers={{
+        default: appConfig.provider,
+        mock: {
+          data: mockData,
+        },
+        firebase: {
+          config: {
+            apiKey: env.VITE_FIREBASE_APIKEY ?? '',
+            authDomain: env.VITE_FIREBASE_AUTH_DOMAIN ?? '',
+            databaseURL: env.VITE_FIREBASE_DATABASE_URL ?? '',
+            projectId: env.VITE_FIREBASE_PROJECT_ID ?? '',
+            storageBucket: env.VITE_FIREBASE_STORAGE_BUCKET ?? '',
+            messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID ?? '',
+            appId: env.VITE_FIREBASE_APP_ID ?? '',
+            measurementId: env.VITE_FIREBASE_MEASUREMENT_ID ?? '',
+          },
+        },
+        supabase: {
+          config: {
+            url: env.VITE_SUPABASE_URL ?? '',
+            anonKey: env.VITE_SUPABASE_ANON_KEY ?? '',
+          },
+        },
+        google: {
+          oAuth2: {
+            clientId: env.VITE_GOOGLE_CLIENT_ID ?? '',
+            scope: env.VITE_GOOGLE_SCOPE ?? '',
+          },
+        },
+        services: {
+          data: appConfig.provider,
+          storage: appConfig.provider === 'supabase' ? 'supabase' : 'firebase',
+          auth: appConfig.provider === 'firebase' ? 'firebase' : 'google',
+        },
+      }}
       iconProvider={appConfig.iconProvider}
       themeProvider={appConfig.themeProvider}
-      firebaseConfig={{
-        apiKey: env.VITE_FIREBASE_APIKEY ?? '',
-        authDomain: env.VITE_FIREBASE_AUTH_DOMAIN ?? '',
-        databaseURL: env.VITE_FIREBASE_DATABASE_URL ?? '',
-        projectId: env.VITE_FIREBASE_PROJECT_ID ?? '',
-        storageBucket: env.VITE_FIREBASE_STORAGE_BUCKET ?? '',
-        messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID ?? '',
-        appId: env.VITE_FIREBASE_APP_ID ?? '',
-        measurementId: env.VITE_FIREBASE_MEASUREMENT_ID ?? '',
-      }}
-      oAuth2={{
-        clientId: env.VITE_GOOGLE_CLIENT_ID ?? '',
-        scope: env.VITE_GOOGLE_SCOPE ?? '',
-      }}
     />
   </React.StrictMode>
 );

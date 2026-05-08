@@ -1,17 +1,17 @@
-# Esempio: DataProvider custom
+# Esempio: DataProviderAdapter custom
 
 Questo esempio mostra un adapter REST minimale. L'obiettivo e' rispettare la stessa interfaccia usata da `Form`, `Grid` e dai test contract.
 
 ```ts
 import * as React from 'react';
 import type {
-  DataProvider,
+  DataProviderAdapter,
   DatabaseOptions,
   ReadOptions,
   RecordArray,
 } from 'react-firestrap';
 
-export class RestDataProvider implements DataProvider {
+export class RestDataProvider implements DataProviderAdapter {
   constructor(private readonly baseUrl: string) {}
 
   async read(path: string, _options?: ReadOptions): Promise<any> {
@@ -99,7 +99,14 @@ import { RestDataProvider } from './providers/RestDataProvider';
 export default function Root() {
   return (
     <App
-      dataProvider={new RestDataProvider(import.meta.env.VITE_API_URL)}
+      providers={{
+        custom: {
+          data: new RestDataProvider(import.meta.env.VITE_API_URL),
+        },
+        services: {
+          data: 'custom',
+        },
+      }}
       menuConfig={menu}
       importPage={(path) => import(path)}
     />
