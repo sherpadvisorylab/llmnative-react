@@ -2,7 +2,7 @@
 
 > Ogni CR rappresenta un'unità di lavoro autonoma con motivazione, scope e checklist.  
 > Stato: `⬜ todo` · `🔄 in progress` · `✅ done` · `🚫 cancelled`  
-> Ultima revisione: 2026-05-08
+> Ultima revisione: 2026-05-11
 
 ---
 
@@ -18,10 +18,11 @@
 | [CR-005](#cr-005--cli-update-e-scaffolding) | CLI update e scaffolding | Media | CR-002, CR-004 | ✅ |
 | [CR-006](#cr-006--batterie-di-test) | Batterie di test | Alta | CR-002, CR-003 | 🔄 |
 | [CR-007](#cr-007--showcase-app) | Showcase app | Alta | CR-002, CR-004 | 🔄 |
-| [CR-008](#cr-008--tema-empty--tailwind--shadcnui) | Tema `empty` → Tailwind + shadcn/ui | Bassa | CR-004 | ⬜ |
-| [CR-009](#cr-009--tema-default--tailwind--shadcnui) | Tema `default` → Tailwind + shadcn/ui | Bassa | CR-004 | ⬜ |
-| [CR-010](#cr-010--tema-flat--tailwind--shadcnui) | Tema `flat` → Tailwind + shadcn/ui | Bassa | CR-004 | ⬜ |
-| [CR-011](#cr-011--tema-cyber--tailwind--shadcnui) | Tema `cyber` → Tailwind + shadcn/ui | Bassa | CR-004 | ⬜ |
+| [CR-008](#cr-008--tema-empty--tailwind--shadcnui) | Tema `empty` → Tailwind + shadcn/ui | Bassa | CR-004 | ✅ |
+| [CR-009](#cr-009--tema-default--tailwind--shadcnui) | Tema `default` → Tailwind + shadcn/ui | Bassa | CR-004 | ✅ |
+| [CR-010](#cr-010--tema-flat--tailwind--shadcnui) | Tema `flat` → Tailwind + shadcn/ui | Bassa | CR-004 | ✅ |
+| [CR-011](#cr-011--tema-cyber--tailwind--shadcnui) | Tema `cyber` → Tailwind + shadcn/ui | Bassa | CR-004 | ✅ |
+| [CR-021](#cr-021--use-case-templates) | Use case templates (crm, admin, inventory, project) | Media | CR-005, CR-017 | ✅ |
 | [CR-012](#cr-012--showcase-refactor--react-firestrap-native) | Showcase refactor — react-firestrap native | Alta | CR-004, CR-007 | ⬜ |
 | [CR-013](#cr-013--icon-provider-system) | Icon provider system | Media | CR-004 | ✅ |
 | [CR-014](#cr-014--raffinazione-componenti--props-e-comportamenti) | Raffinazione componenti — props e comportamenti | Media | CR-007 | ⬜ |
@@ -793,141 +794,49 @@ Il codice generato live è particolarmente utile per l'AI: un developer (o un AI
 
 ## CR-008 — Tema `empty` → Tailwind + shadcn/ui
 
-**Stato:** ⬜ todo  
-**Branch:** `modernize/theme-empty-tailwind`  
-**Priorità:** Bassa  
-**Dipende da:** CR-004  
-**Stima:** 1 giorno  
-**Breaking change:** No — tema passthrough, nessuna logica visiva propria
+**Stato:** ✅ done  
+**Risolto da:** CR-004 (rimozione Bootstrap) + CR-021 (2026-05-11)  
+**Breaking change:** No
 
-### Scope
+### Risoluzione
 
-Tema minimale: passa solo `{children}` senza layout proprio. L'unica dipendenza Bootstrap è il CDN in `index.html` e `app.min.css`.
-
-### Checklist
-
-- [ ] Rimuovere Bootstrap 5.3 CDN e Bootstrap Icons da `public/index.html`
-- [ ] Sostituire `app.min.css` con `globals.css` Tailwind (preflight + CSS variables shadcn)
-- [ ] Aggiornare `theme.js` — token Tailwind vuoti (il tema non ha stile proprio)
-- [ ] Verificare che `{children}` venga renderizzato correttamente senza Bootstrap
+La cartella `themes/empty/` è stata eliminata. Il concetto di "template minimale" è ora il template `blank` in `templates/blank/` generato dallo scaffolding CLI. Non ha dipendenze Bootstrap.
 
 ---
 
 ## CR-009 — Tema `default` → Tailwind + shadcn/ui
 
-**Stato:** ⬜ todo  
-**Branch:** `modernize/theme-default-tailwind`  
-**Priorità:** Bassa  
-**Dipende da:** CR-004  
-**Stima:** 2–3 giorni  
-**Breaking change:** Sì — layout visivo cambia (Bootstrap navbar/offcanvas → Tailwind/Sheet)
+**Stato:** ✅ done  
+**Risolto da:** CR-004 (rimozione Bootstrap) + CR-021 (2026-05-11)  
+**Breaking change:** No
 
-### Scope
+### Risoluzione
 
-Tema con navbar top, sidebar offcanvas (Bootstrap), layout flex. Struttura: `Header.js`, `Sidebar.js`, `Default.js`, `Footer.js`.
-
-### Bootstrap → shadcn/ui mapping
-
-| Bootstrap | Tailwind + shadcn/ui |
-|-----------|---------------------|
-| `Offcanvas` sidebar mobile | `Sheet` |
-| `navbar` + `navbar-expand-lg` | `flex` + breakpoint Tailwind |
-| `DropdownMenu` | shadcn `DropdownMenu` |
-| `d-flex`, `align-items-center` ecc. | utility Tailwind dirette |
-| `data-bs-toggle` JS behaviors | `useState` React |
-
-### Checklist
-
-- [ ] Rimuovere Bootstrap CDN da `public/index.html`
-- [ ] Convertire `Header.js` → Tailwind flex navbar + shadcn `DropdownMenu`
-- [ ] Convertire `Sidebar.js` → shadcn `Sheet` (mobile) + flex fisso (desktop)
-- [ ] Convertire `Default.js` layout → Tailwind `flex flex-col h-screen`
-- [ ] Convertire `Footer.js` → Tailwind utilities
-- [ ] Convertire `theme.js` — tutti i token Bootstrap → Tailwind
-- [ ] Rimuovere `app.min.css`, aggiungere `globals.css` Tailwind
-- [ ] Test visivo: navbar responsive, sidebar mobile/desktop
+La cartella `themes/default/src/` è stata eliminata. I colori del preset `default` sono ora in `themes/default.ts` (importato da `src/Theme.tsx`). Il layout shell (Header, Sidebar, Footer, PreLoader) è stato spostato in `templates/` — ogni template ne ha una copia indipendente. Nessuna dipendenza Bootstrap residua.
 
 ---
 
 ## CR-010 — Tema `flat` → Tailwind + shadcn/ui
 
-**Stato:** ⬜ todo  
-**Branch:** `modernize/theme-flat-tailwind`  
-**Priorità:** Bassa  
-**Dipende da:** CR-004  
-**Stima:** 2–3 settimane  
-**Breaking change:** Sì — layout e stile completamente riscritti
+**Stato:** ✅ done  
+**Risolto da:** CR-004 (rimozione Bootstrap) + CR-021 (2026-05-11)  
+**Breaking change:** No
 
-### Scope
+### Risoluzione
 
-Admin dashboard completo con sidebar gerarchica collassabile, header con notifiche e dropdown, pageheader, preloader, sistema preset colori (`data-pc-preset`). CSS locale custom 10K+ righe (`style.css` + `style-preset.css`) + `pcoded.js` per sidebar/header JS.
-
-### Strategia
-
-1. **Eliminare** `style.css`, `style-preset.css`, `pcoded.js` — tutto il comportamento JS del sidebar viene riscritto in React con `useState`
-2. **Ricostruire** il layout system (`.app`, `.app-content`, `.pc-container`) con Tailwind
-3. **Sistema preset colori** → `tailwind.config.js` `extend.colors` + CSS variables shadcn (sostituisce `data-pc-preset`)
-4. **Icone** → sostituire Phosphor duotone con Lucide (già bundled in shadcn)
-
-### Bootstrap → shadcn/ui mapping
-
-| Attuale | Tailwind + shadcn/ui |
-|---------|---------------------|
-| `.pc-sidebar` + pcoded.js collapse | `Collapsible` shadcn per submenu, `useState` per open/close |
-| `.pc-header` + Bootstrap dropdown | `DropdownMenu` shadcn |
-| Offcanvas mobile sidebar | `Sheet` shadcn |
-| `data-pc-preset="preset-N"` CSS vars | CSS variables shadcn + `tailwind.config.js` colors |
-| Phosphor icons (`ph-duotone ph-*`) | Lucide icons |
-| `.loader-bg` + CSS animation | Tailwind `animate-*` |
-
-### Checklist
-
-- [ ] Rimuovere `style.css`, `style-preset.css`, `pcoded.js` da `public/`
-- [ ] Ricostruire `Default.js` layout — `.app`, `.app-content`, `.pc-container` in Tailwind
-- [ ] Ricostruire `Sidebar.js` — menu gerarchico con `Collapsible` shadcn, open/close con `useState`
-- [ ] Ricostruire `Header.js` — top bar con shadcn `DropdownMenu`, `Sheet` per mobile
-- [ ] Ricostruire `PageHeader.js` — breadcrumb + titolo in Tailwind grid
-- [ ] Ricostruire `PreLoader.js` — `animate-spin` o `animate-pulse` Tailwind
-- [ ] Ricostruire `Notifications.js` con shadcn `Popover` o `DropdownMenu`
-- [ ] Ricostruire sistema preset colori → `tailwind.config.js` + CSS variables shadcn
-- [ ] Sostituire Phosphor icons con Lucide
-- [ ] Convertire `theme.js` — token Bootstrap → Tailwind
-- [ ] Aggiornare `public/index.html` — rimuovere tutti i bundle Bootstrap
-- [ ] Test visivo: sidebar collapse, submenu, mobile responsiveness, preset switch
+La cartella `themes/flat/src/` è stata eliminata. I colori del preset `flat` sono ora in `themes/flat.ts`. Layout shell spostato in `templates/`. Nessun file `.pc-*`, `pcoded.js` o Bootstrap bundle residuo.
 
 ---
 
 ## CR-011 — Tema `cyber` → Tailwind + shadcn/ui
 
-**Stato:** ⬜ todo  
-**Branch:** `modernize/theme-cyber-tailwind`  
-**Priorità:** Bassa  
-**Dipende da:** CR-004, CR-010 (condivide la struttura `.pc-*` con flat)  
-**Stima:** 2–3 settimane  
-**Breaking change:** Sì — layout e stile completamente riscritti
+**Stato:** ✅ done  
+**Risolto da:** CR-004 (rimozione Bootstrap) + CR-021 (2026-05-11)  
+**Breaking change:** No
 
-### Scope
+### Risoluzione
 
-Admin dashboard con struttura identica a `flat` ma palette "cyberpunk" (scuri, accenti neon), Bootstrap Icons invece di Phosphor. CSS: `vendor.min.css` (Bootstrap + vendor) + `app.min.css` (custom) + `bootstrap.bundle.min.js`.
-
-### Strategia
-
-Riusa la struttura React ricostruita in CR-010 (stesso sistema `.pc-*`), cambia:
-- Palette colori → CSS variables shadcn con toni dark/neon
-- Icone → Bootstrap Icons (`bi bi-*`) o Lucide
-- Stile custom → Tailwind utilities per effetti "cyber" (borders, shadows, ring glow)
-
-### Checklist
-
-- [ ] Rimuovere `vendor.min.css`, `app.min.css`, `bootstrap.bundle.min.js` da `public/`
-- [ ] Portare la struttura layout/sidebar/header da CR-010 (stesso sistema `.pc-*`)
-- [ ] Applicare palette "cyber" → CSS variables shadcn dark mode + colori accent neon in `tailwind.config.js`
-- [ ] Ricostruire `Sidebar.js` con stile cyber (border accent, dark bg)
-- [ ] Ricostruire `Header.js` con stile cyber
-- [ ] Decidere icone: mantenere Bootstrap Icons come font esterno o migrare a Lucide
-- [ ] Convertire `theme.js` — token Bootstrap → Tailwind con classi cyber
-- [ ] Aggiornare `public/index.html`
-- [ ] Test visivo: dark theme, accenti neon, responsive
+La cartella `themes/cyber/src/` è stata eliminata. I colori del preset `cyber` (dark-first, green neon, radius 0) sono ora in `themes/cyber.ts`. Nessun bundle Bootstrap o `vendor.min.css` residuo.
 
 ---
 
@@ -1907,3 +1816,52 @@ La configurazione pubblica era diventata troppo frammentata: `firebaseConfig`, `
 - [x] `npm run build` passa.
 - [x] `cd clients/showcase && npm run build` passa.
 - [x] Lo scaffold generato non contiene piu' la vecchia API `dataProvider` / `firebaseConfig`.
+
+
+---
+
+## CR-021 — Use case templates
+
+**Stato:** ✅ done  
+**Data:** 2026-05-11  
+**Priorità:** Media  
+**Dipende da:** CR-005, CR-017  
+**Breaking change:** No
+
+### Motivazione
+
+Lo scaffolding generava un'unica HomePage minimale uguale per tutti i tipi di progetto. I temi (`default`, `flat`, `cyber`) mescolavano preset colori e struttura pagine in un'unica cartella annidata, rendendo impossibile combinare liberamente tema visivo e tipo di app.
+
+### Scope
+
+1. **Separazione tema / template**: i preset colori estratti da `src/Theme.tsx` in `themes/default.ts`, `themes/flat.ts`, `themes/cyber.ts`. `src/Theme.tsx` importa da questi file invece di avere oggetti hardcoded.
+2. **Eliminazione vecchia struttura `themes/*/src/`**: le cartelle annidate `themes/default/`, `themes/flat/`, `themes/cyber/`, `themes/empty/` rimosse.
+3. **Nuova cartella `templates/`**: 5 template indipendenti, ciascuno con layout, sections, pages, conf/menu.ts, data/mockData.ts.
+4. **CLI aggiornato**: aggiunta domanda `Which app template?` separata da `Which theme?`. Supporto flag `--theme=` e `--template=`.
+5. **Docs aggiornate**: `docs/quick-start.md`, `docs/scaffolding.md`, `docs/theme.md`.
+
+### Template disponibili
+
+| Template | Pagine | Pattern showcase |
+|----------|--------|-----------------|
+| `blank` | Home con Grid tasks | Punto di partenza pulito |
+| `crm` | Dashboard · Contacts · Companies · Deals | `groupBy`, Badge formatter, dot notation |
+| `admin` | Overview · Users · Roles · Settings | Form singleton, `Select` con opzioni, `Upload.Image` |
+| `inventory` | Overview · Products · Categories | `onLoad`/`onSave` price conversion, stock Badge |
+| `project` | Overview · Projects · Tasks · Team | `groupBy` status, priority Badge, Repeat |
+
+### Checklist
+
+- [x] Creare `themes/default.ts`, `themes/flat.ts`, `themes/cyber.ts`
+- [x] Aggiornare `src/Theme.tsx` — import da `../themes/` invece di oggetti inline
+- [x] Rimuovere `themes/default/`, `themes/flat/`, `themes/cyber/`, `themes/empty/`
+- [x] Creare `templates/blank/`
+- [x] Creare `templates/crm/`
+- [x] Creare `templates/admin/`
+- [x] Creare `templates/inventory/`
+- [x] Creare `templates/project/`
+- [x] Aggiornare `scripts/cli/setup-project.js`
+- [x] Aggiornare `docs/quick-start.md`
+- [x] Aggiornare `docs/scaffolding.md`
+- [x] Aggiornare `docs/theme.md`
+- [x] `npm run build:dev` passa senza errori

@@ -222,7 +222,7 @@ describe('App provider orchestration', () => {
                 presets: {
                     brand: {
                         mode: 'light',
-                        primary: '346.8 77.2% 49.8%',
+                        colors: { primary: '346.8 77.2% 49.8%' },
                         radius: 0.75,
                         theme: {
                             Alert: { className: 'brand-alert' },
@@ -236,7 +236,7 @@ describe('App provider orchestration', () => {
         expect(screen.getByTestId('theme-mode')).toHaveTextContent('light');
         expect(screen.getByTestId('theme-primary')).toHaveTextContent('346.8 77.2% 49.8%');
         expect(screen.getByTestId('alert-class')).toHaveTextContent('brand-alert');
-        expect(document.documentElement.style.getPropertyValue('--radius')).toBe('0.75rem');
+        expect(document.getElementById('rf-preset-vars')?.textContent).toContain('--radius: 0.75rem');
     });
 
     it('passes custom icon providers through App iconProvider config', () => {

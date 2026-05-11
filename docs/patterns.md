@@ -10,22 +10,17 @@ description: Recurring patterns for Grid, Form, nested data, formatters and sche
 
 These patterns cover most react-firestrap usage. Read them before building custom abstractions.
 
-## Pattern 0: Vite Scaffold
+## Pattern 0: Starting point
 
-For a new consumer app, start from the official scaffold.
+For a new project use the scaffold — it generates the full folder structure with providers, theme and routing already wired. See [Quick start](/docs/quick-start) for the walkthrough, or [Manual setup](/docs/manual-setup) if you are adding react-firestrap to an existing project.
 
-```bash
-npx react-firestrap create
-npx react-firestrap create --yes --provider=mock
-```
-
-The generated app mounts `<App>` in `src/index.tsx`, keeps wiring in `src/conf/`, imports `src/styles/globals.css`, and uses Vite with React dedupe. The structure separates `pages/`, `sections/`, `components/`, `layouts/` and `data/`.
-
-Consumers must import the library CSS once, usually in the Vite entry point.
+Wherever you start, import the library CSS once at the app entry:
 
 ```tsx
 import 'react-firestrap/dist/index.css';
 ```
+
+---
 
 ## Pattern 1: CRUD Grid
 
@@ -68,6 +63,8 @@ export default function UserList() {
 </Grid>
 ```
 
+---
+
 ## Pattern 2: Standalone Form
 
 Use `Form` for detail pages that load, edit, save and delete a single record.
@@ -95,6 +92,8 @@ export default function UserEdit() {
 
 If `recordId` is omitted, the form creates a new record.
 
+---
+
 ## Pattern 3: Nested Objects And Arrays
 
 Dot notation handles nested data.
@@ -117,6 +116,8 @@ Dot notation handles nested data.
   </Repeat>
 </Form>
 ```
+
+---
 
 ## Pattern 4: Form Lifecycle Callbacks
 
@@ -154,6 +155,8 @@ export default function ProductForm() {
 }
 ```
 
+---
+
 ## Pattern 5: Grid Formatters
 
 Use `onDisplay` when raw data needs to become readable UI.
@@ -182,7 +185,9 @@ Use `onDisplay` when raw data needs to become readable UI.
 />
 ```
 
-## Anti-Patterns
+---
+
+## Anti-patterns
 
 Avoid manually duplicating behavior that the framework already owns.
 

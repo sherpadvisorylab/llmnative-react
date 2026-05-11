@@ -541,6 +541,13 @@ export function HeadProvider({ appName = DEFAULT_HEAD_APP_NAME, children }: Head
 
     const activeMetadata = metadataEntries.length > 0 ? metadataEntries[metadataEntries.length - 1].metadata : metadata;
 
+    // Set document.title imperatively so the browser tab updates even when index.html
+    // already has a <title> element (createPortal appends a second one which browsers ignore).
+    useEffect(() => {
+        if (typeof globalThis.document === 'undefined') return;
+        globalThis.document.title = activeMetadata.title ?? resolvedAppName;
+    }, [activeMetadata.title, resolvedAppName]);
+
     const controller = useMemo<HeadController>(() => ({
         metadata: activeMetadata,
         social,

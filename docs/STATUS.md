@@ -1,7 +1,7 @@
 # Project status
 
 > Snapshot verificato contro la codebase, non contro il piano storico.
-> Ultima revisione: 2026-05-08
+> Ultima revisione: 2026-05-11
 
 ---
 
@@ -16,12 +16,12 @@
 | Provider registries | `<App>` accetta configurazione dichiarativa `providers`: `firebase`, `supabase`, `google`, `gmail`, `mock`, `custom` e selezione `services`. | Data/Auth hanno fallback automatico; Storage/Email sono opzionali se non configurati. Supabase resta parziale. |
 | Head management | `HeadProvider` e' montato da `<App>` e genera il browser `<head>` via JSX portal. Hook pubblici: `useHead`, `useDocumentHead`, `useSocialHead`, `useLanguageHead`, `usePaginationHead`, `useAssetsHead`, `usePwaHead`, `useSchemaOrgHead`. | Non c'e' SSR/head extraction; e' runtime client-side. |
 | UI library | CSS runtime Tailwind v4 con compatibility layer Bootstrap-like. `src/globals.css` viene importato dal barrel pubblico. | Non e' una migrazione shadcn component-by-component. Rimane da fare visual regression profonda. |
-| Theme/Icon | Preset tema e icon registry sono gestiti da `<App>`. Hook pubblici: `useThemeController`, `useIconController`. | Preset legacy completi `empty/default/flat/cyber` restano da razionalizzare nelle CR-008..CR-011. |
+| Theme/Icon | Preset tema e icon registry sono gestiti da `<App>`. Hook pubblici: `useThemeController`, `useIconController`. Preset `default`, `flat`, `cyber` estratti da `src/Theme.tsx` in `themes/*.ts`. | Nessun gap strutturale residuo. Visual regression profonda non ancora fatta. |
 | TypeScript | `strict: true`; `npm run build` genera build e declarations. | Alcuni tipi pubblici usano ancora `any` e pattern legacy; audit in CR-014. |
 | Docs Markdown | Docs in `docs/` con frontmatter sono caricate nello showcase via `import.meta.glob` e `MarkdownReader`. | Le pagine operative (`STATUS`, `ROADMAP`, `CHANGE_REQUESTS`) restano documenti maintainer e non sidebar showcase. |
 | Tests | Vitest configurato. Passano 11 file / 110 test: libs, MockDataProvider contract, App, theme/icon, Form/Grid/Input/Select/MarkdownReader. | Mancano integration test Firebase/Supabase, test Upload/Prompt/Repeat, storage/auth/email tests, Playwright E2E e CI. |
 | Build libreria | `npm run build` passa. Output verificato: `dist/index.js`, `dist/index.mjs`, `dist/index.css`, `dist/types`. | Il log Vite mostra `style.css`, poi plugin Vite rinomina a `index.css` in `closeBundle`. |
-| CLI scaffolding | CLI e scaffold Vite-first presenti secondo CR-015. Genera `VITE_PROVIDER` e `<App providers={{ ... }}>`. | Verifica di build del progetto generato non ancora inclusa nei test automatici. |
+| CLI scaffolding | CLI Vite-first aggiornato (CR-021). Domande separate per `theme` (default/flat/cyber) e `template` (blank/crm/admin/inventory/project). 5 template autonomi in `templates/`. | Verifica di build del progetto generato non ancora inclusa nei test automatici. |
 | Showcase app | `clients/showcase` e' un consumer Vite reale basato su `<App>`, `menuConfig`, layout custom e `providers.mock`. Pagine componenti principali presenti. | Molte route provider/example sono ancora stub. Deploy pubblico e smoke E2E assenti. |
 
 ---
@@ -43,6 +43,7 @@
 | CR-018 | Done | `MarkdownReader` pubblico presente, testato. |
 | CR-019 | Done | Showcase docs alimentate da Markdown con frontmatter. |
 | CR-020 | Done | Head management e provider config dichiarativa allineati in codebase, docs e scaffold. |
+| CR-021 | Done | Separazione tema/template. 5 template in `templates/`. Preset estratti in `themes/*.ts`. CLI e docs aggiornati. |
 
 ---
 
@@ -52,7 +53,7 @@
 |----|-------------|------------|
 | CR-006 | In progress | La suite unit/component esiste e passa, ma mancano integration Firebase/Supabase, storage tests, Upload/Prompt/Repeat, Playwright E2E e CI. |
 | CR-007 | In progress | Showcase builda e contiene pagine componenti/provider overview, ma molte route provider/example sono stub e manca deploy pubblico. |
-| CR-008..CR-011 | Todo | Razionalizzazione dei preset/temi legacy e loro verifica visiva. |
+| CR-008..CR-011 | Done | Vecchie cartelle `themes/*/src/` rimosse. Preset estratti in `themes/*.ts`. Layout/sections in `templates/`. Completato via CR-021. |
 | CR-012 | Todo | Eliminare stub showcase e usare demo native react-firestrap per esempi/provider reali. |
 | CR-014 | Todo / seeded | Audit API componenti; alcune issue gia' censite in `CHANGE_REQUESTS.md`. |
 

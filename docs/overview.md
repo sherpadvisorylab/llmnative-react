@@ -78,4 +78,4 @@ Providers
   -> Firebase, Supabase, mock, custom adapters
 ```
 
-Next: [Installation](./installation.md), [Quick start](./quick-start.md), or [Provider pattern](./providers.md).
+Next: [Installation](/docs/installation), [Quick start](/docs/quick-start), or [Provider pattern](/docs/providers).

@@ -1,14 +1,14 @@
 ---
 title: Quick start
 group: Getting started
-order: 30
+order: 20
 path: /docs/quick-start
-description: Create an app, mount App and render a first provider-backed CRUD screen.
+description: From zero to a running app in under 5 minutes using the official scaffold.
 ---
 
 # Quick start
 
-The recommended path is to start from the scaffold.
+The fastest path is the official scaffold. Run one command, answer a few prompts, and you have a fully wired Vite app with routing, providers, theme and icons ready.
 
 ```bash
 npx react-firestrap create
@@ -17,43 +17,74 @@ npm install
 npm run dev
 ```
 
-## Mount App
+Your app is running at `http://localhost:5173`.
 
-`App` orchestrates routing, providers, theme and icons. To start without external services, configure the built-in mock provider.
+> **Adding to an existing project?** Skip to [Manual setup](/docs/manual-setup) instead.
 
-```tsx
-import React from 'react';
-import { createRoot } from 'react-dom/client';
-import { App } from 'react-firestrap';
-import 'react-firestrap/dist/index.css';
-import { menu } from './conf/menu';
-import AppLayout from './layouts/AppLayout';
+---
 
-const mockData = {
-  '/users': {
-    alice: { name: 'Alice', email: 'alice@example.com', role: 'admin' },
-  },
-};
+## The prompts
 
-createRoot(document.getElementById('root')!).render(
-  <App
-    LayoutDefault={AppLayout}
-    menuConfig={menu}
-    providers={{
-      default: 'mock',
-      mock: {
-        data: mockData,
-      },
-    }}
-    iconProvider="lucide"
-    themeProvider="default"
-  />
-);
+| Prompt | Recommended for a first run |
+|--------|----------------------------|
+| Project name | any |
+| Data provider | `mock` — no credentials needed |
+| Icon provider | `lucide` |
+| Theme | `default` |
+| App template | `blank` — or pick one that matches your use case |
+
+You can change every choice later without re-scaffolding — they're just configuration values in `src/conf/app.ts`.
+
+---
+
+## App templates
+
+The scaffold asks which kind of app you are building and generates starter pages and mock data to match.
+
+| Template | What it generates |
+|----------|-------------------|
+| `blank` | Home page with a simple task list — clean starting point |
+| `crm` | Contacts, Companies, Deals pipeline grouped by stage |
+| `admin` | Users, Roles, Settings singleton form |
+| `inventory` | Products with price formatting, Categories, stock overview |
+| `project` | Projects, Tasks grouped by status, Team |
+
+All templates use the same sidebar shell — only the pages and mock data differ.
+
+---
+
+## What you have
+
+The scaffold generates a conventional folder layout. The exact pages depend on the template you chose; the wiring is always the same.
+
+```text
+src/
+  conf/
+    app.ts        ← central wiring: provider, theme, icons
+    menu.ts       ← navigation tree (template-specific)
+  layouts/
+    Default.tsx   ← shell: header + sidebar + <Outlet />
+  sections/
+    Header.tsx    ← topbar with Brand, Menu, Notifications
+    Sidebar.tsx   ← responsive sidebar using <Menu>
+    Footer.tsx
+    PageHeader.tsx← breadcrumbs
+    PreLoader.tsx ← initial spinner
+  pages/          ← starter pages (template-specific)
+  data/
+    mockData.ts   ← fixture data for MockDataProvider
+  styles/
+    globals.css   ← Tailwind v4 + --rf-* color bridge
+  index.tsx       ← Vite entry: mounts <App>
 ```
 
-## First CRUD Page
+Open `src/conf/menu.ts` and `src/conf/app.ts` — these two files are where almost all configuration lives.
 
-`Grid` reads from the active `DataProvider`. Actions such as add, edit and delete can automatically open a `Form`.
+---
+
+## Write your first CRUD page
+
+Create `src/pages/users/UsersPage.tsx`:
 
 ```tsx
 import { Grid } from 'react-firestrap';
@@ -63,9 +94,9 @@ export default function UsersPage() {
     <Grid
       dataStoragePath="/users"
       columns={[
-        { key: 'name', label: 'Name', sort: true },
+        { key: 'name',  label: 'Name',  sort: true },
         { key: 'email', label: 'Email' },
-        { key: 'role', label: 'Role' },
+        { key: 'role',  label: 'Role' },
       ]}
       allowedActions={['add', 'edit', 'delete']}
       modal={{ mode: 'form' }}
@@ -75,4 +106,25 @@ export default function UsersPage() {
 }
 ```
 
-See also [App configuration](./app-configuration.md) and [Routing & menu](./menu-config.md).
+Then add it to `src/conf/menu.ts`:
+
+```ts
+import Default from '../layouts/Default';
+import UsersPage from '../pages/users/UsersPage';
+
+{ path: '/users', title: 'Users', icon: 'users', page: UsersPage, layout: Default, group: 'Management' },
+```
+
+`Grid` reads and writes through the active `DataProvider` — with `mock`, data lives in memory and resets on reload. Switch the provider to `firebase` in `src/conf/app.ts` when you are ready for persistence.
+
+---
+
+## Next steps
+
+| Goal | Where to go |
+|------|-------------|
+| Understand every generated file | [Scaffold output](/docs/scaffolding) |
+| Add Firebase / Supabase | [App reference](/docs/app-configuration) → Provider configuration |
+| Customize colors, radius, font | [Theme system](/docs/theme) |
+| Change the icon library | [Icon system](/docs/icons) |
+| Add nested fields, array inputs | [Core patterns](/docs/patterns) |

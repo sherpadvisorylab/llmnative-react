@@ -293,8 +293,7 @@ export default function UserForm() {
 // Uso avanzato: aggiungi o sovrascrivi provider e preset built-in.
 <App
   iconProvider={{
-    default: 'heroicons',
-    providers: { heroicons: new HeroIconProvider() },
+    provider: new HeroIconProvider(),
     aliases: { delete: 'trash', edit: 'pencil' },
   }}
   themeProvider={{

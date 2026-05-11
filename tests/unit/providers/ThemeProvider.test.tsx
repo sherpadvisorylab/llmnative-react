@@ -29,7 +29,7 @@ describe('ThemeProvider', () => {
         expect(screen.getByTestId('preset')).toHaveTextContent('cyber');
         expect(screen.getByTestId('mode')).toHaveTextContent('dark');
         expect(document.documentElement).toHaveClass('dark');
-        expect(document.documentElement.style.getPropertyValue('--rf-primary')).toBe('160 84% 39%');
+        expect(document.getElementById('rf-preset-vars')?.textContent).toContain('--rf-primary: 160 84% 39%');
     });
 
     it('merges custom presets and theme overrides with built-in theme defaults', () => {
@@ -39,7 +39,7 @@ describe('ThemeProvider', () => {
                     defaultPreset: 'brand',
                     presets: {
                         brand: {
-                            primary: '346.8 77.2% 49.8%',
+                            colors: { primary: '346.8 77.2% 49.8%' },
                             radius: 0.75,
                             theme: {
                                 Alert: { className: 'brand-alert' },
@@ -56,6 +56,6 @@ describe('ThemeProvider', () => {
         expect(screen.getByTestId('primary')).toHaveTextContent('346.8 77.2% 49.8%');
         expect(screen.getByTestId('radius')).toHaveTextContent('0.75');
         expect(screen.getByTestId('alert-class')).toHaveTextContent('brand-alert');
-        expect(document.documentElement.style.getPropertyValue('--radius')).toBe('0.75rem');
+        expect(document.getElementById('rf-preset-vars')?.textContent).toContain('--radius: 0.75rem');
     });
 });

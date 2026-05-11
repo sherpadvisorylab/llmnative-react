@@ -1,63 +1,35 @@
 ---
 title: Installation
 group: Getting started
-order: 20
+order: 15
 path: /docs/installation
-description: Install react-firestrap through the official scaffold or inside an existing Vite React project.
+description: Choose between the scaffold (new projects) and manual setup (existing projects).
 ---
 
 # Installation
 
-For new projects, use the official scaffold. It generates Vite, `App`, menu wiring, layout, theme, icons and providers.
+There are two ways to get started with react-firestrap. Pick the one that fits your situation.
+
+---
+
+## Scaffold — recommended for new projects
+
+The official scaffold generates a complete Vite app with routing, providers, theme and icons already wired. You go from zero to a running app in under 5 minutes.
 
 ```bash
 npx react-firestrap create
-cd my-app
-npm install
-npm run dev
 ```
 
-For repeatable scenarios, CI or fixtures:
+→ Continue with [Quick start](/docs/quick-start)
 
-```bash
-npx react-firestrap create --yes --provider=mock
-```
+---
 
-## Manual Installation
+## Manual — for existing projects
 
-Use this path when adding react-firestrap to an existing Vite React app.
+Add react-firestrap to a project you already have. Install the package, wire `<App>` manually, and connect the providers you need.
 
 ```bash
 npm install react-firestrap
-npm install react react-dom react-router-dom firebase
 ```
 
-Import the CSS once in the application entry point:
-
-```tsx
-import 'react-firestrap/dist/index.css';
-```
-
-Then mount `App` with menu, layout and provider configuration:
-
-```tsx
-import { App } from 'react-firestrap';
-import { menu } from './conf/menu';
-import AppLayout from './layouts/AppLayout';
-import { firebaseConfig } from './conf/firebase';
-
-<App
-  menuConfig={menu}
-  LayoutDefault={AppLayout}
-  providers={{
-    default: 'firebase',
-    firebase: {
-      config: firebaseConfig,
-    },
-  }}
-  iconProvider="lucide"
-  themeProvider="default"
-/>;
-```
-
-Continue with [Quick start](./quick-start.md) to create the first CRUD page.
+→ Continue with [Manual setup](/docs/manual-setup)

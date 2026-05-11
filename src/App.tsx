@@ -69,20 +69,13 @@ export type SupabaseProviderConfig = {
 
 export type AppProvidersConfig = {
     default?: string;
-    firebase?: {
-        config: FirebaseConfig;
-    };
-    supabase?: {
-        config: SupabaseProviderConfig;
-    };
-    google?: {
-        oAuth2: GoogleOAuth2;
+    firebase?: FirebaseConfig;
+    supabase?: SupabaseProviderConfig;
+    google?: GoogleOAuth2 & {
         serviceAccount?: GoogleServiceAccount;
         developerToken?: string;
     };
-    dropbox?: {
-        config: DropboxConfig;
-    };
+    dropbox?: DropboxConfig;
     gmail?: {
         enabled?: boolean;
     };
@@ -152,8 +145,8 @@ function resolveProviderRegistries(providers: AppProvidersConfig = {}) {
     }
 
     if (providers.supabase) {
-        data.supabase = new SupabaseDataProvider(providers.supabase.config);
-        storage.supabase = new SupabaseStorageProvider(providers.supabase.config);
+        data.supabase = new SupabaseDataProvider(providers.supabase);
+        storage.supabase = new SupabaseStorageProvider(providers.supabase);
     }
 
     if (providers.google) {
@@ -301,15 +294,15 @@ function App({
         <BrowserRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
             <RuntimeProvider defaultConfig={{
                 title: appName,
-                firebase: providers.firebase?.config as FirebaseConfig,
+                firebase: providers.firebase,
                 google: providers.google
                     ? {
-                        oAuth2: providers.google.oAuth2,
+                        oAuth2: { clientId: providers.google.clientId, scope: providers.google.scope },
                         serviceAccount: providers.google.serviceAccount,
                         developerToken: providers.google.developerToken,
                     }
                     : undefined,
-                dropbox: providers.dropbox?.config,
+                dropbox: providers.dropbox,
                 ai: aiConfig,
                 scrape: scrapeConfig,
                 proxyURI: proxyURI

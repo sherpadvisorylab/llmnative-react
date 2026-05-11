@@ -6,12 +6,40 @@ import { PhosphorIconProvider } from './PhosphorIconProvider';
 const IconProviderContext = React.createContext<IconProviderAdapter | null>(null);
 const IconControllerContext = React.createContext<IconController | null>(null);
 
+/** Built-in icon provider identifiers. */
+export type BuiltInIconProviderId = 'lucide' | 'phosphor';
+
+/**
+ * Configuration for the icon provider.
+ *
+ * - `BuiltInIconProviderId` string: selects a built-in provider (`'lucide'` | `'phosphor'`)
+ * - `IconProviderAdapter` instance: use a custom provider directly
+ * - object `{ provider, aliases? }`: custom provider with optional icon name aliases
+ *
+ * @example
+ * iconProvider="phosphor"
+ *
+ * @example
+ * iconProvider={new HeroIconProvider()}
+ *
+ * @example
+ * iconProvider={{ provider: new HeroIconProvider(), aliases: { delete: 'trash', edit: 'pencil' } }}
+ */
 export type AppIconProviderConfig =
-    | string
+    | BuiltInIconProviderId
     | IconProviderAdapter
     | {
-        default?: string;
-        providers?: Record<string, IconProviderAdapter>;
+        /** The icon provider instance to use. */
+        provider: IconProviderAdapter;
+        /** Map icon name aliases to actual icon names in this provider (`{ delete: 'trash' }`). */
+        aliases?: Record<string, string>;
+    }
+    | {
+        /** ID of the default provider to activate. Must be a key in `providers` or a built-in id. */
+        default: string;
+        /** Additional providers to register alongside the built-in ones. */
+        providers: Record<string, IconProviderAdapter>;
+        /** Map icon name aliases to actual icon names (`{ delete: 'trash' }`). */
         aliases?: Record<string, string>;
     };
 
@@ -43,12 +71,12 @@ function normalizeIconProviderConfig(config?: AppIconProviderConfig): {
     providers: Record<string, IconProviderAdapter>;
     aliases: Record<string, string>;
 } {
+    if (!config) {
+        return { defaultId: DEFAULT_ICON_PROVIDER_ID, providers: { ...BUILT_IN_ICON_PROVIDERS }, aliases: {} };
+    }
+
     if (typeof config === 'string') {
-        return {
-            defaultId: config,
-            providers: { ...BUILT_IN_ICON_PROVIDERS },
-            aliases: {},
-        };
+        return { defaultId: config, providers: { ...BUILT_IN_ICON_PROVIDERS }, aliases: {} };
     }
 
     if (isIconProvider(config)) {
@@ -59,10 +87,21 @@ function normalizeIconProviderConfig(config?: AppIconProviderConfig): {
         };
     }
 
+    // multi-provider form: { default, providers, aliases? }
+    if ('default' in config && 'providers' in config) {
+        const c = config as { default: string; providers: Record<string, IconProviderAdapter>; aliases?: Record<string, string> };
+        return {
+            defaultId: c.default,
+            providers: { ...BUILT_IN_ICON_PROVIDERS, ...c.providers },
+            aliases: c.aliases ?? {},
+        };
+    }
+
+    // single-provider form: { provider, aliases? }
     return {
-        defaultId: config?.default ?? DEFAULT_ICON_PROVIDER_ID,
-        providers: { ...BUILT_IN_ICON_PROVIDERS, ...(config?.providers ?? {}) },
-        aliases: config?.aliases ?? {},
+        defaultId: config.provider.id,
+        providers: { ...BUILT_IN_ICON_PROVIDERS, [config.provider.id]: config.provider },
+        aliases: config.aliases ?? {},
     };
 }
 

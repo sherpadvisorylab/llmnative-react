@@ -1,85 +1,432 @@
 ---
-title: App configuration
+title: App reference
 group: Getting started
-order: 50
+order: 40
 path: /docs/app-configuration
-description: App is the orchestration point for routing, layout, providers, theme, icons and external services.
+description: Complete reference for all App props — providers, routing, layout, theme and icons.
 ---
 
-# App configuration
+# App reference
 
-A scaffolded consumer mounts `App` from `src/index.tsx` and keeps wiring inside `src/conf`.
+`<App>` is the single orchestration point for the entire framework. Mount it once at the root — it wires React Router, the provider registry, the theme system and the icon system, then renders pages through `LayoutDefault`.
 
 ```tsx
-import React from 'react';
-import { createRoot } from 'react-dom/client';
 import { App } from 'react-firestrap';
-import './styles/globals.css';
 
-import AppLayout from './layouts/AppLayout';
-import { appConfig } from './conf/app';
-import { menu } from './conf/menu';
-import { mockData } from './data/mockData';
-
-createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <App
-      LayoutDefault={AppLayout}
-      menuConfig={menu}
-      providers={{
-        default: appConfig.provider,
-        mock: {
-          data: mockData,
-        },
-      }}
-      iconProvider={appConfig.iconProvider}
-      themeProvider={appConfig.themeProvider}
-    />
-  </React.StrictMode>
-);
+<App
+  LayoutDefault={AppLayout}
+  menuConfig={menuConfig}
+  providers={{ ... }}
+  importPage={(path) => import(path)}
+  iconProvider="lucide"
+  themeProvider="default"
+/>
 ```
 
-## Configuration From Env
+---
 
-Vite exposes client configuration through `import.meta.env`.
+## `AppProps` — full interface
 
 ```ts
-const env = import.meta.env;
+interface AppProps {
+  /** Displayed in the browser title and Brand component. Default: 'react-firestrap' */
+  appName?: string;
 
-export const appConfig = {
-  provider: env.VITE_PROVIDER ?? 'mock',
-  iconProvider: env.VITE_ICON_PROVIDER ?? 'lucide',
-  themeProvider: env.VITE_THEME_PROVIDER ?? 'default',
+  /**
+   * Shell component rendered around every page.
+   * Must render <Outlet /> from react-router-dom to display page content.
+   * Accepts React.ComponentType only — not a string.
+   * Individual routes can override this with the layout field in MenuEntry.
+   */
+  LayoutDefault?: React.ComponentType;
+
+  /**
+   * Navigation tree. Defines routes, sidebar labels, icons and groups.
+   * Required. See MenuConfig below.
+   */
+  menuConfig: MenuConfig;
+
+  /**
+   * Dynamic import function used to load page modules by path.
+   * Required. Standard form: (path) => import(path)
+   * Vite resolves the dynamic import graph at build time.
+   */
+  importPage: (path: string) => Promise<{ default: React.ComponentType }>;
+
+  /**
+   * Provider registry. Declares all available backends and routes each
+   * service (data, storage, auth, email) to a specific backend.
+   * Defaults to an empty MockDataProvider if omitted.
+   */
+  providers?: AppProvidersConfig;
+
+  /**
+   * Icon provider. Built-in ids: 'lucide' | 'phosphor'.
+   * Also accepts a provider instance or instance + aliases.
+   * Default: 'lucide'. See Icon system for details.
+   */
+  iconProvider?: AppIconProviderConfig;
+
+  /**
+   * Theme provider. Built-in ids: 'default' | 'flat' | 'cyber'.
+   * Also accepts an async import of conf/theme.ts or a full config object.
+   * Default: 'default'. See Theme system for details.
+   */
+  themeProvider?: AppThemeProviderConfig;
+
+  /** AI provider API keys (OpenAI, Gemini, Anthropic, DeepSeek, Mistral). */
+  aiConfig?: AIConfig;
+
+  /** SerpAPI key for scraping integrations. */
+  scrapeConfig?: ScrapeConfig;
+
+  /** URL to a JSON array of tenant configs for multi-tenant apps. */
+  tenantsURI?: string;
+
+  /** Base URI for proxied API calls. */
+  proxyURI?: string;
+}
+```
+
+---
+
+## Service map
+
+react-firestrap has four **service slots** — each represents a capability the framework needs. You choose which backend powers each slot via `services`. A backend that is declared but not assigned to any slot is instantiated but not used as the default.
+
+| Service slot | What it does | Available providers |
+|---|---|---|
+| `data` | Read/write records — used by `Grid`, `Form`, `useDataProvider` | `firebase` · `supabase` · `mock` · custom |
+| `storage` | File upload/download — used by `Upload`, `useStorageProvider` | `firebase` · `supabase` · custom |
+| `auth` | Sign-in / sign-out / current user — used by `SignIn`, `useAuthProvider` | `google` · custom |
+| `email` | Outbound email — used by `useEmailProvider` | `gmail` · custom |
+
+Standalone integrations (`ai`, `dropbox`) are **not** service slots — they are runtime configurations consumed directly by their respective utilities, not by the provider hooks.
+
+> **Custom providers:** all four service slots support custom adapter implementations via `providers.custom`. Implement the corresponding interface (`DataProviderAdapter`, `StorageProviderAdapter`, `AuthProviderAdapter`, `EmailProviderAdapter`) and register it — the framework treats it identically to any built-in provider. See [Provider pattern](/docs/providers) for the interfaces and a complete example.
+
+---
+
+## `AppProvidersConfig`
+
+Declares all backends and routes each service slot to a specific backend. Only the keys you declare are instantiated — unused backends add no overhead.
+
+```ts
+interface AppProvidersConfig {
+  // ── Routed backends (power the four service slots) ────────────
+
+  /** Firebase Realtime Database + Storage + Auth. See FirebaseConfig below. */
+  firebase?: FirebaseConfig;
+
+  /** Supabase PostgreSQL + Storage. See SupabaseProviderConfig below. */
+  supabase?: SupabaseProviderConfig;
+
+  /** Google OAuth2 sign-in + optional server-side API access. */
+  google?: {
+    clientId:          string;   // required for sign-in
+    scope?:            string;   // OAuth scopes, space-separated
+    serviceAccount?:   GoogleServiceAccount;  // backend API access only
+    developerToken?:   string;   // Google Ads API only
+  };
+
+  /** Gmail outbound email via the Gmail API. */
+  gmail?: {
+    enabled?: boolean;
+  };
+
+  /** In-memory mock. Data is static and resets on reload. No credentials needed. */
+  mock?: {
+    data?: Record<string, Record<string, object>>;
+    // { '/users': { u1: { name: 'Alice' } }, '/posts': { ... } }
+  };
+
+  /**
+   * Custom adapter implementations.
+   * Pass a single adapter (registered as 'custom') or a named map
+   * { myKey: adapter } to register multiple variants under different names.
+   * All four service slots are supported.
+   */
+  custom?: {
+    data?:    DataProviderAdapter    | Record<string, DataProviderAdapter>;
+    storage?: StorageProviderAdapter | Record<string, StorageProviderAdapter>;
+    auth?:    AuthProviderAdapter    | Record<string, AuthProviderAdapter>;
+    email?:   EmailProviderAdapter   | Record<string, EmailProviderAdapter>;
+  };
+
+  /**
+   * Routes each service slot to a registered backend by name.
+   * Omit a slot to leave it unconfigured — its hook will return null.
+   */
+  services?: {
+    data?:    'firebase' | 'supabase' | 'mock' | string;
+    storage?: 'firebase' | 'supabase' | string;
+    auth?:    'google'   | string;
+    email?:   'gmail'    | string;
+  };
+
+  // ── Standalone integrations (not service slots) ────────────────
+
+  /**
+   * Dropbox file access. Not a storage service slot — consumed directly
+   * by Dropbox-specific utilities, not by useStorageProvider().
+   */
+  dropbox?: {
+    clientId:  string;  // from Dropbox App Console
+    rootPath:  string;  // base path inside the Dropbox folder
+  };
+}
+```
+
+### Quick examples
+
+**Mock only** — no credentials, resets on reload:
+```tsx
+providers={{
+  mock: { data: { '/users': { u1: { name: 'Alice', role: 'admin' } } } },
+  services: { data: 'mock' },
+}}
+```
+
+**Firebase for data + storage, Google for auth:**
+```tsx
+providers={{
+  firebase: { apiKey: '...', projectId: '...', /* see FirebaseConfig */ },
+  google:   { clientId: '...' },
+  services: { data: 'firebase', storage: 'firebase', auth: 'google' },
+}}
+```
+
+**Mixed backends — different service per backend:**
+```tsx
+providers={{
+  firebase: { /* ... */ },
+  supabase: { url: '...', anonKey: '...' },
+  google:   { clientId: '...' },
+  services: {
+    data:    import.meta.env.VITE_DATA_PROVIDER ?? 'mock',
+    storage: 'firebase',
+    auth:    'google',
+  },
+}}
+```
+
+**Custom data provider:**
+```tsx
+import { RestDataProvider } from './providers/RestDataProvider';
+
+providers={{
+  custom: { data: new RestDataProvider('https://api.myapp.com') },
+  services: { data: 'custom' },
+}}
+```
+
+---
+
+## `FirebaseConfig`
+
+All fields are required. Copy them from the Firebase console under **Project settings → Your apps → SDK setup and configuration → Config**.
+
+→ [Firebase docs: get config object](https://firebase.google.com/docs/web/setup#config-object)
+
+```ts
+interface FirebaseConfig {
+  apiKey:            string;  // 'AIzaSy...'
+  authDomain:        string;  // 'my-project.firebaseapp.com'
+  databaseURL:       string;  // 'https://my-project-default-rtdb.firebaseio.com'
+  projectId:         string;  // 'my-project'
+  storageBucket:     string;  // 'my-project.appspot.com'
+  messagingSenderId: string;  // '123456789'
+  appId:             string;  // '1:123456789:web:abc...'
+  measurementId:     string;  // 'G-XXXXXXX' (Analytics, optional but typed as required)
+}
+```
+
+In a Vite project, store these values in `.env.local` and read them via `import.meta.env`:
+
+```ts
+// src/conf/firebase.ts
+export const firebaseConfig: FirebaseConfig = {
+  apiKey:            import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain:        import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  databaseURL:       import.meta.env.VITE_FIREBASE_DATABASE_URL,
+  projectId:         import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket:     import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId:             import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId:     import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 ```
 
-## Provider Configuration
+---
 
-Use `providers` to declare available backends and choose which one powers each service:
+## `SupabaseProviderConfig`
+
+Copy the URL and anonymous key from the Supabase dashboard under **Project settings → API**.
+
+→ [Supabase docs: project API settings](https://supabase.com/dashboard/project/_/settings/api)
+
+```ts
+interface SupabaseProviderConfig {
+  url:      string;   // 'https://xyzabc.supabase.co'
+  anonKey:  string;   // 'eyJhbGci...' — safe to expose in the browser
+  bucket?:  string;   // Storage bucket name, default: 'public'
+}
+```
+
+```ts
+// src/conf/supabase.ts
+export const supabaseConfig: SupabaseProviderConfig = {
+  url:     import.meta.env.VITE_SUPABASE_URL,
+  anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+};
+```
+
+---
+
+## `GoogleOAuth2` — sign-in config
+
+The `clientId` comes from the Google Cloud Console under **APIs & Services → Credentials → OAuth 2.0 Client IDs**. Make sure `http://localhost:5173` (or your domain) is listed in **Authorised JavaScript origins**.
+
+→ [Google Cloud Console: credentials](https://console.cloud.google.com/apis/credentials)
+
+```ts
+interface GoogleOAuth2 {
+  clientId: string;  // '123456789-abc.apps.googleusercontent.com'
+  scope?:   string;  // space-separated OAuth scopes; default: 'email profile'
+}
+```
+
+```ts
+// src/conf/google.ts
+export const googleOAuth2: GoogleOAuth2 = {
+  clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+};
+```
+
+---
+
+## Standalone integrations
+
+These are not service slots and are not accessible via provider hooks. They are runtime configurations consumed directly by their respective utilities.
+
+### `AIConfig` — passed via `aiConfig` prop
+
+Multi-model AI integration. `AI.fetch`, `AI.json` and `AI.array` automatically use the first key that is set. You can configure multiple providers simultaneously — the utilities will pick the active one based on priority order.
+
+→ [AI integration](/docs/providers)
+
+```ts
+interface AIConfig {
+  geminiApiKey?:    string;  // Google AI Studio → aistudio.google.com/apikey
+  openaiApiKey?:    string;  // platform.openai.com → API keys
+  anthropicApiKey?: string;  // console.anthropic.com → API keys
+  deepSeekApiKey?:  string;  // platform.deepseek.com → API keys
+  mistralApiKey?:   string;  // console.mistral.ai → API keys
+}
+```
 
 ```tsx
 <App
-  menuConfig={menu}
-  LayoutDefault={AppLayout}
-  providers={{
-    firebase: {
-      config: firebaseConfig,
-    },
-    supabase: {
-      config: supabaseConfig,
-    },
-    google: {
-      oAuth2: googleOAuth2,
-    },
-    services: {
-      data: 'firebase',
-      storage: 'supabase',
-      auth: 'google',
-    },
+  aiConfig={{
+    geminiApiKey:   import.meta.env.VITE_GEMINI_API_KEY,
+    openaiApiKey:   import.meta.env.VITE_OPENAI_API_KEY,
   }}
-  iconProvider="lucide"
-  themeProvider="default"
-/>;
+/>
 ```
 
-Provider classes are created internally. Custom adapters remain available through `providers.custom`.
+### `DropboxConfig` — declared inside `providers.dropbox`
+
+Dropbox file access used by Dropbox-specific components and utilities. Does **not** power the `storage` service slot — `useStorageProvider()` will not return a Dropbox adapter.
+
+→ [Dropbox App Console](https://www.dropbox.com/developers/apps)
+
+```ts
+interface DropboxConfig {
+  clientId:  string;  // from Dropbox App Console → App key
+  rootPath:  string;  // base path inside the Dropbox folder, e.g. '/my-app'
+}
+```
+
+---
+
+## `MenuConfig`
+
+Defines routes and navigation simultaneously. `<App>` builds the React Router tree and the sidebar from this single source of truth.
+
+```ts
+type MenuConfig = {
+  [section: string]: MenuEntry[];
+  // e.g. { default: [...], docs: [...], admin: [...] }
+};
+
+interface MenuEntry {
+  path:       string;                    // route path, must be unique
+  title?:     string;                    // sidebar label
+  icon?:      string;                    // icon name passed to <Icon>
+  group?:     string;                    // sidebar section header
+  badge?:     string | number;           // badge next to label
+  page?:      React.ComponentType        // static component (always loaded)
+            | (() => Promise<{ default: React.ComponentType }>);  // dynamic import
+  layout?:    React.ComponentType;       // per-route layout override
+  children?:  MenuEntry[];              // nested entries → submenu
+}
+```
+
+See [Routing & menu](/docs/menu-config) for guards, active-link behaviour and advanced options.
+
+---
+
+## Reading config from environment
+
+Vite exposes `VITE_*` variables via `import.meta.env`. Centralise all runtime config in `src/conf/app.ts`:
+
+```ts
+// src/conf/app.ts
+import type { AppProvidersConfig } from 'react-firestrap';
+import { firebaseConfig } from './firebase';
+import { supabaseConfig } from './supabase';
+
+export const providers: AppProvidersConfig = {
+  firebase: firebaseConfig,
+  supabase: supabaseConfig,
+  google:   { clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID },
+  services: {
+    data:    import.meta.env.VITE_DATA_PROVIDER    ?? 'mock',
+    storage: import.meta.env.VITE_STORAGE_PROVIDER ?? 'firebase',
+    auth:    import.meta.env.VITE_AUTH_PROVIDER     ?? 'google',
+  },
+};
+```
+
+```
+# .env.local  — never commit this file
+VITE_DATA_PROVIDER=firebase
+VITE_FIREBASE_API_KEY=AIzaSy...
+VITE_FIREBASE_PROJECT_ID=my-project
+# … other keys
+```
+
+---
+
+## Accessing providers in components
+
+Once declared in `<App>`, every provider is available anywhere in the tree via hooks:
+
+```tsx
+import {
+  useDataProvider,
+  useStorageProvider,
+  useAuthProvider,
+  useEmailProvider,
+} from 'react-firestrap';
+
+const data    = useDataProvider();           // services.data provider
+const storage = useStorageProvider();        // null if storage not configured
+const auth    = useAuthProvider();
+
+// Named access — useful when multiple backends are registered
+const supabase = useDataProvider('supabase');
+const gmail    = useEmailProvider('gmail');  // null if not configured
+```
+
+See [Provider pattern](/docs/providers) for adapter interfaces and custom implementation.

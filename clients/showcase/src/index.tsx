@@ -36,22 +36,18 @@ root.render(
                 data: mockData,
             },
             firebase: {
-                config: {
-                    apiKey:            env.VITE_FIREBASE_APIKEY              ?? '',
-                    authDomain:        env.VITE_FIREBASE_AUTH_DOMAIN         ?? '',
-                    databaseURL:       env.VITE_FIREBASE_DATABASE_URL        ?? '',
-                    projectId:         env.VITE_FIREBASE_PROJECT_ID          ?? '',
-                    storageBucket:     env.VITE_FIREBASE_STORAGE_BUCKET      ?? '',
-                    messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID ?? '',
-                    appId:             env.VITE_FIREBASE_APP_ID              ?? '',
-                    measurementId:     env.VITE_FIREBASE_MEASUREMENT_ID      ?? '',
-                },
+                apiKey:            env.VITE_FIREBASE_APIKEY              ?? '',
+                authDomain:        env.VITE_FIREBASE_AUTH_DOMAIN         ?? '',
+                databaseURL:       env.VITE_FIREBASE_DATABASE_URL        ?? '',
+                projectId:         env.VITE_FIREBASE_PROJECT_ID          ?? '',
+                storageBucket:     env.VITE_FIREBASE_STORAGE_BUCKET      ?? '',
+                messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID ?? '',
+                appId:             env.VITE_FIREBASE_APP_ID              ?? '',
+                measurementId:     env.VITE_FIREBASE_MEASUREMENT_ID      ?? '',
             },
             google: {
-                oAuth2: {
-                    clientId: env.VITE_GOOGLE_CLIENT_ID ?? '',
-                    scope:    env.VITE_GOOGLE_SCOPE     ?? '',
-                },
+                clientId: env.VITE_GOOGLE_CLIENT_ID ?? '',
+                scope:    env.VITE_GOOGLE_SCOPE     ?? '',
             },
             services: {
                 data: 'mock',
@@ -60,7 +56,7 @@ root.render(
             },
         }}
         iconProvider="lucide"
-        themeProvider="default"
+        themeProvider={() => import('./conf/theme')}
         aiConfig={{
             geminiApiKey:    env.VITE_GEMINI_API_KEY,
             openaiApiKey:    env.VITE_OPENAI_API_KEY,

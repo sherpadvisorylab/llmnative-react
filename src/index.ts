@@ -43,8 +43,23 @@ export type {
     SocialHeadState,
     TwitterHeadState,
 } from './Head';
-export { useTheme, useThemeController, BUILT_IN_THEME_PRESETS } from './Theme';
-export type { AppThemeProviderConfig, Theme, ThemeController, ThemeMode, ThemePresetConfig } from './Theme';
+export { useTheme, useThemeController, BUILT_IN_THEME_PRESETS, BUILT_IN_PRESET_IDS } from './Theme';
+export type {
+    AppThemeProviderConfig,
+    BuiltInPresetId,
+    CardTheme,
+    ColorScale,
+    GalleryTheme,
+    MenuTheme,
+    ModalTheme,
+    TableTheme,
+    Theme,
+    ThemeConfig,
+    ThemeController,
+    ThemeMode,
+    ThemeModule,
+    ThemePresetConfig,
+} from './Theme';
 export { SignInButton, AuthButton, useAccessToken, getAccessToken } from './auth';
 export { useGlobalVars, getGlobalVars, setGlobalVars, removeGlobalVars} from './Global';
 

@@ -75,10 +75,15 @@ async function askInteractive(callback) {
             ? iconProviderInput.trim()
             : 'lucide';
 
-        const themeProviderInput = await question('Which theme preset? (default, flat, cyber; default: default) ');
-        const themeProvider = ['default', 'flat', 'cyber'].includes(themeProviderInput.trim())
-            ? themeProviderInput.trim()
+        const themeInput = await question('Which theme? (default, flat, cyber; default: default) ');
+        const theme = ['default', 'flat', 'cyber'].includes(themeInput.trim())
+            ? themeInput.trim()
             : 'default';
+
+        const templateInput = await question('Which app template? (blank, crm, admin, inventory, project; default: blank) ');
+        const template = ['blank', 'crm', 'admin', 'inventory', 'project'].includes(templateInput.trim())
+            ? templateInput.trim()
+            : 'blank';
 
         let hosting = 'n';
         const firebase = {};
@@ -105,7 +110,7 @@ async function askInteractive(callback) {
         }
 
         rl.close();
-        callback({ projectname, provider, iconProvider, themeProvider, hosting, firebase, supabase });
+        callback({ projectname, provider, iconProvider, theme, template, hosting, firebase, supabase });
     } catch (error) {
         rl.close();
         console.error('Error during interactive prompt:', error);
@@ -185,7 +190,7 @@ function createEnvFile(params) {
     const env = [
         `VITE_PROVIDER=${params.provider}`,
         `VITE_ICON_PROVIDER=${params.iconProvider}`,
-        `VITE_THEME_PROVIDER=${params.themeProvider}`,
+        `VITE_THEME=${params.theme}`,
         `VITE_FIREBASE_APIKEY=${params.firebase.apikey ?? ''}`,
         `VITE_FIREBASE_AUTH_DOMAIN=${params.firebase.authDomain ?? ''}`,
         `VITE_FIREBASE_DATABASE_URL=${params.firebase.dbUrl ?? ''}`,
@@ -246,132 +251,106 @@ service firebase.storage {
     `);
 }
 
+function copyDir(src, dest) {
+    if (!fs.existsSync(src)) return;
+    fs.readdirSync(src, { withFileTypes: true }).forEach((entry) => {
+        const srcPath = path.join(src, entry.name);
+        const destPath = path.join(dest, entry.name);
+        if (entry.isDirectory()) {
+            copyDir(srcPath, destPath);
+        } else {
+            ensureDir(path.dirname(destPath));
+            if (!fs.existsSync(destPath)) {
+                fs.copyFileSync(srcPath, destPath);
+                console.log(`Created file: ${destPath}`);
+            }
+        }
+    });
+}
+
+function substituteProjectName(filePath, projectname) {
+    const content = fs.readFileSync(filePath, 'utf8');
+    const updated = content.replace(/\[projectname\]/g, projectname);
+    if (updated !== content) fs.writeFileSync(filePath, updated);
+}
+
+function copyTemplateFiles(params) {
+    const sharedSrc  = path.resolve(__dirname, '../../templates/_shared');
+    const templateSrc = path.resolve(__dirname, `../../templates/${params.template}`);
+
+    // Copy shared layouts and sections
+    copyDir(path.join(sharedSrc, 'layouts'),  path.join(root, 'src/layouts'));
+    copyDir(path.join(sharedSrc, 'sections'), path.join(root, 'src/sections'));
+
+    // Copy template-specific files (pages, data, conf/menu.ts)
+    // layouts and sections from template override shared ones if present
+    copyDir(templateSrc, path.join(root, 'src'));
+
+    // Substitute [projectname] in copied files
+    ['src/layouts', 'src/sections', 'src/pages'].forEach((dir) => {
+        const absDir = path.join(root, dir);
+        if (!fs.existsSync(absDir)) return;
+        walkFiles(absDir, (file) => substituteProjectName(file, params.projectname));
+    });
+}
+
+function walkFiles(dir, fn) {
+    fs.readdirSync(dir, { withFileTypes: true }).forEach((entry) => {
+        const full = path.join(dir, entry.name);
+        if (entry.isDirectory()) walkFiles(full, fn);
+        else fn(full);
+    });
+}
+
 function createSourceFiles(params) {
+    copyTemplateFiles(params);
+
     ensureFile(path.join(root, 'src/vite-env.d.ts'), `
 /// <reference types="vite/client" />
     `);
 
     ensureFile(path.join(root, 'src/styles/globals.css'), `
-@import 'react-firestrap/dist/index.css';
+@import "tailwindcss";
+@import "react-firestrap/dist/index.css";
 
-html,
-body,
-#root {
+@theme inline {
+    --color-background:             hsl(var(--rf-background));
+    --color-foreground:             hsl(var(--rf-foreground));
+    --color-card:                   hsl(var(--rf-card));
+    --color-card-foreground:        hsl(var(--rf-card-foreground));
+    --color-popover:                hsl(var(--rf-popover));
+    --color-popover-foreground:     hsl(var(--rf-popover-foreground));
+    --color-primary:                hsl(var(--rf-primary));
+    --color-primary-foreground:     hsl(var(--rf-primary-foreground));
+    --color-secondary:              hsl(var(--rf-secondary));
+    --color-secondary-foreground:   hsl(var(--rf-secondary-foreground));
+    --color-muted:                  hsl(var(--rf-muted));
+    --color-muted-foreground:       hsl(var(--rf-muted-foreground));
+    --color-accent:                 hsl(var(--rf-accent));
+    --color-accent-foreground:      hsl(var(--rf-accent-foreground));
+    --color-destructive:            hsl(var(--rf-destructive));
+    --color-destructive-foreground: hsl(var(--rf-destructive-foreground));
+    --color-success:                hsl(var(--rf-success));
+    --color-success-foreground:     hsl(var(--rf-success-foreground));
+    --color-warning:                hsl(var(--rf-warning));
+    --color-warning-foreground:     hsl(var(--rf-warning-foreground));
+    --color-info:                   hsl(var(--rf-info));
+    --color-info-foreground:        hsl(var(--rf-info-foreground));
+    --color-border:                 hsl(var(--rf-border));
+    --color-input:                  hsl(var(--rf-input));
+    --color-ring:                   hsl(var(--rf-ring));
+    --radius: 0.5rem;
+}
+
+html, body, #root {
   min-height: 100%;
 }
 
 body {
   margin: 0;
-  background: hsl(var(--background));
-  color: hsl(var(--foreground));
-}
-    `);
-
-    ensureFile(path.join(root, 'src/components/PageHeader.tsx'), `
-import React from 'react';
-
-interface PageHeaderProps {
-  title: string;
-  description?: string;
-}
-
-export default function PageHeader({ title, description }: PageHeaderProps) {
-  return (
-    <header className="space-y-2">
-      <h1 className="text-2xl font-semibold tracking-normal">{title}</h1>
-      {description && <p className="max-w-2xl text-sm text-muted-foreground">{description}</p>}
-    </header>
-  );
-}
-    `);
-
-    ensureFile(path.join(root, 'src/components/EmptyState.tsx'), `
-import React from 'react';
-
-interface EmptyStateProps {
-  title: string;
-  description?: string;
-}
-
-export default function EmptyState({ title, description }: EmptyStateProps) {
-  return (
-    <div className="rounded-md border border-dashed p-6 text-center">
-      <p className="text-sm font-medium">{title}</p>
-      {description && <p className="mt-1 text-xs text-muted-foreground">{description}</p>}
-    </div>
-  );
-}
-    `);
-
-    ensureFile(path.join(root, 'src/data/mockData.ts'), `
-export const mockData = {
-  '/tasks': {
-    'task-1': { title: 'Review scaffold structure', status: 'done' },
-    'task-2': { title: 'Connect your first provider', status: 'next' },
-  },
-};
-    `);
-
-    ensureFile(path.join(root, 'src/sections/home/TasksSection.tsx'), `
-import React from 'react';
-import EmptyState from '../../components/EmptyState';
-import { mockData } from '../../data/mockData';
-
-export default function TasksSection() {
-  const tasks = Object.entries(mockData['/tasks']).map(([id, task]) => ({
-    id,
-    ...task,
-  }));
-
-  if (!tasks.length) {
-    return <EmptyState title="No tasks yet" description="Add your first dataset in src/data/mockData.ts." />;
-  }
-
-  return (
-    <section className="grid gap-3 md:grid-cols-2">
-      {tasks.map((task) => (
-        <article key={task.id} className="rounded-md border bg-card p-4">
-          <p className="text-sm font-medium">{task.title}</p>
-          <p className="mt-1 text-xs uppercase tracking-wider text-muted-foreground">{task.status}</p>
-        </article>
-      ))}
-    </section>
-  );
-}
-    `);
-
-    ensureFile(path.join(root, 'src/pages/home/HomePage.tsx'), `
-import React from 'react';
-import PageHeader from '../../components/PageHeader';
-import TasksSection from '../../sections/home/TasksSection';
-
-export default function HomePage() {
-  return (
-    <div className="mx-auto max-w-5xl space-y-8 px-6 py-10">
-      <PageHeader
-        title="Welcome to ${params.projectname}"
-        description="This Vite app was scaffolded with react-firestrap using App-managed theme, icon and provider configuration."
-      />
-      <TasksSection />
-    </div>
-  );
-}
-    `);
-
-    ensureFile(path.join(root, 'src/layouts/AppLayout.tsx'), `
-import React from 'react';
-
-export default function AppLayout({ children }: { children?: React.ReactNode }) {
-  return (
-    <div className="min-h-screen bg-background text-foreground">
-      <header className="border-b bg-card">
-        <div className="mx-auto flex h-14 max-w-5xl items-center px-6">
-          <span className="font-semibold">${params.projectname}</span>
-        </div>
-      </header>
-      <main>{children}</main>
-    </div>
-  );
+  font-family: var(--font-sans);
+  background-color: hsl(var(--rf-background));
+  color: hsl(var(--rf-foreground));
 }
     `);
 
@@ -379,19 +358,9 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 const env = import.meta.env;
 
 export const appConfig = {
-  provider: env.VITE_PROVIDER ?? '${params.provider}',
+  provider:     env.VITE_PROVIDER     ?? '${params.provider}',
   iconProvider: env.VITE_ICON_PROVIDER ?? '${params.iconProvider}',
-  themeProvider: env.VITE_THEME_PROVIDER ?? '${params.themeProvider}',
-};
-    `);
-
-    ensureFile(path.join(root, 'src/conf/menu.ts'), `
-import HomePage from '../pages/home/HomePage';
-
-export const menu = {
-  main: [
-    { path: '/', title: 'Home', page: HomePage },
-  ],
+  theme:        env.VITE_THEME        ?? '${params.theme}',
 };
     `);
 
@@ -401,7 +370,6 @@ import { createRoot } from 'react-dom/client';
 import { App } from 'react-firestrap';
 import './styles/globals.css';
 
-import AppLayout from './layouts/AppLayout';
 import { appConfig } from './conf/app';
 import { menu } from './conf/menu';
 import { mockData } from './data/mockData';
@@ -412,45 +380,37 @@ createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <App
       importPage={(pageSource) => import(/* @vite-ignore */ pageSource)}
-      LayoutDefault={AppLayout}
       menuConfig={menu}
       providers={{
-        default: appConfig.provider,
         mock: {
           data: mockData,
         },
         firebase: {
-          config: {
-            apiKey: env.VITE_FIREBASE_APIKEY ?? '',
-            authDomain: env.VITE_FIREBASE_AUTH_DOMAIN ?? '',
-            databaseURL: env.VITE_FIREBASE_DATABASE_URL ?? '',
-            projectId: env.VITE_FIREBASE_PROJECT_ID ?? '',
-            storageBucket: env.VITE_FIREBASE_STORAGE_BUCKET ?? '',
-            messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID ?? '',
-            appId: env.VITE_FIREBASE_APP_ID ?? '',
-            measurementId: env.VITE_FIREBASE_MEASUREMENT_ID ?? '',
-          },
+          apiKey:            env.VITE_FIREBASE_APIKEY ?? '',
+          authDomain:        env.VITE_FIREBASE_AUTH_DOMAIN ?? '',
+          databaseURL:       env.VITE_FIREBASE_DATABASE_URL ?? '',
+          projectId:         env.VITE_FIREBASE_PROJECT_ID ?? '',
+          storageBucket:     env.VITE_FIREBASE_STORAGE_BUCKET ?? '',
+          messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID ?? '',
+          appId:             env.VITE_FIREBASE_APP_ID ?? '',
+          measurementId:     env.VITE_FIREBASE_MEASUREMENT_ID ?? '',
         },
         supabase: {
-          config: {
-            url: env.VITE_SUPABASE_URL ?? '',
-            anonKey: env.VITE_SUPABASE_ANON_KEY ?? '',
-          },
+          url:     env.VITE_SUPABASE_URL ?? '',
+          anonKey: env.VITE_SUPABASE_ANON_KEY ?? '',
         },
         google: {
-          oAuth2: {
-            clientId: env.VITE_GOOGLE_CLIENT_ID ?? '',
-            scope: env.VITE_GOOGLE_SCOPE ?? '',
-          },
+          clientId: env.VITE_GOOGLE_CLIENT_ID ?? '',
+          scope:    env.VITE_GOOGLE_SCOPE ?? '',
         },
         services: {
-          data: appConfig.provider,
+          data:    appConfig.provider,
           storage: appConfig.provider === 'supabase' ? 'supabase' : 'firebase',
-          auth: appConfig.provider === 'firebase' ? 'firebase' : 'google',
+          auth:    appConfig.provider === 'firebase'  ? 'firebase' : 'google',
         },
       }}
       iconProvider={appConfig.iconProvider}
-      themeProvider={appConfig.themeProvider}
+      themeProvider={appConfig.theme}
     />
   </React.StrictMode>
 );
@@ -462,56 +422,53 @@ function scaffoldProject() {
     if (nonInteractive) {
         const defaultName = path.basename(root);
         const params = {
-            projectname: getArg('name', defaultName),
-            provider: getArg('provider', 'mock'),
+            projectname:  getArg('name', defaultName),
+            provider:     getArg('provider', 'mock'),
             iconProvider: getArg('icon-provider', 'lucide'),
-            themeProvider: getArg('theme-provider', 'default'),
-            hosting: getArg('hosting', 'n'),
+            theme:        getArg('theme', 'default'),
+            template:     getArg('template', 'blank'),
+            hosting:      getArg('hosting', 'n'),
             firebase: {
-                apikey: getArg('firebase-api-key'),
-                authDomain: getArg('firebase-auth-domain'),
-                dbUrl: getArg('firebase-database-url'),
-                projId: getArg('firebase-project-id'),
+                apikey:        getArg('firebase-api-key'),
+                authDomain:    getArg('firebase-auth-domain'),
+                dbUrl:         getArg('firebase-database-url'),
+                projId:        getArg('firebase-project-id'),
                 storageBucket: getArg('firebase-storage-bucket'),
-                messSenderId: getArg('firebase-messaging-sender-id'),
-                appId: getArg('firebase-app-id'),
+                messSenderId:  getArg('firebase-messaging-sender-id'),
+                appId:         getArg('firebase-app-id'),
                 measurementId: getArg('firebase-measurement-id'),
-                googleClientId: getArg('google-client-id'),
+                googleClientId:getArg('google-client-id'),
             },
             supabase: {
-                url: getArg('supabase-url'),
+                url:     getArg('supabase-url'),
                 anonKey: getArg('supabase-anon-key'),
             },
         };
 
-        if (shouldReset) {
-            resetProjectDirectory();
-        }
+        if (shouldReset) resetProjectDirectory();
 
-        console.log(`\nCreating Vite project structure for: ${params.projectname}`);
+        console.log(`\nCreating project: ${params.projectname} | theme: ${params.theme} | template: ${params.template}\n`);
         createPackageJson(params);
         createDevTools();
         createIndexHtml(params);
         createEnvFile(params);
         createFirebaseConfig(params);
         createSourceFiles(params);
-        console.log(`\nProject "${params.projectname}" created with Vite, ${params.provider}, ${params.iconProvider}, and ${params.themeProvider}.\n`);
+        console.log(`\nDone. Run: npm install && npm run dev\n`);
         return;
     }
 
     askInteractive((params) => {
-        if (shouldReset) {
-            resetProjectDirectory();
-        }
+        if (shouldReset) resetProjectDirectory();
 
-        console.log(`\nCreating Vite project structure for: ${params.projectname}`);
+        console.log(`\nCreating project: ${params.projectname} | theme: ${params.theme} | template: ${params.template}\n`);
         createPackageJson(params);
         createDevTools();
         createIndexHtml(params);
         createEnvFile(params);
         createFirebaseConfig(params);
         createSourceFiles(params);
-        console.log(`\nProject "${params.projectname}" created with Vite, ${params.provider}, ${params.iconProvider}, and ${params.themeProvider}.\n`);
+        console.log(`\nDone. Run: npm install && npm run dev\n`);
     });
 }
 

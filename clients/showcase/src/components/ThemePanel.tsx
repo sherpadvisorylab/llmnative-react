@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Modal, Icon, PhosphorIconProvider, useIconController, useThemeController } from 'react-firestrap';
-import type { PhosphorWeight } from 'react-firestrap';
+import type { PhosphorWeight, ColorScale } from 'react-firestrap';
 
 interface ThemePanelProps {
     open: boolean;
@@ -36,6 +36,43 @@ const ICON_LIBRARIES: { label: string; value: IconLibraryId; description: string
     { label: 'Phosphor', value: 'phosphor', description: 'Flexible weights, 1400+ icons' },
 ];
 
+interface StatusSwatch { value: string; fgValue: string; hex: string; }
+
+const STATUS_COLORS: { label: string; key: keyof ColorScale; fgKey: keyof ColorScale; swatches: StatusSwatch[] }[] = [
+    {
+        label: 'Success', key: 'success', fgKey: 'successForeground',
+        swatches: [
+            { value: '142.1 76.2% 36.3%', fgValue: '0 0% 100%', hex: '#16a34a' },
+            { value: '160 84% 39%',        fgValue: '0 0% 0%',   hex: '#10b981' },
+            { value: '84 55% 46%',         fgValue: '0 0% 100%', hex: '#65a30d' },
+        ],
+    },
+    {
+        label: 'Warning', key: 'warning', fgKey: 'warningForeground',
+        swatches: [
+            { value: '32.1 94.6% 43.7%', fgValue: '0 0% 100%', hex: '#d97706' },
+            { value: '24.6 95% 53.1%',   fgValue: '0 0% 100%', hex: '#f97316' },
+            { value: '45 96% 48%',       fgValue: '0 0% 0%',   hex: '#eab308' },
+        ],
+    },
+    {
+        label: 'Info', key: 'info', fgKey: 'infoForeground',
+        swatches: [
+            { value: '198.6 88.7% 48.4%', fgValue: '0 0% 100%', hex: '#0ea5e9' },
+            { value: '221.2 83.2% 53.3%', fgValue: '0 0% 100%', hex: '#3b82f6' },
+            { value: '262.1 83.3% 57.8%', fgValue: '0 0% 100%', hex: '#8b5cf6' },
+        ],
+    },
+    {
+        label: 'Danger', key: 'destructive', fgKey: 'destructiveForeground',
+        swatches: [
+            { value: '0 84.2% 60.2%',     fgValue: '0 0% 100%', hex: '#ef4444' },
+            { value: '346.8 77.2% 49.8%', fgValue: '0 0% 100%', hex: '#e11d48' },
+            { value: '0 72% 51%',         fgValue: '0 0% 100%', hex: '#dc2626' },
+        ],
+    },
+];
+
 const PHOSPHOR_WEIGHTS: { label: string; value: PhosphorWeight }[] = [
     { label: 'Thin',    value: 'thin' },
     { label: 'Light',   value: 'light' },
@@ -44,8 +81,32 @@ const PHOSPHOR_WEIGHTS: { label: string; value: PhosphorWeight }[] = [
     { label: 'Fill',    value: 'fill' },
 ];
 
+interface FontOption {
+    label: string;
+    fontSans: string;
+    fontMono: string;
+    google: boolean;
+}
+
+const FONT_OPTIONS: FontOption[] = [
+    { label: 'System',             fontSans: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", fontMono: "ui-monospace, 'SFMono-Regular', monospace",    google: false },
+    { label: 'Inter',              fontSans: "'Inter', sans-serif",               fontMono: "'JetBrains Mono', monospace",  google: true },
+    { label: 'Geist',              fontSans: "'Geist', sans-serif",               fontMono: "'Geist Mono', monospace",      google: true },
+    { label: 'Outfit',             fontSans: "'Outfit', sans-serif",              fontMono: "'JetBrains Mono', monospace",  google: true },
+    { label: 'Plus Jakarta Sans',  fontSans: "'Plus Jakarta Sans', sans-serif",   fontMono: "'Fira Code', monospace",       google: true },
+    { label: 'DM Sans',            fontSans: "'DM Sans', sans-serif",             fontMono: "'JetBrains Mono', monospace",  google: true },
+    { label: 'Nunito',             fontSans: "'Nunito', sans-serif",              fontMono: "'Fira Code', monospace",       google: true },
+    { label: 'Figtree',            fontSans: "'Figtree', sans-serif",             fontMono: "'Source Code Pro', monospace", google: true },
+    { label: 'Poppins',            fontSans: "'Poppins', sans-serif",             fontMono: "'Fira Code', monospace",       google: true },
+    { label: 'Montserrat',         fontSans: "'Montserrat', sans-serif",          fontMono: "'Source Code Pro', monospace", google: true },
+    { label: 'Raleway',            fontSans: "'Raleway', sans-serif",             fontMono: "'JetBrains Mono', monospace",  google: true },
+    { label: 'Open Sans',          fontSans: "'Open Sans', sans-serif",           fontMono: "'Source Code Pro', monospace", google: true },
+    { label: 'Lato',               fontSans: "'Lato', sans-serif",               fontMono: "'Fira Code', monospace",       google: true },
+    { label: 'Roboto',             fontSans: "'Roboto', sans-serif",              fontMono: "'Fira Code', monospace",       google: true },
+];
+
 export default function ThemePanel({ open, onClose }: ThemePanelProps) {
-    const { resolvedMode, primary, radius, preset, toggleMode, setPrimary, setRadius, applyPreset } = useThemeController();
+    const { resolvedMode, primary, radius, fontSans, preset, colors, toggleMode, setPrimary, setRadius, setFont, applyPreset, setTokens } = useThemeController();
     const { providerId, setProvider, registerProvider } = useIconController();
     const [copied, setCopied] = useState(false);
     const iconLibraryId = (providerId === 'phosphor' ? 'phosphor' : 'lucide') as IconLibraryId;
@@ -165,6 +226,75 @@ export default function ThemePanel({ open, onClose }: ThemePanelProps) {
                     <div className="flex justify-between text-xs text-muted-foreground mt-1">
                         <span>Sharp</span>
                         <span>Rounded</span>
+                    </div>
+                </div>
+
+                {/* Font */}
+                <div>
+                    <div className="flex items-center justify-between mb-3">
+                        <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                            Font
+                        </label>
+                        <a
+                            href="https://fonts.google.com"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-[10px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                            <Icon name="external-link" size={10} />
+                            Google Fonts
+                        </a>
+                    </div>
+                    {(() => {
+                        const active = FONT_OPTIONS.find((f) => f.fontSans === fontSans) ?? FONT_OPTIONS[0];
+                        return (
+                            <div className="space-y-2">
+                                <div className="relative">
+                                    <select
+                                        value={active.fontSans}
+                                        onChange={(e) => {
+                                            const f = FONT_OPTIONS.find((o) => o.fontSans === e.target.value);
+                                            if (f) setFont(f.fontSans, f.fontMono);
+                                        }}
+                                        className="w-full appearance-none rounded-md border border-border bg-background px-3 py-2 pr-8 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                                    >
+                                        {FONT_OPTIONS.map((f) => (
+                                            <option key={f.label} value={f.fontSans}>
+                                                {f.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <Icon name="chevron-down" size={14} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                                </div>
+                            </div>
+                        );
+                    })()}
+                </div>
+
+                {/* Status colors */}
+                <div>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 block">
+                        Status colors
+                    </label>
+                    <div className="space-y-2">
+                        {STATUS_COLORS.map(({ label, key, fgKey, swatches }) => (
+                            <div key={key} className="flex items-center gap-2">
+                                <span className="text-xs text-muted-foreground w-14 shrink-0">{label}</span>
+                                <div className="flex gap-1.5">
+                                    {swatches.map((s) => (
+                                        <button
+                                            key={s.hex}
+                                            onClick={() => setTokens({ [key]: s.value, [fgKey]: s.fgValue })}
+                                            title={`${label} — ${s.hex}`}
+                                            className={`w-6 h-6 rounded-full border-2 transition-transform hover:scale-110
+                                                ${colors?.[key] === s.value ? 'border-foreground scale-110' : 'border-transparent'}`}
+                                            style={{ backgroundColor: s.hex }}
+                                            aria-label={s.hex}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
 
