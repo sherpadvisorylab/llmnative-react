@@ -29,8 +29,8 @@ function Loader({
 
     return show ? (
         <Wrapper className={wrapClass || theme.Loader.wrapClass}>
-            <div className={"position-relative " + (className || theme.Loader.className)} style={{minHeight: "200px"}}>
-                <div className="position-absolute top-0 bottom-0 start-0 end-0"
+            <div className={"relative " + (className || theme.Loader.className)} style={{minHeight: "200px"}}>
+                <div className="absolute top-0 bottom-0 left-0 right-0"
                     style={{zIndex:10, backdropFilter: "blur(2px)", background:"rgba(255, 255, 255, 0.5)"}}>
                     {pre}
                     {(icon || title || description) && <div className="p-4 text-center position-sticky top-50">

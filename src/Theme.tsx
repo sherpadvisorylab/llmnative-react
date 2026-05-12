@@ -521,7 +521,7 @@ export const defaultTheme: Theme = {
     },
     Menu: {
         wrapClass: "offcanvas-body",
-        className: "navbar-nav flex-column mb-auto",
+        className: "navbar-nav flex-col mb-auto",
         headerClass: "",
         itemClass: "nav-item",
         linkClass: "nav-link",
@@ -529,7 +529,7 @@ export const defaultTheme: Theme = {
         textClass: "flex-grow-1",
         badgeClass: "ml-1",
         arrowClass: "",
-        submenuClass: "nav flex-column ml-4",
+        submenuClass: "nav flex-col ml-4",
     },
     Brand: {
         wrapClass: "",

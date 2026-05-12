@@ -11,7 +11,6 @@ import { base64ToUrl, render2Base64 } from "../../../libs/utils";
 import { PLACEHOLDER_IMAGE } from "../../../Theme";
 import Icon from "../Icon";
 import { FormFieldProps, FieldOnChange, useFormContext } from "../../widgets/Form";
-import { useStorageProvider } from "../../../providers/storage/StorageProviderContext";
 
 export interface FileProps {
     key: string;
@@ -26,15 +25,14 @@ export interface FileProps {
 
 const useFileUpload = <T extends FileProps>(
     name: string,
+    //value?: Array<T>,
     onChange?: FieldOnChange,
-    wrapClass?: string,
-    storagePath?: string
+    wrapClass?: string
 ) => {
     const { value, handleChange, formWrapClass } = useFormContext({name, onChange, wrapClass});
     const [files, setFiles] = useState<T[]>(value || []);
     const [currentFile, setCurrentFile] = useState<T | null>(null);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
-    const storageProvider = useStorageProvider();
     
     const updateFile = (key: string, updates: Partial<T>) => {
         setFiles(prev => {
@@ -98,15 +96,11 @@ const useFileUpload = <T extends FileProps>(
 
                 reader.onloadend = () => {
                     updateFile(newFile.key, { progress: 99 } as Partial<T>);
-                    const base64 = `data:${file.type};base64,${render2Base64(reader.result as ArrayBuffer)}`;
-                    setTimeout(async () => {
-                        if (storageProvider && storagePath) {
-                            const filePath = `${storagePath}/${file.name}`;
-                            const url = await storageProvider.upload(base64, filePath);
-                            updateFile(newFile.key, { progress: 100, base64, url: url ?? '' } as Partial<T>);
-                        } else {
-                            updateFile(newFile.key, { progress: 100, base64 } as Partial<T>);
-                        }
+                    setTimeout(() => {
+                        updateFile(newFile.key, {
+                            progress: 100,
+                            base64: `data:${file.type};base64,${render2Base64(reader.result as ArrayBuffer)}`
+                        } as Partial<T>);
                     }, 500);
                 };
 
@@ -140,7 +134,6 @@ export interface UploadDocumentProps extends FormFieldProps {
     multiple?: boolean;
     accept?: string;
     max?: number;
-    storagePath?: string;
 }
 
 export interface UploadImageProps extends UploadDocumentProps {
@@ -202,7 +195,7 @@ const FileInput = ({
                 ref={fileInputRef}
                 multiple={multiple}
                 required={required}
-                className="d-none"
+                className="hidden"
                 onChange={onChange}
             />
         </>
@@ -275,6 +268,7 @@ export const getFileUrl = (file: FileProps, suffix: string = "origin"): string =
 
 export const UploadDocument = ({
     name,
+    //value       = undefined,
     onChange    = undefined,
     label       = undefined,
     required    = false,
@@ -282,19 +276,18 @@ export const UploadDocument = ({
     multiple    = false,
     max         = 100,
     accept      = ".pdf,.doc,.docx,.txt,.iso",
-    storagePath = undefined,
     pre         = undefined,
     post        = undefined,
     wrapClass   = undefined,
     className   = undefined,
 }: UploadDocumentProps) => {
-    const { files, currentFile, fileInputRef, formWrapClass, handleUploadChange, handleUpload, handleRemove, handleSave, handleEdit, handleClose } = useFileUpload<FileProps>(name, onChange, wrapClass, storagePath);
+    const { files, currentFile, fileInputRef, formWrapClass, handleUploadChange, handleUpload, handleRemove, handleSave, handleEdit, handleClose } = useFileUpload<FileProps>(name, onChange, wrapClass);
 
     return (
         <Wrapper className={formWrapClass}>
             {pre}
             <div className={className}>
-                <div className={`d-flex align-items-center ${label ? 'justify-content-between' : 'justify-content-end'}`} >
+                <div className={`flex items-center ${label ? 'justify-between' : 'justify-end'}`} >
                     {label && <Label label={label} required={required} />}
                     {isUploadable(files, max, multiple) && <FileInput
                         name={name}
@@ -346,6 +339,7 @@ export const UploadDocument = ({
 
 export const UploadImage = ({
     name,
+    //value           = undefined,
     onChange        = undefined,
     label           = undefined,
     editable        = false,
@@ -355,13 +349,12 @@ export const UploadImage = ({
     max             = 100,
     previewHeight   = 100,
     previewWidth    = 100,
-    storagePath     = undefined,
     pre             = undefined,
     post            = undefined,
     wrapClass       = undefined,
     className       = undefined,
 }: UploadImageProps) => {
-    const { files, currentFile, fileInputRef, formWrapClass, handleUploadChange, handleUpload, handleRemove, handleSave, handleEdit, handleClose } = useFileUpload<FileProps>(name, onChange, wrapClass, storagePath);
+    const { files, currentFile, fileInputRef, formWrapClass, handleUploadChange, handleUpload, handleRemove, handleSave, handleEdit, handleClose } = useFileUpload<FileProps>(name, onChange, wrapClass);
 
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
@@ -381,11 +374,11 @@ export const UploadImage = ({
             {pre}
             <Wrapper className={className}>
                 {label && <Label label={label} required={required} />}
-                <div className="d-flex gap-2 flex-wrap">
+                <div className="flex gap-2 flex-wrap">
                     {files.map((img, i) => (
                         <div
                             key={i}
-                            className="position-relative overflow-hidden"
+                            className="relative overflow-hidden"
                             style={{ width: previewHeight, height: previewWidth }}
                             onMouseEnter={() => setHoveredIndex(i)}
                             onMouseLeave={() => setHoveredIndex(null)}
@@ -395,15 +388,15 @@ export const UploadImage = ({
                                     <img
                                         src={getFileUrl(img)}
                                         alt={`preview-${i}`}
-                                        className="img-thumbnail h-100 w-100"
+                                        className="img-thumbnail h-full w-full"
                                     />
                                     
                                     
-                                    <div className="bg-dark opacity-75 position-absolute top-0 start-0 bottom-0 end-0 justify-content-end align-items-start" style={{ display: hoveredIndex === i ? "flex" : "none" }}>
+                                    <div className="bg-dark opacity-75 absolute top-0 left-0 bottom-0 right-0 justify-end items-start" style={{ display: hoveredIndex === i ? "flex" : "none" }}>
                                         <a href={getFileUrl(img)} target="_blank" className="p-1 text-white" rel="noopener noreferrer"><Icon name="eye" /></a>
                                         {editable && <ActionButton onClick={() => handleEdit(i)} icon='pencil' className="p-1" />}
                                         <ActionButton onClick={() => handleRemove(img.key)} icon='x' className="p-1" />
-                                        {editable && <div className="position-absolute bottom-0 start-0 w-100 p-1 d-flex align-items-center justify-content-between">
+                                        {editable && <div className="absolute bottom-0 left-0 w-full p-1 flex items-center justify-between">
                                             <ScaleBadge scales={img.variants} />
                                         </div>}
                                     </div>

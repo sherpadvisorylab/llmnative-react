@@ -460,7 +460,7 @@ export const DropBoxConnectButton = (options: IButton = {}): React.ReactElement 
         return (
             <div
                 title={`DropBox: configurazione mancante. Recupera il "Client ID" accedendo a https://www.dropbox.com/developers, vai su "App Console", seleziona un'app esistente o chiedi il Client ID a chi ha configurato il sistema.`}
-                className="text-danger d-flex align-items-center gap-2"
+                className="text-danger flex items-center gap-2"
             >
                 <i className={theme.getIcon("warning")} />
                 <span>Dropbox non configurato</span>

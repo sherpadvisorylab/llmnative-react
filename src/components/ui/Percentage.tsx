@@ -2,6 +2,7 @@ import React from "react";
 import { Label, UIProps } from '../..';
 import { useTheme } from "../../Theme";
 import { Wrapper } from "./GridSystem";
+import { cn } from "../../libs/cn";
 
 type ColorType = "info" | "success" | "warning" | "danger" | "primary" | "secondary" | "light" | "dark";
 type ShapeType = "bar" | "circle";
@@ -32,6 +33,31 @@ interface PercentageProps extends UIProps {
   label?: string;
 }
 
+const colorToken: Record<ColorType, string> = {
+  primary: "primary",
+  secondary: "secondary",
+  success: "success",
+  warning: "warning",
+  danger: "destructive",
+  info: "info",
+  light: "muted",
+  dark: "foreground",
+};
+
+const foregroundToken: Record<ColorType, string> = {
+  primary: "primary-foreground",
+  secondary: "secondary-foreground",
+  success: "success-foreground",
+  warning: "warning-foreground",
+  danger: "destructive-foreground",
+  info: "info-foreground",
+  light: "muted-foreground",
+  dark: "background",
+};
+
+const hsl = (token: string, alpha?: number) =>
+  `hsl(var(--rf-${token})${alpha === undefined ? "" : ` / ${alpha}`})`;
+
 const PercentageBar: React.FC<PercentageBarProps> = ({ 
   progress, 
   type,  
@@ -42,25 +68,36 @@ const PercentageBar: React.FC<PercentageBarProps> = ({
   fontSize,
   className
 }) => {
+  const trackColor = hsl(colorToken[background], background === "secondary" || background === "light" ? 0.55 : 0.16);
+  const fillColor = hsl(colorToken[type]);
+  const textColor = progress >= 12 ? hsl(foregroundToken[type]) : hsl("foreground");
+
   return (
     <div 
-      className={`progress ${className}`} 
+      className={cn("relative overflow-hidden rounded-full border border-border shadow-sm", className)}
       style={{ 
         height: `${thickness}px`,
         width: `${size}%`,
-        backgroundColor: `var(--bs-${background})`
+        minWidth: size < 100 ? 120 : undefined,
+        backgroundColor: trackColor,
       }}
+      role="progressbar"
+      aria-valuenow={progress}
+      aria-valuemin={0}
+      aria-valuemax={100}
     >
       <div
-        className={`progress-bar bg-${type}`}
-        role="progressbar"
-        style={{ width: `${progress}%`, fontSize: `${fontSize}px` }}
-        aria-valuenow={progress}
-        aria-valuemin={0}
-        aria-valuemax={100}
-      >
-        {showText && `${progress}%`}
-      </div>
+        className="h-full rounded-full transition-all duration-300"
+        style={{ width: `${progress}%`, backgroundColor: fillColor }}
+      />
+      {showText && (
+        <span
+          className="pointer-events-none absolute inset-0 flex items-center justify-center font-medium tabular-nums"
+          style={{ fontSize: `${fontSize}px`, color: textColor }}
+        >
+          {progress}%
+        </span>
+      )}
     </div>
   );
 };
@@ -80,31 +117,42 @@ const PercentageCircle: React.FC<PercentageBarProps> = ({
   const circumference = 2 * Math.PI * normalizedRadius;
   const strokeDashoffset = circumference * ((100 - progress) / 100);
   const startAngle = -90;
+  const trackColor = hsl(colorToken[background], background === "secondary" || background === "light" ? 0.55 : 0.18);
+  const fillColor = hsl(colorToken[type]);
+  const textColor = hsl("foreground");
 
   return (
-    <span className={className}>
-      <svg width={size} height={size}>
-        {/* Background circle */}
+    <span
+      className={cn("inline-flex items-center justify-center", className)}
+      role="progressbar"
+      aria-valuenow={progress}
+      aria-valuemin={0}
+      aria-valuemax={100}
+    >
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
         <circle
           r={normalizedRadius}
           cx={radius}
           cy={radius}
           fill="none"
-          className="opacity-25"
-          stroke={`var(--bs-${background})`}
+          stroke={trackColor}
           strokeWidth={thickness}
         />
-        {/* Progress circle */}
         <circle
           r={normalizedRadius}
           cx={radius}
           cy={radius}
           fill="none"
-          stroke={`var(--bs-${type})`}
+          stroke={fillColor}
           strokeWidth={thickness}
+          strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset}
-          style={{ transform: `rotate(${startAngle}deg)`, transformOrigin: 'center' }}
+          style={{
+            transform: `rotate(${startAngle}deg)`,
+            transformOrigin: 'center',
+            transition: 'stroke-dashoffset 300ms ease',
+          }}
         />
         {showText && (
           <text
@@ -112,9 +160,9 @@ const PercentageCircle: React.FC<PercentageBarProps> = ({
             y="50%"
             textAnchor="middle"
             dominantBaseline="middle"
-            className="fw-bold"
+            fontWeight={700}
             fontSize={fontSize}
-            fill={`var(--bs-${background})`}
+            fill={textColor}
           >
             {`${progress}%`}
           </text>
@@ -142,7 +190,8 @@ const Percentage = ({
   className = undefined
 }: PercentageProps) => {
   const theme = useTheme("percentage");
-  const progress = Math.round(Math.max(0, Math.min(100, ((val - min) / (max - min)) * 100)));
+  const range = max - min;
+  const progress = range <= 0 ? 0 : Math.round(Math.max(0, Math.min(100, ((val - min) / range) * 100)));
   const finalClassName = className || theme.Percentage?.className || '';
 
   return (

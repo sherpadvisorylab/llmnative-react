@@ -1,10 +1,64 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Form, UploadCSV, UploadDocument, UploadImage } from 'react-firestrap';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
+import PropsTable from '../../components/PropsTable';
+import { usePlayground } from '../../context/PlaygroundContext';
+import type { PropDef, PlaygroundConfig } from '../../types/playground';
+
+const UPLOAD_IMAGE_PROPS: PropDef[] = [
+    { name: 'name', type: 'string', required: true, description: 'Field name in the form record' },
+    { name: 'label', type: 'string', description: 'Label above the upload area', control: 'text' },
+    { name: 'multiple', type: 'boolean', default: 'false', description: 'Allow multiple file selection', control: 'boolean' },
+    { name: 'editable', type: 'boolean', default: 'false', description: 'Show crop/edit button after upload', control: 'boolean' },
+    { name: 'previewWidth', type: 'number', description: 'Thumbnail width in pixels', control: 'number', min: 32, max: 512, step: 8 },
+    { name: 'previewHeight', type: 'number', description: 'Thumbnail height in pixels', control: 'number', min: 32, max: 512, step: 8 },
+    { name: 'storagePath', type: 'string', description: 'Storage provider path for cloud upload' },
+    { name: 'accept', type: 'string', description: 'Accepted MIME types (e.g. "image/png,image/jpeg")' },
+    { name: 'disabled', type: 'boolean', default: 'false', description: 'Disable the upload field', control: 'boolean' },
+];
+
+const UPLOAD_DOCUMENT_PROPS: PropDef[] = [
+    { name: 'name', type: 'string', required: true, description: 'Field name in the form record' },
+    { name: 'label', type: 'string', description: 'Label above the upload area' },
+    { name: 'multiple', type: 'boolean', default: 'false', description: 'Allow multiple file selection' },
+    { name: 'editable', type: 'boolean', default: 'false', description: 'Allow removing uploaded files' },
+    { name: 'accept', type: 'string', description: 'Accepted file extensions (e.g. ".pdf,.docx")' },
+    { name: 'storagePath', type: 'string', description: 'Storage provider path for cloud upload' },
+    { name: 'disabled', type: 'boolean', default: 'false', description: 'Disable the upload field' },
+];
+
+const UPLOAD_CSV_PROPS: PropDef[] = [
+    { name: 'name', type: 'string', required: true, description: 'Field name' },
+    { name: 'label', type: 'string', description: 'Drop zone label text' },
+    { name: 'normalizeKeys', type: 'boolean', default: 'false', description: 'Convert header keys to camelCase' },
+    { name: 'removeEmptyFields', type: 'boolean', default: 'false', description: 'Strip fields with empty/null values' },
+    { name: 'onDataLoaded', type: '(result: { data: any[]; fields: string[] }) => void', description: 'Callback fired after CSV is parsed' },
+];
+
+const PLAYGROUND: PlaygroundConfig = {
+    size: 'lg',
+    showFormRecord: true,
+    props: UPLOAD_IMAGE_PROPS,
+    defaultProps: { label: 'Images', multiple: true, editable: true, previewWidth: 112, previewHeight: 112, disabled: false },
+    render: (p, onValuesChange) => (
+        <Form aspect="empty" onChange={onValuesChange}>
+            <UploadImage
+                name="images"
+                label={p.label}
+                multiple={p.multiple}
+                editable={p.editable}
+                previewWidth={p.previewWidth}
+                previewHeight={p.previewHeight}
+                disabled={p.disabled}
+            />
+        </Form>
+    ),
+};
 
 export default function UploadPage() {
-    const [csvInfo, setCsvInfo] = React.useState<{ rows: number; fields: string[] } | null>(null);
+    usePlayground(PLAYGROUND, 'Upload');
+    const [csvInfo, setCsvInfo] = useState<{ rows: number; fields: string[] } | null>(null);
 
     return (
         <PageLayout
@@ -16,7 +70,7 @@ export default function UploadPage() {
                 description="Reads image files locally and stores the generated metadata in the Form record. Enable editable to open the crop editor after upload."
                 preview={
                     <div className="w-full max-w-xl">
-                        <Form defaultValues={{}}>
+                        <Form aspect="empty">
                             <UploadImage
                                 name="images"
                                 label="Gallery"
@@ -30,7 +84,7 @@ export default function UploadPage() {
                 }
                 code={`import { Form, UploadImage } from 'react-firestrap';
 
-<Form defaultValues={{}}>
+<Form>
   <UploadImage
     name="images"
     label="Gallery"
@@ -47,7 +101,7 @@ export default function UploadPage() {
                 description="Accepts documents and shows file name, size and progress. Without storagePath it keeps the file as local base64 data."
                 preview={
                     <div className="w-full max-w-2xl">
-                        <Form defaultValues={{}}>
+                        <Form aspect="empty">
                             <UploadDocument
                                 name="documents"
                                 label="Attachments"
@@ -60,7 +114,7 @@ export default function UploadPage() {
                 }
                 code={`import { Form, UploadDocument } from 'react-firestrap';
 
-<Form defaultValues={{}}>
+<Form>
   <UploadDocument
     name="documents"
     label="Attachments"
@@ -123,7 +177,7 @@ export default function UploadPage() {
   }}
 />
 
-<Form defaultValues={{}}>
+<Form>
   <UploadImage
     name="cover"
     label="Cover"
@@ -131,6 +185,11 @@ export default function UploadPage() {
   />
 </Form>`}
             />
+
+            <PropsTable props={UPLOAD_IMAGE_PROPS} title="UploadImage props" />
+            <PropsTable props={UPLOAD_DOCUMENT_PROPS} title="UploadDocument props" />
+            <PropsTable props={UPLOAD_CSV_PROPS} title="UploadCSV props" />
+
         </PageLayout>
     );
 }

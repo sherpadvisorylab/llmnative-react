@@ -12,7 +12,7 @@ import Badge from "../components/ui/Badge";
 import Notifications from "../components/blocks/Notifications";
 import Search from "../components/blocks/Search";
 import Form from "../components/widgets/Form";
-import TabDynamic from "../components/ui/TabDynamic";
+import TabDynamic from "../components/widgets/TabDynamic";
 import Tab, { TabItem } from "../components/ui/Tab";
 import Table from "../components/ui/Table";
 import Brand from "../components/blocks/Brand";
@@ -449,8 +449,6 @@ function Helper() {
                             label="Action Button"
                             icon="box-arrow-up-right"
                             title="Apri finestra"
-                            toggle="modal"
-                            target="#myModal"
                             onClick={() => console.log("Azione eseguita!")}
                           />
                         </Col>

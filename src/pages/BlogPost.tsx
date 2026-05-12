@@ -178,7 +178,7 @@ export default function BlogPost({
     <>
       <h1>Create Blog Post</h1>
       <Form>
-          <div className='d-flex flex-column gap-2 mb-3'>
+          <div className='flex flex-col gap-2 mb-3'>
             <Select
               name='lang'
               pre='Language'
@@ -213,7 +213,7 @@ export default function BlogPost({
           </div>
 
           {post.title && (
-            <div className='d-flex justify-content-end my-3'>
+            <div className='flex justify-end my-3'>
               <ActionButton label='refresh' onClick={() => resetPost('all')} />
             </div>
           )}

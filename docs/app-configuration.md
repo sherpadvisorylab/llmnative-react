@@ -92,13 +92,13 @@ interface AppProps {
 
 ## Service map
 
-react-firestrap has four **service slots** — each represents a capability the framework needs. You choose which backend powers each slot via `services`. A backend that is declared but not assigned to any slot is instantiated but not used as the default.
+react-firestrap has four **service slots** — each represents a capability the framework needs. You choose which driver powers each slot via `services`. A provider that is declared but whose drivers are not assigned to any slot is still instantiated but not used as the default.
 
-| Service slot | What it does | Available providers |
+| Service slot | What it does | Built-in drivers |
 |---|---|---|
-| `data` | Read/write records — used by `Grid`, `Form`, `useDataProvider` | `firebase` · `supabase` · `mock` · custom |
-| `storage` | File upload/download — used by `Upload`, `useStorageProvider` | `firebase` · `supabase` · custom |
-| `auth` | Sign-in / sign-out / current user — used by `SignIn`, `useAuthProvider` | `google` · custom |
+| `data` | Read/write records — used by `Grid`, `Form`, `useDataProvider` | `dbRealtime` · `supabaseDb` · `mock` · custom |
+| `storage` | File upload/download — used by `Upload`, `useStorageProvider` | `firestorage` · `supabaseStorage` · custom |
+| `auth` | Sign-in / sign-out / current user — used by `SignIn`, `useAuthProvider` | `googleAuth` · custom |
 | `email` | Outbound email — used by `useEmailProvider` | `gmail` · custom |
 
 Standalone integrations (`ai`, `dropbox`) are **not** service slots — they are runtime configurations consumed directly by their respective utilities, not by the provider hooks.
@@ -113,28 +113,26 @@ Declares all backends and routes each service slot to a specific backend. Only t
 
 ```ts
 interface AppProvidersConfig {
-  // ── Routed backends (power the four service slots) ────────────
+  // ── Provider configs — each key activates a provider's drivers ────
 
-  /** Firebase Realtime Database + Storage + Auth. See FirebaseConfig below. */
+  /** Firebase — activates drivers: dbRealtime (data), firestorage (storage). */
   firebase?: FirebaseConfig;
 
-  /** Supabase PostgreSQL + Storage. See SupabaseProviderConfig below. */
+  /** Supabase — activates drivers: supabaseDb (data), supabaseStorage (storage). */
   supabase?: SupabaseProviderConfig;
 
-  /** Google OAuth2 sign-in + optional server-side API access. */
+  /**
+   * Google — activates drivers: googleAuth (auth), gmail (email).
+   * Both drivers share this single config object.
+   */
   google?: {
-    clientId:          string;   // required for sign-in
-    scope?:            string;   // OAuth scopes, space-separated
-    serviceAccount?:   GoogleServiceAccount;  // backend API access only
-    developerToken?:   string;   // Google Ads API only
+    clientId:         string;   // required for sign-in
+    scope?:           string;   // OAuth scopes, space-separated
+    serviceAccount?:  GoogleServiceAccount;  // backend API access only
+    developerToken?:  string;   // Google Ads API only
   };
 
-  /** Gmail outbound email via the Gmail API. */
-  gmail?: {
-    enabled?: boolean;
-  };
-
-  /** In-memory mock. Data is static and resets on reload. No credentials needed. */
+  /** In-memory mock — activates driver: mock (data). Resets on reload. No credentials needed. */
   mock?: {
     data?: Record<string, Record<string, object>>;
     // { '/users': { u1: { name: 'Alice' } }, '/posts': { ... } }
@@ -154,14 +152,20 @@ interface AppProvidersConfig {
   };
 
   /**
-   * Routes each service slot to a registered backend by name.
-   * Omit a slot to leave it unconfigured — its hook will return null.
+   * Routes each service slot to a specific driver by name.
+   * Omit a slot to leave it unconfigured — its hook returns null.
+   *
+   * Built-in driver names:
+   *   data:    'dbRealtime' | 'supabaseDb' | 'mock'
+   *   storage: 'firestorage' | 'supabaseStorage'
+   *   auth:    'googleAuth'
+   *   email:   'gmail'
    */
   services?: {
-    data?:    'firebase' | 'supabase' | 'mock' | string;
-    storage?: 'firebase' | 'supabase' | string;
-    auth?:    'google'   | string;
-    email?:   'gmail'    | string;
+    data?:    'dbRealtime' | 'supabaseDb' | 'mock' | string;
+    storage?: 'firestorage' | 'supabaseStorage' | string;
+    auth?:    'googleAuth' | string;
+    email?:   'gmail' | string;
   };
 
   // ── Standalone integrations (not service slots) ────────────────
@@ -192,7 +196,16 @@ providers={{
 providers={{
   firebase: { apiKey: '...', projectId: '...', /* see FirebaseConfig */ },
   google:   { clientId: '...' },
-  services: { data: 'firebase', storage: 'firebase', auth: 'google' },
+  services: { data: 'dbRealtime', storage: 'firestorage', auth: 'googleAuth' },
+}}
+```
+
+**Firebase + Google auth + Gmail email:**
+```tsx
+providers={{
+  firebase: firebaseConfig,
+  google:   { clientId: '...' },   // gmail driver shares the same google config
+  services: { data: 'dbRealtime', storage: 'firestorage', auth: 'googleAuth', email: 'gmail' },
 }}
 ```
 
@@ -203,9 +216,9 @@ providers={{
   supabase: { url: '...', anonKey: '...' },
   google:   { clientId: '...' },
   services: {
-    data:    import.meta.env.VITE_DATA_PROVIDER ?? 'mock',
-    storage: 'firebase',
-    auth:    'google',
+    data:    import.meta.env.VITE_DATA_PROVIDER ?? 'mock',  // 'mock' | 'dbRealtime' | 'supabaseDb'
+    storage: 'firestorage',
+    auth:    'googleAuth',
   },
 }}
 ```
@@ -391,9 +404,9 @@ export const providers: AppProvidersConfig = {
   supabase: supabaseConfig,
   google:   { clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID },
   services: {
-    data:    import.meta.env.VITE_DATA_PROVIDER    ?? 'mock',
-    storage: import.meta.env.VITE_STORAGE_PROVIDER ?? 'firebase',
-    auth:    import.meta.env.VITE_AUTH_PROVIDER     ?? 'google',
+    data:    import.meta.env.VITE_DATA_PROVIDER    ?? 'mock',       // 'mock' | 'dbRealtime' | 'supabaseDb'
+    storage: import.meta.env.VITE_STORAGE_PROVIDER ?? 'firestorage', // 'firestorage' | 'supabaseStorage'
+    auth:    import.meta.env.VITE_AUTH_PROVIDER     ?? 'googleAuth',
   },
 };
 ```
@@ -424,8 +437,8 @@ const data    = useDataProvider();           // services.data provider
 const storage = useStorageProvider();        // null if storage not configured
 const auth    = useAuthProvider();
 
-// Named access — useful when multiple backends are registered
-const supabase = useDataProvider('supabase');
+// Named access by driver name — useful when multiple backends are registered
+const supabase = useDataProvider('supabaseDb');
 const gmail    = useEmailProvider('gmail');  // null if not configured
 ```
 

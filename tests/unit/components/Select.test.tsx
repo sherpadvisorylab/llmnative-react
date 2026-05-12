@@ -93,4 +93,23 @@ describe('Checklist', () => {
         expect(screen.getByLabelText('Admin')).toBeChecked();
         expect(screen.getByLabelText('Editor')).not.toBeChecked();
     });
+
+    it('scopes checkbox ids per component instance even when names match', () => {
+        renderWithProviders(
+            <div>
+                <Form defaultValues={{ tags: ['admin'] }}>
+                    <Checklist name="tags" label="First tags" options={OPTIONS} />
+                </Form>
+                <Form defaultValues={{ tags: ['editor'] }}>
+                    <Checklist name="tags" label="Second tags" options={OPTIONS} />
+                </Form>
+            </div>
+        );
+
+        const adminCheckboxes = screen.getAllByRole('checkbox', { name: 'Admin' });
+        expect(adminCheckboxes).toHaveLength(2);
+        expect(adminCheckboxes[0]).toHaveAttribute('id');
+        expect(adminCheckboxes[1]).toHaveAttribute('id');
+        expect(adminCheckboxes[0].id).not.toBe(adminCheckboxes[1].id);
+    });
 });

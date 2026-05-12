@@ -29,7 +29,7 @@ function Notifications({
               toggleButton={{
                 icon: "bell",
               }}
-              className={"d-flex align-items-center " + theme.Notifications.Dropdown.className}
+              className={"flex items-center " + theme.Notifications.Dropdown.className}
               buttonClass={"fs-20px " + theme.Notifications.Dropdown.buttonClass}
               menuClass={theme.Notifications.Dropdown.menuClass}
               badge={badge}
@@ -48,11 +48,11 @@ function Notifications({
                           <div className={iconClass}>
                               <i className={`${theme.getIcon(notify.icon)} text-theme`}/>
                           </div>
-                          <div className="flex-1 flex-wrap ps-3">
+                          <div className="flex-1 flex-wrap pl-3">
                               <div className="mb-1 text-white">{notify.title}</div>
                               <div className="small">{notify.time}</div>
                           </div>
-                          <div className="ps-2 fs-16px">
+                          <div className="pl-2 fs-16px">
                               <i className={theme.getIcon("chevron-right")}/>
                           </div>
                       </DropdownItem>

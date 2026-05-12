@@ -225,7 +225,7 @@ const ImageEditor = ({
     }
 
     window.document.body.style.overflow = 'hidden';
-    const Controls = <div className={"d-flex border-bottom"}>
+    const Controls = <div className={"flex border-b"}>
         <div className={"border-end"}>
             <button className={"btn"} title="Undo" onClick={(e) => handleStartDrawingMode(e, 'UNDO')}>
                 <i className={theme.getIcon("arrow-arc-left")}></i>
@@ -274,14 +274,14 @@ const ImageEditor = ({
                 <i className={theme.getIcon("triangle")}></i>
             </button>
         </div>
-        {onSave && <div className={"ms-auto"}>
+        {onSave && <div className={"ml-auto"}>
             <LoadingButton className={"btn-primary"} onClick={handleSave} icon={"floppy-disk"} label={"Save"} />
         </div>}
     </div>;
 
     const Editor =
         <div ref={rootEl}
-             className={"d-flex justify-content-center"}
+             className={"flex justify-center"}
              style={{
                  transform: `scale(${zoom})`,
                  transformOrigin: 'top center',

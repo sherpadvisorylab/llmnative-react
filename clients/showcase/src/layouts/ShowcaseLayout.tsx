@@ -3,10 +3,13 @@ import { useLocation } from 'react-router-dom';
 import Topbar from '../components/Topbar';
 import Sidebar from '../components/Sidebar';
 import ThemePanel from '../components/ThemePanel';
+import PlaygroundDrawer from '../components/PlaygroundDrawer';
+import { PlaygroundProvider, usePlaygroundContext } from '../context/PlaygroundContext';
 
-export default function ShowcaseLayout({ children }: { children?: React.ReactNode }) {
+function LayoutInner({ children }: { children?: React.ReactNode }) {
     const [themePanelOpen, setThemePanelOpen] = useState(false);
     const { pathname } = useLocation();
+    const { config, title, open, closePlayground } = usePlaygroundContext();
 
     useEffect(() => {
         window.scrollTo({ top: 0, behavior: 'instant' });
@@ -25,6 +28,22 @@ export default function ShowcaseLayout({ children }: { children?: React.ReactNod
                 open={themePanelOpen}
                 onClose={() => setThemePanelOpen(false)}
             />
+            {config && (
+                <PlaygroundDrawer
+                    title={title}
+                    config={config}
+                    open={open}
+                    onClose={closePlayground}
+                />
+            )}
         </div>
+    );
+}
+
+export default function ShowcaseLayout({ children }: { children?: React.ReactNode }) {
+    return (
+        <PlaygroundProvider>
+            <LayoutInner>{children}</LayoutInner>
+        </PlaygroundProvider>
     );
 }

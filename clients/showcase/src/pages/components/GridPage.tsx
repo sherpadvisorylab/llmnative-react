@@ -1,7 +1,10 @@
 import React from 'react';
-import { Grid, Badge, MockDataProvider, DataProviderAdapter } from 'react-firestrap';
+import { Grid, Badge, MockDataProvider, DataProvider } from 'react-firestrap';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
+import PropsTable from '../../components/PropsTable';
+import { usePlayground } from '../../context/PlaygroundContext';
+import type { PropDef, PlaygroundConfig } from '../../types/playground';
 
 // ── Shared mock data ──────────────────────────────────────────────────────────
 
@@ -39,7 +42,62 @@ function WithMock({ seed, children }: { seed: Record<string, Record<string, any>
     );
 }
 
+// ── Props config ──────────────────────────────────────────────────────────────
+
+const GRID_PROPS: PropDef[] = [
+    { name: 'dataStoragePath', type: 'string', description: 'DataProvider path — subscribes to real-time updates', control: 'text' },
+    { name: 'dataArray', type: 'RecordArray', description: 'In-memory array (alternative to dataStoragePath — no provider needed)' },
+    { name: 'columns', type: 'Column[]', required: true, description: 'Column definitions with key, label, sort, and onDisplay' },
+    { name: 'type', type: '"table" | "gallery"', default: '"table"', description: 'Rendering mode', control: 'select', options: ['table', 'gallery'] },
+    { name: 'allowedActions', type: 'Array<"add" | "edit" | "delete">', description: 'Enables add, edit and delete controls' },
+    { name: 'allowedSorting', type: 'boolean', default: 'false', description: 'Enable column-header sort controls', control: 'boolean' },
+    { name: 'modal', type: '{ mode: "form" | "empty"; size?: string; position?: string }', description: 'Modal config for add/edit actions' },
+    { name: 'pagination', type: '{ limit: number }', description: 'Paginate results — sets items per page' },
+    { name: 'groupBy', type: 'string | string[]', description: 'Field key(s) to group records by' },
+    { name: 'header', type: 'ReactNode', description: 'Custom content rendered above the table' },
+    { name: 'footer', type: 'ReactNode', description: 'Custom content rendered below the table' },
+    { name: 'headerAction', type: 'ReactNode | (records) => ReactNode', description: 'Action slot in the grid toolbar' },
+    { name: 'onLoadRecord', type: '(record, index) => record | false', description: 'Filter or transform each incoming record. Return false to exclude.' },
+    { name: 'onSave', type: 'async ({ record, action }) => string', description: 'Hook called after each save — receives the record and action type' },
+    { name: 'onFinally', type: 'async ({ record, action }) => boolean', description: 'Called after every CRUD operation' },
+    { name: 'setPrimaryKey', type: '(record) => string', description: 'Custom primary key generator for new records' },
+];
+
+const PLAYGROUND_SEED = { '/users': USERS_SEED };
+
+const PLAYGROUND: PlaygroundConfig = {
+    size: 'xl',
+    props: GRID_PROPS,
+    defaultProps: {
+        dataStoragePath: '/users',
+        type: 'table',
+        allowedSorting: false,
+    },
+    mockSeed: PLAYGROUND_SEED,
+    render: (p) => (
+        <Grid
+            dataStoragePath={p.dataStoragePath || '/users'}
+            columns={[
+                { key: 'name',  label: 'Name',   sort: true },
+                { key: 'email', label: 'Email'  },
+                { key: 'role',  label: 'Role',   onDisplay: ({ value }) =>
+                    <Badge className={ROLE_COLOR[value] ?? 'bg-secondary'}>{value}</Badge> },
+                { key: 'status', label: 'Status', onDisplay: ({ value }) =>
+                    <Badge className={STATUS_COLOR[value] ?? 'bg-secondary'}>{value}</Badge> },
+            ]}
+            allowedActions={['add', 'edit', 'delete']}
+            modal={{ mode: 'form', size: 'md' }}
+            type={p.type}
+            allowedSorting={p.allowedSorting}
+        />
+    ),
+};
+
+// ── Page ─────────────────────────────────────────────────────────────────────
+
 export default function GridPage() {
+    usePlayground(PLAYGROUND, 'Grid');
+
     return (
         <PageLayout
             title="Grid widget"
@@ -207,6 +265,9 @@ const provider = new MockDataProvider({ '/users': USERS_SEED });
     type="table"
 />`}
             />
+
+            <PropsTable props={GRID_PROPS} />
+
         </PageLayout>
     );
 }

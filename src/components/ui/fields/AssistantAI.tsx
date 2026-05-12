@@ -163,7 +163,7 @@ const AssistantAI = ({
                 title={name}
                 className={`my-3 ${className}`}
                 header={
-                    <div className='d-flex justify-content-end align-items-center gap-2'>
+                    <div className='flex justify-end items-center gap-2'>
                         {isLoading && <Loader>Thinking...</Loader>}
                         {error && <span className='text-danger'>{error}</span>}
                         {(selectedResponse || responsesAI.length > 0 || error) && <ActionButton icon='arrow-clockwise' onClick={handleInput} />}

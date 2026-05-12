@@ -4,6 +4,7 @@ import {useTheme} from "../../Theme";
 import {Wrapper} from "../ui/GridSystem";
 import Badge from "../ui/Badge";
 import Menu from './Menu';
+import { cn } from '../../libs/cn';
 
 interface DropdownTogglerProps {
     icon?: string;
@@ -39,6 +40,7 @@ interface DropdownButtonProps {
     display?: "static" | "dynamic";
     className?: string;
     badgeClass?: string;
+    onToggle?: () => void;
 }
 
 interface DropdownItemProps {
@@ -74,6 +76,7 @@ export const Dropdown = ({
 
 }: DropdownProps) => {
     const theme = useTheme("dropdown");
+    const [open, setOpen] = React.useState(false);
     function isDropdownToggler(button: any): button is DropdownTogglerProps {
         return (
             typeof button === "object" &&
@@ -83,7 +86,7 @@ export const Dropdown = ({
         );
     }
 
-    const Button = <DropdownButton className={buttonClass} badge={badge} badgeClass={badgeClass}>
+    const Button = <DropdownButton className={buttonClass} badge={badge} badgeClass={badgeClass} onToggle={() => setOpen((value) => !value)}>
         {isDropdownToggler(toggleButton)
             ? <>
                 {toggleButton.icon && <i className={theme.getIcon(toggleButton.icon)}></i>}
@@ -96,9 +99,9 @@ export const Dropdown = ({
 
     return (
         <Wrapper className={wrapClass || theme.Dropdown.wrapClass}>
-            <div className={`dropdown ${className || theme.Dropdown.className}`}>
+            <div className={cn("dropdown", className || theme.Dropdown.className)}>
                 {Button}
-                <div className={`dropdown-menu ${menuClass || theme.Dropdown.menuClass}${position ? ` dropdown-menu-${position}` : ''}`}
+                <div className={cn("dropdown-menu", open && "show", menuClass || theme.Dropdown.menuClass, position && `dropdown-menu-${position}`)}
                      onClick={(e) => keepDropdownOpen && e.stopPropagation()}
                 >
                     {header && <div className={headerClass || theme.Dropdown.headerClass}>
@@ -122,7 +125,8 @@ export const DropdownButton = ({
                                    badge        = undefined,
                                    display      = "dynamic",
                                    className    = undefined,
-                                   badgeClass   = undefined
+                                   badgeClass   = undefined,
+                                   onToggle     = undefined
 }: DropdownButtonProps) => {
     const theme = useTheme("dropdown");
 
@@ -135,10 +139,18 @@ export const DropdownButton = ({
 
     return (
         <div
-            data-bs-toggle="dropdown"
-            data-bs-display={display}
-            className={className || theme.Dropdown.buttonClass}
+            className={cn(className || theme.Dropdown.buttonClass)}
             style={{cursor: "pointer"}}
+            role="button"
+            tabIndex={0}
+            onClick={onToggle}
+            onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onToggle?.();
+                }
+            }}
+            data-display={display}
         >
             {children}
             {dropdownBadge && <Badge className={badgeClass || theme.Dropdown.badgeClass} type={dropdownBadge.type}>
@@ -158,10 +170,10 @@ export const DropdownItem = ({
     const theme = useTheme("dropdown");
     const item = icon 
         ? <>
-            <span className={"me-1"}>
+            <span className="mr-1">
                 <i className={theme.getIcon(icon)}></i>
             </span>
-            <span className={"flex-column"}>
+            <span className="flex flex-col">
                 {children}
             </span>
         </> 
@@ -170,19 +182,19 @@ export const DropdownItem = ({
     return url ? (
         <Link 
             to={url}
-            className={`dropdown-item ${className || theme.Dropdown.menuItemClass}`}
+            className={cn("dropdown-item", className || theme.Dropdown.menuItemClass)}
         >
             {item}
         </Link>
     ) : onClick ? (
         <button 
             onClick={onClick}
-            className={`dropdown-item ${className || theme.Dropdown.menuItemClass}`}
+            className={cn("dropdown-item", className || theme.Dropdown.menuItemClass)}
         >
             {item}
         </button>
     ) : (
-        <span className={`dropdown-item-text ${className || theme.Dropdown.menuItemClass}`}>
+        <span className={cn("dropdown-item-text", className || theme.Dropdown.menuItemClass)}>
             {item}
         </span>
     );
@@ -191,7 +203,7 @@ export const DropdownItem = ({
 export const DropdownHeader = ({children, className}: DropdownHeaderProps) => {
     const theme = useTheme("dropdown");
     return (
-        <div className={"dropdown-header " + (className || theme.Dropdown.menuHeaderClass)}>
+        <div className={cn("dropdown-header", className || theme.Dropdown.menuHeaderClass)}>
             {children}
         </div>
     );
@@ -199,7 +211,7 @@ export const DropdownHeader = ({children, className}: DropdownHeaderProps) => {
 
 export const DropdownDivider = ({className}: DropdownDividerProps) => {
     const theme = useTheme("dropdown");
-    return <div className={"dropdown-divider " + (className || theme.Dropdown.menuDividerClass)} />;
+    return <div className={cn("dropdown-divider", className || theme.Dropdown.menuDividerClass)} />;
 }
 
 interface DropdownMenuProps {

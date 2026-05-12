@@ -1,6 +1,10 @@
 import React from 'react';
+import { Tab, TabItem } from 'react-firestrap';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
+import PropsTable from '../../components/PropsTable';
+import { usePlayground } from '../../context/PlaygroundContext';
+import type { PropDef, PlaygroundConfig } from '../../types/playground';
 
 const TAB_LABELS = ['General', 'Advanced', 'Permissions'];
 
@@ -10,7 +14,7 @@ function DemoTabs({ position }: { position: string }) {
     const isTabs = position === 'default';
 
     const menu = (
-        <ul className={`nav ${isTabs ? 'nav-tabs' : 'nav-pills'}${isVertical ? ' flex-column' : ''}`}>
+        <ul className={`nav ${isTabs ? 'nav-tabs' : 'nav-pills'}${isVertical ? ' flex-col' : ''}`}>
             {TAB_LABELS.map((label, i) => (
                 <li key={label} className="nav-item">
                     <button
@@ -54,7 +58,40 @@ const POSITION_NOTES: Record<string, string> = {
     bottom: 'Pills below the content.',
 };
 
+const TAB_PROPS: PropDef[] = [
+    { name: 'children', type: 'ReactNode', required: true, description: 'TabItem children' },
+    { name: 'defaultTab', type: 'number', default: '0', description: 'Index of the initially active tab', control: 'number', min: 0 },
+    { name: 'tabPosition', type: '"default" | "top" | "left" | "right" | "bottom"', default: '"default"', description: 'Layout position of the tab navigation', control: 'select', options: ['default', 'top', 'left', 'right', 'bottom'] },
+    { name: 'className', type: 'string', description: 'Additional CSS classes on the Tab root', control: 'text' },
+    { name: 'wrapClass', type: 'string', description: 'CSS classes on the outer wrapper', control: 'text' },
+];
+
+const TABITEM_PROPS: PropDef[] = [
+    { name: 'label', type: 'ReactNode', required: true, description: 'Tab trigger label' },
+    { name: 'children', type: 'ReactNode', required: true, description: 'Tab panel content' },
+];
+
+const PLAYGROUND: PlaygroundConfig = {
+    size: 'lg',
+    props: TAB_PROPS,
+    defaultProps: { tabPosition: 'default', defaultTab: 0, className: '', wrapClass: '' },
+    render: (p) => (
+        <Tab
+            tabPosition={p.tabPosition}
+            defaultTab={p.defaultTab}
+            className={p.className || undefined}
+            wrapClass={p.wrapClass || undefined}
+        >
+            <TabItem label="General">General settings content.</TabItem>
+            <TabItem label="Advanced">Advanced options content.</TabItem>
+            <TabItem label="Permissions">Permission management.</TabItem>
+        </Tab>
+    ),
+};
+
 export default function TabPage() {
+    usePlayground(PLAYGROUND, 'Tab');
+
     return (
         <PageLayout
             title="Tab"
@@ -75,6 +112,10 @@ export default function TabPage() {
 </Tab>`}
                 />
             ))}
+
+            <PropsTable props={TAB_PROPS} title="Tab props" />
+            <PropsTable props={TABITEM_PROPS} title="TabItem props" />
+
         </PageLayout>
     );
 }

@@ -3,6 +3,8 @@ import { useTheme } from '../../Theme';
 import { UIProps } from '../..';
 import { Wrapper } from "./GridSystem";
 import { createPortal } from 'react-dom';
+import { cn } from '../../libs/cn';
+import Icon from './Icon';
 
 type AlertProps = {
     children: string | React.ReactNode;
@@ -28,19 +30,20 @@ const Alert = ({
 }: AlertProps) => {
     const theme = useTheme("alert");
 
-    const ICONS = {
-        info: "info",
-        success: "check",
-        warning: "exclamation-triangle",
-        danger: "x-circle",
-        primary: "",
-        secondary: "",
-        light: "",
-        dark: ""
+    const DEFAULT_ICONS: Record<string, string> = {
+        info:      'info',
+        success:   'check',
+        warning:   'warning',
+        danger:    'x-circle',
+        primary:   '',
+        secondary: '',
+        light:     '',
+        dark:      '',
     };
-    if (icon === true) {
-        icon = ICONS[type];
-    }
+
+    const iconName: string | null = icon === false ? null
+        : icon === true ? (DEFAULT_ICONS[type] || null)
+        : (icon as string) || null;
 
     useEffect(() => {
         if (typeof onClose === 'function') {
@@ -53,15 +56,19 @@ const Alert = ({
         }
     }, [onClose, timeout]);
 
-    // @todo ristemare stile alert
     const renderAlert = () => (
         <Wrapper className={wrapClass}>
             {pre}
             <div
-                className={`d-flex align-items-center alert alert-${type} ${className || theme.Alert.className} ${isFixed && 'position-fixed w-100'}`}
-                style={isFixed ? { zIndex: 1100, [isFixed]: 50, left: "50%", transform: "translateX(-50%)" } : undefined}
+                role="alert"
+                className={cn(
+                    "alert alert-" + type,
+                    className || theme.Alert.className,
+                    isFixed && "fixed left-1/2 z-[1100] w-[calc(100%-2rem)] max-w-3xl -translate-x-1/2 shadow-lg"
+                )}
+                style={isFixed ? { [isFixed]: 50 } : undefined}
             >
-                {icon && <i className={theme.getIcon(icon) + " me-1"}></i>}
+                {iconName && <Icon name={iconName} size={16} className="shrink-0" />}
                 {children}
             </div>
             {post}

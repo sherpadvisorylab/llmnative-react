@@ -52,8 +52,8 @@ interface RunPromptProps {
 }
 
 const promptLabel = "Prompt: ";
-const promptClass = "position-relative border-start border-4 ps-2 border-secondary";
-const promptActionClass = "position-absolute top-0 end-0 d-flex gap-2";
+const promptClass = "relative border-l-4 pl-2 border-secondary";
+const promptActionClass = "absolute top-0 right-0 flex gap-2";
 
 export const Prompt = ({
     mode = PromptMode.EDITOR,
@@ -91,7 +91,7 @@ console.log("PromptEditorAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", name, value, defaultV
     return (
         <Wrapper className={wrapClass || theme.Prompt.wrapClass}>
             {pre}
-            <div className={value?.prompt?.enabled ? promptClass : "position-relative"}>
+            <div className={value?.prompt?.enabled ? promptClass : "relative"}>
                 <div className={promptActionClass}>
                     <Switch 
                         name={name + ".prompt.enabled"} 
@@ -144,7 +144,7 @@ const PromptLive = ({
     return (
         <Wrapper className={wrapClass || theme.Prompt.wrapClass}>
             {pre}
-            <div className={prompt ? promptClass : "position-relative"}>
+            <div className={prompt ? promptClass : "relative"}>
                 <div className={promptActionClass}>
                     <ActionButton className={value?.prompt?.value ? "btn-outline-theme border-0" : "btn-outline-warning border-0"} 
                         icon={prompt ? "terminal-fill" : "terminal"} title={prompt ? "Mode: Prompt Editor" : "Mode: Run Prompt"} 
@@ -213,14 +213,14 @@ const PromptLive = ({
                             step={0.1} 
                         /></DropdownItem>
                     </Dropdown>}
-                    wrapClass={prompt ? "" : " d-none"} 
+                    wrapClass={prompt ? "" : " hidden"}
                     rows={rows} />
-                <TextArea 
+                <TextArea
                     className={(className || theme.Prompt.className)}
-                    name={name + ".value"} 
+                    name={name + ".value"}
                     label={caption}
-                    onChange={onChange} 
-                    required={required} 
+                    onChange={onChange}
+                    required={required}
                     post={<LoadingButton icon="stars" onClick={async () => {
                         handleChange?.({
                             target: {
@@ -228,8 +228,8 @@ const PromptLive = ({
                                 value: await runPrompt(value?.prompt, record, onRunPrompt)
                             }
                         });
-                    }} />} 
-                    wrapClass={prompt ? " d-none" : ""} 
+                    }} />}
+                    wrapClass={prompt ? " hidden" : ""}
                     rows={rows} />
             </div>
             {post}

@@ -5,6 +5,7 @@ import { UIProps } from '../..';
 import {useTheme} from "../../Theme";
 import {copyToClipboard} from "../../libs/utils";
 import Prism from 'prismjs';
+import { cn } from '../../libs/cn';
 
 const LANGUAGES: Record<string, () => Promise<any>> = {
   // @ts-ignore
@@ -104,6 +105,21 @@ export type PrismBackground =
   | 'transparent'
   | 'default';
 
+const BACKGROUND_CLASS: Record<PrismBackground, string | undefined> = {
+  primary: 'bg-primary text-primary-foreground',
+  secondary: 'bg-secondary text-secondary-foreground',
+  success: 'bg-success text-success-foreground',
+  danger: 'bg-destructive text-destructive-foreground',
+  warning: 'bg-warning text-warning-foreground',
+  info: 'bg-info text-info-foreground',
+  light: 'bg-muted text-muted-foreground',
+  dark: 'bg-foreground text-background',
+  white: 'bg-white text-slate-950',
+  black: 'bg-black text-white',
+  transparent: 'bg-transparent',
+  default: undefined,
+};
+
 interface CodeProps extends UIProps {
   children: string;
   language: PrismLanguage;
@@ -155,17 +171,26 @@ const Code = ({
     };
 
     loadAndHighlight();
-  }, [children, language, showCopy, theme]);
+  }, [children, language, theme]);
   
-  const backgroundClass = background === "default" ? "" : "bg-" + background + " ";
+  const backgroundClass = BACKGROUND_CLASS[background];
 
   return (
     <Wrapper className={wrapClass || Theme.Code.wrapClass}>
-      <pre ref={ref} className={"position-relative " + backgroundClass + (className || Theme.Code.className)}>
-        {pre} 
+      <pre
+        ref={ref}
+        className={cn(
+          "relative overflow-auto rounded-md border border-border p-4 text-sm",
+          backgroundClass,
+          className || Theme.Code.className
+        )}
+      >
+        {pre}
         {showCopy && <button
           onClick={() => copyToClipboard(children)}
-          className="btn btn-sm btn-secondary position-absolute top-0 end-0 m-2"
+          className="absolute right-2 top-2 inline-flex items-center justify-center rounded-md bg-secondary px-2 py-1 text-xs font-medium text-secondary-foreground transition-colors hover:bg-secondary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          title="Copy code"
+          aria-label="Copy code"
         >
           <i className={Theme.getIcon("clipboard")} />
         </button>}

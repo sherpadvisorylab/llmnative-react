@@ -16,8 +16,6 @@ import {
     AIConfig,
     DropboxConfig,
     FirebaseConfig,
-    GoogleOAuth2,
-    GoogleServiceAccount,
     RuntimeProvider,
     ScrapeConfig
 } from "./Config";
@@ -25,19 +23,21 @@ import type { DataProviderAdapter } from "./providers/data/DataProvider";
 import { DataProvider } from "./providers/data/DataProviderContext";
 import type { StorageProviderAdapter } from "./providers/storage/StorageProvider";
 import { StorageProvider } from "./providers/storage/StorageProviderContext";
-import { FirebaseDataProvider } from "./providers/data/firebase";
-import { SupabaseDataProvider } from "./providers/data/supabase";
 import { MockDataProvider } from "./providers/data/mock";
-import { FirebaseStorageProvider } from "./providers/storage/firebase";
-import { SupabaseStorageProvider } from "./providers/storage/supabase";
 import type { AuthProviderAdapter } from "./providers/auth/AuthProvider";
 import { AuthProvider } from "./providers/auth/AuthProviderContext";
 import { GoogleAuthProvider } from "./providers/auth/google/GoogleAuthProvider";
 import type { EmailProviderAdapter } from "./providers/email/EmailProvider";
 import { EmailProvider } from "./providers/email/EmailProviderContext";
-import { GmailEmailProvider } from "./providers/email/google/GmailEmailProvider";
 import { IconProvider, type AppIconProviderConfig } from "./providers/icon/IconProviderContext";
 import { HeadProvider } from "./Head";
+import {
+    PROVIDER_MANIFESTS,
+    type ServicesConfig,
+    type GoogleProviderConfig,
+    type SupabaseProviderConfig,
+    type MockProviderConfig,
+} from "./providers/manifest";
 
 
 
@@ -61,39 +61,19 @@ type MenuConfig = {
     })[];
 };
 
-export type SupabaseProviderConfig = {
-    url: string;
-    anonKey: string;
-    bucket?: string;
-};
-
 export type AppProvidersConfig = {
-    default?: string;
     firebase?: FirebaseConfig;
     supabase?: SupabaseProviderConfig;
-    google?: GoogleOAuth2 & {
-        serviceAccount?: GoogleServiceAccount;
-        developerToken?: string;
-    };
+    google?: GoogleProviderConfig;
     dropbox?: DropboxConfig;
-    gmail?: {
-        enabled?: boolean;
-    };
-    mock?: {
-        data?: ConstructorParameters<typeof MockDataProvider>[0];
-    };
+    mock?: MockProviderConfig;
     custom?: {
         data?: Record<string, DataProviderAdapter> | DataProviderAdapter;
         storage?: Record<string, StorageProviderAdapter> | StorageProviderAdapter;
         auth?: Record<string, AuthProviderAdapter> | AuthProviderAdapter;
         email?: Record<string, EmailProviderAdapter> | EmailProviderAdapter;
     };
-    services?: {
-        data?: string;
-        storage?: string;
-        auth?: string;
-        email?: string;
-    };
+    services?: ServicesConfig;
 };
 export type AppProps = {
     appName?: string;
@@ -138,27 +118,16 @@ function resolveProviderRegistries(providers: AppProvidersConfig = {}) {
     const auth: Record<string, AuthProviderAdapter> = {};
     const email: Record<string, EmailProviderAdapter> = {};
 
-    if (providers.firebase) {
-        data.firebase = new FirebaseDataProvider();
-        storage.firebase = new FirebaseStorageProvider();
-        auth.firebase = new GoogleAuthProvider();
-    }
+    const registries = { data, storage, auth, email } as Record<string, Record<string, any>>;
 
-    if (providers.supabase) {
-        data.supabase = new SupabaseDataProvider(providers.supabase);
-        storage.supabase = new SupabaseStorageProvider(providers.supabase);
-    }
-
-    if (providers.google) {
-        auth.google = new GoogleAuthProvider();
-    }
-
-    if (providers.gmail?.enabled) {
-        email.gmail = new GmailEmailProvider();
-    }
-
-    if (providers.mock) {
-        data.mock = new MockDataProvider(providers.mock.data);
+    // Manifest-driven: one loop for all providers — adding a new provider
+    // only requires a new entry in PROVIDER_MANIFESTS, not a change here.
+    for (const [providerKey, manifest] of Object.entries(PROVIDER_MANIFESTS)) {
+        const cfg = (providers as Record<string, unknown>)[providerKey];
+        if (cfg === undefined) continue;
+        for (const [driverName, descriptor] of Object.entries(manifest)) {
+            registries[descriptor.service][driverName] = descriptor.create(cfg);
+        }
     }
 
     addCustomProviders(data, providers.custom?.data);
@@ -167,27 +136,15 @@ function resolveProviderRegistries(providers: AppProvidersConfig = {}) {
     addCustomProviders(email, providers.custom?.email);
 
     if (Object.keys(data).length === 0) data.mock = new MockDataProvider();
-    if (Object.keys(auth).length === 0) auth.google = new GoogleAuthProvider();
+    if (Object.keys(auth).length === 0) auth.googleAuth = new GoogleAuthProvider();
 
-    const defaultProvider = providers.default;
+    const svc = providers.services;
 
     return {
-        data: {
-            registry: data,
-            defaultKey: selectDefaultKey(data, providers.services?.data, defaultProvider),
-        },
-        storage: {
-            registry: storage,
-            defaultKey: selectDefaultKey(storage, providers.services?.storage, defaultProvider),
-        },
-        auth: {
-            registry: auth,
-            defaultKey: selectDefaultKey(auth, providers.services?.auth, providers.google ? 'google' : defaultProvider),
-        },
-        email: {
-            registry: email,
-            defaultKey: selectDefaultKey(email, providers.services?.email, providers.gmail ? 'gmail' : defaultProvider),
-        },
+        data:    { registry: data,    defaultKey: selectDefaultKey(data,    svc?.data) },
+        storage: { registry: storage, defaultKey: selectDefaultKey(storage, svc?.storage) },
+        auth:    { registry: auth,    defaultKey: selectDefaultKey(auth,    svc?.auth) },
+        email:   { registry: email,   defaultKey: selectDefaultKey(email,   svc?.email) },
     };
 }
 const MaybeEmailProvider = ({
@@ -238,7 +195,7 @@ function App({
     const LayoutEmpty = ({ children }: { children: React.ReactNode }) => <>{children}</>;
     const FallbackPage: React.FC<{ pageSource: string, message?: string }> = ({ pageSource, message }) => (
         <Alert type="warning">Missing Page: {pageSource}
-            {message && <code className={"ms-2"}>{message}</code>}
+            {message && <code className={"ml-2"}>{message}</code>}
         </Alert>
     );
 

@@ -2,7 +2,7 @@
 
 > Ogni CR rappresenta un'unità di lavoro autonoma con motivazione, scope e checklist.  
 > Stato: `⬜ todo` · `🔄 in progress` · `✅ done` · `🚫 cancelled`  
-> Ultima revisione: 2026-05-11
+> Ultima revisione: 2026-05-12
 
 ---
 
@@ -25,13 +25,17 @@
 | [CR-021](#cr-021--use-case-templates) | Use case templates (crm, admin, inventory, project) | Media | CR-005, CR-017 | ✅ |
 | [CR-012](#cr-012--showcase-refactor--react-firestrap-native) | Showcase refactor — react-firestrap native | Alta | CR-004, CR-007 | ⬜ |
 | [CR-013](#cr-013--icon-provider-system) | Icon provider system | Media | CR-004 | ✅ |
-| [CR-014](#cr-014--raffinazione-componenti--props-e-comportamenti) | Raffinazione componenti — props e comportamenti | Media | CR-007 | ⬜ |
+| [CR-014](#cr-014--raffinazione-componenti--props-e-comportamenti) | Raffinazione componenti — props e comportamenti | Media | CR-007 | 🔄 |
 | [CR-015](#cr-015--vite-toolchain-framework--scaffolding) | Vite toolchain framework + scaffolding | Alta | CR-003, CR-004, CR-006 | ✅ |
 | [CR-016](#cr-016--showcase-vite--scaffold-first) | Showcase Vite + scaffold-first | Alta | CR-012, CR-015 | ✅ |
 | [CR-017](#cr-017--app-managed-theme--icon-registries) | App-managed theme + icon registries | Alta | CR-004, CR-013 | ✅ |
 | [CR-018](#cr-018--markdownreader-component) | MarkdownReader component | Alta | CR-004, CR-017 | ✅ |
 | [CR-019](#cr-019--markdown-powered-showcase-docs) | Markdown-powered showcase docs | Alta | CR-018 | ✅ |
 | [CR-020](#cr-020--head-management--declarative-provider-config) | Head management + declarative provider config | Alta | CR-017, CR-019 | ✅ |
+| [CR-022](#cr-022--bootstrap-utility-cleanup) | Bootstrap utility cleanup — JSX → Tailwind nativo | Media | CR-004 | ✅ |
+| [CR-023](#cr-023--driver-manifest--service-registry) | Driver manifest + service registry | Alta | CR-002, CR-002b | ✅ |
+| [CR-024](#cr-024--wysiwyg-editor-component) | WYSIWYG editor component | Alta | CR-004, CR-014 | ⬜ |
+| [CR-025](#cr-025--contextmenu-con-comandi-e-mention) | ContextMenu con comandi e @mention | Alta | CR-024 | ⬜ |
 
 ---
 
@@ -1060,8 +1064,8 @@ export class HeroIconProvider implements IconProviderAdapter {
 
 ## CR-014 — Raffinazione componenti — props e comportamenti
 
-**Stato:** ⬜ todo  
-**Branch:** `modernize/cr-014-component-refinement`  
+**Stato:** 🔄 in progress  
+**Branch:** `modernize`  
 **Priorità:** Media  
 **Dipende da:** CR-007 (serve la showcase per avere visibilità su ogni componente)  
 **Stima:** ongoing — affrontata per componente dopo CR-007 completa  
@@ -1100,6 +1104,37 @@ Per ogni componente censito, verificare e correggere:
 
 Per ogni componente: aprire un sotto-task nella checklist, aggiornare il tipo, aggiornare la showcase, aggiornare i test (CR-006).
 
+### Interventi completati (2026-05-12)
+
+**Badge — overlay mode:**
+`Badge` ora supporta due modalità distinte in base al tipo di `children`:
+- `children` = stringa/numero → badge inline (comportamento precedente invariato)
+- `children` = React element → modalità overlay: il badge si posiziona sull'elemento figlio
+  - `pre` → badge top-left con label
+  - `post` → badge top-right con label
+  - nessuno dei due → pallino indicatore top-right
+  - background solido (non trasparente) via classe `.badge-overlay` + `bg-{type}`
+
+**Select.Autocomplete — creatable:**
+Aggiunta prop `creatable?: boolean` e callback `onCreate?: (value: string) => Promise<void> | void`.
+Premere Enter su un valore non presente in lista crea l'opzione con aggiornamento ottimistico locale (l'utente vede subito il chip, `onCreate` viene eseguito in background).
+
+**Select.Autocomplete — bug fix disabled:**
+Rimossa logica errata `disabled={disabled || (!updatable && !isEmpty(value))}` che disabilitava l'input quando il form aveva `defaultValues`. Ora usa semplicemente `disabled={disabled}`.
+
+**Form — prop `onChange`:**
+Aggiunta prop `onChange?: (record: RecordProps) => void` che notifica il consumer ad ogni cambiamento del record. Usata dalla Playground per mostrare il JSON del record in tempo reale.
+
+**Form — fix reset su prop change:**
+`useEffect([defaultValues])` si riattivava ad ogni render perché `defaultValues` è un oggetto (riferimento nuovo ad ogni render). Risolto usando `JSON.stringify(defaultValues)` come dipendenza per un confronto deep.
+
+**Showcase Playground — layout e funzionalità:**
+- Preview e JSON accordion sempre visibili; solo la sezione props scorre
+- Accordion collassabile per la preview e per il JSON del record form
+- Flag `showFormRecord` in `PlaygroundConfig` per abilitare/disabilitare l'accordion JSON (Alert/Badge non ne hanno bisogno)
+- Dimensione modale minima `md` (rimosso `sm`)
+- Prop `name` aggiunta come control editabile in tutti i playground di field
+
 ### Checklist
 
 - [ ] Audit completo di tutti i componenti in `src/components/ui/` e `src/components/ui/fields/`
@@ -1110,7 +1145,12 @@ Per ogni componente: aprire un sotto-task nella checklist, aggiornare il tipo, a
 - [ ] Fix `Grid`: rinominare `pagination.limit` → `pagination.perPage` (o viceversa, con alias)
 - [ ] Fix `Modal`: aggiungere `footerClose` ai tipi esportati
 - [x] Fix `Icon`: rimuovere la prop `icon` dal componente `Icon` e migrare gli usi interni a `name`
-- [ ] Aggiornare showcase per ogni fix — le pagine di demo diventano smoke test visivi
+- [x] Fix `Badge`: aggiungere overlay mode con `pre`/`post`/dot
+- [x] Fix `Select.Autocomplete`: aggiungere `creatable` + `onCreate`
+- [x] Fix `Select.Autocomplete`: bug `disabled` su form con `defaultValues`
+- [x] Fix `Form`: aggiungere `onChange` prop
+- [x] Fix `Form`: `useEffect` con `JSON.stringify(defaultValues)` per evitare reset spurio
+- [ ] Aggiornare showcase per ogni fix rimanente — le pagine di demo diventano smoke test visivi
 - [ ] Aggiornare `CLAUDE.md` con le API corrette dopo ogni fix
 
 ---
@@ -1865,3 +1905,388 @@ Lo scaffolding generava un'unica HomePage minimale uguale per tutti i tipi di pr
 - [x] Aggiornare `docs/scaffolding.md`
 - [x] Aggiornare `docs/theme.md`
 - [x] `npm run build:dev` passa senza errori
+
+---
+
+## CR-022 — Bootstrap utility cleanup
+
+**Stato:** ✅ done  
+**Data:** 2026-05-12  
+**Branch:** `modernize`  
+**Priorità:** Media  
+**Dipende da:** CR-004  
+**Breaking change:** No (classi interne non pubbliche)
+
+### Motivazione
+
+CR-004 ha introdotto il compatibility layer Tailwind che ricrea le classi Bootstrap *named* (`.btn`, `.badge`, `.form-control`, ecc.). Tuttavia i componenti della libreria usavano ancora classi Bootstrap *utility* direttamente nel JSX (`d-flex`, `position-relative`, `align-items-center`, `ps-3`, `me-1`, ecc.). Questo creava una dipendenza implicita sul layer Bootstrap e rendeva il JSX inconsistente: alcune parti usavano Tailwind nativo, altre ancora Bootstrap utilities.
+
+### Scope
+
+Audit e migrazione di tutte le classi Bootstrap utility presenti nel JSX dei componenti `src/` verso il Tailwind nativo equivalente. Le classi *named* del compatibility layer (`.btn`, `.badge`, `.nav`, `.card`, ecc.) rimangono invariate — non sono Bootstrap utilities, sono contratti stilistici del compatibility layer.
+
+### Mappatura principali
+
+| Bootstrap utility | Tailwind nativo |
+|-------------------|-----------------|
+| `d-flex` | `flex` |
+| `d-none` | `hidden` |
+| `d-block` | `block` |
+| `position-relative` | `relative` |
+| `position-absolute` | `absolute` |
+| `align-items-center` | `items-center` |
+| `justify-content-end` | `justify-end` |
+| `flex-column` | `flex-col` |
+| `ps-N` / `pe-N` | `pl-N` / `pr-N` |
+| `ms-N` / `me-N` | `ml-N` / `mr-N` |
+| `w-100` / `h-100` | `w-full` / `h-full` |
+| `start-0` / `end-0` | `left-0` / `right-0` |
+| `border-start` | `border-l` |
+
+### File migrati
+
+- `src/components/blocks/`: Carousel, Notifications, Search
+- `src/components/ui/`: Gallery, Loader, Modal, Pagination, Repeat, Tab, TabDynamic, Table
+- `src/components/ui/fields/`: AssistantAI, Command, Crop, ImageUrl, Input, Prompt, Upload
+- `src/components/widgets/`: ImageEditor, Prompt, TabDynamic
+- `src/providers/auth/google/GoogleAuth.tsx`
+- `src/providers/storage/dropbox.tsx`
+- `src/App.tsx`, `src/Config.tsx`, `src/Theme.tsx`
+- `src/pages/BlogPost.tsx`, `src/pages/NotFound.tsx`
+- `clients/showcase/src/pages/components/PaginationPage.tsx`, `TabPage.tsx`
+
+### Checklist
+
+- [x] Audit con grep di tutte le classi Bootstrap utility nel JSX `src/`
+- [x] Migrare tutti i file `src/components/`
+- [x] Migrare tutti i file `src/providers/`
+- [x] Migrare `src/App.tsx`, `src/Config.tsx`, `src/Theme.tsx`
+- [x] Migrare `src/pages/`
+- [x] Migrare `clients/showcase/src/pages/components/`
+- [x] Correggere import stale (`integrations/ai` → `providers/ai`, `integrations/google/firedatabase` → `providers/data/DataProvider`)
+- [x] Correggere prop `icon` → `name` su `<Icon>` nei file copiati
+- [x] `npm run build:dev` passa senza errori
+
+---
+
+## CR-023 — Driver manifest + service registry
+
+**Stato:** ✅ done  
+**Data:** 2026-05-12  
+**Branch:** `modernize`  
+**Priorità:** Alta  
+**Dipende da:** CR-002, CR-002b  
+**Breaking change:** Sì — i nomi driver in `services` cambiano (vedi migrazione)
+
+### Motivazione
+
+Il sistema provider aveva due problemi strutturali:
+
+1. **Ambiguità driver**: `services.data = 'firebase'` non distingue tra Firebase Realtime Database e Firestore. Firebase può esporre più driver per la stessa categoria di service.
+2. **If-chain non estendibile**: `resolveProviderRegistries` in `App.tsx` conteneva una sequenza di `if (providers.firebase)`, `if (providers.supabase)`, ecc. Aggiungere un nuovo provider richiedeva sempre di modificare questa funzione.
+
+### Soluzione
+
+Ogni provider espone un **manifest** — una mappa `{ driverName → DriverDescriptor }` dove ogni descriptor dichiara:
+- `service`: la categoria (`'data' | 'storage' | 'auth' | 'email'`)
+- `create(cfg)`: factory che riceve la config del provider e restituisce l'adapter
+
+`App.tsx` costruisce a startup un dizionario piatto `driverName → adapterInstance` con **un solo loop generico** su `PROVIDER_MANIFESTS`. La risoluzione di ogni service è O(1): `registry[services.data]`.
+
+I provider utility (Dropbox, AI) non hanno una categoria di service — restano in `providers.*` e sono accessibili tramite i loro hook/utility dedicati.
+
+### File
+
+- `src/providers/manifest.ts` — **nuovo**: tipi `DriverDescriptor`, `DriverManifest`, `ServicesConfig`; manifest per firebase, google, supabase, mock; union types `DataDriverName`, `StorageDriverName`, `AuthDriverName`, `EmailDriverName`; `PROVIDER_MANIFESTS` (registry centrale)
+- `src/App.tsx` — `resolveProviderRegistries` riscritto con loop generico; `AppProvidersConfig` aggiornato; `gmail?` rimosso (ora driver `gmail` sotto `google`)
+- `src/index.ts` — re-export dei nuovi tipi da `providers/manifest`
+
+### Nuovi nomi driver
+
+| Categoria | Prima | Ora |
+|-----------|-------|-----|
+| data | `'firebase'` | `'dbRealtime'` |
+| data | `'supabase'` | `'supabaseDb'` |
+| data | `'mock'` | `'mock'` (invariato) |
+| storage | `'firebase'` | `'firestorage'` |
+| storage | `'supabase'` | `'supabaseStorage'` |
+| auth | `'google'` | `'googleAuth'` |
+| email | `'gmail'` | `'gmail'` (invariato) |
+
+### Migrazione consumer
+
+```tsx
+// Prima
+providers={{
+  firebase: firebaseConfig,
+  google: googleOAuth2,
+  gmail: { enabled: true },
+  services: { data: 'firebase', storage: 'firebase', auth: 'google', email: 'gmail' },
+}}
+
+// Ora
+providers={{
+  firebase: firebaseConfig,
+  google: googleOAuth2,          // gmail è un driver di google, non serve campo separato
+  services: { data: 'dbRealtime', storage: 'firestorage', auth: 'googleAuth', email: 'gmail' },
+}}
+```
+
+### Checklist
+
+- [x] Creare `src/providers/manifest.ts`
+- [x] Aggiornare `AppProvidersConfig` — rimuovere `gmail?`, usare `ServicesConfig` tipizzata
+- [x] Riscrivere `resolveProviderRegistries` con loop generico
+- [x] Rimuovere import provider concreti da `App.tsx` (ora nel manifest)
+- [x] Aggiornare `src/index.ts` — re-export nuovi tipi
+- [x] Aggiornare `docs/providers.md`
+- [x] Aggiornare `docs/app-configuration.md`
+- [x] `npm run build:dev` passa senza errori
+
+---
+
+## CR-024 — WYSIWYG editor component
+
+**Stato:** ⬜ todo  
+**Branch:** `modernize/cr-024-wysiwyg`  
+**Priorità:** Alta  
+**Dipende da:** CR-004, CR-014  
+**Stima:** 1–2 settimane  
+**Breaking change:** No (nuovo componente)
+
+### Motivazione
+
+I campi `Input` e `TextArea` gestiscono testo semplice. Per contenuti strutturati (articoli, descrizioni prodotto, note formattate) serve un editor WYSIWYG integrato nel sistema Form/Grid, che si comporti come gli altri field: riceve `value`, emette `onChange(name, value)`, si integra con il sistema tema.
+
+Il componente deve essere un field a tutti gli effetti — funziona dentro `<Form>`, dentro un modal di `<Grid>`, e in modalità standalone.
+
+### Scelta libreria — aperta
+
+La libreria di editing è ancora da decidere all'avvio della CR. Candidata principale:
+
+**Tiptap** (`@tiptap/react`) — framework headless sopra ProseMirror:
+- Architettura estensione-based: ogni feature (bold, link, mention, table) è un modulo opzionale
+- Headless: nessun CSS imposto, il tema react-firestrap controlla l'aspetto
+- CR-025 (ContextMenu + mention) si appoggia nativamente alle extension Tiptap
+- Community ampia, documentazione solida, licenza MIT (core)
+- `peerDependency` opzionale — chi non usa `<RichEditor>` non porta il bundle
+
+Alternative da valutare prima di procedere:
+- **Quill** (via `react-quill-new`) — più semplice, meno estendibile
+- **Slate.js** — molto flessibile, curva alta, meno maintained
+- **Lexical** (Meta) — moderno, ottimo per mention/command, meno maturo degli altri due
+
+### API target
+
+```tsx
+import { RichEditor } from 'react-firestrap';
+
+// Dentro un Form
+<Form dataStoragePath="/articles">
+  <Input name="title" label="Titolo" required />
+  <RichEditor
+    name="body"
+    label="Contenuto"
+    toolbar={['bold', 'italic', 'heading', 'bulletList', 'link']}
+    placeholder="Inizia a scrivere..."
+    rows={12}
+  />
+</Form>
+
+// Standalone con valore controllato
+<RichEditor
+  name="notes"
+  value={html}
+  onChange={(name, value) => setHtml(value)}
+/>
+```
+
+### Formato valore
+
+Il valore emesso da `onChange` è **HTML** (`string`). Questo lo rende compatibile con i backend esistenti senza trasformazioni, leggibile da `<MarkdownReader>` con piccole estensioni, e incollabile direttamente in email o CMS.
+
+Alternativa JSON (formato nativo Tiptap/ProseMirror) da valutare: permette diff strutturati ma richiede parsing lato server.
+
+### Toolbar configurabile
+
+```tsx
+type ToolbarItem =
+  | 'bold' | 'italic' | 'underline' | 'strike'
+  | 'heading'          // h1–h3 via dropdown
+  | 'bulletList' | 'orderedList'
+  | 'blockquote' | 'codeBlock'
+  | 'link' | 'image'
+  | 'undo' | 'redo'
+  | 'divider';         // separatore visivo
+
+<RichEditor toolbar={['bold', 'italic', 'divider', 'heading', 'link']} />
+<RichEditor toolbar="full" />    // tutti gli item
+<RichEditor toolbar="minimal" /> // solo bold, italic, link
+```
+
+### Integrazione tema
+
+Il componente usa classi CSS del compatibility layer per la toolbar (`.btn`, `.btn-sm`, `.btn-outline-secondary`) e variabili CSS theme (`--rf-primary`, `--rf-border`, `--rf-radius`) per il focus ring e i colori dell'editor area. Nessun CSS hardcoded.
+
+### Output del contenuto
+
+```tsx
+// Lettura sicura dell'HTML — in sola lettura usa MarkdownReader o un div sanitizzato
+<div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(record.body) }} />
+
+// Oppure con MarkdownReader (se il contenuto è misto HTML/Markdown)
+<MarkdownReader content={record.body} />
+```
+
+### Scope
+
+**Incluso:**
+- Componente `RichEditor` in `src/components/ui/fields/RichEditor.tsx`
+- Integrazione come form field (`useFormContext`)
+- Toolbar configurabile con preset `'minimal'`, `'full'` e array custom
+- Tema coerente con il sistema react-firestrap
+- Export da `src/index.ts`
+- Pagina showcase con playground e sezioni per ogni toolbar preset
+- `peerDependency` opzionale: la libreria scelta non viene inclusa nel bundle se il componente non è usato
+
+**Escluso:**
+- Upload immagini inline nell'editor (rimandato a una sotto-CR o CR-026)
+- Collaborazione real-time
+- MDX / componenti React dentro l'editor
+- ContextMenu/@mention (CR-025, dipende da questa)
+
+### Checklist
+
+- [ ] Valutare Tiptap vs alternative — scegliere e documentare la decisione
+- [ ] Aggiungere la libreria scelta come `optionalPeerDependency` in `package.json`
+- [ ] Creare `src/components/ui/fields/RichEditor.tsx`
+- [ ] Implementare integrazione `useFormContext`
+- [ ] Implementare toolbar configurabile con preset
+- [ ] Applicare tema react-firestrap (CSS variables + compatibility layer)
+- [ ] Aggiungere export in `src/index.ts`
+- [ ] Aggiungere pagina `clients/showcase/src/pages/components/RichEditorPage.tsx`
+- [ ] Aggiornare `src/conf/menu.ts` dello showcase
+- [ ] Aggiornare `docs/components.md` con API `RichEditor`
+- [ ] `npm run build:dev` passa senza errori
+- [ ] Smoke test visivo: Form con RichEditor, valore salvato e ricaricato correttamente
+
+---
+
+## CR-025 — ContextMenu con comandi e @mention
+
+**Stato:** ⬜ todo  
+**Branch:** `modernize/cr-025-context-menu`  
+**Priorità:** Alta  
+**Dipende da:** CR-024  
+**Stima:** 1 settimana  
+**Breaking change:** No (nuovo componente)
+
+### Motivazione
+
+Nei contesti di editing collaborativo o note-taking è comune il pattern **slash command** (`/`) e **@mention**: l'utente digita un carattere trigger e appare un menu contestuale con azioni o suggerimenti. Questo pattern è distinto da un dropdown standard — appare inline nel testo, segue il cursore, e inserisce contenuto strutturato nell'editor.
+
+Il componente `ContextMenu` (già abbozzato in `src/components/ui/fields/Command.tsx`) va riscritto in modo strutturato, estendibile e integrato nativamente con l'editor scelto in CR-024.
+
+### API target
+
+```tsx
+import { RichEditor, ContextMenu } from 'react-firestrap';
+
+<RichEditor name="body">
+  {/* slash command: digita / per vedere le azioni */}
+  <ContextMenu trigger="/" label="Comandi">
+    <ContextMenu.Item
+      id="heading"
+      label="Titolo"
+      icon="heading"
+      onSelect={() => editor.chain().toggleHeading({ level: 2 }).run()}
+    />
+    <ContextMenu.Item
+      id="quote"
+      label="Citazione"
+      icon="quote"
+      onSelect={() => editor.chain().toggleBlockquote().run()}
+    />
+    <ContextMenu.Item
+      id="table"
+      label="Tabella"
+      icon="table"
+      onSelect={() => editor.chain().insertTable().run()}
+    />
+  </ContextMenu>
+
+  {/* @mention: digita @ per cercare utenti */}
+  <ContextMenu trigger="@" label="Menziona" searchable>
+    {({ query }) => (
+      <MentionResults
+        query={query}
+        onSelect={(user) => editor.chain().insertMention(user).run()}
+      />
+    )}
+  </ContextMenu>
+</RichEditor>
+```
+
+### Comportamento
+
+1. L'utente digita il carattere `trigger` nell'editor
+2. Il menu appare posizionato vicino al cursore (floating, non in un portale fisso)
+3. L'utente può filtrare con ulteriore testo (`searchable`) o navigare con tastiera (↑ ↓ Enter Esc)
+4. Selezionando un item, il trigger character e il testo digitato vengono rimpiazzati dall'output dell'azione
+5. Esc o click fuori chiude il menu senza modificare il testo
+
+### Uso standalone (senza RichEditor)
+
+Il componente `ContextMenu` funziona anche su campi di testo normali — utile per mention in commenti, chat o input veloci senza editor ricco:
+
+```tsx
+<Input name="comment" label="Commento">
+  <ContextMenu trigger="@" searchable>
+    {({ query }) => <UserSuggestions query={query} />}
+  </ContextMenu>
+</Input>
+```
+
+### Architettura interna
+
+Se la libreria scelta in CR-024 è Tiptap, i trigger vengono implementati come **Suggestion extension** (`@tiptap/suggestion`), che gestisce nativamente la rilevazione del trigger character, il posizionamento floating e la navigazione tastiera. Il componente `ContextMenu` diventa un wrapper React thin sopra questa extension.
+
+Se la libreria è diversa, la logica di rilevazione trigger va re-implementata — ma l'API pubblica del componente rimane identica.
+
+### Refactoring Command.tsx
+
+Il file `src/components/ui/fields/Command.tsx` contiene un prototipo grezzo dello stesso pattern, ma usa `contentEditable` + `document.execCommand` (deprecato) e non ha integrazione con l'editor. Va rimosso o svuotato a favore di `ContextMenu`.
+
+### Scope
+
+**Incluso:**
+- Componente `ContextMenu` in `src/components/ui/fields/ContextMenu.tsx`
+- Integration con `RichEditor` (CR-024)
+- Uso standalone su `Input` e `TextArea`
+- Navigazione tastiera: ↑ ↓ Enter Esc Tab
+- Filtro testo (`searchable`)
+- Posizionamento floating vicino al cursore
+- Export da `src/index.ts`
+- Rimozione/svuotamento di `Command.tsx`
+- Pagina showcase con demo slash command + @mention
+- Aggiornamento `docs/components.md`
+
+**Escluso:**
+- Mention con persistenza (salvare le mention come link o nodi strutturati nell'editor) — può essere aggiunto in CR-026
+- Multi-trigger simultanei in editor diversi
+- SSR
+
+### Checklist
+
+- [ ] Verificare l'API Suggestion di Tiptap (o equivalente per la libreria scelta)
+- [ ] Creare `src/components/ui/fields/ContextMenu.tsx`
+- [ ] Implementare integration con `RichEditor`
+- [ ] Implementare uso standalone su `Input`/`TextArea`
+- [ ] Navigazione tastiera completa
+- [ ] Posizionamento floating
+- [ ] Rimuovere/svuotare `src/components/ui/fields/Command.tsx`
+- [ ] Aggiungere export in `src/index.ts`
+- [ ] Aggiungere pagina showcase `ContextMenuPage.tsx`
+- [ ] Aggiornare `docs/components.md`
+- [ ] `npm run build:dev` passa senza errori
+- [ ] Smoke test: slash command inserisce contenuto correttamente; @mention filtra e inserisce

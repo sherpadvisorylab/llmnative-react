@@ -5,4 +5,8 @@ export const preset: ThemePresetConfig = {
     radius: 0.5,
 };
 
-export const theme: ThemeConfig = {};
+export const theme: ThemeConfig = {
+    Pagination: {
+        sticky: false,
+    },
+};

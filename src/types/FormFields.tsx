@@ -19,7 +19,7 @@ import {
 import {Autocomplete, Checklist, Select, SelectProps} from "../components/ui/fields/Select";
 import {ImageUrl, ImageUrlProps} from "../components/ui/fields/ImageUrl";
 import {UploadDocument, UploadDocumentProps, UploadImage, UploadImageProps} from "../components/ui/fields/Upload";
-import { Prompt, PromptProps } from "../components/ui/fields/Prompt";
+import { Prompt, PromptProps } from "../components/widgets/Prompt";
 
 export interface ComponentFormFieldsMap {
     string: FieldFactory<Partial<InputProps>>;

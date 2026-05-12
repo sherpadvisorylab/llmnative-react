@@ -289,6 +289,7 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
         setPrimaryKey?: (record: RecordProps) => string;
         savePath?: (props: SavePathProps) => string | undefined;
         onLoad?: (record: RecordProps) => void;
+        onChange?: (record: RecordProps) => void;
         onSave?: ({record, prevRecord, action, storagePath}: {record?: RecordProps, prevRecord?: RecordProps, storagePath?: string, action: 'create' | 'update'}) => Promise<string | undefined>;
         onDelete?: ({record}: {record?: RecordProps}) => Promise<string | undefined>;
         onFinally?: ({record, action}: {record?: RecordProps, action: 'create' | 'update' | 'delete'}) => Promise<boolean>;
@@ -388,6 +389,7 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
         defaultValues = undefined,
         savePath = undefined,
         onLoad = undefined,
+        onChange = undefined,
         onSave = undefined,
         onDelete = undefined,
         onFinally = undefined,
@@ -405,16 +407,18 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
         const [record, setRecord] = useState<RecordProps | undefined>(defaultValues);
         const isNewRecord = !dataStoragePath;
 
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         useEffect(()=>{
             if (defaultValues) {
                 setRecord({...defaultValues});
                 onLoad?.({...defaultValues});
             }
-        }, [defaultValues]);
+        }, [JSON.stringify(defaultValues)]);
         
         const recordRef = useRef(record);
-        useEffect(() => { 
+        useEffect(() => {
             recordRef.current = record;
+            if (record !== undefined) onChange?.(record);
         }, [record]);
         
 

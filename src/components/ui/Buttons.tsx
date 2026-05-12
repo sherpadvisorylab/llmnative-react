@@ -4,6 +4,7 @@ import {useTheme} from "../../Theme";
 import { Badge, UIProps } from '../..';
 import { Wrapper } from './GridSystem';
 import { BadgeType } from './Badge';
+import { cn } from '../../libs/cn';
 
 export interface IButton extends UIProps {
     onClick?: (e: any) => any;
@@ -15,8 +16,6 @@ export interface IButton extends UIProps {
     showLoader?: boolean;
     badgeType?: BadgeType;
     iconClass?: string;
-    toggle?: string;
-    target?: string;
     style?: React.CSSProperties;
 }
 
@@ -62,7 +61,7 @@ export const LoadingButton = ({
             {pre}
             <button
                 title={title}
-                className={"btn " + (className || theme.LoadingButton.className) + (badge != null ? " position-relative" : "") + (loader && message ? " text-nowrap" : "")}
+                className={cn("btn", className || theme.LoadingButton.className, badge != null && "relative", loader && message && "whitespace-nowrap")}
                 style={style}
                 disabled={disable || loader}
                 onClick={async (e) => {
@@ -74,10 +73,10 @@ export const LoadingButton = ({
                     setDisable(false);
                 }}
             >
-                {loader && <><i className={(label ? "me-1 " : "") + theme.LoadingButton.spinnerClass}></i>{message && <span className='ms-1'>{message}</span>}</>}
-                {(icon && !loader) && <i className={(label ? "me-1 " : "") + (iconClass ? iconClass + " " : "") + theme.getIcon(icon)}></i>}
+                {loader && <><i className={cn(label && "mr-1", theme.LoadingButton.spinnerClass)}></i>{message && <span className='ml-1'>{message}</span>}</>}
+                {(icon && !loader) && <i className={cn(label && "mr-1", iconClass, theme.getIcon(icon))}></i>}
                 {label}
-                {(badge != null && !loader) && <Badge type={badgeType} className={"position-absolute end-0 top-0 rounded-pill"}>{badge}</Badge>}
+                {(badge != null && !loader) && <Badge type={badgeType} className="absolute right-0 top-0 rounded-full translate-x-1/2 -translate-y-1/2">{badge}</Badge>}
             </button>
             {post}
         </Wrapper>
@@ -91,8 +90,6 @@ export const ActionButton = ({
     badge           = undefined,
     title           = undefined,
     disabled        = false,
-    toggle          = undefined,
-    target          = undefined,
     pre             = undefined,
     post            = undefined,
     wrapClass       = undefined,
@@ -108,10 +105,8 @@ export const ActionButton = ({
             {pre}
             <button
                 title={title}
-                className={"btn " + (className || theme.ActionButton.className) + (badge != null ? " position-relative" : "")}
+                className={cn("btn", className || theme.ActionButton.className, badge != null && "relative")}
                 style={style}
-                data-bs-toggle={toggle}
-                data-bs-target={target}
                 disabled={disabled}
                 onClick={(e) => {
                     e.preventDefault();
@@ -119,9 +114,9 @@ export const ActionButton = ({
                     onClick?.(e);
                 }}
             >
-                {icon && <i className={(label ? "me-1 " : "") + (iconClass ? iconClass + " " : "") + theme.getIcon(icon)}></i>}
+                {icon && <i className={cn(label && "mr-1", iconClass, theme.getIcon(icon))}></i>}
                 {label}
-                {badge != null&& <Badge type={badgeType} className={"position-absolute end-0 top-0 rounded-pill"}>{badge}</Badge>}
+                {badge != null&& <Badge type={badgeType} className="absolute right-0 top-0 rounded-full translate-x-1/2 -translate-y-1/2">{badge}</Badge>}
             </button>
             {post}
         </Wrapper>
@@ -133,7 +128,7 @@ interface BackLinkProps extends UIProps {
 }
 
 export const BackLink = ({
-    label           = "← Back",
+    label           = "<- Back",
     pre             = undefined,
     post            = undefined,
     wrapClass       = undefined,
@@ -146,7 +141,7 @@ export const BackLink = ({
         <Wrapper className={wrapClass}>
             {pre}
             <a href="#"
-               className={"btn " + (className || theme.LinkButton.className)}
+               className={cn("btn", className || theme.LinkButton.className)}
                onClick={(e) => {
                    e.preventDefault();
                    navigate(-1);
@@ -172,13 +167,15 @@ export const GoSite = ({
     wrapClass       = undefined,
     className       = undefined
 }: GoSiteProps) => {
+    const theme = useTheme("button");
+
     return (
         <Wrapper className={wrapClass}>
             {pre}
-            <h1 className={"page-header mb-0 " + (className || "")}>
+            <h1 className={cn("m-0 text-2xl font-bold", className)}>
                 {label + " "}
                 <a href={url} target="_blank" rel="noopener noreferrer">
-                    <i className="fa fa-external-link" />
+                    <i className={theme.getIcon("external-link")} />
                 </a>
             </h1>
             {post}
@@ -208,7 +205,7 @@ export const ReferSite = ({
             {pre}
             <a
                 href={url}
-                className={"me-1 " + (className || "")}
+                className={cn("mr-1", className)}
                 target="_blank"
                 title={title}
                 rel="noopener noreferrer"
@@ -219,3 +216,4 @@ export const ReferSite = ({
         </Wrapper>
     );
 };
+

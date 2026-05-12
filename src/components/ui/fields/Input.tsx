@@ -238,7 +238,7 @@ export const Checkbox = ({
                 checked={toValueString(value) === toValueString(valueChecked)}
                 onChange={handleCheckboxChange}
             />
-            {label && <label className="form-check-label ps-1" htmlFor={id}>
+            {label && <label className="form-check-label pl-1" htmlFor={id}>
                 {label}
                 {required && <span className="text-danger">&nbsp;*</span>}
             </label>}
@@ -356,7 +356,7 @@ export const ListGroup = ({
                 const isActive = actives?.includes(index);
                 const isDisable = disables?.includes(index);
                 const isLoading = loaders?.includes(index);
-                const fullItemClass = `list-group-item ps-1 ${itemClass ? ' ' + itemClass : ''
+                const fullItemClass = `list-group-item pl-1 ${itemClass ? ' ' + itemClass : ''
                     }${onClick ? ' list-group-item-action' : ''
                     }${isActive ? ' active' : ''
                     }${isDisable ? ' disabled' : ''

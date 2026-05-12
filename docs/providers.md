@@ -22,7 +22,7 @@ react-firestrap follows a **Ports and Adapters** architecture. Every component t
 
 ## Basic setup
 
-Pass the `providers` config to `<App>`. The `services` object routes each slot to a named backend. If no data backend is configured, `App` falls back to an empty `MockDataProvider`.
+Pass the `providers` config to `<App>`. The `services` object selects a specific **driver** by name. If no data backend is configured, `App` falls back to an empty `MockDataProvider`.
 
 ```tsx
 import { App } from 'react-firestrap';
@@ -33,9 +33,9 @@ import { firebaseConfig } from './conf/firebase';
     firebase: firebaseConfig,          // FirebaseConfig object directly
     google:   { clientId: '...' },
     services: {
-      data:    'firebase',
-      storage: 'firebase',
-      auth:    'google',
+      data:    'dbRealtime',   // Firebase Realtime Database driver
+      storage: 'firestorage',  // Firebase Storage driver
+      auth:    'googleAuth',   // Google OAuth2 driver
     },
   }}
   menuConfig={menu}
@@ -69,9 +69,9 @@ Register multiple backends and pick which one powers each service. Useful when y
     },
     google: { clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID },
     services: {
-      data:    import.meta.env.VITE_PROVIDER ?? 'mock',
-      storage: 'firebase',
-      auth:    'google',
+      data:    import.meta.env.VITE_PROVIDER ?? 'mock',  // 'mock' | 'dbRealtime' | 'supabaseDb'
+      storage: 'firestorage',
+      auth:    'googleAuth',
     },
   }}
   menuConfig={menu}
@@ -198,14 +198,23 @@ interface StorageProviderAdapter {
 
 ---
 
-## Available built-in providers
+## Available built-in drivers
 
-| Provider | Service | Status |
-|----------|---------|--------|
-| `FirebaseDataProvider` | data | Stable — Firebase Realtime Database |
-| `MockDataProvider` | data | Stable — in-memory, ideal for dev and tests |
-| `SupabaseDataProvider` | data | Partial — initial REST implementation |
-| `FirebaseStorageProvider` | storage | Stable — Firebase Storage |
-| `SupabaseStorageProvider` | storage | Partial |
-| `GoogleAuthProvider` | auth | Stable — Google OAuth2 sign-in |
-| `GmailEmailProvider` | email | Stable — Gmail API outbound email |
+Each provider registers one or more **drivers**. Use the driver name in `services` to select which one powers each service slot.
+
+| Driver name | Provider config key | Service | Status |
+|-------------|--------------------|---------|-|
+| `dbRealtime` | `firebase` | data | Stable — Firebase Realtime Database |
+| `supabaseDb` | `supabase` | data | Partial — initial REST implementation |
+| `mock` | `mock` | data | Stable — in-memory, ideal for dev and tests |
+| `firestorage` | `firebase` | storage | Stable — Firebase Storage |
+| `supabaseStorage` | `supabase` | storage | Partial |
+| `googleAuth` | `google` | auth | Stable — Google OAuth2 sign-in |
+| `gmail` | `google` | email | Stable — Gmail API outbound email |
+
+**Utility integrations** (not service slots — accessed via dedicated hooks/utilities):
+
+| Key | Access |
+|-----|--------|
+| `providers.dropbox` | Dropbox file components and utilities |
+| `aiConfig` prop | `AI.fetch()`, `AI.json()`, `AI.array()` |

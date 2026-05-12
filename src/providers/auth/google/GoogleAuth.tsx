@@ -69,7 +69,7 @@ const GoogleAuthFallback = () => (
                         src={PLACEHOLDER_USER}
                         alt="No Config"
                         height="36"
-                        className="avatar rounded-circle ms-2"
+                        className="avatar rounded-circle ml-2"
                     />
                 </div>
             }
@@ -79,7 +79,7 @@ const GoogleAuthFallback = () => (
                 Please make sure the <code>oAuth2.clientId</code> value is correctly set in your tenant configuration.
                 <hr className="my-2" />
                 <strong>To retrieve your <code>clientId</code>:</strong>
-                <ol className="ps-3 mb-1">
+                <ol className="pl-3 mb-1">
                     <li>Go to <a href="https://console.cloud.google.com/" target="_blank" rel="noopener noreferrer">Google Cloud Console</a></li>
                     <li>Select your project or create one</li>
                     <li>Navigate to <code>APIs & Services &gt; Credentials</code></li>

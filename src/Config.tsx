@@ -206,7 +206,7 @@ export const TenantMenu = () => {
             <DropdownHeader>Projects</DropdownHeader>
             {tenants.map((item) => (
                 <DropdownItem key={item.title} onClick={item.onClick}>
-                    <i className={`me-1 ${item.active ? "text-success" : "text-muted"}`}>
+                    <i className={`mr-1 ${item.active ? "text-success" : "text-muted"}`}>
                         <i className={`bi bi-${item.icon}`} />
                     </i>
                     {item.title}

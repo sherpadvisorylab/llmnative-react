@@ -97,7 +97,7 @@ const Pagination = <T,>({
 
             {recordSet.length > pageLimit && (
                 <nav aria-label="Page navigation" className={className || theme.Pagination.className}>
-                    <ul className={`pagination justify-content-${align || theme.Pagination.align} mx-auto`}>
+                    <ul className={`pagination justify-${align || theme.Pagination.align} mx-auto`}>
 
                         <li className={`page-item ${disabledPrev}`}>
                             <button onClick={() => go(1)} className="page-link">

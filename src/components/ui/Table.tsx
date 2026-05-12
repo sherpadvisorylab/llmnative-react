@@ -101,7 +101,7 @@ function Table({
                                         <th key={hdr.key} className={hdr.className} onClick={() => onHeaderClick?.(hdr)}>
                                             <div
                                                 className={
-                                                    "th-inner" + (hdr.sort ? "pe-5 sortable both" : "")
+                                                    "th-inner" + (hdr.sort ? "pr-5 sortable both" : "")
                                                 }
                                             >{hdr.label}</div>
                                         </th>

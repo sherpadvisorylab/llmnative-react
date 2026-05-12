@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
+import PropsTable from '../../components/PropsTable';
+import { usePlayground } from '../../context/PlaygroundContext';
+import type { PropDef, PlaygroundConfig } from '../../types/playground';
 
 const ITEMS = Array.from({ length: 50 }, (_, i) => ({ id: i + 1, label: `Record #${i + 1}` }));
 
@@ -11,7 +14,6 @@ function DemoPagination({ perPage }: { perPage: number }) {
 
     const go = (p: number) => { if (p >= 1 && p <= total) setPage(p); };
 
-    // Build a window of up to 5 page numbers centered on the current page
     const windowSize = Math.min(5, total);
     const start = Math.max(1, Math.min(page - Math.floor(windowSize / 2), total - windowSize + 1));
     const pageNumbers = Array.from({ length: windowSize }, (_, i) => start + i);
@@ -24,7 +26,7 @@ function DemoPagination({ perPage }: { perPage: number }) {
                 ))}
             </div>
             <nav>
-                <ul className="pagination justify-content-end">
+                <ul className="pagination justify-end">
                     <li className={`page-item ${page === 1 ? 'disabled' : ''}`}>
                         <button className="page-link" onClick={() => go(1)}>«</button>
                     </li>
@@ -51,7 +53,27 @@ function DemoPagination({ perPage }: { perPage: number }) {
     );
 }
 
+const PROPS_CONFIG: PropDef[] = [
+    { name: 'recordSet', type: 'T[]', required: true, description: 'Full dataset to paginate' },
+    { name: 'children', type: '(records: T[], offset: number) => ReactNode', required: true, description: 'Render function receiving current page records and offset' },
+    { name: 'limit', type: 'number', default: 'recordSet.length', description: 'Number of items per page', control: 'number', min: 1, step: 1 },
+    { name: 'navLimit', type: 'number', default: '5', description: 'Max number of visible page buttons', control: 'number', min: 3, max: 10 },
+    { name: 'sticky', type: 'boolean', default: 'true', description: 'Fix pagination bar at viewport bottom', control: 'boolean' },
+    { name: 'align', type: '"start" | "center" | "end"', default: '"end"', description: 'Horizontal alignment of the pagination controls', control: 'select', options: ['start', 'center', 'end'] },
+    { name: 'scrollToTopOnChange', type: 'boolean', default: 'false', description: 'Scroll to top of page when page changes', control: 'boolean' },
+    { name: 'appendTo', type: 'HTMLElement | null', description: 'Portal target for the pagination bar' },
+];
+
+const PLAYGROUND: PlaygroundConfig = {
+    size: 'lg',
+    props: PROPS_CONFIG,
+    defaultProps: { limit: 8, navLimit: 5, sticky: false, align: 'end', scrollToTopOnChange: false },
+    render: (p) => <DemoPagination perPage={p.limit} />,
+};
+
 export default function PaginationPage() {
+    usePlayground(PLAYGROUND, 'Pagination');
+
     return (
         <PageLayout
             title="Pagination"
@@ -96,42 +118,8 @@ export default function PaginationPage() {
 </Pagination>`}
             />
 
-            <Section
-                title="Props reference"
-                preview={
-                    <div className="overflow-x-auto w-full">
-                        <table className="table text-xs">
-                            <thead>
-                                <tr>
-                                    <th>Prop</th>
-                                    <th>Type</th>
-                                    <th>Default</th>
-                                    <th>Description</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {[
-                                    ['recordSet', 'T[]', '—', 'Full dataset to paginate'],
-                                    ['limit', 'number', 'recordSet.length', 'Items per page'],
-                                    ['navLimit', 'number', '5', 'Max visible page buttons'],
-                                    ['sticky', 'boolean', 'true', 'Fix nav bar at viewport bottom'],
-                                    ['align', '"start"|"center"|"end"', '"end"', 'Horizontal alignment of the nav'],
-                                    ['scrollToTopOnChange', 'boolean', 'false', 'Scroll to top on page change'],
-                                    ['appendTo', 'HTMLElement|null', 'undefined', 'Portal target for the nav bar'],
-                                ].map(([prop, type, def, desc]) => (
-                                    <tr key={prop}>
-                                        <td><code className="font-mono">{prop}</code></td>
-                                        <td className="text-muted-foreground">{type}</td>
-                                        <td className="text-muted-foreground">{def}</td>
-                                        <td>{desc}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                }
-                code=""
-            />
+            <PropsTable props={PROPS_CONFIG} />
+
         </PageLayout>
     );
 }

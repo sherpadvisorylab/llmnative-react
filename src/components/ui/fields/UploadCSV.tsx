@@ -2,6 +2,7 @@ import React, { useState, ChangeEvent, DragEvent } from 'react';
 import Papa, { ParseResult } from 'papaparse';
 import { Wrapper } from '../GridSystem';
 import { Icon, normalizeKey, UIProps } from '../../..';
+import { cn } from '../../../libs/cn';
 import { smartTypeCast } from '../../../libs/utils';
 
 type CsvCell = string | null | undefined;
@@ -113,7 +114,7 @@ export const UploadCSV: React.FC<UploadCSVProps> = ({
       {pre}
       <div
         data-name={name}
-        className={"fileinput-button " + (className || "")}
+        className={cn("fileinput-button", className)}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
         onDragLeave={handleDragLeave}

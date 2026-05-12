@@ -3,6 +3,7 @@ import {useTheme} from "../../Theme";
 import {Wrapper} from "./GridSystem";
 import Loader from "./Loader";
 import { UIProps } from '../..';
+import { cn } from '../../libs/cn';
 
 interface CardProps extends UIProps {
     children: React.ReactNode;
@@ -33,20 +34,20 @@ const Card = ({
 
   return (
     <Wrapper className={wrapClass || theme.Card.wrapClass}>
-        <div className={"card " + (className || theme.Card.className)}>
+        <div className={cn("card", className || theme.Card.className)}>
           {(header || title) &&
-            <div className={"card-header " + (headerClass || theme.Card.headerClass)}>
-                {title ? <h5 className="mt-2 text-nowrap">{title}</h5> : ""}
+            <div className={cn("card-header", headerClass || theme.Card.headerClass)}>
+                {title ? <h5 className="m-0 text-base font-semibold leading-none whitespace-nowrap">{title}</h5> : ""}
                 {header}
             </div>
           }
 
-          <div className={"card-body " + (bodyClass || theme.Card.bodyClass)}>
+          <div className={cn("card-body", bodyClass || theme.Card.bodyClass)}>
               <Loader show={showLoader || theme.Card.showLoader}>
                 {children}
               </Loader>
           </div>
-          {footer && <div className={"card-footer " + (footerClass || theme.Card.footerClass)}>{footer}</div>}
+          {footer && <div className={cn("card-footer", footerClass || theme.Card.footerClass)}>{footer}</div>}
           {(showArrow || theme.Card.showArrow) &&
             <div className="card-arrow">
               <div className="card-arrow-top-left" />

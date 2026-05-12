@@ -31,7 +31,7 @@ function Search ({
 
         <div>
             <SearchButton />
-            <input className={"d-none"} type="text" placeholder="Search" onChange={handleSearch}/>
+            <input className={"hidden"} type="text" placeholder="Search" onChange={handleSearch}/>
         </div>
     )
 }

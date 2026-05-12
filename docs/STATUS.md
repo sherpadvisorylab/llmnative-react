@@ -1,7 +1,7 @@
 # Project status
 
 > Snapshot verificato contro la codebase, non contro il piano storico.
-> Ultima revisione: 2026-05-11
+> Ultima revisione: 2026-05-12
 
 ---
 
@@ -13,9 +13,9 @@
 | Storage layer | `StorageProvider` esiste con context. Implementazioni presenti: Firebase, Supabase, Dropbox helper/export. | Supabase storage e' parziale. Manca copertura test storage. La API reale usa `getURL`/`delete`, non `getUrl`/`remove`. |
 | Auth/Email layer | `AuthProvider`, `EmailProvider`, Google auth e Gmail provider sono presenti ed esportati. | Provider alternativi non implementati. Mancano test dedicati su auth/email. |
 | Runtime/App config | `<App>` usa `RuntimeProvider`, che compone `ConfigContext` e stato globale persistito. | `GlobalProvider` resta interno per `useGlobalVars`; la config globale mantiene `onConfigChange` per i provider concreti. |
-| Provider registries | `<App>` accetta configurazione dichiarativa `providers`: `firebase`, `supabase`, `google`, `gmail`, `mock`, `custom` e selezione `services`. | Data/Auth hanno fallback automatico; Storage/Email sono opzionali se non configurati. Supabase resta parziale. |
+| Provider registries | `<App>` usa il **driver manifest** (`src/providers/manifest.ts`): ogni provider dichiara i propri driver con nome univoco e categoria. `services` seleziona driver per nome (`dbRealtime`, `firestorage`, `googleAuth`, `gmail`, ecc.). Loop generico in `resolveProviderRegistries` — zero if per provider. `gmail` non è più un campo separato ma un driver di `google`. | Data/Auth hanno fallback automatico; Storage/Email sono opzionali. Supabase resta parziale. |
 | Head management | `HeadProvider` e' montato da `<App>` e genera il browser `<head>` via JSX portal. Hook pubblici: `useHead`, `useDocumentHead`, `useSocialHead`, `useLanguageHead`, `usePaginationHead`, `useAssetsHead`, `usePwaHead`, `useSchemaOrgHead`. | Non c'e' SSR/head extraction; e' runtime client-side. |
-| UI library | CSS runtime Tailwind v4 con compatibility layer Bootstrap-like. `src/globals.css` viene importato dal barrel pubblico. | Non e' una migrazione shadcn component-by-component. Rimane da fare visual regression profonda. |
+| UI library | CSS runtime Tailwind v4 con compatibility layer Bootstrap-like. `src/globals.css` viene importato dal barrel pubblico. Tutte le classi Bootstrap utility (`d-flex`, `position-*`, `ps-`, `me-`, ecc.) rimosse dal JSX — sostituiti con Tailwind nativo equivalente (CR-022). | Non e' una migrazione shadcn component-by-component. Rimane da fare visual regression profonda. |
 | Theme/Icon | Preset tema e icon registry sono gestiti da `<App>`. Hook pubblici: `useThemeController`, `useIconController`. Preset `default`, `flat`, `cyber` estratti da `src/Theme.tsx` in `themes/*.ts`. | Nessun gap strutturale residuo. Visual regression profonda non ancora fatta. |
 | TypeScript | `strict: true`; `npm run build` genera build e declarations. | Alcuni tipi pubblici usano ancora `any` e pattern legacy; audit in CR-014. |
 | Docs Markdown | Docs in `docs/` con frontmatter sono caricate nello showcase via `import.meta.glob` e `MarkdownReader`. | Le pagine operative (`STATUS`, `ROADMAP`, `CHANGE_REQUESTS`) restano documenti maintainer e non sidebar showcase. |
@@ -44,6 +44,8 @@
 | CR-019 | Done | Showcase docs alimentate da Markdown con frontmatter. |
 | CR-020 | Done | Head management e provider config dichiarativa allineati in codebase, docs e scaffold. |
 | CR-021 | Done | Separazione tema/template. 5 template in `templates/`. Preset estratti in `themes/*.ts`. CLI e docs aggiornati. |
+| CR-022 | Done | Bootstrap utility cleanup. Tutte le classi `d-flex`, `position-*`, `ps-`, `me-`, ecc. rimosse dal JSX e sostituite con Tailwind nativo. |
+| CR-023 | Done | Driver manifest + service registry. `src/providers/manifest.ts` creato. `resolveProviderRegistries` riscritto con loop generico. Nomi driver espliciti (`dbRealtime`, `firestorage`, `googleAuth`, `gmail`). |
 
 ---
 
@@ -52,10 +54,12 @@
 | CR | Stato reale | Cosa manca |
 |----|-------------|------------|
 | CR-006 | In progress | La suite unit/component esiste e passa, ma mancano integration Firebase/Supabase, storage tests, Upload/Prompt/Repeat, Playwright E2E e CI. |
-| CR-007 | In progress | Showcase builda e contiene pagine componenti/provider overview, ma molte route provider/example sono stub e manca deploy pubblico. |
+| CR-007 | In progress | Showcase builda. Pagine componenti principali presenti con playground interattivo (Badge, Alert, Button, Card, Input, Select, Upload, Form, Grid, Modal, Pagination, Tab, Table, Loader, MarkdownReader). Molte route provider/example ancora stub. |
 | CR-008..CR-011 | Done | Vecchie cartelle `themes/*/src/` rimosse. Preset estratti in `themes/*.ts`. Layout/sections in `templates/`. Completato via CR-021. |
 | CR-012 | Todo | Eliminare stub showcase e usare demo native react-firestrap per esempi/provider reali. |
-| CR-014 | Todo / seeded | Audit API componenti; alcune issue gia' censite in `CHANGE_REQUESTS.md`. |
+| CR-014 | In progress | Badge overlay mode, Autocomplete creatable + bug fix disabled, Form onChange + reset fix, Playground layout e JSON accordion completati. Restano audit componenti e fix Grid/Modal/Input. |
+| CR-024 | Todo | WYSIWYG editor `<RichEditor>`. Libreria (Tiptap candidata principale) da valutare all'avvio. |
+| CR-025 | Todo | ContextMenu con slash command e @mention. Dipende da CR-024 per la scelta libreria. |
 
 ---
 
@@ -74,6 +78,7 @@ src/
     blocks/                # Brand, Menu, Breadcrumbs, Notifications, Search, Carousel, Dropdown
     widgets/               # Form, Grid, MarkdownReader, ImageEditor
   providers/
+    manifest.ts            # driver manifest: PROVIDER_MANIFESTS, DriverDescriptor, ServicesConfig, driver name types
     data/                  # DataProvider, FirebaseDataProvider, MockDataProvider, SupabaseDataProvider
     storage/               # StorageProvider, Firebase/Supabase/Dropbox
     auth/                  # AuthProvider + GoogleAuthProvider

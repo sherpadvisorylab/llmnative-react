@@ -1,7 +1,17 @@
 import './globals.css';
 export { default as App } from './App';
 export { useMenu } from './App';
-export type { AppProps, AppProvidersConfig, SupabaseProviderConfig } from './App';
+export type { AppProps, AppProvidersConfig } from './App';
+export type {
+    ServicesConfig,
+    SupabaseProviderConfig,
+    GoogleProviderConfig,
+    MockProviderConfig,
+    DataDriverName,
+    StorageDriverName,
+    AuthDriverName,
+    EmailDriverName,
+} from './providers/manifest';
 export {
     Head,
     HeadProvider,

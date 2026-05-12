@@ -36,7 +36,7 @@ export const Command: React.FC<{ children: React.ReactNode }> & {
     } else {
       // Badge inserito come nodo React → semplificato
       const span = document.createElement("span");
-      span.className = "badge bg-primary me-1";
+      span.className = "badge bg-primary mr-1";
       span.innerText = (node as any).props.children;
       const sel = window.getSelection();
       if (sel && sel.rangeCount > 0) {
@@ -71,7 +71,7 @@ export const Command: React.FC<{ children: React.ReactNode }> & {
     <CommandContext.Provider
       value={{ registerTrigger, activeTrigger, filter, setFilter, insert, caretPos }}
     >
-      <div className="position-relative">
+      <div className="relative">
         <div
           ref={ref}
           className="form-control"
@@ -111,7 +111,7 @@ const Trigger: React.FC<TriggerProps> = ({ char, onSelect, children }) => {
 
   return (
     <div
-      className="position-absolute"
+      className="absolute"
       style={{ top: caretPos.y + 5, left: caretPos.x }}
     >
       {children({ filter, select })}

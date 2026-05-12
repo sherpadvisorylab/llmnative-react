@@ -129,7 +129,23 @@ Lista dati con real-time updates, sorting, paginazione, modal CRUD integrato.
 />
 
 {/* Autocomplete con ricerca */}
-<Select.Autocomplete name="userId" db={{ path: "/users", labelField: "email" }} />
+<Autocomplete
+  name="userId"
+  db={{ path: "/users" }}
+  placeholder="Cerca…"
+  max={5}
+/>
+
+{/* Autocomplete creatable — valori liberi + persistenza */}
+<Autocomplete
+  name="tags"
+  label="Tags"
+  db={{ path: "/tags" }}
+  creatable
+  onCreate={async (value) => {
+    await db.set(`/tags/${value}`, { label: value, value });
+  }}
+/>
 
 {/* Multi-selezione con checkbox */}
 <Select.Checklist

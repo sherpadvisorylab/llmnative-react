@@ -327,7 +327,7 @@ const CropBox = ({
             {cropData[scale] && (
                 <div
                     onMouseDown={(e) => handleMouseDown(e, scale, "move")}
-                    className="position-absolute"
+                    className="absolute"
                     style={{
                         top: cropData[scale].top,
                         left: cropData[scale].left,
@@ -340,7 +340,7 @@ const CropBox = ({
                 >
                     <div
                         onMouseDown={(e) => handleMouseDown(e, scale, "resize")}
-                        className="position-absolute bottom-0 end-0"
+                        className="absolute bottom-0 right-0"
                         style={{
                             width: 15,
                             height: 15,
@@ -376,13 +376,13 @@ const ImageEditorItem = ({
     file
 }: ImageEditorItemProps) => {
     return (<>
-        <div className="position-relative">
+        <div className="relative">
             <img
                 src={img.src}
                 alt={img.alt}
                 ref={img.ref}
                 onLoad={img.onLoad}
-                className="position-relative img-fluid"
+                className="relative img-fluid"
                 draggable={false}
             />
             {img.post}

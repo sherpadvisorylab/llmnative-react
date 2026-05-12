@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useThemeController } from 'react-firestrap';
 import Icon from './Icon';
+import { usePlaygroundContext } from '../context/PlaygroundContext';
 
 interface TopbarProps {
     onOpenThemePanel: () => void;
@@ -23,6 +24,7 @@ const activeLinkClass = ({ isActive }: { isActive: boolean }) =>
 
 export default function Topbar({ onOpenThemePanel }: TopbarProps) {
     const { resolvedMode, toggleMode } = useThemeController();
+    const { config, openPlayground } = usePlaygroundContext();
 
     return (
         <header className="sticky top-0 z-30 h-14 border-b bg-card/80 backdrop-blur-sm flex items-center px-6 gap-8">
@@ -44,6 +46,17 @@ export default function Topbar({ onOpenThemePanel }: TopbarProps) {
 
             {/* Right actions */}
             <div className="flex items-center gap-2 shrink-0">
+                {/* Playground button — only shown on component pages */}
+                {config && (
+                    <button
+                        onClick={openPlayground}
+                        className="flex items-center gap-1.5 px-3 h-8 rounded-md text-sm font-medium border border-primary/40 text-primary hover:bg-primary/10 transition-colors cursor-pointer"
+                        title="Open Playground"
+                    >
+                        <Icon name="play" size={13} />
+                        Playground
+                    </button>
+                )}
                 {/* Dark / light toggle */}
                 <button
                     onClick={toggleMode}

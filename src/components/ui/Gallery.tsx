@@ -181,30 +181,30 @@ const Gallery = ({
             <Wrapper className={className || theme.Gallery.className}>
                 {Header && <div className={headerClass || theme.Gallery.headerClass}>{Header}</div>}
                 <Wrapper className={scrollClass || theme.Gallery.scrollClass}>
-                    <div className={"d-flex flex-wrap text-center align-items-center g-2 row-cols-" + numCols + " " + (bodyClass || theme.Gallery.bodyClass)}>
+                    <div className={"flex flex-wrap text-center items-center gap-2 row-cols-" + numCols + " " + (bodyClass || theme.Gallery.bodyClass)}>
                         <Pagination
                             recordSet={renderedBody}
                             {...(pagination || {})}
                         >
                             {(pageRecords) => pageRecords.map((Component, index) => (
-                                <div key={index} className={"item position-relative p-" + paddingSize}>
+                                <div key={index} className={"item relative p-" + paddingSize}>
                                     {Component}
-                                    {itemTopLeft && <div className={"position-absolute start-0 top-0 p-" + paddingSize}>
+                                    {itemTopLeft && <div className={"absolute left-0 top-0 p-" + paddingSize}>
                                         {itemTopLeft}
                                     </div>}
-                                    {itemTopRight && <div className={"position-absolute end-0 top-0 p-" + paddingSize}>
+                                    {itemTopRight && <div className={"absolute right-0 top-0 p-" + paddingSize}>
                                         {itemTopRight}
                                     </div>}
-                                    {itemBottomLeft && <div className={"position-absolute start-0 bottom-0 p-" + paddingSize}>
+                                    {itemBottomLeft && <div className={"absolute left-0 bottom-0 p-" + paddingSize}>
                                         {itemBottomLeft}
                                     </div>}
-                                    {itemBottomRight && <div className={"position-absolute end-0 bottom-0 p-" + paddingSize}>
+                                    {itemBottomRight && <div className={"absolute right-0 bottom-0 p-" + paddingSize}>
                                         {itemBottomRight}
                                     </div>}
-                                    {itemMiddleLeft && <div className={"position-absolute top-50 start-0 translate-middle-y p-" + paddingSize}>
+                                    {itemMiddleLeft && <div className={"absolute top-50 left-0 translate-middle-y p-" + paddingSize}>
                                         {itemMiddleLeft}
                                     </div>}
-                                    {itemMiddleRight && <div className={"position-absolute top-50 end-0 translate-middle-y p-" + paddingSize}>
+                                    {itemMiddleRight && <div className={"absolute top-50 right-0 translate-middle-y p-" + paddingSize}>
                                         {itemMiddleRight}
                                     </div>}
 

@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState} from 'react';
 import { createPortal } from 'react-dom';
 import {useTheme} from "../../Theme";
 import {ActionButton, LoadingButton} from "./Buttons";
@@ -16,7 +16,6 @@ interface ModalProps extends UIProps {
     size?: "sm" | "md" | "lg" | "xl" | "fullscreen";
     position?: "center" | "top" | "left" | "right" | "bottom";
     buttonFullscreen?: boolean;
-    footerClose?: boolean;
     headerClass?: string;
     titleClass?: string;
     subTitleClass?: string;
@@ -53,7 +52,6 @@ const ModalDefault = ({
                           size              = undefined,
                           position          = undefined,
                           buttonFullscreen  = true,
-                          footerClose       = true,
                           pre               = undefined,
                           post              = undefined,
                           wrapClass         = undefined,
@@ -70,7 +68,7 @@ const ModalDefault = ({
 
     const positions = {
         center: {
-            coverClass: `modal modal-cover fade show d-block`,
+            coverClass: `modal modal-cover fade show block`,
             dialogClass: `modal-dialog modal-${sizeClass || theme.Modal.size} ${wrapClass || theme.Modal.wrapClass}`,
             contentClass: `modal-content ${className || theme.Modal.className}`,
             headerClass: `modal-header ${headerClass || theme.Modal.headerClass}`,
@@ -127,28 +125,25 @@ const ModalDefault = ({
     }
 
     const pos = positions[sizeClass === "fullscreen" ? "center" : (position || theme.Modal.position) as keyof typeof positions];
-    const hasHeader = Boolean(header || title || buttonFullscreen || onClose);
-    const hasFooter = Boolean(footer || onSave || onDelete || (onClose && footerClose));
 
-    useEffect(() => {
-        document.body.style.overflow = "hidden";
-        return () => { document.body.style.overflow = ""; };
-    }, []);
-
-    const handleClose = () => { onClose?.(); }
+    window.document.body.style.overflow = "hidden";
+    const handleClose = () => {
+        window.document.body.style.overflow = "auto";
+        onClose?.();
+    }
 
     return createPortal(<>
         <Wrapper className={pos.coverClass}>
             <div className={pos.dialogClass}>
                 {pre}
                 <Wrapper className={pos.contentClass}>
-                    {hasHeader && <div className={pos.headerClass}>
+                    {(header || title || buttonFullscreen || onClose) && <div className={pos.headerClass}>
                         <div>
                             {title && <h3 className={pos.titleClass}>{title}</h3>}
                             {(title && header) && <div className={pos.subTitleClass}>{header}</div>}
                             {!title && header && (typeof header === "string" ? <h3 className={pos.titleClass}>{header}</h3> : header)}
                         </div>
-                        {(buttonFullscreen || onClose) && <div className={"ms-auto"}>
+                        {(buttonFullscreen || onClose) && <div className={"ml-auto"}>
                             {buttonFullscreen && <ActionButton
                                 icon={sizeClass === "fullscreen" ? theme.Modal.iconCollapse : theme.Modal.iconExpand}
                                 className={"border-0 p-2"}
@@ -158,14 +153,13 @@ const ModalDefault = ({
                                 }}
                             />}
                             {onClose && <ActionButton
-                                className="border-0 p-1.5 text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
-                                label="✕"
+                                className="btn-close"
                                 onClick={handleClose}
                             />}
                         </div>}
                     </div>}
                     <div className={pos.bodyClass}>{children}</div>
-                    {hasFooter && <div className={pos.footerClass}>
+                    {(footer || onSave || onDelete || onClose) && <div className={pos.footerClass}>
                         {footer}
                         {onSave && <LoadingButton
                             className="btn-primary"
@@ -187,7 +181,7 @@ const ModalDefault = ({
                                 handleClose()
                             }}
                         />}
-                        {onClose && footerClose && <ActionButton
+                        {onClose && <ActionButton
                             className="btn-link"
                             label={"Cancel"}
                             onClick={handleClose}
@@ -197,7 +191,7 @@ const ModalDefault = ({
                 {post}
             </div>
         </Wrapper>
-        <Wrapper className={pos.backdropClass} onClick={handleClose} />
+        <Wrapper className={pos.backdropClass}/>
     </>, document.body);
 };
 

@@ -121,13 +121,6 @@
 
     /* ── Badge ── */
     .badge { @apply inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium; }
-    .badge.bg-secondary { @apply bg-secondary text-secondary-foreground; }
-    .badge.bg-success   { @apply bg-success/10 text-success; }
-    .badge.bg-warning   { @apply bg-warning/10 text-warning; }
-    .badge.bg-info      { @apply bg-info/10 text-info; }
-    .badge.bg-danger    { @apply bg-destructive/10 text-destructive; }
-    .badge.bg-light     { @apply bg-muted text-muted-foreground; }
-    .badge.bg-dark      { @apply bg-foreground/10 text-foreground; }
 
     /* ── Alert ── */
     .alert { @apply flex items-center gap-2 rounded-md border p-3 text-sm; }
@@ -183,6 +176,15 @@
     .offcanvas-bottom { @apply bottom-0 left-0 right-0 max-h-[75vh] border-t; }
     .offcanvas-start  { @apply top-0 left-0 h-full w-80 border-r; }
     .offcanvas-end    { @apply top-0 right-0 h-full w-80 border-l; }
+    /* Size modifiers for left/right offcanvas panels */
+    .offcanvas-start.modal-sm,  .offcanvas-end.modal-sm  { @apply w-72; }
+    .offcanvas-start.modal-md,  .offcanvas-end.modal-md  { @apply w-96; }
+    .offcanvas-start.modal-lg,  .offcanvas-end.modal-lg  { @apply w-[36rem]; }
+    .offcanvas-start.modal-xl,  .offcanvas-end.modal-xl  { @apply w-[48rem]; }
+    /* Size modifiers for top/bottom offcanvas panels */
+    .offcanvas-top.modal-sm,    .offcanvas-bottom.modal-sm    { @apply max-h-[30vh]; }
+    .offcanvas-top.modal-lg,    .offcanvas-bottom.modal-lg    { @apply max-h-[60vh]; }
+    .offcanvas-top.modal-xl,    .offcanvas-bottom.modal-xl    { @apply max-h-[85vh]; }
     .offcanvas-header { @apply flex items-center justify-between px-4 py-3 border-b; }
     .offcanvas-title  { @apply text-lg font-semibold; }
     .offcanvas-sub-title { @apply text-sm text-muted-foreground; }
@@ -222,9 +224,12 @@
     /* ── Dropdown ── */
     .dropdown      { @apply relative inline-block; }
     .dropdown-menu {
-        @apply absolute z-50 min-w-[10rem] overflow-hidden rounded-md border bg-popover
+        @apply hidden absolute z-50 min-w-[10rem] overflow-hidden rounded-md border bg-popover
                p-1 shadow-md text-popover-foreground;
     }
+    .dropdown-menu.show { @apply block; }
+    .dropdown-menu-start { @apply left-0; }
+    .dropdown-menu-end { @apply right-0; }
     .dropdown-item {
         @apply flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm
                cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors;
@@ -244,10 +249,21 @@
     .form-check-input { @apply h-4 w-4 rounded border border-input; }
     .form-check-label { @apply text-sm font-medium; }
     .input-group { @apply flex items-stretch; }
-    .input-group .form-control { @apply rounded-none first:rounded-l-md last:rounded-r-md; }
+    .input-group > .form-control,
+    .input-group > .form-select,
+    .input-group > .input-group-text { @apply rounded-none; }
+    .input-group > .form-control:first-child,
+    .input-group > .form-select:first-child,
+    .input-group > .input-group-text:first-child { @apply rounded-l-md; }
+    .input-group > .form-control:last-child,
+    .input-group > .form-select:last-child,
+    .input-group > .input-group-text:last-child { @apply rounded-r-md; }
+    .input-group > .form-control:not(:first-child),
+    .input-group > .form-select:not(:first-child),
+    .input-group > .input-group-text:not(:first-child) { @apply -ml-px; }
     .input-group-text {
         @apply flex items-center px-3 py-1 text-sm border border-input bg-muted
-               first:rounded-l-md last:rounded-r-md;
+               whitespace-nowrap;
     }
 
     /* ── Loader ── */
@@ -374,9 +390,22 @@
     .col-auto { @apply flex-none px-3; }
 }
 
-/* Badge primary override — outside @layer so it beats Tailwind's @layer utilities bg-primary */
-.badge.bg-primary {
-    background-color: hsl(var(--rf-primary) / 0.10) !important;
-    color: hsl(var(--rf-primary));
-    outline: 1px solid hsl(var(--rf-primary) / 0.30);
-}
+/* Badge color overrides — outside @layer so they beat Tailwind's @layer utilities */
+.badge.badge-primary   { background-color: hsl(var(--rf-primary)     / 0.12) !important; color: hsl(var(--rf-primary));            outline: 1px solid hsl(var(--rf-primary)     / 0.30); }
+.badge.badge-info      { background-color: hsl(var(--rf-info)         / 0.12) !important; color: hsl(var(--rf-info));               outline: 1px solid hsl(var(--rf-info)         / 0.30); }
+.badge.badge-success   { background-color: hsl(var(--rf-success)      / 0.12) !important; color: hsl(var(--rf-success));            outline: 1px solid hsl(var(--rf-success)      / 0.30); }
+.badge.badge-warning   { background-color: hsl(var(--rf-warning)      / 0.12) !important; color: hsl(var(--rf-warning));            outline: 1px solid hsl(var(--rf-warning)      / 0.30); }
+.badge.badge-danger    { background-color: hsl(var(--rf-destructive)  / 0.12) !important; color: hsl(var(--rf-destructive));        outline: 1px solid hsl(var(--rf-destructive)  / 0.30); }
+.badge.badge-secondary { background-color: hsl(var(--rf-secondary)    / 0.50) !important; color: hsl(var(--rf-secondary-foreground)); }
+.badge.badge-light     { background-color: hsl(var(--rf-muted))       !important;         color: hsl(var(--rf-muted-foreground)); }
+.badge.badge-dark      { background-color: hsl(var(--rf-foreground)   / 0.12) !important; color: hsl(var(--rf-foreground)); }
+
+/* Overlay badges — solid background, white text, no outline */
+.badge.badge-overlay.badge-primary   { background-color: hsl(var(--rf-primary))     !important; color: hsl(var(--rf-primary-foreground));   outline: none; }
+.badge.badge-overlay.badge-info      { background-color: hsl(var(--rf-info))         !important; color: #fff;                                outline: none; }
+.badge.badge-overlay.badge-success   { background-color: hsl(var(--rf-success))      !important; color: #fff;                                outline: none; }
+.badge.badge-overlay.badge-warning   { background-color: hsl(var(--rf-warning))      !important; color: #fff;                                outline: none; }
+.badge.badge-overlay.badge-danger    { background-color: hsl(var(--rf-destructive))  !important; color: #fff;                                outline: none; }
+.badge.badge-overlay.badge-secondary { background-color: hsl(var(--rf-secondary))    !important; color: hsl(var(--rf-secondary-foreground)); outline: none; }
+.badge.badge-overlay.badge-light     { background-color: hsl(var(--rf-muted))        !important; color: hsl(var(--rf-muted-foreground));     outline: none; }
+.badge.badge-overlay.badge-dark      { background-color: hsl(var(--rf-foreground))   !important; color: hsl(var(--rf-background));           outline: none; }

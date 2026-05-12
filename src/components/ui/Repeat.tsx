@@ -47,14 +47,14 @@ const Repeat = ({
         switch (layout) {
             case 'horizontal': 
             return <>
-                {canRemove && (<div className='d-flex justify-content-between ps-1 mb-2'>
+                {canRemove && (<div className='flex justify-between pl-1 mb-2'>
                     <h6>#{index + 1}</h6>
                     <ActionButton
                         className="btn-close p-0"
                         onClick={() => handleRemove(index)}
                     />
                 </div>)}
-                <div className={`ps-2`}>
+                <div className={`pl-2`}>
                     {renderChildren(index)}
                 </div>
                 <hr className='mb-2' />
@@ -62,10 +62,10 @@ const Repeat = ({
             case 'vertical':
                 return <></>
             case 'inline':
-            return <Row className={`ps-2`}>
+            return <Row className={`pl-2`}>
                 {renderChildren(index, 'col')}
                 {canRemove && (
-                    <Col xs='auto' className='d-flex align-items-start justify-content-end pt-1'>
+                    <Col xs='auto' className='flex items-start justify-end pt-1'>
                         <ActionButton
                             className="btn-close p-0"
                             onClick={() => handleRemove(index)}
@@ -110,7 +110,7 @@ const Repeat = ({
 
     return (
         <div className={className}>
-            {label && <><h6 className='d-flex align-items-center justify-content-between'>{label}{addButton}</h6><hr /></>}
+            {label && <><h6 className='flex items-center justify-between'>{label}{addButton}</h6><hr /></>}
             {components}
             {!label && addButton}
         </div>

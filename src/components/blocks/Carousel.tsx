@@ -51,7 +51,7 @@ const Carousel = ({
         const { alt, description } = image.props;
         if (alt || description) {
             return (
-                <div className="carousel-caption d-none d-md-block opacity-75 bottom-0">
+                <div className="carousel-caption hidden md:block opacity-75 bottom-0">
                     {alt && <h5 className={textCaption}>{alt}</h5>}
                     {description && <p>{description}</p>}
                 </div>
@@ -82,7 +82,7 @@ const Carousel = ({
                     return (
                         <div key={index} className={`carousel-item${index === startSlide ? " active" : ""}`}>
                             {image}
-                            {(showIndicators || showControls || showCaption) && isHover && <div className={"pe-none position-absolute top-0 bottom-0 start-0 end-0 opacity-25 " + bgOverlay}></div>}
+                            {(showIndicators || showControls || showCaption) && isHover && <div className={"pointer-events-none absolute top-0 bottom-0 left-0 right-0 opacity-25 " + bgOverlay}></div>}
                             {isHover && Caption(image)}
                         </div>
                     );

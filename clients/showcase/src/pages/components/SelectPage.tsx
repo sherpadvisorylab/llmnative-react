@@ -1,7 +1,10 @@
 import React from 'react';
-import { Autocomplete, Form, Select, Checklist } from 'react-firestrap';
+import { Form, Select } from 'react-firestrap';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
+import PropsTable from '../../components/PropsTable';
+import { usePlayground } from '../../context/PlaygroundContext';
+import type { PropDef, PlaygroundConfig } from '../../types/playground';
 
 const ROLES = [
     { label: 'Admin', value: 'admin' },
@@ -18,45 +21,110 @@ const COUNTRIES = [
     { label: 'United States', value: 'us' },
 ];
 
-const TAGS = [
-    { label: 'React', value: 'react' },
-    { label: 'TypeScript', value: 'typescript' },
-    { label: 'Firebase', value: 'firebase' },
-    { label: 'Tailwind', value: 'tailwind' },
-    { label: 'Node.js', value: 'nodejs' },
+const SELECT_PROPS: PropDef[] = [
+    { name: 'name', type: 'string', required: true, description: 'Field name used as form key', control: 'text' },
+    { name: 'label', type: 'string', description: 'Label displayed above the select', control: 'text' },
+    { name: 'title', type: 'string', description: 'Native title attribute on the select element', control: 'text' },
+    { name: 'options', type: 'Array<{ label: string; value: string }> | string[] | number[]', description: 'Static options array', control: 'json' },
+    {
+        name: 'db',
+        type: '{ path?: string; srcPath?: string; fieldMap?: object; where?: object; order?: object }',
+        description: 'DataProvider path used to fetch options',
+        control: 'text',
+        readOnly: true,
+        help: 'This playground uses a MockDataProvider. Edit the records in Mock database below to change the options returned by this path.',
+    },
+    { name: 'optionEmpty', type: '{ label: string; value: string } | null', description: 'Placeholder option shown when nothing is selected; set to null to hide it', control: 'json' },
+    { name: 'required', type: 'boolean', default: 'false', description: 'Marks field as required', control: 'boolean' },
+    { name: 'disabled', type: 'boolean', default: 'false', description: 'Disables the select', control: 'boolean' },
+    { name: 'updatable', type: 'boolean', default: 'true', description: 'When false, an existing value locks the select', control: 'boolean' },
+    { name: 'defaultValue', type: 'any', description: 'Initial selected value', control: 'text' },
+    { name: 'feedback', type: 'string', description: 'Validation feedback message shown below the field', control: 'text' },
+    { name: 'order', type: '{ field: "label" | "value"; dir: "asc" | "desc" }', description: 'Sort order for options (default: label asc)', control: 'json' },
+    { name: 'pre', type: 'ReactNode', description: 'Content rendered before the select inside an input group', control: 'text' },
+    { name: 'post', type: 'ReactNode', description: 'Content rendered after the select inside an input group', control: 'text' },
+    { name: 'onChange', type: 'FieldOnChange', description: 'Custom change handler called by the Form context' },
+    { name: 'className', type: 'string', description: 'CSS classes on the select element', control: 'text' },
+    { name: 'wrapClass', type: 'string', description: 'CSS classes on the outer wrapper', control: 'text' },
 ];
 
-function LiveForm({ children, title, description, code }: {
-    children: React.ReactNode;
-    title: string;
-    description?: string;
-    code: string;
-}) {
-    return (
-        <Section
-            title={title}
-            description={description}
-            preview={
-                <div className="w-full max-w-md">
-                    <Form defaultValues={{}}>
-                        {children}
-                    </Form>
-                </div>
-            }
-            code={code}
-        />
-    );
-}
+const PLAYGROUND: PlaygroundConfig = {
+    size: 'lg',
+    showFormRecord: true,
+    props: SELECT_PROPS,
+    mockSeed: {
+        '/showcase/categories': {
+            sales: { label: 'Sales', value: 'sales' },
+            ops: { label: 'Operations', value: 'ops' },
+            support: { label: 'Support', value: 'support' },
+        },
+    },
+    defaultProps: {
+        name: 'categoryId',
+        label: 'Category',
+        title: 'Choose a category',
+        options: ROLES,
+        db: '/showcase/categories',
+        optionEmpty: {
+            label: 'Select...',
+            value: '',
+        },
+        required: false,
+        disabled: false,
+        updatable: true,
+        defaultValue: '',
+        feedback: '',
+        order: {
+            field: 'label',
+            dir: 'asc',
+        },
+        pre: '',
+        post: '',
+        className: '',
+        wrapClass: '',
+    },
+    render: (p, onValuesChange) => (
+        <Form aspect="empty" onChange={onValuesChange}>
+            <Select
+                name={p.name || 'categoryId'}
+                label={p.label}
+                title={p.title || undefined}
+                options={Array.isArray(p.options) ? p.options : []}
+                db={typeof p.db === 'string' && p.db ? { path: p.db } : (p.db && typeof p.db === 'object' ? p.db : undefined)}
+                optionEmpty={p.optionEmpty === null ? null : (p.optionEmpty || undefined)}
+                required={p.required}
+                disabled={p.disabled}
+                updatable={p.updatable}
+                defaultValue={p.defaultValue || undefined}
+                feedback={p.feedback || undefined}
+                order={p.order && typeof p.order === 'object' ? p.order : undefined}
+                pre={p.pre || undefined}
+                post={p.post || undefined}
+                className={p.className || undefined}
+                wrapClass={p.wrapClass || undefined}
+            />
+        </Form>
+    ),
+};
 
 export default function SelectPage() {
+    usePlayground(PLAYGROUND, 'Select');
+
     return (
         <PageLayout
             title="Select"
-            description="Dropdown, multi-select checklist and autocomplete variants. Options can be static arrays or pulled from a DataProvider at runtime."
+            description="Native dropdown select. Options can be a static array or pulled live from a DataProvider."
         >
-            <LiveForm
+            <Section bare
                 title="Basic dropdown"
-                description="Static options array — the simplest usage."
+                description="Static options array - the simplest usage."
+                preview={
+                    <div className="w-full max-w-md">
+                        <Form aspect="empty">
+                            <Select name="role" label="Role" options={ROLES} />
+                        </Form>
+                    </div>
+                }
                 code={`import { Form, Select } from 'react-firestrap';
 
 const ROLES = [
@@ -65,96 +133,50 @@ const ROLES = [
     { label: 'Viewer', value: 'viewer' },
 ];
 
-<Form defaultValues={{}}>
+<Form>
     <Select name="role" label="Role" options={ROLES} />
 </Form>`}
-            >
-                <Select name="role" label="Role" options={ROLES} />
-            </LiveForm>
+            />
 
-            <LiveForm
+            <Section bare
                 title="Required select"
-                code={`<Select
-    name="country"
-    label="Country"
-    options={COUNTRIES}
-    required
-/>`}
-            >
-                <Select name="country" label="Country" options={COUNTRIES} required />
-            </LiveForm>
-
-            <LiveForm
-                title="Checklist — multi-select"
-                description="Renders a vertical list of checkboxes. Selected values are stored as an array."
-                code={`import { Checklist } from 'react-firestrap';
-
-<Checklist
-    name="tags"
-    label="Technologies"
-    options={TAGS}
-/>`}
-            >
-                <Checklist name="tags" label="Technologies" options={TAGS} />
-            </LiveForm>
-
-            <LiveForm
-                title="Autocomplete"
-                description="Uses a datalist and stores selected values as an array."
-                code={`import { Autocomplete, Form } from 'react-firestrap';
-
-<Form defaultValues={{ assignees: ['alice'] }}>
-    <Autocomplete
-        name="assignees"
-        label="Assignees"
-        placeholder="Type a person..."
-        options={[
-            { label: 'Alice', value: 'alice' },
-            { label: 'Bob', value: 'bob' },
-            { label: 'Carla', value: 'carla' },
-        ]}
-        max={3}
-    />
-</Form>`}
-            >
-                <Autocomplete
-                    name="assignees"
-                    label="Assignees"
-                    placeholder="Type a person..."
-                    options={[
-                        { label: 'Alice', value: 'alice' },
-                        { label: 'Bob', value: 'bob' },
-                        { label: 'Carla', value: 'carla' },
-                    ]}
-                    max={3}
-                />
-            </LiveForm>
-
-            <Section
-                title="DataProvider-backed"
-                description="Pass a db prop instead of options to fetch from the registered DataProvider. This demo uses the showcase MockDataProvider."
                 preview={
                     <div className="w-full max-w-md">
-                        <Form defaultValues={{ categoryId: 'ops' }}>
+                        <Form aspect="empty">
+                            <Select name="country" label="Country" options={COUNTRIES} required />
+                        </Form>
+                    </div>
+                }
+                code={`<Select name="country" label="Country" options={COUNTRIES} required />`}
+            />
+
+            <Section bare
+                title="DataProvider-backed"
+                description="Pass a db prop instead of options to fetch from the registered DataProvider at runtime."
+                preview={
+                    <div className="w-full max-w-md">
+                        <Form aspect="empty">
                             <Select
                                 name="categoryId"
                                 label="Category"
                                 db={{ path: '/showcase/categories' }}
+                                defaultValue="ops"
                             />
                         </Form>
                     </div>
                 }
-                code={`import { Form, Select } from 'react-firestrap';
-
-// Fetches { label, value } records from the active DataProvider.
-<Form defaultValues={{ categoryId: 'ops' }}>
+                code={`// Fetches records from the active DataProvider and maps them to options.
+<Form>
     <Select
         name="categoryId"
         label="Category"
         db={{ path: '/showcase/categories' }}
+        defaultValue="ops"
     />
 </Form>`}
             />
+
+            <PropsTable props={SELECT_PROPS} />
         </PageLayout>
     );
 }

@@ -93,7 +93,7 @@ const TabDynamic = ({
             <TabLayout
                 menu={<>
                     {tabs?.map((label, index) => 
-                        <li key={`${name}-${index}`} className="nav-item me-1 position-relative">
+                        <li key={`${name}-${index}`} className="nav-item mr-1 relative">
                             <button
                                onClick={() => setActive(index)}
                                className={`nav-link ${index === active ? 'active' : ''}`}
@@ -101,11 +101,11 @@ const TabDynamic = ({
                                 {label}
                             </button>
                             {(!readOnly && tabs.length -1 >= min && index === active) &&
-                                <ActionButton className="position-absolute top-0 end-0 p-0" icon="x"
+                                <ActionButton className="absolute top-0 right-0 p-0" icon="x"
                                               onClick={() => handleRemove(index)}/>}
                         </li>
                     )}
-                    {!readOnly && (!max || tabs.length < max) && <li key={tabs.length + 1} className="nav-item me-1">
+                    {!readOnly && (!max || tabs.length < max) && <li key={tabs.length + 1} className="nav-item mr-1">
                         <ActionButton className="nav-link" icon="plus" onClick={handleAdd} />
                     </li>}
                 </>}

@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
+import PropsTable from '../../components/PropsTable';
+import { usePlayground } from '../../context/PlaygroundContext';
+import type { PropDef, PlaygroundConfig } from '../../types/playground';
 
 const ROWS = [
     { id: 1, name: 'Alice Johnson', role: 'Admin', status: 'active' },
@@ -15,7 +18,50 @@ const STATUS_BADGE: Record<string, string> = {
     inactive: 'bg-secondary',
 };
 
+const TABLE_PROPS: PropDef[] = [
+    { name: 'rows', type: 'RecordArray', required: true, description: 'Array of row records to render' },
+    { name: 'headers', type: 'TableHeaderProp[]', required: true, description: 'Column definitions: key, label, sort, className' },
+    { name: 'onSelect', type: '(record) => void', description: 'Callback when a row is clicked' },
+    { name: 'selected', type: 'string', description: 'Key of the currently selected row' },
+    { name: 'scrollClass', type: 'string', description: 'CSS class for the scroll wrapper (e.g. fixed-table-container)', control: 'text' },
+    { name: 'tableClass', type: 'string', description: 'CSS classes on the <table> element', control: 'select', options: ['table', 'table table-striped', 'table table-hover', 'table table-striped table-hover', 'table table-bordered'] },
+    { name: 'onSort', type: '(key: string, direction: "asc" | "desc") => void', description: 'Callback when a sortable column header is clicked' },
+];
+
+const PLAYGROUND: PlaygroundConfig = {
+    size: 'xl',
+    props: TABLE_PROPS,
+    defaultProps: { tableClass: 'table table-striped' },
+    render: (p) => (
+        <div className="bootstrap-table w-full">
+            <table className={p.tableClass}>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {ROWS.map((row) => (
+                        <tr key={row.id}>
+                            <td>{row.name}</td>
+                            <td>{row.role}</td>
+                            <td>
+                                <span className={`badge ${STATUS_BADGE[row.status]}`}>
+                                    {row.status}
+                                </span>
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    ),
+};
+
 export default function TablePage() {
+    usePlayground(PLAYGROUND, 'Table');
     const [selected, setSelected] = useState<number | null>(null);
 
     return (
@@ -108,6 +154,9 @@ import { Grid, Badge } from 'react-firestrap';
     // theme.Table.scrollClass = "fixed-table-container" by default
 />`}
             />
+
+            <PropsTable props={TABLE_PROPS} />
+
         </PageLayout>
     );
 }

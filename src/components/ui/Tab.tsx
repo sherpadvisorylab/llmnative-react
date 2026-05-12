@@ -34,15 +34,15 @@ export const TabLayouts: Record<TabPosition, (props: TabLayoutProps) => JSX.Elem
         </>
     ),
     left: ({menu, content}) => (
-        <div className="d-flex">
-            <ul className="nav nav-pills flex-column me-2">{menu}</ul>
+        <div className="flex">
+            <ul className="nav nav-pills flex-col mr-2">{menu}</ul>
             <div className="tab-content flex-fill">{content}</div>
         </div>
     ),
     right: ({menu, content}) => (
-        <div className="d-flex">
+        <div className="flex">
             <div className="tab-content flex-fill">{content}</div>
-            <ul className="nav nav-pills flex-column ms-2">{menu}</ul>
+            <ul className="nav nav-pills flex-col ml-2">{menu}</ul>
         </div>
     ),
     bottom: ({menu, content}) => (
@@ -80,7 +80,7 @@ const Tab: React.FC<TabProps> = ({
             <div className={className}>
                 <TabLayout
                     menu={items.map((item, index) => (
-                        <li key={index} className="nav-item me-1">
+                        <li key={index} className="nav-item mr-1">
                             <button 
                                onClick={() => setActive(index)}
                                className={`nav-link ${index === active ? 'active' : ''}`}

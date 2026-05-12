@@ -73,7 +73,7 @@ export const ImageUrl = ({
 
         <Col xs={4}>
           <Image
-            className="img-thumbnail w-100 h-100"
+            className="img-thumbnail w-full h-full"
             src={imageValue?.url}
             label={imageValue?.alt}
             width={imageValue?.width}
