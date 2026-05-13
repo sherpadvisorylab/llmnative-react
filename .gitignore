@@ -137,4 +137,7 @@ package-lock.json
 .env
 .cursor
 
+# Local dot-directories
+.*/
+
 
