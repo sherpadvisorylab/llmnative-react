@@ -3,6 +3,11 @@ import 'firebase/compat/database';
 import { getAdditionalUserInfo, getAuth, signInWithCredential, onAuthStateChanged, Auth, User } from "firebase/auth";
 import { getGoogleCredential } from "./auth/google/auth";
 import {FirebaseConfig} from "../Config";
+import {
+    createConfigurationState,
+    getMissingKeys,
+    type ProviderConfigurationState,
+} from "./ProviderConfiguration";
 
 interface TokenInfo {
     accessToken?: string;
@@ -10,6 +15,25 @@ interface TokenInfo {
     expirationTime?: number;
     isExpired: boolean;
 }
+
+let currentFirebaseConfig: FirebaseConfig | undefined;
+
+export const setFirebaseConfigState = (config: FirebaseConfig | undefined): void => {
+    currentFirebaseConfig = config;
+};
+
+export const getFirebaseConfigurationState = (): ProviderConfigurationState => createConfigurationState(
+    'FirebaseProvider',
+    getMissingKeys(currentFirebaseConfig as unknown as Record<string, unknown> | undefined, [
+        'apiKey',
+        'authDomain',
+        'databaseURL',
+        'projectId',
+        'storageBucket',
+        'messagingSenderId',
+        'appId',
+    ], 'firebase.')
+);
 
 export const getSafeAuth = (): Auth | null => {
     try {
@@ -100,6 +124,7 @@ const getFirebaseAuthorization = async (): Promise<boolean> => {
 };
 
 const init = async (config: FirebaseConfig): Promise<firebase.app.App> => {
+    setFirebaseConfigState(config);
     const firebaseApp = firebase.apps.length ? firebase.app() : undefined;
 
     if (firebaseApp) {

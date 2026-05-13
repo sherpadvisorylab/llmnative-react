@@ -5,7 +5,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { converter } from "../../libs/converter";
 import { consoleLog } from "../../constant";
 import { Config, onConfigChange } from "../../Config";
-import init, { getSafeAuth } from "../firebase-init";
+import init, { getFirebaseConfigurationState, getSafeAuth } from "../firebase-init";
 import { cleanRecord } from "../../libs/utils";
 import { SetMessagePayload } from "../../components/ui/Buttons";
 import {
@@ -20,6 +20,7 @@ import {
     Condition,
     OperatorValue,
 } from "./DataProvider";
+import type { ProviderConfigurationState } from "../ProviderConfiguration";
 
 type RecordObject = Record<string, Record<string, any>>;
 type WhereEntry = [string, Condition | OperatorValue];
@@ -35,9 +36,11 @@ export const SYSTEM_FIELDS = {
 };
 
 let databaseInstance: firebase.database.Database;
-onConfigChange((newConfig: Config) => {
-    if (newConfig.firebase) init(newConfig.firebase);
-});
+if (typeof onConfigChange === 'function') {
+    onConfigChange((newConfig: Config) => {
+        if (newConfig.firebase) init(newConfig.firebase);
+    });
+}
 
 const getDatabase = (): firebase.database.Database => {
     if (!databaseInstance && firebase.apps.length) {
@@ -192,6 +195,14 @@ const buildShallowURL = (path: string, auth?: string): string => {
 };
 
 export class FirebaseDataProvider implements DataProviderAdapter {
+    getConfigurationState(): ProviderConfigurationState {
+        return getFirebaseConfigurationState();
+    }
+
+    isConfigured(): boolean {
+        return this.getConfigurationState().configured;
+    }
+
     readShallow = async (path: string, exception = false): Promise<string[]> => {
         try {
             const auth = getSafeAuth();

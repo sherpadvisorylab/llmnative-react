@@ -31,7 +31,7 @@ const EXAMPLES = [
         title: 'Google sign-in',
         path: '/examples/google-auth',
         desc: 'OAuth2 sign-in with Google, protected routes and user profile display.',
-        tags: ['AuthProvider', 'SignInButton'],
+        tags: ['AuthProvider', 'AuthButton'],
     },
 ];
 

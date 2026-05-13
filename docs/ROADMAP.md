@@ -27,13 +27,14 @@ Gia' implementato e verificato:
 - `MarkdownReader` pubblico.
 - Showcase Vite basato su `<App providers={{ ... }}>` e docs Markdown via frontmatter.
 - Scaffold Vite-first riallineato alla nuova API `providers`.
-- Test unit/component: 11 file, 110 test passanti.
+- Test unit/component: 14 file, 124 test passanti.
 
 Non ancora completo:
 
 - Integration test Firebase/Supabase.
 - Test Storage/Auth/Email provider.
-- Test component per Upload, Prompt, Repeat.
+- Test component per Prompt.
+- Test contract sulle implementazioni storage concrete.
 - Playwright E2E e CI.
 - Showcase senza stub per provider ed esempi.
 - Deploy pubblico dello showcase.
@@ -60,10 +61,10 @@ Obiettivo: poter dire cosa funziona con test automatici, non solo con build.
 
 Task:
 
-- Aggiungere test `Upload`.
+- Aggiungere test `Upload`. *(fatto: copertura component base)*
 - Aggiungere test `Prompt`.
-- Aggiungere test `Repeat`.
-- Aggiungere test storage provider almeno su mock/fake adapter o contract dedicato.
+- Aggiungere test `Repeat`. *(fatto: render/add/readOnly/save nested)*
+- Aggiungere test storage provider almeno su mock/fake adapter o contract dedicato. *(parziale: coperto `StorageProviderContext`)*
 - Aggiungere integration Firebase con emulatore oppure marcarla esplicitamente come manuale fino a setup emulatore.
 - Aggiungere integration Supabase solo quando `SupabaseDataProvider` smette di loggare `not fully implemented yet`.
 - Aggiungere script separati se servono: `test:unit`, `test:integration`, `test:e2e`.

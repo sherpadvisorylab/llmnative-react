@@ -2,9 +2,11 @@ import { Config, GoogleConfig, onConfigChange } from "../../../Config";
 import { googleGetAccessToken } from "../../auth/google/GoogleAuth";
 
 let config: GoogleConfig | undefined = undefined;
-onConfigChange((newConfig: Config) => {
-    config = newConfig.google;
-});
+if (typeof onConfigChange === 'function') {
+    onConfigChange((newConfig: Config) => {
+        config = newConfig.google;
+    });
+}
 
 export const DEFAULT_GEO_TARGET = 'geoTargetConstants/2380';
 export const DEFAULT_LANGUAGE = 'languageConstants/1000';

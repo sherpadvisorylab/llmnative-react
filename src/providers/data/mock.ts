@@ -38,6 +38,14 @@ export class MockDataProvider implements DataProviderAdapter {
         }
     }
 
+    isConfigured(): boolean {
+        return true;
+    }
+
+    getConfigurationState() {
+        return { configured: true };
+    }
+
     private getCollection(collPath: string): Record<string, any> {
         if (!this.store[collPath]) this.store[collPath] = {};
         return this.store[collPath];

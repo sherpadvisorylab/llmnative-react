@@ -68,7 +68,7 @@ my-app/
     layouts/
       Default.tsx            ← shell: header + sidebar + main + footer
     sections/
-      Header.tsx             ← topbar: Brand, Menu, Notifications, SignInButton
+      Header.tsx             ← topbar: Brand, Menu, Notifications, AuthButton
       Sidebar.tsx            ← responsive sidebar using <Menu context="sidebar">
       Footer.tsx
       PageHeader.tsx         ← Breadcrumbs above page content

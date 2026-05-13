@@ -5,9 +5,11 @@ import {Config, GoogleServiceAccount, onConfigChange} from "../../../../Config";
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
 
 let config: GoogleServiceAccount | undefined = undefined;
-onConfigChange((newConfig: Config) => {
-    config = newConfig.google?.serviceAccount;
-});
+if (typeof onConfigChange === 'function') {
+    onConfigChange((newConfig: Config) => {
+        config = newConfig.google?.serviceAccount;
+    });
+}
 
 /**
  * Genera un JWT firmato per autenticarsi come Service Account impersonando un utente.

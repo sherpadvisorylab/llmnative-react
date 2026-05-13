@@ -1,4 +1,6 @@
 // Shared types — provider-agnostic, used by Form, Grid, and all components
+import type { ProviderConfigurable } from '../ProviderConfiguration';
+
 type FieldMap = Record<string, any>;
 type RecordObject = Record<string, FieldMap>;
 export type RecordProps = FieldMap & { _key?: string; _index?: number };
@@ -45,7 +47,7 @@ export interface SetChunksOptions {
     onProgress?: (done: number, total: number, message: string) => void;
 }
 
-export interface DataProviderAdapter {
+export interface DataProviderAdapter extends ProviderConfigurable {
     read(path: string, options?: ReadOptions): Promise<any>;
     set(path: string, data: object, exception?: boolean): Promise<void>;
     update(path: string, data: object, exception?: boolean): Promise<void>;

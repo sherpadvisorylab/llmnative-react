@@ -37,7 +37,8 @@ function titleFromFile(sourcePath: string): string {
 
 function routeFromFile(sourcePath: string): string {
     const relative = sourcePath.split('/docs/')[1]?.replace(/\.md$/, '') ?? '';
-    if (relative === 'overview') return '/docs';
+    if (relative === 'overview' || relative === 'index') return '/docs';
+    if (relative.endsWith('/index')) return `/docs/${relative.replace(/\/index$/, '')}`;
     return `/docs/${relative}`;
 }
 
@@ -76,9 +77,8 @@ function parseFrontmatter(raw: string, sourcePath: string): MarkdownDoc {
     };
 }
 
-export const markdownDocs = Object.entries(rawDocs)
+export const allMarkdownDocs = Object.entries(rawDocs)
     .map(([sourcePath, raw]) => parseFrontmatter(raw, sourcePath))
-    .filter((doc) => doc.meta.path.startsWith('/docs'))
     .sort((a, b) => {
         const group = (GROUP_ORDER[a.meta.group] ?? 999) - (GROUP_ORDER[b.meta.group] ?? 999);
         if (group !== 0) return group;
@@ -87,12 +87,18 @@ export const markdownDocs = Object.entries(rawDocs)
         return a.meta.title.localeCompare(b.meta.title);
     });
 
+export const markdownDocs = allMarkdownDocs
+    .filter((doc) => doc.meta.path.startsWith('/docs'));
+
+export const providerMarkdownDocs = allMarkdownDocs
+    .filter((doc) => doc.meta.path === '/providers' || doc.meta.path.startsWith('/providers/'));
+
 export function getMarkdownDocByPath(path: string): MarkdownDoc | undefined {
-    return markdownDocs.find((doc) => doc.meta.path === path);
+    return allMarkdownDocs.find((doc) => doc.meta.path === path);
 }
 
 export function resolveMarkdownDocHref(href: string, currentPath: string): string {
-    if (href.startsWith('/docs')) return href.replace(/\.md(?=#|$)/, '');
+    if (href.startsWith('/')) return href.replace(/\.md(?=#|$)/, '');
     if (href.startsWith('#')) return href;
     if (/^[a-z]+:/i.test(href)) return href;
 

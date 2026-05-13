@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Modal, Icon, MockDataProvider, DataProvider } from 'react-firestrap';
+import { Modal, Icon, MockDataProvider, DataProvider, createMotionTransition, useMotion } from 'react-firestrap';
 import type { PropDef, PlaygroundConfig } from '../types/playground';
 
 const BASE_INPUT = 'w-full rounded-md border border-border bg-background px-2.5 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring';
@@ -245,6 +245,8 @@ function Accordion({ icon, label, defaultOpen = false, children }: {
     children: React.ReactNode;
 }) {
     const [open, setOpen] = useState(defaultOpen);
+    const motion = useMotion();
+
     return (
         <div className="border-t">
             <button
@@ -256,9 +258,30 @@ function Accordion({ icon, label, defaultOpen = false, children }: {
                     <Icon name={icon} size={14} />
                     {label}
                 </span>
-                <Icon name={open ? 'chevron-up' : 'chevron-down'} size={14} className="text-muted-foreground" />
+                <Icon
+                    name="chevron-down"
+                    size={14}
+                    className="text-muted-foreground"
+                    style={{
+                        transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
+                        transition: createMotionTransition(motion, ['transform']),
+                    }}
+                />
             </button>
-            {open && children}
+            <div
+                style={{
+                    overflow: 'hidden',
+                    maxHeight: open ? 720 : 0,
+                    opacity: open ? 1 : 0,
+                    transform: open ? 'translateY(0)' : `translateY(-${motion.enterDistance}px)`,
+                    transition: [
+                        `max-height ${motion.duration}ms ${motion.easing}`,
+                        createMotionTransition(motion, ['transform', 'opacity']),
+                    ].join(', '),
+                }}
+            >
+                {children}
+            </div>
         </div>
     );
 }
@@ -317,6 +340,7 @@ export default function PlaygroundDrawer({ title, config, open, onClose }: Playg
             size={size}
             header={header}
             onClose={onClose}
+            closeOnBackdrop
             buttonFullscreen={false}
             footerClose={false}
             headerClass="h-14 !py-0 px-4"

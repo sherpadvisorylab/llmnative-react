@@ -49,10 +49,14 @@ root.render(
                 clientId: env.VITE_GOOGLE_CLIENT_ID ?? '',
                 scope:    env.VITE_GOOGLE_SCOPE     ?? '',
             },
+            dropbox: {
+                clientId: env.VITE_DROPBOX_CLIENT_ID ?? '',
+                rootPath: env.VITE_DROPBOX_ROOT_PATH ?? '',
+            },
             services: {
                 data: 'mock',
                 storage: 'firebase',
-                auth: 'google',
+                auth: 'googleAuth',
             },
         }}
         iconProvider="lucide"

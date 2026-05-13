@@ -1,3 +1,5 @@
+import type { ProviderConfigurable } from '../ProviderConfiguration';
+
 export interface EmailSendParams {
     to: string | string[];
     bcc?: string | string[];
@@ -5,6 +7,6 @@ export interface EmailSendParams {
     message: string;
 }
 
-export interface EmailProviderAdapter {
+export interface EmailProviderAdapter extends ProviderConfigurable {
     send(params: EmailSendParams): Promise<void>;
 }

@@ -1,10 +1,12 @@
 import React, {useEffect, useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import {useTheme} from "../../Theme";
-import { Badge, UIProps } from '../..';
+import Badge from './Badge';
+import type { UIProps } from '../types';
 import { Wrapper } from './GridSystem';
 import { BadgeType } from './Badge';
 import { cn } from '../../libs/cn';
+import { usePressMotion, type MotionConfig } from '../../motion';
 
 export interface IButton extends UIProps {
     onClick?: (e: any) => any;
@@ -17,6 +19,7 @@ export interface IButton extends UIProps {
     badgeType?: BadgeType;
     iconClass?: string;
     style?: React.CSSProperties;
+    motion?: MotionConfig | false;
 }
 
 export type SetMessagePayload = { message: string; chunkDone?: number; totalChunks?: number };
@@ -39,7 +42,8 @@ export const LoadingButton = ({
     className       = undefined,
     badgeType       = undefined,
     iconClass       = undefined,
-    style           = undefined
+    style           = undefined,
+    motion: motionConfig = undefined
 }: LoadingButtonProps = {}) => {
     const [loader, setLoader] = useState(showLoader);
     const [disable, setDisable] = useState(disabled);
@@ -50,34 +54,39 @@ export const LoadingButton = ({
     };
 
     const theme = useTheme("button");
+    const motion = usePressMotion(disable || loader, style, motionConfig === false ? { preset: 'none' } : motionConfig);
 
     useEffect(() => {
         setLoader(showLoader);
         setDisable(disabled);
     }, [showLoader, disabled]);
 
+    const button = (
+        <button
+            title={title}
+            className={cn("btn", className || theme.LoadingButton.className, loader && message && "whitespace-nowrap")}
+            style={motion.style}
+            disabled={disable || loader}
+            {...motion.pressHandlers}
+            onClick={async (e) => {
+                e.stopPropagation();
+                setDisable(true);
+                setLoader(true);
+                await onClick?.(e, setMessage);
+                setLoader(false);
+                setDisable(false);
+            }}
+        >
+            {loader && <><i className={cn(label && "mr-1", theme.LoadingButton.spinnerClass)}></i>{message && <span className='ml-1'>{message}</span>}</>}
+            {(icon && !loader) && <i className={cn(label && "mr-1", iconClass, theme.getIcon(icon))}></i>}
+            {label}
+        </button>
+    );
+
     return (
         <Wrapper className={wrapClass}>
             {pre}
-            <button
-                title={title}
-                className={cn("btn", className || theme.LoadingButton.className, badge != null && "relative", loader && message && "whitespace-nowrap")}
-                style={style}
-                disabled={disable || loader}
-                onClick={async (e) => {
-                    e.stopPropagation();
-                    setDisable(true);
-                    setLoader(true);
-                    await onClick?.(e, setMessage);
-                    setLoader(false);
-                    setDisable(false);
-                }}
-            >
-                {loader && <><i className={cn(label && "mr-1", theme.LoadingButton.spinnerClass)}></i>{message && <span className='ml-1'>{message}</span>}</>}
-                {(icon && !loader) && <i className={cn(label && "mr-1", iconClass, theme.getIcon(icon))}></i>}
-                {label}
-                {(badge != null && !loader) && <Badge type={badgeType} className="absolute right-0 top-0 rounded-full translate-x-1/2 -translate-y-1/2">{badge}</Badge>}
-            </button>
+            {(badge != null && !loader) ? <Badge type={badgeType} post={badge}>{button}</Badge> : button}
             {post}
         </Wrapper>
     );
@@ -96,28 +105,38 @@ export const ActionButton = ({
     className       = undefined,
     badgeType       = undefined,
     iconClass       = undefined,
-    style           = undefined
+    style           = undefined,
+    motion: motionConfig = undefined
 }: IButton = {}) => {
     const theme = useTheme("button");
+    const motion = usePressMotion(disabled, style, motionConfig === false ? { preset: 'none' } : motionConfig);
+    const button = (
+        <button
+            title={title}
+            className={cn("btn", className || theme.ActionButton.className)}
+            style={motion.style}
+            disabled={disabled}
+            {...motion.pressHandlers}
+            onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onClick?.(e);
+            }}
+        >
+            {icon && <i className={cn(label && "mr-1", iconClass, theme.getIcon(icon))}></i>}
+            {label}
+        </button>
+    );
 
     return (
         <Wrapper className={wrapClass}>
             {pre}
-            <button
-                title={title}
-                className={cn("btn", className || theme.ActionButton.className, badge != null && "relative")}
-                style={style}
-                disabled={disabled}
-                onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onClick?.(e);
-                }}
+            <span
+                title={disabled ? title : undefined}
+                style={disabled ? { cursor: 'not-allowed', display: 'inline-flex' } : undefined}
             >
-                {icon && <i className={cn(label && "mr-1", iconClass, theme.getIcon(icon))}></i>}
-                {label}
-                {badge != null&& <Badge type={badgeType} className="absolute right-0 top-0 rounded-full translate-x-1/2 -translate-y-1/2">{badge}</Badge>}
-            </button>
+                {badge != null ? <Badge type={badgeType} post={badge}>{button}</Badge> : button}
+            </span>
             {post}
         </Wrapper>
     );

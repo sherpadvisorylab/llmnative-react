@@ -1,5 +1,10 @@
 import { useEffect } from "react";
 import { DataProviderAdapter, DatabaseOptions, ReadOptions, RecordArray, RecordProps } from "./DataProvider";
+import {
+    createConfigurationState,
+    getMissingKeys,
+    type ProviderConfigurationState,
+} from "../ProviderConfiguration";
 
 interface SupabaseConfig {
     url: string;
@@ -14,6 +19,17 @@ export class SupabaseDataProvider implements DataProviderAdapter {
 
     constructor(config: SupabaseConfig) {
         this.config = config;
+    }
+
+    getConfigurationState(): ProviderConfigurationState {
+        return createConfigurationState(
+            'SupabaseDataProvider',
+            getMissingKeys(this.config as unknown as Record<string, unknown>, ['url', 'anonKey'], 'supabase.')
+        );
+    }
+
+    isConfigured(): boolean {
+        return this.getConfigurationState().configured;
     }
 
     read = async (path: string, _options?: ReadOptions): Promise<any> => {

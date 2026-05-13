@@ -1,6 +1,7 @@
 import React, { useState, Children, ReactElement } from 'react';
 import { Wrapper } from "./GridSystem";
 import { UIProps } from '../..';
+import { useEnterMotion, type MotionConfig } from '../../motion';
 
 export type TabPosition = "default" | "top" | "left" | "right" | "bottom";
 
@@ -18,6 +19,7 @@ interface TabProps extends UIProps {
     children: React.ReactNode;
     defaultTab?: number;
     tabPosition?: TabPosition;
+    motion?: MotionConfig | false;
 }
 
 export const TabLayouts: Record<TabPosition, (props: TabLayoutProps) => JSX.Element> = {
@@ -56,6 +58,22 @@ export const TabLayouts: Record<TabPosition, (props: TabLayoutProps) => JSX.Elem
 
 export const TabItem: React.FC<TabItemProps> = () => null;
 
+const TabPane = ({
+    children,
+    motion,
+}: {
+    children: React.ReactNode;
+    motion?: MotionConfig | false;
+}) => {
+    const style = useEnterMotion(undefined, motion === false ? { preset: 'none' } : motion);
+
+    return (
+        <div className="tab-pane fade show active" style={style}>
+            {children}
+        </div>
+    );
+};
+
 const Tab: React.FC<TabProps> = ({
     children,
     defaultTab = 0,
@@ -63,7 +81,8 @@ const Tab: React.FC<TabProps> = ({
     pre = undefined,
     post = undefined,
     wrapClass = undefined,
-    className = undefined
+    className = undefined,
+    motion = undefined
 }) => {
     const [active, setActive] = useState(defaultTab);
     
@@ -90,12 +109,9 @@ const Tab: React.FC<TabProps> = ({
                         </li>
                     ))}
                     content={
-                        <div 
-                            key={active}
-                            className={`tab-pane fade show active`}
-                        >
+                        <TabPane key={active} motion={motion}>
                             {items[active]?.props?.children}
-                        </div>
+                        </TabPane>
                     }
                 />
             </div>

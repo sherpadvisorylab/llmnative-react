@@ -1,6 +1,6 @@
 # Components API Reference
 
-> TL;DR per AI: questa pagina è il riferimento completo di props per ogni componente. Per esempi d'uso vedi [patterns.md](patterns.md) e [examples/](examples/).
+> TL;DR per AI: questa pagina è il riferimento completo di props per ogni componente. Per esempi d'uso vedi [patterns](/docs/patterns) e [examples](/docs/examples/crud-basic).
 
 ---
 

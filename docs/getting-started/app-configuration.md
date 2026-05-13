@@ -98,10 +98,10 @@ react-firestrap has four **service slots** — each represents a capability the 
 |---|---|---|
 | `data` | Read/write records — used by `Grid`, `Form`, `useDataProvider` | `dbRealtime` · `supabaseDb` · `mock` · custom |
 | `storage` | File upload/download — used by `Upload`, `useStorageProvider` | `firestorage` · `supabaseStorage` · custom |
-| `auth` | Sign-in / sign-out / current user — used by `SignIn`, `useAuthProvider` | `googleAuth` · custom |
+| `auth` | Sign-in / sign-out / current user — used by `AuthButton`, `useAuthProvider` | `googleAuth` · `dropboxAuth` · custom |
 | `email` | Outbound email — used by `useEmailProvider` | `gmail` · custom |
 
-Standalone integrations (`ai`, `dropbox`) are **not** service slots — they are runtime configurations consumed directly by their respective utilities, not by the provider hooks.
+Standalone AI configuration is not a service slot. Dropbox is hybrid: `providers.dropbox` registers `dropboxAuth` for OAuth, while Dropbox file APIs remain dedicated utilities instead of `StorageProvider`.
 
 > **Custom providers:** all four service slots support custom adapter implementations via `providers.custom`. Implement the corresponding interface (`DataProviderAdapter`, `StorageProviderAdapter`, `AuthProviderAdapter`, `EmailProviderAdapter`) and register it — the framework treats it identically to any built-in provider. See [Provider pattern](/docs/providers) for the interfaces and a complete example.
 
@@ -132,6 +132,15 @@ interface AppProvidersConfig {
     developerToken?:  string;   // Google Ads API only
   };
 
+  /**
+   * Dropbox — activates driver: dropboxAuth (auth).
+   * File APIs are still consumed through Dropbox utilities, not StorageProvider.
+   */
+  dropbox?: {
+    clientId:  string;  // from Dropbox App Console
+    rootPath:  string;  // base path inside the Dropbox folder
+  };
+
   /** In-memory mock — activates driver: mock (data). Resets on reload. No credentials needed. */
   mock?: {
     data?: Record<string, Record<string, object>>;
@@ -158,26 +167,18 @@ interface AppProvidersConfig {
    * Built-in driver names:
    *   data:    'dbRealtime' | 'supabaseDb' | 'mock'
    *   storage: 'firestorage' | 'supabaseStorage'
-   *   auth:    'googleAuth'
+   *   auth:    'googleAuth' | 'dropboxAuth'
    *   email:   'gmail'
    */
   services?: {
     data?:    'dbRealtime' | 'supabaseDb' | 'mock' | string;
     storage?: 'firestorage' | 'supabaseStorage' | string;
-    auth?:    'googleAuth' | string;
+    auth?:    'googleAuth' | 'dropboxAuth' | string;
     email?:   'gmail' | string;
   };
 
   // ── Standalone integrations (not service slots) ────────────────
 
-  /**
-   * Dropbox file access. Not a storage service slot — consumed directly
-   * by Dropbox-specific utilities, not by useStorageProvider().
-   */
-  dropbox?: {
-    clientId:  string;  // from Dropbox App Console
-    rootPath:  string;  // base path inside the Dropbox folder
-  };
 }
 ```
 
@@ -320,13 +321,13 @@ export const googleOAuth2: GoogleOAuth2 = {
 
 ## Standalone integrations
 
-These are not service slots and are not accessible via provider hooks. They are runtime configurations consumed directly by their respective utilities.
+AI settings are not service slots and are not accessible via provider hooks. Dropbox is listed here because its file APIs are consumed directly, even though `providers.dropbox` also registers the `dropboxAuth` auth driver.
 
 ### `AIConfig` — passed via `aiConfig` prop
 
 Multi-model AI integration. `AI.fetch`, `AI.json` and `AI.array` automatically use the first key that is set. You can configure multiple providers simultaneously — the utilities will pick the active one based on priority order.
 
-→ [AI integration](/docs/providers)
+→ [AI integration](/providers/integrations)
 
 ```ts
 interface AIConfig {
@@ -349,7 +350,7 @@ interface AIConfig {
 
 ### `DropboxConfig` — declared inside `providers.dropbox`
 
-Dropbox file access used by Dropbox-specific components and utilities. Does **not** power the `storage` service slot — `useStorageProvider()` will not return a Dropbox adapter.
+Dropbox file access used by Dropbox-specific components and utilities. It registers `dropboxAuth` for OAuth connection buttons, but it does **not** power the `storage` service slot — `useStorageProvider()` will not return a Dropbox adapter.
 
 → [Dropbox App Console](https://www.dropbox.com/developers/apps)
 
@@ -442,4 +443,4 @@ const supabase = useDataProvider('supabaseDb');
 const gmail    = useEmailProvider('gmail');  // null if not configured
 ```
 
-See [Provider pattern](/docs/providers) for adapter interfaces and custom implementation.
+See [Providers & Integrations](/providers) for service usage and custom provider examples.

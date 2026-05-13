@@ -11,7 +11,7 @@ interface TopbarProps {
 const TOP_NAV = [
     { label: 'Docs',       path: '/docs' },
     { label: 'Components', path: '/components' },
-    { label: 'Providers',  path: '/providers' },
+    { label: 'Providers / Integrations',  path: '/providers' },
     { label: 'Examples',   path: '/examples' },
 ];
 

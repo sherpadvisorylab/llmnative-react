@@ -126,9 +126,11 @@ const SEARCH_BY_ENGINE = {
 
 
 let config: ScrapeConfig | undefined = undefined;
-onConfigChange((newConfig: Config) => {
-    config = newConfig.scrape;
-});
+if (typeof onConfigChange === 'function') {
+    onConfigChange((newConfig: Config) => {
+        config = newConfig.scrape;
+    });
+}
 
 function removeNullProperties(obj: Record<string, any>): Record<string, any> {
     const newObj: Record<string, any> = {};

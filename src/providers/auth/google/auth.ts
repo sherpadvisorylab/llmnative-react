@@ -1,11 +1,13 @@
 import {decodeJWT} from "../../../libs/utils";
 import {GoogleAuthProvider} from "firebase/auth";
-import {Config, GoogleConfig, onConfigChange} from "../../../Config";
+import {Config, getConfig, GoogleConfig, onConfigChange} from "../../../Config";
 
-let config: GoogleConfig | undefined = undefined;
-onConfigChange((newConfig: Config) => {
-    config = newConfig.google;
-});
+let config: GoogleConfig | undefined = getConfig?.()?.google;
+if (typeof onConfigChange === 'function') {
+    onConfigChange((newConfig: Config) => {
+        config = newConfig.google;
+    });
+}
 
 export const authConfig = <K extends keyof GoogleConfig>(
     key: K

@@ -5,6 +5,7 @@ import {Wrapper} from "../ui/GridSystem";
 import Badge from "../ui/Badge";
 import Menu from './Menu';
 import { cn } from '../../libs/cn';
+import { createMotionTransition, useMotion, usePressMotion, type MotionConfig } from '../../motion';
 
 interface DropdownTogglerProps {
     icon?: string;
@@ -32,6 +33,7 @@ interface DropdownProps {
     menuClass?: string;
     headerClass?: string;
     footerClass?: string;
+    motion?: MotionConfig | false;
 }
 
 interface DropdownButtonProps {
@@ -41,6 +43,7 @@ interface DropdownButtonProps {
     className?: string;
     badgeClass?: string;
     onToggle?: () => void;
+    motion?: MotionConfig | false;
 }
 
 interface DropdownItemProps {
@@ -73,9 +76,11 @@ export const Dropdown = ({
                              badgeClass         = undefined,
                              headerClass        = undefined,
                              footerClass        = undefined,
+                             motion: motionConfig = undefined,
 
 }: DropdownProps) => {
     const theme = useTheme("dropdown");
+    const motion = useMotion(motionConfig === false ? { preset: 'none' } : motionConfig);
     const [open, setOpen] = React.useState(false);
     function isDropdownToggler(button: any): button is DropdownTogglerProps {
         return (
@@ -86,7 +91,7 @@ export const Dropdown = ({
         );
     }
 
-    const Button = <DropdownButton className={buttonClass} badge={badge} badgeClass={badgeClass} onToggle={() => setOpen((value) => !value)}>
+    const Button = <DropdownButton className={buttonClass} badge={badge} badgeClass={badgeClass} motion={motionConfig} onToggle={() => setOpen((value) => !value)}>
         {isDropdownToggler(toggleButton)
             ? <>
                 {toggleButton.icon && <i className={theme.getIcon(toggleButton.icon)}></i>}
@@ -101,7 +106,14 @@ export const Dropdown = ({
         <Wrapper className={wrapClass || theme.Dropdown.wrapClass}>
             <div className={cn("dropdown", className || theme.Dropdown.className)}>
                 {Button}
-                <div className={cn("dropdown-menu", open && "show", menuClass || theme.Dropdown.menuClass, position && `dropdown-menu-${position}`)}
+                <div className={cn("dropdown-menu show", menuClass || theme.Dropdown.menuClass, position && `dropdown-menu-${position}`)}
+                     style={{
+                         opacity: open ? 1 : 0,
+                         visibility: open ? 'visible' : 'hidden',
+                         pointerEvents: open ? undefined : 'none',
+                         transform: open ? 'translateY(0)' : `translateY(${motion.enterDistance}px)`,
+                         transition: createMotionTransition(motion, ['transform', 'opacity', 'visibility']),
+                     }}
                      onClick={(e) => keepDropdownOpen && e.stopPropagation()}
                 >
                     {header && <div className={headerClass || theme.Dropdown.headerClass}>
@@ -126,9 +138,11 @@ export const DropdownButton = ({
                                    display      = "dynamic",
                                    className    = undefined,
                                    badgeClass   = undefined,
+                                   motion: motionConfig = undefined,
                                    onToggle     = undefined
 }: DropdownButtonProps) => {
     const theme = useTheme("dropdown");
+    const motion = usePressMotion(false, {cursor: "pointer"}, motionConfig === false ? { preset: 'none' } : motionConfig);
 
     const dropdownBadge: DropdownBadgeObject | undefined =
         badge != null
@@ -140,10 +154,11 @@ export const DropdownButton = ({
     return (
         <div
             className={cn(className || theme.Dropdown.buttonClass)}
-            style={{cursor: "pointer"}}
+            style={motion.style}
             role="button"
             tabIndex={0}
             onClick={onToggle}
+            {...motion.pressHandlers}
             onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();

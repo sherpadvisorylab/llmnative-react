@@ -2,15 +2,14 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 
 import Home from '../pages/Home';
-import { markdownDocs } from '../docs/markdownDocs';
+import { markdownDocs, providerMarkdownDocs } from '../docs/markdownDocs';
 import MarkdownDocPage from '../pages/docs/MarkdownDocPage';
 import Stub from '../pages/docs/Stub';
-import ProvidersOverview from '../pages/providers/ProvidersOverview';
-import DataProviderPage from '../pages/providers/DataProviderPage';
 import ExamplesOverview from '../pages/examples/ExamplesOverview';
 
 import AlertPage from '../pages/components/AlertPage';
 import AssistantAIPage from '../pages/components/AssistantAIPage';
+import AuthPage from '../pages/components/AuthPage';
 import BadgePage from '../pages/components/BadgePage';
 import BrandPage from '../pages/components/BrandPage';
 import BreadcrumbsPage from '../pages/components/BreadcrumbsPage';
@@ -62,12 +61,21 @@ const docsRoutes = markdownDocs.map((doc) => ({
     end: doc.meta.path === '/docs',
 }));
 
+const providerRoutes = providerMarkdownDocs.map((doc) => ({
+    path: doc.meta.path,
+    title: doc.meta.title,
+    page: () => React.createElement(MarkdownDocPage, { doc }),
+    group: doc.meta.group,
+    end: doc.meta.path === '/providers',
+}));
+
 export const menu = {
     default: [
         { path: '/', page: Home },
     ],
 
     _nav: [
+        { path: '/docs/providers', page: () => React.createElement(Navigate, { to: '/providers', replace: true }) },
         { path: '/components', page: () => React.createElement(Navigate, { to: '/components/alert', replace: true }) },
         { path: '/examples', page: () => React.createElement(Navigate, { to: '/examples/crud', replace: true }) },
     ],
@@ -93,6 +101,7 @@ export const menu = {
         { path: '/components/tab', title: 'Tab', page: TabPage, group: 'UI Primitives' },
         { path: '/components/tab-dynamic', title: 'TabDynamic', page: TabDynamicPage, group: 'Widgets' },
         { path: '/components/table', title: 'Table', page: TablePage, group: 'UI Primitives' },
+        { path: '/components/auth', title: 'Auth', page: AuthPage, group: 'Widgets' },
         { path: '/components/brand', title: 'Brand', page: BrandPage, group: 'Blocks' },
         { path: '/components/breadcrumbs', title: 'Breadcrumbs', page: BreadcrumbsPage, group: 'Blocks' },
         { path: '/components/menu', title: 'Menu', page: MenuPage, group: 'Blocks' },
@@ -118,17 +127,11 @@ export const menu = {
     ],
 
     providers: [
-        { path: '/providers', title: 'Overview', page: ProvidersOverview, group: 'Overview' },
-        { path: '/providers/data', title: 'DataProviderAdapter contract', page: DataProviderPage, group: 'Data' },
-        { path: '/providers/data/firebase', title: 'FirebaseDataProvider', page: s('FirebaseDataProvider', 'Real-time Realtime Database implementation.'), group: 'Data' },
-        { path: '/providers/data/supabase', title: 'SupabaseDataProvider', page: s('SupabaseDataProvider', 'Supabase PostgreSQL implementation.'), group: 'Data' },
-        { path: '/providers/data/custom', title: 'Custom provider', page: s('Custom DataProvider', 'How to implement and register your own DataProvider.'), group: 'Data' },
-        { path: '/providers/storage', title: 'StorageProviderAdapter contract', page: s('StorageProviderAdapter contract', 'upload, getURL, delete - the storage contract.'), group: 'Storage' },
-        { path: '/providers/storage/firebase', title: 'FirebaseStorageProvider', page: s('FirebaseStorageProvider', 'Firebase Storage implementation.'), group: 'Storage' },
-        { path: '/providers/auth', title: 'AuthProviderAdapter contract', page: s('AuthProviderAdapter contract', 'signIn, signOut, onAuthStateChanged - the auth contract.'), group: 'Auth' },
-        { path: '/providers/auth/google', title: 'GoogleAuthProvider', page: s('GoogleAuthProvider', 'OAuth2 Google sign-in implementation.'), group: 'Auth' },
-        { path: '/providers/email', title: 'EmailProviderAdapter', page: s('EmailProviderAdapter contract', 'send - the email contract.'), group: 'Email & AI' },
-        { path: '/providers/ai', title: 'AI integration', page: s('AI integration', 'AI.fetch, AI.json, AI.array - multi-provider (OpenAI, Gemini, Anthropic).'), group: 'Email & AI' },
+        ...providerRoutes,
+        { path: '/providers/data/firebase', title: 'FirebaseDataProvider', page: s('FirebaseDataProvider', 'Real-time Realtime Database implementation.'), group: 'Built-in drivers' },
+        { path: '/providers/data/supabase', title: 'SupabaseDataProvider', page: s('SupabaseDataProvider', 'Supabase PostgreSQL implementation.'), group: 'Built-in drivers' },
+        { path: '/providers/storage/firebase', title: 'FirebaseStorageProvider', page: s('FirebaseStorageProvider', 'Firebase Storage implementation.'), group: 'Built-in drivers' },
+        { path: '/providers/auth/google', title: 'GoogleAuthProvider', page: s('GoogleAuthProvider', 'OAuth2 Google sign-in implementation.'), group: 'Built-in drivers' },
     ],
 
     examples: [

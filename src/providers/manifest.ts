@@ -1,6 +1,7 @@
 import { FirebaseDataProvider } from './data/firebase';
 import { FirebaseStorageProvider } from './storage/firebase';
 import { GoogleAuthProvider } from './auth/google/GoogleAuthProvider';
+import { DropboxAuthProvider } from './auth/dropbox/DropboxAuthProvider';
 import { GmailEmailProvider } from './email/google/GmailEmailProvider';
 import { SupabaseDataProvider } from './data/supabase';
 import { SupabaseStorageProvider } from './storage/supabase';
@@ -9,7 +10,7 @@ import type { DataProviderAdapter } from './data/DataProvider';
 import type { StorageProviderAdapter } from './storage/StorageProvider';
 import type { AuthProviderAdapter } from './auth/AuthProvider';
 import type { EmailProviderAdapter } from './email/EmailProvider';
-import type { FirebaseConfig, GoogleOAuth2, GoogleServiceAccount } from '../Config';
+import type { DropboxConfig, FirebaseConfig, GoogleOAuth2, GoogleServiceAccount } from '../Config';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -59,6 +60,10 @@ export const GOOGLE_MANIFEST: DriverManifest<GoogleProviderConfig> = {
     gmail:      { service: 'email', create: () => new GmailEmailProvider() },
 };
 
+export const DROPBOX_MANIFEST: DriverManifest<DropboxConfig> = {
+    dropboxAuth: { service: 'auth', create: (cfg) => new DropboxAuthProvider(cfg) },
+};
+
 // ── Supabase manifest ────────────────────────────────────────────────────────
 
 export const SUPABASE_MANIFEST: DriverManifest<SupabaseProviderConfig> = {
@@ -77,6 +82,7 @@ export const MOCK_MANIFEST: DriverManifest<MockProviderConfig> = {
 export const PROVIDER_MANIFESTS: Record<string, DriverManifest<any>> = {
     firebase: FIREBASE_MANIFEST,
     google:   GOOGLE_MANIFEST,
+    dropbox:  DROPBOX_MANIFEST,
     supabase: SUPABASE_MANIFEST,
     mock:     MOCK_MANIFEST,
 };
@@ -85,7 +91,7 @@ export const PROVIDER_MANIFESTS: Record<string, DriverManifest<any>> = {
 
 export type DataDriverName    = 'dbRealtime' | 'supabaseDb' | 'mock';
 export type StorageDriverName = 'firestorage' | 'supabaseStorage';
-export type AuthDriverName    = 'googleAuth';
+export type AuthDriverName    = 'googleAuth' | 'dropboxAuth';
 export type EmailDriverName   = 'gmail';
 
 export type ServicesConfig = {

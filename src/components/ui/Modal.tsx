@@ -4,6 +4,7 @@ import {useTheme} from "../../Theme";
 import {ActionButton, LoadingButton} from "./Buttons";
 import { UIProps } from '../..';
 import { Wrapper } from "./GridSystem";
+import { createMotionTransition, useMotion, type MotionConfig } from '../../motion';
 
 interface ModalProps extends UIProps {
     children: React.ReactNode;
@@ -21,6 +22,8 @@ interface ModalProps extends UIProps {
     subTitleClass?: string;
     bodyClass?: string;
     footerClass?: string;
+    closeOnBackdrop?: boolean;
+    motion?: MotionConfig | false;
 }
 
 interface ModalYesNoProps {
@@ -60,9 +63,13 @@ const ModalDefault = ({
                           titleClass        = undefined,
                           subTitleClass     = undefined,
                           bodyClass         = undefined,
-                          footerClass       = undefined
+                          footerClass       = undefined,
+                          closeOnBackdrop   = true,
+                          motion: motionConfig = undefined
 }: ModalProps) => {
     const theme = useTheme("modal");
+    const motion = useMotion(motionConfig === false ? { preset: 'none' } : motionConfig);
+    const [entered, setEntered] = React.useState(false);
 
     const [sizeClass, setSizeClass] = useState(size);
 
@@ -125,16 +132,47 @@ const ModalDefault = ({
     }
 
     const pos = positions[sizeClass === "fullscreen" ? "center" : (position || theme.Modal.position) as keyof typeof positions];
+    const modalPosition = sizeClass === "fullscreen" ? "center" : (position || theme.Modal.position);
 
-    window.document.body.style.overflow = "hidden";
+    React.useEffect(() => {
+        const originalOverflow = window.document.body.style.overflow;
+        window.document.body.style.overflow = "hidden";
+        const frame = window.requestAnimationFrame(() => setEntered(true));
+
+        return () => {
+            window.cancelAnimationFrame(frame);
+            window.document.body.style.overflow = originalOverflow || "auto";
+        };
+    }, []);
+
     const handleClose = () => {
         window.document.body.style.overflow = "auto";
         onClose?.();
     }
 
+    const closedTransform = {
+        center: `translateY(${motion.enterDistance}px) scale(0.98)`,
+        top: `translateY(-${motion.enterDistance}px)`,
+        bottom: `translateY(${motion.enterDistance}px)`,
+        left: `translateX(-${motion.enterDistance}px)`,
+        right: `translateX(${motion.enterDistance}px)`,
+    }[modalPosition as keyof typeof positions] || `translateY(${motion.enterDistance}px)`;
+
+    const dialogStyle: React.CSSProperties = {
+        opacity: entered ? 1 : 0,
+        transform: entered ? undefined : closedTransform,
+        transition: createMotionTransition(motion),
+    };
+
+    const backdropStyle: React.CSSProperties = {
+        opacity: entered ? undefined : 0,
+        transition: createMotionTransition(motion, ['opacity']),
+        cursor: closeOnBackdrop && onClose ? 'pointer' : undefined,
+    };
+
     return createPortal(<>
         <Wrapper className={pos.coverClass}>
-            <div className={pos.dialogClass}>
+            <div className={pos.dialogClass} style={dialogStyle}>
                 {pre}
                 <Wrapper className={pos.contentClass}>
                     {(header || title || buttonFullscreen || onClose) && <div className={pos.headerClass}>
@@ -191,7 +229,15 @@ const ModalDefault = ({
                 {post}
             </div>
         </Wrapper>
-        <Wrapper className={pos.backdropClass}/>
+        <div
+            className={pos.backdropClass}
+            style={backdropStyle}
+            onClick={() => {
+                if (closeOnBackdrop && onClose) {
+                    handleClose();
+                }
+            }}
+        />
     </>, document.body);
 };
 
@@ -204,6 +250,7 @@ export const ModalYesNo = ({
 }: ModalYesNoProps) => {
     return <ModalDefault
         title={title}
+        onClose={onClose}
         buttonFullscreen={false}
         footer={<>
             {onYes && <LoadingButton
@@ -237,6 +284,7 @@ export const ModalOk = ({
                         }: ModalOkProps) => {
     return <ModalDefault
         title={title}
+        onClose={onClose}
         buttonFullscreen={false}
         footer={<>
             <ActionButton className="btn-primary" label={"Ok"} onClick={onClose} />

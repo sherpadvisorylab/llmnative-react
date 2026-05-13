@@ -1,6 +1,6 @@
 import React from "react";
 import {useTheme} from "../../Theme";
-import { UIProps } from '../..';
+import type { UIProps } from '../types';
 import { Wrapper } from "./GridSystem";
 import { cn } from '../../libs/cn';
 

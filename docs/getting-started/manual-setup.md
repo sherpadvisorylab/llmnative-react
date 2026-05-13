@@ -181,7 +181,7 @@ const firebaseConfig = {
 <App
   providers={{
     firebase: { config: firebaseConfig },
-    services: { data: 'firebase', storage: 'firebase', auth: 'google' },
+    services: { data: 'dbRealtime', storage: 'firestorage', auth: 'googleAuth' },
   }}
   // … rest of props
 />

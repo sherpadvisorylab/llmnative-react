@@ -22,7 +22,7 @@ export default function MarkdownDocPage({ doc }: MarkdownDocPageProps) {
                 }}
                 onNavigateInternal={(href, event) => {
                     const nextPath = resolveMarkdownDocHref(href, doc.meta.path);
-                    if (nextPath.startsWith('/docs')) {
+                    if (nextPath.startsWith('/')) {
                         event.preventDefault();
                         navigate(nextPath);
                     }

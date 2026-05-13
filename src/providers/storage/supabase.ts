@@ -1,4 +1,9 @@
 import { StorageProviderAdapter } from "./StorageProvider";
+import {
+    createConfigurationState,
+    getMissingKeys,
+    type ProviderConfigurationState,
+} from "../ProviderConfiguration";
 
 interface SupabaseStorageConfig {
     url: string;
@@ -14,6 +19,17 @@ export class SupabaseStorageProvider implements StorageProviderAdapter {
 
     constructor(config: SupabaseStorageConfig) {
         this.config = config;
+    }
+
+    getConfigurationState(): ProviderConfigurationState {
+        return createConfigurationState(
+            'SupabaseStorageProvider',
+            getMissingKeys(this.config as unknown as Record<string, unknown>, ['url', 'anonKey'], 'supabase.')
+        );
+    }
+
+    isConfigured(): boolean {
+        return this.getConfigurationState().configured;
     }
 
     private get bucket() {

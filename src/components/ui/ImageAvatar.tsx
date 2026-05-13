@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import path from "../../libs/path";
 import {PLACEHOLDER_USER, useTheme} from "../../Theme";
-import { UIProps } from '../..';
+import type { UIProps } from '../types';
 import { Wrapper } from "./GridSystem";
 
 interface ImageAvatarProps extends UIProps {
@@ -19,6 +19,7 @@ const ImageAvatar = ({
     height     = undefined,
     title      = undefined,
     alt        = undefined,
+    cacheKey   = undefined,
     pre        = undefined,
     post       = undefined,
     wrapClass  = undefined,
@@ -27,11 +28,17 @@ const ImageAvatar = ({
     const theme = useTheme("image");
     const [imgSrc, setImgSrc] = useState(PLACEHOLDER_USER);
 
-    const storageKey = `avatar::${src}`;
+    const storageKey = `avatar::${cacheKey || src}`;
+    const failedStorageKey = `avatar-fetch-failed::${cacheKey || src}`;
 
     const resolvedAlt = alt || title || path.filename(src || PLACEHOLDER_USER);
 
     useEffect(() => {
+        if (!src || src.startsWith('data:')) {
+            setImgSrc(src || PLACEHOLDER_USER);
+            return;
+        }
+
         const cached = localStorage.getItem(storageKey);
 
         if (cached) {
@@ -39,7 +46,16 @@ const ImageAvatar = ({
             return;
         }
 
-        // Fetch e salvataggio in base64
+        setImgSrc(src);
+
+        const failedAt = Number(localStorage.getItem(failedStorageKey) || 0);
+        const retryAfterMs = 24 * 60 * 60 * 1000;
+        if (failedAt && Date.now() - failedAt < retryAfterMs) {
+            return;
+        }
+
+        // Cache remote avatars opportunistically. If CORS blocks the fetch,
+        // keep the browser-rendered image instead of replacing it with fallback.
         fetch(src)
             .then(res => {
                 if (!res.ok) throw new Error(`Failed to load image (${res.status})`);
@@ -50,15 +66,16 @@ const ImageAvatar = ({
                 reader.onloadend = () => {
                     const base64data = reader.result as string;
                     localStorage.setItem(storageKey, base64data);
+                    localStorage.removeItem(failedStorageKey);
                     setImgSrc(base64data);
                 };
                 reader.readAsDataURL(blob);
             })
             .catch(err => {
                 console.warn("ImageAvatar error:", err.message);
-                setImgSrc(PLACEHOLDER_USER);
+                localStorage.setItem(failedStorageKey, String(Date.now()));
             });
-    }, [src, storageKey]);
+    }, [src, storageKey, failedStorageKey]);
 
     return (
         <Wrapper className={wrapClass || theme.ImageAvatar.wrapClass}>

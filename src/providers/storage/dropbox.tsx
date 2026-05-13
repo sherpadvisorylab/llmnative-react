@@ -68,12 +68,12 @@ type ThumbnailResult = {
     };
 };
 
-export const DROPBOX_AUTH_SERVER = 'www.dropbox.com/oauth2';
-
 let config: DropboxConfig | undefined = undefined;
-onConfigChange((newConfig: Config) => {
-    config = newConfig.dropbox;
-});
+if (typeof onConfigChange === 'function') {
+    onConfigChange((newConfig: Config) => {
+        config = newConfig.dropbox;
+    });
+}
 
 const fetchDropboxBlob = async (
     url: string,
@@ -470,9 +470,9 @@ export const DropBoxConnectButton = (options: IButton = {}): React.ReactElement 
     const isAuth = useDropBoxConnect(true);
 
     return(<AuthButton
-            authServer={DROPBOX_AUTH_SERVER}
-            clientID={config.clientId}
-            refreshParamName={"token_access_type"}
+            provider="dropboxAuth"
+            intent="connect"
+            aspect="button"
             options={{
                 ...options,
                 className: options?.className + (isAuth ? " text-success": " text-danger"),

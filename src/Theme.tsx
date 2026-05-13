@@ -2,6 +2,7 @@ import React, {createContext, useContext, useEffect, useMemo, useState, ReactNod
 import _presetDefault from '../themes/default';
 import _presetFlat from '../themes/flat';
 import _presetCyber from '../themes/cyber';
+import type { MotionConfig } from './motion';
 
 export interface Theme {
     Icons: {
@@ -122,6 +123,7 @@ export interface ModalTheme {
  * The `default` theme in themes/default/ provides a full reference implementation of every field.
  */
 export interface ThemeConfig {
+    Motion?: MotionConfig;
     Grid?: {
         Card?: CardTheme;
         Table?: TableTheme;
@@ -278,6 +280,8 @@ export interface ThemePresetConfig {
     variables?: Record<string, string>;
     /** Component class overrides scoped to this preset — merged on top of the base theme when active. */
     theme?: ThemeConfig;
+    /** Motion tokens for interaction and disclosure animations. */
+    motion?: MotionConfig;
 }
 
 /** IDs of built-in presets. Extend by adding entries to BUILT_IN_THEME_PRESETS. */
@@ -297,6 +301,7 @@ export type AppThemeProviderConfig =
         preset?: ThemePresetConfig;
         presets?: Record<string, ThemePresetConfig>;
         theme?: ThemeConfig;
+        motion?: MotionConfig;
     };
 
 export interface ThemeController {
@@ -327,6 +332,14 @@ export const defaultTheme: Theme = {
         sidebar: 'bi bi-',
         header: 'bi bi-',
         profile: 'bi bi-',
+    },
+    Motion: {
+        preset: 'standard',
+        reducedMotion: 'respect-user',
+        duration: 160,
+        easing: 'cubic-bezier(0.2, 0, 0, 1)',
+        pressScale: 0.98,
+        enterDistance: 8,
     },
     Grid: {
         Card: {
@@ -614,11 +627,15 @@ function normalizeThemeProviderConfig(config?: AppThemeProviderConfig): {
     }
 
     const extraPresets: Record<string, ThemePresetConfig> = config.preset ? { __local__: config.preset } : {};
+    const theme = deepMerge(
+        config.motion ? { Motion: config.motion } : {},
+        config.theme ?? {}
+    );
     return {
         defaultMode: config.defaultMode,
         defaultPreset: config.preset ? '__local__' : (config.defaultPreset ?? 'default'),
         presets: { ...BUILT_IN_THEME_PRESETS, ...extraPresets, ...(config.presets ?? {}) },
-        theme: config.theme,
+        theme,
     };
 }
 
@@ -694,7 +711,7 @@ function applyThemeVars({
 }
 
 export const PLACEHOLDER_IMAGE = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0ibm9uZSIvPgogIDxjaXJjbGUgY3g9IjcwIiBjeT0iMzAiIHI9IjEwIiBmaWxsPSIjY2NjIiAvPgogIDxwYXRoIGQ9Ik0yMCw4MCBMNDAuNSw1MCBMNjAsODAgTDgwLDU1IEw5MCw3MCBMOTAsODAgSDEwIEwyMCw4MCBaIiBmaWxsPSIjY2NjIiAvPgo8L3N2Zz4=";
-export const PLACEHOLDER_USER = "data:image/svg+xml;base64,PHN2ZyBmaWxsPSIjY2NjIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMTAwIDEwMCI+PHBhdGggZD0iTTUwIDI1Yy04LjI4IDAtMTUgNi43Mi0xNSA1cy42OCAxNSAxNSAxNSA1LTYuNzIgNS0xNS02LjcyLTE1LTE1eiIvPjxwYXRoIGQ9Ik01MCA1NEMzMy4yNyA1NCAyMCA2Ny4yNyAyMCA4NGgwYzAgMy4zMSAyLjY5IDYgNiA2aDQ4YzMuMzEgMCA2LTIuNjkgNi02aDBjMC0xNi43My0xMy4yNy0zMC00MC0zMHoiLz48L3N2Zz4=";
+export const PLACEHOLDER_USER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23eef2f7'/%3E%3Ccircle cx='50' cy='38' r='16' fill='%2364758b'/%3E%3Cpath d='M22 84c3.8-20 19-31 28-31s24.2 11 28 31c.5 2.8-1.7 5-4.5 5h-47c-2.8 0-5-2.2-4.5-5z' fill='%2364758b'/%3E%3C/svg%3E";
 export const PLACEHOLDER_BRAND = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMTAwIDEwMCI+PHBhdGggZD0iTTUwIDE1IEw4NSA1MCBMNTAgODUgTDE1IDUwIFoiIGZpbGw9IiNjY2MiIG9wYWNpdHk9IjAuMiIvPjxwYXRoIGQ9Ik01MCAzMCBMNzAgNTAgTDUwIDcwIEwzMCA1MCBaIiBmaWxsPSIjY2NjIi8+PC9zdmc+";
 
 
@@ -747,6 +764,9 @@ export const ThemeProvider = ({
     useEffect(() => {
         const currentPreset = normalized.presets[preset] ?? normalized.presets.default;
         const nextTheme = cloneTheme(defaultTheme);
+        if (currentPreset.motion) {
+            deepMerge(nextTheme, { Motion: currentPreset.motion });
+        }
         deepMerge(nextTheme, currentPreset.theme ?? {});
         deepMerge(nextTheme, normalized.theme ?? {});
         setTheme(nextTheme);

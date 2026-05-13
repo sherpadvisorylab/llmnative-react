@@ -70,11 +70,15 @@ export type {
     ThemeModule,
     ThemePresetConfig,
 } from './Theme';
-export { SignInButton, AuthButton, useAccessToken, getAccessToken } from './auth';
+export { AuthButton, useAccessToken, getAccessToken } from './auth';
 export { useGlobalVars, getGlobalVars, setGlobalVars, removeGlobalVars} from './Global';
 
 // Providers
 export type { DataProviderAdapter, RecordProps, RecordArray, DatabaseOptions, ReadOptions, WhereClause, OrderClause, Condition } from './providers/data/DataProvider';
+export type { ProviderConfigurable, ProviderConfigurationState } from './providers/ProviderConfiguration';
+export { getProviderConfigurationState } from './providers/ProviderConfiguration';
+export type { MotionConfig, MotionPreset, ReducedMotionMode } from './motion';
+export { MOTION_PRESETS, createMotionTransition, resolveMotionConfig, useEnterMotion, useMotion } from './motion';
 export { FirebaseDataProvider } from './providers/data/firebase';
 export { SupabaseDataProvider } from './providers/data/supabase';
 export { MockDataProvider } from './providers/data/mock';
@@ -83,9 +87,10 @@ export type { StorageProviderAdapter } from './providers/storage/StorageProvider
 export { FirebaseStorageProvider } from './providers/storage/firebase';
 export { SupabaseStorageProvider } from './providers/storage/supabase';
 export { useStorageProvider, StorageProvider } from './providers/storage/StorageProviderContext';
-export type { AuthProviderAdapter, UserProfile } from './providers/auth/AuthProvider';
+export type { AuthProviderAdapter, AuthIntent, AuthSignInOptions, UserProfile } from './providers/auth/AuthProvider';
 export { useAuthProvider, AuthProvider } from './providers/auth/AuthProviderContext';
 export { GoogleAuthProvider } from './providers/auth/google/GoogleAuthProvider';
+export { DropboxAuthProvider } from './providers/auth/dropbox/DropboxAuthProvider';
 export type { EmailProviderAdapter, EmailSendParams } from './providers/email/EmailProvider';
 export type { IconProviderAdapter, IconComponentProps } from './providers/icon/IconProvider';
 export { LucideIconProvider } from './providers/icon/LucideIconProvider';
@@ -96,7 +101,7 @@ export type { AppIconProviderConfig, IconController } from './providers/icon/Ico
 export { useEmailProvider, EmailProvider } from './providers/email/EmailProviderContext';
 export { GmailEmailProvider } from './providers/email/google/GmailEmailProvider';
 export type { AIFetchConfig } from './providers/ai';
-export { default as GoogleAuth } from './providers/auth/google/GoogleAuth';
+export { getAIProviderConfigurationState } from './providers/ai';
 export { googleGetAccessToken } from './providers/auth/google/GoogleAuth';
 export { sendEmail } from './providers/email/google/email';
 export { getKeywordIdeas } from './providers/seo/google/keyword';

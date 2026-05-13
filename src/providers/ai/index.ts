@@ -2,6 +2,11 @@ import { getPromptStyle, getPromptVoice, Prompt, PROMPTS, PROMPTS_ROLE } from ".
 import { fetchRest } from "../../libs/fetch";
 import { consoleLog } from "../../constant";
 import { AIConfig, Config, onConfigChange } from "../../Config";
+import {
+    createConfigurationState,
+    getMissingKeys,
+    type ProviderConfigurationState,
+} from "../ProviderConfiguration";
 import { currentLang } from "../../libs/locale";
 import { PromptVariables } from "../../conf/Prompt";
 
@@ -59,9 +64,11 @@ type Message = {
 };
 
 let config: AIConfig | undefined = undefined;
-onConfigChange((newConfig: Config) => {
-    config = newConfig.ai;
-});
+if (typeof onConfigChange === 'function') {
+    onConfigChange((newConfig: Config) => {
+        config = newConfig.ai;
+    });
+}
 
 const promptAssign = (prompt: string, options: PromptPlaceholders): string => {
     Object.keys(options).forEach(key => {
@@ -361,6 +368,24 @@ const PROVIDER_GEMINI = "gemini";
 const PROVIDER_ANTHROPIC = "anthropic";
 const PROVIDER_MISTRAL = "mistral";
 const PROVIDER_DEFAULT = PROVIDER_OPENAI;
+
+const PROVIDER_CONFIG_KEYS = {
+    [PROVIDER_OPENAI]: 'openaiApiKey',
+    [PROVIDER_GEMINI]: 'geminiApiKey',
+    [PROVIDER_ANTHROPIC]: 'anthropicApiKey',
+    [PROVIDER_MISTRAL]: 'mistralApiKey',
+} as const;
+
+export const getAIProviderConfigurationState = (
+    provider: keyof typeof PROVIDERS = PROVIDER_DEFAULT
+): ProviderConfigurationState => createConfigurationState(
+    `AIProvider:${provider}`,
+    getMissingKeys(
+        config as unknown as Record<string, unknown> | undefined,
+        [PROVIDER_CONFIG_KEYS[provider]],
+        'ai.'
+    )
+);
 
 const PROVIDERS = {
     [PROVIDER_OPENAI]: {

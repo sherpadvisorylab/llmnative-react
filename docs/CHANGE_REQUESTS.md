@@ -36,6 +36,353 @@
 | [CR-023](#cr-023--driver-manifest--service-registry) | Driver manifest + service registry | Alta | CR-002, CR-002b | ✅ |
 | [CR-024](#cr-024--wysiwyg-editor-component) | WYSIWYG editor component | Alta | CR-004, CR-014 | ⬜ |
 | [CR-025](#cr-025--contextmenu-con-comandi-e-mention) | ContextMenu con comandi e @mention | Alta | CR-024 | ⬜ |
+| [CR-026](#cr-026--authbutton-provider-agnostic--dropboxauthprovider) | AuthButton provider-agnostic + DropboxAuthProvider | Alta | CR-002b, CR-023 | ✅ |
+| [CR-027](#cr-027--motion-system-e-interazioni-animate) | Motion system e interazioni animate | Media | CR-017, CR-022 | 🔄 |
+| [CR-028](#cr-028--stato-configurazione-provider) | Stato configurazione provider | Alta | CR-002, CR-023, CR-026 | ✅ |
+| [CR-029](#cr-029--internationalization-i18n-del-framework) | Internationalization i18n del framework | Alta | CR-017, CR-019 | ⬜ |
+
+---
+
+## CR-026 — AuthButton provider-agnostic + DropboxAuthProvider
+
+**Stato:** ✅ done  
+**Branch:** `modernize`  
+**Priorità:** Alta  
+**Dipende da:** CR-002b, CR-023  
+
+### Motivazione
+`SignInButton` e il vecchio `AuthButton` espongono due modelli diversi per problemi simili: autenticazione OAuth applicativa e connessione OAuth a servizi esterni. La codebase deve convergere su un unico componente `AuthButton`, guidato dagli `AuthProvider` registrati nel provider manifest.
+
+### Scope
+- Estendere `AuthProviderAdapter` con `signIn()` e `isAuthenticated()`.
+- Aggiungere `DropboxAuthProvider` come driver auth `dropboxAuth`.
+- Rendere `AuthButton` agnostico: `provider`, `intent`, `aspect`.
+- Rimuovere l'export pubblico `SignInButton`.
+- Spostare la pagina showcase `Auth` tra i Widgets.
+- Aggiornare documentazione provider e componente.
+- Aggiungere test su `AuthButton`, adapter auth e manifest.
+
+### Checklist
+- [x] Aggiornare contratto auth.
+- [x] Implementare `DropboxAuthProvider`.
+- [x] Rifattorizzare `AuthButton`.
+- [x] Aggiornare export e call site Dropbox.
+- [x] Aggiornare docs.
+- [x] Eseguire test e build.
+
+---
+
+## CR-027 — Motion system e interazioni animate
+
+**Stato:** 🔄 in progress  
+**Branch:** `modernize`  
+**Priorità:** Media  
+**Dipende da:** CR-017, CR-022  
+**Stima:** 1 settimana  
+**Breaking change:** No
+
+### Motivazione
+
+L'interfaccia di react-firestrap oggi è funzionale, ma molti stati cambiano in modo secco: apertura di modali, dropdown, accordion, tab, loading, focus e click sui bottoni. Un sistema di micro-animazioni ben progettato può rendere il framework più professionale, più fluido e più piacevole da usare senza diventare invadente.
+
+L'obiettivo è introdurre un **motion system** nativo: leggero di default, accessibile, customizzabile dall'utente finale e coerente con temi e componenti esistenti.
+
+### Principi di design
+
+- Le animazioni devono aiutare la comprensione dello stato, non decorare a caso.
+- Default professionale: transizioni brevi, morbide, non teatrali.
+- Rispetto di `prefers-reduced-motion`.
+- Nessun layout shift: preferire `opacity`, `transform` e `scale`.
+- Ogni componente deve poter ereditare il preset globale ma anche essere customizzato localmente.
+- Il sistema deve funzionare bene sia in app operative/dense sia in showcase o tool più visuali.
+
+### Scope
+
+**Incluso:**
+- Aggiungere un layer `motion` nel theme system.
+- Definire token/preset per durata, easing, distanza, scale e intensità.
+- Aggiungere helper CSS/classi o utility interne per stati comuni: `enter`, `exit`, `hover`, `press`, `focus`, `loading`.
+- Animare apertura/chiusura di `Modal`, `Dropdown`, `Accordion`, `Tabs`, `Notifications`, menu contestuali e pannelli laterali dove presenti.
+- Aggiungere feedback di press/click sui bottoni: micro scale, highlight o ripple leggero.
+- Aggiungere animazioni di focus e hover coerenti per elementi interattivi.
+- Aggiungere skeleton/loading transitions dove già esistono loading states.
+- Esporre configurazione globale:
+
+```tsx
+<App
+  themeProvider={{
+    motion: {
+      preset: 'standard',
+      reducedMotion: 'respect-user',
+      intensity: 'medium',
+    },
+  }}
+/>
+```
+
+- Consentire override locale sui componenti:
+
+```tsx
+<Modal motion={{ preset: 'subtle' }} />
+<Accordion motion={{ duration: 180, easing: 'ease-out' }} />
+<Button motion={{ preset: 'standard' }} />
+```
+
+### Preset target
+
+- `none`: disabilita animazioni non essenziali.
+- `subtle`: molto leggero, adatto a dashboard e app operative.
+- `standard`: default professionale.
+- `expressive`: più evidente, utile per showcase, demo e prodotti più consumer.
+
+### Componenti prioritari
+
+1. `Button` / `ActionButton` / `LoadingButton`
+2. `Modal`
+3. `Dropdown`
+4. `Accordion`
+5. `Tab`
+6. `Notifications`
+7. `Menu` / context menu
+8. `AuthButton` e controlli provider-driven
+
+### Accessibilità
+
+- Rispettare `prefers-reduced-motion`.
+- Non usare animazioni lampeggianti o ripetitive.
+- Non bloccare input utente durante animazioni decorative.
+- Garantire che focus ring e stati tastiera restino visibili.
+
+### Documentazione e showcase
+
+- Aggiungere pagina docs `docs/architecture/motion.md` o sezione dedicata nel theme system.
+- Aggiungere esempi nello showcase con controlli per preset, intensity e reduced motion.
+- Documentare best practice: quando animare, quando evitare, quali proprietà usare.
+
+### Checklist
+
+- [x] Disegnare token e preset motion nel theme system.
+- [x] Implementare rispetto di `prefers-reduced-motion`.
+- [x] Aggiungere utility/classi condivise.
+- [x] Animare bottoni e press state.
+- [x] Animare Modal.
+- [x] Animare Dropdown/Menu.
+- [x] Animare Accordion.
+- [x] Animare Tabs.
+- [ ] Animare Notifications/Toast.
+- [x] Aggiungere override globale e locale.
+- [x] Aggiungere docs motion.
+- [ ] Aggiungere showcase motion playground.
+- [x] Testare keyboard navigation e reduced motion.
+- [x] `npm run test` e `npm run build` passano.
+
+---
+
+## CR-028 — Stato configurazione provider
+
+**Stato:** ✅ done  
+**Branch:** `modernize`  
+**Priorità:** Alta  
+**Dipende da:** CR-002, CR-023, CR-026  
+**Stima:** 3-4 giorni  
+**Breaking change:** No, ma può richiedere piccoli aggiornamenti ai provider custom
+
+### Motivazione
+
+Con CR-026 abbiamo introdotto su `AuthButton` una prima regola corretta: se il provider auth usato dal componente non ha la chiave obbligatoria, il componente resta visibile ma non operativo, mostra uno stato disabilitato e spiega il problema tramite tooltip.
+
+Questa CR porta la stessa regola a tutto il framework. I componenti provider-driven devono sapere se il provider che stanno usando è configurato, e devono comportarsi in modo coerente quando mancano chiavi, endpoint, bucket o variabili obbligatorie.
+
+### Regola generale
+
+Un componente può lavorare solo se il provider che usa è **registrato e configurato**.
+
+Se il provider non è configurato:
+- il componente entra in stato disabled/read-only;
+- mostra un affordance visivo leggero;
+- espone un title/tooltip diagnostico;
+- non apre modali/menu inutili;
+- non invia richieste al backend/provider;
+- lascia un messaggio utile in console solo in modalità sviluppo.
+
+### API target
+
+Standardizzare il contratto già introdotto sugli auth provider:
+
+```ts
+export interface ProviderConfigurationState {
+  configured: boolean;
+  reason?: string;
+  missingKeys?: string[];
+}
+
+export interface ProviderAdapterBase {
+  isConfigured?(): boolean;
+  getConfigurationState?(): ProviderConfigurationState;
+}
+```
+
+`isConfigured()` resta la via semplice per i componenti. `getConfigurationState()` serve quando vogliamo messaggi diagnostici migliori, per esempio "Missing dropbox.clientId" o "Missing firebase.apiKey".
+
+### Scope
+
+**Incluso:**
+- Rinominare/standardizzare il concetto come "configuration state", non "readiness".
+- Mantenere e rifinire quanto già fatto su `GoogleAuthProvider`, `DropboxAuthProvider` e `AuthButton`.
+- Aggiungere `getConfigurationState()` agli auth provider.
+- Estendere la stessa regola a:
+  - `FirebaseDataProvider`
+  - `FirebaseStorageProvider`
+  - `SupabaseDataProvider`
+  - `SupabaseStorageProvider`
+  - `GmailEmailProvider`
+  - AI provider configurabili
+- Aggiungere helper/hook tipo `useProviderConfiguration(service, providerKey)`.
+- Aggiornare componenti provider-driven per stato disabled coerente.
+- Stato visuale standard: opacity ridotta, cursor `not-allowed`, title diagnostico.
+- Aggiornare showcase con esempi di provider configurato/non configurato.
+- Documentare la regola nelle pagine provider.
+
+### Escluso
+
+- Wizard automatico per configurare le chiavi.
+- UI di gestione tenant/secrets.
+- Validazione server-side delle credenziali.
+
+### Checklist
+
+- [x] Definire `ProviderConfigurationState`.
+- [x] Aggiungere `getConfigurationState()` come contratto comune.
+- [x] Rifinire lo stato configurazione sugli AuthProvider già introdotti.
+- [x] Implementare stato configurazione sui DataProvider.
+- [x] Implementare stato configurazione sugli StorageProvider.
+- [x] Implementare stato configurazione sugli EmailProvider.
+- [x] Implementare stato configurazione per integrazioni AI/utility.
+- [x] Aggiungere helper condiviso.
+- [x] Aggiornare componenti provider-driven.
+- [x] Aggiungere test per provider mancanti o config incompleta.
+- [x] Aggiornare docs providers.
+- [x] Verificare showcase Auth con provider non configurati.
+- [x] `npm run test` e `npm run build` passano.
+
+---
+
+## CR-029 — Internationalization i18n del framework
+
+**Stato:** ⬜ todo  
+**Branch:** `modernize/cr-029-i18n`  
+**Priorità:** Alta  
+**Dipende da:** CR-017, CR-019  
+**Stima:** 1 settimana  
+**Breaking change:** No, ma cambia il modo consigliato di scrivere nuove label interne
+
+### Motivazione
+
+Oggi molte label, messaggi, testi di fallback e tooltip del framework sono scolpiti direttamente nella codebase, quasi sempre in inglese. Questo rende difficile usare react-firestrap in applicazioni multilingua e rende incoerente la personalizzazione dei testi.
+
+Il framework deve estrarre le stringhe interne in un sistema i18n nativo, con dizionari di default, context per la lingua corrente e adapter sostituibile dall'app finale.
+
+### Obiettivo
+
+Creare un layer di traduzione framework-level:
+- ogni componente usa chiavi di traduzione invece di stringhe hardcoded;
+- l'app può scegliere lingua e dizionario;
+- l'app può sovrascrivere solo alcune label;
+- il framework resta usabile anche senza configurazione i18n esplicita, usando `en` come default.
+
+### API target
+
+Configurazione globale:
+
+```tsx
+<App
+  locale="it"
+  translations={{
+    it: {
+      auth: {
+        signIn: 'Accedi',
+        signOut: 'Esci',
+        providerNotConfigured: 'Provider "{provider}" non configurato.',
+      },
+    },
+  }}
+/>
+```
+
+Context/hook:
+
+```tsx
+const { t, locale, setLocale } = useI18n();
+
+t('auth.signIn');
+t('auth.providerNotConfigured', { provider: 'googleAuth' });
+```
+
+Adapter opzionale:
+
+```tsx
+<I18nProvider
+  locale="it"
+  adapter={i18nextAdapter}
+>
+  <App />
+</I18nProvider>
+```
+
+### Scope
+
+**Incluso:**
+- Creare dizionario base `en`.
+- Creare struttura chiavi per aree: `common`, `auth`, `form`, `grid`, `upload`, `validation`, `providers`, `navigation`, `errors`.
+- Introdurre `I18nProvider` e `useI18n()`.
+- Aggiungere adapter interface per integrare sistemi esterni come i18next, FormatJS o dizionari custom.
+- Estrarre stringhe hardcoded dai componenti pubblici.
+- Supportare interpolazione semplice: `{provider}`, `{field}`, `{count}`.
+- Supportare fallback: lingua scelta → `en` → chiave.
+- Consentire override parziale dei dizionari.
+- Aggiungere controllo lingua nello showcase.
+- Documentare come aggiungere nuove stringhe senza hardcodarle.
+
+### Componenti prioritari
+
+1. `AuthButton`
+2. `Form`
+3. `Grid`
+4. `Upload`
+5. `Select`
+6. `Modal`
+7. `Notifications`
+8. `MarkdownReader`
+9. Messaggi provider/configuration state
+10. Errori e fallback comuni
+
+### Regole per nuove stringhe
+
+- Nessuna nuova label o messaggio utente hardcoded dentro componenti pubblici.
+- Le stringhe tecniche da console possono restare in inglese, ma i messaggi UI devono passare da `t()`.
+- Le chiavi devono essere stabili e leggibili, non generate dinamicamente.
+- Ogni nuova chiave deve avere almeno fallback `en`.
+
+### Escluso
+
+- Traduzione automatica dei contenuti Markdown dell'app.
+- Gestione SEO multilingua completa (`hreflang`, canonical per locale), che può diventare una CR separata.
+- Formattazione avanzata ICU/plurali complessi nella prima iterazione, salvo se l'adapter esterno la fornisce.
+
+### Checklist
+
+- [ ] Definire `I18nProvider`, `useI18n()` e adapter interface.
+- [ ] Creare dizionario default `en`.
+- [ ] Aggiungere supporto override parziale.
+- [ ] Aggiungere interpolazione semplice.
+- [ ] Estrarre stringhe da `AuthButton`.
+- [ ] Estrarre stringhe da form/grid/upload/select.
+- [ ] Estrarre stringhe da modal/notifications/navigation.
+- [ ] Estrarre messaggi provider/configuration state.
+- [ ] Aggiungere showcase per cambio lingua.
+- [ ] Aggiungere docs i18n.
+- [ ] Aggiungere test per fallback, override e interpolazione.
+- [ ] `npm run test` e `npm run build` passano.
 
 ---
 
@@ -628,9 +975,10 @@ it('array index — name="items.0.name" aggiorna primo elemento array', async ()
 - [x] Component test: `Grid.tsx` — headers, rows, empty state, dataArray, onDisplay formatter, real-time add/remove, allowedActions (8 test)
 - [x] Component test: `Input.tsx` — rendering, labels, types, placeholder, disabled, user interaction (8 test)
 - [x] Component test: `Select.tsx`
-- [ ] Component test: `Upload.tsx`
+- [x] Component test: `Upload.tsx` — document/image existing values, max limit, remove, URL helper (5 test)
 - [ ] Component test: `Prompt.tsx`
-- [ ] Component test: `Repeat.tsx`
+- [x] Component test: `Repeat.tsx` — render array, add item, readOnly controls, save nested values (4 test)
+- [x] Provider context test: `StorageProviderContext.tsx` — missing/default/named/unknown adapter (4 test)
 - [ ] Configurare Playwright per smoke test E2E
 - [ ] E2E: flusso CRUD completo (add → edit → delete)
 - [ ] E2E: login Google
