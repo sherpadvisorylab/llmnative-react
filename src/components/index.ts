@@ -1,11 +1,4 @@
-import React from 'react';
-  
-export interface UIProps {
-    pre?: React.ReactNode;
-    post?: React.ReactNode;
-    wrapClass?: string;
-    className?: string;
-}
+export type { MotionUIProps, UIProps } from './types';
 
 export { default as Brand } from './blocks/Brand';
 export { default as Breadcrumbs } from './blocks/Breadcrumbs';

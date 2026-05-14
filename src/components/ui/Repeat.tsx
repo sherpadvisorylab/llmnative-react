@@ -50,7 +50,8 @@ const Repeat = ({
                 {canRemove && (<div className='flex justify-between pl-1 mb-2'>
                     <h6>#{index + 1}</h6>
                     <ActionButton
-                        className="btn-close p-0"
+                        className="h-6 w-6 rounded-md bg-transparent p-0 text-muted-foreground hover:bg-accent hover:text-foreground"
+                        icon="x"
                         onClick={() => handleRemove(index)}
                     />
                 </div>)}
@@ -67,7 +68,8 @@ const Repeat = ({
                 {canRemove && (
                     <Col xs='auto' className='flex items-start justify-end pt-1'>
                         <ActionButton
-                            className="btn-close p-0"
+                            className="h-6 w-6 rounded-md bg-transparent p-0 text-muted-foreground hover:bg-accent hover:text-foreground"
+                            icon="x"
                             onClick={() => handleRemove(index)}
                         />
                     </Col>

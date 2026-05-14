@@ -53,7 +53,7 @@ export type {
     SocialHeadState,
     TwitterHeadState,
 } from './Head';
-export { useTheme, useThemeController, BUILT_IN_THEME_PRESETS, BUILT_IN_PRESET_IDS } from './Theme';
+export { useTheme, useThemeController, BUILT_IN_THEMES, BUILT_IN_PRESET_IDS } from './Theme';
 export type {
     AppThemeProviderConfig,
     BuiltInPresetId,
@@ -68,6 +68,7 @@ export type {
     ThemeController,
     ThemeMode,
     ThemeModule,
+    ThemeDefinition,
     ThemePresetConfig,
 } from './Theme';
 export { AuthButton, useAccessToken, getAccessToken } from './auth';
@@ -77,8 +78,8 @@ export { useGlobalVars, getGlobalVars, setGlobalVars, removeGlobalVars} from './
 export type { DataProviderAdapter, RecordProps, RecordArray, DatabaseOptions, ReadOptions, WhereClause, OrderClause, Condition } from './providers/data/DataProvider';
 export type { ProviderConfigurable, ProviderConfigurationState } from './providers/ProviderConfiguration';
 export { getProviderConfigurationState } from './providers/ProviderConfiguration';
-export type { MotionConfig, MotionPreset, ReducedMotionMode } from './motion';
-export { MOTION_PRESETS, createMotionTransition, resolveMotionConfig, useEnterMotion, useMotion } from './motion';
+export type { MotionEffect, MotionReference, MotionRegistry, MotionStyle, MotionTransition, ReducedMotionMode, ResolvedMotionEffect } from './motion';
+export { createMotionTransition, resolveMotionEffect, useEnterMotion, useMotionEffect, useMotionState, usePressMotion } from './motion';
 export { FirebaseDataProvider } from './providers/data/firebase';
 export { SupabaseDataProvider } from './providers/data/supabase';
 export { MockDataProvider } from './providers/data/mock';

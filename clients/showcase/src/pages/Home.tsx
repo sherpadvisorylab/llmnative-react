@@ -6,7 +6,7 @@ const QUICK_LINKS = [
     { label: 'Badge', path: '/components/badge', desc: 'Inline labels for status and categories' },
     { label: 'Button', path: '/components/button', desc: 'Primary and secondary actions' },
     { label: 'Card', path: '/components/card', desc: 'Container with header, body and footer' },
-    { label: 'Modal', path: '/components/modal', desc: 'Dialogs and side panels (offcanvas)' },
+    { label: 'Modal', path: '/components/modal', desc: 'Dialogs and edge panels' },
     { label: 'Tab', path: '/components/tab', desc: 'Horizontal and vertical tab navigation' },
     { label: 'Table', path: '/components/table', desc: 'Data table with striping and row selection' },
     { label: 'Pagination', path: '/components/pagination', desc: 'Page navigation with optional sticky bar' },

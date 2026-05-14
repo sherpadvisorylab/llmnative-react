@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { ThemeProvider, useTheme, useThemeController } from '../../../src/Theme';
+import { theme as defaultTheme } from '../../../themes/default';
 
 function ThemeProbe() {
     const controller = useThemeController();
@@ -32,19 +33,25 @@ describe('ThemeProvider', () => {
         expect(document.getElementById('rf-preset-vars')?.textContent).toContain('--rf-primary: 160 84% 39%');
     });
 
-    it('merges custom presets and theme overrides with built-in theme defaults', () => {
+    it('uses self-contained custom themes and applies app themeOverride', () => {
         render(
             <ThemeProvider
                 config={{
                     defaultPreset: 'brand',
-                    presets: {
+                    themes: {
                         brand: {
-                            colors: { primary: '346.8 77.2% 49.8%' },
-                            radius: 0.75,
+                            preset: {
+                                colors: { primary: '346.8 77.2% 49.8%' },
+                                radius: 0.75,
+                            },
                             theme: {
-                                Alert: { className: 'brand-alert' },
+                                ...defaultTheme,
+                                Alert: { className: 'brand-alert-from-theme' },
                             },
                         },
+                    },
+                    themeOverride: {
+                        Alert: { className: 'brand-alert' },
                     },
                 }}
             >

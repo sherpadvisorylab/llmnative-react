@@ -1,7 +1,8 @@
 import React, { useState, Children, ReactElement } from 'react';
 import { Wrapper } from "./GridSystem";
-import { UIProps } from '../..';
-import { useEnterMotion, type MotionConfig } from '../../motion';
+import type { MotionUIProps } from '../types';
+import { useEnterMotion } from '../../motion';
+import { useTheme } from '../../Theme';
 
 export type TabPosition = "default" | "top" | "left" | "right" | "bottom";
 
@@ -15,11 +16,10 @@ interface TabLayoutProps {
     content: React.ReactNode;
 }
 
-interface TabProps extends UIProps {
+interface TabProps extends MotionUIProps {
     children: React.ReactNode;
     defaultTab?: number;
     tabPosition?: TabPosition;
-    motion?: MotionConfig | false;
 }
 
 export const TabLayouts: Record<TabPosition, (props: TabLayoutProps) => JSX.Element> = {
@@ -63,9 +63,10 @@ const TabPane = ({
     motion,
 }: {
     children: React.ReactNode;
-    motion?: MotionConfig | false;
+    motion?: MotionUIProps['motion'];
 }) => {
-    const style = useEnterMotion(undefined, motion === false ? { preset: 'none' } : motion);
+    const theme = useTheme("tab");
+    const style = useEnterMotion(undefined, motion ?? theme.Tab.motion?.enter ?? 'fadeUp', theme.Tab.motion?.enter ?? 'fadeUp');
 
     return (
         <div className="tab-pane fade show active" style={style}>

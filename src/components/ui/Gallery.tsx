@@ -1,11 +1,11 @@
 import React, { useMemo } from 'react';
 import { useTheme } from "../../Theme";
-import Carousel from "../blocks/Carousel";
 import { Wrapper } from "../ui/GridSystem";
 import { converter } from "../../libs/converter";
 import { RecordProps } from "../../providers/data/DataProvider";
 import Pagination, { PaginationParams } from './Pagination';
 import { UIProps } from '../';
+import { cn } from '../../libs/cn';
 
 type ImageProps = React.ReactElement<HTMLImageElement>;
 type GalleryRecord = RecordProps & {
@@ -132,33 +132,56 @@ const Gallery = ({
         );
     };
 
+    const renderItem = (Component: React.ReactElement, index: number) => (
+        <div key={index} className={"item relative p-" + paddingSize}>
+            {Component}
+            {itemTopLeft && <div className={"absolute left-0 top-0 p-" + paddingSize}>
+                {itemTopLeft}
+            </div>}
+            {itemTopRight && <div className={"absolute right-0 top-0 p-" + paddingSize}>
+                {itemTopRight}
+            </div>}
+            {itemBottomLeft && <div className={"absolute left-0 bottom-0 p-" + paddingSize}>
+                {itemBottomLeft}
+            </div>}
+            {itemBottomRight && <div className={"absolute right-0 bottom-0 p-" + paddingSize}>
+                {itemBottomRight}
+            </div>}
+            {itemMiddleLeft && <div className={"absolute top-1/2 left-0 -translate-y-1/2 p-" + paddingSize}>
+                {itemMiddleLeft}
+            </div>}
+            {itemMiddleRight && <div className={"absolute top-1/2 right-0 -translate-y-1/2 p-" + paddingSize}>
+                {itemMiddleRight}
+            </div>}
+        </div>
+    );
+
     const getGroups = (body: GalleryRecord[], seps: string | string[]): React.ReactElement[] => {
-        const groupMap: Record<string, ImageProps[]> = {};
-        const result: React.ReactElement[] = [];
-        let index = 0;
-        for (const item of body) {
-            const imgElement = getImage(item, index++);
+        const groupMap: Record<string, Array<{ image: ImageProps; index: number }>> = {};
+
+        body.forEach((item, index) => {
+            const imgElement = getImage(item, index);
             const alt = imgElement.props.alt || "";
             const src = imgElement.props.src || "";
-            if (!alt || !src) continue;
+            if (!alt || !src) return;
 
             const [leftPart] = converter.splitFirst(alt.toUpperCase(), seps, /^\d/g);
+            const groupKey = leftPart || "GROUP";
 
-            if (!groupMap[leftPart]) {
-                groupMap[leftPart] = [];
-                result.push(
-                    <Carousel
-                        key={leftPart}
-                    >
-                        {groupMap[leftPart]}
-                    </Carousel>
-                );
-            }
+            if (!groupMap[groupKey]) groupMap[groupKey] = [];
+            groupMap[groupKey].push({ image: imgElement, index });
+        });
 
-            groupMap[leftPart].push(imgElement);
-        }
-
-        return result;
+        return Object.entries(groupMap).map(([groupName, items]) => (
+            <section key={groupName} className="gallery-group rounded-lg border bg-card p-3 text-left">
+                <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                    {groupName.toLowerCase()}
+                </h3>
+                <div className={cn("flex flex-wrap items-center gap-3", "row-cols-" + numCols)}>
+                    {items.map(({ image, index }) => renderItem(image, index))}
+                </div>
+            </section>
+        ));
     };
 
     const renderedBody = useMemo(() => {
@@ -170,7 +193,7 @@ const Gallery = ({
     }, [body, groupBy]);
 
     if (renderedBody === undefined) {
-        return <p className={"p-4"}><i className={"spinner-border spinner-border-sm"}></i> Caricamento in corso...</p>;
+        return <p className={"p-4"}><span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />Caricamento in corso...</p>;
     } else if (renderedBody.length === 0) {
         return <p className={"p-4"}>Nessun dato trovato</p>;
     }
@@ -181,37 +204,16 @@ const Gallery = ({
             <Wrapper className={className || theme.Gallery.className}>
                 {Header && <div className={headerClass || theme.Gallery.headerClass}>{Header}</div>}
                 <Wrapper className={scrollClass || theme.Gallery.scrollClass}>
-                    <div className={"flex flex-wrap text-center items-center gap-2 row-cols-" + numCols + " " + (bodyClass || theme.Gallery.bodyClass)}>
-                        <Pagination
-                            recordSet={renderedBody}
-                            {...(pagination || {})}
-                        >
-                            {(pageRecords) => pageRecords.map((Component, index) => (
-                                <div key={index} className={"item relative p-" + paddingSize}>
-                                    {Component}
-                                    {itemTopLeft && <div className={"absolute left-0 top-0 p-" + paddingSize}>
-                                        {itemTopLeft}
-                                    </div>}
-                                    {itemTopRight && <div className={"absolute right-0 top-0 p-" + paddingSize}>
-                                        {itemTopRight}
-                                    </div>}
-                                    {itemBottomLeft && <div className={"absolute left-0 bottom-0 p-" + paddingSize}>
-                                        {itemBottomLeft}
-                                    </div>}
-                                    {itemBottomRight && <div className={"absolute right-0 bottom-0 p-" + paddingSize}>
-                                        {itemBottomRight}
-                                    </div>}
-                                    {itemMiddleLeft && <div className={"absolute top-50 left-0 translate-middle-y p-" + paddingSize}>
-                                        {itemMiddleLeft}
-                                    </div>}
-                                    {itemMiddleRight && <div className={"absolute top-50 right-0 translate-middle-y p-" + paddingSize}>
-                                        {itemMiddleRight}
-                                    </div>}
-
-                                </div>
-                            ))}
-                        </Pagination>
-                    </div>
+                    <Pagination
+                        recordSet={renderedBody}
+                        {...(pagination || {})}
+                    >
+                        {(pageRecords, pageOffset) => (
+                            <div className={"flex flex-wrap text-center items-center gap-4 row-cols-" + numCols + " " + (bodyClass || theme.Gallery.bodyClass)}>
+                                {pageRecords.map((Component, index) => renderItem(Component, pageOffset + index))}
+                            </div>
+                        )}
+                    </Pagination>
                 </Wrapper>
                 {Footer && <div className={footerClass || theme.Gallery.footerClass}>{Footer}</div>}
             </Wrapper>

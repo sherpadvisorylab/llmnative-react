@@ -2,8 +2,8 @@ import React, {useRef, useEffect, useCallback, useState} from 'react';
 import TuiImageEditor from 'tui-image-editor';
 import 'tui-image-editor/dist/tui-image-editor.css';
 import Modal from "../ui/Modal";
-import {useTheme} from "../../Theme";
 import {LoadingButton} from "../ui/Buttons";
+import Icon from "../ui/Icon";
 
 type ImageEditorProps = {
     imageUrl: string;
@@ -51,7 +51,6 @@ const ImageEditor = ({
                          onClose        = undefined,
                          onSave         = undefined
 }: ImageEditorProps) => {
-    const theme = useTheme("editor");
     const rootEl = useRef<HTMLDivElement | null>(null);
     const imageEditorInst = useRef<InstanceType<typeof TuiImageEditor> | null>(null);
     const objStyle = {
@@ -225,53 +224,54 @@ const ImageEditor = ({
     }
 
     window.document.body.style.overflow = 'hidden';
+    const toolButtonClass = "inline-flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
     const Controls = <div className={"flex border-b"}>
         <div className={"border-end"}>
-            <button className={"btn"} title="Undo" onClick={(e) => handleStartDrawingMode(e, 'UNDO')}>
-                <i className={theme.getIcon("arrow-arc-left")}></i>
+            <button className={toolButtonClass} title="Undo" onClick={(e) => handleStartDrawingMode(e, 'UNDO')}>
+                <Icon name="arrow-arc-left" />
             </button>
-            <button className={"btn"} title="Redo" onClick={(e) => handleStartDrawingMode(e, 'REDO')}>
-                <i className={theme.getIcon("arrow-arc-right")}></i>
+            <button className={toolButtonClass} title="Redo" onClick={(e) => handleStartDrawingMode(e, 'REDO')}>
+                <Icon name="arrow-arc-right" />
             </button>
-            <button className={"btn"} title="Zoom In" onClick={(e) => handleStartDrawingMode(e, 'ZOOMOUT')}>
-                <i className={theme.getIcon("magnifying-glass-minus")}></i>
+            <button className={toolButtonClass} title="Zoom In" onClick={(e) => handleStartDrawingMode(e, 'ZOOMOUT')}>
+                <Icon name="magnifying-glass-minus" />
             </button>
-            <button className={"btn"} title="Zoom Out" onClick={(e) => handleStartDrawingMode(e, 'ZOOMIN')}>
-                <i className={theme.getIcon("magnifying-glass-plus")}></i>
-            </button>
-        </div>
-        <div className={"border-end"}>
-            <button className={"btn"} title="Crop" onClick={(e) => handleStartDrawingMode(e, 'CROPPER')}>
-                <i className={theme.getIcon("crop")}></i>
-            </button>
-            <button className={"btn"} title="Flip X" onClick={(e) => handleStartDrawingMode(e, 'FLIPX')}>
-                <i className={theme.getIcon("arrow-line-right")}></i>
-            </button>
-            <button className={"btn"} title="Flip Y" onClick={(e) => handleStartDrawingMode(e, 'FLIPY')}>
-                <i className={theme.getIcon("arrow-line-down")}></i>
-            </button>
-            <button className={"btn"} title="Rotate" onClick={(e) => handleStartDrawingMode(e, 'ROTATE')}>
-                <i className={theme.getIcon("camera-rotate")}></i>
+            <button className={toolButtonClass} title="Zoom Out" onClick={(e) => handleStartDrawingMode(e, 'ZOOMIN')}>
+                <Icon name="magnifying-glass-plus" />
             </button>
         </div>
         <div className={"border-end"}>
-            <button className={"btn"} title="Free Drawing" onClick={(e) => handleStartDrawingMode(e, 'FREE_DRAWING')}>
-                <i className={theme.getIcon("pencil")}></i>
+            <button className={toolButtonClass} title="Crop" onClick={(e) => handleStartDrawingMode(e, 'CROPPER')}>
+                <Icon name="crop" />
             </button>
-            <button className={"btn"} title="Line" onClick={(e) => handleStartDrawingMode(e, 'LINE_DRAWING')}>
-                <i className={theme.getIcon("arrow-right")}></i>
+            <button className={toolButtonClass} title="Flip X" onClick={(e) => handleStartDrawingMode(e, 'FLIPX')}>
+                <Icon name="arrow-line-right" />
             </button>
-            <button className={"btn"} title="Text" onClick={(e) => handleStartDrawingMode(e, 'TEXT')}>
-                <i className={theme.getIcon("text-t")}></i>
+            <button className={toolButtonClass} title="Flip Y" onClick={(e) => handleStartDrawingMode(e, 'FLIPY')}>
+                <Icon name="arrow-line-down" />
             </button>
-            <button className={"btn"} title="Rect" onClick={(e) => handleStartDrawingMode(e, 'rect')}>
-                <i className={theme.getIcon("rectangle")}></i>
+            <button className={toolButtonClass} title="Rotate" onClick={(e) => handleStartDrawingMode(e, 'ROTATE')}>
+                <Icon name="camera-rotate" />
             </button>
-            <button className={"btn"} title="Circle" onClick={(e) => handleStartDrawingMode(e, 'circle')}>
-                <i className={theme.getIcon("circle")}></i>
+        </div>
+        <div className={"border-end"}>
+            <button className={toolButtonClass} title="Free Drawing" onClick={(e) => handleStartDrawingMode(e, 'FREE_DRAWING')}>
+                <Icon name="pencil" />
             </button>
-            <button className={"btn"} title="Triangle" onClick={(e) => handleStartDrawingMode(e, 'triangle')}>
-                <i className={theme.getIcon("triangle")}></i>
+            <button className={toolButtonClass} title="Line" onClick={(e) => handleStartDrawingMode(e, 'LINE_DRAWING')}>
+                <Icon name="arrow-right" />
+            </button>
+            <button className={toolButtonClass} title="Text" onClick={(e) => handleStartDrawingMode(e, 'TEXT')}>
+                <Icon name="text-t" />
+            </button>
+            <button className={toolButtonClass} title="Rect" onClick={(e) => handleStartDrawingMode(e, 'rect')}>
+                <Icon name="rectangle" />
+            </button>
+            <button className={toolButtonClass} title="Circle" onClick={(e) => handleStartDrawingMode(e, 'circle')}>
+                <Icon name="circle" />
+            </button>
+            <button className={toolButtonClass} title="Triangle" onClick={(e) => handleStartDrawingMode(e, 'triangle')}>
+                <Icon name="triangle" />
             </button>
         </div>
         {onSave && <div className={"ml-auto"}>

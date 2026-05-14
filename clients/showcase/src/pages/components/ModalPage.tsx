@@ -11,58 +11,26 @@ type Position = 'center' | 'left' | 'right' | 'top' | 'bottom';
 const POSITIONS: Position[] = ['center', 'left', 'right', 'top', 'bottom'];
 
 function DemoModal({ position, onClose }: { position: Position; onClose: () => void }) {
-    const isOffcanvas = position !== 'center';
-
-    if (isOffcanvas) {
-        const offcanvasDir: Record<string, string> = {
-            left: 'offcanvas-start',
-            right: 'offcanvas-end',
-            top: 'offcanvas-top',
-            bottom: 'offcanvas-bottom',
-        };
-        return (
-            <>
-                <div className={`offcanvas ${offcanvasDir[position]}`} style={{ display: 'flex' }}>
-                    <div className="offcanvas-header">
-                        <h5 className="offcanvas-title">Panel — {position}</h5>
-                        <button className="btn-close" onClick={onClose} />
-                    </div>
-                    <div className="offcanvas-body">
-                        Side panel with <strong>{position}</strong> position.
-                        Renders into <code>document.body</code> via a React portal.
-                    </div>
-                    <div className="offcanvas-footer">
-                        <button className="btn btn-link" onClick={onClose}>Cancel</button>
-                        <button className="btn btn-primary" onClick={onClose}>Done</button>
-                    </div>
-                </div>
-                <div className="offcanvas-backdrop" onClick={onClose} />
-            </>
-        );
-    }
-
     return (
-        <>
-            <div className="modal-cover">
-                <div className="modal-dialog modal-lg">
-                    <div className="modal-content">
-                        <div className="modal-header">
-                            <h5 className="modal-title">Dialog — {position}</h5>
-                            <button className="btn-close" onClick={onClose} />
-                        </div>
-                        <div className="modal-body">
-                            Centered dialog. Supports <code>sm</code>, <code>md</code>, <code>lg</code>,{' '}
-                            <code>xl</code> and <code>fullscreen</code> sizes.
-                        </div>
-                        <div className="modal-footer">
-                            <button className="btn btn-link" onClick={onClose}>Cancel</button>
-                            <button className="btn btn-primary" onClick={onClose}>Confirm</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div className="modal-backdrop" onClick={onClose} />
-        </>
+        <Modal
+            title={position === 'center' ? 'Dialog - center' : `Panel - ${position}`}
+            position={position}
+            size="lg"
+            onClose={onClose}
+            onSave={async () => true}
+        >
+            {position === 'center' ? (
+                <p>
+                    Centered dialog. Supports <code>sm</code>, <code>md</code>, <code>lg</code>,{' '}
+                    <code>xl</code> and <code>fullscreen</code> sizes.
+                </p>
+            ) : (
+                <p>
+                    Side panel with <strong>{position}</strong> position.
+                    Renders into <code>document.body</code> via a React portal.
+                </p>
+            )}
+        </Modal>
     );
 }
 
@@ -72,11 +40,11 @@ const PROPS_CONFIG: PropDef[] = [
     { name: 'header', type: 'ReactNode', description: 'Custom header content (overrides title)', control: 'text' },
     { name: 'footer', type: 'ReactNode | false', description: 'Custom footer content, or false to hide footer entirely', control: 'text' },
     { name: 'size', type: '"sm" | "md" | "lg" | "xl" | "fullscreen"', default: '"md"', description: 'Dialog width', control: 'select', options: ['sm', 'md', 'lg', 'xl', 'fullscreen'] },
-    { name: 'position', type: '"center" | "top" | "left" | "right" | "bottom"', default: '"center"', description: 'Where the modal appears. Non-center positions render as offcanvas panels.', control: 'select', options: ['center', 'top', 'left', 'right', 'bottom'] },
+    { name: 'position', type: '"center" | "top" | "left" | "right" | "bottom"', default: '"center"', description: 'Where the modal appears. Non-center positions render as edge panels.', control: 'select', options: ['center', 'top', 'left', 'right', 'bottom'] },
     { name: 'onClose', type: '() => void', description: 'Called when the user dismisses the modal' },
     { name: 'onSave', type: 'async (e) => boolean', description: 'Async save handler. Return true to close, false to keep open.' },
     { name: 'onDelete', type: 'async (e) => boolean', description: 'Async delete handler. Shows a delete button in the footer.' },
-    { name: 'footerClose', type: 'boolean', default: 'true', description: 'Show a close/cancel button in the footer', control: 'boolean' },
+    { name: 'closeOnBackdrop', type: 'boolean', default: 'true', description: 'Close the modal when the backdrop is clicked', control: 'boolean' },
     { name: 'buttonFullscreen', type: 'boolean', default: 'false', description: 'Show fullscreen toggle button in the header', control: 'boolean' },
     { name: 'headerClass', type: 'string', description: 'CSS classes on the header element', control: 'text' },
     { name: 'bodyClass', type: 'string', description: 'CSS classes on the body element', control: 'text' },
@@ -93,7 +61,7 @@ const PLAYGROUND: PlaygroundConfig = {
         footer: '',
         size: 'md',
         position: 'center',
-        footerClose: true,
+        closeOnBackdrop: true,
         buttonFullscreen: false,
         headerClass: '',
         bodyClass: '',
@@ -108,7 +76,7 @@ function ModalPlaygroundDemo({ props: p }: { props: Record<string, any> }) {
     const [open, setOpen] = useState(false);
     return (
         <>
-            <button className="btn btn-primary" onClick={() => setOpen(true)}>Open modal</button>
+            <button className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90" onClick={() => setOpen(true)}>Open modal</button>
             {open && (
                 <Modal
                     title={p.title || undefined}
@@ -116,7 +84,7 @@ function ModalPlaygroundDemo({ props: p }: { props: Record<string, any> }) {
                     footer={p.footer || undefined}
                     size={p.size}
                     position={p.position}
-                    footerClose={p.footerClose}
+                    closeOnBackdrop={p.closeOnBackdrop}
                     buttonFullscreen={p.buttonFullscreen}
                     headerClass={p.headerClass || undefined}
                     bodyClass={p.bodyClass || undefined}
@@ -138,7 +106,7 @@ export default function ModalPage() {
     return (
         <PageLayout
             title="Modal"
-            description="Centered dialogs and side panels (offcanvas). Fullscreen toggle, async save/delete actions and portal rendering."
+            description="Centered dialogs and edge panels. Fullscreen toggle, async save/delete actions and portal rendering."
         >
             <Section
                 title="Positions"
@@ -148,7 +116,7 @@ export default function ModalPage() {
                         {POSITIONS.map((pos) => (
                             <button
                                 key={pos}
-                                className="btn btn-outline-primary"
+                                className="inline-flex items-center justify-center rounded-md border border-primary bg-transparent px-4 py-2 text-sm font-medium text-primary hover:bg-primary hover:text-primary-foreground"
                                 onClick={() => setOpen(pos)}
                             >
                                 {pos}
@@ -167,6 +135,7 @@ const [open, setOpen] = useState(false);
         position="center"     // center | left | right | top | bottom
         size="lg"             // sm | md | lg | xl | fullscreen
         onClose={() => setOpen(false)}
+        closeOnBackdrop={true}
         onSave={async () => {
             await save();
             return true;      // true closes the modal, false keeps it open
@@ -178,7 +147,7 @@ const [open, setOpen] = useState(false);
             />
 
             <Section
-                title="ModalYesNo — destructive confirmation"
+                title="ModalYesNo - destructive confirmation"
                 description="Use ModalYesNo for irreversible actions such as delete or reset."
                 preview={
                     <div className="alert alert-warning text-sm">
@@ -201,7 +170,7 @@ const [open, setOpen] = useState(false);
             />
 
             <Section
-                title="ModalOk — informational"
+                title="ModalOk - informational"
                 description="Simple one-button acknowledgement dialog."
                 preview={
                     <div className="alert alert-info text-sm">

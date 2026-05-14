@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { Wrapper } from '../ui/GridSystem';
 import Badge, { BadgeProps } from '../ui/Badge';
 import { isInteractiveElement } from '../../libs/utils';
+import Icon from '../ui/Icon';
 
 interface MenuProps {
   context: string;
@@ -53,16 +54,16 @@ const Menu = ({
 
     const hasChildren = item.children?.length > 0;
     const key = item.title.toLowerCase();
-    const Icon = () => (
+    const MenuIcon = () => (
       <span className={iconClass ?? theme.Menu.iconClass}>
-        <i className={theme.getIcon(item.icon)}></i>
+        <Icon name={item.icon} />
       </span>
     );
 
     if (!item.path) {
       return (
         <li key={index} className={headerClass ?? theme.Menu.headerClass}>
-          {item.icon && <Icon />}
+          {item.icon && <MenuIcon />}
           {item.title && (/^-+$/.test(item.title) ? <hr className={"m-0"} /> : <span>{item.title}</span>)}
         </li>
       );
@@ -83,7 +84,7 @@ const Menu = ({
             }
           }}
         >
-          {item.icon && <Icon />}
+          {item.icon && <MenuIcon />}
           <span className={textClass ?? theme.Menu.textClass}>
             {item.title}
           </span>
@@ -92,7 +93,7 @@ const Menu = ({
               {badges[key].children}
             </Badge>
           )}
-          {hasChildren && <i className={theme.getIcon(isOpen ? 'caret-down' : 'caret-right')}></i>}
+          {hasChildren && <Icon name={isOpen ? 'caret-down' : 'caret-right'} />}
         </Link>
         {hasChildren && (
           <div className={`collapse ${isOpen ? 'show' : ''}`}>

@@ -13,7 +13,10 @@ import AuthPage from '../pages/components/AuthPage';
 import BadgePage from '../pages/components/BadgePage';
 import BrandPage from '../pages/components/BrandPage';
 import BreadcrumbsPage from '../pages/components/BreadcrumbsPage';
-import ButtonPage from '../pages/components/ButtonPage';
+import ButtonsIndexPage from '../pages/components/buttons';
+import ActionButtonPage from '../pages/components/buttons/ActionButtonPage';
+import LoadingButtonPage from '../pages/components/buttons/LoadingButtonPage';
+import NavigationButtonsPage from '../pages/components/buttons/NavigationButtonsPage';
 import CardPage from '../pages/components/CardPage';
 import CarouselPage from '../pages/components/CarouselPage';
 import CheckboxPage from '../pages/components/CheckboxPage';
@@ -77,6 +80,7 @@ export const menu = {
     _nav: [
         { path: '/docs/providers', page: () => React.createElement(Navigate, { to: '/providers', replace: true }) },
         { path: '/components', page: () => React.createElement(Navigate, { to: '/components/alert', replace: true }) },
+        { path: '/components/button', page: () => React.createElement(Navigate, { to: '/components/buttons', replace: true }) },
         { path: '/examples', page: () => React.createElement(Navigate, { to: '/examples/crud', replace: true }) },
     ],
 
@@ -85,7 +89,17 @@ export const menu = {
     components: [
         { path: '/components/alert', title: 'Alert', page: AlertPage, group: 'UI Primitives' },
         { path: '/components/badge', title: 'Badge', page: BadgePage, group: 'UI Primitives' },
-        { path: '/components/button', title: 'Button', page: ButtonPage, group: 'UI Primitives' },
+        {
+            path: '/components/buttons',
+            title: 'Buttons',
+            page: ButtonsIndexPage,
+            group: 'UI Primitives',
+            children: [
+                { path: '/components/buttons/action', title: 'ActionButton', page: ActionButtonPage },
+                { path: '/components/buttons/loading', title: 'LoadingButton', page: LoadingButtonPage },
+                { path: '/components/buttons/navigation', title: 'Navigation buttons', page: NavigationButtonsPage },
+            ],
+        },
         { path: '/components/card', title: 'Card', page: CardPage, group: 'UI Primitives' },
         { path: '/components/code', title: 'Code', page: CodePage, group: 'UI Primitives' },
         { path: '/components/dropdown', title: 'Dropdown', page: DropdownPage, group: 'UI Primitives' },

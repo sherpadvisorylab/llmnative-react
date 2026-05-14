@@ -1,19 +1,47 @@
 import { describe, expect, it, vi } from 'vitest';
-import { resolveMotionConfig } from '../../src/motion';
+import { resolveMotionEffect, type MotionRegistry } from '../../src/motion';
+
+const registry: MotionRegistry = {
+    none: {
+        from: {},
+        to: {},
+        transition: { duration: 0, easing: 'linear', properties: ['opacity'] },
+        reducedMotion: 'always',
+    },
+    fade: {
+        from: { opacity: 0 },
+        to: { opacity: 1 },
+        transition: { duration: 160, easing: 'ease-out', properties: ['opacity'] },
+        reducedMotion: 'respect-user',
+    },
+    press: {
+        from: {},
+        to: { transform: 'scale(0.98)' },
+        transition: { duration: 100, easing: 'ease-out', properties: ['transform'] },
+        reducedMotion: 'respect-user',
+    },
+};
 
 describe('motion', () => {
-    it('resolves preset defaults and overrides', () => {
-        expect(resolveMotionConfig({ preset: 'subtle', duration: 90 })).toMatchObject({
-            duration: 90,
-            pressScale: 0.99,
+    it('resolves semantic effects from the registry', () => {
+        expect(resolveMotionEffect('press', registry)).toMatchObject({
+            to: { transform: 'scale(0.98)' },
+            transition: {
+                duration: 100,
+                easing: 'ease-out',
+                properties: ['transform'],
+            },
         });
     });
 
-    it('disables motion when reducedMotion is always', () => {
-        expect(resolveMotionConfig({ preset: 'expressive', reducedMotion: 'always' })).toMatchObject({
-            duration: 0,
-            pressScale: 1,
-            enterDistance: 0,
+    it('returns the none effect when disabled locally', () => {
+        expect(resolveMotionEffect(false, registry, 'fade')).toMatchObject({
+            from: {},
+            to: {},
+            transition: {
+                duration: 0,
+                easing: 'linear',
+            },
         });
     });
 
@@ -21,9 +49,13 @@ describe('motion', () => {
         const matchMedia = vi.fn().mockReturnValue({ matches: true });
         vi.stubGlobal('matchMedia', matchMedia);
 
-        expect(resolveMotionConfig({ preset: 'standard', reducedMotion: 'respect-user' })).toMatchObject({
-            duration: 0,
-            pressScale: 1,
+        expect(resolveMotionEffect('fade', registry)).toMatchObject({
+            from: {},
+            to: {},
+            transition: {
+                duration: 0,
+                easing: 'linear',
+            },
         });
 
         vi.unstubAllGlobals();

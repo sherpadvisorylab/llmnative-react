@@ -1,13 +1,12 @@
 import React from 'react';
 import {Link} from "react-router-dom";
-import {useTheme} from "../../Theme";
+import Icon from "../ui/Icon";
 
 
 interface SearchProps {
     handleSearch?: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 export const SearchButton = () => {
-    const theme = useTheme("button");
     return (
         <div className="menu-item dropdown">
             <Link
@@ -17,7 +16,7 @@ export const SearchButton = () => {
                 className="menu-link"
             >
                 <div className="menu-icon">
-                    <i className={`${theme.getIcon("search")} nav-icon`}></i>
+                    <Icon name="search" className="nav-icon" />
                 </div>
             </Link>
         </div>

@@ -16,6 +16,10 @@ const PROPS_CONFIG: PropDef[] = [
     { name: 'wrapClass', type: 'string', description: 'CSS classes on the outer wrapper', control: 'text' },
 ];
 
+const spinnerSm = 'inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent';
+const spinnerMd = 'inline-block h-6 w-6 animate-spin rounded-full border-2 border-current border-t-transparent';
+const outlineButton = 'btn btn-outline-primary';
+
 const PLAYGROUND: PlaygroundConfig = {
     props: PROPS_CONFIG,
     defaultProps: { show: true, icon: false, title: '', description: '', className: '', wrapClass: '' },
@@ -50,17 +54,16 @@ export default function LoaderPage() {
                 preview={
                     <div className="flex items-center gap-6">
                         <div className="flex items-center gap-2">
-                            <span className="spinner-border spinner-border-sm" />
+                            <span className={spinnerSm} />
                             <span className="text-sm text-muted-foreground">Small</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <span className="spinner-border" style={{ width: '1.5rem', height: '1.5rem' }} />
+                            <span className={spinnerMd} />
                             <span className="text-sm text-muted-foreground">Default</span>
                         </div>
                     </div>
                 }
-                code={`{/* Inline via CSS class */}
-<span className="spinner-border spinner-border-sm" />
+                code={`<span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
 
 {/* Inside a LoadingButton — spinner replaces label automatically */}
 import { LoadingButton } from 'react-firestrap';
@@ -78,7 +81,7 @@ import { LoadingButton } from 'react-firestrap';
                 preview={
                     <div className="space-y-3 w-full">
                         <button
-                            className="btn btn-outline-primary"
+                            className={outlineButton}
                             onClick={() => setShow(!show)}
                         >
                             {show ? 'Hide loader' : 'Show loader'}

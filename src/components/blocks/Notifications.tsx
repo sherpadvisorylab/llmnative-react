@@ -2,6 +2,7 @@ import React from "react";
 import {Dropdown, DropdownItem} from "./Dropdown";
 import {useTheme} from "../../Theme";
 import {Wrapper} from "../ui/GridSystem";
+import Icon from "../ui/Icon";
 
 interface NotificationItem {
     title: string;
@@ -44,16 +45,16 @@ function Notifications({
                           key={index}
                           className="py-10px text-wrap"
                           url={notify.url}
-                      >
+                          >
                           <div className={iconClass}>
-                              <i className={`${theme.getIcon(notify.icon)} text-theme`}/>
+                              <Icon name={notify.icon} className="text-theme" />
                           </div>
                           <div className="flex-1 flex-wrap pl-3">
                               <div className="mb-1 text-white">{notify.title}</div>
                               <div className="small">{notify.time}</div>
                           </div>
                           <div className="pl-2 fs-16px">
-                              <i className={theme.getIcon("chevron-right")}/>
+                              <Icon name="chevron-right" />
                           </div>
                       </DropdownItem>
                   );

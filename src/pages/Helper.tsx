@@ -1344,8 +1344,7 @@ function Helper() {
                           text: "Dropdown with Links"
                         }}
                         header="Account"
-                        footer={<a href="/logout" className="dropdown-item text-danger">Logout</a>}
-                        keepDropdownOpen={false}
+                        footer={<a href="/logout" className="flex w-full items-center rounded-sm px-2 py-1.5 text-sm text-destructive hover:bg-accent">Logout</a>}
                       >
                         <DropdownItem url="/profile">My Profile</DropdownItem>
                         <DropdownItem url="/settings">Settings</DropdownItem>
@@ -1361,8 +1360,7 @@ function Helper() {
                           text: "Dropdown with Links"
                         }}
                         header="Account"
-                        footer={<a href="/logout" className="dropdown-item text-danger">Logout</a>}
-                        keepDropdownOpen={false}
+                        footer={<a href="/logout" className="flex w-full items-center rounded-sm px-2 py-1.5 text-sm text-destructive hover:bg-accent">Logout</a>}
                       >
                         <DropdownItem url="/profile">My Profile</DropdownItem>
                         <DropdownItem url="/settings">Settings</DropdownItem>

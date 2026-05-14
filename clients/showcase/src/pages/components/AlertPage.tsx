@@ -96,7 +96,7 @@ export default function AlertPage() {
                                 This alert dismisses after 3 seconds
                             </Alert>
                         ) : (
-                            <button className="btn btn-outline-primary" onClick={() => setVisible(true)}>
+                            <button className="inline-flex items-center justify-center rounded-md border border-primary bg-transparent px-4 py-2 text-sm font-medium text-primary hover:bg-primary hover:text-primary-foreground" onClick={() => setVisible(true)}>
                                 Show again
                             </button>
                         )}

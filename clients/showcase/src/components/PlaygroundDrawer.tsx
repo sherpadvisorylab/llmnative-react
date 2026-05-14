@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Modal, Icon, MockDataProvider, DataProvider, createMotionTransition, useMotion } from 'react-firestrap';
+import { Modal, Icon, MockDataProvider, DataProvider, useMotionEffect, useMotionState } from 'react-firestrap';
 import type { PropDef, PlaygroundConfig } from '../types/playground';
 
 const BASE_INPUT = 'w-full rounded-md border border-border bg-background px-2.5 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring';
@@ -87,11 +87,11 @@ function PropControl({ def, value, onChange }: { def: PropDef; value: any; onCha
 
     return (
         <div className="flex items-start gap-3">
-            <div className="w-32 shrink-0 pt-1.5">
+            <div className="w-44 shrink-0 pt-1.5">
                 <span className="font-mono text-xs text-foreground">{def.name}</span>
                 {def.required && <span className="ml-1 text-destructive text-xs">*</span>}
             </div>
-            <div className="flex-1">
+            <div className="min-w-0 flex-1">
                 {def.control === 'boolean' && (
                     <label className="flex items-center gap-2 cursor-pointer">
                         <input
@@ -245,7 +245,11 @@ function Accordion({ icon, label, defaultOpen = false, children }: {
     children: React.ReactNode;
 }) {
     const [open, setOpen] = useState(defaultOpen);
-    const motion = useMotion();
+    const chevronMotion = useMotionEffect('press');
+    const contentStyle = useMotionState(open, 'fadeUp', 'fadeUp', {
+        overflow: open ? 'visible' : 'hidden',
+        maxHeight: open ? 920 : 0,
+    });
 
     return (
         <div className="border-t">
@@ -264,22 +268,11 @@ function Accordion({ icon, label, defaultOpen = false, children }: {
                     className="text-muted-foreground"
                     style={{
                         transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
-                        transition: createMotionTransition(motion, ['transform']),
+                        transition: chevronMotion.transitionValue,
                     }}
                 />
             </button>
-            <div
-                style={{
-                    overflow: 'hidden',
-                    maxHeight: open ? 720 : 0,
-                    opacity: open ? 1 : 0,
-                    transform: open ? 'translateY(0)' : `translateY(-${motion.enterDistance}px)`,
-                    transition: [
-                        `max-height ${motion.duration}ms ${motion.easing}`,
-                        createMotionTransition(motion, ['transform', 'opacity']),
-                    ].join(', '),
-                }}
-            >
+            <div style={contentStyle}>
                 {children}
             </div>
         </div>
@@ -318,8 +311,8 @@ export default function PlaygroundDrawer({ title, config, open, onClose }: Playg
         <div className="flex items-center gap-2 min-w-0">
             <Icon name="play" size={15} className="text-primary shrink-0" />
             <div className="min-w-0">
-                <h3 className="offcanvas-title truncate">Playground</h3>
-                <div className="offcanvas-sub-title truncate">{title}</div>
+                <h3 className="truncate text-lg font-semibold leading-none">Playground</h3>
+                <div className="mt-1 truncate text-sm text-muted-foreground">{title}</div>
             </div>
         </div>
     );
@@ -342,7 +335,6 @@ export default function PlaygroundDrawer({ title, config, open, onClose }: Playg
             onClose={onClose}
             closeOnBackdrop
             buttonFullscreen={false}
-            footerClose={false}
             headerClass="h-14 !py-0 px-4"
             footer={false}
         >
@@ -362,9 +354,9 @@ export default function PlaygroundDrawer({ title, config, open, onClose }: Playg
                 <div className="shrink-0">
                     {/* Preview accordion — open by default */}
                     <Accordion icon="eye" label="Preview" defaultOpen>
-                        <div className="px-4 pb-4">
-                            {preview}
-                        </div>
+                            <div className="min-h-72 overflow-visible px-4 pb-4 pt-2 pr-8">
+                                {preview}
+                            </div>
                     </Accordion>
 
                     {/* Form record JSON accordion — only for form-field components */}

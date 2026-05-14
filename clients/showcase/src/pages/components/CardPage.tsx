@@ -87,7 +87,7 @@ export default function CardPage() {
                         wrapClass="w-full max-w-sm"
                         title="Card title"
                         header={<span className="text-sm text-muted-foreground">action</span>}
-                        footer={<button className="btn btn-primary">Confirm</button>}
+                        footer={<button className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">Confirm</button>}
                     >
                         Card body with some example text.
                     </Card>
@@ -95,7 +95,7 @@ export default function CardPage() {
                 code={`<Card
     title="Card title"
     header={<span className="text-sm text-muted-foreground">action</span>}
-    footer={<button className="btn btn-primary">Confirm</button>}
+    footer={<button className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">Confirm</button>}
 >
     Card body with some example text.
 </Card>`}

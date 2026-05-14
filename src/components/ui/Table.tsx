@@ -80,7 +80,7 @@ function Table({
     };
 
     if (!Array.isArray(body)) {
-        return <p className={"p-4"}><i className={"spinner-border spinner-border-sm"}></i> Caricamento in corso...</p>;
+        return <p className={"p-4"}><span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />Caricamento in corso...</p>;
     } else if (body.length === 0) {
         return <p className={"p-4"}>Nessun dato trovato</p>;
     }

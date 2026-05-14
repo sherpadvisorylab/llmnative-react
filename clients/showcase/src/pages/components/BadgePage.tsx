@@ -6,6 +6,9 @@ import PropsTable from '../../components/PropsTable';
 import { usePlayground } from '../../context/PlaygroundContext';
 import type { PropDef, PlaygroundConfig } from '../../types/playground';
 
+const primaryButton = "inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90";
+const outlineButton = "inline-flex items-center justify-center rounded-md border border-secondary-foreground/30 bg-transparent px-4 py-2 text-sm font-medium text-secondary-foreground hover:bg-secondary";
+
 const TYPES = ['primary', 'info', 'success', 'warning', 'danger', 'secondary', 'light', 'dark'] as const;
 
 const PROPS_CONFIG: PropDef[] = [
@@ -65,18 +68,18 @@ export default function BadgePage() {
                 preview={
                     <div className="flex flex-wrap items-center gap-10">
                         <Badge type="danger" post={5}>
-                            <button className="btn btn-primary">Messages</button>
+                            <button className={primaryButton}>Messages</button>
                         </Badge>
                         <Badge type="warning" post={12}>
-                            <button className="btn btn-outline-secondary">Orders</button>
+                            <button className={outlineButton}>Orders</button>
                         </Badge>
                         <Badge type="success" post={3}>
-                            <button className="btn btn-outline-secondary">Notifications</button>
+                            <button className={outlineButton}>Notifications</button>
                         </Badge>
                     </div>
                 }
                 code={`<Badge type="danger" post={5}>
-    <button className="btn btn-primary">Messages</button>
+    <button className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">Messages</button>
 </Badge>`}
             />
 
@@ -86,15 +89,15 @@ export default function BadgePage() {
                 preview={
                     <div className="flex flex-wrap items-center gap-10">
                         <Badge type="danger" pre={5}>
-                            <button className="btn btn-primary">Messages</button>
+                            <button className={primaryButton}>Messages</button>
                         </Badge>
                         <Badge type="info" pre="new">
-                            <button className="btn btn-outline-secondary">Updates</button>
+                            <button className={outlineButton}>Updates</button>
                         </Badge>
                     </div>
                 }
                 code={`<Badge type="danger" pre={5}>
-    <button className="btn btn-primary">Messages</button>
+    <button className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">Messages</button>
 </Badge>`}
             />
 
@@ -104,15 +107,15 @@ export default function BadgePage() {
                 preview={
                     <div className="flex flex-wrap items-center gap-10">
                         <Badge type="danger" pre={2} post={7}>
-                            <button className="btn btn-outline-secondary">Inbox</button>
+                            <button className={outlineButton}>Inbox</button>
                         </Badge>
                         <Badge type="warning" pre="!" post={99}>
-                            <button className="btn btn-outline-secondary">Alerts</button>
+                            <button className={outlineButton}>Alerts</button>
                         </Badge>
                     </div>
                 }
                 code={`<Badge type="danger" pre={2} post={7}>
-    <button className="btn btn-outline-secondary">Inbox</button>
+    <button className="inline-flex items-center justify-center rounded-md border border-secondary-foreground/30 px-4 py-2 text-sm font-medium">Inbox</button>
 </Badge>`}
             />
 
@@ -122,18 +125,18 @@ export default function BadgePage() {
                 preview={
                     <div className="flex flex-wrap items-center gap-10">
                         <Badge type="danger">
-                            <button className="btn btn-outline-secondary">Messages</button>
+                            <button className={outlineButton}>Messages</button>
                         </Badge>
                         <Badge type="success">
-                            <button className="btn btn-outline-secondary">Status</button>
+                            <button className={outlineButton}>Status</button>
                         </Badge>
                         <Badge type="warning">
-                            <button className="btn btn-outline-secondary">Alerts</button>
+                            <button className={outlineButton}>Alerts</button>
                         </Badge>
                     </div>
                 }
                 code={`<Badge type="danger">
-    <button className="btn btn-outline-secondary">Messages</button>
+    <button className="inline-flex items-center justify-center rounded-md border border-secondary-foreground/30 px-4 py-2 text-sm font-medium">Messages</button>
 </Badge>`}
             />
 

@@ -25,7 +25,7 @@ const LANGUAGES = [
 ];
 
 const THEMES = ['prism', 'dark', 'coy', 'funky', 'okaidia', 'solarizedlight', 'tomorrow', 'twilight'];
-const BACKGROUNDS = ['transparent', 'default', 'primary', 'secondary', 'success', 'danger', 'warning', 'info', 'light', 'dark', 'white', 'black'];
+const BACKGROUNDS = ['default', 'transparent', 'primary', 'secondary', 'success', 'danger', 'warning', 'info', 'light', 'dark', 'white', 'black'];
 
 const SAMPLE_TSX = `import { Code } from 'react-firestrap';
 
@@ -51,9 +51,9 @@ const CODE_PROPS: PropDef[] = [
     { name: 'language', type: 'PrismLanguage', required: true, default: '"tsx"', description: 'Prism language used for syntax highlighting', control: 'select', options: LANGUAGES },
     { name: 'showCopy', type: 'boolean', default: 'true', description: 'Shows the copy-to-clipboard action', control: 'boolean' },
     { name: 'theme', type: 'PrismTheme', default: '"tomorrow"', description: 'Prism theme stylesheet loaded for the block', control: 'select', options: THEMES },
-    { name: 'background', type: 'PrismBackground', default: '"transparent"', description: 'Optional background utility applied to the pre element', control: 'select', options: BACKGROUNDS },
-    { name: 'pre', type: 'ReactNode', description: 'Content rendered before the code element', control: 'text' },
-    { name: 'post', type: 'ReactNode', description: 'Content rendered after the code element', control: 'text' },
+    { name: 'background', type: 'PrismBackground', default: '"default"', description: 'Optional background utility applied to the pre element', control: 'select', options: BACKGROUNDS },
+    { name: 'pre', type: 'ReactNode', description: 'Content rendered to the left of the code block, vertically centered', control: 'text' },
+    { name: 'post', type: 'ReactNode', description: 'Content rendered to the right of the code block, vertically centered', control: 'text' },
     { name: 'wrapClass', type: 'string', description: 'CSS classes applied to the wrapper', control: 'text' },
     { name: 'className', type: 'string', description: 'CSS classes applied to the pre element', control: 'text' },
 ];
@@ -66,7 +66,7 @@ const PLAYGROUND: PlaygroundConfig = {
         language: 'tsx',
         showCopy: true,
         theme: 'tomorrow',
-        background: 'transparent',
+        background: 'default',
         pre: '',
         post: '',
         wrapClass: '',
@@ -152,13 +152,13 @@ export default function CodePage() {
 
             <Section
                 title="Slots and wrapper"
-                description="pre, post, wrapClass and className let the block fit inside richer documentation layouts."
+                description="pre and post sit outside the code block as left and right side adornments. wrapClass and className let the block fit inside richer documentation layouts."
                 preview={
                     <Code
                         language="tsx"
                         theme="tomorrow"
-                        pre={<div className="mb-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">Example.tsx</div>}
-                        post={<div className="mt-3 text-xs text-muted-foreground">End of snippet</div>}
+                        pre={<span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Example.tsx</span>}
+                        post={<span className="text-xs text-muted-foreground">End</span>}
                         wrapClass="w-full"
                         className="rounded-md border border-border p-4 text-sm"
                     >
@@ -167,8 +167,8 @@ export default function CodePage() {
                 }
                 code={`<Code
   language="tsx"
-  pre={<div>Example.tsx</div>}
-  post={<div>End of snippet</div>}
+  pre={<span>Example.tsx</span>}
+  post={<span>End</span>}
   wrapClass="w-full"
   className="rounded-md border border-border p-4 text-sm"
 >

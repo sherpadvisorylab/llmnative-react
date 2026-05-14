@@ -19,6 +19,32 @@ const linkClass = ({ isActive }: { isActive: boolean }) =>
             : 'text-muted-foreground hover:text-foreground hover:bg-accent'
     }`;
 
+const childLinkClass = ({ isActive }: { isActive: boolean }) =>
+    `block rounded-md py-1 pl-7 pr-3 text-sm transition-colors ${
+        isActive
+            ? 'bg-primary/10 text-primary font-medium'
+            : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+    }`;
+
+function SidebarItem({ item }: { item: MenuItem }) {
+    return (
+        <div>
+            <NavLink to={item.path} end className={linkClass}>
+                {item.title}
+            </NavLink>
+            {item.children?.length > 0 && (
+                <div className="mt-0.5 space-y-0.5">
+                    {item.children.map((child: MenuItem) => (
+                        <NavLink key={child.path} to={child.path} end className={childLinkClass}>
+                            {child.title}
+                        </NavLink>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
+
 export default function Sidebar() {
     const { pathname } = useLocation();
 
@@ -46,11 +72,7 @@ export default function Sidebar() {
                             {groupTitle}
                         </div>
                         <div className="space-y-0.5">
-                            {groupItems.map((item) => (
-                                <NavLink key={item.path} to={item.path} end className={linkClass}>
-                                    {item.title}
-                                </NavLink>
-                            ))}
+                            {groupItems.map((item) => <SidebarItem key={item.path} item={item} />)}
                         </div>
                     </div>
                 ))}

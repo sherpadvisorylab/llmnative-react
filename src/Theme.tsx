@@ -1,19 +1,10 @@
 import React, {createContext, useContext, useEffect, useMemo, useState, ReactNode} from 'react';
-import _presetDefault from '../themes/default';
-import _presetFlat from '../themes/flat';
-import _presetCyber from '../themes/cyber';
-import type { MotionConfig } from './motion';
+import _themeDefault, { theme as defaultTheme } from '../themes/default';
+import _themeFlat from '../themes/flat';
+import _themeCyber from '../themes/cyber';
+import type { MotionReference, MotionRegistry } from './motion';
 
-export interface Theme {
-    Icons: {
-        [key: string]: string;
-    };
-    [key: string]: any;
-}
-
-interface UseTheme extends Theme {
-    getIcon: (iconName: string) => string;
-}
+type UseTheme = Theme;
 
 interface ThemeProviderProps {
     children: ReactNode;
@@ -99,13 +90,13 @@ export interface GalleryTheme {
     bodyClass?: string;
     footerClass?: string;
     selectedClass?: string;
-    gutterSize?: string;
-    rowCols?: string;
+    gutterSize?: 0 | 1 | 2 | 3 | 4 | 5;
+    rowCols?: 1 | 2 | 3 | 4 | 6;
 }
 
 export interface ModalTheme {
-    size?: string;
-    position?: string;
+    size?: "sm" | "md" | "lg" | "xl" | "fullscreen";
+    position?: "center" | "top" | "left" | "right" | "bottom";
     wrapClass?: string;
     className?: string;
     headerClass?: string;
@@ -115,15 +106,22 @@ export interface ModalTheme {
     footerClass?: string;
     iconExpand?: string;
     iconCollapse?: string;
+    motion?: {
+        center?: MotionReference;
+        top?: MotionReference;
+        left?: MotionReference;
+        right?: MotionReference;
+        bottom?: MotionReference;
+        backdrop?: MotionReference;
+    };
 }
 
 /**
  * Full typed interface for component theme overrides.
- * Export this from conf/theme.ts — all fields are optional so you only declare what you want to change.
+ * Used by app-level themeOverride. All fields are optional so you only declare what you want to change.
  * The `default` theme in themes/default/ provides a full reference implementation of every field.
  */
 export interface ThemeConfig {
-    Motion?: MotionConfig;
     Grid?: {
         Card?: CardTheme;
         Table?: TableTheme;
@@ -142,7 +140,7 @@ export interface ThemeConfig {
         className?: string;
         stickyClass?: string;
         scrollToTop?: boolean;
-        scrollBehavior?: string;
+        scrollBehavior?: ScrollBehavior;
         maxItems?: number;
         sticky?: boolean;
         align?: string;
@@ -152,7 +150,7 @@ export interface ThemeConfig {
         showControls?: boolean;
         showCaption?: boolean;
         layoutDark?: boolean;
-        autoPlay?: boolean;
+        autoPlay?: any;
     };
     Card?: CardTheme;
     Loader?: {
@@ -165,11 +163,16 @@ export interface ThemeConfig {
     ActionButton?: {
         className?: string;
         badgeClass?: string;
+        motion?: {
+            press?: MotionReference;
+        };
     };
     LoadingButton?: {
         className?: string;
         badgeClass?: string;
-        spinnerClass?: string;
+        motion?: {
+            press?: MotionReference;
+        };
     };
     LinkButton?: {
         className?: string;
@@ -193,6 +196,11 @@ export interface ThemeConfig {
         headerClass?: string;
         footerClass?: string;
         Menu?: MenuTheme;
+        motion?: {
+            open?: MotionReference;
+            close?: MotionReference;
+            press?: MotionReference;
+        };
     };
     Notifications?: {
         wrapClass?: string;
@@ -221,6 +229,8 @@ export interface ThemeConfig {
             footerClass?: string;
         };
         i18n?: {
+            headerAdd?: string;
+            headerEdit?: string;
             headerNewRecord?: string;
             buttonSave?: string;
             buttonDelete?: string;
@@ -254,6 +264,9 @@ export interface ThemeConfig {
     Tab?: {
         wrapClass?: string;
         className?: string;
+        motion?: {
+            enter?: MotionReference;
+        };
     };
     Code?: {
         wrapClass?: string;
@@ -264,6 +277,17 @@ export interface ThemeConfig {
         className?: string;
     };
 }
+
+type DeepRequired<T> = {
+    [K in keyof T]-?: NonNullable<T[K]> extends (...args: any[]) => any
+        ? NonNullable<T[K]>
+        : NonNullable<T[K]> extends object
+            ? DeepRequired<NonNullable<T[K]>>
+            : NonNullable<T[K]>;
+};
+
+export type Theme = DeepRequired<ThemeConfig> & {
+};
 
 export interface ThemePresetConfig {
     mode?: ThemeMode;
@@ -278,18 +302,20 @@ export interface ThemePresetConfig {
     dark?: ColorScale;
     /** Arbitrary CSS custom properties not covered by ColorScale, e.g. spacing or font tokens. */
     variables?: Record<string, string>;
-    /** Component class overrides scoped to this preset — merged on top of the base theme when active. */
-    theme?: ThemeConfig;
-    /** Motion tokens for interaction and disclosure animations. */
-    motion?: MotionConfig;
 }
 
-/** IDs of built-in presets. Extend by adding entries to BUILT_IN_THEME_PRESETS. */
+export interface ThemeDefinition {
+    preset: ThemePresetConfig;
+    motion: MotionRegistry;
+    theme: Theme;
+}
+
+/** IDs of built-in themes. Extend by adding entries to BUILT_IN_THEMES. */
 export const BUILT_IN_PRESET_IDS = ['default', 'flat', 'cyber'] as const;
 export type BuiltInPresetId = (typeof BUILT_IN_PRESET_IDS)[number];
 
 /** Module shape returned by a theme import callback. */
-export type ThemeModule = { preset?: ThemePresetConfig; theme?: ThemeConfig };
+export type ThemeModule = ThemeDefinition;
 
 export type AppThemeProviderConfig =
     | BuiltInPresetId
@@ -297,11 +323,8 @@ export type AppThemeProviderConfig =
     | {
         defaultMode?: ThemeMode;
         defaultPreset?: string;
-        /** Inline preset — CSS variables applied synchronously on mount. */
-        preset?: ThemePresetConfig;
-        presets?: Record<string, ThemePresetConfig>;
-        theme?: ThemeConfig;
-        motion?: MotionConfig;
+        themes?: Record<string, ThemeDefinition>;
+        themeOverride?: ThemeConfig;
     };
 
 export interface ThemeController {
@@ -315,7 +338,7 @@ export interface ThemeController {
     fontMono: string;
     colors: ColorScale | undefined;
     dark: ColorScale | undefined;
-    presets: Record<string, ThemePresetConfig>;
+    themes: Record<string, ThemeDefinition>;
     setMode: (mode: ThemeMode) => void;
     toggleMode: () => void;
     applyPreset: (preset: string) => void;
@@ -326,267 +349,14 @@ export interface ThemeController {
     setTokens: (tokens: Partial<ColorScale>) => void;
 }
 
-export const defaultTheme: Theme = {
-    Icons: {
-        default: 'bi bi-',
-        sidebar: 'bi bi-',
-        header: 'bi bi-',
-        profile: 'bi bi-',
-    },
-    Motion: {
-        preset: 'standard',
-        reducedMotion: 'respect-user',
-        duration: 160,
-        easing: 'cubic-bezier(0.2, 0, 0, 1)',
-        pressScale: 0.98,
-        enterDistance: 8,
-    },
-    Grid: {
-        Card: {
-            wrapClass: "",
-            className: "",
-            headerClass: "flex justify-between",
-            bodyClass: "p-0",
-            footerClass: "",
-            showArrow: false
-        },
-        Table: {
-            wrapClass: "",
-            className: "table-striped",
-            headerClass: "",
-            bodyClass: "",
-            footerClass: "",
-            scrollClass: "fixed-table-container",
-            selectedClass: "table-info"
-        },
-        Gallery: {
-            wrapClass: "",
-            className: "",
-            scrollClass: "",
-            headerClass: "",
-            bodyClass: "",
-            footerClass: "",
-            selectedClass: "bg-primary/20",
-            gutterSize: "1",
-            rowCols: "4"
-        },
-        Modal: {
-            mode: "form",
-            size: "lg",
-            position: "center",
-            wrapClass: "",
-            className: "",
-            headerClass: "",
-            titleClass: "",
-            subTitleClass: "pr-1 text-muted-foreground",
-            bodyClass: "",
-            footerClass: "",
-            iconExpand: "fullscreen",
-            iconCollapse: "fullscreen-exit"
-        },
-        i18n: {
-            headerAdd: "Aggiungi",
-            headerEdit: "Modifica",
-            buttonAdd: "Aggiungi",
-        }
-    },
-    Table: {
-        wrapClass: "bootstrap-table",
-        className: "table-striped",
-        headerClass: "",
-        bodyClass: "",
-        footerClass: "",
-        scrollClass: "fixed-table-container",
-        selectedClass: "table-info"
-    },
-    Gallery: {
-        wrapClass: "",
-        className: "",
-        scrollClass: "",
-        headerClass: "",
-        bodyClass: "",
-        footerClass: "",
-        selectedClass: "bg-primary/20",
-        gutterSize: "4",
-        rowCols: "2"
-    },
-    Pagination: {
-        wrapClass: "",
-        className: "",
-        stickyClass: "fixed-bottom mx-5",
-        scrollToTop: false,
-        scrollBehavior: "auto",
-        maxItems: 5,
-        sticky: true,
-        align: "end",
-    },
-    Carousel: {
-        showIndicators: true,
-        showControls: true,
-        showCaption: true,
-        layoutDark: false,
-        autoPlay: true,
-    },
-    Card: {
-        wrapClass: "",
-        className: "",
-        headerClass: "flex justify-between bg-white/[.15] font-normal",
-        bodyClass: "flex flex-col",
-        footerClass: "",
-        showLoader: false,
-        showArrow: false
-    },
-    Loader: {
-        wrapClass: "",
-        className: "",
-        icon: "custom-loader",
-        title: "Loading..",
-        description: ""
-    },
-    ActionButton: {
-        className: "",
-        badgeClass: "rounded-full bg-destructive text-destructive-foreground",
-    },
-    LoadingButton: {
-        className: "",
-        badgeClass: "rounded-full bg-destructive text-destructive-foreground",
-        spinnerClass: "spinner-border spinner-border-sm"
-    },
-    LinkButton: {
-        className: "",
-    },
-    Alert: {
-        className: ""
-    },
-    Badge: {
-        className: ""
-    },
-    Modal: {
-        size: "lg",
-        position: "center",
-        wrapClass: "",
-        className: "",
-        headerClass: "",
-        titleClass: "",
-        subTitleClass: "pr-1 text-muted-foreground",
-        bodyClass: "",
-        footerClass: "",
-        iconExpand: "fullscreen",
-        iconCollapse: "fullscreen-exit"
-    },
-    Dropdown: {
-        wrapClass: "",
-        className: "",
-        buttonClass: "",
-        badgeClass: "absolute mr-1 top-0 right-0",
-        menuClass: "",
-        menuHeaderClass: "",
-        menuItemClass: "",
-        menuDividerClass: "",
-        headerClass: "",
-        footerClass: "",
-        Menu: {
-            wrapClass: "",
-            className: "list-none p-0 m-0",
-            headerClass: "",
-            itemClass: "",
-            linkClass: "dropdown-item",
-            iconClass: "mr-1",
-            textClass: "",
-            badgeClass: "",
-            arrowClass: "",
-            submenuClass: "",
-        }
-    },
-    Notifications: {
-        wrapClass: "menu-item",
-        Dropdown: {
-            className: "",
-            buttonClass: "menu-link btn border-0",
-            menuClass: "mt-1 fs-11px w-300px pt-1"
-        }
-    },
-    Select: {
-        wrapClass: "",
-        className: ""
-    },
-    Autocomplete: {
-        wrapClass: "",
-        className: ""
-    },
-    Form: {
-        wrapClass: "",
-        buttonSaveClass: "btn-outline-primary border-0",
-        buttonDeleteClass: "btn-outline-danger border-0",
-        buttonBackClass: "btn-link",
-        Card: {
-            headerClass: "",
-            bodyClass: "",
-            footerClass: "text-right",
-        },
-        i18n: {
-            headerNewRecord: "Nuovo Record",
-            buttonSave: "Salva",
-            buttonDelete: "Elimina",
-            buttonBack: "Indietro",
-            noticeRequiredFields: "Per favore, compila tutti i campi obbligatori"
-        }
-    },
-    Menu: {
-        wrapClass: "offcanvas-body",
-        className: "navbar-nav flex-col mb-auto",
-        headerClass: "",
-        itemClass: "nav-item",
-        linkClass: "nav-link",
-        iconClass: "mr-1",
-        textClass: "flex-grow-1",
-        badgeClass: "ml-1",
-        arrowClass: "",
-        submenuClass: "nav flex-col ml-4",
-    },
-    Brand: {
-        wrapClass: "",
-        className: "brand",
-        logoClass: "navbar-brand",
-        labelClass: "navbar-text",
-    },
-    SignIn: {
-        className: "flex items-center",
-        avatarClass: "avatar rounded-full mx-2",
-    },
-    Image: {
-        wrapClass: "",
-        className: "",
-    },
-    ImageAvatar: {
-        wrapClass: "",
-        className: "",
-    },
-    Percentage: {
-        wrapClass: "",
-        className: "",
-    },
-    Tab: {
-        wrapClass: "",
-        className: "",
-    },
-    Code: {
-        wrapClass: "",
-        className: "",
-    },
-    Prompt: {
-        wrapClass: "",
-        className: "",
-    }
-}
-
 const ThemeContext = createContext<Theme>(defaultTheme);
+const MotionRegistryContext = createContext<MotionRegistry>(_themeDefault.motion);
 const ThemeControllerContext = createContext<ThemeController | null>(null);
 
-export const BUILT_IN_THEME_PRESETS: Record<BuiltInPresetId, ThemePresetConfig> = {
-    default: _presetDefault,
-    flat:    _presetFlat,
-    cyber:   _presetCyber,
+export const BUILT_IN_THEMES: Record<BuiltInPresetId, ThemeDefinition> = {
+    default: _themeDefault,
+    flat:    _themeFlat,
+    cyber:   _themeCyber,
 };
 
 // Funzione per unire profondamente due oggetti
@@ -611,34 +381,27 @@ const cloneTheme = (theme: Theme): Theme => deepMerge({}, theme);
 function normalizeThemeProviderConfig(config?: AppThemeProviderConfig): {
     defaultMode?: ThemeMode;
     defaultPreset: string;
-    presets: Record<string, ThemePresetConfig>;
-    theme?: Partial<Theme>;
+    themes: Record<string, ThemeDefinition>;
+    themeOverride?: ThemeConfig;
 } {
     if (typeof config === 'string' || typeof config === 'undefined') {
         return {
             defaultPreset: config ?? 'default',
-            presets: { ...BUILT_IN_THEME_PRESETS },
+            themes: { ...BUILT_IN_THEMES },
         };
     }
 
     if (typeof config === 'function') {
-        // Async import — start with defaults; preset+theme applied in useEffect after load
-        return { defaultPreset: 'default', presets: { ...BUILT_IN_THEME_PRESETS } };
+        return { defaultPreset: 'default', themes: { ...BUILT_IN_THEMES } };
     }
 
-    const extraPresets: Record<string, ThemePresetConfig> = config.preset ? { __local__: config.preset } : {};
-    const theme = deepMerge(
-        config.motion ? { Motion: config.motion } : {},
-        config.theme ?? {}
-    );
     return {
         defaultMode: config.defaultMode,
-        defaultPreset: config.preset ? '__local__' : (config.defaultPreset ?? 'default'),
-        presets: { ...BUILT_IN_THEME_PRESETS, ...extraPresets, ...(config.presets ?? {}) },
-        theme,
+        defaultPreset: config.defaultPreset ?? 'default',
+        themes: { ...BUILT_IN_THEMES, ...(config.themes ?? {}) },
+        themeOverride: config.themeOverride,
     };
 }
-
 function resolveMode(mode: ThemeMode): 'light' | 'dark' {
     if (mode !== 'system') return mode;
     if (typeof window === 'undefined' || !window.matchMedia) return 'light';
@@ -720,102 +483,102 @@ export const ThemeProvider = ({
                                                                 importTheme = undefined,
                                                                 config = undefined
 }: ThemeProviderProps) => {
-    // If config is a callback, it acts as the import fn (preset + theme overrides)
     const importFn: (() => Promise<ThemeModule>) | undefined =
         typeof config === 'function' ? config : importTheme;
 
     const normalized = useMemo(() => normalizeThemeProviderConfig(config), [config]);
-    const initialPreset = normalized.presets[normalized.defaultPreset] ?? normalized.presets.default;
+    const initialDefinition = normalized.themes[normalized.defaultPreset] ?? normalized.themes.default;
+    const initialPreset = initialDefinition.preset;
+    const [themeRegistry, setThemeRegistry] = useState<Record<string, ThemeDefinition>>(normalized.themes);
     const [preset, setPreset] = useState(normalized.defaultPreset);
     const [mode, setMode] = useState<ThemeMode>(normalized.defaultMode ?? initialPreset.mode ?? 'light');
-    const [radius, setRadius] = useState(initialPreset.radius ?? BUILT_IN_THEME_PRESETS.default.radius!);
+    const [radius, setRadius] = useState(initialPreset.radius ?? BUILT_IN_THEMES.default.preset.radius!);
     const [fontSans, setFontSans] = useState(initialPreset.fontSans ?? '');
     const [fontMono, setFontMono] = useState(initialPreset.fontMono ?? '');
     const [presetColors, setPresetColors] = useState<ColorScale | undefined>(initialPreset.colors);
     const [presetDark, setPresetDark] = useState<ColorScale | undefined>(initialPreset.dark);
-    const [theme, setTheme] = useState<Theme>(() => cloneTheme(defaultTheme));
+    const [theme, setTheme] = useState<Theme>(() => cloneTheme(initialDefinition.theme));
+    const [motionRegistry, setMotionRegistry] = useState<MotionRegistry>(initialDefinition.motion);
 
     useEffect(() => {
-        const selectedPreset = normalized.presets[normalized.defaultPreset] ?? normalized.presets.default;
+        const selectedDefinition = normalized.themes[normalized.defaultPreset] ?? normalized.themes.default;
+        const selectedPreset = selectedDefinition.preset;
+        setThemeRegistry(normalized.themes);
         setPreset(normalized.defaultPreset);
         setMode(normalized.defaultMode ?? selectedPreset.mode ?? 'light');
-        setRadius(selectedPreset.radius ?? BUILT_IN_THEME_PRESETS.default.radius!);
+        setRadius(selectedPreset.radius ?? BUILT_IN_THEMES.default.preset.radius!);
         setFontSans(selectedPreset.fontSans ?? '');
         setFontMono(selectedPreset.fontMono ?? '');
         setPresetColors(selectedPreset.colors);
         setPresetDark(selectedPreset.dark);
+        setMotionRegistry(selectedDefinition.motion);
     }, [normalized]);
 
-    // Load initial preset values from importFn — runs only on mount or when importFn changes,
-    // NOT when the user calls applyPreset() (which would reset user-chosen CSS vars).
     useEffect(() => {
         if (!importFn) return;
         importFn().then((module) => {
+            const importedPreset = '__imported__';
             const p = module.preset;
-            if (!p) return;
-            if (p.mode) setMode(p.mode);
-            if (p.radius !== undefined) setRadius(p.radius);
-            if (p.colors !== undefined) setPresetColors(p.colors);
-            if (p.dark !== undefined) setPresetDark(p.dark);
-        }).catch((err) => console.warn("Optional theme not found or failed to load.", err));
-    }, [importFn]);
+            setThemeRegistry((current) => ({ ...current, [importedPreset]: module }));
+            setPreset(importedPreset);
+            setMode(normalized.defaultMode ?? p.mode ?? 'light');
+            setRadius(p.radius ?? BUILT_IN_THEMES.default.preset.radius!);
+            setFontSans(p.fontSans ?? '');
+            setFontMono(p.fontMono ?? '');
+            setPresetColors(p.colors);
+            setPresetDark(p.dark);
+            setMotionRegistry(module.motion);
+        }).catch((err) => console.warn('Optional theme not found or failed to load.', err));
+    }, [importFn, normalized.defaultMode]);
 
-    // Reload component class overrides whenever the active preset changes.
     useEffect(() => {
-        const currentPreset = normalized.presets[preset] ?? normalized.presets.default;
-        const nextTheme = cloneTheme(defaultTheme);
-        if (currentPreset.motion) {
-            deepMerge(nextTheme, { Motion: currentPreset.motion });
-        }
-        deepMerge(nextTheme, currentPreset.theme ?? {});
-        deepMerge(nextTheme, normalized.theme ?? {});
+        const currentDefinition = themeRegistry[preset] ?? themeRegistry.default;
+        const nextTheme = cloneTheme(currentDefinition.theme);
+        deepMerge(nextTheme, normalized.themeOverride ?? {});
         setTheme(nextTheme);
-
-        if (!importFn) return;
-        importFn().then((module) => {
-            const optionalTheme = module.theme || {};
-            if (Object.keys(optionalTheme).length > 0) {
-                setTheme((current) => deepMerge(cloneTheme(current), optionalTheme));
-            }
-        }).catch((err) => console.warn("Optional theme not found or failed to load.", err));
-    }, [importFn, normalized, preset]);
+        setMotionRegistry(currentDefinition.motion);
+    }, [normalized.themeOverride, preset, themeRegistry]);
 
     useEffect(() => {
-        const currentPreset = normalized.presets[preset] ?? normalized.presets.default;
+        const currentPreset = (themeRegistry[preset] ?? themeRegistry.default).preset;
         applyThemeVars({
             mode, radius, fontSans, fontMono,
             colors: presetColors,
             dark: presetDark,
             variables: currentPreset.variables,
         });
-    }, [mode, normalized.presets, preset, radius, fontSans, fontMono, presetColors, presetDark]);
+    }, [mode, themeRegistry, preset, radius, fontSans, fontMono, presetColors, presetDark]);
 
     const controller = useMemo<ThemeController>(() => ({
         mode,
         resolvedMode: resolveMode(mode),
         preset,
-        primary: presetColors?.primary ?? BUILT_IN_THEME_PRESETS.default.colors!.primary!,
-        primaryForeground: presetColors?.primaryForeground ?? BUILT_IN_THEME_PRESETS.default.colors!.primaryForeground!,
+        primary: presetColors?.primary ?? BUILT_IN_THEMES.default.preset.colors!.primary!,
+        primaryForeground: presetColors?.primaryForeground ?? BUILT_IN_THEMES.default.preset.colors!.primaryForeground!,
         radius,
         fontSans,
         fontMono,
         colors: presetColors,
         dark: presetDark,
-        presets: normalized.presets,
+        themes: themeRegistry,
         setMode,
         toggleMode() {
             setMode((current) => resolveMode(current) === 'dark' ? 'light' : 'dark');
         },
         applyPreset(nextPreset: string) {
-            const selectedPreset = normalized.presets[nextPreset];
-            if (!selectedPreset) {
+            const selectedDefinition = themeRegistry[nextPreset];
+            if (!selectedDefinition) {
                 if (process.env.NODE_ENV !== 'production') {
                     console.warn(`[ThemeProvider] Unknown preset "${nextPreset}", falling back to "default".`);
                 }
                 nextPreset = 'default';
             }
-            const resolvedPreset = normalized.presets[nextPreset] ?? normalized.presets.default;
+            const resolvedPreset = (themeRegistry[nextPreset] ?? themeRegistry.default).preset;
             setPreset(nextPreset);
+            setMode(resolvedPreset.mode ?? 'light');
+            setRadius(resolvedPreset.radius ?? BUILT_IN_THEMES.default.preset.radius!);
+            setFontSans(resolvedPreset.fontSans ?? '');
+            setFontMono(resolvedPreset.fontMono ?? '');
             setPresetColors(resolvedPreset.colors);
             setPresetDark(resolvedPreset.dark);
         },
@@ -852,32 +615,25 @@ export const ThemeProvider = ({
             setPresetColors((c) => ({ ...c, ...tokens }));
             setPresetDark((c) => ({ ...c, ...tokens }));
         },
-    }), [mode, preset, radius, fontSans, fontMono, presetColors, presetDark, normalized]);
-
-    if (!theme) {
-        //todo: aggiungere un loader
-        return null;  // Fallback durante il caricamento del tema
-    }
+    }), [mode, preset, radius, fontSans, fontMono, presetColors, presetDark, themeRegistry]);
 
     return (
         <ThemeControllerContext.Provider value={controller}>
-            <ThemeContext.Provider value={theme}>
-                {children}
-            </ThemeContext.Provider>
+            <MotionRegistryContext.Provider value={motionRegistry}>
+                <ThemeContext.Provider value={theme}>
+                    {children}
+                </ThemeContext.Provider>
+            </MotionRegistryContext.Provider>
         </ThemeControllerContext.Provider>
     );
 };
 
+export const useTheme = (_scope?: string): UseTheme => {
+    return useContext(ThemeContext) as Theme;
+};
 
-export const useTheme = (iconType: string): UseTheme => {
-    const theme = useContext(ThemeContext) as Theme;
-
-    return {
-        ...theme,
-        getIcon(iconName : string) : string {
-            return (theme.Icons[iconType] || theme.Icons.default) + iconName;
-        },
-    };
+export const useMotionRegistry = (): MotionRegistry => {
+    return useContext(MotionRegistryContext);
 };
 
 export const useThemeController = (): ThemeController => {

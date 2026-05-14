@@ -8,6 +8,7 @@ import type { AuthIntent, UserProfile } from './providers/auth/AuthProvider';
 import ImageAvatar from './components/ui/ImageAvatar';
 import { PLACEHOLDER_USER, useTheme } from './Theme';
 import { getProviderConfigurationState } from './providers/ProviderConfiguration';
+import Icon from './components/ui/Icon';
 
 interface IAuthResponse {
     iat: number;
@@ -336,23 +337,32 @@ export const AuthButton = ({
                         />
                 </button>
                 {avatarOpen && (
-                    <div className="dropdown-menu show" style={{ position: 'absolute', right: 0, top: '100%', zIndex: 1000 }}>
+                    <div
+                        role="menu"
+                        className="absolute right-0 top-full z-50 mt-2 min-w-40 overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md"
+                    >
                         {!authenticated && (
-                            <button type="button" className="dropdown-item" onClick={runIntent}>
+                            <button
+                                type="button"
+                                role="menuitem"
+                                className="flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-left text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                                onClick={runIntent}
+                            >
                                 {label ?? 'SIGN IN'}
                             </button>
                         )}
                         {authenticated && (
                             <button
                                 type="button"
-                                className="dropdown-item"
+                                role="menuitem"
+                                className="flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-left text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                                 onClick={async () => {
                                     await auth.signOut();
                                     refreshState();
                                     setAvatarOpen(false);
                                 }}
                             >
-                                {iconLogout && <i className={`${theme.getIcon(iconLogout)} mr-1`} />}
+                                {iconLogout && <Icon name={iconLogout} className="mr-2" />}
                                 LOGOUT
                             </button>
                         )}

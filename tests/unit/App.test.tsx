@@ -19,6 +19,7 @@ import {
     useSocialHead,
 } from '../../src/Head';
 import { useTheme, useThemeController } from '../../src/Theme';
+import { theme as defaultTheme } from '../../themes/default';
 import { useDataProvider } from '../../src/providers/data/DataProviderContext';
 import type { DataProviderAdapter } from '../../src/providers/data/DataProvider';
 import type { IconComponentProps, IconProviderAdapter } from '../../src/providers/icon/IconProvider';
@@ -219,12 +220,15 @@ describe('App provider orchestration', () => {
         renderApp({
             themeProvider: {
                 defaultPreset: 'brand',
-                presets: {
+                themes: {
                     brand: {
-                        mode: 'light',
-                        colors: { primary: '346.8 77.2% 49.8%' },
-                        radius: 0.75,
+                        preset: {
+                            mode: 'light',
+                            colors: { primary: '346.8 77.2% 49.8%' },
+                            radius: 0.75,
+                        },
                         theme: {
+                            ...defaultTheme,
                             Alert: { className: 'brand-alert' },
                         },
                     },

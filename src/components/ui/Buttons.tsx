@@ -2,13 +2,14 @@ import React, {useEffect, useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import {useTheme} from "../../Theme";
 import Badge from './Badge';
-import type { UIProps } from '../types';
+import type { MotionUIProps, UIProps } from '../types';
 import { Wrapper } from './GridSystem';
 import { BadgeType } from './Badge';
 import { cn } from '../../libs/cn';
-import { usePressMotion, type MotionConfig } from '../../motion';
+import { usePressMotion } from '../../motion';
+import Icon from './Icon';
 
-export interface IButton extends UIProps {
+export interface IButton extends MotionUIProps {
     onClick?: (e: any) => any;
     icon?: string;
     label?: string | React.ReactNode;
@@ -19,14 +20,29 @@ export interface IButton extends UIProps {
     badgeType?: BadgeType;
     iconClass?: string;
     style?: React.CSSProperties;
-    motion?: MotionConfig | false;
 }
 
 export type SetMessagePayload = { message: string; chunkDone?: number; totalChunks?: number };
 
 export interface LoadingButtonProps extends Omit<IButton, "onClick"> {
     onClick?: (e: any, setMessage?: (payload: SetMessagePayload) => any) => Promise<any>;
+    loadingLabel?: string | React.ReactNode;
 }
+
+export const buttonBaseClass = "btn";
+export const buttonPrimaryClass = "btn-primary";
+export const buttonSecondaryClass = "btn-secondary";
+export const buttonDangerClass = "btn-danger";
+export const buttonSuccessClass = "btn-success";
+export const buttonWarningClass = "btn-warning";
+export const buttonInfoClass = "btn-info";
+export const buttonLightClass = "btn-light";
+export const buttonDarkClass = "btn-dark";
+export const buttonOutlinePrimaryClass = "btn-outline-primary";
+export const buttonOutlineSecondaryClass = "btn-outline-secondary";
+export const buttonOutlineDangerClass = "btn-outline-danger";
+export const buttonOutlineSuccessClass = "btn-outline-success";
+export const buttonLinkClass = "btn-link";
   
 export const LoadingButton = ({
     onClick,
@@ -43,6 +59,7 @@ export const LoadingButton = ({
     badgeType       = undefined,
     iconClass       = undefined,
     style           = undefined,
+    loadingLabel    = undefined,
     motion: motionConfig = undefined
 }: LoadingButtonProps = {}) => {
     const [loader, setLoader] = useState(showLoader);
@@ -54,7 +71,8 @@ export const LoadingButton = ({
     };
 
     const theme = useTheme("button");
-    const motion = usePressMotion(disable || loader, style, motionConfig === false ? { preset: 'none' } : motionConfig);
+    const motion = usePressMotion(disable || loader, style, motionConfig ?? theme.LoadingButton.motion?.press ?? 'press');
+    const activeLoadingLabel = loadingLabel ?? (message || (typeof label === 'string' ? `${label}...` : label));
 
     useEffect(() => {
         setLoader(showLoader);
@@ -64,7 +82,7 @@ export const LoadingButton = ({
     const button = (
         <button
             title={title}
-            className={cn("btn", className || theme.LoadingButton.className, loader && message && "whitespace-nowrap")}
+            className={cn(buttonBaseClass, className || theme.LoadingButton.className, loader && "whitespace-nowrap")}
             style={motion.style}
             disabled={disable || loader}
             {...motion.pressHandlers}
@@ -77,9 +95,12 @@ export const LoadingButton = ({
                 setDisable(false);
             }}
         >
-            {loader && <><i className={cn(label && "mr-1", theme.LoadingButton.spinnerClass)}></i>{message && <span className='ml-1'>{message}</span>}</>}
-            {(icon && !loader) && <i className={cn(label && "mr-1", iconClass, theme.getIcon(icon))}></i>}
-            {label}
+            {loader && <>
+                <span className={cn(activeLoadingLabel && "mr-1", "inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent")} />
+                {activeLoadingLabel && <span>{activeLoadingLabel}</span>}
+            </>}
+            {(icon && !loader) && <Icon name={icon} className={cn(label && "mr-1", iconClass)} />}
+            {!loader && label}
         </button>
     );
 
@@ -109,11 +130,11 @@ export const ActionButton = ({
     motion: motionConfig = undefined
 }: IButton = {}) => {
     const theme = useTheme("button");
-    const motion = usePressMotion(disabled, style, motionConfig === false ? { preset: 'none' } : motionConfig);
+    const motion = usePressMotion(disabled, style, motionConfig ?? theme.ActionButton.motion?.press ?? 'press');
     const button = (
         <button
             title={title}
-            className={cn("btn", className || theme.ActionButton.className)}
+            className={cn(buttonBaseClass, className || theme.ActionButton.className)}
             style={motion.style}
             disabled={disabled}
             {...motion.pressHandlers}
@@ -123,7 +144,7 @@ export const ActionButton = ({
                 onClick?.(e);
             }}
         >
-            {icon && <i className={cn(label && "mr-1", iconClass, theme.getIcon(icon))}></i>}
+            {icon && <Icon name={icon} className={cn(label && "mr-1", iconClass)} />}
             {label}
         </button>
     );
@@ -155,12 +176,11 @@ export const BackLink = ({
 }: BackLinkProps) => {
     const navigate = useNavigate();
     const theme = useTheme("button");
-    
     return (
         <Wrapper className={wrapClass}>
             {pre}
             <a href="#"
-               className={cn("btn", className || theme.LinkButton.className)}
+               className={cn(buttonBaseClass, className || theme.LinkButton.className)}
                onClick={(e) => {
                    e.preventDefault();
                    navigate(-1);
@@ -194,7 +214,7 @@ export const GoSite = ({
             <h1 className={cn("m-0 text-2xl font-bold", className)}>
                 {label + " "}
                 <a href={url} target="_blank" rel="noopener noreferrer">
-                    <i className={theme.getIcon("external-link")} />
+                    <Icon name="external-link" />
                 </a>
             </h1>
             {post}

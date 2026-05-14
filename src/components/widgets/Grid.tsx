@@ -290,7 +290,7 @@ const GridArray = ({
 
         return (
             <button
-                className="btn btn-primary"
+                className="inline-flex items-center justify-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 onClick={() => setModalData({})}
             >
                 {theme.Grid.i18n.buttonAdd}
@@ -322,7 +322,7 @@ const GridArray = ({
                     headerClass={theme.Grid.Gallery.headerClass}
                     bodyClass={theme.Grid.Gallery.bodyClass}
                     footerClass={theme.Grid.Gallery.footerClass}
-                    selectedClass={!canEdit && (theme.Grid.Gallery.selectedClass)}
+                    selectedClass={!canEdit ? theme.Grid.Gallery.selectedClass : undefined}
                     gutterSize={theme.Grid.Gallery.gutterSize}
                     rowCols={theme.Grid.Gallery.rowCols}
                     groupBy={groupBy}
@@ -341,7 +341,7 @@ const GridArray = ({
                     bodyClass={theme.Grid.Table.bodyClass}
                     footerClass={theme.Grid.Table.footerClass}
                     scrollClass={theme.Grid.Table.scrollClass}
-                    selectedClass={!canEdit && (theme.Grid.Table.selectedClass)}
+                    selectedClass={!canEdit ? theme.Grid.Table.selectedClass : undefined}
                 />;
         }
     }, [type, body, onClick, canEdit, handleClick, groupBy, tableHeaders]);

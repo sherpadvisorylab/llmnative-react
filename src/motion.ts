@@ -1,47 +1,56 @@
 import React from 'react';
-import { useTheme } from './Theme';
+import { useMotionRegistry } from './Theme';
 
-export type MotionPreset = 'none' | 'subtle' | 'standard' | 'expressive';
 export type ReducedMotionMode = 'respect-user' | 'always' | 'never';
+export type MotionStyle = React.CSSProperties;
+export type MotionReference = string | MotionEffect | false;
 
-export interface MotionConfig {
-    preset?: MotionPreset;
-    reducedMotion?: ReducedMotionMode;
+export interface MotionTransition {
     duration?: number;
     easing?: string;
-    pressScale?: number;
-    enterDistance?: number;
+    delay?: number;
+    properties?: string[];
 }
 
-export const MOTION_PRESETS: Record<MotionPreset, Required<Omit<MotionConfig, 'preset'>>> = {
-    none: {
-        reducedMotion: 'always',
+export interface MotionEffect {
+    from?: MotionStyle;
+    to?: MotionStyle;
+    transition?: MotionTransition;
+    reducedMotion?: ReducedMotionMode;
+}
+
+export type MotionRegistry = Record<string, MotionEffect>;
+
+export interface ResolvedMotionEffect {
+    from: MotionStyle;
+    to: MotionStyle;
+    transition: Required<MotionTransition>;
+    reducedMotion: ReducedMotionMode;
+    transitionValue: string;
+}
+
+const NONE_EFFECT: MotionEffect = {
+    from: {},
+    to: {},
+    transition: {
         duration: 0,
         easing: 'linear',
-        pressScale: 1,
-        enterDistance: 0,
+        delay: 0,
+        properties: ['opacity', 'transform', 'box-shadow'],
     },
-    subtle: {
-        reducedMotion: 'respect-user',
-        duration: 120,
-        easing: 'cubic-bezier(0.2, 0, 0, 1)',
-        pressScale: 0.99,
-        enterDistance: 4,
-    },
-    standard: {
-        reducedMotion: 'respect-user',
+    reducedMotion: 'always',
+};
+
+const FALLBACK_EFFECT: MotionEffect = {
+    from: {},
+    to: {},
+    transition: {
         duration: 160,
         easing: 'cubic-bezier(0.2, 0, 0, 1)',
-        pressScale: 0.98,
-        enterDistance: 8,
+        delay: 0,
+        properties: ['opacity', 'transform', 'box-shadow'],
     },
-    expressive: {
-        reducedMotion: 'respect-user',
-        duration: 220,
-        easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-        pressScale: 0.97,
-        enterDistance: 12,
-    },
+    reducedMotion: 'respect-user',
 };
 
 const prefersReducedMotion = (): boolean =>
@@ -49,54 +58,100 @@ const prefersReducedMotion = (): boolean =>
     && typeof window.matchMedia === 'function'
     && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-export const resolveMotionConfig = (config: MotionConfig = {}): Required<Omit<MotionConfig, 'preset'>> => {
-    const preset = MOTION_PRESETS[config.preset ?? 'standard'];
-    const merged = { ...preset, ...config };
-    const reduced = merged.reducedMotion === 'always'
-        || (merged.reducedMotion === 'respect-user' && prefersReducedMotion());
+const resolveReference = (
+    reference: MotionReference | undefined,
+    registry: MotionRegistry,
+    fallback: MotionReference = 'fade'
+): MotionEffect => {
+    const candidate = reference === undefined ? fallback : reference;
+
+    if (candidate === false) return NONE_EFFECT;
+    if (typeof candidate === 'string') return registry[candidate] ?? registry.none ?? NONE_EFFECT;
+    return candidate;
+};
+
+export const createMotionTransition = (transition: Required<MotionTransition>): string =>
+    transition.properties
+        .map((property) => `${property} ${transition.duration}ms ${transition.easing} ${transition.delay}ms`)
+        .join(', ');
+
+export const resolveMotionEffect = (
+    reference: MotionReference | undefined,
+    registry: MotionRegistry = {},
+    fallback?: MotionReference
+): ResolvedMotionEffect => {
+    const base = resolveReference(fallback, registry, 'fade');
+    const effect = resolveReference(reference, registry, fallback);
+    const mergedTransition = {
+        ...FALLBACK_EFFECT.transition,
+        ...base.transition,
+        ...effect.transition,
+    };
+    const reducedMotion = effect.reducedMotion ?? base.reducedMotion ?? FALLBACK_EFFECT.reducedMotion!;
+    const reduced = reducedMotion === 'always'
+        || (reducedMotion === 'respect-user' && prefersReducedMotion());
+    const transition = {
+        duration: reduced ? 0 : mergedTransition.duration!,
+        easing: reduced ? 'linear' : mergedTransition.easing!,
+        delay: reduced ? 0 : mergedTransition.delay!,
+        properties: mergedTransition.properties!,
+    };
 
     return {
-        reducedMotion: merged.reducedMotion ?? preset.reducedMotion,
-        duration: reduced ? 0 : merged.duration ?? preset.duration,
-        easing: reduced ? 'linear' : merged.easing ?? preset.easing,
-        pressScale: reduced ? 1 : merged.pressScale ?? preset.pressScale,
-        enterDistance: reduced ? 0 : merged.enterDistance ?? preset.enterDistance,
+        from: reduced ? {} : { ...(base.from ?? {}), ...(effect.from ?? {}) },
+        to: reduced ? {} : { ...(base.to ?? {}), ...(effect.to ?? {}) },
+        transition,
+        reducedMotion,
+        transitionValue: createMotionTransition(transition),
     };
 };
 
-export const useMotion = (override?: MotionConfig) => {
-    const theme = useTheme('motion');
+export const useMotionEffect = (
+    reference?: MotionReference,
+    fallback?: MotionReference
+): ResolvedMotionEffect => {
+    const registry = useMotionRegistry();
     return React.useMemo(
-        () => resolveMotionConfig({ ...(theme.Motion ?? {}), ...(override ?? {}) }),
-        [override, theme.Motion]
+        () => resolveMotionEffect(reference, registry, fallback),
+        [reference, registry, fallback]
     );
 };
 
-export const createMotionTransition = (
-    motion: Required<Omit<MotionConfig, 'preset'>>,
-    properties: string[] = ['transform', 'opacity', 'box-shadow']
-): string => properties
-    .map((property) => `${property} ${motion.duration}ms ${motion.easing}`)
-    .join(', ');
+export const useMotionState = (
+    active: boolean,
+    reference?: MotionReference,
+    fallback?: MotionReference,
+    baseStyle?: React.CSSProperties
+): React.CSSProperties => {
+    const effect = useMotionEffect(reference, fallback);
+
+    return React.useMemo(() => ({
+        ...baseStyle,
+        ...(active ? effect.to : effect.from),
+        transition: [
+            baseStyle?.transition,
+            effect.transitionValue,
+        ].filter(Boolean).join(', '),
+    }), [active, baseStyle, effect]);
+};
 
 export const usePressMotion = (
     disabled = false,
     baseStyle?: React.CSSProperties,
-    override?: MotionConfig
+    reference?: MotionReference,
+    fallback: MotionReference = 'press'
 ) => {
-    const motion = useMotion(override);
+    const effect = useMotionEffect(reference, fallback);
     const [pressed, setPressed] = React.useState(false);
 
     const style = React.useMemo<React.CSSProperties>(() => ({
         ...baseStyle,
+        ...(pressed && !disabled ? effect.to : effect.from),
         transition: [
             baseStyle?.transition,
-            createMotionTransition(motion),
+            effect.transitionValue,
         ].filter(Boolean).join(', '),
-        transform: pressed && !disabled
-            ? [baseStyle?.transform, `scale(${motion.pressScale})`].filter(Boolean).join(' ')
-            : baseStyle?.transform,
-    }), [baseStyle, disabled, motion, pressed]);
+    }), [baseStyle, disabled, effect, pressed]);
 
     return {
         style,
@@ -111,30 +166,16 @@ export const usePressMotion = (
 
 export const useEnterMotion = (
     baseStyle?: React.CSSProperties,
-    override?: MotionConfig,
-    distance?: number | string
+    reference?: MotionReference,
+    fallback: MotionReference = 'fadeUp'
 ) => {
-    const motion = useMotion(override);
     const [entered, setEntered] = React.useState(false);
 
     React.useEffect(() => {
         setEntered(false);
         const frame = window.requestAnimationFrame(() => setEntered(true));
         return () => window.cancelAnimationFrame(frame);
-    }, [motion.duration, motion.easing, motion.enterDistance]);
+    }, [reference, fallback]);
 
-    return React.useMemo<React.CSSProperties>(() => {
-        const enterDistance = distance ?? motion.enterDistance;
-        return {
-            ...baseStyle,
-            opacity: entered ? baseStyle?.opacity : 0,
-            transform: entered
-                ? baseStyle?.transform
-                : [baseStyle?.transform, `translateY(${typeof enterDistance === 'number' ? `${enterDistance}px` : enterDistance})`].filter(Boolean).join(' '),
-            transition: [
-                baseStyle?.transition,
-                createMotionTransition(motion),
-            ].filter(Boolean).join(', '),
-        };
-    }, [baseStyle, distance, entered, motion]);
+    return useMotionState(entered, reference, fallback, baseStyle);
 };

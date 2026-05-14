@@ -6,6 +6,8 @@ import PropsTable from '../../components/PropsTable';
 import { usePlayground } from '../../context/PlaygroundContext';
 import type { PlaygroundConfig, PropDef } from '../../types/playground';
 
+const primaryButton = 'btn-primary';
+
 const AUTH_BUTTON_PROPS: PropDef[] = [
     { name: 'provider', type: 'string', description: 'AuthProvider driver key. Defaults to the app auth service.', control: 'text' },
     { name: 'intent', type: '"signIn" | "connect" | "signOut" | "disconnect" | "reauthorize"', default: '"signIn"', description: 'Action requested from the selected AuthProvider.', control: 'select', options: ['signIn', 'connect', 'signOut', 'disconnect', 'reauthorize'] },
@@ -23,7 +25,7 @@ const AUTH_BUTTON_PLAYGROUND_PROPS: PropDef[] = [
     { name: 'label', type: 'string', default: '"Connect Dropbox"', description: 'Button label for button aspect.', control: 'text' },
     { name: 'icon', type: 'string', default: '"link"', description: 'IconProvider key for button aspect.', control: 'icon' },
     { name: 'iconLogout', type: 'string', default: '"log-out"', description: 'IconProvider key for avatar logout.', control: 'icon' },
-    { name: 'className', type: 'string', default: '"btn-primary"', description: 'Button CSS classes.', control: 'text' },
+    { name: 'className', type: 'string', default: 'primary button classes', description: 'Button CSS classes.', control: 'text' },
     { name: 'avatarClass', type: 'string', description: 'Avatar CSS classes.', control: 'text' },
     { name: 'disabled', type: 'boolean', default: 'true', description: 'Keep enabled only when you want to start a real OAuth flow.', control: 'boolean' },
     { name: 'scopes', type: 'string[]', description: 'Requested OAuth scopes.', control: 'json' },
@@ -39,7 +41,7 @@ const PLAYGROUND: PlaygroundConfig = {
         label: 'Connect Dropbox',
         icon: 'link',
         iconLogout: 'log-out',
-        className: 'btn-primary',
+        className: primaryButton,
         avatarClass: '',
         disabled: true,
         scopes: ['files.metadata.read', 'files.content.read'],
@@ -93,7 +95,7 @@ export default function AuthPage() {
                         options={{
                             icon: 'link',
                             label: 'Connect Dropbox',
-                            className: 'btn-primary',
+                            className: primaryButton,
                             disabled: true,
                         }}
                     />

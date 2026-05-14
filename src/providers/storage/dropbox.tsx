@@ -5,7 +5,7 @@ import {AuthButton, getAccessToken, useAccessToken} from "../../auth";
 import type {IButton} from "../../components/ui/Buttons";
 import pathInfo from "../../libs/path";
 import {Config, DropboxConfig, onConfigChange} from "../../Config";
-import {useTheme} from "../../Theme";
+import Icon from "../../components/ui/Icon";
 
 const DROPBOX_CHECK_DELAY = 5000;
 const DROPBPX_URL = "https://www.dropbox.com/home";
@@ -454,15 +454,13 @@ export const useDropBoxConnect = (renew = false): boolean => {
 }
 
 export const DropBoxConnectButton = (options: IButton = {}): React.ReactElement => {
-    const theme = useTheme("dropbox");
-
     if (!config) {
         return (
             <div
                 title={`DropBox: configurazione mancante. Recupera il "Client ID" accedendo a https://www.dropbox.com/developers, vai su "App Console", seleziona un'app esistente o chiedi il Client ID a chi ha configurato il sistema.`}
                 className="text-danger flex items-center gap-2"
             >
-                <i className={theme.getIcon("warning")} />
+                <Icon name="warning" />
                 <span>Dropbox non configurato</span>
             </div>
         );

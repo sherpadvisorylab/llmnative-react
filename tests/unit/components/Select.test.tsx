@@ -9,6 +9,7 @@ vi.mock('../../../src/Config', () => ({
 }));
 vi.mock('../../../src/providers/firebase-init', () => ({ default: vi.fn(), getSafeAuth: vi.fn() }));
 vi.mock('../../../src/Theme', () => ({
+    useMotionRegistry: vi.fn(() => ({})),
     useTheme: vi.fn(() => ({
         Card:         { wrapClass: '', className: '', headerClass: '', bodyClass: '', footerClass: '', showLoader: false, showArrow: false },
         Loader:       { wrapClass: '', className: '', icon: '', title: '', description: '' },

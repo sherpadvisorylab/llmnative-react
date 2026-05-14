@@ -1,96 +1,77 @@
 import React, { useEffect, useRef } from 'react';
 
-import { Wrapper } from './GridSystem';
 import { UIProps } from '../..';
-import {useTheme} from "../../Theme";
-import {copyToClipboard} from "../../libs/utils";
-import Prism from 'prismjs';
+import { useTheme } from '../../Theme';
 import { cn } from '../../libs/cn';
+import { copyToClipboard } from '../../libs/utils';
+import Prism from 'prismjs';
+import Icon from './Icon';
+import { Wrapper } from './GridSystem';
 
-const LANGUAGES: Record<string, () => Promise<any>> = {
-  // @ts-ignore
+const LANGUAGES: Record<string, () => Promise<unknown>> = {
   markup: () => import('prismjs/components/prism-markup'),
-  // @ts-ignore
   html: () => import('prismjs/components/prism-markup'),
-  // @ts-ignore
   xml: () => import('prismjs/components/prism-markup'),
-  // @ts-ignore
   svg: () => import('prismjs/components/prism-markup'),
-  // @ts-ignore
   mathml: () => import('prismjs/components/prism-markup'),
-  // @ts-ignore
   css: () => import('prismjs/components/prism-css'),
-  // @ts-ignore
   clike: () => import('prismjs/components/prism-clike'),
-  // @ts-ignore
   javascript: () => import('prismjs/components/prism-javascript'),
-  // @ts-ignore
   js: () => import('prismjs/components/prism-javascript'),
-  // @ts-ignore
   jsx: () => import('prismjs/components/prism-jsx'),
-  // @ts-ignore
   typescript: () => import('prismjs/components/prism-typescript'),
-  // @ts-ignore
   tsx: () => import('prismjs/components/prism-tsx'),
-  // @ts-ignore
   json: () => import('prismjs/components/prism-json'),
-  // @ts-ignore
   bash: () => import('prismjs/components/prism-bash'),
-  // @ts-ignore
   shell: () => import('prismjs/components/prism-bash'),
-  // @ts-ignore
   python: () => import('prismjs/components/prism-python'),
-  // @ts-ignore
   java: () => import('prismjs/components/prism-java'),
-  // @ts-ignore
   c: () => import('prismjs/components/prism-c'),
-  // @ts-ignore
   cpp: () => import('prismjs/components/prism-cpp'),
-  // @ts-ignore
   csharp: () => import('prismjs/components/prism-csharp'),
-  // @ts-ignore
   go: () => import('prismjs/components/prism-go'),
-  // @ts-ignore
   sql: () => import('prismjs/components/prism-sql'),
-  // @ts-ignore
   php: () => import('prismjs/components/prism-php'),
-  // @ts-ignore
   ruby: () => import('prismjs/components/prism-ruby'),
-  // @ts-ignore
   yaml: () => import('prismjs/components/prism-yaml'),
-  // @ts-ignore
   ini: () => import('prismjs/components/prism-ini'),
-  // @ts-ignore
   docker: () => import('prismjs/components/prism-docker'),
-  // @ts-ignore
   powershell: () => import('prismjs/components/prism-powershell'),
-  // @ts-ignore
   git: () => import('prismjs/components/prism-git'),
-  // @ts-ignore
   graphql: () => import('prismjs/components/prism-graphql'),
 };
 
+const LANGUAGE_DEPENDENCIES: Record<string, string[]> = {
+  html: ['markup'],
+  xml: ['markup'],
+  svg: ['markup'],
+  mathml: ['markup'],
+  javascript: ['clike'],
+  js: ['clike', 'javascript'],
+  jsx: ['markup', 'clike', 'javascript'],
+  typescript: ['clike', 'javascript'],
+  tsx: ['markup', 'clike', 'javascript', 'jsx', 'typescript'],
+  c: ['clike'],
+  cpp: ['c'],
+  csharp: ['clike'],
+  java: ['clike'],
+  php: ['markup'],
+};
+
 const THEMES = {
-  // @ts-ignore
-  prism: () => import('prismjs/themes/prism.css'),
-  // @ts-ignore
-  dark: () => import('prismjs/themes/prism-dark.css'),
-  // @ts-ignore
-  coy: () => import('prismjs/themes/prism-coy.css'),
-  // @ts-ignore
-  funky: () => import('prismjs/themes/prism-funky.css'),
-  // @ts-ignore
-  okaidia: () => import('prismjs/themes/prism-okaidia.css'),
-  // @ts-ignore
-  solarizedlight: () => import('prismjs/themes/prism-solarizedlight.css'),
-  // @ts-ignore
-  tomorrow: () => import('prismjs/themes/prism-tomorrow.css'),
-  // @ts-ignore
-  twilight: () => import('prismjs/themes/prism-twilight.css')
- };
+  prism: 'rf-code-theme-prism',
+  dark: 'rf-code-theme-dark',
+  coy: 'rf-code-theme-coy',
+  funky: 'rf-code-theme-funky',
+  okaidia: 'rf-code-theme-okaidia',
+  solarizedlight: 'rf-code-theme-solarizedlight',
+  tomorrow: 'rf-code-theme-tomorrow',
+  twilight: 'rf-code-theme-twilight',
+};
 
 type PrismLanguage = keyof typeof LANGUAGES;
 type PrismTheme = keyof typeof THEMES;
+
 export type PrismBackground =
   | 'primary'
   | 'secondary'
@@ -122,10 +103,27 @@ const BACKGROUND_CLASS: Record<PrismBackground, string | undefined> = {
 
 interface CodeProps extends UIProps {
   children: string;
-  language: PrismLanguage;
+  language?: PrismLanguage;
   showCopy?: boolean;
   theme?: PrismTheme;
   background?: PrismBackground;
+}
+
+function isRecordKey<T extends Record<string, unknown>>(record: T, value: unknown): value is keyof T {
+  return typeof value === 'string' && value in record;
+}
+
+async function loadPrismLanguage(language: PrismLanguage, loaded = new Set<string>()) {
+  if (loaded.has(language)) return;
+
+  for (const dependency of LANGUAGE_DEPENDENCIES[language] ?? []) {
+    if (isRecordKey(LANGUAGES, dependency)) {
+      await loadPrismLanguage(dependency as PrismLanguage, loaded);
+    }
+  }
+
+  await LANGUAGES[language]?.();
+  loaded.add(language);
 }
 
 const Code = ({
@@ -136,72 +134,73 @@ const Code = ({
   wrapClass,
   className,
   showCopy = true,
-  theme = "tomorrow",
-  background = "transparent",
+  theme = 'tomorrow',
+  background = 'default',
 }: CodeProps) => {
-  const ref = useRef<HTMLPreElement>(null);
-  const Theme = useTheme("code");
+  const codeRef = useRef<HTMLElement>(null);
+  const themeConfig = useTheme('code');
+  const codeText = typeof children === 'string' ? children : String(children ?? '');
+  const resolvedLanguage = isRecordKey(LANGUAGES, language) ? language : 'tsx';
+  const resolvedTheme = isRecordKey(THEMES, theme) ? theme : 'tomorrow';
+  const resolvedBackground = isRecordKey(BACKGROUND_CLASS, background) ? background : 'transparent';
 
   useEffect(() => {
+    let cancelled = false;
+
     const loadAndHighlight = async () => {
-      // 1. Carica il linguaggio
-      const loadLanguage = LANGUAGES[language];
-      if (loadLanguage) {
-        try {
-          await loadLanguage();
-        } catch (err) {
-          console.warn(`Errore nel caricare il linguaggio Prism "${language}"`, err);
-        }
+      try {
+        await loadPrismLanguage(resolvedLanguage);
+      } catch (err) {
+        console.warn(`Errore nel caricare il linguaggio Prism "${resolvedLanguage}"`, err);
       }
 
-      // 2. Carica il tema Prism
-      const loadTheme = THEMES[theme];
-      if (loadTheme) {
+      if (!cancelled && codeRef.current) {
         try {
-          await loadTheme();
+          Prism.highlightElement(codeRef.current);
         } catch (err) {
-          console.warn(`Errore nel caricare il tema Prism "${theme}"`, err);
+          console.warn(`Errore nell'evidenziare il blocco Prism "${resolvedLanguage}"`, err);
         }
-      }
-
-      // 4. Esegui l’highlighting
-      if (ref.current) {
-        Prism.highlightAllUnder(ref.current);
       }
     };
 
     loadAndHighlight();
-  }, [children, language, theme]);
-  
-  const backgroundClass = BACKGROUND_CLASS[background];
+    return () => {
+      cancelled = true;
+    };
+  }, [codeText, resolvedLanguage]);
 
   return (
-    <Wrapper className={wrapClass || Theme.Code.wrapClass}>
-      <pre
-        ref={ref}
-        className={cn(
-          "relative overflow-auto rounded-md border border-border p-4 text-sm",
-          backgroundClass,
-          className || Theme.Code.className
-        )}
-      >
-        {pre}
-        {showCopy && <button
-          onClick={() => copyToClipboard(children)}
-          className="absolute right-2 top-2 inline-flex items-center justify-center rounded-md bg-secondary px-2 py-1 text-xs font-medium text-secondary-foreground transition-colors hover:bg-secondary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          title="Copy code"
-          aria-label="Copy code"
+    <Wrapper className={wrapClass || themeConfig.Code.wrapClass}>
+      <div className={cn('flex w-full items-stretch gap-2', (pre || post) && 'overflow-x-auto')}>
+        {pre && <div className="flex shrink-0 items-center text-sm text-muted-foreground">{pre}</div>}
+        <pre
+          data-rf-code-theme={resolvedTheme}
+          data-rf-code-background={resolvedBackground}
+          className={cn(
+            'relative min-w-0 flex-1 overflow-auto rounded-md border border-border p-4 text-sm',
+            THEMES[resolvedTheme],
+            BACKGROUND_CLASS[resolvedBackground],
+            className || themeConfig.Code.className
+          )}
         >
-          <i className={Theme.getIcon("clipboard")} />
-        </button>}
-        <code className={`language-${language}`}>
-          {children}
-        </code>
-        {post}
-      </pre>
+          {showCopy && (
+            <button
+              onClick={() => copyToClipboard(codeText)}
+              className="absolute right-2 top-2 inline-flex items-center justify-center rounded-md bg-secondary px-2 py-1 text-xs font-medium text-secondary-foreground transition-colors hover:bg-secondary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              title="Copy code"
+              aria-label="Copy code"
+            >
+              <Icon name="clipboard" size={14} />
+            </button>
+          )}
+          <code ref={codeRef} className={`language-${resolvedLanguage}`}>
+            {codeText}
+          </code>
+        </pre>
+        {post && <div className="flex shrink-0 items-center text-sm text-muted-foreground">{post}</div>}
+      </div>
     </Wrapper>
   );
 };
-
 
 export default Code;

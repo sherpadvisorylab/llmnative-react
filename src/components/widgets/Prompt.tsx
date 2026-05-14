@@ -145,7 +145,7 @@ const PromptLive = ({
             {pre}
             <div className={prompt ? promptClass : "relative"}>
                 <div className={promptActionClass}>
-                    <ActionButton className={value?.prompt?.value ? "btn-outline-theme border-0" : "btn-outline-warning border-0"} 
+                    <ActionButton className={value?.prompt?.value ? "border-0 text-primary hover:bg-primary/10" : "border-0 text-warning hover:bg-warning/10"} 
                         icon={prompt ? "terminal-fill" : "terminal"} title={prompt ? "Mode: Prompt Editor" : "Mode: Run Prompt"} 
                         onClick={() => {
                         setPrompt(!prompt);

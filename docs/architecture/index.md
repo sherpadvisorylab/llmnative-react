@@ -1,4 +1,4 @@
----
+﻿---
 title: Folder structure
 group: Architecture
 order: 10
@@ -12,79 +12,79 @@ react-firestrap is organized around a strict **dependency direction**: applicati
 
 ```
 pages / app code
-  └── widgets  (Form, Grid)
-        └── ui/fields  (Input, Select, Upload)
-              └── ui primitives  (Card, Modal, Badge, Button)
-                    └── libs  (pure utilities, no React)
+  â””â”€â”€ widgets  (Form, Grid)
+        â””â”€â”€ ui/fields  (Input, Select, Upload)
+              â””â”€â”€ ui primitives  (Card, Modal, Badge, Button)
+                    â””â”€â”€ libs  (pure utilities, no React)
 providers
-  └── concrete adapters behind stable interfaces
+  â””â”€â”€ concrete adapters behind stable interfaces
 ```
 
 ---
 
-## Framework source — `src/`
+## Framework source â€” `src/`
 
 The library itself. Published to npm as `react-firestrap`.
 
 ```text
 src/
-  App.tsx             ← Root component: wires Router, providers, theme, icons
-  Config.tsx          ← RuntimeProvider: tenant config, Google, Firebase, Dropbox, AI
-  Theme.tsx           ← ThemeProvider + useThemeController hook
-  Global.tsx          ← localStorage-backed global state
-  Head.tsx            ← HeadProvider for browser metadata (title, og:*, JSON-LD)
+  App.tsx             â† Root component: wires Router, providers, theme, icons
+  Config.tsx          â† RuntimeProvider: tenant config, Google, Firebase, Dropbox, AI
+  Theme.tsx           â† ThemeProvider + useThemeController hook
+  Global.tsx          â† localStorage-backed global state
+  Head.tsx            â† HeadProvider for browser metadata (title, og:*, JSON-LD)
 
   components/
-    ui/               ← Presentational primitives (no data fetching)
-    │   Alert, Badge, Button, Card, Icon, Image, Loader, Modal,
-    │   Pagination, Table, Gallery, Tab, Repeat, GridSystem
-    │
-    ui/fields/        ← Controlled form fields
-    │   Input, Select, Upload, UploadCSV, Prompt, AssistantAI, ImageUrl
-    │
-    blocks/           ← Layout compositions (use hooks, read from context)
-    │   Menu, Brand, Breadcrumbs, Notifications, Search, Carousel, Dropdown
-    │
-    widgets/          ← Stateful smart components (data-connected)
+    ui/               â† Presentational primitives (no data fetching)
+    â”‚   Alert, Badge, Button, Card, Icon, Image, Loader, Modal,
+    â”‚   Pagination, Table, Gallery, Tab, Repeat, GridSystem
+    â”‚
+    ui/fields/        â† Controlled form fields
+    â”‚   Input, Select, Upload, UploadCSV, Prompt, AssistantAI, ImageUrl
+    â”‚
+    blocks/           â† Layout compositions (use hooks, read from context)
+    â”‚   Menu, Brand, Breadcrumbs, Notifications, Search, Carousel, Dropdown
+    â”‚
+    widgets/          â† Stateful smart components (data-connected)
         Form, Grid, MarkdownReader, ImageEditor
 
   providers/
-    data/             ← DataProviderAdapter + FirebaseDataProvider, SupabaseDataProvider, MockDataProvider
-    storage/          ← StorageProviderAdapter + FirebaseStorageProvider, SupabaseStorageProvider
-    auth/             ← AuthProviderAdapter + GoogleAuthProvider
-    email/            ← EmailProviderAdapter + GmailEmailProvider
-    icon/             ← IconProviderAdapter + LucideIconProvider, PhosphorIconProvider
-    ai/               ← AI multi-provider (OpenAI, Gemini, Anthropic, DeepSeek, Mistral)
-    seo/              ← Google Ads keywords, Trends
-    scrape/           ← SerpAPI scraping
+    data/             â† DataProviderAdapter + FirebaseDataProvider, SupabaseDataProvider, MockDataProvider
+    storage/          â† StorageProviderAdapter + FirebaseStorageProvider, SupabaseStorageProvider
+    auth/             â† AuthProviderAdapter + GoogleAuthProvider
+    email/            â† EmailProviderAdapter + GmailEmailProvider
+    icon/             â† IconProviderAdapter + LucideIconProvider, PhosphorIconProvider
+    ai/               â† AI multi-provider (OpenAI, Gemini, Anthropic, DeepSeek, Mistral)
+    seo/              â† Google Ads keywords, Trends
+    scrape/           â† SerpAPI scraping
 
-  libs/               ← Pure utilities (no React, no providers)
-  │   converter, path, sanitizer, cache, fetch, …
-  │
-  types/              ← Shared TypeScript interfaces and types
-  conf/               ← Static configuration (prompt templates)
+  libs/               â† Pure utilities (no React, no providers)
+  â”‚   converter, path, sanitizer, cache, fetch, â€¦
+  â”‚
+  types/              â† Shared TypeScript interfaces and types
+  conf/               â† Static configuration (prompt templates)
 ```
 
 ### Dependency rules
 
 - `libs/` must not import React or any component.
 - `components/ui` must not import from `widgets` or `providers`.
-- `components/` must not import concrete provider implementations (Firebase SDK, Supabase SDK, etc.) directly — use provider interfaces.
+- `components/` must not import concrete provider implementations (Firebase SDK, Supabase SDK, etc.) directly â€” use provider interfaces.
 - New persistence behavior belongs in `providers/`; shared public types belong in `types/`.
 
 ---
 
-## Build output — `dist/`
+## Build output â€” `dist/`
 
 Vite builds the library in two module formats plus a single CSS bundle:
 
 ```text
 dist/
-  index.mjs       ← ESM build (tree-shakeable, recommended)
-  index.js        ← CJS build (for CommonJS consumers)
-  index.css       ← All component styles (Bootstrap compatibility layer + CSS tokens)
+  index.mjs       â† ESM build (tree-shakeable, recommended)
+  index.js        â† CJS build (for CommonJS consumers)
+  index.css       â† All component styles (Bootstrap compatibility layer + CSS tokens)
   types/
-    index.d.ts    ← TypeScript declarations
+    index.d.ts    â† TypeScript declarations
 ```
 
 Consumers import the stylesheet once at the app entry:
@@ -95,40 +95,40 @@ import 'react-firestrap/dist/index.css';
 
 ---
 
-## Scaffolded consumer app — `src/`
+## Scaffolded consumer app â€” `src/`
 
-When you run `npx react-firestrap create`, the scaffold generates this structure. Every folder has a specific role — keeping them separate makes the codebase easy to navigate even as it grows.
+When you run `npx react-firestrap create`, the scaffold generates this structure. Every folder has a specific role â€” keeping them separate makes the codebase easy to navigate even as it grows.
 
 ```text
 src/
-  index.tsx             ← Vite entry: mounts <App>, imports globals.css
+  index.tsx             â† Vite entry: mounts <App>, imports globals.css
 
   conf/
-    app.ts              ← Central wiring: exports providers, iconProvider, themeProvider
-    menu.ts             ← Navigation tree: all routes + sidebar config
-    theme.ts            ← ThemePresetConfig + ThemeConfig (edit freely, never overwritten)
+    app.ts              â† Central wiring: exports providers, iconProvider, themeProvider
+    menu.ts             â† Navigation tree: all routes + sidebar config
+    theme.ts            â† ThemePresetConfig + ThemeConfig (edit freely, never overwritten)
 
   layouts/
-    AppLayout.tsx       ← App shell: sidebar + topbar + <Outlet />
+    AppLayout.tsx       â† App shell: sidebar + topbar + <Outlet />
                            Must render <Outlet /> from react-router-dom
 
-  pages/                ← One folder per route, one default export per file
-  │   home/
-  │     HomePage.tsx
-  │   users/
-  │     UsersPage.tsx   ← e.g. route /users → file pages/Users.tsx (see convention below)
-  │
-  sections/             ← Reusable page sections shared across multiple pages
-  │                        e.g. a StatsRow used on both Dashboard and Reports
-  │
-  components/           ← App-specific UI components not in sections
-  │                        e.g. a custom StatusBadge or UserAvatar
-  │
+  pages/                â† One folder per route, one default export per file
+  â”‚   home/
+  â”‚     HomePage.tsx
+  â”‚   users/
+  â”‚     UsersPage.tsx   â† e.g. route /users â†’ file pages/Users.tsx (see convention below)
+  â”‚
+  sections/             â† Reusable page sections shared across multiple pages
+  â”‚                        e.g. a StatsRow used on both Dashboard and Reports
+  â”‚
+  components/           â† App-specific UI components not in sections
+  â”‚                        e.g. a custom StatusBadge or UserAvatar
+  â”‚
   data/
-    mockData.ts         ← Static fixture data for MockDataProvider (prototyping / tests)
+    mockData.ts         â† Static fixture data for MockDataProvider (prototyping / tests)
 
   styles/
-    globals.css         ← Tailwind v4 entry + --rf-* → color utility bridge (required)
+    globals.css         â† Tailwind v4 entry + --rf-* â†’ color utility bridge (required)
 ```
 
 ### Page file naming convention
@@ -145,19 +145,19 @@ When a `MenuEntry` has no explicit `page:` import, the framework derives the pag
 | `/settings/profile` | `pages/settings/Profile.tsx` |
 | `/settings/user-profile` | `pages/settings/UserProfile.tsx` |
 
-The rule: **only the last path segment is PascalCased** — the folder structure is preserved. Hyphens and underscores in the last segment become word boundaries (`user-settings` → `UserSettings`). This convention is optional — provide an explicit `page:` import on any `MenuEntry` to bypass it entirely.
+The rule: **only the last path segment is PascalCased** â€” the folder structure is preserved. Hyphens and underscores in the last segment become word boundaries (`user-settings` â†’ `UserSettings`). This convention is optional â€” provide an explicit `page:` import on any `MenuEntry` to bypass it entirely.
 
-### `conf/` — the wiring layer
+### `conf/` â€” the wiring layer
 
-All app-level configuration lives here. Application pages and components never import providers directly — they go through hooks (`useDataProvider`, `useThemeController`, etc.).
+All app-level configuration lives here. Application pages and components never import providers directly â€” they go through hooks (`useDataProvider`, `useThemeController`, etc.).
 
 | File | Role |
 |------|------|
 | `conf/app.ts` | Assembles `providers`, `iconProvider`, `themeProvider` from env vars and sub-configs |
-| `conf/menu.ts` | Defines `MenuConfig` — every route and sidebar entry |
-| `conf/theme.ts` | `ThemePresetConfig` + `ThemeConfig` — palette, radius, font, component class overrides |
+| `conf/menu.ts` | Defines `MenuConfig` â€” every route and sidebar entry |
+| `themes/*.ts` | Self-contained `ThemeDefinition` modules: preset tokens, motion effects and full component theme |
 
-### `styles/globals.css` — why it is required
+### `styles/globals.css` â€” why it is required
 
 `react-firestrap/dist/index.css` injects runtime CSS custom properties (`--rf-primary`, `--rf-background`, etc.) but Tailwind v4 does not know about them at build time. `globals.css` bridges the two systems via `@theme inline`, so utilities like `bg-primary` and `text-success` reflect the active theme at runtime.
 
@@ -168,7 +168,7 @@ All app-level configuration lives here. Application pages and components never i
 @theme inline {
   --color-primary:     hsl(var(--rf-primary));
   --color-background:  hsl(var(--rf-background));
-  /* … all 25 tokens */
+  /* â€¦ all 25 tokens */
 }
 
 body {
@@ -185,11 +185,11 @@ Without this file, `bg-primary` compiles to a static value and ignores theme cha
 ## Repository layout (monorepo)
 
 ```text
-react-firestrap/           ← library root
-  src/                     ← framework source (published to npm)
-  docs/                    ← markdown docs (AI-first, consumed by the showcase)
+react-firestrap/           â† library root
+  src/                     â† framework source (published to npm)
+  docs/                    â† markdown docs (AI-first, consumed by the showcase)
   clients/
-    showcase/              ← Vite app that documents and demos the library
-  bin/                     ← CLI scripts (npx react-firestrap create)
-  dist/                    ← build output (gitignored)
+    showcase/              â† Vite app that documents and demos the library
+  bin/                     â† CLI scripts (npx react-firestrap create)
+  dist/                    â† build output (gitignored)
 ```

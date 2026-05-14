@@ -3,14 +3,30 @@ import type { IconProviderAdapter, IconComponentProps } from './IconProvider';
 
 // Names that diverge from kebab→PascalCase convention in Lucide
 const ALIASES: Record<string, string> = {
-    'close':     'X',
-    'warning':   'TriangleAlert',
-    'edit':      'Pencil',
-    'add':       'Plus',
-    'dashboard': 'LayoutDashboard',
-    'trash':     'Trash2',
-    'file':      'FileText',
-    'github':    'GitBranch',
+    'add':                    'Plus',
+    'arrow-arc-left':         'Undo2',
+    'arrow-arc-right':        'Redo2',
+    'arrow-line-down':        'FlipVertical',
+    'arrow-line-right':       'FlipHorizontal',
+    'camera-rotate':          'RotateCw',
+    'caret-down':             'ChevronDown',
+    'caret-right':            'ChevronRight',
+    'close':                  'X',
+    'dashboard':              'LayoutDashboard',
+    'edit':                   'Pencil',
+    'file':                   'FileText',
+    'floppy-disk':            'Save',
+    'fullscreen':             'Maximize',
+    'fullscreen-exit':        'Minimize',
+    'github':                 'GitBranch',
+    'house-door':             'Home',
+    'link-break':             'Unlink',
+    'magnifying-glass-minus': 'ZoomOut',
+    'magnifying-glass-plus':  'ZoomIn',
+    'rectangle':              'Square',
+    'text-t':                 'Type',
+    'trash':                  'Trash2',
+    'warning':                'TriangleAlert',
 };
 
 function toPascalCase(name: string): string {

@@ -40,6 +40,7 @@
 | [CR-027](#cr-027--motion-system-e-interazioni-animate) | Motion system e interazioni animate | Media | CR-017, CR-022 | 🔄 |
 | [CR-028](#cr-028--stato-configurazione-provider) | Stato configurazione provider | Alta | CR-002, CR-023, CR-026 | ✅ |
 | [CR-029](#cr-029--internationalization-i18n-del-framework) | Internationalization i18n del framework | Alta | CR-017, CR-019 | ⬜ |
+| [CR-030](#cr-030--self-contained-typed-themes) | Self-contained typed themes | Alta | CR-017, CR-027 | ✅ |
 
 ---
 
@@ -100,32 +101,43 @@ L'obiettivo è introdurre un **motion system** nativo: leggero di default, acces
 
 **Incluso:**
 - Aggiungere un layer `motion` nel theme system.
-- Definire token/preset per durata, easing, distanza, scale e intensità.
+- Definire effetti semantici per durata, easing, transform, opacity e intensità.
 - Aggiungere helper CSS/classi o utility interne per stati comuni: `enter`, `exit`, `hover`, `press`, `focus`, `loading`.
 - Animare apertura/chiusura di `Modal`, `Dropdown`, `Accordion`, `Tabs`, `Notifications`, menu contestuali e pannelli laterali dove presenti.
 - Aggiungere feedback di press/click sui bottoni: micro scale, highlight o ripple leggero.
 - Aggiungere animazioni di focus e hover coerenti per elementi interattivi.
 - Aggiungere skeleton/loading transitions dove già esistono loading states.
-- Esporre configurazione globale:
+- Esporre configurazione nel tema:
 
 ```tsx
-<App
-  themeProvider={{
-    motion: {
-      preset: 'standard',
-      reducedMotion: 'respect-user',
-      intensity: 'medium',
+export const motion = {
+  fade: {
+    from: { opacity: 0 },
+    to: { opacity: 1 },
+    transition: {
+      duration: 160,
+      easing: 'cubic-bezier(0.2, 0, 0, 1)',
+      properties: ['opacity'],
     },
-  }}
-/>
+    reducedMotion: 'respect-user',
+  },
+};
+
+export const theme = {
+  Modal: {
+    motion: {
+      center: 'fade',
+    },
+  },
+};
 ```
 
 - Consentire override locale sui componenti:
 
 ```tsx
-<Modal motion={{ preset: 'subtle' }} />
-<Accordion motion={{ duration: 180, easing: 'ease-out' }} />
-<Button motion={{ preset: 'standard' }} />
+<Modal motion="slideFromRight" />
+<Accordion motion="fadeUp" />
+<Button motion={false} />
 ```
 
 ### Preset target
@@ -383,6 +395,43 @@ Adapter opzionale:
 - [ ] Aggiungere docs i18n.
 - [ ] Aggiungere test per fallback, override e interpolazione.
 - [ ] `npm run test` e `npm run build` passano.
+
+---
+
+## CR-030 — Self-contained typed themes
+
+**Stato:** ✅ done  
+**Branch:** `modernize`  
+**Priorità:** Alta  
+**Dipende da:** CR-017, CR-027  
+
+### Motivazione
+
+Il theme system aveva due fonti di verità: il tema componenti completo dentro `src/Theme.tsx` e i preset visuali dentro `themes/*.ts`. Questo rendeva difficile capire dove personalizzare un tema e lasciava una shape troppo generica con `[key: string]: any`.
+
+### Decisione
+
+Ogni tema vive in modo autonomo. I file `themes/default.ts`, `themes/flat.ts` e `themes/cyber.ts` esportano tutti:
+
+```ts
+export const preset: ThemePresetConfig = { ... };
+export const theme: Theme = { ... };
+export default { preset, theme };
+```
+
+Non esiste merge implicito tra temi built-in. L'unica patch opzionale dell'app è `themeOverride`.
+
+### Checklist
+
+- [x] Spostare il tema completo fuori da `src/Theme.tsx`.
+- [x] Rendere `themes/default.ts`, `themes/flat.ts`, `themes/cyber.ts` self-contained.
+- [x] Introdurre `ThemeDefinition`.
+- [x] Sostituire `presets` con `themes`.
+- [x] Sostituire `theme` app-level con `themeOverride`.
+- [x] Rafforzare `Theme` / `ThemeConfig` con shape parlante.
+- [x] Aggiornare showcase.
+- [x] Aggiornare docs.
+- [x] Test e build passano.
 
 ---
 

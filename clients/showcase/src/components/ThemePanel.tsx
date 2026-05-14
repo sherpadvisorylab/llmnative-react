@@ -118,12 +118,10 @@ export default function ThemePanel({ open, onClose }: ThemePanelProps) {
     iconProvider="${iconLibraryId}"
     themeProvider={{
         defaultPreset: '${preset}',
-        mode: '${resolvedMode}',
-        primary: '${primary}',
-        radius: ${Number(radius.toFixed(2))},
+        themeOverride: {},
     }}
 />`;
-    }, [iconLibraryId, preset, primary, radius, resolvedMode]);
+    }, [iconLibraryId, preset]);
 
     const copyConfiguration = () => {
         navigator.clipboard.writeText(appConfiguration.trim());
@@ -136,8 +134,8 @@ export default function ThemePanel({ open, onClose }: ThemePanelProps) {
     const header = (
         <div className="flex min-w-0 items-center gap-3">
             <div className="min-w-0">
-                <h3 className="offcanvas-title truncate">Customize</h3>
-                <div className="offcanvas-sub-title truncate">Live CSS variables, no reload.</div>
+                <h3 className="truncate text-lg font-semibold leading-none">Customize</h3>
+                <div className="mt-1 truncate text-sm text-muted-foreground">Live CSS variables, no reload.</div>
             </div>
             <button
                 type="button"
@@ -157,7 +155,6 @@ export default function ThemePanel({ open, onClose }: ThemePanelProps) {
             header={header}
             onClose={onClose}
             buttonFullscreen={false}
-            footerClose={false}
             headerClass="h-14 !py-0 px-4"
         >
             <div className="space-y-6">

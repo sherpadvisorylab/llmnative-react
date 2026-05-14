@@ -368,7 +368,7 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
         
 
         if (!record) {
-            return <p className={"p-4"}><i className={"spinner-border spinner-border-sm"}></i> Caricamento in corso...</p>;
+            return <p className={"p-4"}><span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />Caricamento in corso...</p>;
         }
 
         return <FormData {...rest} defaultValues={record} dataStoragePath={dataStoragePath} ref={ref} />;

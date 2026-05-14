@@ -60,7 +60,14 @@ root.render(
             },
         }}
         iconProvider="lucide"
-        themeProvider={() => import('./conf/theme')}
+        themeProvider={{
+            defaultPreset: 'default',
+            themeOverride: {
+                Pagination: {
+                    sticky: false,
+                },
+            },
+        }}
         aiConfig={{
             geminiApiKey:    env.VITE_GEMINI_API_KEY,
             openaiApiKey:    env.VITE_OPENAI_API_KEY,

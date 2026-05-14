@@ -1,5 +1,8 @@
-const preset = {
-    mode: 'light' as const,
+import type { Theme, ThemeDefinition, ThemePresetConfig } from '../src/Theme';
+import type { MotionRegistry } from '../src/motion';
+
+export const preset: ThemePresetConfig = {
+    mode: 'light',
     radius: 0.5,
     colors: {
         background:           '0 0% 100%',
@@ -57,4 +60,335 @@ const preset = {
     },
 };
 
-export default preset;
+export const motion: MotionRegistry = {
+    none: {
+        from: {},
+        to: {},
+        transition: { duration: 0, easing: 'linear', properties: ['opacity', 'transform', 'box-shadow'] },
+        reducedMotion: 'always',
+    },
+    fade: {
+        from: { opacity: 0 },
+        to: { opacity: 1 },
+        transition: { duration: 160, easing: 'cubic-bezier(0.2, 0, 0, 1)', properties: ['opacity'] },
+        reducedMotion: 'respect-user',
+    },
+    fadeUp: {
+        from: { opacity: 0, transform: 'translateY(8px)' },
+        to: { opacity: 1, transform: 'translateY(0)' },
+        transition: { duration: 160, easing: 'cubic-bezier(0.2, 0, 0, 1)', properties: ['opacity', 'transform'] },
+        reducedMotion: 'respect-user',
+    },
+    fadeDown: {
+        from: { opacity: 0, transform: 'translateY(-8px)' },
+        to: { opacity: 1, transform: 'translateY(0)' },
+        transition: { duration: 140, easing: 'cubic-bezier(0.2, 0, 0, 1)', properties: ['opacity', 'transform', 'visibility'] },
+        reducedMotion: 'respect-user',
+    },
+    slideFromRight: {
+        from: { opacity: 0, transform: 'translateX(100%)' },
+        to: { opacity: 1, transform: 'translateX(0)' },
+        transition: { duration: 220, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', properties: ['opacity', 'transform'] },
+        reducedMotion: 'respect-user',
+    },
+    slideFromLeft: {
+        from: { opacity: 0, transform: 'translateX(-100%)' },
+        to: { opacity: 1, transform: 'translateX(0)' },
+        transition: { duration: 220, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', properties: ['opacity', 'transform'] },
+        reducedMotion: 'respect-user',
+    },
+    slideFromTop: {
+        from: { opacity: 0, transform: 'translateY(-100%)' },
+        to: { opacity: 1, transform: 'translateY(0)' },
+        transition: { duration: 220, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', properties: ['opacity', 'transform'] },
+        reducedMotion: 'respect-user',
+    },
+    slideFromBottom: {
+        from: { opacity: 0, transform: 'translateY(100%)' },
+        to: { opacity: 1, transform: 'translateY(0)' },
+        transition: { duration: 220, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', properties: ['opacity', 'transform'] },
+        reducedMotion: 'respect-user',
+    },
+    press: {
+        from: {},
+        to: { transform: 'scale(0.98)' },
+        transition: { duration: 100, easing: 'cubic-bezier(0.2, 0, 0, 1)', properties: ['transform', 'box-shadow'] },
+        reducedMotion: 'respect-user',
+    },
+};
+
+export const theme: Theme = {
+    Grid: {
+        Card: {
+            wrapClass: '',
+            className: '',
+            headerClass: 'flex justify-between',
+            bodyClass: 'p-0',
+            footerClass: '',
+            showArrow: false,
+            showLoader: false,
+        },
+        Table: {
+            wrapClass: '',
+            className: 'table-striped',
+            headerClass: '',
+            bodyClass: '',
+            footerClass: '',
+            scrollClass: 'fixed-table-container',
+            selectedClass: 'table-info',
+        },
+        Gallery: {
+            wrapClass: '',
+            className: '',
+            scrollClass: '',
+            headerClass: '',
+            bodyClass: '',
+            footerClass: '',
+            selectedClass: 'bg-primary/20',
+            gutterSize: 1,
+            rowCols: 4,
+        },
+        Modal: {
+            mode: 'form',
+            size: 'lg',
+            position: 'center',
+            wrapClass: '',
+            className: '',
+            headerClass: '',
+            titleClass: '',
+            subTitleClass: 'pr-1 text-muted-foreground',
+            bodyClass: '',
+            footerClass: '',
+            iconExpand: 'fullscreen',
+            iconCollapse: 'fullscreen-exit',
+            motion: {
+                center: 'fade',
+                top: 'slideFromTop',
+                left: 'slideFromLeft',
+                right: 'slideFromRight',
+                bottom: 'slideFromBottom',
+                backdrop: 'fade',
+            },
+        },
+        i18n: {
+            headerAdd: 'Aggiungi',
+            headerEdit: 'Modifica',
+            buttonAdd: 'Aggiungi',
+        },
+    },
+    Table: {
+        wrapClass: 'bootstrap-table',
+        className: 'table-striped',
+        headerClass: '',
+        bodyClass: '',
+        footerClass: '',
+        scrollClass: 'fixed-table-container',
+        selectedClass: 'table-info',
+    },
+    Gallery: {
+        wrapClass: '',
+        className: '',
+        scrollClass: '',
+        headerClass: '',
+        bodyClass: '',
+        footerClass: '',
+        selectedClass: 'bg-primary/20',
+        gutterSize: 4,
+        rowCols: 2,
+    },
+    Pagination: {
+        wrapClass: '',
+        className: '',
+        stickyClass: 'fixed-bottom mx-5',
+        scrollToTop: false,
+        scrollBehavior: 'auto',
+        maxItems: 5,
+        sticky: true,
+        align: 'end',
+    },
+    Carousel: {
+        showIndicators: true,
+        showControls: true,
+        showCaption: true,
+        layoutDark: false,
+        autoPlay: true,
+    },
+    Card: {
+        wrapClass: '',
+        className: '',
+        headerClass: 'flex justify-between bg-white/[.15] font-normal',
+        bodyClass: 'flex flex-col',
+        footerClass: '',
+        showLoader: false,
+        showArrow: false,
+    },
+    Loader: {
+        wrapClass: '',
+        className: '',
+        icon: 'custom-loader',
+        title: 'Loading..',
+        description: '',
+    },
+    ActionButton: {
+        className: 'btn-primary',
+        badgeClass: 'rounded-full bg-destructive text-destructive-foreground',
+        motion: {
+            press: 'press',
+        },
+    },
+    LoadingButton: {
+        className: 'btn-primary',
+        badgeClass: 'rounded-full bg-destructive text-destructive-foreground',
+        motion: {
+            press: 'press',
+        },
+    },
+    LinkButton: {
+        className: 'btn-outline-secondary',
+    },
+    Alert: {
+        className: '',
+    },
+    Badge: {
+        className: '',
+    },
+    Modal: {
+        size: 'lg',
+        position: 'center',
+        wrapClass: '',
+        className: '',
+        headerClass: '',
+        titleClass: '',
+        subTitleClass: 'pr-1 text-muted-foreground',
+        bodyClass: '',
+        footerClass: '',
+        iconExpand: 'fullscreen',
+        iconCollapse: 'fullscreen-exit',
+        motion: {
+            center: 'fade',
+            top: 'slideFromTop',
+            left: 'slideFromLeft',
+            right: 'slideFromRight',
+            bottom: 'slideFromBottom',
+            backdrop: 'fade',
+        },
+    },
+    Dropdown: {
+        wrapClass: '',
+        className: '',
+        buttonClass: 'btn btn-outline-primary',
+        badgeClass: '',
+        menuClass: '',
+        menuHeaderClass: '',
+        menuItemClass: '',
+        menuDividerClass: '',
+        headerClass: '',
+        footerClass: '',
+        Menu: {
+            wrapClass: '',
+            className: 'list-none p-0 m-0',
+            headerClass: '',
+            itemClass: '',
+            linkClass: 'flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent',
+            iconClass: 'text-muted-foreground',
+            textClass: '',
+            badgeClass: '',
+            arrowClass: '',
+            submenuClass: '',
+        },
+        motion: {
+            open: 'fadeDown',
+            close: 'fadeDown',
+            press: 'press',
+        },
+    },
+    Notifications: {
+        wrapClass: 'menu-item',
+        Dropdown: {
+            className: '',
+            buttonClass: 'btn btn-link',
+            menuClass: 'mt-1 fs-11px w-300px pt-1',
+        },
+    },
+    Select: {
+        wrapClass: '',
+        className: '',
+    },
+    Autocomplete: {
+        wrapClass: '',
+        className: '',
+    },
+    Form: {
+        wrapClass: '',
+        buttonSaveClass: 'btn-outline-primary',
+        buttonDeleteClass: 'btn-outline-danger',
+        buttonBackClass: 'btn-link',
+        Card: {
+            headerClass: '',
+            bodyClass: '',
+            footerClass: 'text-right',
+        },
+        i18n: {
+            headerAdd: 'Aggiungi',
+            headerEdit: 'Modifica',
+            headerNewRecord: 'Nuovo Record',
+            buttonSave: 'Salva',
+            buttonDelete: 'Elimina',
+            buttonBack: 'Indietro',
+            noticeRequiredFields: 'Per favore, compila tutti i campi obbligatori',
+        },
+    },
+    Menu: {
+        wrapClass: 'flex-1 overflow-auto p-4',
+        className: 'navbar-nav flex-col mb-auto',
+        headerClass: '',
+        itemClass: 'nav-item',
+        linkClass: 'nav-link',
+        iconClass: 'mr-1',
+        textClass: 'flex-grow-1',
+        badgeClass: 'ml-1',
+        arrowClass: '',
+        submenuClass: 'nav flex-col ml-4',
+    },
+    Brand: {
+        wrapClass: '',
+        className: 'brand',
+        logoClass: 'navbar-brand',
+        labelClass: 'navbar-text',
+    },
+    SignIn: {
+        className: 'flex items-center',
+        avatarClass: 'avatar rounded-full mx-2',
+    },
+    Image: {
+        wrapClass: '',
+        className: '',
+    },
+    ImageAvatar: {
+        wrapClass: '',
+        className: '',
+    },
+    Percentage: {
+        wrapClass: '',
+        className: '',
+    },
+    Tab: {
+        wrapClass: '',
+        className: '',
+        motion: {
+            enter: 'fadeUp',
+        },
+    },
+    Code: {
+        wrapClass: '',
+        className: '',
+    },
+    Prompt: {
+        wrapClass: '',
+        className: '',
+    },
+};
+
+const definition: ThemeDefinition = { preset, motion, theme };
+
+export default definition;
