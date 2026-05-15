@@ -17,6 +17,7 @@ type ImageProps = {
 
 const Image = ({
                    src,
+                   placeholder   = undefined,
                    label        = undefined,
                    title        = undefined,
                    feedback     = undefined,
@@ -34,7 +35,7 @@ const Image = ({
         <Wrapper className={wrapClass || theme.Image.wrapClass}>
             {pre}
                 <img
-                    src={src || PLACEHOLDER_IMAGE}
+                    src={src || placeholder || PLACEHOLDER_IMAGE}
                     alt={label || title || src}
                     title={title}
                     className={className || theme.Image.className}

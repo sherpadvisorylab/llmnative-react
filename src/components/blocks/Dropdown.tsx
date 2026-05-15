@@ -2,7 +2,7 @@ import React from 'react';
 import {Link} from "react-router-dom";
 import {useTheme} from "../../Theme";
 import {Wrapper} from "../ui/GridSystem";
-import Badge from "../ui/Badge";
+import { BadgeOverlay, BadgeProps } from "../ui/Badge";
 import Menu from './Menu';
 import { cn } from '../../libs/cn';
 import { useMotionState, usePressMotion } from '../../motion';
@@ -13,17 +13,10 @@ interface DropdownTogglerProps {
     icon?: string;
     text?: string;
 }
-interface DropdownBadgeObject {
-    content: number | string |React.ReactNode;
-    className?: string;
-    type?: "primary" | "secondary" | "success" | "danger" | "warning" | "info" | "light" | "dark";
-}
-type DropdownBadgeProps = DropdownBadgeObject | number | string | React.ReactNode;
-
 interface DropdownProps extends Pick<MotionUIProps, 'motion'> {
     children: React.ReactNode;
     toggleButton?: string | React.ReactNode | DropdownTogglerProps;
-    badge?: DropdownBadgeProps;
+    badge?: BadgeProps;
     header?: React.ReactNode;
     footer?: React.ReactNode;
     defaultOpen?: boolean;
@@ -42,7 +35,7 @@ interface DropdownProps extends Pick<MotionUIProps, 'motion'> {
 
 interface DropdownButtonProps extends Pick<MotionUIProps, 'motion'> {
     children: React.ReactNode;
-    badge?: DropdownBadgeProps;
+    badge?: BadgeProps;
     display?: "static" | "dynamic";
     className?: string;
     badgeClass?: string;
@@ -199,13 +192,6 @@ export const DropdownButton = ({
     const theme = useTheme("dropdown");
     const motion = usePressMotion(false, {cursor: "pointer"}, motionConfig ?? theme.Dropdown.motion?.press ?? 'press');
 
-    const dropdownBadge: DropdownBadgeObject | undefined =
-        badge != null
-            ? typeof badge === "object" && "content" in badge
-                ? badge as DropdownBadgeObject
-                : { content: badge, type: "info" as const }
-            : undefined;
-
     const button = (
         <button
             type="button"
@@ -228,17 +214,11 @@ export const DropdownButton = ({
         </button>
     );
 
-    return dropdownBadge
-        ? (
-            <Badge
-                type={dropdownBadge.type}
-                post={dropdownBadge.content}
-                className={cn(dropdownBadge.className, badgeClass || theme.Dropdown.badgeClass)}
-            >
-                {button}
-            </Badge>
-        )
-        : button;
+    return (
+        <BadgeOverlay badge={badge} className={badgeClass || theme.Dropdown.badgeClass}>
+            {button}
+        </BadgeOverlay>
+    );
 };
 
 export const DropdownItem = ({

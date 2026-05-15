@@ -1,10 +1,10 @@
 import React, {useEffect, useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import {useTheme} from "../../Theme";
-import Badge from './Badge';
+import { BadgeOverlay } from './Badge';
 import type { MotionUIProps, UIProps } from '../types';
 import { Wrapper } from './GridSystem';
-import { BadgeType } from './Badge';
+import { BadgeProps } from './Badge';
 import { cn } from '../../libs/cn';
 import { usePressMotion } from '../../motion';
 import Icon from './Icon';
@@ -13,11 +13,10 @@ export interface IButton extends MotionUIProps {
     onClick?: (e: any) => any;
     icon?: string;
     label?: string | React.ReactNode;
-    badge?: string;
+    badge?: BadgeProps;
     title?: string;
     disabled?: boolean;
     showLoader?: boolean;
-    badgeType?: BadgeType;
     iconClass?: string;
     style?: React.CSSProperties;
 }
@@ -56,7 +55,6 @@ export const LoadingButton = ({
     post            = undefined,
     wrapClass       = undefined,
     className       = undefined,
-    badgeType       = undefined,
     iconClass       = undefined,
     style           = undefined,
     loadingLabel    = undefined,
@@ -107,7 +105,7 @@ export const LoadingButton = ({
     return (
         <Wrapper className={wrapClass}>
             {pre}
-            {(badge != null && !loader) ? <Badge type={badgeType} post={badge}>{button}</Badge> : button}
+            <BadgeOverlay badge={!loader ? badge : undefined}>{button}</BadgeOverlay>
             {post}
         </Wrapper>
     );
@@ -124,7 +122,6 @@ export const ActionButton = ({
     post            = undefined,
     wrapClass       = undefined,
     className       = undefined,
-    badgeType       = undefined,
     iconClass       = undefined,
     style           = undefined,
     motion: motionConfig = undefined
@@ -156,7 +153,7 @@ export const ActionButton = ({
                 title={disabled ? title : undefined}
                 style={disabled ? { cursor: 'not-allowed', display: 'inline-flex' } : undefined}
             >
-                {badge != null ? <Badge type={badgeType} post={badge}>{button}</Badge> : button}
+                <BadgeOverlay badge={badge}>{button}</BadgeOverlay>
             </span>
             {post}
         </Wrapper>

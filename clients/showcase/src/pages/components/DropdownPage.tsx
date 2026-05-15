@@ -10,7 +10,7 @@ const DROPDOWN_PROPS: PropDef[] = [
     { name: 'children', type: 'ReactNode', required: true, description: 'Dropdown menu content' },
     { name: 'itemsPath', type: 'string', default: '/dropdown-items', description: 'Mock database collection used to render menu records in the playground', control: 'text' },
     { name: 'toggleButton', type: 'string | ReactNode | { icon?: string; text?: string }', required: true, description: 'Button content or icon/text config', control: 'text' },
-    { name: 'badge', type: 'ReactNode | { content; type? }', description: 'Badge displayed on the toggle', control: 'text' },
+    { name: 'badge', type: 'ReactNode | { content; type? }', description: 'Badge displayed on the toggle', control: 'json' },
     { name: 'header', type: 'ReactNode', description: 'Header content above menu items', control: 'text' },
     { name: 'footer', type: 'ReactNode', description: 'Footer content below menu items', control: 'text' },
     { name: 'defaultOpen', type: 'boolean', default: 'false', description: 'Starts the uncontrolled dropdown open on first render', control: 'boolean' },
@@ -93,7 +93,7 @@ const PLAYGROUND: PlaygroundConfig = {
     defaultProps: {
         itemsPath: '/dropdown-items',
         toggleButton: 'Actions',
-        badge: '3',
+        badge: { content: '3', type: 'danger' },
         header: 'Menu',
         footer: 'Footer',
         defaultOpen: false,

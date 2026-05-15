@@ -6,7 +6,90 @@ import { cn } from '../../libs/cn';
 
 export type BadgeType = "info" | "success" | "warning" | "danger" | "primary" | "secondary" | "light" | "dark";
 
-export type BadgeProps = {
+export type BadgeDescriptor = {
+    content: React.ReactNode;
+    type?: BadgeType;
+    className?: string;
+};
+
+export type BadgeProps = React.ReactNode | BadgeDescriptor;
+
+export function isBadgeDescriptor(value: BadgeProps | undefined): value is BadgeDescriptor {
+    return (
+        typeof value === "object" &&
+        value !== null &&
+        !React.isValidElement(value) &&
+        "content" in value
+    );
+}
+
+export function normalizeBadgeProps(
+    value: BadgeProps | undefined,
+    fallbackType: BadgeType = "info",
+    fallbackClassName?: string
+): BadgeDescriptor | undefined {
+    if (value === undefined || value === null || value === false) return undefined;
+
+    if (isBadgeDescriptor(value)) {
+        return {
+            ...value,
+            type: value.type || fallbackType,
+            className: cn(value.className, fallbackClassName),
+        };
+    }
+
+    return {
+        content: value,
+        type: fallbackType,
+        className: fallbackClassName,
+    };
+}
+
+export type BadgeOverlayProps = {
+    badge?: BadgeProps;
+    content?: React.ReactNode;
+    type?: BadgeType;
+    defaultType?: BadgeType;
+    className?: string;
+    descriptorOnly?: boolean;
+    children?: React.ReactNode;
+};
+
+export const BadgeOverlay = ({
+    badge,
+    content = undefined,
+    type = undefined,
+    defaultType = "info",
+    className = undefined,
+    descriptorOnly = false,
+    children = undefined
+}: BadgeOverlayProps): React.ReactNode => {
+    const value = content !== undefined
+        ? { content, type, className }
+        : badge;
+
+    if (descriptorOnly && content === undefined && !isBadgeDescriptor(badge)) return badge ?? null;
+
+    const normalized = normalizeBadgeProps(value, type || defaultType, className);
+
+    if (!normalized) return children ?? null;
+
+    if (children !== undefined) {
+        return (
+            <Badge type={normalized.type} post={normalized.content} className={normalized.className}>
+                {children}
+            </Badge>
+        );
+    }
+
+    return (
+        <Badge type={normalized.type} className={normalized.className}>
+            {normalized.content}
+        </Badge>
+    );
+};
+
+export type BadgeComponentProps = {
     children: string | React.ReactNode;
     type?: BadgeType;
 } & UIProps;
@@ -18,7 +101,7 @@ const Badge = ({
     post        = undefined,
     wrapClass   = undefined,
     className   = undefined
-}: BadgeProps) => {
+}: BadgeComponentProps) => {
     const theme = useTheme("badge");
 
     // Overlay mode: children is a React element (not a plain string/number)

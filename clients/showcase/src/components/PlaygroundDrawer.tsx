@@ -246,13 +246,10 @@ function Accordion({ icon, label, defaultOpen = false, children }: {
 }) {
     const [open, setOpen] = useState(defaultOpen);
     const chevronMotion = useMotionEffect('press');
-    const contentStyle = useMotionState(open, 'fadeUp', 'fadeUp', {
-        overflow: open ? 'visible' : 'hidden',
-        maxHeight: open ? 920 : 0,
-    });
+    const contentStyle = useMotionState(open, 'fadeUp', 'fadeUp');
 
     return (
-        <div className="border-t">
+        <div className="flex min-h-0 flex-col border-t">
             <button
                 type="button"
                 onClick={() => setOpen((v) => !v)}
@@ -272,7 +269,7 @@ function Accordion({ icon, label, defaultOpen = false, children }: {
                     }}
                 />
             </button>
-            <div style={contentStyle}>
+            <div className={open ? "min-h-0 flex-1 overflow-hidden" : "hidden"} style={contentStyle}>
                 {children}
             </div>
         </div>
@@ -305,6 +302,17 @@ export default function PlaygroundDrawer({ title, config, open, onClose }: Playg
     };
 
     const controlledProps = config.props.filter((p) => p.control !== undefined);
+    const propGroups = controlledProps.reduce<Array<{ name: string; props: PropDef[] }>>((groups, prop) => {
+        const name = prop.group || 'Props';
+        const existing = groups.find((group) => group.name === name);
+        if (existing) {
+            existing.props.push(prop);
+        } else {
+            groups.push({ name, props: [prop] });
+        }
+        return groups;
+    }, []);
+    const hasPropGroups = propGroups.length > 1 || propGroups.some((group) => group.name !== 'Props');
     const hasMock = config.mockSeed !== undefined;
 
     const header = (
@@ -324,8 +332,9 @@ export default function PlaygroundDrawer({ title, config, open, onClose }: Playg
         ? <WithMock seed={mockSeed}>{rendered}</WithMock>
         : rendered;
 
-    const SIZES = ['md', 'lg', 'xl'] as const;
+    const SIZES = ['md', 'lg', 'xl', 'fullscreen'] as const;
     const size = SIZES.includes(config.size as any) ? config.size! : 'md';
+    const splitLayout = config.layout === 'split';
 
     return (
         <Modal
@@ -336,25 +345,36 @@ export default function PlaygroundDrawer({ title, config, open, onClose }: Playg
             closeOnBackdrop
             buttonFullscreen={false}
             headerClass="h-14 !py-0 px-4"
+            bodyClass="min-h-0 flex-1 overflow-hidden p-4"
             footer={false}
         >
-            <div className="flex flex-col h-full -m-4">
+            <div className={splitLayout ? "grid h-full min-h-0 -m-4 lg:grid-cols-[minmax(20rem,26rem)_1fr]" : "flex flex-col h-full -m-4"}>
 
                 {/* Controls section — scrollable */}
                 {controlledProps.length > 0 && (
-                    <div className="px-4 pt-4 pb-3 border-b space-y-3 overflow-y-auto flex-1 min-h-0">
+                    <div className={splitLayout ? "min-h-0 overflow-y-auto border-b px-4 pb-3 pt-4 space-y-3 lg:border-b-0 lg:border-r" : "px-4 pt-4 pb-3 border-b space-y-3 overflow-y-auto flex-1 min-h-0"}>
                         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Props</p>
-                        {controlledProps.map((p) => (
-                            <PropControl key={p.name} def={p} value={props[p.name]} onChange={(v) => updateProp(p.name, v)} />
-                        ))}
+                        {hasPropGroups
+                            ? propGroups.map((group, index) => (
+                                <Accordion key={group.name} icon="settings" label={group.name} defaultOpen={index === 0}>
+                                    <div className="space-y-3 px-1 py-3">
+                                        {group.props.map((p) => (
+                                            <PropControl key={p.name} def={p} value={props[p.name]} onChange={(v) => updateProp(p.name, v)} />
+                                        ))}
+                                    </div>
+                                </Accordion>
+                            ))
+                            : controlledProps.map((p) => (
+                                <PropControl key={p.name} def={p} value={props[p.name]} onChange={(v) => updateProp(p.name, v)} />
+                            ))}
                     </div>
                 )}
 
                 {/* Fixed bottom area — always visible */}
-                <div className="shrink-0">
+                <div className={splitLayout ? "grid min-h-0 grid-rows-[minmax(0,1fr)_auto_auto] overflow-hidden" : "shrink-0"}>
                     {/* Preview accordion — open by default */}
                     <Accordion icon="eye" label="Preview" defaultOpen>
-                            <div className="min-h-72 overflow-visible px-4 pb-4 pt-2 pr-8">
+                            <div className={splitLayout ? "h-full min-h-0 overflow-y-auto overflow-x-hidden px-5 pb-5 pt-3" : "min-h-72 overflow-visible px-4 pb-4 pt-2 pr-8"}>
                                 {preview}
                             </div>
                     </Accordion>

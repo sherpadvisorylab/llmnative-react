@@ -88,6 +88,12 @@ const Pagination = <T,>({
 
     const disabledPrev = currentPage === 1 ? 'disabled' : '';
     const disabledNext = currentPage === totalPages ? 'disabled' : '';
+    const resolvedAlign = align || theme.Pagination.align;
+    const alignmentClass = {
+        start: "justify-start",
+        center: "justify-center",
+        end: "justify-end",
+    }[resolvedAlign as "start" | "center" | "end"] || "justify-end";
 
     const nav = (
         <Wrapper className={(wrapClass || theme.Pagination.wrapClass) + (sticky || theme.Pagination.sticky ? ` ${theme.Pagination.stickyClass}` : '')}
@@ -96,8 +102,8 @@ const Pagination = <T,>({
             {pre}
 
             {recordSet.length > pageLimit && (
-                <nav aria-label="Page navigation" className={className || theme.Pagination.className}>
-                    <ul className={`pagination justify-${align || theme.Pagination.align} mx-auto`}>
+                <nav aria-label="Page navigation" className={`${className || theme.Pagination.className} flex w-full ${alignmentClass}`}>
+                    <ul className="pagination">
 
                         <li className={`page-item ${disabledPrev}`}>
                             <button onClick={() => go(1)} className="page-link">

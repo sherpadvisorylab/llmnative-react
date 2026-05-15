@@ -153,6 +153,9 @@ const ModalDefault = ({
 
     const modalPosition = sizeClass === "fullscreen" ? "center" : (position || theme.Modal.position);
     const pos = positions[modalPosition as keyof typeof positions];
+    const coverClass = sizeClass === "fullscreen"
+        ? cn(pos.coverClass, "!overflow-hidden !p-0")
+        : pos.coverClass;
 
     React.useEffect(() => {
         const originalOverflow = window.document.body.style.overflow;
@@ -199,7 +202,7 @@ const ModalDefault = ({
 
     return createPortal(<>
         <div
-            className={pos.coverClass}
+            className={coverClass}
             style={coverStyle}
             onClick={() => {
                 if (modalPosition === "center" && closeOnBackdrop && onClose) {

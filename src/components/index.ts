@@ -9,10 +9,12 @@ export { default as Search } from './blocks/Search';
 
 export { default as Alert } from './ui/Alert';
 export { default as Badge } from './ui/Badge';
+export * from './ui/Badge';
 export * from './ui/Buttons';
 export { default as Card } from './ui/Card';
 export { default as Code } from './ui/Code';
 export { default as Gallery} from './ui/Gallery';
+export * from './ui/Gallery';
 export * from './ui/GridSystem';
 export { default as Image } from './ui/Image';
 export { default as ImageAvatar } from './ui/ImageAvatar';

@@ -3,14 +3,14 @@ import { useMenu } from '../../App';
 import { useTheme } from '../../Theme';
 import { Link } from 'react-router-dom';
 import { Wrapper } from '../ui/GridSystem';
-import Badge, { BadgeProps } from '../ui/Badge';
+import Badge, { BadgeType } from '../ui/Badge';
 import { isInteractiveElement } from '../../libs/utils';
 import Icon from '../ui/Icon';
 
 interface MenuProps {
   context: string;
   Type?: 'ul' | 'ol';
-  badges?: Record<string, { type?: BadgeProps["type"], children: string }>;
+  badges?: Record<string, { type?: BadgeType, children: string }>;
   pre?: React.ReactNode;
   post?: React.ReactNode;
   wrapClass?: string;

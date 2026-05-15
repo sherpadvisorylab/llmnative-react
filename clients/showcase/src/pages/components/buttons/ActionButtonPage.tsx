@@ -25,22 +25,19 @@ const BUTTON_CLASSES = [
     'btn-outline-dark',
     'btn-link',
 ];
-const BADGE_TYPES = ['info', 'success', 'warning', 'danger', 'primary', 'secondary', 'light', 'dark'];
-
 const PROPS: PropDef[] = [
     { name: 'icon', type: 'string', description: 'Icon name resolved by the active IconProvider', control: 'icon' },
     { name: 'label', type: 'string | ReactNode', description: 'Visible button label', control: 'text' },
-    { name: 'badge', type: 'string', description: 'Optional badge content rendered on the top-right corner', control: 'text' },
+    { name: 'badge', type: 'ReactNode | { content; type? }', description: 'Optional badge rendered on the top-right corner', control: 'json' },
     { name: 'title', type: 'string', description: 'Native button title attribute', control: 'text' },
     { name: 'disabled', type: 'boolean', default: 'false', description: 'Disables the button', control: 'boolean' },
-    { name: 'badgeType', type: 'BadgeType', description: 'Color variant for the optional badge', control: 'select', options: BADGE_TYPES },
     { name: 'className', type: 'string', description: 'CSS classes applied to the button', control: 'select', options: BUTTON_CLASSES },
 ];
 
 const PLAYGROUND: PlaygroundConfig = {
     size: 'sm',
     props: PROPS,
-    defaultProps: { label: 'Save', icon: 'save', badge: '', title: 'Save changes', disabled: false, badgeType: 'danger', className: BUTTON_CLASSES[0] },
+    defaultProps: { label: 'Save', icon: 'save', badge: { content: '3', type: 'danger' }, title: 'Save changes', disabled: false, className: BUTTON_CLASSES[0] },
     render: (p) => (
         <ActionButton
             label={p.label}
@@ -48,7 +45,6 @@ const PLAYGROUND: PlaygroundConfig = {
             badge={p.badge || undefined}
             title={p.title || undefined}
             disabled={p.disabled}
-            badgeType={p.badgeType || undefined}
             className={p.className || undefined}
         />
     ),
@@ -63,7 +59,7 @@ export default function ActionButtonPage() {
                 preview={
                     <div className="flex flex-wrap gap-4 pt-3 pr-3">
                         <ActionButton className={BUTTON_CLASSES[0]} icon="save" label="Save" />
-                        <ActionButton className="btn-outline-secondary" icon="settings" label="Settings" badge="3" badgeType="danger" />
+                        <ActionButton className="btn-outline-secondary" icon="settings" label="Settings" badge={{ content: '3', type: 'danger' }} />
                         <ActionButton className="btn-danger" icon="trash" title="Delete" />
                     </div>
                 }

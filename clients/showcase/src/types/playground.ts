@@ -3,6 +3,7 @@ export type PropControl = 'text' | 'number' | 'boolean' | 'select' | 'json' | 'r
 export type PropDef = {
     name: string;
     type: string;
+    group?: string;
     default?: string;
     required?: boolean;
     description?: string;
@@ -21,7 +22,9 @@ export type PlaygroundConfig = {
     mockSeed?: Record<string, Record<string, any>>;
     render: (props: Record<string, any>, onValuesChange?: (v: Record<string, any>) => void) => React.ReactNode;
     /** Width of the playground drawer. Default: 'md' */
-    size?: 'sm' | 'md' | 'lg' | 'xl';
+    size?: 'sm' | 'md' | 'lg' | 'xl' | 'fullscreen';
+    /** Use a side-by-side controls and preview layout for visual components. Default: false */
+    layout?: 'stacked' | 'split';
     /** Show the Form record (JSON) accordion. Enable only for form-field components. Default: false */
     showFormRecord?: boolean;
 };

@@ -3,6 +3,7 @@ import {Dropdown, DropdownItem} from "./Dropdown";
 import {useTheme} from "../../Theme";
 import {Wrapper} from "../ui/GridSystem";
 import Icon from "../ui/Icon";
+import type { BadgeProps } from "../ui/Badge";
 
 interface NotificationItem {
     title: string;
@@ -13,7 +14,7 @@ interface NotificationItem {
 
 interface NotificationsProps {
     children?: NotificationItem[];
-    badge?: React.ReactNode;
+    badge?: BadgeProps;
     wrapClass?: string;
 }
 
