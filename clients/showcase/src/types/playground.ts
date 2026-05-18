@@ -14,6 +14,8 @@ export type PropDef = {
     min?: number;
     max?: number;
     step?: number;
+    /** Hide this control when the predicate returns true. Evaluated against current prop values. */
+    hidden?: (props: Record<string, any>) => boolean;
 };
 
 export type PlaygroundConfig = {

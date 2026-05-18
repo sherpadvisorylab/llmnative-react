@@ -302,6 +302,7 @@ export default function PlaygroundDrawer({ title, config, open, onClose }: Playg
     };
 
     const controlledProps = config.props.filter((p) => p.control !== undefined);
+    const visibleProps = (subset: PropDef[]) => subset.filter((p) => !p.hidden?.(props));
     const propGroups = controlledProps.reduce<Array<{ name: string; props: PropDef[] }>>((groups, prop) => {
         const name = prop.group || 'Props';
         const existing = groups.find((group) => group.name === name);
@@ -355,16 +356,20 @@ export default function PlaygroundDrawer({ title, config, open, onClose }: Playg
                     <div className={splitLayout ? "min-h-0 overflow-y-auto border-b px-4 pb-3 pt-4 space-y-3 lg:border-b-0 lg:border-r" : "px-4 pt-4 pb-3 border-b space-y-3 overflow-y-auto flex-1 min-h-0"}>
                         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Props</p>
                         {hasPropGroups
-                            ? propGroups.map((group, index) => (
-                                <Accordion key={group.name} icon="settings" label={group.name} defaultOpen={index === 0}>
-                                    <div className="space-y-3 px-1 py-3">
-                                        {group.props.map((p) => (
-                                            <PropControl key={p.name} def={p} value={props[p.name]} onChange={(v) => updateProp(p.name, v)} />
-                                        ))}
-                                    </div>
-                                </Accordion>
-                            ))
-                            : controlledProps.map((p) => (
+                            ? propGroups.map((group, index) => {
+                                const visible = visibleProps(group.props);
+                                if (visible.length === 0) return null;
+                                return (
+                                    <Accordion key={group.name} icon="settings" label={group.name} defaultOpen={index === 0}>
+                                        <div className="space-y-3 px-1 py-3">
+                                            {visible.map((p) => (
+                                                <PropControl key={p.name} def={p} value={props[p.name]} onChange={(v) => updateProp(p.name, v)} />
+                                            ))}
+                                        </div>
+                                    </Accordion>
+                                );
+                            })
+                            : visibleProps(controlledProps).map((p) => (
                                 <PropControl key={p.name} def={p} value={props[p.name]} onChange={(v) => updateProp(p.name, v)} />
                             ))}
                     </div>
