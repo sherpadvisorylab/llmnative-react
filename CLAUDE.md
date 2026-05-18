@@ -500,3 +500,25 @@ In corso sul branch `modernize`. Vedi `docs/CHANGE_REQUESTS.md` per i dettagli.
 | CR-015 | Vite toolchain framework + scaffolding | ✅ done |
 | CR-016 | Showcase Vite + scaffold-first | ✅ done |
 | CR-017 | App-managed theme + icon registries | ✅ done |
+
+---
+
+## Session state
+
+> Aggiornato automaticamente alla fine di ogni sessione AI.
+> Il piano completo vive in `docs/COMPETITIVENESS_CHECKLIST.md`.
+> Discussione naming in `docs/NAMING.md`.
+
+**Ultimo task completato:** — *(nessuno, sessione iniziale)*
+**Prossimo task:** Da definire (attendendo via dal team)
+**Branch:** `modernize`
+
+### Progresso checklist
+
+| Area | Completamento |
+|------|--------------|
+| P0 — Bloccanti | 0/5 sezioni |
+| P1 — Differenziatori | 0/6 sezioni |
+| P2 — Feature parity | 0/4 sezioni |
+| P3 — Qualità e trust | 0/5 sezioni |
+| P4 — Ecosistema | 0/3 sezioni |
