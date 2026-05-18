@@ -377,6 +377,7 @@ export const components: Theme = {
     ImageAvatar: {
         wrapClass: '',
         className: '',
+        motion: { enter: 'fade', hover: 'imageZoom' },
     },
     Percentage: {
         wrapClass: '',

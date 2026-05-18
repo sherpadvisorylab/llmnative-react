@@ -259,6 +259,7 @@ export interface ThemeConfig {
     ImageAvatar?: {
         wrapClass?: string;
         className?: string;
+        motion?: { enter?: MotionReference; hover?: MotionReference };
     };
     Percentage?: {
         wrapClass?: string;
