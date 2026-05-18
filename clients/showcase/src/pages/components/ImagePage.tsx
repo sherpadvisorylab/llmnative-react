@@ -39,8 +39,9 @@ const IMAGE_PROPS: PropDef[] = [
     { name: 'feedback', type: 'ReactNode', group: 'Slots', description: 'Caption or feedback text rendered below the image', control: 'text' },
     { name: 'pre', type: 'ReactNode', group: 'Slots', description: 'Content rendered to the left of the image', control: 'text' },
     { name: 'post', type: 'ReactNode', group: 'Slots', description: 'Content rendered to the right of the image', control: 'text' },
-    { name: 'responsive', type: 'boolean', group: 'Responsive', description: 'Arricchisce toHTML / toJSON con srcset width-based (400w / 800w / 1600w). Non cambia il preview — il browser userebbe varianti file che in demo non esistono.', control: 'boolean' },
-    { name: 'sizesPreset', type: 'string', group: 'Responsive', description: 'Descrive al browser quanto spazio visivo occupa l\'immagine al variare della viewport — serve a scegliere la variante srcset più adatta.', control: 'select', options: ['Hero — occupa tutta la larghezza', 'Articolo — colonna di testo (max 900px)', 'Card — griglia 2 colonne', 'Card — griglia 3 colonne', 'Thumbnail — elemento piccolo'], help: 'Hero: 100vw · Articolo: (max 900px) 100vw, 900px · Card 2col: (≤640px) 100vw, 50vw · Card 3col: (≤640px) 100vw, (≤1024px) 50vw, 33vw · Thumb: (≤640px) 50vw, 200px' },
+    { name: 'responsive', type: 'boolean', group: 'Responsive', description: 'Aggiunge srcset all\'export (toHTML / toJSON). Non cambia il preview — il browser userebbe varianti file che in demo non esistono.', control: 'boolean' },
+    { name: 'srcsetMode', type: '"width" | "density"', group: 'Responsive', description: 'Strategia srcset. width (-400w/-800w/-1600w): immagini fluid/responsive, il browser sceglie in base a viewport + sizes. density (@2x/@3x): immagini a dimensione fissa (logo, avatar), il browser sceglie in base al devicePixelRatio.', control: 'select', options: ['width', 'density'], help: 'width → usa sizes per dire al browser quanto spazio occupa l\'immagine · density → nessun sizes, scelta basata sul DPR dello schermo' },
+    { name: 'sizesPreset', type: 'string', group: 'Responsive', description: 'Solo con srcsetMode=width. Descrive al browser quanto spazio visivo occupa l\'immagine al variare della viewport.', control: 'select', options: ['Hero — occupa tutta la larghezza', 'Articolo — colonna di testo (max 900px)', 'Card — griglia 2 colonne', 'Card — griglia 3 colonne', 'Thumbnail — elemento piccolo'], help: 'Hero: 100vw · Articolo: (max 900px) 100vw, 900px · Card 2col: (≤640px) 100vw, 50vw · Card 3col: (≤640px) 100vw, (≤1024px) 50vw, 33vw · Thumb: (≤640px) 50vw, 200px' },
     { name: 'className', type: 'string', group: 'Styling', description: 'CSS classes applied to the <img> element', control: 'text' },
     { name: 'wrapClass', type: 'string', group: 'Styling', description: 'CSS classes applied to the outer wrapper', control: 'text' },
     { name: 'style', type: 'CSSProperties', group: 'Styling', description: 'Inline style object on the <img> element', control: 'json' },
@@ -91,7 +92,9 @@ function ImageExportPanel(p: Record<string, any>) {
     });
 
     const srcsetCfg = p.responsive
-        ? { mode: 'width' as const, widths: SRCSET_WIDTHS, sizes: sizesAttr }
+        ? p.srcsetMode === 'density'
+            ? { mode: 'density' as const, densities: [1, 2, 3] }
+            : { mode: 'width' as const, widths: SRCSET_WIDTHS, sizes: sizesAttr }
         : undefined;
 
     const openExport = (mode: ExportMode) => {
@@ -128,7 +131,10 @@ function ImageExportPanel(p: Record<string, any>) {
             />
             {p.responsive && (
                 <p className="mt-2 text-center text-xs text-muted-foreground">
-                    srcset attivo — l'export include <code className="font-mono">400w / 800w / 1600w</code>
+                    {p.srcsetMode === 'density'
+                        ? <>srcset density attivo — l'export include <code className="font-mono">1x / 2x / 3x</code> (<code className="font-mono">@2x</code> / <code className="font-mono">@3x</code>)</>
+                        : <>srcset width attivo — l'export include <code className="font-mono">400w / 800w / 1600w</code></>
+                    }
                 </p>
             )}
             <div className="flex gap-2 mt-3 justify-center">
@@ -196,6 +202,7 @@ const PLAYGROUND: PlaygroundConfig = {
         pre: '',
         post: '',
         responsive: false,
+        srcsetMode: 'width',
         sizesPreset: 'Card — griglia 2 colonne',
         className: 'rounded-lg border',
         wrapClass: '',
