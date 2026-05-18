@@ -28,17 +28,6 @@ const AVATARS = {
     empty: '',
 };
 
-// ── Badge presets for playground ──────────────────────────────────────────────
-
-const BADGE_PRESETS: Record<string, any> = {
-    '':        undefined,
-    'online':  { content: undefined, type: 'success' },
-    'away':    { content: undefined, type: 'warning' },
-    'offline': { content: undefined, type: 'secondary' },
-    '5':       { content: '5',       type: 'danger' },
-    'new':     { content: 'new',     type: 'primary' },
-};
-
 // ── Props definition ──────────────────────────────────────────────────────────
 
 const AVATAR_PROPS: PropDef[] = [
@@ -48,7 +37,7 @@ const AVATAR_PROPS: PropDef[] = [
     { name: 'width',     type: 'number', description: 'Avatar width in pixels. When only width is set, height equals width.',       control: 'number', min: 24, max: 160 },
     { name: 'height',    type: 'number', description: 'Avatar height in pixels — set only when the avatar is not square.',           control: 'number', min: 24, max: 160 },
     { name: 'fit',       type: '"cover" | "contain" | "fill" | "scale-down" | "none"', description: 'CSS object-fit. cover (default) crops to fill the box without distortion.', control: 'select', options: ['cover', 'contain', 'fill', 'scale-down', 'none'] },
-    { name: 'badge',     type: 'BadgeDescriptor',      description: 'Badge overlay at the top-right of the avatar. Accepts a string, ReactNode, or { content, type } descriptor. Omit content for a status dot.', control: 'select', options: ['', 'online', 'away', 'offline', '5', 'new'] },
+    { name: 'badge',     type: 'BadgeDescriptor',      description: 'Badge overlay at the top-right. Pass { content, type } — omit content for a status dot.', control: 'json' },
     { name: 'feedback',  type: 'ReactNode',      description: 'Content rendered below the avatar — useful for labels or captions.',         control: 'text' },
     { name: 'pre',       type: 'ReactNode',      description: 'Content rendered to the left of the avatar.',                                control: 'text' },
     { name: 'post',      type: 'ReactNode',      description: 'Content rendered to the right of the avatar — ideal for name and role.',    control: 'text' },
@@ -67,7 +56,7 @@ const PLAYGROUND: PlaygroundConfig = {
         width:     72,
         height:    72,
         fit:       'cover',
-        badge:     'online',
+        badge:     { content: '3', type: 'danger' },
         feedback:  '',
         pre:       '',
         post:      'Ada Lovelace',
@@ -82,7 +71,7 @@ const PLAYGROUND: PlaygroundConfig = {
             width={Number(p.width)  || undefined}
             height={Number(p.height) || undefined}
             fit={p.fit      || undefined}
-            badge={BADGE_PRESETS[p.badge] ?? undefined}
+            badge={p.badge || undefined}
             feedback={p.feedback || undefined}
             pre={p.pre      || undefined}
             post={p.post ? <span className="font-medium text-sm">{p.post}</span> : undefined}
