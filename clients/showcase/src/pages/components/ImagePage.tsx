@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Image, Modal, Icon, buildImageParams, buildImageTag, imageParamsToTag, imageParamsToJson } from 'react-firestrap';
+import { Image, Modal, Icon, useImage } from 'react-firestrap';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropsTable from '../../components/PropsTable';
@@ -79,25 +79,23 @@ function ImageExportPanel(p: Record<string, any>) {
     };
     const sizesAttr = SIZES_MAP[p.sizesPreset] ?? '(max-width: 640px) 100vw, 50vw';
 
-    const buildExportParams = () => buildImageParams(
-        {
-            src:      exportFilename,
-            alt:      p.label || 'Image',
-            title:    p.title   || undefined,
-            width:    Number(p.width)  || undefined,
-            height:   Number(p.height) || undefined,
-            fit:      (p.fit      || undefined) as any,
-            position: (p.position || undefined) as any,
-            loading:  'lazy',
-        },
-        p.responsive
-            ? { mode: 'width', widths: SRCSET_WIDTHS, sizes: sizesAttr }
-            : undefined,
-    );
+    const img = useImage({
+        src:      exportFilename,
+        alt:      p.label || 'Image',
+        title:    p.title   || undefined,
+        width:    Number(p.width)  || undefined,
+        height:   Number(p.height) || undefined,
+        fit:      (p.fit      || undefined) as any,
+        position: (p.position || undefined) as any,
+        loading:  'lazy',
+    });
+
+    const srcsetCfg = p.responsive
+        ? { mode: 'width' as const, widths: SRCSET_WIDTHS, sizes: sizesAttr }
+        : undefined;
 
     const openExport = (mode: ExportMode) => {
-        const params = buildExportParams();
-        const content = mode === 'json' ? imageParamsToJson(params) : imageParamsToTag(params);
+        const content = mode === 'json' ? img.toJson(srcsetCfg) : img.toHtml(srcsetCfg);
         setModal({ open: true, mode, content });
         setCopied(false);
     };
@@ -527,10 +525,8 @@ export default function ImagePage() {
                             <div className="flex flex-col gap-2">
                                 <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Tag HTML generato</span>
                                 <pre className="rounded-lg border bg-muted p-3 text-xs overflow-x-auto whitespace-pre h-full">{
-                                    buildImageTag(
-                                        { src: 'hero.jpg', alt: 'Hero banner', width: 400, height: 225, loading: 'lazy' },
-                                        { mode: 'density', densities: [1, 2, 3] },
-                                    )
+                                    useImage({ src: 'hero.jpg', alt: 'Hero banner', width: 400, height: 225, loading: 'lazy' })
+                                        .toHtml({ mode: 'density', densities: [1, 2, 3] })
                                 }</pre>
                             </div>
                         </div>
@@ -549,10 +545,8 @@ export default function ImagePage() {
                             <div className="flex flex-col gap-2">
                                 <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Tag HTML generato (priority=LCP)</span>
                                 <pre className="rounded-lg border bg-muted p-3 text-xs overflow-x-auto whitespace-pre h-full">{
-                                    buildImageTag(
-                                        { src: 'photo.jpg', alt: 'Campaign hero', width: 800, height: 450, priority: true },
-                                        { mode: 'width', widths: [400, 800, 1200], sizes: '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 800px' },
-                                    )
+                                    useImage({ src: 'photo.jpg', alt: 'Campaign hero', width: 800, height: 450, priority: true })
+                                        .toHtml({ mode: 'width', widths: [400, 800, 1200], sizes: '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 800px' })
                                 }</pre>
                             </div>
                         </div>

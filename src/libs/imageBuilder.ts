@@ -126,19 +126,9 @@ function buildSrcsetString(src: string, cfg: SrcsetConfig): string {
         .join(', ');
 }
 
-// ── Public API ────────────────────────────────────────────────────────────────
+// ── Internal builders (not exported) ─────────────────────────────────────────
 
-/**
- * Builds a JSON-serialisable ImageParams object from a config.
- * Use imageParamsToTag() to convert it to an HTML string.
- *
- * @example
- * const params = buildImageParams(
- *   { src: 'hero.jpg', alt: 'Hero', width: 800, height: 450, priority: true },
- *   { mode: 'width', widths: [400, 800, 1200], sizes: '(max-width: 768px) 100vw, 800px' }
- * );
- */
-export function buildImageParams(
+function buildImageParams(
     config: ImageBuilderConfig,
     srcset?: SrcsetConfig,
 ): ImageParams {
@@ -176,17 +166,7 @@ export function buildImageParams(
     ) as ImageParams;
 }
 
-/**
- * Serialises an ImageParams object to a formatted <img> HTML tag string.
- *
- * @example
- * const html = imageParamsToTag(params);
- * // <img src="hero.jpg"
- * //      alt="Hero"
- * //      width="800"
- * //      ... />
- */
-export function imageParamsToTag(params: ImageParams): string {
+function imageParamsToTag(params: ImageParams): string {
     const ORDER: (keyof ImageParams)[] = [
         'src', 'srcset', 'sizes', 'alt', 'title',
         'width', 'height', 'style', 'class',
@@ -207,26 +187,37 @@ export function imageParamsToTag(params: ImageParams): string {
         : `<img ${first}\n     ${rest.join('\n     ')} />`;
 }
 
-/**
- * Convenience: builds params and serialises to HTML in one call.
- *
- * @example
- * const html = buildImageTag(
- *   { src: 'photo.jpg', alt: 'Photo', width: 400, height: 300, loading: 'lazy' },
- *   { mode: 'density', densities: [1, 2, 3] }
- * );
- */
-export function buildImageTag(
-    config: ImageBuilderConfig,
-    srcset?: SrcsetConfig,
-): string {
-    return imageParamsToTag(buildImageParams(config, srcset));
+// ── Public API ────────────────────────────────────────────────────────────────
+
+export interface UseImageResult {
+    /** Generates the <img> HTML string with all SEO/performance attributes. */
+    toHtml: (srcset?: SrcsetConfig) => string;
+    /** Generates a JSON string of all img attributes — for CMS, SSR or metadata. */
+    toJson: (srcset?: SrcsetConfig) => string;
+    /** Returns the raw ImageParams object for custom serialisation. */
+    params: (srcset?: SrcsetConfig) => ImageParams;
 }
 
 /**
- * Serialises an ImageParams object to a JSON string.
- * Useful for storing image metadata or passing to server-side renderers.
+ * Returns toHtml / toJson / params helpers bound to the given image config.
+ * Does NOT resize images — assumes variant files already exist on the server.
+ *
+ * @example
+ * const img = useImage({ src: 'hero.jpg', alt: 'Hero', width: 800, height: 450, priority: true })
+ *
+ * // Responsive HTML with width-based srcset (files: hero-400w.jpg, hero-800w.jpg, hero-1200w.jpg)
+ * img.toHtml({ mode: 'width', widths: [400, 800, 1200], sizes: '(max-width: 640px) 100vw, 800px' })
+ *
+ * // Fixed-size HTML with density srcset (files: hero.jpg, hero@2x.jpg, hero@3x.jpg)
+ * img.toHtml({ mode: 'density', densities: [1, 2, 3] })
+ *
+ * // JSON params for CMS or SSR
+ * img.toJson({ mode: 'width', widths: [400, 800, 1200], sizes: '100vw' })
  */
-export function imageParamsToJson(params: ImageParams): string {
-    return JSON.stringify(params, null, 2);
+export function useImage(config: ImageBuilderConfig): UseImageResult {
+    return {
+        toHtml:  (srcset?) => imageParamsToTag(buildImageParams(config, srcset)),
+        toJson:  (srcset?) => JSON.stringify(buildImageParams(config, srcset), null, 2),
+        params:  (srcset?) => buildImageParams(config, srcset),
+    };
 }
