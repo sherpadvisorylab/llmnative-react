@@ -333,7 +333,6 @@ export const AuthButton = ({
                             title={!isConfigured ? notConfiguredTitle : displayName}
                             height={36}
                             className={avatarClass || theme.SignIn.avatarClass}
-                            cacheKey={`${provider || 'default'}:${user?.uid || user?.email || user?.photoURL || 'guest'}`}
                         />
                 </button>
                 {avatarOpen && (
