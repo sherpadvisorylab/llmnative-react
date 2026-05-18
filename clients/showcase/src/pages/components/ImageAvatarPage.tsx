@@ -42,18 +42,18 @@ const BADGE_PRESETS: Record<string, any> = {
 // ── Props definition ──────────────────────────────────────────────────────────
 
 const AVATAR_PROPS: PropDef[] = [
-    { name: 'src',       type: 'string',    required: true, group: 'Core',       description: 'Avatar image URL or data URI. Empty string shows the placeholder.',          control: 'select', options: ['ada', 'bob', 'carol', 'diana', 'evan', 'photo', 'empty'] },
-    { name: 'title',     type: 'string',                    group: 'Core',       description: 'Tooltip and accessible name fallback when alt is not set.',                   control: 'text' },
-    { name: 'alt',       type: 'string',                    group: 'Core',       description: 'Alt text for screen readers — defaults to title or filename.',                control: 'text' },
-    { name: 'width',     type: 'number',                    group: 'Dimensions', description: 'Avatar width in pixels. When only width is set, height equals width.',       control: 'number', min: 24, max: 160 },
-    { name: 'height',    type: 'number',                    group: 'Dimensions', description: 'Avatar height in pixels — set only when the avatar is not square.',           control: 'number', min: 24, max: 160 },
-    { name: 'fit',       type: '"cover" | "contain" | "fill" | "scale-down" | "none"', group: 'Dimensions', description: 'CSS object-fit. cover (default) crops to fill the box without distortion.', control: 'select', options: ['cover', 'contain', 'fill', 'scale-down', 'none'] },
-    { name: 'badge',     type: 'BadgeDescriptor',                group: 'Badge',      description: 'Badge rendered as overlay at the bottom-right of the avatar. Accepts a string, ReactNode, or { content, type } descriptor. Omit content for a status dot.', control: 'select', options: ['', 'online', 'away', 'offline', '5', 'new'] },
-    { name: 'feedback',  type: 'ReactNode',                 group: 'Slots',      description: 'Content rendered below the avatar — useful for labels or captions.',         control: 'text' },
-    { name: 'pre',       type: 'ReactNode',                 group: 'Slots',      description: 'Content rendered to the left of the avatar.',                                control: 'text' },
-    { name: 'post',      type: 'ReactNode',                 group: 'Slots',      description: 'Content rendered to the right of the avatar — ideal for name and role.',    control: 'text' },
-    { name: 'className', type: 'string',                    group: 'Styling',    description: 'CSS classes applied to the img element.',                                    control: 'text' },
-    { name: 'wrapClass', type: 'string',                    group: 'Styling',    description: 'CSS classes applied to the outer wrapper.',                                  control: 'text' },
+    { name: 'src',       type: 'string',    required: true,       description: 'Avatar image URL or data URI. Empty string shows the placeholder.',          control: 'select', options: ['ada', 'bob', 'carol', 'diana', 'evan', 'photo', 'empty'] },
+    { name: 'title',     type: 'string',       description: 'Tooltip and accessible name fallback when alt is not set.',                   control: 'text' },
+    { name: 'alt',       type: 'string',       description: 'Alt text for screen readers — defaults to title or filename.',                control: 'text' },
+    { name: 'width',     type: 'number', description: 'Avatar width in pixels. When only width is set, height equals width.',       control: 'number', min: 24, max: 160 },
+    { name: 'height',    type: 'number', description: 'Avatar height in pixels — set only when the avatar is not square.',           control: 'number', min: 24, max: 160 },
+    { name: 'fit',       type: '"cover" | "contain" | "fill" | "scale-down" | "none"', description: 'CSS object-fit. cover (default) crops to fill the box without distortion.', control: 'select', options: ['cover', 'contain', 'fill', 'scale-down', 'none'] },
+    { name: 'badge',     type: 'BadgeDescriptor',      description: 'Badge overlay at the top-right of the avatar. Accepts a string, ReactNode, or { content, type } descriptor. Omit content for a status dot.', control: 'select', options: ['', 'online', 'away', 'offline', '5', 'new'] },
+    { name: 'feedback',  type: 'ReactNode',      description: 'Content rendered below the avatar — useful for labels or captions.',         control: 'text' },
+    { name: 'pre',       type: 'ReactNode',      description: 'Content rendered to the left of the avatar.',                                control: 'text' },
+    { name: 'post',      type: 'ReactNode',      description: 'Content rendered to the right of the avatar — ideal for name and role.',    control: 'text' },
+    { name: 'className', type: 'string',    description: 'CSS classes applied to the img element.',                                    control: 'text' },
+    { name: 'wrapClass', type: 'string',    description: 'CSS classes applied to the outer wrapper.',                                  control: 'text' },
 ];
 
 // ── Playground ────────────────────────────────────────────────────────────────
@@ -90,8 +90,6 @@ const PLAYGROUND: PlaygroundConfig = {
             wrapClass={p.wrapClass  || undefined}
         />
     ),
-    size:   'xl',
-    layout: 'split',
 };
 
 // ── Page ──────────────────────────────────────────────────────────────────────
