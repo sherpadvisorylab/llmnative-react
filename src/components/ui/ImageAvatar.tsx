@@ -6,8 +6,7 @@ import { Wrapper } from "./GridSystem";
 import { cn } from '../../libs/cn';
 import { useEnterMotion, useMotionState } from '../../motion';
 import type { MotionReference } from '../../motion';
-import { normalizeBadgeProps } from './Badge';
-import type { BadgeProps } from './Badge';
+import type { BadgeDescriptor } from './Badge';
 
 export type AvatarFit = 'cover' | 'contain' | 'fill' | 'scale-down' | 'none';
 
@@ -18,7 +17,7 @@ interface ImageAvatarProps extends UIProps {
     title?: string;
     alt?: string;
     fit?: AvatarFit;
-    badge?: BadgeProps;
+    badge?: BadgeDescriptor;
     feedback?: React.ReactNode;
 }
 
@@ -102,8 +101,6 @@ const ImageAvatar = ({
         ...(hasHover ? hoverStyle : {}),
     };
 
-    const normalizedBadge = normalizeBadgeProps(badge, 'success');
-
     return (
         <Wrapper className={cn("flex items-center gap-3", wrapClass || theme.ImageAvatar?.wrapClass)}>
             {pre && <div className="shrink-0 self-center">{pre}</div>}
@@ -123,14 +120,14 @@ const ImageAvatar = ({
                     style={imgStyle}
                     onError={() => setImgSrc(PLACEHOLDER_USER)}
                 />
-                {normalizedBadge && (
+                {badge && (
                     <span className={cn(
                         "badge badge-overlay absolute bottom-0 right-0 translate-x-1/4 translate-y-1/4 z-10",
-                        "badge-" + normalizedBadge.type,
-                        !normalizedBadge.content && "!p-0 !min-w-0 w-3 h-3 rounded-full",
-                        normalizedBadge.className,
+                        "badge-" + (badge.type || 'success'),
+                        !badge.content && "!p-0 !min-w-0 w-3 h-3 rounded-full",
+                        badge.className,
                     )}>
-                        {normalizedBadge.content}
+                        {badge.content}
                     </span>
                 )}
                 {feedback && <div className="mt-1 text-xs text-center">{feedback}</div>}

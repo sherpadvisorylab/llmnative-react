@@ -32,11 +32,11 @@ const AVATARS = {
 
 const BADGE_PRESETS: Record<string, any> = {
     '':        undefined,
-    'online':  { type: 'success' },
-    'away':    { type: 'warning' },
-    'offline': { type: 'secondary' },
-    '5':       { content: '5', type: 'danger' },
-    'new':     { content: 'new', type: 'primary' },
+    'online':  { content: undefined, type: 'success' },
+    'away':    { content: undefined, type: 'warning' },
+    'offline': { content: undefined, type: 'secondary' },
+    '5':       { content: '5',       type: 'danger' },
+    'new':     { content: 'new',     type: 'primary' },
 };
 
 // ── Props definition ──────────────────────────────────────────────────────────
@@ -48,7 +48,7 @@ const AVATAR_PROPS: PropDef[] = [
     { name: 'width',     type: 'number',                    group: 'Dimensions', description: 'Avatar width in pixels. When only width is set, height equals width.',       control: 'number', min: 24, max: 160 },
     { name: 'height',    type: 'number',                    group: 'Dimensions', description: 'Avatar height in pixels — set only when the avatar is not square.',           control: 'number', min: 24, max: 160 },
     { name: 'fit',       type: '"cover" | "contain" | "fill" | "scale-down" | "none"', group: 'Dimensions', description: 'CSS object-fit. cover (default) crops to fill the box without distortion.', control: 'select', options: ['cover', 'contain', 'fill', 'scale-down', 'none'] },
-    { name: 'badge',     type: 'BadgeProps',                group: 'Badge',      description: 'Badge rendered as overlay at the bottom-right of the avatar. Accepts a string, ReactNode, or { content, type } descriptor. Omit content for a status dot.', control: 'select', options: ['', 'online', 'away', 'offline', '5', 'new'] },
+    { name: 'badge',     type: 'BadgeDescriptor',                group: 'Badge',      description: 'Badge rendered as overlay at the bottom-right of the avatar. Accepts a string, ReactNode, or { content, type } descriptor. Omit content for a status dot.', control: 'select', options: ['', 'online', 'away', 'offline', '5', 'new'] },
     { name: 'feedback',  type: 'ReactNode',                 group: 'Slots',      description: 'Content rendered below the avatar — useful for labels or captions.',         control: 'text' },
     { name: 'pre',       type: 'ReactNode',                 group: 'Slots',      description: 'Content rendered to the left of the avatar.',                                control: 'text' },
     { name: 'post',      type: 'ReactNode',                 group: 'Slots',      description: 'Content rendered to the right of the avatar — ideal for name and role.',    control: 'text' },
@@ -167,15 +167,15 @@ export default function ImageAvatarPage() {
                 preview={
                     <div className="flex flex-wrap items-end gap-8">
                         <div className="flex flex-col items-center gap-2">
-                            <ImageAvatar src={AVATARS.ada}   title="Online"  width={64} className="rounded-full border" badge={{ type: 'success' }} />
+                            <ImageAvatar src={AVATARS.ada}   title="Online"  width={64} className="rounded-full border" badge={{ content: undefined, type: 'success' }} />
                             <span className="text-xs text-muted-foreground">online dot</span>
                         </div>
                         <div className="flex flex-col items-center gap-2">
-                            <ImageAvatar src={AVATARS.bob}   title="Away"    width={64} className="rounded-full border" badge={{ type: 'warning' }} />
+                            <ImageAvatar src={AVATARS.bob}   title="Away"    width={64} className="rounded-full border" badge={{ content: undefined, type: 'warning' }} />
                             <span className="text-xs text-muted-foreground">away dot</span>
                         </div>
                         <div className="flex flex-col items-center gap-2">
-                            <ImageAvatar src={AVATARS.carol} title="Offline" width={64} className="rounded-full border" badge={{ type: 'secondary' }} />
+                            <ImageAvatar src={AVATARS.carol} title="Offline" width={64} className="rounded-full border" badge={{ content: undefined, type: 'secondary' }} />
                             <span className="text-xs text-muted-foreground">offline dot</span>
                         </div>
                         <div className="flex flex-col items-center gap-2">
@@ -192,7 +192,7 @@ export default function ImageAvatarPage() {
 
 // status dot — omit content, only type
 <ImageAvatar src={url} title="Ada" width={64} className="rounded-full border"
-    badge={{ type: 'success' }} />
+    badge={{ content: undefined, type: 'success' }} />
 
 // counter
 <ImageAvatar src={url} title="Diana" width={64} className="rounded-full border"
@@ -238,7 +238,7 @@ export default function ImageAvatarPage() {
     title="Ada Lovelace"
     width={44}
     className="rounded-full border"
-    badge={{ type: 'success' }}
+    badge={{ content: undefined, type: 'success' }}
     post={
         <div className="flex flex-col gap-0.5">
             <span className="font-medium text-sm">Ada Lovelace</span>
