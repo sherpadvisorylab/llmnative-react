@@ -20,7 +20,6 @@ interface ImageAvatarProps extends UIProps {
     fit?: AvatarFit;
     badge?: BadgeProps;
     feedback?: React.ReactNode;
-    cacheKey?: string;
 }
 
 const ImageAvatar = ({
@@ -32,7 +31,6 @@ const ImageAvatar = ({
     fit        = 'cover',
     badge      = undefined,
     feedback   = undefined,
-    cacheKey   = undefined,
     pre        = undefined,
     post       = undefined,
     wrapClass  = undefined,
@@ -49,8 +47,9 @@ const ImageAvatar = ({
     const [hovered, setHovered] = useState(false);
     const hoverStyle = useMotionState(hovered, hoverRef, false);
 
-    const storageKey = `avatar::${cacheKey || src}`;
-    const failedStorageKey = `avatar-fetch-failed::${cacheKey || src}`;
+    const cacheKey = src ? src.split('?')[0] : src;
+    const storageKey = `avatar::${cacheKey}`;
+    const failedStorageKey = `avatar-fetch-failed::${cacheKey}`;
     const resolvedAlt = alt || title || path.filename(src || PLACEHOLDER_USER);
 
     useEffect(() => {

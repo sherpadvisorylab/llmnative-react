@@ -45,7 +45,6 @@ const AVATAR_PROPS: PropDef[] = [
     { name: 'src',       type: 'string',    required: true, group: 'Core',       description: 'Avatar image URL or data URI. Empty string shows the placeholder.',          control: 'select', options: ['ada', 'bob', 'carol', 'diana', 'evan', 'photo', 'empty'] },
     { name: 'title',     type: 'string',                    group: 'Core',       description: 'Tooltip and accessible name fallback when alt is not set.',                   control: 'text' },
     { name: 'alt',       type: 'string',                    group: 'Core',       description: 'Alt text for screen readers — defaults to title or filename.',                control: 'text' },
-    { name: 'cacheKey',  type: 'string',                    group: 'Core',       description: 'Stable cache key for localStorage. Use when src is a signed URL that changes on every request but refers to the same image (e.g. AWS S3 pre-signed URLs).', control: 'text', help: 'Default: the src URL itself. Override with a stable ID (e.g. "user-42") so the cached base64 survives URL rotation.' },
     { name: 'width',     type: 'number',                    group: 'Dimensions', description: 'Avatar width in pixels. When only width is set, height equals width.',       control: 'number', min: 24, max: 160 },
     { name: 'height',    type: 'number',                    group: 'Dimensions', description: 'Avatar height in pixels — set only when the avatar is not square.',           control: 'number', min: 24, max: 160 },
     { name: 'fit',       type: '"cover" | "contain" | "fill" | "scale-down" | "none"', group: 'Dimensions', description: 'CSS object-fit. cover (default) crops to fill the box without distortion.', control: 'select', options: ['cover', 'contain', 'fill', 'scale-down', 'none'] },
@@ -65,7 +64,6 @@ const PLAYGROUND: PlaygroundConfig = {
         src:       'ada',
         title:     'Ada Lovelace',
         alt:       'Ada Lovelace',
-        cacheKey:  '',
         width:     72,
         height:    72,
         fit:       'cover',
@@ -81,7 +79,6 @@ const PLAYGROUND: PlaygroundConfig = {
             src={AVATARS[p.src as keyof typeof AVATARS] ?? p.src}
             title={p.title  || undefined}
             alt={p.alt      || undefined}
-            cacheKey={p.cacheKey || undefined}
             width={Number(p.width)  || undefined}
             height={Number(p.height) || undefined}
             fit={p.fit      || undefined}
@@ -279,31 +276,24 @@ export default function ImageAvatarPage() {
             {/* ── Caching ── */}
             <Section
                 title="Caching — localStorage"
-                description="When src is a remote URL, ImageAvatar fetches it once, converts it to base64 and stores it in localStorage. All subsequent renders load instantly from cache, including offline. The default cache key is the src URL itself — use cacheKey to pin a stable identifier when src is a signed URL that rotates on every request."
+                description="When src is a remote URL, ImageAvatar fetches it once, converts it to base64 and stores it in localStorage. All subsequent renders load instantly, including offline. The query string is stripped automatically from the cache key — so signed URLs (AWS S3, GCS) that rotate the signature on every request still hit the same cache entry."
                 preview={
                     <div className="rounded-lg border bg-muted p-4 text-sm font-mono space-y-1 text-foreground">
                         <div><span className="text-muted-foreground select-none">// first render</span></div>
-                        <div>fetch(<span className="text-primary">'https://cdn.example.com/avatars/42.jpg'</span>)</div>
-                        <div>localStorage.setItem(<span className="text-primary">'avatar::https://cdn…'</span>, base64)</div>
-                        <div className="pt-2"><span className="text-muted-foreground select-none">// subsequent renders — instant, works offline</span></div>
-                        <div>localStorage.getItem(<span className="text-primary">'avatar::https://cdn…'</span>)</div>
-                        <div className="pt-2"><span className="text-muted-foreground select-none">// signed URL rotates — pin cacheKey to a stable id</span></div>
-                        <div>{'<'}ImageAvatar src=<span className="text-warning">{'{signedUrl}'}</span> cacheKey=<span className="text-primary">"user-42"</span> {'/>'}</div>
+                        <div>fetch(<span className="text-primary">'https://cdn.example.com/avatars/42.jpg?sig=abc'</span>)</div>
+                        <div>localStorage.setItem(<span className="text-primary">'avatar::https://cdn.example.com/avatars/42.jpg'</span>, base64)</div>
+                        <div className="pt-2"><span className="text-muted-foreground select-none">// next render — different signature, same cache hit</span></div>
+                        <div>fetch(<span className="text-primary">'https://cdn.example.com/avatars/42.jpg?sig=xyz'</span>)</div>
+                        <div>localStorage.getItem(<span className="text-primary">'avatar::https://cdn.example.com/avatars/42.jpg'</span>) <span className="text-success">✓</span></div>
                     </div>
                 }
                 code={`import { ImageAvatar } from 'react-firestrap';
 
-// Standard — cacheKey derived from src automatically
+// Remote URL — fetched once, cached as base64, served instantly thereafter
 <ImageAvatar src="https://cdn.example.com/avatars/42.jpg" title="Ada" width={48} className="rounded-full" />
 
-// Signed URL — pin cacheKey so the cache survives URL rotation
-<ImageAvatar
-    src={signedUrl}
-    cacheKey="user-42"
-    title="Ada"
-    width={48}
-    className="rounded-full"
-/>`}
+// Signed URL — query string is stripped internally, cache key stays stable
+<ImageAvatar src={signedUrl} title="Ada" width={48} className="rounded-full" />`}
             />
 
             <PropsTable props={AVATAR_PROPS} />
