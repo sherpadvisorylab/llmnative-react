@@ -13,8 +13,8 @@ function makeAvatar(initials: string, bg: string, fg = 'white') {
     return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 }
 
-function makePhotoAvatar(bg: string, accent: string) {
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160"><rect width="160" height="160" rx="80" fill="${bg}"/><circle cx="80" cy="62" r="30" fill="${accent}"/><path d="M30 148 C30 110 130 110 130 148" fill="${accent}"/></svg>`;
+function makePhotoAvatar(bg: string, skin: string, hair: string) {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160"><rect width="160" height="160" fill="${bg}"/><circle cx="80" cy="58" r="32" fill="${skin}"/><ellipse cx="80" cy="58" rx="20" ry="16" fill="${hair}"/><ellipse cx="80" cy="42" rx="32" ry="22" fill="${hair}"/><path d="M28 160 C28 108 132 108 132 160Z" fill="${skin}"/></svg>`;
     return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 }
 
@@ -23,64 +23,77 @@ const AVATARS = {
     bob:   makeAvatar('BC', '#059669'),
     carol: makeAvatar('CW', '#7c3aed'),
     diana: makeAvatar('DK', '#dc2626'),
-    photo: makePhotoAvatar('#0f172a', '#94a3b8'),
+    evan:  makeAvatar('EF', '#d97706'),
+    photo: makePhotoAvatar('#dbeafe', '#fcd5b0', '#92400e'),
     empty: '',
+};
+
+// ── Badge presets for playground ──────────────────────────────────────────────
+
+const BADGE_PRESETS: Record<string, any> = {
+    '':        undefined,
+    'online':  { type: 'success' },
+    'away':    { type: 'warning' },
+    'offline': { type: 'secondary' },
+    '5':       { content: '5', type: 'danger' },
+    'new':     { content: 'new', type: 'primary' },
 };
 
 // ── Props definition ──────────────────────────────────────────────────────────
 
 const AVATAR_PROPS: PropDef[] = [
-    { name: 'src', type: 'string', required: true, group: 'Core', description: 'Avatar image URL, data URI, or empty string to show placeholder', control: 'select', options: ['ada', 'bob', 'carol', 'diana', 'photo', 'empty'] },
-    { name: 'title', type: 'string', group: 'Core', description: 'Tooltip text and accessible name when alt is not provided', control: 'text' },
-    { name: 'alt', type: 'string', group: 'Core', description: 'Alt text for screen readers — falls back to title or filename', control: 'text' },
-    { name: 'cacheKey', type: 'string', group: 'Core', description: 'Explicit localStorage cache key — useful when src is a signed URL that changes on each request', control: 'text' },
-    { name: 'width', type: 'number', group: 'Dimensions', description: 'Avatar width in pixels', control: 'number', min: 24, max: 160 },
-    { name: 'height', type: 'number', group: 'Dimensions', description: 'Avatar height in pixels — defaults to width when omitted', control: 'number', min: 24, max: 160 },
-    { name: 'fit', type: '"cover" | "contain" | "fill" | "scale-down" | "none"', group: 'Dimensions', description: 'CSS object-fit — cover crops to fill the box (default)', control: 'select', options: ['cover', 'contain', 'fill', 'scale-down', 'none'] },
-    { name: 'feedback', type: 'ReactNode', group: 'Slots', description: 'Content rendered below the avatar — useful for status indicators or labels', control: 'text' },
-    { name: 'pre', type: 'ReactNode', group: 'Slots', description: 'Content rendered to the left of the avatar', control: 'text' },
-    { name: 'post', type: 'ReactNode', group: 'Slots', description: 'Content rendered to the right of the avatar — ideal for name and role', control: 'text' },
-    { name: 'className', type: 'string', group: 'Styling', description: 'CSS classes applied to the img element', control: 'text' },
-    { name: 'wrapClass', type: 'string', group: 'Styling', description: 'CSS classes applied to the outer wrapper', control: 'text' },
+    { name: 'src',       type: 'string',    required: true, group: 'Core',       description: 'Avatar image URL or data URI. Empty string shows the placeholder.',          control: 'select', options: ['ada', 'bob', 'carol', 'diana', 'evan', 'photo', 'empty'] },
+    { name: 'title',     type: 'string',                    group: 'Core',       description: 'Tooltip and accessible name fallback when alt is not set.',                   control: 'text' },
+    { name: 'alt',       type: 'string',                    group: 'Core',       description: 'Alt text for screen readers — defaults to title or filename.',                control: 'text' },
+    { name: 'cacheKey',  type: 'string',                    group: 'Core',       description: 'Stable cache key for localStorage. Use when src is a signed URL that changes on every request but refers to the same image (e.g. AWS S3 pre-signed URLs).', control: 'text', help: 'Default: the src URL itself. Override with a stable ID (e.g. "user-42") so the cached base64 survives URL rotation.' },
+    { name: 'width',     type: 'number',                    group: 'Dimensions', description: 'Avatar width in pixels. When only width is set, height equals width.',       control: 'number', min: 24, max: 160 },
+    { name: 'height',    type: 'number',                    group: 'Dimensions', description: 'Avatar height in pixels — set only when the avatar is not square.',           control: 'number', min: 24, max: 160 },
+    { name: 'fit',       type: '"cover" | "contain" | "fill" | "scale-down" | "none"', group: 'Dimensions', description: 'CSS object-fit. cover (default) crops to fill the box without distortion.', control: 'select', options: ['cover', 'contain', 'fill', 'scale-down', 'none'] },
+    { name: 'badge',     type: 'BadgeProps',                group: 'Badge',      description: 'Badge rendered as overlay at the bottom-right of the avatar. Accepts a string, ReactNode, or { content, type } descriptor. Omit content for a status dot.', control: 'select', options: ['', 'online', 'away', 'offline', '5', 'new'] },
+    { name: 'feedback',  type: 'ReactNode',                 group: 'Slots',      description: 'Content rendered below the avatar — useful for labels or captions.',         control: 'text' },
+    { name: 'pre',       type: 'ReactNode',                 group: 'Slots',      description: 'Content rendered to the left of the avatar.',                                control: 'text' },
+    { name: 'post',      type: 'ReactNode',                 group: 'Slots',      description: 'Content rendered to the right of the avatar — ideal for name and role.',    control: 'text' },
+    { name: 'className', type: 'string',                    group: 'Styling',    description: 'CSS classes applied to the img element.',                                    control: 'text' },
+    { name: 'wrapClass', type: 'string',                    group: 'Styling',    description: 'CSS classes applied to the outer wrapper.',                                  control: 'text' },
 ];
 
-const SRC_MAP: Record<string, string> = AVATARS;
+// ── Playground ────────────────────────────────────────────────────────────────
 
 const PLAYGROUND: PlaygroundConfig = {
     props: AVATAR_PROPS,
     defaultProps: {
-        src: 'ada',
-        title: 'Ada Lovelace',
-        alt: 'Ada Lovelace',
-        cacheKey: '',
-        width: 72,
-        height: 72,
-        fit: 'cover',
-        feedback: '',
-        pre: '',
-        post: 'Ada Lovelace',
+        src:       'ada',
+        title:     'Ada Lovelace',
+        alt:       'Ada Lovelace',
+        cacheKey:  '',
+        width:     72,
+        height:    72,
+        fit:       'cover',
+        badge:     'online',
+        feedback:  '',
+        pre:       '',
+        post:      'Ada Lovelace',
         className: 'rounded-full border-2 border-primary',
         wrapClass: '',
     },
     render: (p) => (
         <ImageAvatar
-            src={SRC_MAP[p.src] ?? p.src}
-            title={p.title || undefined}
-            alt={p.alt || undefined}
+            src={AVATARS[p.src as keyof typeof AVATARS] ?? p.src}
+            title={p.title  || undefined}
+            alt={p.alt      || undefined}
             cacheKey={p.cacheKey || undefined}
-            width={Number(p.width) || undefined}
+            width={Number(p.width)  || undefined}
             height={Number(p.height) || undefined}
-            fit={p.fit || undefined}
+            fit={p.fit      || undefined}
+            badge={BADGE_PRESETS[p.badge] ?? undefined}
             feedback={p.feedback || undefined}
-            pre={p.pre || undefined}
-            post={p.post
-                ? <span className="font-medium text-sm">{p.post}</span>
-                : undefined}
-            className={p.className || undefined}
-            wrapClass={p.wrapClass || undefined}
+            pre={p.pre      || undefined}
+            post={p.post ? <span className="font-medium text-sm">{p.post}</span> : undefined}
+            className={p.className  || undefined}
+            wrapClass={p.wrapClass  || undefined}
         />
     ),
-    size: 'xl',
+    size:   'xl',
     layout: 'split',
 };
 
@@ -92,21 +105,17 @@ export default function ImageAvatarPage() {
     return (
         <PageLayout
             title="ImageAvatar"
-            description="Avatar image with placeholder fallback and automatic localStorage caching — converts remote URLs to base64 once and never fetches again."
+            description="Avatar image with placeholder fallback and automatic localStorage caching — fetches remote URLs once, converts to base64, and serves instantly on every subsequent render."
         >
+            {/* ── Sizes ── */}
             <Section
                 title="Sizes"
-                description="Pass width (and optionally height) to control the avatar size. When only width is set, height defaults to the same value producing a square. fit=cover crops the image to fill the box without distortion."
+                description="Pass width to set the avatar size — height defaults to the same value for a square. fit=cover crops to fill without distortion."
                 preview={
                     <div className="flex flex-wrap items-end gap-6">
                         {([24, 32, 48, 64, 96, 128] as const).map((s) => (
                             <div key={s} className="flex flex-col items-center gap-2">
-                                <ImageAvatar
-                                    src={AVATARS.ada}
-                                    title="Ada Lovelace"
-                                    width={s}
-                                    className="rounded-full border"
-                                />
+                                <ImageAvatar src={AVATARS.ada} title="Ada Lovelace" width={s} className="rounded-full border" />
                                 <span className="text-xs text-muted-foreground font-mono">{s}px</span>
                             </div>
                         ))}
@@ -114,36 +123,29 @@ export default function ImageAvatarPage() {
                 }
                 code={`import { ImageAvatar } from 'react-firestrap';
 
-<ImageAvatar src={avatarUrl} title="Ada Lovelace" width={24} className="rounded-full border" />
-<ImageAvatar src={avatarUrl} title="Ada Lovelace" width={48} className="rounded-full border" />
-<ImageAvatar src={avatarUrl} title="Ada Lovelace" width={96} className="rounded-full border" />`}
+<ImageAvatar src={url} title="Ada" width={32} className="rounded-full border" />
+<ImageAvatar src={url} title="Ada" width={64} className="rounded-full border" />
+<ImageAvatar src={url} title="Ada" width={96} className="rounded-full border" />`}
             />
 
+            {/* ── Shapes ── */}
             <Section
                 title="Shapes"
-                description="className controls the visual shape. rounded-full for circles, rounded-lg for soft squares. Use border and ring utilities to add emphasis."
+                description="className drives the shape. rounded-full for circles, rounded-xl for soft squares. Add border, ring or shadow for visual emphasis."
                 preview={
-                    <div className="flex flex-wrap items-start gap-8">
-                        <div className="flex flex-col items-center gap-2">
-                            <ImageAvatar src={AVATARS.bob} title="Bob Chen" width={72} className="rounded-full border-2 border-primary" />
-                            <span className="text-xs text-muted-foreground">rounded-full</span>
-                        </div>
-                        <div className="flex flex-col items-center gap-2">
-                            <ImageAvatar src={AVATARS.carol} title="Carol Wu" width={72} className="rounded-xl border" />
-                            <span className="text-xs text-muted-foreground">rounded-xl</span>
-                        </div>
-                        <div className="flex flex-col items-center gap-2">
-                            <ImageAvatar src={AVATARS.diana} title="Diana Kim" width={72} className="rounded border" />
-                            <span className="text-xs text-muted-foreground">rounded (square)</span>
-                        </div>
-                        <div className="flex flex-col items-center gap-2">
-                            <ImageAvatar src={AVATARS.ada} title="Ada Lovelace" width={72} className="rounded-full ring-2 ring-primary ring-offset-2" />
-                            <span className="text-xs text-muted-foreground">ring</span>
-                        </div>
-                        <div className="flex flex-col items-center gap-2">
-                            <ImageAvatar src={AVATARS.photo} title="User" width={72} height={96} fit="cover" className="rounded-xl border" />
-                            <span className="text-xs text-muted-foreground">portrait 72×96</span>
-                        </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
+                        {[
+                            { avatar: AVATARS.ada,   label: 'Circle',        cls: 'rounded-full border-2 border-primary' },
+                            { avatar: AVATARS.bob,   label: 'Rounded',       cls: 'rounded-xl border' },
+                            { avatar: AVATARS.carol, label: 'Square',        cls: 'rounded border' },
+                            { avatar: AVATARS.diana, label: 'Ring',          cls: 'rounded-full ring-2 ring-primary ring-offset-2 ring-offset-background' },
+                            { avatar: AVATARS.evan,  label: 'Shadow',        cls: 'rounded-full shadow-lg shadow-primary/30' },
+                        ].map(({ avatar, label, cls }) => (
+                            <div key={label} className="flex flex-col items-center gap-2">
+                                <ImageAvatar src={avatar} title={label} width={72} className={cls} />
+                                <span className="text-xs text-muted-foreground text-center">{label}</span>
+                            </div>
+                        ))}
                     </div>
                 }
                 code={`import { ImageAvatar } from 'react-firestrap';
@@ -157,30 +159,75 @@ export default function ImageAvatarPage() {
 // ring highlight
 <ImageAvatar src={url} title="Carol" width={72} className="rounded-full ring-2 ring-primary ring-offset-2" />
 
-// portrait (different width/height)
-<ImageAvatar src={url} title="User" width={72} height={96} fit="cover" className="rounded-xl border" />`}
+// shadow glow
+<ImageAvatar src={url} title="Diana" width={72} className="rounded-full shadow-lg shadow-primary/30" />`}
             />
 
+            {/* ── Badge overlay ── */}
+            <Section
+                title="Badge overlay"
+                description="The badge prop renders a Badge component as an overlay anchored to the bottom-right corner. Pass { type } for a status dot, or { content, type } for a labelled badge. Accepts any BadgeProps value."
+                preview={
+                    <div className="flex flex-wrap items-end gap-8">
+                        <div className="flex flex-col items-center gap-2">
+                            <ImageAvatar src={AVATARS.ada}   title="Online"  width={64} className="rounded-full border" badge={{ type: 'success' }} />
+                            <span className="text-xs text-muted-foreground">online dot</span>
+                        </div>
+                        <div className="flex flex-col items-center gap-2">
+                            <ImageAvatar src={AVATARS.bob}   title="Away"    width={64} className="rounded-full border" badge={{ type: 'warning' }} />
+                            <span className="text-xs text-muted-foreground">away dot</span>
+                        </div>
+                        <div className="flex flex-col items-center gap-2">
+                            <ImageAvatar src={AVATARS.carol} title="Offline" width={64} className="rounded-full border" badge={{ type: 'secondary' }} />
+                            <span className="text-xs text-muted-foreground">offline dot</span>
+                        </div>
+                        <div className="flex flex-col items-center gap-2">
+                            <ImageAvatar src={AVATARS.diana} title="5 notifiche" width={64} className="rounded-full border" badge={{ content: '5', type: 'danger' }} />
+                            <span className="text-xs text-muted-foreground">counter</span>
+                        </div>
+                        <div className="flex flex-col items-center gap-2">
+                            <ImageAvatar src={AVATARS.evan}  title="New"     width={64} className="rounded-full border" badge={{ content: 'new', type: 'primary' }} />
+                            <span className="text-xs text-muted-foreground">label</span>
+                        </div>
+                    </div>
+                }
+                code={`import { ImageAvatar } from 'react-firestrap';
+
+// status dot — omit content, only type
+<ImageAvatar src={url} title="Ada" width={64} className="rounded-full border"
+    badge={{ type: 'success' }} />
+
+// counter
+<ImageAvatar src={url} title="Diana" width={64} className="rounded-full border"
+    badge={{ content: '5', type: 'danger' }} />
+
+// label
+<ImageAvatar src={url} title="Evan" width={64} className="rounded-full border"
+    badge={{ content: 'new', type: 'primary' }} />`}
+            />
+
+            {/* ── Post slot — user row ── */}
             <Section
                 title="Post slot — user row"
-                description="The post slot renders to the right of the avatar, vertically centred. Use it for name, role, or any metadata. pre renders to the left."
+                description="post renders to the right of the avatar, vertically centred. Use it for name, role, or any metadata. pre renders to the left."
                 preview={
-                    <div className="flex flex-col gap-4 w-full max-w-sm">
+                    <div className="flex flex-col gap-3 w-full max-w-xs">
                         {[
-                            { avatar: AVATARS.ada,   name: 'Ada Lovelace',  role: 'Engineer',       badge: 'badge-primary' },
-                            { avatar: AVATARS.bob,   name: 'Bob Chen',      role: 'Designer',       badge: 'badge-success' },
-                            { avatar: AVATARS.carol, name: 'Carol Wu',      role: 'Product Manager', badge: 'badge-warning' },
-                        ].map(({ avatar, name, role, badge }) => (
+                            { avatar: AVATARS.ada,   name: 'Ada Lovelace',   role: 'Engineer',        type: 'badge-primary',   badge: { type: 'success' } },
+                            { avatar: AVATARS.bob,   name: 'Bob Chen',       role: 'Designer',        type: 'badge-success',   badge: { type: 'warning' } },
+                            { avatar: AVATARS.carol, name: 'Carol Wu',       role: 'Product Manager', type: 'badge-warning',   badge: { type: 'secondary' } },
+                        ].map(({ avatar, name, role, type, badge }) => (
                             <ImageAvatar
                                 key={name}
                                 src={avatar}
                                 title={name}
                                 width={44}
                                 className="rounded-full border"
+                                badge={badge}
                                 post={
                                     <div className="flex flex-col gap-0.5 min-w-0">
                                         <span className="font-medium text-sm truncate">{name}</span>
-                                        <span className={`badge ${badge} text-xs self-start`}>{role}</span>
+                                        <span className={`badge ${type} text-xs self-start`}>{role}</span>
                                     </div>
                                 }
                             />
@@ -190,10 +237,11 @@ export default function ImageAvatarPage() {
                 code={`import { ImageAvatar } from 'react-firestrap';
 
 <ImageAvatar
-    src={avatarUrl}
+    src={url}
     title="Ada Lovelace"
     width={44}
     className="rounded-full border"
+    badge={{ type: 'success' }}
     post={
         <div className="flex flex-col gap-0.5">
             <span className="font-medium text-sm">Ada Lovelace</span>
@@ -203,50 +251,12 @@ export default function ImageAvatarPage() {
 />`}
             />
 
-            <Section
-                title="Feedback — status indicator"
-                description="The feedback slot renders below the avatar image, centred. Use it for online/offline status, a label, or any short inline node."
-                preview={
-                    <div className="flex flex-wrap gap-8">
-                        <ImageAvatar
-                            src={AVATARS.ada}
-                            title="Ada Lovelace"
-                            width={64}
-                            className="rounded-full border-2 border-success"
-                            feedback={<span className="badge badge-success text-xs">online</span>}
-                        />
-                        <ImageAvatar
-                            src={AVATARS.bob}
-                            title="Bob Chen"
-                            width={64}
-                            className="rounded-full border-2 border-muted"
-                            feedback={<span className="badge badge-secondary text-xs">away</span>}
-                        />
-                        <ImageAvatar
-                            src={AVATARS.carol}
-                            title="Carol Wu"
-                            width={64}
-                            className="rounded-full border-2 border-muted"
-                            feedback={<span className="badge badge-light text-xs">offline</span>}
-                        />
-                    </div>
-                }
-                code={`import { ImageAvatar } from 'react-firestrap';
-
-<ImageAvatar
-    src={avatarUrl}
-    title="Ada Lovelace"
-    width={64}
-    className="rounded-full border-2 border-success"
-    feedback={<span className="badge badge-success text-xs">online</span>}
-/>`}
-            />
-
+            {/* ── Placeholder fallback ── */}
             <Section
                 title="Placeholder fallback"
-                description="When src is empty, unreachable, or fails to load, ImageAvatar renders the theme's user placeholder automatically. No broken-image icon is ever shown."
+                description="When src is empty, unreachable, or fails to load, ImageAvatar renders the theme's user placeholder automatically — no broken-image icon is ever shown."
                 preview={
-                    <div className="flex flex-wrap gap-6 items-end">
+                    <div className="flex flex-wrap gap-8">
                         <div className="flex flex-col items-center gap-2">
                             <ImageAvatar src="" title="No src" width={64} className="rounded-full border" />
                             <span className="text-xs text-muted-foreground">src=""</span>
@@ -259,36 +269,37 @@ export default function ImageAvatarPage() {
                 }
                 code={`import { ImageAvatar } from 'react-firestrap';
 
-// empty src → placeholder
+// empty src → theme placeholder
 <ImageAvatar src="" title="No image" width={64} className="rounded-full border" />
 
-// broken URL → onError fires → placeholder
+// broken URL → onError → theme placeholder
 <ImageAvatar src="https://broken.invalid/avatar.jpg" title="User" width={64} className="rounded-full border" />`}
             />
 
+            {/* ── Caching ── */}
             <Section
                 title="Caching — localStorage"
-                description="When src is a remote URL, ImageAvatar fetches it once, converts it to a base64 data URI, and stores it in localStorage under the key avatar::{src}. Subsequent renders are instant and work offline. Use cacheKey when src is a signed URL that changes on each request but refers to the same image."
+                description="When src is a remote URL, ImageAvatar fetches it once, converts it to base64 and stores it in localStorage. All subsequent renders load instantly from cache, including offline. The default cache key is the src URL itself — use cacheKey to pin a stable identifier when src is a signed URL that rotates on every request."
                 preview={
-                    <div className="rounded-lg border bg-muted p-4 text-sm font-mono space-y-1">
-                        <div><span className="text-muted-foreground">// first render</span></div>
-                        <div>fetch(<span className="text-primary">'https://cdn.example.com/avatars/123.jpg'</span>)</div>
+                    <div className="rounded-lg border bg-muted p-4 text-sm font-mono space-y-1 text-foreground">
+                        <div><span className="text-muted-foreground select-none">// first render</span></div>
+                        <div>fetch(<span className="text-primary">'https://cdn.example.com/avatars/42.jpg'</span>)</div>
                         <div>localStorage.setItem(<span className="text-primary">'avatar::https://cdn…'</span>, base64)</div>
-                        <div className="pt-1"><span className="text-muted-foreground">// subsequent renders (same session or later)</span></div>
-                        <div>localStorage.getItem(<span className="text-primary">'avatar::https://cdn…'</span>) <span className="text-success">// instant</span></div>
-                        <div className="pt-1"><span className="text-muted-foreground">// signed URLs — use cacheKey to decouple key from URL</span></div>
-                        <div>{'<'}ImageAvatar src=<span className="text-primary">{'{signedUrl}'}</span> cacheKey=<span className="text-primary">"user-123"</span> {'/>'}</div>
+                        <div className="pt-2"><span className="text-muted-foreground select-none">// subsequent renders — instant, works offline</span></div>
+                        <div>localStorage.getItem(<span className="text-primary">'avatar::https://cdn…'</span>)</div>
+                        <div className="pt-2"><span className="text-muted-foreground select-none">// signed URL rotates — pin cacheKey to a stable id</span></div>
+                        <div>{'<'}ImageAvatar src=<span className="text-warning">{'{signedUrl}'}</span> cacheKey=<span className="text-primary">"user-42"</span> {'/>'}</div>
                     </div>
                 }
                 code={`import { ImageAvatar } from 'react-firestrap';
 
 // Standard — cacheKey derived from src automatically
-<ImageAvatar src="https://cdn.example.com/avatars/123.jpg" title="Ada" width={48} className="rounded-full" />
+<ImageAvatar src="https://cdn.example.com/avatars/42.jpg" title="Ada" width={48} className="rounded-full" />
 
-// Signed URLs change on each request — pin cacheKey to a stable identifier
+// Signed URL — pin cacheKey so the cache survives URL rotation
 <ImageAvatar
     src={signedUrl}
-    cacheKey="user-123"
+    cacheKey="user-42"
     title="Ada"
     width={48}
     className="rounded-full"
