@@ -38,7 +38,7 @@ Interactive prompts:
   project name
   data provider: firebase | supabase | mock | custom
   icon provider: lucide | phosphor
-  theme preset: default | flat | cyber
+  theme: default | flat | cyber
   provider credentials for Firebase or Supabase
 
 Options:
@@ -47,7 +47,7 @@ Options:
   --name=<name>
   --provider=<firebase|supabase|mock|custom>
   --icon-provider=<lucide|phosphor>
-  --theme-provider=<default|flat|cyber>
+  --theme=<default|flat|cyber>
   --hosting=<site|n>
   --firebase-api-key=<value>
   --firebase-auth-domain=<value>
@@ -62,9 +62,9 @@ Options:
   --supabase-anon-key=<value>
 
 Generated env:
-  VITE_DATA_PROVIDER
+  VITE_PROVIDER
   VITE_ICON_PROVIDER
-  VITE_THEME_PROVIDER
+  VITE_THEME
   VITE_FIREBASE_*
   VITE_GOOGLE_CLIENT_ID
   VITE_SUPABASE_URL

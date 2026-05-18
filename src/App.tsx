@@ -82,13 +82,12 @@ export type AppProps = {
     tenantsURI?: string;
     proxyURI?: string;
     importPage: (pagesPath: string) => Promise<{ default: React.ComponentType }>;
-    importTheme?: () => Promise<{ theme: object }>;
     LayoutDefault?: React.ComponentType;
     menuConfig: MenuConfig;
     providers?: AppProvidersConfig;
     /** Icon provider registry config. String shorthand selects the default provider id. */
     iconProvider?: AppIconProviderConfig;
-    /** Theme registry config. String shorthand selects the default preset id. */
+    /** Theme registry config. String shorthand selects the active theme id. */
     themeProvider?: AppThemeProviderConfig;
     children?: React.ReactNode;
 };
@@ -172,7 +171,6 @@ export const getContextMenu = (): string[] => {
 
 function App({
                  importPage,
-                 importTheme        = undefined,
                  LayoutDefault      = undefined,
                  aiConfig           = undefined,
                  scrapeConfig       = undefined,
@@ -270,7 +268,7 @@ function App({
                     <MaybeEmailProvider registry={emailRegistry.registry} defaultKey={emailRegistry.defaultKey}>
                     <IconProvider config={iconProvider}>
                     <HeadProvider appName={appName}>
-                    <ThemeProvider importTheme={importTheme} config={themeProvider}>
+                    <ThemeProvider config={themeProvider}>
                         {children}
                         <Routes>
                             <Route path={AUTH_REDIRECT_URI} element={<Authorize />}></Route>

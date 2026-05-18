@@ -69,7 +69,7 @@ interface AppProps {
 
   /**
    * Theme provider. Built-in ids: 'default' | 'flat' | 'cyber'.
-   * Also accepts a config object with custom self-contained themes and themeOverride.
+   * Also accepts a direct ThemeDefinition or a config object with custom self-contained themes and themeOverride.
    * Default: 'default'. See Theme system for details.
    */
   themeProvider?: AppThemeProviderConfig;
@@ -212,13 +212,23 @@ providers={{
 
 **Mixed backends â€” different service per backend:**
 ```tsx
+const provider = import.meta.env.VITE_PROVIDER ?? 'mock';
+const dataDriver =
+  provider === 'firebase' ? 'dbRealtime'
+    : provider === 'supabase' ? 'supabaseDb'
+      : 'mock';
+const storageDriver =
+  provider === 'firebase' ? 'firestorage'
+    : provider === 'supabase' ? 'supabaseStorage'
+      : undefined;
+
 providers={{
   firebase: { /* ... */ },
   supabase: { url: '...', anonKey: '...' },
   google:   { clientId: '...' },
   services: {
-    data:    import.meta.env.VITE_DATA_PROVIDER ?? 'mock',  // 'mock' | 'dbRealtime' | 'supabaseDb'
-    storage: 'firestorage',
+    data:    dataDriver,
+    storage: storageDriver,
     auth:    'googleAuth',
   },
 }}
@@ -400,21 +410,31 @@ import type { AppProvidersConfig } from 'react-firestrap';
 import { firebaseConfig } from './firebase';
 import { supabaseConfig } from './supabase';
 
+const provider = import.meta.env.VITE_PROVIDER ?? 'mock';
+const dataDriver =
+  provider === 'firebase' ? 'dbRealtime'
+    : provider === 'supabase' ? 'supabaseDb'
+      : 'mock';
+const storageDriver =
+  provider === 'firebase' ? 'firestorage'
+    : provider === 'supabase' ? 'supabaseStorage'
+      : undefined;
+
 export const providers: AppProvidersConfig = {
   firebase: firebaseConfig,
   supabase: supabaseConfig,
   google:   { clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID },
   services: {
-    data:    import.meta.env.VITE_DATA_PROVIDER    ?? 'mock',       // 'mock' | 'dbRealtime' | 'supabaseDb'
-    storage: import.meta.env.VITE_STORAGE_PROVIDER ?? 'firestorage', // 'firestorage' | 'supabaseStorage'
-    auth:    import.meta.env.VITE_AUTH_PROVIDER     ?? 'googleAuth',
+    data:    dataDriver,    // 'mock' | 'dbRealtime' | 'supabaseDb'
+    storage: storageDriver, // 'firestorage' | 'supabaseStorage' | undefined
+    auth:    'googleAuth',
   },
 };
 ```
 
 ```
 # .env.local  â€” never commit this file
-VITE_DATA_PROVIDER=firebase
+VITE_PROVIDER=firebase
 VITE_FIREBASE_API_KEY=AIzaSy...
 VITE_FIREBASE_PROJECT_ID=my-project
 # â€¦ other keys

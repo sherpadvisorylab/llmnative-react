@@ -205,4 +205,4 @@ Typical first steps after `npx react-firestrap create`:
 1. **Fill in credentials** â€” open `.env` and add your Firebase / Supabase keys if you chose a real provider.
 2. **Edit the menu** â€” open `src/conf/menu.ts` and add or replace routes for your app.
 3. **Add a page** â€” create `src/pages/my-feature/MyFeaturePage.tsx`, add the route to `conf/menu.ts`, and use `<Grid>` or `<Form>` to connect to your data.
-4. **Adjust the theme** — change `VITE_THEME` in `.env` to switch built-in themes, or register a full `ThemeDefinition` with `themeProvider.themes`. Use `themeOverride` only for small app-local patches. See [Theme system](/docs/theme).
+4. **Adjust the theme** — change `VITE_THEME` in `.env` to switch built-in themes, pass a direct `ThemeDefinition`, or register named custom themes with `themeProvider.themes`. Use `themeOverride` only for small app-local patches. See [Theme system](/docs/theme).

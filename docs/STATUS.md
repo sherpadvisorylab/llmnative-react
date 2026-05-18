@@ -1,7 +1,7 @@
 # Project status
 
 > Snapshot verificato contro la codebase, non contro il piano storico.
-> Ultima revisione: 2026-05-12
+> Ultima revisione: 2026-05-18
 
 ---
 
@@ -16,10 +16,10 @@
 | Provider registries | `<App>` usa il **driver manifest** (`src/providers/manifest.ts`): ogni provider dichiara i propri driver con nome univoco e categoria. `services` seleziona driver per nome (`dbRealtime`, `firestorage`, `googleAuth`, `dropboxAuth`, `gmail`, ecc.). Loop generico in `resolveProviderRegistries` — zero if per provider. `gmail` non è più un campo separato ma un driver di `google`; `dropboxAuth` è un driver auth di `dropbox`. | Data/Auth hanno fallback automatico; Storage/Email sono opzionali. Supabase resta parziale. |
 | Head management | `HeadProvider` e' montato da `<App>` e genera il browser `<head>` via JSX portal. Hook pubblici: `useHead`, `useDocumentHead`, `useSocialHead`, `useLanguageHead`, `usePaginationHead`, `useAssetsHead`, `usePwaHead`, `useSchemaOrgHead`. | Non c'e' SSR/head extraction; e' runtime client-side. |
 | UI library | CSS runtime Tailwind v4 con compatibility layer Bootstrap-like. `src/globals.css` viene importato dal barrel pubblico. Tutte le classi Bootstrap utility (`d-flex`, `position-*`, `ps-`, `me-`, ecc.) rimosse dal JSX — sostituiti con Tailwind nativo equivalente (CR-022). | Non e' una migrazione shadcn component-by-component. Rimane da fare visual regression profonda. |
-| Theme/Icon | Preset tema e icon registry sono gestiti da `<App>`. Hook pubblici: `useThemeController`, `useIconController`. Preset `default`, `flat`, `cyber` estratti da `src/Theme.tsx` in `themes/*.ts`. | Nessun gap strutturale residuo. Visual regression profonda non ancora fatta. |
+| Theme/Icon | Theme registry e icon registry sono gestiti da `<App>`. Hook pubblici: `useThemeController`, `useIconController`. Temi `default`, `flat`, `cyber` estratti da `src/Theme.tsx` in `themes/*.ts`; `ThemeDefinition` usa `components` per le classi/component config. | Nessun gap strutturale residuo. Visual regression profonda non ancora fatta. |
 | TypeScript | `strict: true`; `npm run build` genera build e declarations. | Alcuni tipi pubblici usano ancora `any` e pattern legacy; audit in CR-014. |
 | Docs Markdown | Docs in `docs/` con frontmatter sono caricate nello showcase via `import.meta.glob` e `MarkdownReader`. | Le pagine operative (`STATUS`, `ROADMAP`, `CHANGE_REQUESTS`) restano documenti maintainer e non sidebar showcase. |
-| Tests | Vitest configurato. Passano 17 file / 130 test: libs, MockDataProvider contract, App, theme/icon, storage context, auth button, DropboxAuthProvider, manifest, Form/Grid/Input/Select/Upload/Repeat/MarkdownReader. | Mancano integration test Firebase/Supabase, test Prompt, storage concrete/browser OAuth/email tests, Playwright E2E e CI. |
+| Tests | Vitest configurato. Passano 24 file / 156 test: libs, MockDataProvider contract, App, theme/icon, storage context, auth button, DropboxAuthProvider, manifest, Form/Grid/Input/Select/Upload/Repeat/MarkdownReader. | Mancano integration test Firebase/Supabase, test Prompt, storage concrete/browser OAuth/email tests, Playwright E2E e CI. |
 | Build libreria | `npm run build` passa. Output verificato: `dist/index.js`, `dist/index.mjs`, `dist/index.css`, `dist/types`. | Il log Vite mostra `style.css`, poi plugin Vite rinomina a `index.css` in `closeBundle`. |
 | CLI scaffolding | CLI Vite-first aggiornato (CR-021). Domande separate per `theme` (default/flat/cyber) e `template` (blank/crm/admin/inventory/project). 5 template autonomi in `templates/`. | Verifica di build del progetto generato non ancora inclusa nei test automatici. |
 | Showcase app | `clients/showcase` e' un consumer Vite reale basato su `<App>`, `menuConfig`, layout custom e `providers.mock`. Pagine componenti principali presenti. | Molte route provider/example sono ancora stub. Deploy pubblico e smoke E2E assenti. |
@@ -43,7 +43,7 @@
 | CR-018 | Done | `MarkdownReader` pubblico presente, testato. |
 | CR-019 | Done | Showcase docs alimentate da Markdown con frontmatter. |
 | CR-020 | Done | Head management e provider config dichiarativa allineati in codebase, docs e scaffold. |
-| CR-021 | Done | Separazione tema/template. 5 template in `templates/`. Preset estratti in `themes/*.ts`. CLI e docs aggiornati. |
+| CR-021 | Done | Separazione tema/template. 5 template in `templates/`. Temi visuali estratti in `themes/*.ts`. CLI e docs aggiornati. |
 | CR-022 | Done | Bootstrap utility cleanup. Tutte le classi `d-flex`, `position-*`, `ps-`, `me-`, ecc. rimosse dal JSX e sostituite con Tailwind nativo. |
 | CR-023 | Done | Driver manifest + service registry. `src/providers/manifest.ts` creato. `resolveProviderRegistries` riscritto con loop generico. Nomi driver espliciti (`dbRealtime`, `firestorage`, `googleAuth`, `dropboxAuth`, `gmail`). |
 
@@ -55,11 +55,17 @@
 |----|-------------|------------|
 | CR-006 | In progress | La suite unit/component esiste e passa. Aggiunti test Upload, Repeat, StorageProviderContext, AuthButton, DropboxAuthProvider e manifest. Mancano integration Firebase/Supabase, Prompt, storage concrete/browser OAuth/email tests, Playwright E2E e CI. |
 | CR-007 | In progress | Showcase builda. Pagine componenti principali presenti con playground interattivo (Badge, Alert, Button, Card, Input, Select, Upload, Form, Grid, Modal, Pagination, Tab, Table, Loader, MarkdownReader). Molte route provider/example ancora stub. |
-| CR-008..CR-011 | Done | Vecchie cartelle `themes/*/src/` rimosse. Preset estratti in `themes/*.ts`. Layout/sections in `templates/`. Completato via CR-021. |
+| CR-008..CR-011 | Done | Vecchie cartelle `themes/*/src/` rimosse. Temi visuali estratti in `themes/*.ts`. Layout/sections in `templates/`. Completato via CR-021. |
 | CR-012 | Todo | Eliminare stub showcase e usare demo native react-firestrap per esempi/provider reali. |
 | CR-014 | In progress | Badge overlay mode, Autocomplete creatable + bug fix disabled, Form onChange + reset fix, Playground layout e JSON accordion completati. Restano audit componenti e fix Grid/Modal/Input. |
 | CR-024 | Todo | WYSIWYG editor `<RichEditor>`. Libreria (Tiptap candidata principale) da valutare all'avvio. |
 | CR-025 | Todo | ContextMenu con slash command e @mention. Dipende da CR-024 per la scelta libreria. |
+| CR-031 | Todo | Estrarre la sidebar dello showcase in `src/components/blocks/Sidebar.tsx`, esporla dal framework e aggiornare showcase/template/docs/test. |
+| CR-032 | Todo | `FirebaseAuthProvider` — auth nativa Firebase (email/password, anonymous, magic link). Driver `firebaseAuth`. |
+| CR-033 | Todo | `FirestoreDataProvider` — Cloud Firestore con query/filtering/sorting/real-time. Driver `firestore`. |
+| CR-034 | Todo | `SupabaseDataProvider` completo — riscrittura stub con `@supabase/supabase-js` v2, real-time via `postgres_changes`, filtri/sorting server-side. |
+| CR-035 | Todo | `SupabaseStorageProvider` completo — riscrittura stub con SDK ufficiale, supporto bucket privati con signed URL. |
+| CR-036 | Todo | `SupabaseAuthProvider` — auth Supabase (email/password, magic link, OAuth, anonymous). Driver `supabaseAuth`. |
 
 ---
 
@@ -71,7 +77,7 @@ src/
   Config.tsx               # RuntimeProvider, tenant config, Firebase/Google/AI/Dropbox config
   Global.tsx               # stato globale localStorage-backed, composto dal runtime provider
   Head.tsx                 # head controller JSX: metadata, document, social, assets, PWA, schema.org
-  Theme.tsx                # ThemeProvider, preset registry, useTheme/useThemeController
+  Theme.tsx                # ThemeProvider, theme registry, useTheme/useThemeController
   components/
     ui/                    # primitivi presentazionali
     ui/fields/             # Input, Select, Upload, Prompt, AssistantAI, UploadCSV
@@ -134,18 +140,21 @@ Route reali principali:
 |------|-------|
 | `src/components/Component.tsx` | Contiene commento `todo` e pattern legacy di model/template. |
 | `src/components/Template.tsx` | Pattern template legacy ancora presente. |
-| `src/components/ui/fields/Select.tsx` | Usa `useDataProvider()` per opzioni `db`, ma mantiene API legacy con `db.srcPath`/`db.path`. |
+| `src/components/ui/fields/Command.tsx` | Prototipo legacy con `contentEditable`/`document.execCommand`; da rimuovere o sostituire in CR-025. |
+| `src/pages/Helper.tsx` | Pagina helper storica con riferimenti Bootstrap ScrollSpy; non e' parte del flusso App/theme moderno. |
+| `src/components/ui/fields/Select.tsx` | Rifattorizzato su `useDataProvider()` e API `db.path`; alias legacy rimosso. |
 | `src/libs/database.ts` / `src/libs/storage.ts` | Re-export/backward compatibility verso provider Firebase. Non sono il percorso raccomandato per nuovi consumer. |
 
 ---
 
 ## Verifica eseguita
 
-Verifica reale eseguita il 2026-05-08:
+Verifica reale eseguita il 2026-05-18:
 
 | Comando | Esito |
 |---------|-------|
-| `npm run test` | Passa: 14 file, 124 test. |
+| `npx vitest run --reporter=dot` | Passa: 24 file, 156 test. |
+| `npx tsc --noEmit` | Passa. |
 | `npm run build` | Passa: Vite library build + declarations. |
 | `cd clients/showcase && npm run build` | Passa: Vite production build. |
 | `node scripts/cli/setup-project.js` via harness temporaneo | Passa: genera scaffold con `VITE_PROVIDER` e nuova `providers` API. |

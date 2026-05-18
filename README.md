@@ -72,10 +72,8 @@ export default function Root() {
   return (
     <App
       providers={{
-        default: 'firebase',
-        firebase: {
-          config: firebaseConfig,
-        },
+        firebase: firebaseConfig,
+        services: { data: 'dbRealtime', storage: 'firestorage' },
       }}
       menuConfig={menuConfig}
       importPage={(path) => import(path)}
@@ -199,10 +197,8 @@ import { App } from 'react-firestrap'
 
 <App
   providers={{
-    default: 'firebase',
-    firebase: {
-      config: firebaseConfig,
-    },
+    firebase: firebaseConfig,
+    services: { data: 'dbRealtime', storage: 'firestorage' },
   }}
 />
 ```
@@ -212,10 +208,8 @@ import { App } from 'react-firestrap'
 ```tsx
 <App
   providers={{
-    default: 'supabase',
-    supabase: {
-      config: supabaseConfig,
-    },
+    supabase: supabaseConfig,
+    services: { data: 'supabaseDb', storage: 'supabaseStorage' },
   }}
 />
 ```
@@ -229,10 +223,10 @@ npx react-firestrap create --provider=mock
 ```tsx
 <App
   providers={{
-    default: 'mock',
     mock: {
       data: mockData,
     },
+    services: { data: 'mock' },
   }}
 />
 ```
@@ -268,9 +262,9 @@ export class RestDataProvider implements DataProviderAdapter {
       oAuth2: googleOAuth2,
     },
     services: {
-      data: 'firebase',
-      storage: 'supabase',
-      auth: 'google',
+      data: 'dbRealtime',
+      storage: 'supabaseStorage',
+      auth: 'googleAuth',
     },
   }}
 />
@@ -298,6 +292,20 @@ Supports: OpenAI, Gemini, Anthropic, DeepSeek, Mistral — configured once via `
 <App
   iconProvider="phosphor"   // lucide (default) | phosphor
   themeProvider="cyber"     // default | flat | cyber
+/>
+```
+
+Custom themes can be passed directly, or registered by name when you want runtime switching:
+
+```tsx
+<App themeProvider={brand} />
+
+<App
+  themeProvider={{
+    theme: 'brand',
+    themes: { brand },
+    themeOverride: { Modal: { size: 'xl' } },
+  }}
 />
 ```
 

@@ -19,7 +19,7 @@ import {
     useSocialHead,
 } from '../../src/Head';
 import { useTheme, useThemeController } from '../../src/Theme';
-import { theme as defaultTheme } from '../../themes/default';
+import { components as defaultComponents, motion as defaultMotion } from '../../themes/default';
 import { useDataProvider } from '../../src/providers/data/DataProviderContext';
 import type { DataProviderAdapter } from '../../src/providers/data/DataProvider';
 import type { IconComponentProps, IconProviderAdapter } from '../../src/providers/icon/IconProvider';
@@ -49,7 +49,7 @@ function ProbePage() {
 
     return (
         <div>
-            <span data-testid="theme-preset">{themeController.preset}</span>
+            <span data-testid="theme-id">{themeController.theme}</span>
             <span data-testid="theme-mode">{themeController.resolvedMode}</span>
             <span data-testid="theme-primary">{themeController.primary}</span>
             <span data-testid="alert-class">{alertTheme.Alert.className}</span>
@@ -209,17 +209,17 @@ describe('App provider orchestration', () => {
 
         expect(screen.getByTestId('icon-provider')).toHaveTextContent('phosphor');
         expect(screen.getByTestId('icon-search')).toHaveTextContent('yes');
-        expect(screen.getByTestId('theme-preset')).toHaveTextContent('cyber');
+        expect(screen.getByTestId('theme-id')).toHaveTextContent('cyber');
         expect(screen.getByTestId('theme-mode')).toHaveTextContent('dark');
         expect(screen.getByTestId('theme-primary')).toHaveTextContent('160 84% 39%');
         expect(screen.getByTestId('data-provider')).toHaveTextContent('single-data');
         expect(document.documentElement).toHaveClass('dark');
     });
 
-    it('passes custom theme presets through App themeProvider config', () => {
+    it('passes custom themes through App themeProvider config', () => {
         renderApp({
             themeProvider: {
-                defaultPreset: 'brand',
+                theme: 'brand',
                 themes: {
                     brand: {
                         preset: {
@@ -227,8 +227,9 @@ describe('App provider orchestration', () => {
                             colors: { primary: '346.8 77.2% 49.8%' },
                             radius: 0.75,
                         },
-                        theme: {
-                            ...defaultTheme,
+                        motion: defaultMotion,
+                        components: {
+                            ...defaultComponents,
                             Alert: { className: 'brand-alert' },
                         },
                     },
@@ -236,11 +237,33 @@ describe('App provider orchestration', () => {
             },
         });
 
-        expect(screen.getByTestId('theme-preset')).toHaveTextContent('brand');
+        expect(screen.getByTestId('theme-id')).toHaveTextContent('brand');
         expect(screen.getByTestId('theme-mode')).toHaveTextContent('light');
         expect(screen.getByTestId('theme-primary')).toHaveTextContent('346.8 77.2% 49.8%');
         expect(screen.getByTestId('alert-class')).toHaveTextContent('brand-alert');
-        expect(document.getElementById('rf-preset-vars')?.textContent).toContain('--radius: 0.75rem');
+        expect(document.getElementById('rf-theme-vars')?.textContent).toContain('--radius: 0.75rem');
+    });
+
+    it('passes a direct ThemeDefinition through App themeProvider', () => {
+        renderApp({
+            themeProvider: {
+                preset: {
+                    mode: 'light',
+                    colors: { primary: '280 80% 50%' },
+                    radius: 0.25,
+                },
+                motion: defaultMotion,
+                components: {
+                    ...defaultComponents,
+                    Alert: { className: 'direct-brand-alert' },
+                },
+            },
+        });
+
+        expect(screen.getByTestId('theme-id')).toHaveTextContent('custom');
+        expect(screen.getByTestId('theme-mode')).toHaveTextContent('light');
+        expect(screen.getByTestId('theme-primary')).toHaveTextContent('280 80% 50%');
+        expect(screen.getByTestId('alert-class')).toHaveTextContent('direct-brand-alert');
     });
 
     it('passes custom icon providers through App iconProvider config', () => {

@@ -7,7 +7,7 @@ interface ThemePanelProps {
     onClose: () => void;
 }
 
-type ThemePreset = 'default' | 'flat' | 'cyber';
+type ThemeId = 'default' | 'flat' | 'cyber';
 type IconLibraryId = 'lucide' | 'phosphor';
 
 interface ColorSwatch {
@@ -25,7 +25,7 @@ const COLOR_SWATCHES: ColorSwatch[] = [
     { label: 'Slate',  value: '215.4 16.3% 46.9%', hex: '#64748b' },
 ];
 
-const PRESETS: { label: string; value: ThemePreset; description: string }[] = [
+const THEMES: { label: string; value: ThemeId; description: string }[] = [
     { label: 'Default', value: 'default', description: 'Clean, rounded, blue primary' },
     { label: 'Flat',    value: 'flat',    description: 'Sharp corners, slate tones' },
     { label: 'Cyber',   value: 'cyber',   description: 'Zero radius, green neon' },
@@ -106,7 +106,7 @@ const FONT_OPTIONS: FontOption[] = [
 ];
 
 export default function ThemePanel({ open, onClose }: ThemePanelProps) {
-    const { resolvedMode, primary, radius, fontSans, preset, colors, toggleMode, setPrimary, setRadius, setFont, applyPreset, setTokens } = useThemeController();
+    const { resolvedMode, primary, radius, fontSans, theme, colors, toggleMode, setPrimary, setRadius, setFont, applyTheme, setTokens } = useThemeController();
     const { providerId, setProvider, registerProvider } = useIconController();
     const [copied, setCopied] = useState(false);
     const iconLibraryId = (providerId === 'phosphor' ? 'phosphor' : 'lucide') as IconLibraryId;
@@ -117,11 +117,11 @@ export default function ThemePanel({ open, onClose }: ThemePanelProps) {
 <App
     iconProvider="${iconLibraryId}"
     themeProvider={{
-        defaultPreset: '${preset}',
+        theme: '${theme}',
         themeOverride: {},
     }}
 />`;
-    }, [iconLibraryId, preset]);
+    }, [iconLibraryId, theme]);
 
     const copyConfiguration = () => {
         navigator.clipboard.writeText(appConfiguration.trim());
@@ -295,22 +295,22 @@ export default function ThemePanel({ open, onClose }: ThemePanelProps) {
                     </div>
                 </div>
 
-                {/* Theme preset */}
+                {/* Theme */}
                 <div>
                     <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 block">
-                        Theme preset
+                        Theme
                     </label>
                     <div className="space-y-2">
-                        {PRESETS.map((p) => (
+                        {THEMES.map((p) => (
                             <button
                                 key={p.value}
-                                onClick={() => applyPreset(p.value)}
+                                onClick={() => applyTheme(p.value)}
                                 className={`w-full text-left px-3 py-2.5 rounded-md border text-sm transition-colors
-                                    ${preset === p.value
+                                    ${theme === p.value
                                         ? 'border-primary bg-primary/10'
                                         : 'border-border hover:bg-accent'}`}
                             >
-                                <span className={`font-medium ${preset === p.value ? 'text-primary' : 'text-foreground'}`}>
+                                <span className={`font-medium ${theme === p.value ? 'text-primary' : 'text-foreground'}`}>
                                     {p.label}
                                 </span>
                                 <span className="block text-xs text-muted-foreground mt-0.5">

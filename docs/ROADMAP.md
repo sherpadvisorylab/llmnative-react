@@ -99,7 +99,7 @@ Obiettivo: far emergere e correggere le incoerenze pubbliche prima della RC.
 Issue gia' censite:
 
 - `Input`: chiarire `type` vs `inputType`.
-- `Select`: completare/documentare `placeholder` e naming `db.path`.
+- `Select`: completare/documentare `placeholder`.
 - `Form`: chiarire la variante bare rispetto ad `aspect`.
 - `Grid`: allineare docs/API su `pagination.limit` vs `pagination.perPage`.
 - `Modal`: verificare props effettivamente esportate.

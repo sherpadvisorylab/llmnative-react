@@ -1,5 +1,5 @@
 import React, {createContext, useContext, useEffect, useMemo, useState, ReactNode} from 'react';
-import _themeDefault, { theme as defaultTheme } from '../themes/default';
+import _themeDefault, { components as defaultComponents } from '../themes/default';
 import _themeFlat from '../themes/flat';
 import _themeCyber from '../themes/cyber';
 import type { MotionReference, MotionRegistry } from './motion';
@@ -8,7 +8,6 @@ type UseTheme = Theme;
 
 interface ThemeProviderProps {
     children: ReactNode;
-    importTheme?: () => Promise<any>;
     config?: AppThemeProviderConfig;
 }
 
@@ -252,6 +251,10 @@ export interface ThemeConfig {
     Image?: {
         wrapClass?: string;
         className?: string;
+        motion?: {
+            enter?: MotionReference;
+            hover?: MotionReference;
+        };
     };
     ImageAvatar?: {
         wrapClass?: string;
@@ -307,22 +310,19 @@ export interface ThemePresetConfig {
 export interface ThemeDefinition {
     preset: ThemePresetConfig;
     motion: MotionRegistry;
-    theme: Theme;
+    components: Theme;
 }
 
 /** IDs of built-in themes. Extend by adding entries to BUILT_IN_THEMES. */
-export const BUILT_IN_PRESET_IDS = ['default', 'flat', 'cyber'] as const;
-export type BuiltInPresetId = (typeof BUILT_IN_PRESET_IDS)[number];
-
-/** Module shape returned by a theme import callback. */
-export type ThemeModule = ThemeDefinition;
+export const BUILT_IN_THEME_IDS = ['default', 'flat', 'cyber'] as const;
+export type BuiltInThemeId = (typeof BUILT_IN_THEME_IDS)[number];
 
 export type AppThemeProviderConfig =
-    | BuiltInPresetId
-    | (() => Promise<ThemeModule>)
+    | BuiltInThemeId
+    | ThemeDefinition
     | {
         defaultMode?: ThemeMode;
-        defaultPreset?: string;
+        theme?: string;
         themes?: Record<string, ThemeDefinition>;
         themeOverride?: ThemeConfig;
     };
@@ -330,7 +330,7 @@ export type AppThemeProviderConfig =
 export interface ThemeController {
     mode: ThemeMode;
     resolvedMode: 'light' | 'dark';
-    preset: string;
+    theme: string;
     primary: string;
     primaryForeground: string;
     radius: number;
@@ -341,7 +341,7 @@ export interface ThemeController {
     themes: Record<string, ThemeDefinition>;
     setMode: (mode: ThemeMode) => void;
     toggleMode: () => void;
-    applyPreset: (preset: string) => void;
+    applyTheme: (theme: string) => void;
     setPrimary: (primary: string) => void;
     setRadius: (radius: number) => void;
     setFont: (fontSans: string, fontMono?: string) => void;
@@ -349,11 +349,11 @@ export interface ThemeController {
     setTokens: (tokens: Partial<ColorScale>) => void;
 }
 
-const ThemeContext = createContext<Theme>(defaultTheme);
+const ThemeContext = createContext<Theme>(defaultComponents);
 const MotionRegistryContext = createContext<MotionRegistry>(_themeDefault.motion);
 const ThemeControllerContext = createContext<ThemeController | null>(null);
 
-export const BUILT_IN_THEMES: Record<BuiltInPresetId, ThemeDefinition> = {
+export const BUILT_IN_THEMES: Record<BuiltInThemeId, ThemeDefinition> = {
     default: _themeDefault,
     flat:    _themeFlat,
     cyber:   _themeCyber,
@@ -378,26 +378,37 @@ const deepMerge = (target: any, source: any) => {
 
 const cloneTheme = (theme: Theme): Theme => deepMerge({}, theme);
 
+function isThemeDefinition(config: unknown): config is ThemeDefinition {
+    return typeof config === 'object'
+        && config !== null
+        && 'preset' in config
+        && 'motion' in config
+        && 'components' in config;
+}
+
 function normalizeThemeProviderConfig(config?: AppThemeProviderConfig): {
     defaultMode?: ThemeMode;
-    defaultPreset: string;
+    theme: string;
     themes: Record<string, ThemeDefinition>;
     themeOverride?: ThemeConfig;
 } {
     if (typeof config === 'string' || typeof config === 'undefined') {
         return {
-            defaultPreset: config ?? 'default',
+            theme: config ?? 'default',
             themes: { ...BUILT_IN_THEMES },
         };
     }
 
-    if (typeof config === 'function') {
-        return { defaultPreset: 'default', themes: { ...BUILT_IN_THEMES } };
+    if (isThemeDefinition(config)) {
+        return {
+            theme: 'custom',
+            themes: { ...BUILT_IN_THEMES, custom: config },
+        };
     }
 
     return {
         defaultMode: config.defaultMode,
-        defaultPreset: config.defaultPreset ?? 'default',
+        theme: config.theme ?? 'default',
         themes: { ...BUILT_IN_THEMES, ...(config.themes ?? {}) },
         themeOverride: config.themeOverride,
     };
@@ -459,10 +470,10 @@ function applyThemeVars({
     }
 
     // Inject/update a single <style> tag — appended to <head> so it wins over the CSS file
-    let el = document.getElementById('rf-preset-vars') as HTMLStyleElement | null;
+    let el = document.getElementById('rf-theme-vars') as HTMLStyleElement | null;
     if (!el) {
         el = document.createElement('style');
-        el.id = 'rf-preset-vars';
+        el.id = 'rf-theme-vars';
         document.head.appendChild(el);
     }
     const toDecls = (map: Record<string, string>) =>
@@ -473,118 +484,97 @@ function applyThemeVars({
     ].filter(Boolean).join('\n');
 }
 
-export const PLACEHOLDER_IMAGE = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0ibm9uZSIvPgogIDxjaXJjbGUgY3g9IjcwIiBjeT0iMzAiIHI9IjEwIiBmaWxsPSIjY2NjIiAvPgogIDxwYXRoIGQ9Ik0yMCw4MCBMNDAuNSw1MCBMNjAsODAgTDgwLDU1IEw5MCw3MCBMOTAsODAgSDEwIEwyMCw4MCBaIiBmaWxsPSIjY2NjIiAvPgo8L3N2Zz4=";
+export const PLACEHOLDER_IMAGE = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InRyYW5zcGFyZW50Ii8+PGNpcmNsZSBjeD0iNjUiIGN5PSIzNSIgcj0iMTAiIGZpbGw9IiM5Y2EzYWYiLz48cGF0aCBkPSJNMTAsNzUgTDMyLDUwIEw1Miw3MCBMNjgsNTIgTDkwLDcyIEw5MCw4MCBIMTAgWiIgZmlsbD0iIzljYTNhZiIvPjwvc3ZnPg==";
 export const PLACEHOLDER_USER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23eef2f7'/%3E%3Ccircle cx='50' cy='38' r='16' fill='%2364758b'/%3E%3Cpath d='M22 84c3.8-20 19-31 28-31s24.2 11 28 31c.5 2.8-1.7 5-4.5 5h-47c-2.8 0-5-2.2-4.5-5z' fill='%2364758b'/%3E%3C/svg%3E";
 export const PLACEHOLDER_BRAND = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMTAwIDEwMCI+PHBhdGggZD0iTTUwIDE1IEw4NSA1MCBMNTAgODUgTDE1IDUwIFoiIGZpbGw9IiNjY2MiIG9wYWNpdHk9IjAuMiIvPjxwYXRoIGQ9Ik01MCAzMCBMNzAgNTAgTDUwIDcwIEwzMCA1MCBaIiBmaWxsPSIjY2NjIi8+PC9zdmc+";
 
 
 export const ThemeProvider = ({
                                                                 children,
-                                                                importTheme = undefined,
                                                                 config = undefined
 }: ThemeProviderProps) => {
-    const importFn: (() => Promise<ThemeModule>) | undefined =
-        typeof config === 'function' ? config : importTheme;
-
     const normalized = useMemo(() => normalizeThemeProviderConfig(config), [config]);
-    const initialDefinition = normalized.themes[normalized.defaultPreset] ?? normalized.themes.default;
-    const initialPreset = initialDefinition.preset;
+    const initialDefinition = normalized.themes[normalized.theme] ?? normalized.themes.default;
+    const initialThemePreset = initialDefinition.preset;
     const [themeRegistry, setThemeRegistry] = useState<Record<string, ThemeDefinition>>(normalized.themes);
-    const [preset, setPreset] = useState(normalized.defaultPreset);
-    const [mode, setMode] = useState<ThemeMode>(normalized.defaultMode ?? initialPreset.mode ?? 'light');
-    const [radius, setRadius] = useState(initialPreset.radius ?? BUILT_IN_THEMES.default.preset.radius!);
-    const [fontSans, setFontSans] = useState(initialPreset.fontSans ?? '');
-    const [fontMono, setFontMono] = useState(initialPreset.fontMono ?? '');
-    const [presetColors, setPresetColors] = useState<ColorScale | undefined>(initialPreset.colors);
-    const [presetDark, setPresetDark] = useState<ColorScale | undefined>(initialPreset.dark);
-    const [theme, setTheme] = useState<Theme>(() => cloneTheme(initialDefinition.theme));
+    const [activeTheme, setActiveTheme] = useState(normalized.theme);
+    const [mode, setMode] = useState<ThemeMode>(normalized.defaultMode ?? initialThemePreset.mode ?? 'light');
+    const [radius, setRadius] = useState(initialThemePreset.radius ?? BUILT_IN_THEMES.default.preset.radius!);
+    const [fontSans, setFontSans] = useState(initialThemePreset.fontSans ?? '');
+    const [fontMono, setFontMono] = useState(initialThemePreset.fontMono ?? '');
+    const [themeColors, setThemeColors] = useState<ColorScale | undefined>(initialThemePreset.colors);
+    const [themeDark, setThemeDark] = useState<ColorScale | undefined>(initialThemePreset.dark);
+    const [theme, setTheme] = useState<Theme>(() => cloneTheme(initialDefinition.components));
     const [motionRegistry, setMotionRegistry] = useState<MotionRegistry>(initialDefinition.motion);
 
     useEffect(() => {
-        const selectedDefinition = normalized.themes[normalized.defaultPreset] ?? normalized.themes.default;
+        const selectedDefinition = normalized.themes[normalized.theme] ?? normalized.themes.default;
         const selectedPreset = selectedDefinition.preset;
         setThemeRegistry(normalized.themes);
-        setPreset(normalized.defaultPreset);
+        setActiveTheme(normalized.theme);
         setMode(normalized.defaultMode ?? selectedPreset.mode ?? 'light');
         setRadius(selectedPreset.radius ?? BUILT_IN_THEMES.default.preset.radius!);
         setFontSans(selectedPreset.fontSans ?? '');
         setFontMono(selectedPreset.fontMono ?? '');
-        setPresetColors(selectedPreset.colors);
-        setPresetDark(selectedPreset.dark);
+        setThemeColors(selectedPreset.colors);
+        setThemeDark(selectedPreset.dark);
         setMotionRegistry(selectedDefinition.motion);
     }, [normalized]);
 
     useEffect(() => {
-        if (!importFn) return;
-        importFn().then((module) => {
-            const importedPreset = '__imported__';
-            const p = module.preset;
-            setThemeRegistry((current) => ({ ...current, [importedPreset]: module }));
-            setPreset(importedPreset);
-            setMode(normalized.defaultMode ?? p.mode ?? 'light');
-            setRadius(p.radius ?? BUILT_IN_THEMES.default.preset.radius!);
-            setFontSans(p.fontSans ?? '');
-            setFontMono(p.fontMono ?? '');
-            setPresetColors(p.colors);
-            setPresetDark(p.dark);
-            setMotionRegistry(module.motion);
-        }).catch((err) => console.warn('Optional theme not found or failed to load.', err));
-    }, [importFn, normalized.defaultMode]);
-
-    useEffect(() => {
-        const currentDefinition = themeRegistry[preset] ?? themeRegistry.default;
-        const nextTheme = cloneTheme(currentDefinition.theme);
+        const currentDefinition = themeRegistry[activeTheme] ?? themeRegistry.default;
+        const nextTheme = cloneTheme(currentDefinition.components);
         deepMerge(nextTheme, normalized.themeOverride ?? {});
         setTheme(nextTheme);
         setMotionRegistry(currentDefinition.motion);
-    }, [normalized.themeOverride, preset, themeRegistry]);
+    }, [activeTheme, normalized.themeOverride, themeRegistry]);
 
     useEffect(() => {
-        const currentPreset = (themeRegistry[preset] ?? themeRegistry.default).preset;
+        const currentPreset = (themeRegistry[activeTheme] ?? themeRegistry.default).preset;
         applyThemeVars({
             mode, radius, fontSans, fontMono,
-            colors: presetColors,
-            dark: presetDark,
+            colors: themeColors,
+            dark: themeDark,
             variables: currentPreset.variables,
         });
-    }, [mode, themeRegistry, preset, radius, fontSans, fontMono, presetColors, presetDark]);
+    }, [mode, themeRegistry, activeTheme, radius, fontSans, fontMono, themeColors, themeDark]);
 
     const controller = useMemo<ThemeController>(() => ({
         mode,
         resolvedMode: resolveMode(mode),
-        preset,
-        primary: presetColors?.primary ?? BUILT_IN_THEMES.default.preset.colors!.primary!,
-        primaryForeground: presetColors?.primaryForeground ?? BUILT_IN_THEMES.default.preset.colors!.primaryForeground!,
+        theme: activeTheme,
+        primary: themeColors?.primary ?? BUILT_IN_THEMES.default.preset.colors!.primary!,
+        primaryForeground: themeColors?.primaryForeground ?? BUILT_IN_THEMES.default.preset.colors!.primaryForeground!,
         radius,
         fontSans,
         fontMono,
-        colors: presetColors,
-        dark: presetDark,
+        colors: themeColors,
+        dark: themeDark,
         themes: themeRegistry,
         setMode,
         toggleMode() {
             setMode((current) => resolveMode(current) === 'dark' ? 'light' : 'dark');
         },
-        applyPreset(nextPreset: string) {
-            const selectedDefinition = themeRegistry[nextPreset];
+        applyTheme(nextTheme: string) {
+            const selectedDefinition = themeRegistry[nextTheme];
             if (!selectedDefinition) {
                 if (process.env.NODE_ENV !== 'production') {
-                    console.warn(`[ThemeProvider] Unknown preset "${nextPreset}", falling back to "default".`);
+                    console.warn(`[ThemeProvider] Unknown theme "${nextTheme}", falling back to "default".`);
                 }
-                nextPreset = 'default';
+                nextTheme = 'default';
             }
-            const resolvedPreset = (themeRegistry[nextPreset] ?? themeRegistry.default).preset;
-            setPreset(nextPreset);
+            const resolvedPreset = (themeRegistry[nextTheme] ?? themeRegistry.default).preset;
+            setActiveTheme(nextTheme);
             setMode(resolvedPreset.mode ?? 'light');
             setRadius(resolvedPreset.radius ?? BUILT_IN_THEMES.default.preset.radius!);
             setFontSans(resolvedPreset.fontSans ?? '');
             setFontMono(resolvedPreset.fontMono ?? '');
-            setPresetColors(resolvedPreset.colors);
-            setPresetDark(resolvedPreset.dark);
+            setThemeColors(resolvedPreset.colors);
+            setThemeDark(resolvedPreset.dark);
         },
         setPrimary(primary: string) {
             const h = primary.split(' ')[0];
-            setPresetColors((current) => ({
+            setThemeColors((current) => ({
                 ...current,
                 primary,
                 ring: primary,
@@ -593,7 +583,7 @@ export const ThemeProvider = ({
                 accent:               `${h} 40% 94%`,
                 accentForeground:     `${h} 47% 11%`,
             }));
-            setPresetDark((current) => ({
+            setThemeDark((current) => ({
                 ...current,
                 primary,
                 ring: primary,
@@ -609,13 +599,13 @@ export const ThemeProvider = ({
             if (mono !== undefined) setFontMono(mono);
         },
         setColors(colors: ColorScale) {
-            setPresetColors(colors);
+            setThemeColors(colors);
         },
         setTokens(tokens: Partial<ColorScale>) {
-            setPresetColors((c) => ({ ...c, ...tokens }));
-            setPresetDark((c) => ({ ...c, ...tokens }));
+            setThemeColors((c) => ({ ...c, ...tokens }));
+            setThemeDark((c) => ({ ...c, ...tokens }));
         },
-    }), [mode, preset, radius, fontSans, fontMono, presetColors, presetDark, themeRegistry]);
+    }), [mode, activeTheme, radius, fontSans, fontMono, themeColors, themeDark, themeRegistry]);
 
     return (
         <ThemeControllerContext.Provider value={controller}>

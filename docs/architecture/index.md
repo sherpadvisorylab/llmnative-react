@@ -155,7 +155,7 @@ All app-level configuration lives here. Application pages and components never i
 |------|------|
 | `conf/app.ts` | Assembles `providers`, `iconProvider`, `themeProvider` from env vars and sub-configs |
 | `conf/menu.ts` | Defines `MenuConfig` â€” every route and sidebar entry |
-| `themes/*.ts` | Self-contained `ThemeDefinition` modules: preset tokens, motion effects and full component theme |
+| `themes/*.ts` | Self-contained `ThemeDefinition` modules: preset tokens, motion effects and full component configuration |
 
 ### `styles/globals.css` â€” why it is required
 

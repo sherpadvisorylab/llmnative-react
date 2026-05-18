@@ -12,8 +12,8 @@ react-firestrap themes are self-contained modules. Each theme exports:
 
 - `preset`: visual tokens such as mode, colors, radius, fonts and CSS variables.
 - `motion`: semantic motion effects such as `fade`, `slideFromRight`, `fadeUp` and `press`.
-- `theme`: component class defaults and component-level references to motion effects.
-- default export: `{ preset, motion, theme }`.
+- `components`: component class defaults and component-level references to motion effects.
+- default export: `{ preset, motion, components }`.
 
 The built-in themes live in `themes/default.ts`, `themes/flat.ts` and `themes/cyber.ts`. Each file is complete: there is no hidden merge between built-in themes.
 
@@ -38,7 +38,7 @@ For small app-local changes, use `themeOverride`. This is the only supported pat
 ```tsx
 <App
   themeProvider={{
-    defaultPreset: 'flat',
+    theme: 'flat',
     themeOverride: {
       Form: { buttonSaveClass: 'btn-primary' },
       Modal: { motion: { right: 'slideFromRight' } },
@@ -49,11 +49,11 @@ For small app-local changes, use `themeOverride`. This is the only supported pat
 
 ## Custom themes
 
-Register full themes with `themes`. A custom theme should provide both `preset` and a complete `theme` object.
+Register full themes with `themes`. A custom theme should provide `preset`, `motion`, and a complete `components` object.
 
 ```tsx
 import { App, type ThemeDefinition } from 'react-firestrap';
-import { motion as defaultMotion, theme as defaultTheme } from './themes/default';
+import { components as defaultComponents, motion as defaultMotion } from './themes/default';
 
 const brand: ThemeDefinition = {
   preset: {
@@ -76,16 +76,21 @@ const brand: ThemeDefinition = {
       },
     },
   },
-  theme: {
-    ...defaultTheme,
-    Card: { ...defaultTheme.Card, headerClass: 'bg-primary/5 font-semibold' },
-    Form: { ...defaultTheme.Form, buttonSaveClass: 'btn-primary' },
+  components: {
+    ...defaultComponents,
+    Card: { ...defaultComponents.Card, headerClass: 'bg-primary/5 font-semibold' },
+    Form: { ...defaultComponents.Form, buttonSaveClass: 'btn-primary' },
   },
 };
 
+// Direct custom theme. It becomes the active theme with id "custom".
+<App themeProvider={brand} />
+
+// Named custom theme registry. Use this when you want a stable theme id
+// or several custom themes available to applyTheme().
 <App
   themeProvider={{
-    defaultPreset: 'brand',
+    theme: 'brand',
     themes: { brand },
   }}
 />
@@ -97,11 +102,11 @@ Use `useThemeController()` inside `<App>` to update theme state at runtime.
 
 ```tsx
 const {
-  preset,
+  theme,
   resolvedMode,
   primary,
   radius,
-  applyPreset,
+  applyTheme,
   toggleMode,
   setPrimary,
   setRadius,
@@ -110,7 +115,7 @@ const {
 } = useThemeController();
 ```
 
-`applyPreset(id)` switches to another registered theme. `setPrimary`, `setRadius`, `setFont` and `setTokens` are runtime controls for live customization panels.
+`applyTheme(id)` switches to another registered theme. `setPrimary`, `setRadius`, `setFont` and `setTokens` are runtime controls for live customization panels.
 
 ## Types
 
@@ -118,15 +123,20 @@ const {
 interface ThemeDefinition {
   preset: ThemePresetConfig;
   motion: MotionRegistry;
-  theme: Theme;
+  components: Theme;
 }
 
-interface AppThemeProviderConfig {
-  defaultMode?: ThemeMode;
-  defaultPreset?: string;
-  themes?: Record<string, ThemeDefinition>;
-  themeOverride?: ThemeConfig;
-}
+type AppThemeProviderConfig =
+  | 'default'
+  | 'flat'
+  | 'cyber'
+  | ThemeDefinition
+  | {
+      defaultMode?: ThemeMode;
+      theme?: string;
+      themes?: Record<string, ThemeDefinition>;
+      themeOverride?: ThemeConfig;
+    };
 ```
 
 `Theme` is the resolved, complete runtime shape. `ThemeConfig` is a partial patch shape used only for `themeOverride`.

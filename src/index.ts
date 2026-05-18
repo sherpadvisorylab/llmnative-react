@@ -53,10 +53,10 @@ export type {
     SocialHeadState,
     TwitterHeadState,
 } from './Head';
-export { useTheme, useThemeController, BUILT_IN_THEMES, BUILT_IN_PRESET_IDS } from './Theme';
+export { useTheme, useThemeController, BUILT_IN_THEMES, BUILT_IN_THEME_IDS } from './Theme';
 export type {
     AppThemeProviderConfig,
-    BuiltInPresetId,
+    BuiltInThemeId,
     CardTheme,
     ColorScale,
     GalleryTheme,
@@ -67,7 +67,6 @@ export type {
     ThemeConfig,
     ThemeController,
     ThemeMode,
-    ThemeModule,
     ThemeDefinition,
     ThemePresetConfig,
 } from './Theme';

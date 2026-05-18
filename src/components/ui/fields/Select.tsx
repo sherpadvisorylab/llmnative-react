@@ -14,7 +14,6 @@ interface Option extends RecordProps {
 }
 
 interface DBConfig extends DatabaseOptions {
-    srcPath?: string;
     path?: string;
 }
 
@@ -165,7 +164,7 @@ export const Select = ({
     const dbOptions = useMemo(() => getOptionsDB(db), [db?.fieldMap, db?.where, db?.order, db?.onLoad]);
     const database = useDataProvider();
     const [lookup, setLookup] = useState<Option[]>([]);
-    database.useListener(db?.srcPath ?? db?.path, (records) => setLookup(normalizeLookup(records)), dbOptions);
+    database.useListener(db?.path, (records) => setLookup(normalizeLookup(records)), dbOptions);
 
     const opts = useMemo(() => {
         const combinedOptions = getOptions(options, lookup, order, db?.order, dbOptions.fieldMap);
@@ -247,7 +246,7 @@ export const Autocomplete = ({
     const dbOptions = useMemo(() => getOptionsDB(db), [db?.fieldMap, db?.where, db?.order, db?.onLoad]);
     const database = useDataProvider();
     const [lookup, setLookup] = useState<Option[]>([]);
-    database.useListener(db?.srcPath ?? db?.path, (records) => setLookup(normalizeLookup(records)), dbOptions);
+    database.useListener(db?.path, (records) => setLookup(normalizeLookup(records)), dbOptions);
 
     const [localOpts, setLocalOpts] = useState<Option[]>([]);
 
@@ -374,7 +373,7 @@ export const Checklist = ({
     const dbOptions = useMemo(() => getOptionsDB(db), [db?.fieldMap, db?.where, db?.order, db?.onLoad]);
     const database = useDataProvider();
     const [lookup, setLookup] = useState<Option[]>([]);
-    database.useListener(db?.srcPath ?? db?.path, (records) => setLookup(normalizeLookup(records)), dbOptions);
+    database.useListener(db?.path, (records) => setLookup(normalizeLookup(records)), dbOptions);
 
     const opts = useMemo(() => {
         const combinedOptions = getOptions(options, lookup, order, db?.order, dbOptions.fieldMap);

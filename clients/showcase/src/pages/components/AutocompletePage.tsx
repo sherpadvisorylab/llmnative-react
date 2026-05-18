@@ -30,7 +30,7 @@ const AUTOCOMPLETE_PROPS: PropDef[] = [
     { name: 'options', type: 'Array<{ label: string; value: string }> | string[] | number[]', description: 'Static options for suggestions', control: 'json' },
     {
         name: 'db',
-        type: '{ path?: string; srcPath?: string; fieldMap?: object; where?: object; order?: object }',
+        type: '{ path?: string; fieldMap?: object; where?: object; order?: object }',
         description: 'DataProvider path used to fetch suggestions',
         control: 'text',
         readOnly: true,

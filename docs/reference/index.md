@@ -50,7 +50,7 @@ Lista dati con real-time updates, sorting, paginazione, modal CRUD integrato.
   allowedSorting={true}
   modal={{
     mode: "form",                 // "form" | "empty"
-    size: "lg",                   // Bootstrap modal size
+    size: "lg",                   // "sm" | "md" | "lg" | "xl" | "fullscreen"
     position: "center",
     onOpen: (record) => <CustomModalContent record={record} />,
   }}
@@ -338,7 +338,7 @@ Ripete children N volte, utile per array dinamici in un form.
 
 ```tsx
 <Icon name="person-fill" size={20} className="text-primary" />
-// Usa Bootstrap Icons
+// Resolved by the active icon provider
 ```
 
 ---
@@ -401,7 +401,7 @@ Ripete children N volte, utile per array dinamici in un form.
 
 ```tsx
 const theme = useTheme('form')
-// → accesso a theme.Form.*, theme.Icons, theme.i18n
+// → accesso al runtime theme completo, inclusi theme.Form.*, theme.Modal.*, theme.ActionButton.*
 ```
 
 ### `useGlobalVars(namespace)`

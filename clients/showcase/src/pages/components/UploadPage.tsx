@@ -172,8 +172,8 @@ export default function UploadPage() {
 
 <App
   providers={{
-    default: 'firebase',
-    firebase: { config: firebaseConfig },
+    firebase: firebaseConfig,
+    services: { storage: 'firestorage' },
   }}
 />
 

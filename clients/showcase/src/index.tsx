@@ -61,7 +61,7 @@ root.render(
         }}
         iconProvider="lucide"
         themeProvider={{
-            defaultPreset: 'default',
+            theme: 'default',
             themeOverride: {
                 Pagination: {
                     sticky: false,

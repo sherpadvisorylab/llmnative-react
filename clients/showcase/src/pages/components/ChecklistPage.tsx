@@ -28,7 +28,7 @@ const CHECKLIST_PROPS: PropDef[] = [
     { name: 'options', type: 'Array<{ label: string; value: string }> | string[] | number[]', description: 'Static checkbox options', control: 'json' },
     {
         name: 'db',
-        type: '{ path?: string; srcPath?: string; fieldMap?: object; where?: object; order?: object }',
+        type: '{ path?: string; fieldMap?: object; where?: object; order?: object }',
         description: 'DataProvider path used to fetch checkbox options',
         control: 'text',
         readOnly: true,

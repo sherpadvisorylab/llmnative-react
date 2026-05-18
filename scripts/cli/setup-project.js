@@ -375,6 +375,15 @@ import { menu } from './conf/menu';
 import { mockData } from './data/mockData';
 
 const env = import.meta.env;
+const selectedProvider = appConfig.provider;
+const dataDriver =
+  selectedProvider === 'firebase' ? 'dbRealtime'
+    : selectedProvider === 'supabase' ? 'supabaseDb'
+      : 'mock';
+const storageDriver =
+  selectedProvider === 'firebase' ? 'firestorage'
+    : selectedProvider === 'supabase' ? 'supabaseStorage'
+      : undefined;
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
@@ -404,9 +413,9 @@ createRoot(document.getElementById('root')!).render(
           scope:    env.VITE_GOOGLE_SCOPE ?? '',
         },
         services: {
-          data:    appConfig.provider,
-          storage: appConfig.provider === 'supabase' ? 'supabase' : 'firebase',
-          auth:    appConfig.provider === 'firebase'  ? 'firebase' : 'google',
+          data:    dataDriver,
+          storage: storageDriver,
+          auth:    'googleAuth',
         },
       }}
       iconProvider={appConfig.iconProvider}
@@ -425,7 +434,7 @@ function scaffoldProject() {
             projectname:  getArg('name', defaultName),
             provider:     getArg('provider', 'mock'),
             iconProvider: getArg('icon-provider', 'lucide'),
-            theme:        getArg('theme', 'default'),
+            theme:        getArg('theme', getArg('theme-provider', 'default')),
             template:     getArg('template', 'blank'),
             hosting:      getArg('hosting', 'n'),
             firebase: {

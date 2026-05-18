@@ -14,7 +14,7 @@ The default is intentionally quiet: short transitions, no layout shift, and supp
 
 ## Theme-level effects
 
-Each theme exports a `motion` registry next to `preset` and `theme`:
+Each theme exports a `motion` registry next to `preset` and `components`:
 
 ```ts
 export const motion = {
@@ -46,7 +46,7 @@ export const motion = {
 Component theme sections choose which semantic effect to use:
 
 ```ts
-export const theme = {
+export const components = {
   Modal: {
     motion: {
       center: 'fade',

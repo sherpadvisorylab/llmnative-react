@@ -281,8 +281,9 @@ export default function UserForm() {
 // Uso semplice: App orchestra registry interni e default.
 <App
   providers={{
-    firebase: { config: config.firebase },
-    services: { data: 'firebase', storage: 'firebase', auth: 'firebase' },
+    firebase: config.firebase,
+    google: config.google,
+    services: { data: 'dbRealtime', storage: 'firestorage', auth: 'googleAuth' },
   }}
   iconProvider="phosphor" // default: lucide
   themeProvider="cyber"   // default: default
@@ -290,28 +291,39 @@ export default function UserForm() {
   importPage={(path) => import(path)}
 />
 
-// Uso avanzato: aggiungi o sovrascrivi provider e preset built-in.
+// Uso avanzato: aggiungi o sovrascrivi provider e temi built-in.
+// defaultMotion/defaultComponents arrivano dal tema di base scelto come riferimento.
 <App
   iconProvider={{
-    provider: new HeroIconProvider(),
+    providers: {
+      heroicons: new HeroIconProvider(),
+    },
+    default: 'heroicons',
     aliases: { delete: 'trash', edit: 'pencil' },
   }}
   themeProvider={{
     defaultMode: 'dark',
-    defaultPreset: 'brand',
-    presets: {
+    theme: 'brand',
+    themes: {
       brand: {
-        primary: '346.8 77.2% 49.8%',
-        radius: 0.75,
-        theme: { Button: { className: 'font-semibold' } },
+        preset: {
+          mode: 'dark',
+          colors: { primary: '346.8 77.2% 49.8%' },
+          radius: 0.75,
+        },
+        motion: defaultMotion,
+        components: {
+          ...defaultComponents,
+          ActionButton: { ...defaultComponents.ActionButton, className: 'btn-primary font-semibold' },
+        },
       },
     },
-    theme: { Modal: { size: 'xl' } },
+    themeOverride: { Modal: { size: 'xl' } },
   }}
 />
 
 const theme = useThemeController()
-theme.applyPreset('flat')
+theme.applyTheme('flat')
 theme.setMode('dark')
 
 const icons = useIconController()
@@ -319,8 +331,8 @@ icons.setProvider('lucide')
 ```
 
 Built-in icon provider: `lucide`, `phosphor`.
-Built-in theme preset: `default`, `flat`, `cyber`.
-`themeProvider` e `iconProvider` sono la configurazione raccomandata per preset, provider custom e alias.
+Built-in themes: `default`, `flat`, `cyber`.
+`themeProvider` e `iconProvider` sono la configurazione raccomandata per temi, provider custom e alias.
 
 ---
 

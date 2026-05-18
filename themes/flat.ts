@@ -115,9 +115,15 @@ export const motion: MotionRegistry = {
         transition: { duration: 90, easing: 'cubic-bezier(0.2, 0, 0, 1)', properties: ['transform', 'box-shadow'] },
         reducedMotion: 'respect-user',
     },
+    imageZoom: {
+        from: { transform: 'scale(1)' },
+        to: { transform: 'scale(1.06)' },
+        transition: { duration: 300, easing: 'cubic-bezier(0.2, 0, 0, 1)', properties: ['transform'] },
+        reducedMotion: 'respect-user',
+    },
 };
 
-export const theme: Theme = {
+export const components: Theme = {
     Grid: {
         Card: {
             wrapClass: '',
@@ -363,6 +369,10 @@ export const theme: Theme = {
     Image: {
         wrapClass: '',
         className: '',
+        motion: {
+            enter: 'fade',
+            hover: false,
+        },
     },
     ImageAvatar: {
         wrapClass: '',
@@ -389,6 +399,6 @@ export const theme: Theme = {
     },
 };
 
-const definition: ThemeDefinition = { preset, motion, theme };
+const definition: ThemeDefinition = { preset, motion, components };
 
 export default definition;

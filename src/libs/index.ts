@@ -9,3 +9,4 @@ export * from './email';
 export * from './fetch';
 export * from './utils';
 export { cn } from './cn';
+export * from './imageBuilder';
