@@ -122,7 +122,7 @@ const ImageAvatar = ({
                 />
                 {badge && (
                     <span className={cn(
-                        "badge badge-overlay absolute bottom-0 right-0 translate-x-1/4 translate-y-1/4 z-10",
+                        "badge badge-overlay absolute top-0 right-0 translate-x-1/4 -translate-y-1/4 z-10",
                         "badge-" + (badge.type || 'success'),
                         !badge.content && "!p-0 !min-w-0 w-3 h-3 rounded-full",
                         badge.className,
