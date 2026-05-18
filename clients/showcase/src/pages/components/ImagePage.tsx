@@ -44,7 +44,6 @@ const IMAGE_PROPS: PropDef[] = [
     { name: 'sizesPreset', type: 'string', group: 'Responsive', description: 'Descrive al browser quanto spazio visivo occupa l\'immagine al variare della viewport.', control: 'select', options: ['Hero — occupa tutta la larghezza', 'Articolo — colonna di testo (max 900px)', 'Card — griglia 2 colonne', 'Card — griglia 3 colonne', 'Thumbnail — elemento piccolo'], help: 'Hero: 100vw · Articolo: (max 900px) 100vw, 900px · Card 2col: (≤640px) 100vw, 50vw · Card 3col: (≤640px) 100vw, (≤1024px) 50vw, 33vw · Thumb: (≤640px) 50vw, 200px', hidden: (p) => !p.responsive || p.srcsetMode === 'density' },
     { name: 'className', type: 'string', group: 'Styling', description: 'CSS classes applied to the <img> element', control: 'text' },
     { name: 'wrapClass', type: 'string', group: 'Styling', description: 'CSS classes applied to the outer wrapper', control: 'text' },
-    { name: 'style', type: 'CSSProperties', group: 'Styling', description: 'Inline style object on the <img> element', control: 'json' },
 ];
 
 // Filename used in export when src is a playground preset (not a real file)
@@ -121,7 +120,6 @@ function ImageExportPanel(p: Record<string, any>) {
                 fit={(p.fit || undefined) as any}
                 position={(p.position || undefined) as any}
                 feedback={p.feedback || undefined}
-                style={p.style && typeof p.style === 'object' ? p.style : undefined}
                 width={PREVIEW_WIDTH}
                 height={previewHeight}
                 pre={p.pre || undefined}
@@ -206,7 +204,6 @@ const PLAYGROUND: PlaygroundConfig = {
         sizesPreset: 'Card — griglia 2 colonne',
         className: 'rounded-lg border',
         wrapClass: '',
-        style: {},
     },
     render: (p) => <ImageExportPanel {...p} />,
 };

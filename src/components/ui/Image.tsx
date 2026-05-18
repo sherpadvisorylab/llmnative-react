@@ -21,7 +21,6 @@ type ImageProps = {
     fit?: ImageFit;
     position?: ImagePosition;
     feedback?: React.ReactNode;
-    style?: React.CSSProperties;
     width?: number;
     height?: number;
     srcset?: string;
@@ -36,7 +35,6 @@ const Image = ({
                    fit          = undefined,
                    position     = undefined,
                    feedback     = undefined,
-                   style        = undefined,
                    width        = undefined,
                    height       = undefined,
                    srcset       = undefined,
@@ -80,7 +78,6 @@ const Image = ({
                                     : {}),
                         ...(fit      ? { objectFit: fit }          : {}),
                         ...(position ? { objectPosition: position }: {}),
-                        ...style,
                         ...(hasHover ? hoverStyle : {}),
                     }}
                     width={width}
