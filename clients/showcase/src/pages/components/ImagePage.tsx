@@ -506,8 +506,8 @@ export default function ImagePage() {
             />
 
             <Section
-                title="buildImageTag — HTML responsive con srcset"
-                description="buildImageTag(config, srcset?) genera un tag <img> completo e SEO-ottimizzato come stringa. Non ridimensiona le immagini: presuppone che le varianti di file esistano già sul server con la naming convention generata."
+                title="useImage — HTML responsive con srcset"
+                description="useImage(config) restituisce un helper con .toHtml(srcset?) che genera un tag <img> completo e SEO-ottimizzato come stringa. Non ridimensiona le immagini: presuppone che le varianti di file esistano già sul server con la naming convention generata."
                 preview={
                     <div className="flex flex-col gap-8 w-full">
                         {/* Density mode */}
@@ -552,33 +552,27 @@ export default function ImagePage() {
                         </div>
                     </div>
                 }
-                code={`import { buildImageTag } from 'react-firestrap';
+                code={`import { useImage } from 'react-firestrap';
 
 // Density mode — fixed-size images (logo, avatar, icon)
 // Files expected: hero.jpg  hero@2x.jpg  hero@3x.jpg
-buildImageTag(
-    { src: 'hero.jpg', alt: 'Hero banner', width: 400, height: 225, loading: 'lazy' },
-    { mode: 'density', densities: [1, 2, 3] },
-);
+const img = useImage({ src: 'hero.jpg', alt: 'Hero banner', width: 400, height: 225, loading: 'lazy' });
+img.toHtml({ mode: 'density', densities: [1, 2, 3] });
 
 // Width mode — responsive images (hero, card, content)
 // Files expected: photo-400w.jpg  photo-800w.jpg  photo-1200w.jpg
 // priority: true → fetchpriority="high" + loading="eager"  (LCP image)
-buildImageTag(
-    { src: 'photo.jpg', alt: 'Campaign hero', width: 800, height: 450, priority: true },
-    { mode: 'width', widths: [400, 800, 1200], sizes: '(max-width: 640px) 100vw, 800px' },
-);
+const hero = useImage({ src: 'photo.jpg', alt: 'Campaign hero', width: 800, height: 450, priority: true });
+hero.toHtml({ mode: 'width', widths: [400, 800, 1200], sizes: '(max-width: 640px) 100vw, 800px' });
 
 // Custom suffix override: img.jpg → img-2x.jpg instead of img@2x.jpg
-buildImageTag(
-    { src: 'img.jpg', alt: 'Img' },
-    { mode: 'density', densities: [1, 2], suffix: (d) => d === 1 ? '' : \`-\${d}x\` },
-);`}
+const logo = useImage({ src: 'img.jpg', alt: 'Img' });
+logo.toHtml({ mode: 'density', densities: [1, 2], suffix: (d) => d === 1 ? '' : \`-\${d}x\` });`}
             />
 
             <Section
-                title="buildImageParams — JSON dei parametri"
-                description="buildImageParams() restituisce un oggetto JSON con tutti gli attributi img, imageParamsToTag() lo converte in HTML. Utile per CMS headless, server-side rendering o quando serve passare i metadati separati dall'HTML."
+                title="useImage — JSON dei parametri"
+                description="useImage(config).toJson(srcset?) restituisce un JSON con tutti gli attributi img. Utile per CMS headless, server-side rendering o quando serve passare i metadati separati dall'HTML. .params(srcset?) restituisce l'oggetto grezzo."
                 preview={
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start w-full">
                         <div className="flex flex-col gap-2">
@@ -591,36 +585,30 @@ buildImageTag(
                                 feedback={<span className="text-xs text-muted-foreground">card.jpg · 640×360 · fit: cover</span>}
                             />
                             <div className="flex flex-col gap-2">
-                                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mt-2">→ HTML da JSON</span>
+                                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mt-2">→ HTML</span>
                                 <pre className="rounded-lg border bg-muted p-3 text-xs overflow-x-auto whitespace-pre">{
-                                    imageParamsToTag(buildImageParams(
-                                        { src: 'card.jpg', alt: 'Card image', width: 640, height: 360, fit: 'cover', loading: 'lazy' },
-                                        { mode: 'width', widths: [320, 640, 1280], sizes: '(max-width: 768px) 100vw, 640px' },
-                                    ))
+                                    useImage({ src: 'card.jpg', alt: 'Card image', width: 640, height: 360, fit: 'cover', loading: 'lazy' })
+                                        .toHtml({ mode: 'width', widths: [320, 640, 1280], sizes: '(max-width: 768px) 100vw, 640px' })
                                 }</pre>
                             </div>
                         </div>
                         <div className="flex flex-col gap-2">
-                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">JSON params (buildImageParams)</span>
+                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">→ JSON params</span>
                             <pre className="rounded-lg border bg-muted p-3 text-xs overflow-x-auto whitespace-pre">{
-                                imageParamsToJson(buildImageParams(
-                                    { src: 'card.jpg', alt: 'Card image', width: 640, height: 360, fit: 'cover', loading: 'lazy' },
-                                    { mode: 'width', widths: [320, 640, 1280], sizes: '(max-width: 768px) 100vw, 640px' },
-                                ))
+                                useImage({ src: 'card.jpg', alt: 'Card image', width: 640, height: 360, fit: 'cover', loading: 'lazy' })
+                                    .toJson({ mode: 'width', widths: [320, 640, 1280], sizes: '(max-width: 768px) 100vw, 640px' })
                             }</pre>
                         </div>
                     </div>
                 }
-                code={`import { buildImageParams, imageParamsToTag, imageParamsToJson } from 'react-firestrap';
+                code={`import { useImage } from 'react-firestrap';
 
-const params = buildImageParams(
-    { src: 'card.jpg', alt: 'Card image', width: 640, height: 360, fit: 'cover', loading: 'lazy' },
-    { mode: 'width', widths: [320, 640, 1280], sizes: '(max-width: 768px) 100vw, 640px' },
-);
-// → ImageParams object: { src, alt, width, height, srcset, sizes, style, loading, decoding }
+const img = useImage({ src: 'card.jpg', alt: 'Card image', width: 640, height: 360, fit: 'cover', loading: 'lazy' });
+const srcset = { mode: 'width', widths: [320, 640, 1280], sizes: '(max-width: 768px) 100vw, 640px' };
 
-const json = imageParamsToJson(params); // JSON string — for CMS / SSR / metadata
-const html = imageParamsToTag(params);  // <img ...> HTML string`}
+const html   = img.toHtml(srcset);   // <img ...> HTML string
+const json   = img.toJson(srcset);   // JSON string — for CMS / SSR / metadata
+const params = img.params(srcset);   // ImageParams object — for custom serialisation`}
             />
 
             <PropsTable props={IMAGE_PROPS} />

@@ -2,7 +2,7 @@
 
 > Ogni CR rappresenta un'unità di lavoro autonoma con motivazione, scope e checklist.  
 > Stato: `⬜ todo` · `🔄 in progress` · `✅ done` · `🚫 cancelled`  
-> Ultima revisione: 2026-05-12
+> Ultima revisione: 2026-05-18
 
 ---
 
@@ -47,6 +47,7 @@
 | [CR-034](#cr-034--supabasedataprovider-completo) | SupabaseDataProvider completo (SDK + real-time) | Alta | CR-002, CR-023 | ⬜ |
 | [CR-035](#cr-035--supabasestorageprovider-completo) | SupabaseStorageProvider completo (SDK) | Media | CR-002, CR-023 | ⬜ |
 | [CR-036](#cr-036--supabaseauthprovider) | SupabaseAuthProvider (email/password + OAuth) | Alta | CR-002b, CR-023 | ⬜ |
+| [CR-037](#cr-037--component-builder-system) | Component Builder System — useX() hooks per export HTML/JSON | Media | CR-007 | ⬜ |
 
 ---
 
@@ -3303,3 +3304,70 @@ Il file `src/components/ui/fields/Command.tsx` contiene un prototipo grezzo dell
 - [ ] Aggiornare `docs/components.md`
 - [ ] `npm run build:dev` passa senza errori
 - [ ] Smoke test: slash command inserisce contenuto correttamente; @mention filtra e inserisce
+
+---
+
+## CR-037 — Component Builder System
+
+**Stato:** ⬜ todo  
+**Branch:** `modernize`  
+**Priorità:** Media  
+**Dipende da:** CR-007  
+
+### Motivazione
+
+`useImage` (già implementato in `src/libs/imageBuilder.ts`) dimostra un pattern utile: un hook factory che accetta la configurazione di un componente e restituisce metodi `toHtml()`, `toJson()` e `params()` per generare output statico SEO/CMS-ready senza dipendenze React.
+
+Il caso d'uso reale di `useImage` è specifico e giustificato: il tag `<img>` ha attributi complessi (`srcset`, `sizes`, `fetchpriority`, `loading`, `decoding`) difficili da scrivere a mano per CMS headless, SSR o template statici. Un sistema builder modulare generalizza questo pattern ad altri componenti che hanno un'eguale complessità di serializzazione.
+
+### Obiettivo
+
+Definire una convenzione e un'infrastruttura leggera per builder hook tipo `useX(config)` per i componenti del framework che lo giustificano. Il builder:
+- è una factory pura (zero dipendenze React)
+- vive in `src/libs/` seguendo la regola architetturale del layer
+- espone `{ toHtml, toJson, params }` come contratto uniforme
+- viene importato con named export da `react-firestrap`
+
+### Candidati concreti
+
+| Componente | Caso d'uso builder |
+|------------|-------------------|
+| `Image` | ✅ già implementato — `useImage()` in `src/libs/imageBuilder.ts` |
+| `<head>` meta/OG tags | `useOpenGraph(config)` → genera `<meta>` SEO tags per CMS/SSR |
+| `<video>` | `useVideo(config)` → `<video>` con `<source>` multipli, `poster`, `preload` |
+
+**Nota:** componenti interattivi (Button, Modal, Card) non sono candidati — il loro HTML statico non ha utilità senza JS e non rappresenta un dolore reale per i consumer.
+
+### Contratto da standardizzare
+
+```typescript
+interface ComponentBuilderResult<P> {
+    toHtml: (options?: unknown) => string;
+    toJson: (options?: unknown) => string;
+    params: (options?: unknown) => P;
+}
+```
+
+### Scope
+
+- Definire il contratto `ComponentBuilderResult<P>` in `src/types/`
+- Fare in modo che `useImage` aderisca al contratto (già quasi compliant)
+- Aggiungere builder solo quando emerge un secondo caso concreto (regola: 2+ casi giustificano l'astrazione)
+- Documentare la convenzione in `docs/architecture/`
+
+### Escluso
+
+- Builder per componenti interattivi (Button, Card, Modal, Form)
+- Generazione automatica da schema o da JSX
+- Runtime serialization di componenti React montati
+
+### Checklist
+
+- [ ] Definire `ComponentBuilderResult<P>` in `src/types/builder.ts`
+- [ ] Allineare `UseImageResult` al contratto condiviso
+- [ ] Identificare il secondo candidato concreto (es. `useOpenGraph`)
+- [ ] Implementare il secondo builder come prova di pattern
+- [ ] Aggiornare `src/libs/index.ts` con i nuovi export
+- [ ] Aggiungere sezione "Builder hooks" in `docs/architecture/index.md`
+- [ ] Aggiungere showcase demo per ogni builder implementato
+- [ ] `npm run build` passa senza errori
