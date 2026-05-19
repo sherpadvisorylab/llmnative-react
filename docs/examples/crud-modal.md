@@ -34,8 +34,8 @@ export default function ProductCatalog() {
       allowedActions={["add", "edit", "delete"]}
       modal={{ mode: "form", size: "xl" }}
       type="table"
-      pagination={{ perPage: 20 }}
-      allowedSorting
+      pagination={{ limit: 20, align: "end" }}
+      sortable
       groupBy="category"
       onLoadRecord={(record) => ({
         ...record,
@@ -106,6 +106,19 @@ export default function ProductCatalog() {
     </Grid>
   )
 }
+```
+
+If you also need manual ordering, pass `onReorder` and keep the reordered record set in parent state:
+
+```tsx
+const [rows, setRows] = useState(records)
+
+<Grid
+  dataArray={rows}
+  type="table"
+  columns={columns}
+  onReorder={(reorderedRecords) => setRows(reorderedRecords)}
+/>
 ```
 
 ---

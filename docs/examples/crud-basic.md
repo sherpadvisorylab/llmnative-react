@@ -44,8 +44,8 @@ export default function UserList() {
       allowedActions={["add", "edit", "delete"]}
       modal={{ mode: "form" }}
       type="table"
-      pagination={{ perPage: 25 }}
-      allowedSorting
+      pagination={{ limit: 25, align: "end" }}
+      sortable
       header={<h4>Utenti</h4>}
     >
       {({ record }) => (
@@ -67,6 +67,12 @@ export default function UserList() {
   )
 }
 ```
+
+Note:
+
+- `sortable` abilita l'header sorting della `Table`; `sort: true` o `sort: false` rifiniscono il comportamento colonna per colonna.
+- `onClick` riceve sempre il record completo.
+- `onSelectionChange` e `selectedKeys` usano la stessa semantica di `Table` e `Gallery`, quindi le bulk actions possono stare fuori dal componente.
 
 ---
 

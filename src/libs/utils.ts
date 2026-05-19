@@ -292,11 +292,80 @@ export const isEmpty = (data: any): boolean => {
     return data === undefined || data === null || data === '' || data === false || data === '0' || data === 0 || (typeof data === 'object' && Object.keys(data).length === 0);
 };
 
+function cloneFallback<T>(value: T, seen: WeakMap<object, unknown> = new WeakMap()): T {
+    if (
+        value === null ||
+        value === undefined ||
+        typeof value !== 'object' ||
+        React.isValidElement(value)
+    ) {
+        return value;
+    }
+
+    if (value instanceof Date) {
+        return new Date(value.getTime()) as T;
+    }
+
+    if (value instanceof RegExp) {
+        return new RegExp(value.source, value.flags) as T;
+    }
+
+    if (seen.has(value)) {
+        return seen.get(value) as T;
+    }
+
+    if (Array.isArray(value)) {
+        const clone: unknown[] = [];
+        seen.set(value, clone);
+        value.forEach((item, index) => {
+            clone[index] = cloneFallback(item, seen);
+        });
+        return clone as T;
+    }
+
+    if (value instanceof Map) {
+        const clone = new Map();
+        seen.set(value, clone);
+        value.forEach((mapValue, mapKey) => {
+            clone.set(cloneFallback(mapKey, seen), cloneFallback(mapValue, seen));
+        });
+        return clone as T;
+    }
+
+    if (value instanceof Set) {
+        const clone = new Set();
+        seen.set(value, clone);
+        value.forEach((entry) => {
+            clone.add(cloneFallback(entry, seen));
+        });
+        return clone as T;
+    }
+
+    const prototype = Object.getPrototypeOf(value);
+    if (prototype && prototype !== Object.prototype) {
+        return value;
+    }
+
+    const clone: Record<string, unknown> = {};
+    seen.set(value, clone);
+
+    Object.entries(value).forEach(([key, entry]) => {
+        clone[key] = cloneFallback(entry, seen);
+    });
+
+    return clone as T;
+}
 
 export function safeClone<T>(obj: T): T {
-    return typeof structuredClone === 'function'
-        ? structuredClone(obj)
-        : JSON.parse(JSON.stringify(obj))
+    if (typeof structuredClone !== 'function') {
+        return cloneFallback(obj);
+    }
+
+    try {
+        return structuredClone(obj);
+    } catch {
+        return cloneFallback(obj);
+    }
 }
 
 

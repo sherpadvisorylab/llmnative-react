@@ -92,15 +92,17 @@ import { Grid } from 'react-firestrap';
 export default function UsersPage() {
   return (
     <Grid
-      dataStoragePath="/users"
+      providerPath="/users"
       columns={[
         { key: 'name',  label: 'Name',  sort: true },
         { key: 'email', label: 'Email' },
         { key: 'role',  label: 'Role' },
       ]}
-      allowedActions={['add', 'edit', 'delete']}
-      modal={{ mode: 'form' }}
-      type="table"
+      order={{ field: 'name', dir: 'asc' }}
+      actions={{ default: { add: true, edit: true, delete: true } }}
+      editor={{ mode: 'modal', form: <UserFormFields /> }}
+      view="table"
+      pagination={{ limit: 20, align: 'end' }}
     />
   );
 }
@@ -116,6 +118,12 @@ import UsersPage from '../pages/users/UsersPage';
 ```
 
 `Grid` reads and writes through the active `DataProvider` — with `mock`, data lives in memory and resets on reload. Switch the provider to `firebase` in `src/conf/app.ts` when you are ready for persistence.
+
+As the page grows, keep these semantics in mind:
+
+- `order` sets the initial sort in both table and gallery mode.
+- `selectedKeys` and `onSelectionChange` share the same contract in `Grid`, `Table` and `Gallery`.
+- `onReorder` enables manual drag reorder only when `view="table"`.
 
 ---
 

@@ -32,48 +32,49 @@ Carica un record da database, gestisce lo stato dei campi figli, salva e cancell
 ### `<Grid>`
 
 Lista dati con real-time updates, sorting, paginazione, modal CRUD integrato.
+Propaga la stessa semantica di selezione di `Table` e `Gallery`: `selectedKeys` e `onSelectionChange`.
+In modalita' `table`, `onReorder` abilita il drag & drop e restituisce il record set completo nell'ordine finale.
 
 ```tsx
 <Grid
-  dataStoragePath="/collection"   // Firebase path (real-time listener)
-  dataArray={records}             // alternativa: dati in memoria
+  providerPath="/collection"      // provider path (real-time listener)
+  records={records}               // alternativa: dati in memoria
   columns={[
     {
       key: 'fieldName',
       label: 'Label colonna',
       sort: true,                 // abilita sorting su questa colonna
-      onDisplay: ({ value, record, key }) => <span>{value}</span>,
-      // oppure: onDisplay: 'toDate' (converter built-in)
+      transform: ({ value, record, key }) => <span>{value}</span>,
+      // oppure: transform: 'toDate' (converter built-in)
     }
   ]}
-  allowedActions={["add", "edit", "delete"]}
-  allowedSorting={true}
-  modal={{
-    mode: "form",                 // "form" | "empty"
+  actions={{
+    default: { add: true, edit: true, delete: true },
+    header: <button>Azione custom</button>,
+  }}
+  sortable={true}
+  order={{ field: "name", dir: "asc" }}
+  selectedKeys={selectedKeys}
+  onSelectionChange={({ keys, records, clear, hasSelection }) => {}}
+  onReorder={(reorderedRecords, meta) => {}}
+  editor={{
+    mode: "modal",
     size: "lg",                   // "sm" | "md" | "lg" | "xl" | "fullscreen"
     position: "center",
-    onOpen: (record) => <CustomModalContent record={record} />,
+    form: <CustomFormFields />,
   }}
-  type="table"                    // "table" | "gallery"
+  view="table"                    // "table" | "gallery"
   groupBy="status"                // stringa o array di stringhe
-  pagination={{ perPage: 20 }}
+  pagination={{ limit: 20, align: "end" }}
   sticky="top"                    // "top" | "bottom"
   header={<h2>Titolo</h2>}
-  headerAction={<button>Azione</button>}
-  // oppure: headerAction={(records) => <span>{records.length} records</span>}
   footer={<div>Footer</div>}
-  onLoadRecord={(record, index) => record}  // return false per escludere
-  onDisplayBefore={async (records, setRecords, setLoader) => {}}
+  transformRecords={(records) => records.filter((record) => record.active)}
   onClick={(record) => navigate(`/detail/${record._key}`)}
   onSave={async ({ record, action, storagePath }) => ""}
   onDelete={async ({ record }) => ""}
-  onFinally={async ({ record, action }) => true}
->
-  {/* children: fields usati nel modal form */}
-  {({ record }) => (
-    <Input name="name" label="Nome" />
-  )}
-</Grid>
+  onAfterAction={async ({ record, action }) => true}
+/>
 ```
 
 ---
@@ -276,12 +277,25 @@ Input URL immagine con anteprima.
 
 ```tsx
 <Table
-  headers={[{ key: 'name', label: 'Nome' }]}
-  records={data}
-  onRowClick={(record) => {}}
+  header={[{ key: 'name', label: 'Nome', sort: true }]}
+  body={data}
+  sortable={true}
+  order={{ field: 'name', dir: 'asc' }}
+  selectedKeys={selectedKeys}
+  onSelectionChange={({ keys, records, clear, hasSelection }) => {}}
+  onReorder={(reorderedRecords, meta) => {}}
+  heightClass="max-h-72"        // aggiunge automaticamente lo scroll verticale interno
+  onClick={(record) => {}}
   className="table-striped"
 />
 ```
+
+Note rapide:
+
+- `sortable={true}` abilita l'header sorting; le colonne con `sort: false` restano statiche.
+- `onSelectionChange` fa comparire automaticamente la colonna checkbox.
+- `onReorder` abilita il riordino manuale delle righe. Il primo argomento e' sempre l'intero array riordinato.
+- `heightClass` e' il modo consigliato per creare una viewport interna con altezza fissa. `scrollClass` resta disponibile come estensione.
 
 ### `<Pagination>`
 
@@ -313,14 +327,17 @@ Ripete children N volte, utile per array dinamici in un form.
 
 ```tsx
 <Gallery
-  records={items}
+  body={items}
+  order={{ field: 'name', dir: 'asc' }}
+  selectedKeys={selectedKeys}
+  onSelectionChange={({ keys, records, clear, hasSelection }) => {}}
   rowCols={3}             // colonne per riga
   gutterSize={3}
-  renderItem={(record) => (
-    <img src={record.imageUrl} alt={record.name} />
-  )}
+  onClick={(record) => console.log(record._key)}
 />
 ```
+
+`Gallery` non ha header sorting interattivo: applica `order` ai record in ingresso e usa la stessa semantica di selezione di `Table`.
 
 ### `<Tab>` / `<TabDynamic>`
 
@@ -458,6 +475,11 @@ type ColumnFormatter = (args: {
   record: RecordProps
   key?: string
 }) => React.ReactNode
+
+type OrderConfig = {
+  field: string
+  dir?: 'asc' | 'desc'
+}
 
 // FormRef
 interface FormRef {

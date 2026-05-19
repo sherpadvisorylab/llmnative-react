@@ -2,6 +2,7 @@ import React, { useEffect, useId, useMemo, useState } from 'react';
 import { Label } from "./Input";
 import { Wrapper } from "../GridSystem"
 import { useTheme } from "../../../Theme";
+import { DEFAULT_ORDER, Order, type OrderConfig } from "../../../libs/order";
 import { arraysEqual, arrayUnique, isEmpty, sanitizeKey } from "../../../libs/utils";
 import { DatabaseOptions, RecordProps } from "../../../providers/data/DataProvider";
 import { useDataProvider } from "../../../providers/data/DataProviderContext";
@@ -17,12 +18,9 @@ interface DBConfig extends DatabaseOptions {
     path?: string;
 }
 
-interface OrderConfig {
+type OptionOrderConfig = OrderConfig & {
     field: 'label' | 'value';
-    dir: 'asc' | 'desc';
-}
-
-const DEFAULT_ORDER: OrderConfig = { field: "label", dir: "asc" };
+};
 
 interface BaseProps extends FormFieldProps {
     updatable?: boolean;
@@ -31,7 +29,7 @@ interface BaseProps extends FormFieldProps {
     feedback?: string;
     options?: Option[] | string[] | number[];
     db?: DBConfig;
-    order?: OrderConfig;
+    order?: OptionOrderConfig;
 }
 
 export interface SelectProps extends BaseProps {
@@ -96,7 +94,7 @@ function getOptionsDB(
 const isDbOrdered = (
     fieldMap: DatabaseOptions["fieldMap"],
     dbOrder: DBConfig["order"],
-    order: OrderConfig
+    order: OptionOrderConfig
 ) => {
     const mappedField = fieldMap?.[order.field];
     const [firstDbOrder] = Object.entries(dbOrder || {});
@@ -111,11 +109,11 @@ const isDbOrdered = (
 const getOptions = (
     options: Array<string | number | Option>,
     lookup: Option[],
-    order?: OrderConfig,
+    order?: OptionOrderConfig,
     dbOrder?: DBConfig["order"],
     fieldMap?: DatabaseOptions["fieldMap"]
 ): Option[] => {
-    const effectiveOrder = order || DEFAULT_ORDER;
+    const effectiveOrder = order || { ...DEFAULT_ORDER, field: 'label' };
     const combined = [
         ...options.map(normalizeOption),
         ...lookup
@@ -125,14 +123,7 @@ const getOptions = (
         return combined;
     }
 
-    return combined.sort((a, b) => {
-        const field = effectiveOrder.field;
-        const aVal = (a[field] ?? "").toString();
-        const bVal = (b[field] ?? "").toString();
-        return effectiveOrder.dir === "desc"
-            ? bVal.localeCompare(aVal)
-            : aVal.localeCompare(bVal)
-    });
+    return Order.records(combined, effectiveOrder) || [];
 }
 
 export const Select = ({

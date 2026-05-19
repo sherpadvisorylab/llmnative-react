@@ -42,8 +42,8 @@ export default function UserList() {
       allowedActions={['add', 'edit', 'delete']}
       modal={{ mode: 'form' }}
       type="table"
-      pagination={{ perPage: 25 }}
-      allowedSorting
+      pagination={{ limit: 25, align: 'end' }}
+      sortable
     />
   );
 }
@@ -181,7 +181,47 @@ Use `onDisplay` when raw data needs to become readable UI.
     },
   ]}
   groupBy="status"
-  allowedSorting
+  sortable
+/>
+```
+
+## Pattern 6: Shared Selection
+
+Selection works the same way in `Grid`, `Table` and `Gallery`: the component owns the checkbox UI, while commands stay outside.
+
+```tsx
+const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
+const [selectedRecords, setSelectedRecords] = useState<RecordArray>([]);
+
+<Grid
+  dataArray={assets}
+  type="gallery"
+  selectedKeys={selectedKeys}
+  onSelectionChange={({ keys, records }) => {
+    setSelectedKeys(keys);
+    setSelectedRecords(records);
+  }}
+/>
+```
+
+If you need export, delete, archive or custom bulk actions, place those commands in the surrounding header/toolbar and consume `selectedRecords` there.
+
+---
+
+## Pattern 7: Table Reorder
+
+Manual reorder is activated only by `onReorder`, so there is no extra flag to keep in sync.
+
+```tsx
+const [rows, setRows] = useState<RecordArray>(initialRows);
+
+<Table
+  header={[
+    { key: 'name', label: 'Name', sort: true },
+    { key: 'status', label: 'Status' },
+  ]}
+  body={rows}
+  onReorder={(reorderedRecords) => setRows(reorderedRecords)}
 />
 ```
 

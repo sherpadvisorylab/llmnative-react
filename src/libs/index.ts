@@ -8,6 +8,7 @@ export * from './sanitizer';
 export * from './email';
 export * from './fetch';
 export * from './utils';
+export * from './order';
 export { cn } from './cn';
 export { useImage } from './imageBuilder';
 export type { UseImageResult, ImageBuilderConfig, SrcsetConfig, SrcsetDensityConfig, SrcsetWidthConfig, ImageParams, ImgFit } from './imageBuilder';

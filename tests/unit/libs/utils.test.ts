@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
+import React from 'react';
 
 // Prevent Firebase initialization side-effects at import time
 vi.mock('../../../src/Config', () => ({
@@ -111,5 +112,20 @@ describe('safeClone', () => {
         expect(safeClone(42)).toBe(42);
         expect(safeClone('hello')).toBe('hello');
         expect(safeClone(null)).toBe(null);
+    });
+    it('preserves React elements while cloning surrounding objects', () => {
+        const original = {
+            title: 'Card',
+            media: React.createElement('img', { src: 'https://example.com/demo.png', alt: 'demo' }),
+            meta: { featured: true },
+        };
+
+        const clone = safeClone(original);
+
+        expect(clone).not.toBe(original);
+        expect(clone.meta).not.toBe(original.meta);
+        expect(clone.meta.featured).toBe(true);
+        expect(React.isValidElement(clone.media)).toBe(true);
+        expect(clone.media).toBe(original.media);
     });
 });

@@ -36,17 +36,20 @@ export default function PropsTable({ props, title = 'Props' }: PropsTableProps) 
                 </thead>
                 <tbody>
                     {props.map((prop, i) => (
-                        <tr key={prop.name} className={`border-b last:border-0 ${i % 2 === 0 ? 'bg-background' : 'bg-muted/20'}`}>
-                            <td className="px-5 py-3 font-mono text-primary font-medium break-words">
+                        <tr
+                            key={prop.name}
+                            className={`border-b last:border-0 align-top ${i % 2 === 0 ? 'bg-background' : 'bg-muted/20'}`}
+                        >
+                            <td className="px-5 py-3 font-mono text-primary font-medium break-words align-top">
                                 {prop.name}
                             </td>
-                            <td className="px-5 py-3 font-mono text-xs text-muted-foreground break-words">
+                            <td className="px-5 py-3 font-mono text-xs text-muted-foreground break-words whitespace-pre-wrap align-top">
                                 {prop.type}
                             </td>
-                            <td className="px-5 py-3 font-mono text-xs text-foreground break-words">
-                                {prop.default ?? <span className="text-muted-foreground/50">—</span>}
+                            <td className="px-5 py-3 font-mono text-xs text-foreground break-words align-top">
+                                {prop.default ?? <span className="text-muted-foreground/50">-</span>}
                             </td>
-                            <td className="px-5 py-3">
+                            <td className="px-5 py-3 align-top">
                                 {prop.required ? (
                                     <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-destructive/10 text-destructive">
                                         yes
@@ -55,8 +58,8 @@ export default function PropsTable({ props, title = 'Props' }: PropsTableProps) 
                                     <span className="text-muted-foreground text-xs">no</span>
                                 )}
                             </td>
-                            <td className="px-5 py-3 text-muted-foreground break-words">
-                                {prop.description ?? <span className="text-muted-foreground/50">—</span>}
+                            <td className="px-5 py-3 text-muted-foreground break-words align-top">
+                                {prop.description ?? <span className="text-muted-foreground/50">-</span>}
                             </td>
                         </tr>
                     ))}

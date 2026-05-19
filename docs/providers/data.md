@@ -33,7 +33,7 @@ Custom data providers can implement `isConfigured()` or `getConfigurationState()
 
 ## Use data with Grid
 
-`Grid` subscribes to the active `DataProvider` when you pass `dataStoragePath`.
+`Grid` subscribes to the active `DataProvider` when you pass `providerPath`.
 
 ```tsx
 import { Grid, Badge } from 'react-firestrap';
@@ -41,27 +41,30 @@ import { Grid, Badge } from 'react-firestrap';
 function CustomersPage() {
   return (
     <Grid
-      dataStoragePath="/customers"
+      providerPath="/customers"
       columns={[
         { key: 'name', label: 'Name', sort: true },
         { key: 'email', label: 'Email' },
         {
           key: 'status',
           label: 'Status',
-          format: ({ value }) => (
+          transform: ({ value }) => (
             <Badge type={value === 'active' ? 'success' : 'secondary'}>
               {value}
             </Badge>
           ),
         },
       ]}
-      allowedActions={['add', 'edit', 'delete']}
+      actions={{ default: { add: true, edit: true, delete: true } }}
+      pagination={{ limit: 20, align: 'end' }}
     />
   );
 }
 ```
 
 The page above works with mock data, Firebase or any custom provider as long as the active provider implements the data contract.
+
+When you use `onSelectionChange` or `onReorder`, `Grid` maps the visual rows back to the original provider records before invoking your callback.
 
 ## Use data with Form
 

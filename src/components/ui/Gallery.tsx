@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useTheme } from "../../Theme";
 import { Wrapper } from "../ui/GridSystem";
 import { converter } from "../../libs/converter";
@@ -7,6 +7,7 @@ import Pagination, { PaginationParams } from './Pagination';
 import { UIProps } from '../';
 import { cn } from '../../libs/cn';
 import { BadgeOverlay, BadgeProps } from './Badge';
+import { Order, type OrderConfig } from '../../libs/order';
 
 type ImageProps = React.ReactElement<HTMLImageElement>;
 export type GalleryRecord = RecordProps & {
@@ -50,18 +51,31 @@ type GalleryRenderedRecord =
     | { kind: "item"; image: ImageProps; item: GalleryRecord; index: number }
     | { kind: "group"; element: React.ReactElement };
 
+export type GallerySelectionState = {
+    keys: string[];
+    records: GalleryRecord[];
+    clear: () => void;
+    hasSelection: boolean;
+};
+
+type GallerySelectionPayload = Omit<GallerySelectionState, 'clear'>;
+
 interface GalleryProps extends UIProps {
     body?: GalleryRecord[];
     Header?: string | React.ReactNode;
     Footer?: string | React.ReactNode;
     overlays?: GalleryOverlay[];
-    onClick?: (index: number) => void;
+    onClick?: (record: GalleryRecord) => void;
+    onSelectionChange?: (selection: GallerySelectionState) => void;
+    order?: OrderConfig;
     pagination?: PaginationParams;
     scrollToTopOnChange?: boolean;
     scrollBehavior?: ScrollBehavior;
     gutterSize?: 0 | 1 | 2 | 3 | 4 | 5;
     rowCols?: 1 | 2 | 3 | 4 | 6;
     groupBy?: string | string[];
+    selectedKeys?: string[];
+    selectedRowKeys?: string[];
     scrollClass?: string;
     headerClass?: string;
     bodyClass?: string;
@@ -75,10 +89,14 @@ const Gallery = ({
     Footer = undefined,
     overlays = undefined,
     onClick = undefined,
+    onSelectionChange = undefined,
+    order = undefined,
     pagination = undefined,
     gutterSize = undefined,
     rowCols = undefined,
     groupBy = undefined,
+    selectedKeys = undefined,
+    selectedRowKeys = undefined,
     pre = undefined,
     post = undefined,
     wrapClass = undefined,
@@ -91,6 +109,8 @@ const Gallery = ({
 }: GalleryProps) => {
     const theme = useTheme("gallery");
     const activeClass = selectedClass || theme.Gallery.selectedClass;
+    const initialSelection = selectedKeys ?? selectedRowKeys ?? [];
+    const [internalSelectedKeys, setInternalSelectedKeys] = useState<string[]>(initialSelection);
     const paddingSize = gutterSize ?? theme.Gallery.gutterSize;
     const numCols = rowCols ?? theme.Gallery.rowCols;
     const spacingScale: Record<number, string> = {
@@ -106,14 +126,49 @@ const Gallery = ({
     const overlayOffset = "0.75rem";
     const overlayLaneWidth = "calc(50% - 1rem)";
     const itemWidth = `calc((100% - (${itemGap} * ${numCols - 1})) / ${numCols})`;
+    const controlledSelectedKeys = selectedKeys ?? selectedRowKeys;
+    const isSelectionControlled = controlledSelectedKeys !== undefined && !!onSelectionChange;
+    const activeSelectedKeys = isSelectionControlled ? (controlledSelectedKeys || []) : internalSelectedKeys;
+    const showSelection = !!onSelectionChange || controlledSelectedKeys !== undefined;
 
-    const handleClick = (e: React.MouseEvent<HTMLElement>, index: number) => {
+    React.useEffect(() => {
+        if (controlledSelectedKeys !== undefined && !isSelectionControlled) {
+            setInternalSelectedKeys(controlledSelectedKeys);
+        }
+    }, [controlledSelectedKeys, isSelectionControlled]);
+
+    const getRecordKey = useCallback((record: GalleryRecord, index: number) => {
+        return record._key || `item-${index}`;
+    }, []);
+
+    const buildSelectionPayload = useCallback((keys: string[]): GallerySelectionPayload => {
+        const keySet = new Set(keys);
+        const records = (body || []).filter((record, index) => keySet.has(getRecordKey(record, index)));
+        return {
+            keys,
+            records,
+            hasSelection: keys.length > 0,
+        };
+    }, [body, getRecordKey]);
+
+    const updateSelection = useCallback((nextKeys: string[]) => {
+        if (!isSelectionControlled) {
+            setInternalSelectedKeys(nextKeys);
+        }
+        const nextSelection = buildSelectionPayload(nextKeys);
+        onSelectionChange?.({
+            ...nextSelection,
+            clear: () => updateSelection([]),
+        });
+    }, [buildSelectionPayload, isSelectionControlled, onSelectionChange]);
+
+    const handleClick = (e: React.MouseEvent<HTMLElement>, record: GalleryRecord) => {
         if (activeClass) {
             const activeClasses = activeClass.split(/\s+/).filter(Boolean);
             let currentElement = e.target as HTMLElement;
 
             while (currentElement && !currentElement.classList.contains("item")) {
-                if (currentElement.tagName === 'A' || currentElement.tagName === 'BUTTON') {
+                if (['A', 'BUTTON', 'INPUT', 'LABEL'].includes(currentElement.tagName)) {
                     return;
                 }
                 currentElement = currentElement.parentNode as HTMLElement;
@@ -128,8 +183,16 @@ const Gallery = ({
             }
         }
 
-        onClick?.(index);
+        onClick?.(record);
     }
+
+    const toggleSelection = useCallback((record: GalleryRecord, index: number) => {
+        const recordKey = getRecordKey(record, index);
+        const nextKeys = activeSelectedKeys.includes(recordKey)
+            ? activeSelectedKeys.filter((key) => key !== recordKey)
+            : [...activeSelectedKeys, recordKey];
+        updateSelection(nextKeys);
+    }, [activeSelectedKeys, getRecordKey, updateSelection]);
 
     const getImage = (item: GalleryRecord, index: number): ImageProps => {
         const imgElement = item.img;
@@ -143,7 +206,7 @@ const Gallery = ({
                     cursor: onClick ? "pointer" : "default",
                 },
                 onClick: (e: React.MouseEvent<HTMLImageElement>) => {
-                    handleClick(e, index);
+                    handleClick(e, item);
                     imgElement.props.onClick?.(e);
                 },
             }) as ImageProps;
@@ -161,7 +224,7 @@ const Gallery = ({
                 width={item.width}
                 height={item.height}
                 style={{ aspectRatio: "16 / 11", cursor: onClick ? "pointer" : "default" }}
-                onClick={(e: React.MouseEvent<HTMLImageElement>) => handleClick(e, index)}
+                onClick={(e: React.MouseEvent<HTMLImageElement>) => handleClick(e, item)}
             />
         );
     };
@@ -241,10 +304,15 @@ const Gallery = ({
         });
     };
 
-    const renderItem = (Component: React.ReactElement, index: number, item: GalleryRecord) => (
+    const renderItem = (Component: React.ReactElement, index: number, item: GalleryRecord) => {
+        const recordKey = getRecordKey(item, index);
+        const isSelected = activeSelectedKeys.includes(recordKey);
+        const activeClasses = activeClass?.split(/\s+/).filter(Boolean) || [];
+
+        return (
         <div
             key={index}
-            className="item min-w-0"
+            className={cn("item min-w-0", isSelected && activeClasses)}
             style={{
                 padding: itemPadding,
                 flex: `0 0 ${itemWidth}`,
@@ -252,11 +320,23 @@ const Gallery = ({
             }}
         >
             <div className="relative overflow-hidden rounded-lg">
+                {showSelection && (
+                    <label className="absolute left-3 top-3 z-20 inline-flex items-center rounded bg-background/90 px-2 py-1 shadow-sm">
+                        <input
+                            type="checkbox"
+                            aria-label={`Select item ${recordKey}`}
+                            checked={isSelected}
+                            onChange={() => toggleSelection(item, index)}
+                            onClick={(event) => event.stopPropagation()}
+                        />
+                    </label>
+                )}
                 {Component}
                 {renderItemOverlays(item, index)}
             </div>
         </div>
-    );
+        );
+    };
 
     const getGroups = (body: GalleryRecord[], seps: string | string[]): GalleryRenderedRecord[] => {
         const groupMap: Record<string, Array<{ image: ImageProps; item: GalleryRecord; index: number }>> = {};
@@ -294,10 +374,12 @@ const Gallery = ({
     const renderedBody = useMemo(() => {
         if (!Array.isArray(body)) return undefined;
 
+        const orderedBody = Order.records(body, order) || [];
+
         return groupBy
-            ? getGroups(body, groupBy)
-            : body.map((item, index) => ({ kind: "item", image: getImage(item, index), item, index }) as GalleryRenderedRecord);
-    }, [body, groupBy, overlays]);
+            ? getGroups(orderedBody, groupBy)
+            : orderedBody.map((item, index) => ({ kind: "item", image: getImage(item, index), item, index }) as GalleryRenderedRecord);
+    }, [body, groupBy, overlays, order]);
 
     if (renderedBody === undefined) {
         return <p className={"p-4"}><span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />Caricamento in corso...</p>;

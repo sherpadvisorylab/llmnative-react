@@ -15,6 +15,7 @@ export { default as Card } from './ui/Card';
 export { default as Code } from './ui/Code';
 export { default as Gallery} from './ui/Gallery';
 export * from './ui/Gallery';
+export type { GallerySelectionState } from './ui/Gallery';
 export * from './ui/GridSystem';
 export { default as Image } from './ui/Image';
 export { default as ImageAvatar } from './ui/ImageAvatar';
@@ -26,6 +27,7 @@ export { default as Repeat } from './ui/Repeat';
 export { default as Tab } from './ui/Tab';
 export * from './ui/Tab';
 export { default as Table } from './ui/Table';
+export type { TableHeaderProp, TableReorderMeta, TableSelectionState } from './ui/Table';
 export { default as Icon } from './ui/Icon';
 export { LayoutBuilder } from './ui/LayoutBuilder';
 export * from './ui/fields/Input';
@@ -40,6 +42,16 @@ export { default as Menu } from './blocks/Menu';
 
 export { default as Form } from './widgets/Form';
 export { default as Grid } from './widgets/Grid';
+export type {
+    GridActionConfig,
+    GridActionContext,
+    GridActions,
+    GridColumn,
+    GridColumnTransform,
+    GridEditor,
+    GridEditorContext,
+    GridProps,
+} from './widgets/Grid';
 export { default as ImageEditor } from './widgets/ImageEditor';
 export { default as MarkdownReader } from './widgets/MarkdownReader';
 export type { MarkdownReaderProps } from './widgets/MarkdownReader';

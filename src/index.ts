@@ -75,6 +75,20 @@ export { useGlobalVars, getGlobalVars, setGlobalVars, removeGlobalVars} from './
 
 // Providers
 export type { DataProviderAdapter, RecordProps, RecordArray, DatabaseOptions, ReadOptions, WhereClause, OrderClause, Condition } from './providers/data/DataProvider';
+export type { OrderConfig, OrderDirection } from './libs/order';
+export { Order } from './libs/order';
+export type { TableHeaderProp, TableReorderMeta, TableSelectionState } from './components/ui/Table';
+export type { GallerySelectionState } from './components/ui/Gallery';
+export type {
+    GridActionConfig,
+    GridActionContext,
+    GridActions,
+    GridColumn,
+    GridColumnTransform,
+    GridEditor,
+    GridEditorContext,
+    GridProps,
+} from './components/widgets/Grid';
 export type { ProviderConfigurable, ProviderConfigurationState } from './providers/ProviderConfiguration';
 export { getProviderConfigurationState } from './providers/ProviderConfiguration';
 export type { MotionEffect, MotionReference, MotionRegistry, MotionStyle, MotionTransition, ReducedMotionMode, ResolvedMotionEffect } from './motion';

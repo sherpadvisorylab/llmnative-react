@@ -1,321 +1,437 @@
-import React, { useEffect, useMemo, useState, useCallback } from 'react';
-import { useTheme } from "../../Theme";
-import Table, { TableHeaderProp } from "../ui/Table";
-import Gallery from "../ui/Gallery";
-import Card from "../ui/Card";
-import { useDataProvider } from "../../providers/data/DataProviderContext";
-import Modal from "../ui/Modal";
-import { getRecordValue, safeClone, trimSlash } from "../../libs/utils";
+import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useTheme } from "../../Theme";
+import { type OrderConfig } from "../../libs/order";
 import { converter } from "../../libs/converter";
-import FormEnhancer, { extractComponentProps } from "../FormEnhancer";
+import { getRecordValue, safeClone, trimSlash } from "../../libs/utils";
+import { useDataProvider } from "../../providers/data/DataProviderContext";
 import { RecordArray, RecordProps } from "../../providers/data/DataProvider";
+import { extractComponentProps } from "../FormEnhancer";
+import { PaginationParams } from "../ui/Pagination";
+import Card from "../ui/Card";
+import Gallery, { GallerySelectionState } from "../ui/Gallery";
+import Modal from "../ui/Modal";
+import Table, { TableHeaderProp, TableReorderMeta, TableSelectionState } from "../ui/Table";
 import Form, { FormRef } from "./Form";
-import { PaginationParams } from '../ui/Pagination';
 
-type ColumnFormatter = (args: {
+type ColumnFormatterArgs = {
     value: any;
     record: RecordProps;
-    key?: string;
-}) => React.ReactNode;
-
-type Column = TableHeaderProp & {
-    onDisplay?: ColumnFormatter | string;
+    key: string;
 };
 
-type ColumnFormatters = Record<string, ColumnFormatter>;
+export type GridColumnTransform = keyof typeof converter | ((args: ColumnFormatterArgs) => React.ReactNode);
 
-type ConverterKey = keyof typeof converter;
+export type GridColumn = TableHeaderProp & {
+    transform?: GridColumnTransform;
+};
 
-type GridProps = {
-    columns?: Column[];
-    format?: { [key: string]: ConverterKey | ColumnFormatter };
-    dataStoragePath?: string;
-    dataArray?: RecordArray;
-    header?: React.ReactNode;
-    headerAction?: React.ReactNode | ((records?: RecordArray) => React.ReactNode);
-    footer?: React.ReactNode;
-    allowedActions?: Array<"add" | "edit" | "delete">;
-    allowedSorting?: boolean;
-    modal?: {
-        mode?: "form" | "empty";
-        size?: "sm" | "md" | "lg" | "xl" | "fullscreen";
-        position?: "center" | "top" | "left" | "right" | "bottom";
-        setHeader?: (record?: RecordProps) => React.ReactNode;
-        onOpen?: ({ record, key, index }: { record?: RecordProps, key?: string, index?: number }) => React.ReactNode;
+type ActionVisibility = boolean | ((record?: RecordProps) => boolean);
+type ActionDisabled = boolean | ((record?: RecordProps) => boolean);
+
+export type GridActionConfig = {
+    label?: string;
+    icon?: string;
+    visible?: ActionVisibility;
+    disabled?: ActionDisabled;
+};
+
+export type GridActionContext = {
+    records?: RecordArray;
+    selectedKeys: string[];
+    selectedRecords: RecordArray;
+    clearSelection: () => void;
+};
+
+export type GridActions = {
+    default?: {
+        add?: boolean | GridActionConfig;
+        edit?: boolean | GridActionConfig;
+        delete?: boolean | GridActionConfig;
     };
-    pagination?: PaginationParams
-    setPrimaryKey?: (record: RecordProps) => string;
-    onLoadRecord?: (record: RecordProps, index: number) => RecordProps | boolean;
-    onDisplayBefore?: (records: RecordArray,
-        setRecords: React.Dispatch<React.SetStateAction<RecordArray | undefined>>,
-        setLoader?: React.Dispatch<React.SetStateAction<boolean>>
-    ) => Promise<void> | void;
-    // Form handlers for external control
-    onSave?: ({ record, action, storagePath }: { record?: RecordProps, storagePath?: string, action: 'create' | 'update' }) => Promise<string | undefined>;
-    onDelete?: ({ record }: { record?: RecordProps }) => Promise<string | undefined>;
-    onFinally?: ({ record, action }: { record?: RecordProps, action: 'create' | 'update' | 'delete' }) => Promise<boolean>;
-    onClick?: (record: RecordProps) => void;
-    children?: React.ReactNode | ((args: { record?: RecordProps }) => React.ReactNode);
-    type?: "table" | "gallery";
-    showLoader?: boolean;
+    header?: React.ReactNode | ((ctx: GridActionContext) => React.ReactNode);
+    footer?: React.ReactNode | ((ctx: GridActionContext) => React.ReactNode);
+};
+
+export type GridEditorContext = {
+    record?: RecordProps;
+    key?: string;
+    index?: number;
+    close: () => void;
+};
+
+export type GridEditor = {
+    mode?: "modal" | "inline" | "custom";
+    form?: React.ReactNode | ((ctx: GridEditorContext) => React.ReactNode);
+    renderHeader?: (record?: RecordProps) => React.ReactNode;
+    renderContent?: (ctx: GridEditorContext) => React.ReactNode;
+    size?: "sm" | "md" | "lg" | "xl" | "fullscreen";
+    position?: "center" | "top" | "left" | "right" | "bottom";
+};
+
+export type GridProps = {
+    providerPath?: string;
+    records?: RecordArray;
+    columns?: GridColumn[];
+    header?: React.ReactNode;
+    footer?: React.ReactNode;
+    actions?: GridActions;
+    editor?: GridEditor;
+    view?: "table" | "gallery";
+    sortable?: boolean;
+    order?: OrderConfig;
+    pagination?: PaginationParams;
     groupBy?: string | string[];
+    createRecordKey?: (record: RecordProps) => string;
+    transformRecords?: (records: RecordArray) => RecordArray | Promise<RecordArray>;
+    onSave?: ({ record, action, storagePath }: { record?: RecordProps; storagePath?: string; action: "create" | "update" }) => Promise<string | undefined>;
+    onDelete?: ({ record }: { record?: RecordProps }) => Promise<string | undefined>;
+    onAfterAction?: ({ record, action }: { record?: RecordProps; action: "create" | "update" | "delete" }) => Promise<boolean>;
+    onClick?: (record: RecordProps) => void;
+    onSelectionChange?: (selection: TableSelectionState | GallerySelectionState) => void;
+    onReorder?: (reorderedRecords: RecordArray, meta: TableReorderMeta) => void;
+    selectedKeys?: string[];
+    loading?: boolean;
     sticky?: "top" | "bottom";
-    log?: boolean;
+    audit?: boolean;
     wrapClass?: string;
 };
 
 const Grid = (props: GridProps) => {
-    return props.dataArray === undefined
-        ? <GridDatabase {...props} />
+    return props.records === undefined
+        ? <GridProviderSource {...props} />
         : <GridArray {...props} />;
-}
-
-const GridDatabase = (props: Omit<GridProps, 'dataArray'>) => {
-    const { dataStoragePath, ...rest } = props;
-    const location = useLocation();
-    const db = useDataProvider();
-    const dbStoragePath = dataStoragePath || trimSlash(location.pathname);
-    const [records, setRecords] = useState<RecordArray | undefined>(undefined);
-
-    db.useListener(dbStoragePath, setRecords);
-
-    return <GridArray {...rest} dataArray={records} dataStoragePath={dbStoragePath} />;
 };
 
-const defaultHeader = (key: string) => {
-    return {
-        label: converter.toCamel(key, " "),
-        key,
-        sort: true,
-    };
-}
+const GridProviderSource = (props: Omit<GridProps, "records">) => {
+    const { providerPath, ...rest } = props;
+    const location = useLocation();
+    const db = useDataProvider();
+    const resolvedProviderPath = providerPath || trimSlash(location.pathname);
+    const [records, setRecords] = useState<RecordArray | undefined>(undefined);
+
+    db.useListener(resolvedProviderPath, setRecords);
+
+    return <GridArray {...rest} records={records} providerPath={resolvedProviderPath} />;
+};
+
+const defaultHeader = (key: string): GridColumn => ({
+    label: converter.toCamel(key, " "),
+    key,
+});
+
+const asFormatter = (transform?: GridColumnTransform): ((args: ColumnFormatterArgs) => React.ReactNode) => {
+    if (!transform) return ({ value }) => value;
+    if (typeof transform === "function") return transform;
+    return ({ value }) => converter[transform]?.(value);
+};
+
+const isActionEnabled = (action: boolean | GridActionConfig | undefined, record?: RecordProps, fallback = false) => {
+    if (action === undefined) return fallback;
+    if (typeof action === "boolean") return action;
+    if (action.visible === undefined) return true;
+    return typeof action.visible === "function" ? action.visible(record) : action.visible;
+};
+
+const isActionDisabled = (action: boolean | GridActionConfig | undefined, record?: RecordProps) => {
+    if (!action || typeof action === "boolean") return false;
+    if (action.disabled === undefined) return false;
+    return typeof action.disabled === "function" ? action.disabled(record) : action.disabled;
+};
+
+const getActionLabel = (action: boolean | GridActionConfig | undefined, fallback: string) => {
+    return typeof action === "object" && action?.label ? action.label : fallback;
+};
+
+const sanitizeHashPart = (value: string) => value.replace(/[^a-zA-Z0-9_-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+
+const getHashRecordKey = (hash: string, gridHashId: string) => {
+    if (!hash) return undefined;
+
+    const value = hash.replace(/^#/, "");
+    const prefix = `${gridHashId}:`;
+    if (!value.startsWith(prefix)) return undefined;
+
+    const recordKey = value.slice(prefix.length);
+    return recordKey ? decodeURIComponent(recordKey) : undefined;
+};
 
 const GridArray = ({
     columns = undefined,
-    format = {},
-    dataStoragePath = undefined,
-    dataArray = undefined,
+    providerPath = undefined,
+    records = undefined,
     header = undefined,
-    headerAction = undefined,
     footer = undefined,
-    allowedActions = undefined,
-    allowedSorting = true,
-    modal = undefined,
+    actions = undefined,
+    editor = undefined,
+    view = "table",
+    sortable = true,
+    order = undefined,
     pagination = undefined,
-    setPrimaryKey = undefined,
-    onLoadRecord = undefined,
-    onDisplayBefore = undefined,
+    groupBy = undefined,
+    createRecordKey = undefined,
+    transformRecords = undefined,
     onSave = undefined,
     onDelete = undefined,
-    onFinally = undefined,
+    onAfterAction = undefined,
     onClick = undefined,
-    children = undefined,
-    type = "table",
-    showLoader = false,
-    groupBy = undefined,
+    onSelectionChange = undefined,
+    onReorder = undefined,
+    selectedKeys = undefined,
+    loading = false,
     sticky = undefined,
-    log = false,
-    wrapClass = undefined
+    audit = false,
+    wrapClass = undefined,
 }: GridProps) => {
     const theme = useTheme("grid");
     const location = useLocation();
     const navigate = useNavigate();
+    const reactId = useId();
+    const gridHashId = useMemo(() => {
+        const source = providerPath ? `grid-${trimSlash(providerPath)}` : "grid-records";
+        return `${sanitizeHashPart(source)}-${sanitizeHashPart(reactId)}`;
+    }, [providerPath, reactId]);
 
     const [loader, setLoader] = useState(false);
     const [modalData, setModalData] = useState<RecordProps | undefined>(undefined);
-    const [formRef, setFormRef] = useState<FormRef | undefined>(undefined);
+    const formRef = useRef<FormRef | undefined>(undefined);
+    const [preparedRecords, setPreparedRecords] = useState<RecordArray | undefined>(undefined);
+    const [internalSelectedKeys, setInternalSelectedKeys] = useState<string[]>(selectedKeys || []);
+    const [internalSelectedRecords, setInternalSelectedRecords] = useState<RecordArray>([]);
 
-    const [beforeRecords, setBeforeRecords] = useState<RecordArray | undefined>(undefined);
+    const editorMode = editor?.mode || "modal";
+    const editorEnabled = !!editor?.form || !!editor?.renderContent;
+    const hasFormEditor = !!editor?.form;
+    const defaultActions = actions?.default;
+
     useEffect(() => {
-        if (!dataArray || !onDisplayBefore) return;
-        onDisplayBefore(safeClone(dataArray), setBeforeRecords, setLoader);
-    }, [dataArray, onDisplayBefore]);
-
-    useEffect(() => {
-        if (!dataArray) return;
-        if (!location.hash) return;
-
-        const key = location.hash.replace("#", "");
-        const record = dataArray.find(r => r._key === key);
-        if (record) {
-            setModalData(record);
+        if (!records || !transformRecords) {
+            setPreparedRecords(undefined);
+            setLoader(false);
+            return;
         }
-    }, [location.hash, dataArray]);
 
-    const canEdit = (children || modal) && (!allowedActions || allowedActions.includes("edit"));
+        let active = true;
+        const result = transformRecords(safeClone(records));
 
-    const records = useMemo(() => {
-        if (!dataArray) return undefined;
-        if (onDisplayBefore) return beforeRecords;
+        if (result instanceof Promise) {
+            setLoader(true);
+            result
+                .then((nextRecords) => {
+                    if (active) setPreparedRecords(nextRecords);
+                })
+                .finally(() => {
+                    if (active) setLoader(false);
+                });
+        } else {
+            setPreparedRecords(result);
+            setLoader(false);
+        }
 
-        return safeClone(dataArray);
-    }, [dataArray, onDisplayBefore, beforeRecords]);
+        return () => {
+            active = false;
+        };
+    }, [records, transformRecords]);
 
-    // 1. Calcolo colonne
-    const tableHeaders: Column[] = useMemo(() => {
+    useEffect(() => {
+        setInternalSelectedKeys(selectedKeys || []);
+    }, [selectedKeys]);
+
+    useEffect(() => {
+        if (!editorEnabled || !isActionEnabled(defaultActions?.edit, undefined, true)) return;
+
+        const recordKey = getHashRecordKey(location.hash, gridHashId);
+        if (!recordKey) {
+            if (location.hash) setModalData(undefined);
+            return;
+        }
+
+        const record = records?.find((item) => item._key === recordKey);
+        if (record && !isActionDisabled(defaultActions?.edit, record)) {
+            setModalData((current) => (
+                current?._key === record._key
+                    ? current
+                    : safeClone(record)
+            ));
+        }
+    }, [defaultActions?.edit, editorEnabled, gridHashId, location.hash, records]);
+
+    const sourceRecords = useMemo(() => {
+        if (!records) return undefined;
+        if (transformRecords) return preparedRecords;
+        return safeClone(records);
+    }, [records, transformRecords, preparedRecords]);
+
+    const tableHeaders: GridColumn[] = useMemo(() => {
         if (columns) return columns;
-        if (!records || records.length === 0) return [];
-        return (
-            children && typeof children !== 'function'
-                ? extractComponentProps(children, (props) => defaultHeader(props.name))
-                : Object.entries(records[0]).reduce((acc: Column[], [key, value]) => {
-                    if (key.startsWith("_")) return acc;
-                    if (
-                        React.isValidElement(value) ||
-                        typeof value !== 'object' ||
-                        Array.isArray(value)
-                    ) {
-                        acc.push(defaultHeader(key));
-                    }
-                    return acc;
-                }, [])
-        );
-    }, [columns, records, children]);
+        if (!sourceRecords || sourceRecords.length === 0) return [];
 
-    // 2. Funzioni di formattazione colonne
-    const columnFormatters: ColumnFormatters = useMemo(() => {
-        return (tableHeaders).reduce((acc: ColumnFormatters, column: Column) => {
-            const key = column.key;
-            const formatKey = format?.[column.key];
-            if (column?.onDisplay) {
-                acc[key] = typeof column.onDisplay === "string" ? ({ value }) => converter[column.onDisplay as keyof typeof converter]?.(value) : column.onDisplay;
-            } else if (formatKey && typeof formatKey === "function") {
-                acc[key] = formatKey;
-            } else if (formatKey && converter[formatKey]) {
-                acc[key] = ({ value }) => (converter[formatKey]?.(value));
-            } else {
-                acc[key] = ({ value }) => value;
-            }
+        return editor?.form && React.isValidElement(editor.form)
+            ? extractComponentProps(editor.form, (props) => defaultHeader(props.name))
+            : Object.entries(sourceRecords[0]).reduce((acc: GridColumn[], [key, value]) => {
+                if (key.startsWith("_")) return acc;
+                if (
+                    React.isValidElement(value) ||
+                    typeof value !== "object" ||
+                    Array.isArray(value)
+                ) {
+                    acc.push(defaultHeader(key));
+                }
+                return acc;
+            }, []);
+    }, [columns, sourceRecords, editor?.form]);
+
+    const columnTransforms = useMemo(() => {
+        return tableHeaders.reduce<Record<string, (args: ColumnFormatterArgs) => React.ReactNode>>((acc, column) => {
+            acc[column.key] = asFormatter(column.transform);
             return acc;
         }, {});
-    }, [tableHeaders, format]);
+    }, [tableHeaders]);
 
-    const [sortState, setSortState] = useState<{ key: string; order: 'asc' | 'desc' } | null>(null);
+    const displayRecords: RecordArray | undefined = useMemo(() => {
+        if (!sourceRecords) return undefined;
 
-    useEffect(() => {
-        if (allowedSorting && !sortState && tableHeaders) {
-            const initialColumn = tableHeaders.find(c => c.sort) || tableHeaders[0];    // primo el con sort
-            if (initialColumn) {
-                setSortState({ key: initialColumn.key, order: 'asc' });
-            }
-        }
-    }, [sortState, tableHeaders]);
+        return sourceRecords.reduce((acc: RecordArray, result: RecordProps, index: number) => {
+            const displayRow: RecordProps = { ...result, _index: result._index ?? index };
 
-    // 3. Ordinamento prima dei formatters
-    const sortedRecords = useMemo(() => {
-        if (!records || !sortState?.key) return records;
-        const col = tableHeaders.find(c => c.key === sortState.key);
-        if (!col) return records;
-        let compare = (a: any, b: any) => {
-            const av = a[sortState.key];
-            const bv = b[sortState.key];
-            if (av == null && bv == null) return 0; // null o undefined
-            if (av == null) return 1;
-            if (bv == null) return -1;
-            if (typeof av === 'number' && typeof bv === 'number') return av - bv;   // numero
-            return ('' + av).localeCompare('' + bv);
-        };
-        const arr = [...records];
-        arr.sort((a, b) => {
-            const cmp = compare(a, b);
-            return sortState.order === 'desc' ? -cmp : cmp;   // inverte se desc
-        });
-        return arr;
-    }, [records, sortState, tableHeaders]);
-
-    // 4. Applicazione columnsFunc e formatters SUI DATI ORDINATI
-    const body: RecordArray | undefined = useMemo(() => {
-        if (!records) return undefined;
-
-        return records.reduce((acc: RecordArray, record: RecordProps, index: number) => {
-            const transformed = onLoadRecord ? onLoadRecord(record, index) : record;
-            //@todo trovare un modo per non distruggere gli indici
-            if (!transformed) return acc;
-
-            const result = (transformed === true ? record : transformed);
-            //@todo secondo me non serve
-            const displayRow = { ...result };
-            for (const key of Object.keys(columnFormatters)) {
-                displayRow[key] = columnFormatters[key]({
+            for (const key of Object.keys(columnTransforms)) {
+                displayRow[key] = columnTransforms[key]({
                     value: getRecordValue(result, key),
                     record: result,
-                    key: record?._key
+                    key,
                 });
             }
+
             acc.push(displayRow);
             return acc;
         }, []);
-    }, [sortedRecords, onLoadRecord, columnFormatters]);
+    }, [sourceRecords, columnTransforms]);
 
-    const closeModal = useCallback(() => {
+    const canAdd = editorEnabled && isActionEnabled(defaultActions?.add, undefined, true);
+    const canEdit = editorEnabled && isActionEnabled(defaultActions?.edit, undefined, true);
+    const canDelete = editorEnabled && isActionEnabled(defaultActions?.delete, modalData, true);
+
+    const closeEditor = useCallback(() => {
         setModalData(undefined);
-        setFormRef(undefined);
-
-        navigate({ pathname: location.pathname, search: location.search, hash: "" }, { replace: true });
-    }, [navigate, location.pathname, location.search]);
-
-    const handleClick = useCallback((index: number) => {
-        const data = dataArray?.[index];
-
-        if (!data) {
-            console.error(`handleClick: Nessun dato trovato in dataArray all'indice ${index}`);
-            return;
+        formRef.current = undefined;
+        if (getHashRecordKey(location.hash, gridHashId)) {
+            navigate({ pathname: location.pathname, search: location.search, hash: "" }, { replace: true });
         }
-        const record = safeClone(data);
+    }, [gridHashId, location.hash, location.pathname, location.search, navigate]);
 
-        onClick?.(record);
+    const resolveSourceRecord = useCallback((record: RecordProps): RecordProps | undefined => {
+        return record._key
+            ? records?.find((item) => item._key === record._key)
+            : (typeof record._index === "number" ? records?.[record._index] : undefined);
+    }, [records]);
 
-        if (record?._key) {
-            canEdit && setModalData(record);
-            navigate({ hash: record._key }, { replace: false });
-        }
-    }, [dataArray, onClick, canEdit, setModalData]);
-
-    const setFormRefCallback = useCallback((ref: FormRef | null) => {
-        setFormRef(ref ?? undefined);
+    const updateInternalSelection = useCallback((nextKeys: string[], nextRecords: RecordArray) => {
+        setInternalSelectedKeys(nextKeys);
+        setInternalSelectedRecords(nextRecords);
     }, []);
 
-    const headerActionComponent = useMemo(() => {
-        if (headerAction && typeof headerAction === "function") {
-            return headerAction(records);
-        }
-        return headerAction;
-    }, [headerAction, records]);
+    const clearSelection = useCallback(() => {
+        updateInternalSelection([], []);
+    }, [updateInternalSelection]);
 
-    const addNewButton = useMemo(() => {
-        if ((children || modal) && (allowedActions && !allowedActions.includes("add"))) {
+    const actionContext = useMemo<GridActionContext>(() => ({
+        records: sourceRecords,
+        selectedKeys: selectedKeys ?? internalSelectedKeys,
+        selectedRecords: internalSelectedRecords,
+        clearSelection,
+    }), [clearSelection, internalSelectedKeys, internalSelectedRecords, selectedKeys, sourceRecords]);
+
+    const handleClick = useCallback((record: RecordProps) => {
+        const sourceRecord = resolveSourceRecord(record);
+
+        if (!sourceRecord) {
+            console.error("Grid.handleClick: no matching source record found");
             return;
         }
+
+        const nextRecord = safeClone(sourceRecord);
+        onClick?.(nextRecord);
+
+        if (nextRecord?._key && canEdit && !isActionDisabled(defaultActions?.edit, nextRecord)) {
+            setModalData(nextRecord);
+            navigate({ hash: `${gridHashId}:${encodeURIComponent(nextRecord._key)}` }, { replace: false });
+        }
+    }, [resolveSourceRecord, onClick, canEdit, defaultActions?.edit, gridHashId, navigate]);
+
+    const handleSelectionChange = useCallback((selection: TableSelectionState | GallerySelectionState) => {
+        const nextSourceRecords = selection.records
+            .map((record) => resolveSourceRecord(record))
+            .filter(Boolean)
+            .map((record) => safeClone(record!));
+
+        updateInternalSelection(selection.keys, nextSourceRecords);
+
+        onSelectionChange?.({
+            ...selection,
+            records: nextSourceRecords,
+            clear: () => clearSelection(),
+        });
+    }, [clearSelection, onSelectionChange, resolveSourceRecord, updateInternalSelection]);
+
+    const handleReorder = useCallback((reorderedDisplayRecords: RecordArray, meta: TableReorderMeta) => {
+        const reorderedRecords = reorderedDisplayRecords
+            .map((record) => resolveSourceRecord(record))
+            .filter(Boolean)
+            .map((record) => safeClone(record!));
+
+        const movedRecord = resolveSourceRecord(meta.record);
+
+        onReorder?.(reorderedRecords, {
+            ...meta,
+            record: movedRecord ? safeClone(movedRecord) : meta.record,
+        });
+    }, [onReorder, resolveSourceRecord]);
+
+    const setFormRefCallback = useCallback((ref: FormRef | null) => {
+        formRef.current = ref ?? undefined;
+    }, []);
+
+    const handleModalSave = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
+        return formRef.current?.handleSave(event) ?? Promise.resolve(false);
+    }, []);
+
+    const handleModalDelete = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
+        return formRef.current?.handleDelete(event) ?? Promise.resolve(false);
+    }, []);
+
+    const renderActionSlot = useCallback((slot: GridActions["header"] | GridActions["footer"]) => {
+        if (!slot) return null;
+        return typeof slot === "function" ? slot(actionContext) : slot;
+    }, [actionContext]);
+
+    const headerActions = useMemo(() => renderActionSlot(actions?.header), [actions?.header, renderActionSlot]);
+    const footerActions = useMemo(() => renderActionSlot(actions?.footer), [actions?.footer, renderActionSlot]);
+
+    const addButton = useMemo(() => {
+        if (!canAdd) return null;
 
         return (
             <button
-                className="inline-flex items-center justify-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="inline-flex items-center justify-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={isActionDisabled(defaultActions?.add)}
                 onClick={() => setModalData({})}
             >
-                {theme.Grid.i18n.buttonAdd}
+                {getActionLabel(defaultActions?.add, theme.Grid.i18n.buttonAdd)}
             </button>
         );
-    }, [children, allowedActions, setModalData]);
-
-
-    // click ordinamento
-    const handleHeaderClick = (column: TableHeaderProp) => {
-        let order: 'asc' | 'desc' = 'asc';
-        // se clicchi su una colonna diversa → sempre asc
-        if (sortState?.key === column.key && sortState.order === 'asc') {
-            order = 'desc';
-        }
-        setSortState({ key: column.key, order });
-    };
-
+    }, [canAdd, defaultActions?.add, theme.Grid.i18n.buttonAdd]);
 
     const displayComponent = useMemo(() => {
-        switch (type) {
-            case "gallery":
-                return <Gallery
-                    body={body}
-                    onClick={(onClick || canEdit) ? handleClick : undefined}
+        const interactive = (onClick || canEdit) ? handleClick : undefined;
+
+        if (view === "gallery") {
+            return (
+                <Gallery
+                    body={displayRecords}
+                    onClick={interactive}
+                    onSelectionChange={onSelectionChange || selectedKeys !== undefined ? handleSelectionChange : undefined}
+                    selectedKeys={selectedKeys}
+                    order={order}
                     pagination={pagination}
                     wrapClass={theme.Grid.Gallery.wrapClass}
                     scrollClass={theme.Grid.Gallery.scrollClass}
@@ -326,117 +442,179 @@ const GridArray = ({
                     gutterSize={theme.Grid.Gallery.gutterSize}
                     rowCols={theme.Grid.Gallery.rowCols}
                     groupBy={groupBy}
-                />;
-            case "table":
-            default:
-                return <Table
-                    header={tableHeaders}
-                    body={body}
-                    onClick={(onClick || canEdit) ? handleClick : undefined}
-                    onHeaderClick={handleHeaderClick}
-                    pagination={pagination}
-                    wrapClass={theme.Grid.Table.wrapClass}
-                    className={theme.Grid.Table.className}
-                    headerClass={theme.Grid.Table.headerClass}
-                    bodyClass={theme.Grid.Table.bodyClass}
-                    footerClass={theme.Grid.Table.footerClass}
-                    scrollClass={theme.Grid.Table.scrollClass}
-                    selectedClass={!canEdit ? theme.Grid.Table.selectedClass : undefined}
-                />;
+                />
+            );
         }
-    }, [type, body, onClick, canEdit, handleClick, groupBy, tableHeaders]);
 
-    const modalComponent = useMemo((): React.ReactNode => {
-        if (!modalData) return null;
+        return (
+            <Table
+                header={tableHeaders}
+                body={displayRecords}
+                onClick={interactive}
+                onSelectionChange={onSelectionChange || selectedKeys !== undefined ? handleSelectionChange : undefined}
+                onReorder={onReorder ? handleReorder : undefined}
+                selectedKeys={selectedKeys}
+                sortable={sortable}
+                order={sortable ? order : undefined}
+                pagination={pagination}
+                wrapClass={theme.Grid.Table.wrapClass}
+                className={theme.Grid.Table.className}
+                headerClass={theme.Grid.Table.headerClass}
+                bodyClass={theme.Grid.Table.bodyClass}
+                footerClass={theme.Grid.Table.footerClass}
+                scrollClass={theme.Grid.Table.scrollClass}
+                selectedClass={!canEdit ? theme.Grid.Table.selectedClass : undefined}
+            />
+        );
+    }, [
+        view,
+        displayRecords,
+        onClick,
+        canEdit,
+        handleClick,
+        onSelectionChange,
+        selectedKeys,
+        handleSelectionChange,
+        order,
+        pagination,
+        theme,
+        groupBy,
+        tableHeaders,
+        onReorder,
+        handleReorder,
+        sortable,
+    ]);
 
-        const { _key, _index, ...record } = modalData;
-        const component = modal?.onOpen?.({ record: record, key: _key, index: _index }) || children;
+    const editorContext = useMemo<GridEditorContext>(() => ({
+        record: modalData,
+        key: modalData?._key,
+        index: modalData?._index,
+        close: closeEditor,
+    }), [closeEditor, modalData]);
 
-        switch (modal?.mode) {
-            case "empty":
-                return component && React.isValidElement(component) && React.cloneElement(component as React.ReactElement, {
-                    defaultValues: record,
-                    savePath: ({ record }: { record: RecordProps }) => (dataStoragePath
-                        ? _key
-                            ? `${dataStoragePath}/${_key}`
-                            : `${dataStoragePath}/${setPrimaryKey?.(record) ?? Date.now()}`
-                        : undefined),
-                    log: log,
-                    record: modalData, //todo: solo per dare ai componenti custom un parametro in ingresso di nome record. ma dovrebbero prendere defaultValues 
-                    //...(typeof component !== 'function' && (component?.props ?? {})),
-                    ref: setFormRefCallback
-                });
-            case "form":
-            default:
-                return <Form
-                    aspect="empty"
-                    defaultValues={record}
-                    savePath={({ record }: { record: RecordProps }) => (dataStoragePath
-                        ? _key
-                            ? `${dataStoragePath}/${_key}`
-                            : `${dataStoragePath}/${setPrimaryKey?.(record) ?? Date.now()}`
-                        : undefined)}
-                    log={log}
-                    onSave={onSave}
-                    onDelete={onDelete}
-                    onFinally={async ({ record, action }) => {
-                        const success = await onFinally?.({ record, action }) ?? true;
+    const renderEditorNode = useCallback((): React.ReactNode => {
+        if (!modalData || !editorEnabled) return null;
 
-                        success && closeModal();
-                        return success;
-                    }}
-                    ref={setFormRefCallback}
-                >
-                    {component}
-                </Form>
-
+        if (editor?.renderContent) {
+            return editor.renderContent(editorContext);
         }
-    }, [modalData, modal?.mode, modal?.onOpen, children, log, onSave, onDelete, onFinally, setPrimaryKey, setFormRefCallback, dataStoragePath]);
 
-    const { record: currentRecord, isNewRecord } = formRef?.getRecord() ?? {};
+        const formNode = typeof editor?.form === "function"
+            ? editor.form(editorContext)
+            : editor?.form;
 
-    return (<>
-        <Card
-            wrapClass={wrapClass}
-            header={(header || headerActionComponent || addNewButton) && <>
-                {header || <span />}
-                {(headerActionComponent || addNewButton) && (
-                    <span>
-                        {headerActionComponent}
-                        {addNewButton}
-                    </span>
+        if (!formNode || !React.isValidElement(formNode)) return formNode;
+
+        const { _key, ...record } = modalData;
+
+        return (
+            <Form
+                aspect="empty"
+                defaultValues={record}
+                savePath={({ record }: { record: RecordProps }) => (
+                    providerPath
+                        ? _key
+                            ? `${providerPath}/${_key}`
+                            : `${providerPath}/${createRecordKey?.(record) ?? Date.now()}`
+                        : undefined
                 )}
-            </>}
-            footer={footer}
-            className={(theme.Grid.Card.className + (sticky ? ' sticky-' + sticky : '')).trim()}
-            headerClass={theme.Grid.Card.headerClass}
-            bodyClass={theme.Grid.Card.bodyClass}
-            footerClass={theme.Grid.Card.footerClass}
-            showLoader={loader || showLoader}
-            showArrow={theme.Grid.Card.showArrow}
-        >{displayComponent}</Card>
-        {modalData && (
-            <Modal
-                size={modal?.size || theme.Grid.Modal.size}
-                position={modal?.position || theme.Grid.Modal.position}
-                header={formRef?.getHeader() || modal?.setHeader?.(currentRecord) || (isNewRecord ? theme.Grid.i18n.headerAdd : theme.Grid.i18n.headerEdit)}
-                onClose={closeModal}
-                onSave={formRef?.handleSave}
-                onDelete={!isNewRecord && (!allowedActions || allowedActions.includes("delete"))
-                    ? formRef?.handleDelete
-                    : undefined
-                }
-                wrapClass={theme.Grid.Modal.wrapClass}
-                className={theme.Grid.Modal.className}
-                headerClass={theme.Grid.Modal.headerClass}
-                titleClass={theme.Grid.Modal.titleClass}
-                bodyClass={theme.Grid.Modal.bodyClass}
-                footerClass={theme.Grid.Modal.footerClass}
+                log={audit}
+                onSave={onSave}
+                onDelete={onDelete}
+                onFinally={async ({ record, action }) => {
+                    const success = await onAfterAction?.({ record, action }) ?? true;
+                    if (success) closeEditor();
+                    return success;
+                }}
+                ref={setFormRefCallback}
             >
-                {modalComponent}
-            </Modal>
-        )}
-    </>);
-}
+                {formNode}
+            </Form>
+        );
+    }, [
+        audit,
+        closeEditor,
+        createRecordKey,
+        editor,
+        editorContext,
+        editorEnabled,
+        modalData,
+        onAfterAction,
+        onDelete,
+        onSave,
+        providerPath,
+        setFormRefCallback,
+    ]);
+
+    const editorNode = renderEditorNode();
+    const currentRecord = modalData;
+    const isNewRecord = !modalData?._key;
+
+    const cardFooter = useMemo(() => {
+        if (!footer && !footerActions) return undefined;
+        if (!footer) return footerActions;
+        if (!footerActions) return footer;
+
+        return (
+            <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>{footer}</div>
+                <div>{footerActions}</div>
+            </div>
+        );
+    }, [footer, footerActions]);
+
+    const inlineEditor = editorMode === "inline" && modalData ? (
+        <div className="mt-4 border-t pt-4">
+            {editorNode}
+        </div>
+    ) : null;
+
+    return (
+        <>
+            <Card
+                wrapClass={wrapClass}
+                header={(header || headerActions || addButton) && (
+                    <>
+                        {header || <span />}
+                        {(headerActions || addButton) && (
+                            <span className="flex flex-wrap items-center gap-2">
+                                {headerActions}
+                                {addButton}
+                            </span>
+                        )}
+                    </>
+                )}
+                footer={cardFooter}
+                className={(theme.Grid.Card.className + (sticky ? " sticky-" + sticky : "")).trim()}
+                headerClass={theme.Grid.Card.headerClass}
+                bodyClass={theme.Grid.Card.bodyClass}
+                footerClass={theme.Grid.Card.footerClass}
+                showLoader={loader || loading}
+                showArrow={theme.Grid.Card.showArrow}
+            >
+                {displayComponent}
+                {inlineEditor}
+            </Card>
+            {editorMode === "modal" && modalData && (
+                <Modal
+                    size={editor?.size || theme.Grid.Modal.size}
+                    position={editor?.position || theme.Grid.Modal.position}
+                    header={editor?.renderHeader?.(currentRecord) || (isNewRecord ? theme.Grid.i18n.headerAdd : theme.Grid.i18n.headerEdit)}
+                    onClose={closeEditor}
+                    onSave={hasFormEditor ? handleModalSave : undefined}
+                    onDelete={hasFormEditor && !isNewRecord && canDelete && !isActionDisabled(defaultActions?.delete, currentRecord) ? handleModalDelete : undefined}
+                    wrapClass={theme.Grid.Modal.wrapClass}
+                    className={theme.Grid.Modal.className}
+                    headerClass={theme.Grid.Modal.headerClass}
+                    titleClass={theme.Grid.Modal.titleClass}
+                    bodyClass={theme.Grid.Modal.bodyClass}
+                    footerClass={theme.Grid.Modal.footerClass}
+                >
+                    {editorNode}
+                </Modal>
+            )}
+        </>
+    );
+};
 
 export default Grid;

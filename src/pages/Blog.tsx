@@ -26,14 +26,15 @@ function Blog() {
         <>
             <h1>Blog</h1>
             <Grid
-                setPrimaryKey={(record: RecordProps) => {
+                createRecordKey={(record: RecordProps) => {
                     console.log(record)
                     return record.title
                 }}
                 columns={columns}
-            >
-                <BlogPost data={{ lang: 'Italiano', voice: 'Informative', style: 'Descriptive', limit: '3' }} />
-            </Grid>
+                editor={{
+                    form: <BlogPost data={{ lang: 'Italiano', voice: 'Informative', style: 'Descriptive', limit: '3' }} />
+                }}
+            />
         </>
     )
 }

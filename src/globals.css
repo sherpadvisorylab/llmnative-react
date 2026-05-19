@@ -138,14 +138,16 @@
     .card-arrow-bottom-right { @apply absolute w-0 h-0; }
 
     /* ── Table ── */
-    .table { @apply w-full text-sm text-left; }
+    .table { @apply w-full min-w-full text-sm text-left; }
     .table thead tr th { @apply px-3 py-2 font-semibold text-muted-foreground border-b; }
     .table tbody tr td { @apply px-3 py-2 border-b border-border/50; }
+    .table tfoot tr td,
+    .table tfoot tr th { @apply px-3 py-2 border-t text-muted-foreground; }
     .table-striped tbody tr:nth-child(odd) { @apply bg-muted/30; }
     .table-hover tbody tr:hover { @apply bg-muted/50; }
     .table-info   { @apply !bg-primary/10; }
-    .bootstrap-table    { @apply overflow-x-auto; }
-    .fixed-table-container { @apply overflow-y-auto; }
+    .bootstrap-table    { @apply w-full overflow-x-auto; }
+    .fixed-table-container { @apply w-full; }
 
     /* ── Modal ── */
 

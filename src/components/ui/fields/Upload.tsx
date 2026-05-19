@@ -59,7 +59,7 @@ const useFileUpload = <T extends FileProps>(
         setCurrentFile(null);
     };
 
-    const handleEdit = (index: number) => setCurrentFile(files[index]);
+    const handleEdit = (file: T) => setCurrentFile(file);
     const handleClose = () => setCurrentFile(null);
 
     const handleUploadChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -302,13 +302,14 @@ export const UploadDocument = ({
                     />}
                 </div>
                 {files.length > 0 && <Table
-                    onClick={(index) => editable && handleEdit(index)}
+                    onClick={(record) => editable && handleEdit(record as FileProps)}
                     header={[
                         { label: 'Name', key: 'name' },
                         { label: 'Kilobyte', key: 'kilobyte' },
                         { label: 'Actions', key: 'actions' }
                     ]}
-                    body={files.map((file, i) => ({
+                    body={files.map((file) => ({
+                        ...file,
                         name: file.progress === 100 ? <a href={getFileUrl(file)} target="_blank" rel="noopener noreferrer">{file.fileName}</a> : file.fileName,
                         kilobyte: (
                             file.progress === 100 
@@ -394,7 +395,7 @@ export const UploadImage = ({
                                     
                                     <div className="bg-dark opacity-75 absolute top-0 left-0 bottom-0 right-0 justify-end items-start" style={{ display: hoveredIndex === i ? "flex" : "none" }}>
                                         <a href={getFileUrl(img)} target="_blank" className="p-1 text-white" rel="noopener noreferrer"><Icon name="eye" /></a>
-                                        {editable && <ActionButton onClick={() => handleEdit(i)} icon='pencil' className="p-1" />}
+                                        {editable && <ActionButton onClick={() => handleEdit(img)} icon='pencil' className="p-1" />}
                                         <ActionButton onClick={() => handleRemove(img.key)} icon='x' className="p-1" />
                                         {editable && <div className="absolute bottom-0 left-0 w-full p-1 flex items-center justify-between">
                                             <ScaleBadge scales={img.variants} />

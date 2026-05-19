@@ -376,11 +376,13 @@ export default function PlaygroundDrawer({ title, config, open, onClose }: Playg
                 )}
 
                 {/* Fixed bottom area — always visible */}
-                <div className={splitLayout ? "grid min-h-0 grid-rows-[minmax(0,1fr)_auto_auto] overflow-hidden" : "shrink-0"}>
+                <div className={splitLayout ? "flex min-h-0 flex-col overflow-hidden" : "shrink-0"}>
                     {/* Preview accordion — open by default */}
                     <Accordion icon="eye" label="Preview" defaultOpen>
-                            <div className={splitLayout ? "h-full min-h-0 overflow-y-auto overflow-x-hidden px-5 pb-5 pt-3" : "min-h-72 overflow-visible px-4 pb-4 pt-2 pr-8"}>
-                                {preview}
+                            <div className={splitLayout ? "h-full min-h-0 overflow-auto px-5 pb-5 pt-3" : "min-h-72 overflow-auto px-4 pb-4 pt-2 pr-8"}>
+                                <div className="min-w-0">
+                                    {preview}
+                                </div>
                             </div>
                     </Accordion>
 

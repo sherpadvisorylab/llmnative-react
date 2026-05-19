@@ -6,6 +6,9 @@ export default defineConfig(({ mode }) => {
     return {
         plugins: [react()],
         resolve: {
+            alias: [
+                { find: /^react-firestrap$/, replacement: resolve(__dirname, '../../src/index.ts') },
+            ],
             dedupe: ['react', 'react-dom', 'react-router-dom'],
         },
         server: {
