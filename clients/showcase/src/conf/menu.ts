@@ -51,6 +51,7 @@ import ChecklistPage from '../pages/components/ChecklistPage';
 import UploadPage from '../pages/components/UploadPage';
 import FormPage from '../pages/components/FormPage';
 import GridPage from '../pages/components/GridPage';
+import GridPreviewPage from '../pages/components/GridPreviewPage';
 import MarkdownReaderPage from '../pages/components/MarkdownReaderPage';
 
 const s = (title: string, description: string): React.ComponentType =>
@@ -82,6 +83,10 @@ export const menu = {
         { path: '/components', page: () => React.createElement(Navigate, { to: '/components/alert', replace: true }) },
         { path: '/components/button', page: () => React.createElement(Navigate, { to: '/components/buttons', replace: true }) },
         { path: '/examples', page: () => React.createElement(Navigate, { to: '/examples/crud', replace: true }) },
+    ],
+
+    _hidden: [
+        { path: '/components/grid/preview', page: GridPreviewPage },
     ],
 
     docs: docsRoutes,

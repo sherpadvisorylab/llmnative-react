@@ -31,9 +31,7 @@ function Blog() {
                     return record.title
                 }}
                 columns={columns}
-                editor={{
-                    form: <BlogPost data={{ lang: 'Italiano', voice: 'Informative', style: 'Descriptive', limit: '3' }} />
-                }}
+                form={<BlogPost data={{ lang: 'Italiano', voice: 'Informative', style: 'Descriptive', limit: '3' }} />}
             />
         </>
     )

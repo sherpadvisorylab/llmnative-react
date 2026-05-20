@@ -48,8 +48,8 @@ describe('Gallery overlays', () => {
         expect(screen.queryByText('campaign')).not.toBeInTheDocument();
     });
 
-    it('orders records before rendering when order is provided', () => {
-        render(<Gallery body={body} order={{ field: 'name', dir: 'desc' }} />);
+    it('orders records before rendering when sortable OrderConfig is provided', () => {
+        render(<Gallery body={body} sortable={{ field: 'name', dir: 'desc' }} />);
 
         const images = screen.getAllByRole('img');
         expect(images[0]).toHaveAttribute('alt', 'Launch');
@@ -82,5 +82,23 @@ describe('Gallery overlays', () => {
 
         fireEvent.click(screen.getByLabelText('Select item hero'));
         expect(selections.at(-1)).toEqual(['hero']);
+    });
+
+    it('keeps selection mapped to the ordered item when records have no _key', () => {
+        const selections: string[][] = [];
+
+        render(
+            <Gallery
+                body={[
+                    { name: 'Zulu', img: <img src="zulu.png" alt="Zulu" /> },
+                    { name: 'Alpha', img: <img src="alpha.png" alt="Alpha" /> },
+                ]}
+                sortable={{ field: 'name', dir: 'asc' }}
+                onSelectionChange={(selection) => selections.push(selection.records.map((record) => record.name || ''))}
+            />
+        );
+
+        fireEvent.click(screen.getAllByRole('checkbox')[0]);
+        expect(selections.at(-1)).toEqual(['Alpha']);
     });
 });

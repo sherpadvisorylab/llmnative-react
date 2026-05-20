@@ -1481,7 +1481,7 @@ function Helper() {
                     <h2 id='grid'>Grid</h2>
                     <Card className='mb-3' title=''>
                       <Grid
-                        records={[
+                        source={[
                           {
                             id: 1,
                             name: "Alice Johnson",
@@ -1525,7 +1525,7 @@ function Helper() {
                   <Col lg={7} className='mb-5'>
                     <Code language='jsx' className='h-100 d-flex flex-grow-1 m-0'>
                       {`<Grid
-                        records={[
+                        source={[
                           {
                             id: 1,
                             name: "Alice Johnson",

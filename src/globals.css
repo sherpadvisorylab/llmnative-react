@@ -91,7 +91,7 @@
     /* ── Buttons ── */
     .btn {
         @apply inline-flex items-center justify-center gap-1.5 rounded-md px-4 py-2 text-sm font-medium transition-colors
-               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
+               cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
                disabled:pointer-events-none disabled:opacity-50;
     }
     .btn-primary   { @apply bg-primary text-primary-foreground hover:bg-primary/90; }
@@ -170,12 +170,14 @@
     .tab-pane { }
 
     /* ── Pagination ── */
-    .pagination { @apply flex items-center gap-0.5; }
+    .pagination { @apply flex items-center gap-1; }
+    .page-item-group-start { @apply mr-2; }
+    .page-item-group-end { @apply ml-2; }
     .page-item.disabled .page-link { @apply opacity-40 pointer-events-none; }
     .page-item.active .page-link   { @apply bg-primary text-primary-foreground border-primary; }
     .page-link {
-        @apply inline-flex items-center justify-center h-8 min-w-[2rem] px-2.5 border rounded-md
-               text-sm transition-colors hover:bg-accent hover:text-accent-foreground;
+        @apply inline-flex items-center justify-center h-9 min-w-[2.25rem] px-3 border rounded-md bg-background
+               text-sm transition-colors cursor-pointer hover:bg-accent hover:text-accent-foreground;
     }
 
     /* ── Spinner ── */

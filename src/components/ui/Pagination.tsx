@@ -105,7 +105,7 @@ const Pagination = <T,>({
                 <nav aria-label="Page navigation" className={`${className || theme.Pagination.className} flex w-full ${alignmentClass}`}>
                     <ul className="pagination">
 
-                        <li className={`page-item ${disabledPrev}`}>
+                        <li className={`page-item page-item-group-start ${disabledPrev}`}>
                             <button onClick={() => go(1)} className="page-link">
                                 <span>&laquo;</span>
                             </button>
@@ -134,7 +134,7 @@ const Pagination = <T,>({
                             </li>
                         ))}
 
-                        <li className={`page-item ${disabledNext}`}>
+                        <li className={`page-item page-item-group-end ${disabledNext}`}>
                             <button
                                 className="page-link"
                                 onClick={() => go(currentPage + 1)}

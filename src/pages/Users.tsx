@@ -7,10 +7,9 @@ import { RecordProps } from "../providers/data/DataProvider";
 function Users() {
   return (
     <Grid
-        providerPath={"/users"}
+        source={"/users"}
         createRecordKey={(record: RecordProps) => record.email.replace('@', '-')}
-        editor={{
-          form: (
+        form={(
             <>
               <String name={"username"}
                       label={"Username"}
@@ -29,8 +28,7 @@ function Users() {
                       required={true}
               />
             </>
-          )
-        }}
+        )}
     />
   );
 }

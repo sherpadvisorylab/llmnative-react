@@ -1,10 +1,12 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowDown, ArrowUp, ArrowUpDown, GripVertical } from 'lucide-react';
 import { useTheme } from "../../Theme";
 import { RecordArray, RecordProps } from "../../providers/data/DataProvider";
 import { UIProps } from '../';
 import Pagination, { PaginationParams } from './Pagination';
 import { Order, type OrderConfig } from '../../libs/order';
+import { RecordSelectionState, useRecordSelection } from './useRecordSelection';
+import { useStableRecordKey } from './useStableRecordKey';
 
 export type TableHeaderProp = {
     key: string,
@@ -21,14 +23,7 @@ export type TableReorderMeta = {
 
 type DropIndicatorPosition = 'before' | 'after';
 
-export type TableSelectionState = {
-    keys: string[];
-    records: RecordArray;
-    clear: () => void;
-    hasSelection: boolean;
-};
-
-type TableSelectionPayload = Omit<TableSelectionState, 'clear'>;
+export type TableSelectionState = RecordSelectionState<RecordProps>;
 
 interface TableProps extends UIProps {
     header?: TableHeaderProp[],
@@ -37,9 +32,9 @@ interface TableProps extends UIProps {
     onClick?: (record: RecordProps) => void;
     onReorder?: (reorderedRecords: RecordArray, meta: TableReorderMeta) => void;
     onSelectionChange?: (selection: TableSelectionState) => void;
-    sortable?: boolean;
-    order?: OrderConfig;
+    sortable?: boolean | OrderConfig;
     pagination?: PaginationParams;
+    activeKey?: string | null;
     selectedKeys?: string[];
     selectedRowKeys?: string[];
     headerClass?: string,
@@ -58,8 +53,8 @@ function Table({
     onReorder = undefined,
     onSelectionChange = undefined,
     sortable = false,
-    order = undefined,
     pagination = undefined,
+    activeKey = undefined,
     selectedKeys = undefined,
     selectedRowKeys = undefined,
     pre = undefined,
@@ -76,81 +71,76 @@ function Table({
     const theme = useTheme("table");
     const activeClass = selectedClass || theme.Table.selectedClass;
     const [rows, setRows] = useState<RecordArray>(body || []);
-    const [currentOrder, setCurrentOrder] = useState<OrderConfig | undefined>(order);
+    const sortableOrder = useMemo(() => {
+        if (!sortable || typeof sortable === 'boolean') return undefined;
+        return sortable;
+    }, [typeof sortable === 'object' ? sortable?.dir : undefined, typeof sortable === 'object' ? sortable?.field : undefined]);
+    const sortingEnabled = sortable !== false;
+    const [currentOrder, setCurrentOrder] = useState<OrderConfig | undefined>(sortableOrder);
     const [paginationNavEl, setPaginationNavEl] = useState<HTMLElement | null>(null);
-    const initialSelection = selectedKeys ?? selectedRowKeys ?? [];
-    const [internalSelectedKeys, setInternalSelectedKeys] = useState<string[]>(initialSelection);
     const [draggedKey, setDraggedKey] = useState<string | null>(null);
     const [dragOverKey, setDragOverKey] = useState<string | null>(null);
     const [dropIndicator, setDropIndicator] = useState<{ key: string; position: DropIndicatorPosition } | null>(null);
+    const [activeRowKey, setActiveRowKey] = useState<string | null>(null);
+    const hasWarnedReorderSortConflict = useRef(false);
     const paginationNavRef = useCallback((node: HTMLDivElement | null) => {
         if (node) setPaginationNavEl(node);
     }, []);
 
-    const controlledSelectedKeys = selectedKeys ?? selectedRowKeys;
-    const isSelectionControlled = controlledSelectedKeys !== undefined && !!onSelectionChange;
-    const activeSelectedKeys = isSelectionControlled ? (controlledSelectedKeys || []) : internalSelectedKeys;
-    const showSelection = !!onSelectionChange || controlledSelectedKeys !== undefined;
     const reorderable = !!onReorder;
+    const hasSortConfiguration = sortingEnabled || !!Order.normalize(sortableOrder);
+    const sortDisabledByReorder = reorderable && hasSortConfiguration;
+    const effectiveSortable = sortDisabledByReorder ? false : sortingEnabled;
+    const effectiveOrder = sortDisabledByReorder ? undefined : sortableOrder;
 
     useEffect(() => {
         setRows(body || []);
     }, [body]);
 
     useEffect(() => {
-        if (controlledSelectedKeys !== undefined && !isSelectionControlled) {
-            setInternalSelectedKeys(controlledSelectedKeys);
-        }
-    }, [controlledSelectedKeys, isSelectionControlled]);
+        setCurrentOrder(effectiveOrder);
+    }, [effectiveOrder?.field, effectiveOrder?.dir]);
 
     useEffect(() => {
-        setCurrentOrder(order);
-    }, [order?.field, order?.dir]);
+        if (!sortDisabledByReorder || hasWarnedReorderSortConflict.current) return;
 
-    const getRecordKey = useCallback((record: RecordProps, index: number): string => {
-        return record._key || `row-${index}`;
-    }, []);
+        console.warn(
+            'Table: `onReorder` cannot be combined with sortable sorting on the same view. Manual reorder takes precedence and sorting is ignored.'
+        );
+        hasWarnedReorderSortConflict.current = true;
+    }, [sortDisabledByReorder]);
 
-    const buildSelectionPayload = useCallback((keys: string[]): TableSelectionPayload => {
-        const keySet = new Set(keys);
-        const records = rows.filter((record, index) => keySet.has(getRecordKey(record, index)));
-        return {
-            keys,
-            records,
-            hasSelection: keys.length > 0,
-        };
-    }, [getRecordKey, rows]);
-
-    const updateSelection = useCallback((nextKeys: string[]) => {
-        if (!isSelectionControlled) {
-            setInternalSelectedKeys(nextKeys);
-        }
-        const nextSelection = buildSelectionPayload(nextKeys);
-        onSelectionChange?.({
-            ...nextSelection,
-            clear: () => updateSelection([]),
-        });
-    }, [buildSelectionPayload, isSelectionControlled, onSelectionChange]);
-
-    const clearSelection = useCallback(() => {
-        updateSelection([]);
-    }, [updateSelection]);
-
-    const selectionState = useMemo<TableSelectionState>(() => {
-        const nextSelection = buildSelectionPayload(activeSelectedKeys);
-        return {
-            ...nextSelection,
-            clear: clearSelection,
-        };
-    }, [activeSelectedKeys, buildSelectionPayload, clearSelection]);
+    const getStableRecordKey = useStableRecordKey<RecordProps>('row');
+    const getRecordKey = useCallback((record: RecordProps, index?: number) => getStableRecordKey(record, index), [getStableRecordKey]);
+    const {
+        activeSelectedKeys,
+        selectionState,
+        showSelection,
+        updateSelection,
+    } = useRecordSelection<RecordProps>({
+        records: rows,
+        selectedKeys,
+        legacySelectedKeys: selectedRowKeys,
+        onSelectionChange,
+        getRecordKey,
+    });
 
     useEffect(() => {
-        if (currentOrder || !header?.length) return;
-        const firstSortable = header.find((column) => sortable && column.sort !== false);
+        if (!activeRowKey) return;
+
+        const rowStillExists = rows.some((record, index) => getRecordKey(record, index) === activeRowKey);
+        if (!rowStillExists) {
+            setActiveRowKey(null);
+        }
+    }, [activeRowKey, getRecordKey, rows]);
+
+    useEffect(() => {
+        if (currentOrder || !header?.length || reorderable) return;
+        const firstSortable = header.find((column) => effectiveSortable && column.sort !== false);
         if (firstSortable) {
             setCurrentOrder({ field: firstSortable.key, dir: 'asc' });
         }
-    }, [currentOrder, header, sortable]);
+    }, [currentOrder, effectiveSortable, header, reorderable]);
 
     const sortedBody = useMemo<RecordArray>(() => Order.records(rows, currentOrder) || [], [rows, currentOrder]);
 
@@ -164,12 +154,11 @@ function Table({
             currentElement = currentElement.parentNode as HTMLElement;
         }
 
-        if (activeClass && currentElement && !currentElement.classList.contains(activeClass)) {
-            Array.from(currentElement.parentNode?.children || []).forEach((row) => {
-                row.classList.remove(activeClass);
-            });
-
-            currentElement.classList.add(activeClass);
+        if (activeClass) {
+            const rowKey = getRecordKey(record);
+            if (activeKey === undefined) {
+                setActiveRowKey((current) => current === rowKey ? null : rowKey);
+            }
         }
 
         onClick?.(record);
@@ -226,7 +215,7 @@ function Table({
         return <p className={"p-4"}>Nessun dato trovato</p>;
     }
 
-    const headers: TableHeaderProp[] = header || Object.keys(sortedBody[0]).map((key) => ({ key, label: key, sort: sortable }));
+    const headers: TableHeaderProp[] = header || Object.keys(sortedBody[0]).map((key) => ({ key, label: key, sort: sortingEnabled }));
     const viewportClass = [
         "fixed-table-container",
         theme.Table.scrollClass,
@@ -307,7 +296,7 @@ function Table({
                             {headers.map((hdr) => (
                                 hdr.label ? (
                                     (() => {
-                                        const isSortable = sortable && hdr.sort !== false;
+                                        const isSortable = effectiveSortable && hdr.sort !== false;
                                         const isActiveSort = isSortable && currentOrder?.field === hdr.key;
                                         const ariaSort = !isActiveSort
                                             ? "none"
@@ -375,7 +364,7 @@ function Table({
                         <Pagination
                             recordSet={sortedBody}
                             appendTo={paginationNavEl}
-                            wrapClass="mt-3"
+                            wrapClass="px-3 pt-4 pb-2"
                             {...(pagination || {})}
                         >
                             {(pageRecords, pageOffset) =>
@@ -385,13 +374,18 @@ function Table({
                                     const isSelected = activeSelectedKeys.includes(rowKey);
                                     const isDraggedOver = dragOverKey === rowKey;
                                     const isDragged = draggedKey === rowKey;
+                                    const resolvedActiveKey = activeKey === undefined ? activeRowKey : activeKey;
+                                    const isActiveRow = activeClass && resolvedActiveKey === rowKey;
 
                                     return (
                                         <React.Fragment key={rowKey}>
                                             {renderDropIndicator(rowKey, 'before', record, absoluteIndex)}
                                             <tr
                                                 draggable={reorderable}
-                                                className={isDraggedOver ? "bg-muted/30" : undefined}
+                                                className={[
+                                                    isDraggedOver ? "bg-muted/30" : "",
+                                                    isActiveRow ? activeClass : "",
+                                                ].filter(Boolean).join(" ") || undefined}
                                                 style={{
                                                     cursor: onClick ? "pointer" : reorderable ? "grab" : "default",
                                                     opacity: isDragged ? 0.45 : 1,
@@ -452,10 +446,20 @@ function Table({
                                                     <td style={{ width: '1%', whiteSpace: 'nowrap' }}>
                                                         <button
                                                             type="button"
+                                                            draggable={reorderable}
                                                             className="inline-flex cursor-grab items-center justify-center rounded-sm border-0 bg-transparent p-0 text-muted-foreground"
                                                             aria-label={`Reorder row ${rowKey}`}
                                                             onClick={(event) => event.preventDefault()}
-                                                            onMouseDown={(event) => event.stopPropagation()}
+                                                            onDragStart={(event) => {
+                                                                event.stopPropagation();
+                                                                setDraggedKey(rowKey);
+                                                            }}
+                                                            onDragEnd={(event) => {
+                                                                event.stopPropagation();
+                                                                setDraggedKey(null);
+                                                                setDragOverKey(null);
+                                                                setDropIndicator(null);
+                                                            }}
                                                         >
                                                             <GripVertical size={14} />
                                                         </button>

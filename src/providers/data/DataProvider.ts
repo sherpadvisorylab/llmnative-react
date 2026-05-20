@@ -34,6 +34,10 @@ export interface DatabaseOptions {
     onLoad?: (data: RecordObject) => RecordObject;
 }
 
+export interface DBConfig extends DatabaseOptions {
+    path?: string;
+}
+
 export interface ReadOptions {
     where?: WhereClause;
     order?: OrderClause;

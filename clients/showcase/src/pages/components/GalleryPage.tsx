@@ -1,5 +1,5 @@
 import React from 'react';
-import { Gallery, Modal, useDataProvider } from 'react-firestrap';
+import { ActionButton, Gallery, Modal, buttonOutlineSecondaryClass, buttonPrimaryClass, useDataProvider } from 'react-firestrap';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropsTable from '../../components/PropsTable';
@@ -53,7 +53,7 @@ const GALLERY_PROPS: PropDef[] = [
     { name: 'body', type: 'GalleryRecord[]', description: 'Records containing img or thumbnail data', control: 'json', readOnly: true },
     { name: 'Header', type: 'ReactNode', description: 'Header content above gallery', control: 'text' },
     { name: 'Footer', type: 'ReactNode', description: 'Footer content below gallery', control: 'text' },
-    { name: 'order', type: '{ field: string; dir?: "asc" | "desc" }', description: 'Initial order applied before rendering', control: 'json' },
+    { name: 'sortable', type: 'boolean | OrderConfig', description: 'Gallery has no sortable header UI, but you can pass an OrderConfig object to sort the incoming record set before rendering.', control: 'json' },
     { name: 'overlays', type: 'GalleryOverlay[]', description: 'Overlay rules based on position and record filters', control: 'json' },
     { name: 'onClick', type: '(record) => void', description: 'Called with the clicked record' },
     { name: 'onSelectionChange', type: `(selection: ${GALLERY_SELECTION_STATE_TYPE}) => void`, description: 'Called whenever selected items change. When provided, selection checkboxes appear automatically.' },
@@ -73,7 +73,7 @@ const PLAYGROUND: PlaygroundConfig = {
     defaultProps: {
         Header: 'Assets',
         Footer: '',
-        order: { field: 'name', dir: 'asc' },
+        sortable: { field: 'name', dir: 'asc' },
         overlays: [
             { position: 'topRight', badge: { content: 'new', type: 'primary' }, className: 'uppercase' },
             { position: 'bottomLeft', badge: { content: 'brand', type: 'success' }, when: { category: 'Brand' } },
@@ -110,9 +110,9 @@ function GalleryPlaygroundPreview({ p }: { p: Record<string, any> }) {
                         <div className="text-sm font-medium">Multi checkbox</div>
                         <div className="text-xs text-muted-foreground">Enable selection to inspect the onSelectionChange payload live in the gallery preview.</div>
                     </div>
-                    <button
-                        type="button"
-                        className={`btn btn-sm ${selectionEnabled ? 'btn-primary' : 'btn-outline-secondary'}`}
+                    <ActionButton
+                        className={`${selectionEnabled ? buttonPrimaryClass : buttonOutlineSecondaryClass} btn-sm`}
+                        label={selectionEnabled ? 'Disable multi checkbox' : 'Enable multi checkbox'}
                         onClick={() => {
                             setSelectionEnabled((current) => {
                                 const next = !current;
@@ -121,16 +121,14 @@ function GalleryPlaygroundPreview({ p }: { p: Record<string, any> }) {
                                 return next;
                             });
                         }}
-                    >
-                        {selectionEnabled ? 'Disable multi checkbox' : 'Enable multi checkbox'}
-                    </button>
+                    />
                 </div>
             </div>
             <Gallery
                 body={playgroundBody}
                 Header={p.Header || undefined}
                 Footer={p.Footer || undefined}
-                order={p.order && typeof p.order === 'object' ? p.order : undefined}
+                sortable={p.sortable}
                 overlays={Array.isArray(p.overlays) ? p.overlays : undefined}
                 selectedKeys={selectionEnabled ? playgroundSelectedKeys : undefined}
                 onSelectionChange={selectionEnabled ? ((selection) => {
@@ -171,15 +169,15 @@ export default function GalleryPage() {
     const [exportOpen, setExportOpen] = React.useState(false);
 
     return (
-        <PageLayout title="Gallery" description="Visual record gallery with shared order support, overlays, selection and pagination.">
+        <PageLayout title="Gallery" description="Visual record gallery with shared sorting support, overlays, selection and pagination.">
             <Section
-                title="Ordered gallery"
-                description="Gallery accepts the same order contract as Grid and Table. It sorts incoming records before rendering, without needing a header UI."
+                title="Sorted gallery"
+                description="Gallery accepts the same sortable contract as Grid and Table. It sorts incoming records before rendering, without needing a header UI."
                 preview={
                     <Gallery
                         body={body}
                         Header="Assets"
-                        order={{ field: 'name', dir: 'asc' }}
+                        sortable={{ field: 'name', dir: 'asc' }}
                         overlays={[
                             { position: 'topRight', badge: { content: 'new', type: 'primary' }, className: 'uppercase' },
                             { position: 'bottomLeft', badge: { content: 'brand', type: 'success' }, when: { category: 'Brand' } },
@@ -192,7 +190,7 @@ export default function GalleryPage() {
                 code={`<Gallery
   body={records}
   Header="Assets"
-  order={{ field: 'name', dir: 'asc' }}
+  sortable={{ field: 'name', dir: 'asc' }}
   overlays={[
     { position: 'topRight', badge: { content: 'new', type: 'primary' } },
     { position: 'bottomLeft', badge: { content: 'brand', type: 'success' }, when: { category: 'Brand' } },
@@ -241,25 +239,21 @@ export default function GalleryPage() {
                                         {selectedKeys.length ? `${selectedKeys.length} selected` : 'Select assets to enable external bulk commands'}
                                     </span>
                                     <div className="flex items-center gap-2">
-                                        <button
-                                            type="button"
-                                            className="btn btn-sm btn-outline-secondary"
+                                        <ActionButton
+                                            className={`${buttonOutlineSecondaryClass} btn-sm`}
+                                            label="Export"
                                             disabled={!selectedKeys.length}
                                             onClick={() => setExportOpen(true)}
-                                        >
-                                            Export
-                                        </button>
-                                        <button
-                                            type="button"
-                                            className="btn btn-sm btn-outline-secondary"
+                                        />
+                                        <ActionButton
+                                            className={`${buttonOutlineSecondaryClass} btn-sm`}
+                                            label="Clear"
                                             disabled={!selectedKeys.length}
                                             onClick={() => {
                                                 setSelectedKeys([]);
                                                 setSelectedRecords([]);
                                             }}
-                                        >
-                                            Clear
-                                        </button>
+                                        />
                                     </div>
                                 </div>
                             )}
@@ -314,12 +308,12 @@ const [exportOpen, setExportOpen] = useState(false);
 
             <Section
                 title="Grouped and paged"
-                description="Grouping still works on top of the ordered record set. Pagination remains delegated to the shared Pagination component."
+                description="Grouping still works on top of the sorted record set. Pagination remains delegated to the shared Pagination component."
                 preview={
                     <Gallery
                         body={body}
                         Header="Grouped by first space"
-                        order={{ field: 'category', dir: 'asc' }}
+                        sortable={{ field: 'category', dir: 'asc' }}
                         groupBy=" "
                         pagination={{ limit: 2, align: 'center', sticky: false }}
                         rowCols={2}
@@ -327,7 +321,7 @@ const [exportOpen, setExportOpen] = useState(false);
                 }
                 code={`<Gallery
   body={records}
-  order={{ field: 'category', dir: 'asc' }}
+  sortable={{ field: 'category', dir: 'asc' }}
   groupBy=" "
   pagination={{ limit: 2, align: 'center', sticky: false }}
   rowCols={2}

@@ -1,13 +1,17 @@
 import React from 'react';
 import {
+    ActionButton,
     Badge,
     DataProvider,
     Email,
     Grid,
     MockDataProvider,
     Modal,
+    ModalYesNo,
     Select,
     String as TextField,
+    buttonOutlineSecondaryClass,
+    buttonPrimaryClass,
     useDataProvider,
 } from 'react-firestrap';
 import PageLayout from '../../components/PageLayout';
@@ -37,10 +41,35 @@ const USERS_SEED: Record<string, UserSeedRecord> = {
 };
 
 const GRID_PLAYGROUND_PATH = '/grid-users';
+const GRID_PLAYGROUND_SOURCE = {
+    path: GRID_PLAYGROUND_PATH,
+    order: { name: 'asc' as const },
+};
 
 const GRID_PLAYGROUND_SEED = {
     [GRID_PLAYGROUND_PATH]: USERS_SEED,
     'components/grid': USERS_SEED,
+};
+
+const isSourceConfig = (value: unknown): value is { path?: string; where?: object; order?: object; fieldMap?: object; onLoad?: unknown } => (
+    !!value && typeof value === 'object' && !Array.isArray(value)
+);
+
+const getPlaygroundSourcePath = (source: unknown) => {
+    if (typeof source === 'string') return source;
+    if (isSourceConfig(source)) return source.path || GRID_PLAYGROUND_PATH;
+    return GRID_PLAYGROUND_PATH;
+};
+
+const getPlaygroundSourceOptions = (source: unknown) => {
+    if (!isSourceConfig(source)) return undefined;
+
+    return {
+        where: source.where,
+        order: source.order,
+        fieldMap: source.fieldMap,
+        onLoad: source.onLoad as ((data: Record<string, any>) => Record<string, any>) | undefined,
+    };
 };
 
 const statusClass = (status: string) => (
@@ -59,6 +88,15 @@ const roleClass = (role: string) => (
             : 'bg-secondary'
 );
 
+const galleryPaletteByTeam: Record<string, { background: string; foreground: string }> = {
+    Platform: { background: 'E0F2FE', foreground: '0F172A' },
+    Marketing: { background: 'FEF3C7', foreground: '111827' },
+    Support: { background: 'DCFCE7', foreground: '14532D' },
+    Product: { background: 'EDE9FE', foreground: '312E81' },
+    Operations: { background: 'FFE4E6', foreground: '881337' },
+    Content: { background: 'FCE7F3', foreground: '831843' },
+};
+
 const toRecords = (seed: Record<string, UserSeedRecord>) => (
     Object.entries(seed).map(([_key, record]) => ({ _key, ...record }))
 );
@@ -68,8 +106,8 @@ const toGalleryRecords = (records: Array<Record<string, any>>) => (
         ...record,
         img: (
             <img
-                src={`https://placehold.co/480x280/0f172a/ffffff?text=${encodeURIComponent(record.name)}`}
-                alt={record.name}
+                src={`https://placehold.co/960x640/${(galleryPaletteByTeam[record.team]?.background || 'E2E8F0')}/${(galleryPaletteByTeam[record.team]?.foreground || '0F172A')}?text=${encodeURIComponent(`${record.team}\n${record.city}\n${record.name}`)}`}
+                alt={`${record.team} | ${record.name}`}
             />
         ),
     }))
@@ -118,6 +156,150 @@ function GridUserFields() {
     );
 }
 
+function GridEditSidebar({
+    record,
+    onDelete,
+    Actions,
+}: {
+    record?: Record<string, any>;
+    onDelete: () => void;
+    Actions: Record<string, React.ComponentType<any>>;
+}) {
+    return (
+        <div className="space-y-4">
+            <div>
+                <div className="text-sm font-medium">Custom edit view</div>
+                <div className="text-xs text-muted-foreground">This edit action renders its own layout inside a right-side modal.</div>
+            </div>
+            <div className="rounded-md border bg-muted/30 p-4">
+                <div className="text-lg font-semibold">{record?.name}</div>
+                <div className="text-sm text-muted-foreground">{record?.email}</div>
+                <div className="mt-3 grid gap-2 text-sm">
+                    <div><span className="font-medium">Role:</span> {record?.role}</div>
+                    <div><span className="font-medium">Status:</span> {record?.status}</div>
+                    <div><span className="font-medium">Team:</span> {record?.team}</div>
+                    <div><span className="font-medium">City:</span> {record?.city}</div>
+                </div>
+            </div>
+            <div className="flex flex-wrap justify-end gap-2">
+                {Actions.preview ? <Actions.preview className={`${buttonOutlineSecondaryClass} btn-sm`} record={record} /> : null}
+                <ActionButton className="btn-danger btn-sm" label="Delete teammate" onClick={onDelete} />
+            </div>
+        </div>
+    );
+}
+
+function GridActionWorkflowsPreview() {
+    const provider = useDataProvider();
+
+    const handleDeleteTeammate = React.useCallback(async (record?: Record<string, any>) => {
+        if (!record?._key) return false;
+        await provider.remove(`${GRID_PLAYGROUND_PATH}/${record._key}`);
+        return true;
+    }, [provider]);
+
+    return (
+        <Grid
+            source={{ path: GRID_PLAYGROUND_PATH, order: { name: 'asc' } }}
+            columns={baseColumns}
+            title="Team members"
+            view="table"
+            sortable
+            form={<GridUserFields />}
+            actions={{
+                add: { label: 'Add teammate', mode: { position: 'center', size: 'xl' } },
+                edit: {
+                    mode: { position: 'right', size: 'lg' },
+                    render: ({ record, action, Actions }) => (
+                        <GridEditSidebar record={record} onDelete={() => action('delete', record)} Actions={Actions} />
+                    ),
+                },
+                delete: {
+                    mode: null,
+                    render: ({ record, close }) => (
+                        <ModalYesNo
+                            title="Delete teammate"
+                            onClose={close}
+                            onYes={async () => {
+                                const success = await handleDeleteTeammate(record);
+                                if (success) close();
+                                return success;
+                            }}
+                            onNo={async () => true}
+                        >
+                            <div className="text-sm">
+                                Are you sure you want to delete <span className="font-medium">{record?.name}</span>?
+                            </div>
+                        </ModalYesNo>
+                    ),
+                },
+                preview: {
+                    label: 'Preview record',
+                    mode: (record) => `/components/grid/preview?view=preview&record=${record?._key || ''}`,
+                },
+                export: {
+                    label: 'Export',
+                    mode: '/components/grid/preview?view=export',
+                },
+                copy: {
+                    label: 'Copy',
+                    mode: null,
+                    render: ({ close }) => (
+                        <Modal title="Copy dataset helpers" size="md" onClose={close}>
+                            <div className="space-y-4">
+                                <div className="text-sm text-muted-foreground">
+                                    This non-standard action is still declared in the same <code>actions</code> catalog. Here it opens a small utility modal instead of navigating away.
+                                </div>
+                                <div className="grid gap-2">
+                                    <ActionButton
+                                        className={buttonOutlineSecondaryClass}
+                                        label="Copy dataset JSON"
+                                        onClick={async () => {
+                                            await navigator.clipboard.writeText(JSON.stringify(toRecords(USERS_SEED), null, 2));
+                                            close();
+                                        }}
+                                    />
+                                    <ActionButton
+                                        className={buttonOutlineSecondaryClass}
+                                        label="Copy emails"
+                                        onClick={async () => {
+                                            await navigator.clipboard.writeText(toRecords(USERS_SEED).map((record) => record.email).join(', '));
+                                            close();
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        </Modal>
+                    ),
+                },
+            }}
+            header={({ title, Actions }) => (
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="min-w-0">
+                        <div>{title}</div>
+                        <div className="text-xs text-muted-foreground">
+                            Add, edit and delete can now choose different render strategies without a separate editor prop.
+                        </div>
+                    </div>
+                    {Actions.add ? <Actions.add /> : null}
+                </div>
+            )}
+            footer={({ Actions }) => (
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                    <span className="text-xs text-muted-foreground">
+                        Add uses the default form. Edit and delete override it selectively. Preview, export and copy live in the same action catalog and can be reused anywhere in the Grid chrome.
+                    </span>
+                    <div className="flex flex-wrap items-center justify-end gap-2">
+                        {Actions.export ? <Actions.export className={`${buttonOutlineSecondaryClass} btn-sm`} /> : null}
+                        {Actions.copy ? <Actions.copy className={`${buttonOutlineSecondaryClass} btn-sm`} /> : null}
+                    </div>
+                </div>
+            )}
+            createRecordKey={(record) => String(record.email).replace(/[^a-z0-9]+/gi, '-').toLowerCase()}
+        />
+    );
+}
+
 const baseColumns = [
     { key: 'name', label: 'Name', sort: true },
     { key: 'email', label: 'Email', sort: true },
@@ -156,23 +338,13 @@ const GRID_COLUMN_TYPE = `{
 }[]`;
 
 const GRID_ACTIONS_TYPE = `{
-  default?: {
-    add?: boolean | ActionConfig;
-    edit?: boolean | ActionConfig;
-    delete?: boolean | ActionConfig;
-  };
-  header?: ReactNode | ((ctx) => ReactNode);
-  footer?: ReactNode | ((ctx) => ReactNode);
+  add?: false | ActionConfig;
+  edit?: false | ActionConfig;
+  delete?: false | ActionConfig;
+  [customAction: string]?: false | ActionConfig;
 }`;
 
-const GRID_EDITOR_TYPE = `{
-  mode?: "modal" | "inline" | "custom";
-  form?: ReactNode | ((ctx) => ReactNode);
-  renderHeader?: (record?) => ReactNode;
-  renderContent?: (ctx) => ReactNode;
-  size?: "sm" | "md" | "lg" | "xl" | "fullscreen";
-  position?: "center" | "top" | "left" | "right" | "bottom";
-}`;
+const GRID_FORM_TYPE = `ReactNode | ((ctx) => ReactNode)`;
 
 const GRID_SELECTION_STATE_TYPE = `{
   keys: string[];
@@ -182,20 +354,27 @@ const GRID_SELECTION_STATE_TYPE = `{
 }`;
 
 const GRID_PROPS: PropDef[] = [
-    { name: 'providerPath', type: 'string', description: 'Provider path used when Grid subscribes to a DataProvider source.', control: 'text', group: 'Data' },
-    { name: 'records', type: 'RecordArray', description: 'In-memory records used instead of providerPath.', group: 'Data' },
+    {
+        name: 'source',
+        type: 'RecordArray | string | { path?: string; where?: object; order?: object; fieldMap?: object }',
+        description: 'Single data entry point for Grid. Use an array for local rows, a string for a provider path, or a db-style object for provider queries.',
+        control: 'json',
+        group: 'Data',
+        readOnly: true,
+        help: 'This playground uses a MockDataProvider. See Mock database below to inspect or edit the records returned by this source path.',
+    },
     { name: 'columns', type: GRID_COLUMN_TYPE, required: true, description: 'Column definitions. transform accepts either a converter key string or a custom callback.', group: 'Display' },
     { name: 'view', type: '"table" | "gallery"', default: '"table"', description: 'Visual mode used by Grid.', control: 'select', options: ['table', 'gallery'], group: 'Display' },
-    { name: 'sortable', type: 'boolean', default: 'true', description: 'Enables sortable headers in table mode. Gallery still honors order without header UI.', control: 'boolean', group: 'Display' },
-    { name: 'order', type: '{ field: string; dir?: "asc" | "desc" }', description: 'Initial sort configuration forwarded to Table or Gallery.', control: 'json', group: 'Display' },
+    { name: 'sortable', type: 'boolean | OrderConfig', default: 'true', description: 'Enables sortable headers in table mode. Pass an OrderConfig object to set the initial client-side sort without reintroducing a separate order prop.', control: 'json', group: 'Display' },
     { name: 'pagination', type: 'PaginationParams', description: 'Pagination config shared with the underlying visual component.', control: 'json', group: 'Display' },
     { name: 'groupBy', type: 'string | string[]', description: 'Grouping separator or separators in gallery mode.', control: 'text', group: 'Display', hidden: (props) => props.view !== 'gallery' },
-    { name: 'header', type: 'ReactNode', description: 'Optional card header content.', control: 'text', group: 'Layout' },
-    { name: 'footer', type: 'ReactNode', description: 'Optional card footer content.', control: 'text', group: 'Layout' },
+    { name: 'title', type: 'ReactNode', description: 'Title used by the default Grid header layout.', control: 'text', group: 'Layout' },
+    { name: 'header', type: 'ReactNode | ((ctx) => ReactNode)', description: 'Optional header override. Leave it undefined to use the default title + add action layout.', group: 'Layout' },
+    { name: 'footer', type: 'ReactNode | ((ctx) => ReactNode)', description: 'Optional footer override. Leave it undefined to keep the default footer empty.', group: 'Layout' },
     { name: 'wrapClass', type: 'string', description: 'Class applied to the outer Grid card wrapper.', control: 'text', group: 'Layout' },
     { name: 'sticky', type: '"top" | "bottom"', description: 'Sticky card modifier when the theme supports it.', control: 'select', options: ['top', 'bottom'], group: 'Layout' },
-    { name: 'actions', type: GRID_ACTIONS_TYPE, description: 'Built-in default actions plus custom header/footer action slots.', group: 'Actions' },
-    { name: 'editor', type: GRID_EDITOR_TYPE, description: 'Editor configuration for modal or inline editing.', group: 'Editor' },
+    { name: 'form', type: GRID_FORM_TYPE, description: 'Shared default form used by add/edit actions when they do not provide their own render function.', group: 'Actions' },
+    { name: 'actions', type: GRID_ACTIONS_TYPE, description: 'Action catalog used by Grid defaults and by header/footer composition. Each action can choose its own mode, modal placement and render strategy, including custom named actions.', group: 'Actions' },
     { name: 'createRecordKey', type: '(record) => string', description: 'Generates the record key used for new provider-backed saves.', group: 'Data lifecycle' },
     { name: 'transformRecords', type: '(records) => RecordArray | Promise<RecordArray>', description: 'Transforms, filters or enriches the source record set before display.', group: 'Data lifecycle' },
     { name: 'onClick', type: '(record) => void', description: 'Called with the clicked source record.', group: 'Events' },
@@ -210,18 +389,19 @@ const GRID_EDITOR_SEED = toRecords(USERS_SEED).slice(0, 6);
 
 function GridPlaygroundPreview({ p }: { p: Record<string, any> }) {
     const provider = useDataProvider();
+    const providerSourcePath = React.useMemo(() => getPlaygroundSourcePath(p.source), [p.source]);
+    const providerSourceOptions = React.useMemo(() => getPlaygroundSourceOptions(p.source), [p.source]);
     const [sourceRows, setSourceRows] = React.useState<Array<Record<string, any>>>(GRID_EDITOR_SEED);
     const [playgroundRows, setPlaygroundRows] = React.useState<Array<Record<string, any>>>(toGalleryRecords(GRID_EDITOR_SEED));
     const [selectionEnabled, setSelectionEnabled] = React.useState(false);
     const [dragEnabled, setDragEnabled] = React.useState(false);
-    const [inlineEditor, setInlineEditor] = React.useState(false);
     const [selectedKeys, setSelectedKeys] = React.useState<string[]>([]);
     const [selectedRecords, setSelectedRecords] = React.useState<Array<Record<string, any>>>([]);
     const [selectionPayload, setSelectionPayload] = React.useState<{ keys: string[]; records: string[]; hasSelection: boolean } | null>(null);
     const [reorderPayload, setReorderPayload] = React.useState<{ keys: string[]; fromIndex: number | null; toIndex: number | null } | null>(null);
     const [exportOpen, setExportOpen] = React.useState(false);
 
-    provider.useListener(GRID_PLAYGROUND_PATH, setSourceRows);
+    provider.useListener(providerSourcePath, setSourceRows, providerSourceOptions);
 
     React.useEffect(() => {
         const nextRows = toGalleryRecords(sourceRows);
@@ -244,26 +424,22 @@ function GridPlaygroundPreview({ p }: { p: Record<string, any> }) {
                     : 'Enable multi checkbox above to activate Grid selection'}
             </span>
             <div className="flex items-center gap-2">
-                <button
-                    type="button"
-                    className="btn btn-sm btn-outline-secondary"
+                <ActionButton
+                    className={`${buttonOutlineSecondaryClass} btn-sm`}
+                    label="Export"
                     disabled={!selectionEnabled || !selectedKeys.length}
                     onClick={() => setExportOpen(true)}
-                >
-                    Export
-                </button>
-                <button
-                    type="button"
-                    className="btn btn-sm btn-outline-secondary"
+                />
+                <ActionButton
+                    className={`${buttonOutlineSecondaryClass} btn-sm`}
+                    label="Clear"
                     disabled={!selectionEnabled || !selectedKeys.length}
                     onClick={() => {
                         setSelectedKeys([]);
                         setSelectedRecords([]);
                         setSelectionPayload(null);
                     }}
-                >
-                    Clear
-                </button>
+                />
             </div>
         </div>
     );
@@ -271,7 +447,7 @@ function GridPlaygroundPreview({ p }: { p: Record<string, any> }) {
     const actionFooter = (
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
             <span>{playgroundRows.length} mock records</span>
-            <span>{inlineEditor ? 'Inline editor' : 'Modal editor'} active</span>
+            <span>Default modal workflow active</span>
         </div>
     );
 
@@ -284,9 +460,9 @@ function GridPlaygroundPreview({ p }: { p: Record<string, any> }) {
                             <div className="text-sm font-medium">Multi checkbox</div>
                             <div className="text-xs text-muted-foreground">Selection uses the same selectedKeys and onSelectionChange semantics as Table and Gallery.</div>
                         </div>
-                        <button
-                            type="button"
-                            className={`btn btn-sm ${selectionEnabled ? 'btn-primary' : 'btn-outline-secondary'}`}
+                        <ActionButton
+                            className={`${selectionEnabled ? buttonPrimaryClass : buttonOutlineSecondaryClass} btn-sm`}
+                            label={selectionEnabled ? 'Disable multi checkbox' : 'Enable multi checkbox'}
                             onClick={() => {
                                 setSelectionEnabled((current) => {
                                     const next = !current;
@@ -296,9 +472,7 @@ function GridPlaygroundPreview({ p }: { p: Record<string, any> }) {
                                     return next;
                                 });
                             }}
-                        >
-                            {selectionEnabled ? 'Disable multi checkbox' : 'Enable multi checkbox'}
-                        </button>
+                        />
                     </div>
                 </div>
                 <div className="rounded-md border bg-muted/30 p-3">
@@ -307,10 +481,10 @@ function GridPlaygroundPreview({ p }: { p: Record<string, any> }) {
                             <div className="text-sm font-medium">Drag reorder</div>
                             <div className="text-xs text-muted-foreground">Reorder is table-only. While it is active, sorting is suspended so manual order stays visible.</div>
                         </div>
-                        <button
-                            type="button"
+                        <ActionButton
                             disabled={p.view !== 'table'}
-                            className={`btn btn-sm ${dragEnabled ? 'btn-primary' : 'btn-outline-secondary'} ${p.view !== 'table' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            className={`${dragEnabled ? buttonPrimaryClass : buttonOutlineSecondaryClass} btn-sm`}
+                            label={dragEnabled ? 'Disable drag' : 'Enable drag'}
                             onClick={() => {
                                 if (p.view !== 'table') return;
                                 setDragEnabled((current) => {
@@ -323,57 +497,60 @@ function GridPlaygroundPreview({ p }: { p: Record<string, any> }) {
                                     return next;
                                 });
                             }}
-                        >
-                            {dragEnabled ? 'Disable drag' : 'Enable drag'}
-                        </button>
+                        />
                     </div>
                 </div>
                 <div className="rounded-md border bg-muted/30 p-3">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                        <div>
-                            <div className="text-sm font-medium">Editor mode</div>
-                            <div className="text-xs text-muted-foreground">Switch between modal and inline editing without changing the Grid contract.</div>
-                        </div>
-                        <button
-                            type="button"
-                            className={`btn btn-sm ${inlineEditor ? 'btn-primary' : 'btn-outline-secondary'}`}
-                            onClick={() => setInlineEditor((current) => !current)}
-                        >
-                            {inlineEditor ? 'Use modal editor' : 'Use inline editor'}
-                        </button>
+                    <div className="space-y-2">
+                        <div className="text-sm font-medium">Action chrome</div>
+                        <div className="text-xs text-muted-foreground">Grid keeps a default header with title plus Add. You can still override header and footer as JSX or as functions receiving the built-in action components.</div>
                     </div>
                 </div>
             </div>
 
             <Grid
-                records={playgroundRows}
+                source={dragEnabled ? playgroundRows : (p.source || GRID_PLAYGROUND_SOURCE)}
                 columns={baseColumns}
-                header={p.header || 'Team directory'}
-                footer={p.footer || 'Provider-backed Grid preview'}
+                title={p.title || 'Team directory'}
                 view={p.view}
                 sortable={dragEnabled ? false : p.sortable}
-                order={dragEnabled ? undefined : (p.order && typeof p.order === 'object' ? p.order : undefined)}
                 pagination={p.pagination && typeof p.pagination === 'object' ? p.pagination : undefined}
                 groupBy={p.view === 'gallery' ? (p.groupBy || undefined) : undefined}
                 wrapClass={p.wrapClass || undefined}
                 sticky={p.sticky || undefined}
                 loading={!!p.loading}
                 audit={!!p.audit}
+                form={<GridUserFields />}
                 actions={{
-                    default: {
-                        add: true,
-                        edit: true,
-                        delete: true,
+                    add: { mode: { position: 'center' } },
+                    edit: {},
+                    delete: {
+                        mode: null,
+                        render: ({ record, close }) => (
+                            <ModalYesNo
+                                title="Delete teammate"
+                                onClose={close}
+                                onYes={async () => true}
+                                onNo={async () => true}
+                            >
+                                <div className="text-sm">
+                                    Delete <span className="font-medium">{record?.name}</span> from this mock dataset?
+                                </div>
+                            </ModalYesNo>
+                        ),
                     },
-                    header: actionHeader,
-                    footer: actionFooter,
                 }}
-                editor={{
-                    mode: inlineEditor ? 'inline' : 'modal',
-                    size: 'xl',
-                    form: <GridUserFields />,
-                    renderHeader: (record) => record?._key ? 'Edit team member' : 'Add team member',
-                }}
+                header={({ title, Actions }) => (
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div className="min-w-0">
+                            <div>{title}</div>
+                            <div className="mt-2">{actionHeader}</div>
+                        </div>
+                        {Actions.add ? <Actions.add /> : null}
+                    </div>
+                )}
+                footer={() => actionFooter}
+                transformRecords={dragEnabled ? undefined : ((records) => toGalleryRecords(records))}
                 createRecordKey={(record) => String(record.email || record.name || Date.now()).replace(/[^a-z0-9]+/gi, '-').toLowerCase()}
                 selectedKeys={selectionEnabled ? selectedKeys : undefined}
                 onSelectionChange={selectionEnabled ? ((selection) => {
@@ -436,13 +613,12 @@ const PLAYGROUND: PlaygroundConfig = {
     props: GRID_PROPS,
     mockSeed: GRID_PLAYGROUND_SEED,
     defaultProps: {
+        source: GRID_PLAYGROUND_SOURCE,
         view: 'table',
-        sortable: true,
-        order: { field: 'name', dir: 'asc' },
+        sortable: { field: 'name', dir: 'asc' },
         pagination: { limit: 4, align: 'end', sticky: false },
         groupBy: ' ',
-        header: 'Team directory',
-        footer: 'Provider-backed Grid preview',
+        title: 'Team directory',
         wrapClass: '',
         sticky: '',
         loading: false,
@@ -466,7 +642,7 @@ export default function GridPage() {
             description="Grid is now an orchestration layer on top of Table and Gallery: provider reads, record transforms, actions, editor flows, selection and reorder all share one cleaner contract."
         >
             <Section
-                title="Implicit provider path"
+                title="Implicit provider source"
                 description="With no props, Grid reads from the current route path and derives columns from the first record. This is the smallest provider-backed usage."
                 preview={(
                     <WithMock>
@@ -477,61 +653,59 @@ export default function GridPage() {
             />
 
             <Section
-                title="Explicit provider path"
-                description="Use providerPath when the Grid must subscribe to a provider collection that is not the current route."
+                title="Explicit provider source"
+                description="Use a string source when the Grid must subscribe to a provider collection that is not the current route."
                 preview={(
                     <WithMock>
                         <Grid
-                            providerPath={GRID_PLAYGROUND_PATH}
+                            source={GRID_PLAYGROUND_PATH}
                         />
                     </WithMock>
                 )}
                 code={`<Grid
-  providerPath="/grid-users"
+  source="/grid-users"
 />`}
             />
 
             <Section
-                title="Static records"
-                description="Use records when the caller already owns the data and Grid should only render, sort, paginate, select or reorder it."
+                title="Static source array"
+                description="Use an array source when the caller already owns the data and Grid should only render, paginate, select or reorder it."
                 preview={(
                     <Grid
-                        records={toRecords(USERS_SEED)}
+                        source={toRecords(USERS_SEED)}
                     />
                 )}
                 code={`<Grid
-  records={records}
+  source={records}
 />`}
             />
 
             <Section
                 title="Column transforms"
-                description="Use columns when you want explicit labels, sortable fields and display transforms for specific cells."
+                description="Use columns when you want explicit labels, sortable fields and display transforms for specific cells. sortable can also carry the initial client-side sort config."
                 preview={(
                     <Grid
-                        records={toRecords(USERS_SEED)}
+                        source={toRecords(USERS_SEED)}
                         columns={baseColumns}
-                        header="Team directory"
+                        title="Team directory"
                         footer="Explicit columns with badge transforms"
                         view="table"
-                        sortable
-                        order={{ field: 'name', dir: 'asc' }}
+                        sortable={{ field: 'name', dir: 'asc' }}
                         pagination={{ limit: 4, align: 'end', sticky: false }}
                     />
                 )}
                 code={`<Grid
-  records={records}
+  source={records}
   columns={[
     { key: 'name', label: 'Name', sort: true },
     { key: 'email', label: 'Email', sort: true },
     { key: 'role', label: 'Role', transform: ({ value }) => <Badge>{value}</Badge> },
     { key: 'status', label: 'Status', transform: ({ value }) => <Badge>{value}</Badge> },
   ]}
-  header="Team directory"
+  title="Team directory"
   footer="Explicit columns with badge transforms"
   view="table"
-  sortable
-  order={{ field: 'name', dir: 'asc' }}
+  sortable={{ field: 'name', dir: 'asc' }}
   pagination={{ limit: 4, align: 'end', sticky: false }}
 />`}
             />
@@ -541,9 +715,9 @@ export default function GridPage() {
                 description="Use transformRecords when you need to normalize, filter or enrich the source record set before Grid hands it to Table or Gallery."
                 preview={(
                     <Grid
-                        records={toGalleryRecords(toRecords(USERS_SEED))}
+                        source={toGalleryRecords(toRecords(USERS_SEED))}
                         columns={baseColumns}
-                        header="Only active and review users"
+                        title="Only active and review users"
                         footer="Inactive users are filtered out before display"
                         view="table"
                         transformRecords={(records) => (
@@ -555,12 +729,11 @@ export default function GridPage() {
                                 }))
                         )}
                         sortable
-                        order={{ field: 'team', dir: 'asc' }}
                         pagination={{ limit: 4, align: 'end', sticky: false }}
                     />
                 )}
                 code={`<Grid
-  records={records}
+  source={records}
   transformRecords={(records) => (
     records
       .filter((record) => record.status !== 'inactive')
@@ -573,121 +746,131 @@ export default function GridPage() {
             />
 
             <Section
-                title="actions.default with modal editor"
-                description="Grid now keeps built-in actions under actions.default. You can extend the card chrome with actions.header and actions.footer while the editor stays clearly configured under editor."
+                title="Actions with distinct workflows"
+                description="actions is now the single action catalog. Alongside add, edit and delete you can declare custom actions like preview, export and copy, then reuse them in edit renders, header and footer."
                 preview={(
                     <WithMock>
-                        <Grid
-                            providerPath={GRID_PLAYGROUND_PATH}
-                            columns={baseColumns}
-                            header="Team members"
-                            view="table"
-                            sortable
-                            order={{ field: 'name', dir: 'asc' }}
-                            actions={{
-                                default: {
-                                    add: { label: 'Add teammate' },
-                                    edit: true,
-                                    delete: true,
-                                },
-                                header: (
-                                    <span className="text-xs text-muted-foreground">
-                                        Click a row to open the editor modal
-                                    </span>
-                                ),
-                                footer: (
-                                    <span className="text-xs text-muted-foreground">
-                                        Built-in add/edit/delete stay in the Grid contract
-                                    </span>
-                                ),
-                            }}
-                            editor={{
-                                mode: 'modal',
-                                size: 'xl',
-                                form: <GridUserFields />,
-                                renderHeader: (record) => record?._key ? 'Edit teammate' : 'Add teammate',
-                            }}
-                            createRecordKey={(record) => String(record.email).replace(/[^a-z0-9]+/gi, '-').toLowerCase()}
-                        />
+                        <GridActionWorkflowsPreview />
                     </WithMock>
                 )}
-                code={`<Grid
-  providerPath="/grid-users"
+                code={`const handleDeleteTeammate = async (record?: RecordProps) => {
+  if (!record?._key) return false;
+  await db.remove(\`/grid-users/\${record._key}\`);
+  return true;
+};
+
+<Grid
+  source={{ path: "/grid-users", order: { name: "asc" } }}
+  form={<GridUserFields />}
   actions={{
-    default: {
-      add: { label: 'Add teammate' },
-      edit: true,
-      delete: true,
+    add: { label: 'Add teammate', mode: { position: 'center' } },
+    edit: {
+      mode: { position: 'right' },
+      render: ({ record, action, Actions }) => (
+        <GridEditSidebar record={record} onDelete={() => action('delete', record)} Actions={Actions} />
+      ),
     },
-    header: <span>Click a row to edit</span>,
-    footer: <span>Built-in actions stay inside Grid</span>,
+    delete: {
+      mode: null,
+      render: ({ record, close }) => (
+        <ModalYesNo
+          title="Delete teammate"
+          onClose={close}
+          onYes={async () => {
+            const success = await handleDeleteTeammate(record);
+            if (success) close();
+            return success;
+          }}
+        >
+          Are you sure you want to delete {record?.name}?
+        </ModalYesNo>
+      ),
+    },
+    preview: {
+      label: 'Preview record',
+      mode: (record) => \`/components/grid/preview?view=preview&record=\${record?._key || ''}\`,
+    },
+    export: { label: 'Export', mode: '/components/grid/preview?view=export' },
+    copy: {
+      label: 'Copy',
+      mode: null,
+      render: ({ close }) => (
+        <Modal title="Copy dataset helpers" size="md" onClose={close}>
+          <div>Copy JSON or emails from the same custom action catalog.</div>
+        </Modal>
+      ),
+    },
   }}
-  editor={{
-    mode: 'modal',
-    size: 'xl',
-    form: <GridUserFields />,
-    renderHeader: (record) => record?._key ? 'Edit teammate' : 'Add teammate',
-  }}
+  header={({ title, Actions }) => (
+    <div className="flex items-center justify-between gap-3">
+      <div>{title}</div>
+      {Actions.add ? <Actions.add /> : null}
+    </div>
+  )}
+  footer={({ Actions }) => (
+    <div className="flex items-center justify-between gap-3">
+      <span>Add uses the default form. Edit and delete override it selectively.</span>
+      <div className="flex items-center gap-2">
+        {Actions.export ? <Actions.export /> : null}
+        {Actions.copy ? <Actions.copy /> : null}
+      </div>
+    </div>
+  )}
   createRecordKey={(record) => String(record.email).replace(/[^a-z0-9]+/gi, '-').toLowerCase()}
 />`}
             />
 
             <Section
-                title="Inline editor and external bulk commands"
-                description="Selection now follows the same selectedKeys and onSelectionChange semantics as Table and Gallery. Bulk commands stay outside the component, while the editor can switch to inline mode."
+                title="Custom header and external bulk commands"
+                description="Selection still follows the shared selectedKeys and onSelectionChange semantics. The default header can be replaced with a function that receives title and built-in action components."
                 preview={(
                     <WithMock>
                         <div className="space-y-3">
                             <Grid
-                                providerPath={GRID_PLAYGROUND_PATH}
+                                source={{ path: GRID_PLAYGROUND_PATH, order: { name: 'asc' } }}
                                 columns={baseColumns}
-                                header="Inline editing"
+                                title="Bulk selection"
                                 view="table"
                                 selectedKeys={inlineKeys}
                                 onSelectionChange={(selection) => {
                                     setInlineKeys(selection.keys);
                                     setInlineRecords(selection.records);
                                 }}
+                                form={<GridUserFields />}
                                 actions={{
-                                    default: {
-                                        add: true,
-                                        edit: true,
-                                        delete: false,
-                                    },
-                                    header: (
-                                        <div className="flex items-center justify-between gap-3 rounded-md border px-3 py-2 text-sm">
-                                            <span className="text-muted-foreground">
-                                                {inlineKeys.length ? `${inlineKeys.length} selected` : 'Select rows to enable external commands'}
-                                            </span>
-                                            <div className="flex items-center gap-2">
-                                                <button
-                                                    type="button"
-                                                    className="btn btn-sm btn-outline-secondary"
-                                                    disabled={!inlineKeys.length}
-                                                    onClick={() => setInlineExportOpen(true)}
-                                                >
-                                                    Export
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    className="btn btn-sm btn-outline-secondary"
-                                                    disabled={!inlineKeys.length}
-                                                    onClick={() => {
-                                                        setInlineKeys([]);
-                                                        setInlineRecords([]);
-                                                    }}
-                                                >
-                                                    Clear
-                                                </button>
+                                    edit: false,
+                                    delete: false,
+                                }}
+                                header={({ title, Actions }) => (
+                                    <div className="flex flex-wrap items-center justify-between gap-3">
+                                        <div className="min-w-0">
+                                            <div>{title}</div>
+                                            <div className="mt-2 flex items-center justify-between gap-3 rounded-md border px-3 py-2 text-sm">
+                                                <span className="text-muted-foreground">
+                                                    {inlineKeys.length ? `${inlineKeys.length} selected` : 'Select rows to enable external commands'}
+                                                </span>
+                                                <div className="flex items-center gap-2">
+                                                    <ActionButton
+                                                        className={`${buttonOutlineSecondaryClass} btn-sm`}
+                                                        label="Export"
+                                                        disabled={!inlineKeys.length}
+                                                        onClick={() => setInlineExportOpen(true)}
+                                                    />
+                                                    <ActionButton
+                                                        className={`${buttonOutlineSecondaryClass} btn-sm`}
+                                                        label="Clear"
+                                                        disabled={!inlineKeys.length}
+                                                        onClick={() => {
+                                                            setInlineKeys([]);
+                                                            setInlineRecords([]);
+                                                        }}
+                                                    />
+                                                    {Actions.add ? <Actions.add className={`${buttonPrimaryClass} btn-sm`} /> : null}
+                                                </div>
                                             </div>
                                         </div>
-                                    ),
-                                }}
-                                editor={{
-                                    mode: 'inline',
-                                    form: <GridUserFields />,
-                                    renderHeader: (record) => record?._key ? 'Inline edit teammate' : 'Add teammate',
-                                }}
+                                    </div>
+                                )}
                                 pagination={{ limit: 4, align: 'end', sticky: false }}
                             />
                             {inlineExportOpen && (
@@ -704,20 +887,27 @@ export default function GridPage() {
 const [selectedRecords, setSelectedRecords] = useState<RecordArray>([]);
 
 <Grid
-  providerPath="/grid-users"
+  source={{ path: "/grid-users", order: { name: "asc" } }}
+  title="Bulk selection"
+  form={<GridUserFields />}
   selectedKeys={selectedKeys}
   onSelectionChange={(selection) => {
     setSelectedKeys(selection.keys);
     setSelectedRecords(selection.records);
   }}
   actions={{
-    default: { add: true, edit: true, delete: false },
-    header: <ExternalBulkToolbar />,
+    edit: false,
+    delete: false,
   }}
-  editor={{
-    mode: 'inline',
-    form: <GridUserFields />,
-  }}
+  header={({ title, Actions }) => (
+    <div className="flex items-center justify-between gap-3">
+      <div>{title}</div>
+      <div className="flex items-center gap-2">
+        <ExternalBulkToolbar />
+        {Actions.add ? <Actions.add /> : null}
+      </div>
+    </div>
+  )}
 />`}
             />
 
@@ -725,20 +915,31 @@ const [selectedRecords, setSelectedRecords] = useState<RecordArray>([]);
                 title="Table reorder"
                 description="When you provide onReorder, Grid forwards drag and drop to the underlying Table and gives you the reordered source records back."
                 preview={(
-                    <Grid
-                        records={reorderedRecords}
-                        columns={baseColumns}
-                        header="Manual ordering"
-                        footer="Drag rows to update the source order"
-                        view="table"
-                        onReorder={(nextRecords) => setReorderedRecords(nextRecords)}
-                        pagination={{ limit: 4, align: 'end', sticky: false }}
-                    />
+                    <div className="w-full space-y-3">
+                        <Grid
+                            source={reorderedRecords}
+                            columns={baseColumns}
+                            title="Manual ordering"
+                            footer="Drag rows to update the source order"
+                            view="table"
+                            sortable={false}
+                            onReorder={(nextRecords) => setReorderedRecords(nextRecords)}
+                            pagination={{ limit: 4, align: 'end', sticky: false }}
+                        />
+                        <div className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+                            <div className="font-medium">Note</div>
+                            <div className="mt-1 text-xs leading-relaxed">
+                                <code>onReorder</code> controls the visible order in table mode.
+                                Do not rely on <code>sortable</code> or <code>source.order</code> in the same view.
+                                If they are combined, manual reorder takes precedence, sorting is ignored, and the component logs a warning.
+                            </div>
+                        </div>
+                    </div>
                 )}
                 code={`const [records, setRecords] = useState(seedRecords);
 
 <Grid
-  records={records}
+  source={records}
   view="table"
   onReorder={(reorderedRecords) => setRecords(reorderedRecords)}
 />`}
@@ -746,25 +947,23 @@ const [selectedRecords, setSelectedRecords] = useState<RecordArray>([]);
 
             <Section
                 title="Gallery mode with grouping"
-                description="The same Grid contract can flip to gallery mode. order still applies, selection still works, and groupBy organizes the visual result set."
+                description="The same Grid contract can flip to gallery mode. A db-style source can seed the initial order, selection still works, and groupBy organizes the visual result set."
                 preview={(
                     <Grid
-                        records={toGalleryRecords(toRecords(USERS_SEED))}
+                        source={toGalleryRecords(toRecords(USERS_SEED))}
                         columns={galleryColumns}
-                        header="Team assets"
-                        footer="Gallery mode still shares selection and order semantics"
+                        title="Team assets"
+                        footer="Grouped by team with the same selection semantics"
                         view="gallery"
-                        order={{ field: 'name', dir: 'asc' }}
-                        groupBy=" "
-                        pagination={{ limit: 4, align: 'center', sticky: false }}
+                        groupBy=" | "
+                        pagination={{ limit: 6, align: 'center', sticky: false }}
                     />
                 )}
                 code={`<Grid
-  records={galleryRecords}
+  source={galleryRecords}
   view="gallery"
-  order={{ field: 'name', dir: 'asc' }}
-  groupBy=" "
-  pagination={{ limit: 4, align: 'center', sticky: false }}
+  groupBy=" | "
+  pagination={{ limit: 6, align: 'center', sticky: false }}
 />`}
             />
 
@@ -773,7 +972,7 @@ const [selectedRecords, setSelectedRecords] = useState<RecordArray>([]);
                 description="onClick still stays simple: it receives the source record, so callers can rely directly on _key and original values."
                 preview={(
                     <Grid
-                        records={toGalleryRecords(toRecords(USERS_SEED))}
+                        source={toGalleryRecords(toRecords(USERS_SEED))}
                         columns={baseColumns}
                         view="table"
                         onClick={(record) => setClickedKey(record._key || '')}
@@ -783,7 +982,7 @@ const [selectedRecords, setSelectedRecords] = useState<RecordArray>([]);
                 code={`const [selectedKey, setSelectedKey] = useState('');
 
 <Grid
-  records={records}
+  source={records}
   onClick={(record) => setSelectedKey(record._key || '')}
 />`}
             />

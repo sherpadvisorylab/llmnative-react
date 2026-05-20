@@ -163,7 +163,7 @@ Use `onDisplay` when raw data needs to become readable UI.
 
 ```tsx
 <Grid
-  dataArray={orders}
+  source={orders}
   columns={[
     {
       key: 'amount',
@@ -194,8 +194,8 @@ const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
 const [selectedRecords, setSelectedRecords] = useState<RecordArray>([]);
 
 <Grid
-  dataArray={assets}
-  type="gallery"
+  source={assets}
+  view="gallery"
   selectedKeys={selectedKeys}
   onSelectionChange={({ keys, records }) => {
     setSelectedKeys(keys);
@@ -224,6 +224,11 @@ const [rows, setRows] = useState<RecordArray>(initialRows);
   onReorder={(reorderedRecords) => setRows(reorderedRecords)}
 />
 ```
+
+> Note:
+> `onReorder` owns the visible order of the table.
+> Do not rely on sorting at the same time in the same view.
+> If they are combined, manual reorder wins, sorting is ignored, and the component emits a `console.warn`.
 
 ---
 

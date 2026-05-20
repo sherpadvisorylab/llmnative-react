@@ -4,7 +4,7 @@ import { Wrapper } from "../GridSystem"
 import { useTheme } from "../../../Theme";
 import { DEFAULT_ORDER, Order, type OrderConfig } from "../../../libs/order";
 import { arraysEqual, arrayUnique, isEmpty, sanitizeKey } from "../../../libs/utils";
-import { DatabaseOptions, RecordProps } from "../../../providers/data/DataProvider";
+import { DatabaseOptions, DBConfig, RecordProps } from "../../../providers/data/DataProvider";
 import { useDataProvider } from "../../../providers/data/DataProviderContext";
 import { FormFieldProps, useFormContext } from '../../widgets/Form';
 import { cn } from '../../../libs/cn';
@@ -12,10 +12,6 @@ import { cn } from '../../../libs/cn';
 interface Option extends RecordProps {
     label: string;
     value: string;
-}
-
-interface DBConfig extends DatabaseOptions {
-    path?: string;
 }
 
 type OptionOrderConfig = OrderConfig & {

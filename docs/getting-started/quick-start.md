@@ -92,15 +92,15 @@ import { Grid } from 'react-firestrap';
 export default function UsersPage() {
   return (
     <Grid
-      providerPath="/users"
+      source={{ path: "/users", order: { name: "asc" } }}
       columns={[
         { key: 'name',  label: 'Name',  sort: true },
         { key: 'email', label: 'Email' },
         { key: 'role',  label: 'Role' },
       ]}
-      order={{ field: 'name', dir: 'asc' }}
-      actions={{ default: { add: true, edit: true, delete: true } }}
-      editor={{ mode: 'modal', form: <UserFormFields /> }}
+      title="Users"
+      sortable={{ field: 'name', dir: 'asc' }}
+      form={<UserFormFields />}
       view="table"
       pagination={{ limit: 20, align: 'end' }}
     />
@@ -121,9 +121,9 @@ import UsersPage from '../pages/users/UsersPage';
 
 As the page grows, keep these semantics in mind:
 
-- `order` sets the initial sort in both table and gallery mode.
+- `sortable` can stay a boolean or accept an `OrderConfig` object to set the initial sort in both table and gallery mode.
 - `selectedKeys` and `onSelectionChange` share the same contract in `Grid`, `Table` and `Gallery`.
-- `onReorder` enables manual drag reorder only when `view="table"`.
+- `onReorder` enables manual drag reorder only when `view="table"`. If combined with sorting on the same view, manual reorder takes precedence, sorting is ignored, and the component logs a warning.
 
 ---
 

@@ -44,13 +44,16 @@ export { default as Form } from './widgets/Form';
 export { default as Grid } from './widgets/Grid';
 export type {
     GridActionConfig,
-    GridActionContext,
+    GridActionButtonProps,
+    GridActionRenderContext,
     GridActions,
     GridColumn,
     GridColumnTransform,
-    GridEditor,
-    GridEditorContext,
+    GridFooterContext,
+    GridHeaderContext,
     GridProps,
+    GridSource,
+    GridSortable,
 } from './widgets/Grid';
 export { default as ImageEditor } from './widgets/ImageEditor';
 export { default as MarkdownReader } from './widgets/MarkdownReader';

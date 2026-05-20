@@ -31,14 +31,17 @@ Carica un record da database, gestisce lo stato dei campi figli, salva e cancell
 
 ### `<Grid>`
 
-Lista dati con real-time updates, sorting, paginazione, modal CRUD integrato.
+Lista dati con real-time updates, sorting, paginazione e workflow CRUD centrati su `actions`.
 Propaga la stessa semantica di selezione di `Table` e `Gallery`: `selectedKeys` e `onSelectionChange`.
 In modalita' `table`, `onReorder` abilita il drag & drop e restituisce il record set completo nell'ordine finale.
+`form` definisce il contenuto condiviso di default per `add` e `edit`; ogni action puo' poi scegliere il proprio `mode` e `render`. Il layout standard dell'header usa `title` insieme al bottone Add.
 
 ```tsx
 <Grid
-  providerPath="/collection"      // provider path (real-time listener)
-  records={records}               // alternativa: dati in memoria
+  source="/collection"            // provider path (real-time listener)
+  // oppure:
+  // source={{ path: "/collection", where: {...}, order: {...} }}
+  // source={records}             // alternativa: dati in memoria
   columns={[
     {
       key: 'fieldName',
@@ -48,27 +51,22 @@ In modalita' `table`, `onReorder` abilita il drag & drop e restituisce il record
       // oppure: transform: 'toDate' (converter built-in)
     }
   ]}
+  title="Users"                   // titolo per l'header standard
+  form={<CustomFormFields />}
   actions={{
-    default: { add: true, edit: true, delete: true },
-    header: <button>Azione custom</button>,
+    edit: { mode: { position: "right" } },
+    delete: { render: ({ remove }) => <DeleteConfirm onYes={remove} /> },
   }}
-  sortable={true}
-  order={{ field: "name", dir: "asc" }}
+  sortable={{ field: "name", dir: "asc" }} // oppure true
   selectedKeys={selectedKeys}
   onSelectionChange={({ keys, records, clear, hasSelection }) => {}}
   onReorder={(reorderedRecords, meta) => {}}
-  editor={{
-    mode: "modal",
-    size: "lg",                   // "sm" | "md" | "lg" | "xl" | "fullscreen"
-    position: "center",
-    form: <CustomFormFields />,
-  }}
   view="table"                    // "table" | "gallery"
   groupBy="status"                // stringa o array di stringhe
   pagination={{ limit: 20, align: "end" }}
   sticky="top"                    // "top" | "bottom"
-  header={<h2>Titolo</h2>}
-  footer={<div>Footer</div>}
+  header={({ title, Actions }) => <Header title={title} add={Actions.add ? <Actions.add /> : null} />}
+  footer={({ Actions }) => <Footer actions={Actions.delete ? <Actions.delete /> : null} />}
   transformRecords={(records) => records.filter((record) => record.active)}
   onClick={(record) => navigate(`/detail/${record._key}`)}
   onSave={async ({ record, action, storagePath }) => ""}
@@ -279,8 +277,7 @@ Input URL immagine con anteprima.
 <Table
   header={[{ key: 'name', label: 'Nome', sort: true }]}
   body={data}
-  sortable={true}
-  order={{ field: 'name', dir: 'asc' }}
+  sortable={{ field: 'name', dir: 'asc' }} // oppure true
   selectedKeys={selectedKeys}
   onSelectionChange={({ keys, records, clear, hasSelection }) => {}}
   onReorder={(reorderedRecords, meta) => {}}
@@ -293,8 +290,10 @@ Input URL immagine con anteprima.
 Note rapide:
 
 - `sortable={true}` abilita l'header sorting; le colonne con `sort: false` restano statiche.
+- `sortable` puo' essere anche un `OrderConfig`, ad esempio `sortable={{ field: 'name', dir: 'asc' }}`, per impostare il sort iniziale della vista senza un prop separato.
 - `onSelectionChange` fa comparire automaticamente la colonna checkbox.
 - `onReorder` abilita il riordino manuale delle righe. Il primo argomento e' sempre l'intero array riordinato.
+- `onReorder` non va usato insieme al sorting della stessa vista perche' le due modalita' competono sullo stesso ordine visibile. Se vengono combinati, il riordino manuale ha precedenza, il sorting viene ignorato e `Table` emette un `console.warn`.
 - `heightClass` e' il modo consigliato per creare una viewport interna con altezza fissa. `scrollClass` resta disponibile come estensione.
 
 ### `<Pagination>`
@@ -328,7 +327,7 @@ Ripete children N volte, utile per array dinamici in un form.
 ```tsx
 <Gallery
   body={items}
-  order={{ field: 'name', dir: 'asc' }}
+  sortable={{ field: 'name', dir: 'asc' }}
   selectedKeys={selectedKeys}
   onSelectionChange={({ keys, records, clear, hasSelection }) => {}}
   rowCols={3}             // colonne per riga
@@ -337,7 +336,7 @@ Ripete children N volte, utile per array dinamici in un form.
 />
 ```
 
-`Gallery` non ha header sorting interattivo: applica `order` ai record in ingresso e usa la stessa semantica di selezione di `Table`.
+`Gallery` non ha header sorting interattivo: applica `sortable` ai record in ingresso e usa la stessa semantica di selezione di `Table`.
 
 ### `<Tab>` / `<TabDynamic>`
 

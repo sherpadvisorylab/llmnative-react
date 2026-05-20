@@ -65,7 +65,7 @@ function LocationHash() {
 describe('Grid - rendering from provider', () => {
     it('renders column headers', async () => {
         const provider = new MockDataProvider({ '/users': USERS });
-        renderWithProviders(<Grid providerPath="/users" columns={COLUMNS} view="table" />, { provider });
+        renderWithProviders(<Grid source="/users" columns={COLUMNS} view="table" />, { provider });
 
         await waitFor(() => {
             expect(screen.getByText('Name')).toBeInTheDocument();
@@ -76,7 +76,7 @@ describe('Grid - rendering from provider', () => {
 
     it('renders all provider rows', async () => {
         const provider = new MockDataProvider({ '/users': USERS });
-        renderWithProviders(<Grid providerPath="/users" columns={COLUMNS} view="table" />, { provider });
+        renderWithProviders(<Grid source="/users" columns={COLUMNS} view="table" />, { provider });
 
         await waitFor(() => {
             expect(screen.getByText('Alice')).toBeInTheDocument();
@@ -87,7 +87,7 @@ describe('Grid - rendering from provider', () => {
 
     it('renders an empty state when the collection is empty', async () => {
         const provider = new MockDataProvider({ '/users': {} });
-        renderWithProviders(<Grid providerPath="/users" columns={COLUMNS} view="table" />, { provider });
+        renderWithProviders(<Grid source="/users" columns={COLUMNS} view="table" />, { provider });
 
         await waitFor(() => {
             expect(screen.queryByText('Alice')).not.toBeInTheDocument();
@@ -95,7 +95,7 @@ describe('Grid - rendering from provider', () => {
     });
 });
 
-describe('Grid - records prop', () => {
+describe('Grid - source array', () => {
     it('renders rows from static records', () => {
         const data = [
             { _key: 'p1', name: 'Widget', price: 9.99 },
@@ -104,7 +104,7 @@ describe('Grid - records prop', () => {
 
         renderWithProviders(
             <Grid
-                records={data}
+                source={data}
                 columns={[
                     { key: 'name', label: 'Product' },
                     { key: 'price', label: 'Price' },
@@ -126,7 +126,7 @@ describe('Grid - column transforms', () => {
 
         renderWithProviders(
             <Grid
-                providerPath="/products"
+                source="/products"
                 columns={[
                     { key: 'name', label: 'Product' },
                     { key: 'price', label: 'Price', transform: ({ value }) => `€ ${Number(value).toFixed(2)}` },
@@ -145,7 +145,7 @@ describe('Grid - column transforms', () => {
 describe('Grid - real-time updates', () => {
     it('re-renders when a new record is added to the provider', async () => {
         const provider = new MockDataProvider({ '/users': USERS });
-        renderWithProviders(<Grid providerPath="/users" columns={COLUMNS} view="table" />, { provider });
+        renderWithProviders(<Grid source="/users" columns={COLUMNS} view="table" />, { provider });
 
         await waitFor(() => expect(screen.getByText('Alice')).toBeInTheDocument());
 
@@ -160,7 +160,7 @@ describe('Grid - real-time updates', () => {
 
     it('removes a row when the provider record is deleted', async () => {
         const provider = new MockDataProvider({ '/users': USERS });
-        renderWithProviders(<Grid providerPath="/users" columns={COLUMNS} view="table" />, { provider });
+        renderWithProviders(<Grid source="/users" columns={COLUMNS} view="table" />, { provider });
 
         await waitFor(() => expect(screen.getByText('Bob')).toBeInTheDocument());
 
@@ -174,17 +174,17 @@ describe('Grid - real-time updates', () => {
     });
 });
 
-describe('Grid - actions.default', () => {
-    it('renders the add button when actions.default.add is enabled', async () => {
+describe('Grid - actions', () => {
+    it('renders the add button when actions.add is enabled', async () => {
         const provider = new MockDataProvider({ '/users': USERS });
 
         renderWithProviders(
             <Grid
-                providerPath="/users"
+                source="/users"
                 columns={COLUMNS}
                 view="table"
-                editor={{ form: <div>Editor</div> }}
-                actions={{ default: { add: true, edit: false, delete: false } }}
+                form={<div>Editor</div>}
+                actions={{ edit: false, delete: false }}
             />,
             { provider }
         );
@@ -199,11 +199,11 @@ describe('Grid - actions.default', () => {
 
         renderWithProviders(
             <Grid
-                providerPath="/users"
+                source="/users"
                 columns={COLUMNS}
                 view="table"
-                editor={{ form: <div>Editor</div> }}
-                actions={{ default: { add: true, edit: true, delete: false } }}
+                form={<div>Editor</div>}
+                actions={{ delete: false }}
             />,
             { provider }
         );
@@ -217,6 +217,42 @@ describe('Grid - actions.default', () => {
         expect(screen.getByText('Editor')).toBeInTheDocument();
     });
 
+    it('closes the open editor when the same row is clicked again', async () => {
+        const provider = new MockDataProvider({ '/users': USERS });
+
+        renderWithProviders(
+            <>
+                <LocationHash />
+                <Grid
+                    source="/users"
+                    columns={COLUMNS}
+                    view="table"
+                    form={<div>Editor</div>}
+                    actions={{ delete: false }}
+                />
+            </>,
+            { provider }
+        );
+
+        await waitFor(() => expect(screen.getByText('Alice')).toBeInTheDocument());
+
+        await act(async () => {
+            screen.getByText('Alice').click();
+        });
+
+        await waitFor(() => expect(screen.getByText('Editor')).toBeInTheDocument());
+        expect(screen.getByTestId('location-hash').textContent).toMatch(/^#grid-users-.*:u1$/);
+
+        await act(async () => {
+            screen.getByText('Alice').click();
+        });
+
+        await waitFor(() => {
+            expect(screen.queryByText('Editor')).not.toBeInTheDocument();
+        });
+        expect(screen.getByTestId('location-hash').textContent).toBe('');
+    });
+
     it('opens only the clicked grid when multiple grids share record keys', async () => {
         const user = userEvent.setup();
 
@@ -224,18 +260,18 @@ describe('Grid - actions.default', () => {
             <>
                 <LocationHash />
                 <Grid
-                    records={[{ _key: 'u1', name: 'Alice' }]}
+                    source={[{ _key: 'u1', name: 'Alice' }]}
                     columns={[{ key: 'name', label: 'Name' }]}
                     view="table"
-                    editor={{ form: <div>Team editor</div> }}
-                    actions={{ default: { edit: true, delete: false } }}
+                    form={<div>Team editor</div>}
+                    actions={{ delete: false }}
                 />
                 <Grid
-                    records={[{ _key: 'u1', name: 'Alice' }]}
+                    source={[{ _key: 'u1', name: 'Alice' }]}
                     columns={[{ key: 'name', label: 'Name' }]}
                     view="table"
-                    editor={{ form: <div>Audit editor</div> }}
-                    actions={{ default: { edit: true, delete: false } }}
+                    form={<div>Audit editor</div>}
+                    actions={{ delete: false }}
                 />
             </>
         );
@@ -258,21 +294,91 @@ describe('Grid - actions.default', () => {
 
         expect(screen.queryByText('Audit editor')).not.toBeInTheDocument();
     });
+
+    it('lets a custom edit action open a custom delete action', async () => {
+        const user = userEvent.setup();
+        const provider = new MockDataProvider({ '/users': USERS });
+
+        renderWithProviders(
+            <Grid
+                source="/users"
+                columns={COLUMNS}
+                view="table"
+                form={<div>Default editor</div>}
+                actions={{
+                    edit: {
+                        render: ({ record, action }) => (
+                            <div>
+                                <div>Edit {record?.name}</div>
+                                <button type="button" onClick={() => action('delete', record)}>Delete now</button>
+                            </div>
+                        ),
+                    },
+                    delete: {
+                        mode: null,
+                        render: ({ record, close }) => (
+                            <div>
+                                <div>Are you sure you want to delete {record?.name}?</div>
+                                <button type="button" onClick={close}>Keep</button>
+                            </div>
+                        ),
+                    },
+                }}
+            />,
+            { provider }
+        );
+
+        await waitFor(() => expect(screen.getByText('Alice')).toBeInTheDocument());
+
+        await user.click(screen.getByText('Alice'));
+        await waitFor(() => expect(screen.getByText('Edit Alice')).toBeInTheDocument());
+
+        await user.click(screen.getByRole('button', { name: 'Delete now' }));
+        await waitFor(() => expect(screen.getByText('Are you sure you want to delete Alice?')).toBeInTheDocument());
+    });
 });
 
 describe('Grid - selection after ordering', () => {
     it('returns the original record when the table view is ordered', async () => {
         const clicks: string[] = [];
+        const provider = new MockDataProvider({
+            '/users': {
+                u2: { name: 'Bob', role: 'editor', status: 'inactive' },
+                u1: { name: 'Alice', role: 'admin', status: 'active' },
+            },
+        });
 
         renderWithProviders(
             <Grid
-                records={[
+                source={{ path: '/users', order: { name: 'asc' } }}
+                columns={[{ key: 'name', label: 'Name', sort: true }]}
+                view="table"
+                onClick={(record) => clicks.push(record._key || '')}
+            />,
+            { provider }
+        );
+
+        await waitFor(() => expect(screen.getByText('Alice')).toBeInTheDocument());
+
+        await act(async () => {
+            screen.getByText('Alice').click();
+        });
+
+        expect(clicks).toEqual(['u1']);
+    });
+
+    it('uses sortable OrderConfig as the initial client-side sort', async () => {
+        const clicks: string[] = [];
+
+        renderWithProviders(
+            <Grid
+                source={[
                     { _key: 'u2', name: 'Bob', role: 'editor', status: 'inactive' },
                     { _key: 'u1', name: 'Alice', role: 'admin', status: 'active' },
                 ]}
-                columns={[{ key: 'name', label: 'Name', sort: true }]}
+                columns={[{ key: 'name', label: 'Name', sort: false }]}
                 view="table"
-                order={{ field: 'name', dir: 'asc' }}
+                sortable={{ field: 'name', dir: 'asc' }}
                 onClick={(record) => clicks.push(record._key || '')}
             />
         );
@@ -293,7 +399,7 @@ describe('Grid - shared selection semantics', () => {
 
         renderWithProviders(
             <Grid
-                records={[
+                source={[
                     { _key: 'u2', name: 'Bob', role: 'editor', status: 'inactive' },
                     { _key: 'u1', name: 'Alice', role: 'admin', status: 'active' },
                 ]}

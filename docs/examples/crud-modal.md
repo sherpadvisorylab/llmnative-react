@@ -114,12 +114,16 @@ If you also need manual ordering, pass `onReorder` and keep the reordered record
 const [rows, setRows] = useState(records)
 
 <Grid
-  dataArray={rows}
-  type="table"
+  source={rows}
+  view="table"
   columns={columns}
   onReorder={(reorderedRecords) => setRows(reorderedRecords)}
 />
 ```
+
+> Note:
+> manual row reorder and column sorting target the same visual order.
+> If you pass `onReorder` together with `sortable`, manual reorder takes precedence, sorting is ignored, and the component logs a `console.warn`.
 
 ---
 

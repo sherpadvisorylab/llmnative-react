@@ -8,6 +8,8 @@ import { UIProps } from '../';
 import { cn } from '../../libs/cn';
 import { BadgeOverlay, BadgeProps } from './Badge';
 import { Order, type OrderConfig } from '../../libs/order';
+import { RecordSelectionState, useRecordSelection } from './useRecordSelection';
+import { useStableRecordKey } from './useStableRecordKey';
 
 type ImageProps = React.ReactElement<HTMLImageElement>;
 export type GalleryRecord = RecordProps & {
@@ -51,14 +53,7 @@ type GalleryRenderedRecord =
     | { kind: "item"; image: ImageProps; item: GalleryRecord; index: number }
     | { kind: "group"; element: React.ReactElement };
 
-export type GallerySelectionState = {
-    keys: string[];
-    records: GalleryRecord[];
-    clear: () => void;
-    hasSelection: boolean;
-};
-
-type GallerySelectionPayload = Omit<GallerySelectionState, 'clear'>;
+export type GallerySelectionState = RecordSelectionState<GalleryRecord>;
 
 interface GalleryProps extends UIProps {
     body?: GalleryRecord[];
@@ -67,7 +62,7 @@ interface GalleryProps extends UIProps {
     overlays?: GalleryOverlay[];
     onClick?: (record: GalleryRecord) => void;
     onSelectionChange?: (selection: GallerySelectionState) => void;
-    order?: OrderConfig;
+    sortable?: boolean | OrderConfig;
     pagination?: PaginationParams;
     scrollToTopOnChange?: boolean;
     scrollBehavior?: ScrollBehavior;
@@ -90,7 +85,7 @@ const Gallery = ({
     overlays = undefined,
     onClick = undefined,
     onSelectionChange = undefined,
-    order = undefined,
+    sortable = false,
     pagination = undefined,
     gutterSize = undefined,
     rowCols = undefined,
@@ -109,8 +104,6 @@ const Gallery = ({
 }: GalleryProps) => {
     const theme = useTheme("gallery");
     const activeClass = selectedClass || theme.Gallery.selectedClass;
-    const initialSelection = selectedKeys ?? selectedRowKeys ?? [];
-    const [internalSelectedKeys, setInternalSelectedKeys] = useState<string[]>(initialSelection);
     const paddingSize = gutterSize ?? theme.Gallery.gutterSize;
     const numCols = rowCols ?? theme.Gallery.rowCols;
     const spacingScale: Record<number, string> = {
@@ -126,41 +119,32 @@ const Gallery = ({
     const overlayOffset = "0.75rem";
     const overlayLaneWidth = "calc(50% - 1rem)";
     const itemWidth = `calc((100% - (${itemGap} * ${numCols - 1})) / ${numCols})`;
-    const controlledSelectedKeys = selectedKeys ?? selectedRowKeys;
-    const isSelectionControlled = controlledSelectedKeys !== undefined && !!onSelectionChange;
-    const activeSelectedKeys = isSelectionControlled ? (controlledSelectedKeys || []) : internalSelectedKeys;
-    const showSelection = !!onSelectionChange || controlledSelectedKeys !== undefined;
+    const galleryRecords = body || [];
+    const sortableOrder = useMemo(() => {
+        if (!sortable) return undefined;
+        if (typeof sortable === 'object') return sortable;
 
-    React.useEffect(() => {
-        if (controlledSelectedKeys !== undefined && !isSelectionControlled) {
-            setInternalSelectedKeys(controlledSelectedKeys);
-        }
-    }, [controlledSelectedKeys, isSelectionControlled]);
+        const firstRecord = body?.[0];
+        if (!firstRecord) return undefined;
 
-    const getRecordKey = useCallback((record: GalleryRecord, index: number) => {
-        return record._key || `item-${index}`;
-    }, []);
+        const firstSortableKey = Object.keys(firstRecord).find((key) => !key.startsWith('_'));
+        if (!firstSortableKey) return undefined;
 
-    const buildSelectionPayload = useCallback((keys: string[]): GallerySelectionPayload => {
-        const keySet = new Set(keys);
-        const records = (body || []).filter((record, index) => keySet.has(getRecordKey(record, index)));
-        return {
-            keys,
-            records,
-            hasSelection: keys.length > 0,
-        };
-    }, [body, getRecordKey]);
-
-    const updateSelection = useCallback((nextKeys: string[]) => {
-        if (!isSelectionControlled) {
-            setInternalSelectedKeys(nextKeys);
-        }
-        const nextSelection = buildSelectionPayload(nextKeys);
-        onSelectionChange?.({
-            ...nextSelection,
-            clear: () => updateSelection([]),
-        });
-    }, [buildSelectionPayload, isSelectionControlled, onSelectionChange]);
+        return { field: firstSortableKey, dir: 'asc' as const };
+    }, [body, typeof sortable === 'object' ? sortable?.dir : undefined, typeof sortable === 'object' ? sortable?.field : undefined, sortable]);
+    const getStableRecordKey = useStableRecordKey<GalleryRecord>('item');
+    const getRecordKey = useCallback((record: GalleryRecord, index?: number) => getStableRecordKey(record, index), [getStableRecordKey]);
+    const {
+        activeSelectedKeys,
+        showSelection,
+        updateSelection,
+    } = useRecordSelection<GalleryRecord>({
+        records: galleryRecords,
+        selectedKeys,
+        legacySelectedKeys: selectedRowKeys,
+        onSelectionChange,
+        getRecordKey,
+    });
 
     const handleClick = (e: React.MouseEvent<HTMLElement>, record: GalleryRecord) => {
         if (activeClass) {
@@ -374,12 +358,12 @@ const Gallery = ({
     const renderedBody = useMemo(() => {
         if (!Array.isArray(body)) return undefined;
 
-        const orderedBody = Order.records(body, order) || [];
+        const orderedBody = Order.records(body, sortableOrder) || [];
 
         return groupBy
             ? getGroups(orderedBody, groupBy)
             : orderedBody.map((item, index) => ({ kind: "item", image: getImage(item, index), item, index }) as GalleryRenderedRecord);
-    }, [body, groupBy, overlays, order]);
+    }, [body, groupBy, overlays, sortableOrder]);
 
     if (renderedBody === undefined) {
         return <p className={"p-4"}><span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />Caricamento in corso...</p>;
@@ -395,6 +379,7 @@ const Gallery = ({
                 <Wrapper className={scrollClass || theme.Gallery.scrollClass}>
                     <Pagination
                         recordSet={renderedBody}
+                        wrapClass="pt-4"
                         {...(pagination || {})}
                     >
                         {(pageRecords, pageOffset) => (

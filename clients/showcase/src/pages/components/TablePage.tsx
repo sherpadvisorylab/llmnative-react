@@ -1,5 +1,5 @@
 import React from 'react';
-import { Badge, Modal, Table, useDataProvider } from 'react-firestrap';
+import { ActionButton, Badge, Modal, Table, buttonOutlineSecondaryClass, buttonPrimaryClass, useDataProvider } from 'react-firestrap';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropsTable from '../../components/PropsTable';
@@ -105,8 +105,7 @@ const TABLE_PROPS: PropDef[] = [
     { name: 'onReorder', type: '(reorderedRecords, meta) => void', description: 'Called after a drag reorder with the full reordered record set and the moved row metadata. When provided, drag and drop is enabled automatically.' },
     { name: 'selectedKeys', type: 'string[]', description: 'Controlled selection state. When you provide it together with onSelectionChange, the table renders multi-select checkboxes.' },
     { name: 'onSelectionChange', type: `(selection: ${TABLE_SELECTION_STATE_TYPE}) => void`, description: 'Called whenever selected rows change. When provided, the selection checkbox column appears automatically.' },
-    { name: 'sortable', type: 'boolean', default: 'false', description: 'Enables header sorting. When true, columns inherit sortable behavior unless sort is explicitly false.', control: 'boolean' },
-    { name: 'order', type: '{ field: string; dir?: "asc" | "desc" }', description: 'Initial order applied by the table before header clicks take over.', control: 'json' },
+    { name: 'sortable', type: 'boolean | OrderConfig', default: 'false', description: 'Enables header sorting. Pass an OrderConfig object to set the initial client-side sort without a separate order prop.', control: 'json' },
     { name: 'onClick', type: '(record) => void', description: 'Called with the clicked record.' },
     { name: 'pagination', type: PAGINATION_PARAMS_TYPE, description: 'Shared pagination configuration. Default align is "end", so controls are right-aligned unless overridden.', control: 'json' },
     { name: 'Footer', type: 'ReactNode', description: 'Footer row or content rendered inside tfoot.', control: 'text' },
@@ -126,8 +125,7 @@ const PLAYGROUND: PlaygroundConfig = {
     mockSeed: TABLE_PLAYGROUND_SEED,
     props: TABLE_PROPS,
     defaultProps: {
-        sortable: true,
-        order: { field: 'name', dir: 'asc' },
+        sortable: { field: 'name', dir: 'asc' },
         pagination: { limit: 4, align: 'end', sticky: false },
         Footer: '8 team members',
         selectedClass: '',
@@ -196,9 +194,9 @@ function TablePlaygroundPreview({ p }: { p: Record<string, any> }) {
                             <div className="text-sm font-medium">Multi checkbox</div>
                             <div className="text-xs text-muted-foreground">Enable controlled multi-selection and inspect the onSelectionChange payload live.</div>
                         </div>
-                        <button
-                            type="button"
-                            className={`btn btn-sm ${multiEnabled ? 'btn-primary' : 'btn-outline-secondary'}`}
+                        <ActionButton
+                            className={`${multiEnabled ? buttonPrimaryClass : buttonOutlineSecondaryClass} btn-sm`}
+                            label={multiEnabled ? 'Disable multi checkbox' : 'Enable multi checkbox'}
                             onClick={() => {
                                 setMultiEnabled((current) => {
                                     const next = !current;
@@ -207,9 +205,7 @@ function TablePlaygroundPreview({ p }: { p: Record<string, any> }) {
                                     return next;
                                 });
                             }}
-                        >
-                            {multiEnabled ? 'Disable multi checkbox' : 'Enable multi checkbox'}
-                        </button>
+                        />
                     </div>
                 </div>
                 <div className="rounded-md border bg-muted/30 p-3">
@@ -218,9 +214,9 @@ function TablePlaygroundPreview({ p }: { p: Record<string, any> }) {
                             <div className="text-sm font-medium">Drag reorder</div>
                             <div className="text-xs text-muted-foreground">Enable row drag and drop, then inspect the reordered record set and movement metadata. While drag is active, sorting is suspended so manual order stays visible.</div>
                         </div>
-                        <button
-                            type="button"
-                            className={`btn btn-sm ${dragEnabled ? 'btn-primary' : 'btn-outline-secondary'}`}
+                        <ActionButton
+                            className={`${dragEnabled ? buttonPrimaryClass : buttonOutlineSecondaryClass} btn-sm`}
+                            label={dragEnabled ? 'Disable drag' : 'Enable drag'}
                             onClick={() => {
                                 setDragEnabled((current) => {
                                     const next = !current;
@@ -232,9 +228,7 @@ function TablePlaygroundPreview({ p }: { p: Record<string, any> }) {
                                     return next;
                                 });
                             }}
-                        >
-                            {dragEnabled ? 'Disable drag' : 'Enable drag'}
-                        </button>
+                        />
                     </div>
                 </div>
             </div>
@@ -259,7 +253,6 @@ function TablePlaygroundPreview({ p }: { p: Record<string, any> }) {
                     });
                 }) : undefined}
                 sortable={dragEnabled ? false : p.sortable}
-                order={dragEnabled ? undefined : (p.order && typeof p.order === 'object' ? p.order : undefined)}
                 pagination={p.pagination && typeof p.pagination === 'object' ? p.pagination : undefined}
                 Footer={p.Footer ? (
                     <tr>
@@ -343,8 +336,7 @@ export default function TablePage() {
                     <Table
                         header={header}
                         body={tableBody}
-                        sortable
-                        order={{ field: 'name', dir: 'asc' }}
+                        sortable={{ field: 'name', dir: 'asc' }}
                         pagination={{ limit: 4, align: 'end', sticky: false }}
                     />
                 }
@@ -361,8 +353,7 @@ export default function TablePage() {
     ...row,
     status: <Badge>{row.status}</Badge>,
   }))}
-  sortable
-  order={{ field: 'name', dir: 'asc' }}
+  sortable={{ field: 'name', dir: 'asc' }}
   pagination={{ limit: 4, align: 'end', sticky: false }}
 />`}
             />
@@ -422,15 +413,13 @@ export default function TablePage() {
                 preview={
                     <Table
                         body={plainBody}
-                        sortable
-                        order={{ field: 'role', dir: 'asc' }}
+                        sortable={{ field: 'role', dir: 'asc' }}
                         pagination={{ limit: 3, align: 'center', sticky: false }}
                     />
                 }
                 code={`<Table
   body={records}
-  sortable
-  order={{ field: 'role', dir: 'asc' }}
+  sortable={{ field: 'role', dir: 'asc' }}
   pagination={{ limit: 3, align: 'center', sticky: false }}
 />`}
             />
@@ -479,25 +468,21 @@ export default function TablePage() {
                                         {bulkKeys.length ? `${bulkKeys.length} selected` : 'Select rows to enable external bulk commands'}
                                     </span>
                                     <div className="flex items-center gap-2">
-                                        <button
-                                            type="button"
-                                            className="btn btn-sm btn-outline-secondary"
+                                        <ActionButton
+                                            className={`${buttonOutlineSecondaryClass} btn-sm`}
+                                            label="Export"
                                             disabled={!bulkKeys.length}
                                             onClick={() => setExportOpen(true)}
-                                        >
-                                            Export
-                                        </button>
-                                        <button
-                                            type="button"
-                                            className="btn btn-sm btn-outline-secondary"
+                                        />
+                                        <ActionButton
+                                            className={`${buttonOutlineSecondaryClass} btn-sm`}
+                                            label="Clear"
                                             disabled={!bulkKeys.length}
                                             onClick={() => {
                                                 setBulkKeys([]);
                                                 setBulkRecords([]);
                                             }}
-                                        >
-                                            Clear
-                                        </button>
+                                        />
                                     </div>
                                 </div>
                             )}
@@ -564,16 +549,25 @@ const [exportOpen, setExportOpen] = useState(false);
                 title="Drag reorder"
                 description="Provide onReorder to make rows draggable. The callback receives the new ordered records, which is the right place to persist the change."
                 preview={
-                    <Table
-                        header={header}
-                        body={reorderedRows}
-                        onReorder={(reorderedRecords) => setReorderedRows(reorderedRecords)}
-                        post={
-                            <div className="text-xs text-muted-foreground">
-                                Current order: {reorderedRows.map((row) => row._key).join(', ')}
+                    <div className="w-full space-y-3">
+                        <div className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+                            <div className="font-medium">Note</div>
+                            <div className="mt-1 text-xs leading-relaxed">
+                                Manual reorder and sorting should not drive the same table view together.
+                                If <code>onReorder</code> is combined with sortable sorting, manual reorder wins, sorting is ignored, and the component logs a warning.
                             </div>
-                        }
-                    />
+                        </div>
+                        <Table
+                            header={header}
+                            body={reorderedRows}
+                            onReorder={(reorderedRecords) => setReorderedRows(reorderedRecords)}
+                            post={
+                                <div className="text-xs text-muted-foreground">
+                                    Current order: {reorderedRows.map((row) => row._key).join(', ')}
+                                </div>
+                            }
+                        />
+                    </div>
                 }
                 code={`const [rows, setRows] = useState(body);
 
@@ -591,8 +585,7 @@ const [exportOpen, setExportOpen] = useState(false);
                     <Table
                         header={header}
                         body={tableBody}
-                        sortable
-                        order={{ field: 'status', dir: 'desc' }}
+                        sortable={{ field: 'status', dir: 'desc' }}
                         pagination={{ limit: 3, align: 'center', sticky: false }}
                         Footer={(
                             <tr>
@@ -606,8 +599,7 @@ const [exportOpen, setExportOpen] = useState(false);
                 code={`<Table
   header={header}
   body={body}
-  sortable
-  order={{ field: 'status', dir: 'desc' }}
+  sortable={{ field: 'status', dir: 'desc' }}
   pagination={{ limit: 3, align: 'center', sticky: false }}
   Footer={(
     <tr>
