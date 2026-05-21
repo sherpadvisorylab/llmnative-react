@@ -42,18 +42,26 @@ export { default as Menu } from './blocks/Menu';
 
 export { default as Form } from './widgets/Form';
 export { default as Grid } from './widgets/Grid';
+export { GridArray, GridCore, GridDB, GridGalleryView, GridTableView } from './widgets/grid-core';
 export type {
-    GridActionConfig,
-    GridActionButtonProps,
-    GridActionRenderContext,
+    GridAction,
     GridActions,
+    GridArrayProps,
     GridColumn,
-    GridColumnTransform,
+    GridCoreProps,
+    GridDBQuery,
+    GridDBProps,
     GridFooterContext,
+    GridFormContext,
+    GridGalleryViewProps,
     GridHeaderContext,
+    GridLayout,
+    GridRecordKey,
     GridProps,
-    GridSource,
-    GridSortable,
+    GridSelectionMode,
+    GridSelectionState,
+    GridSticky,
+    GridTableViewProps,
 } from './widgets/Grid';
 export { default as ImageEditor } from './widgets/ImageEditor';
 export { default as MarkdownReader } from './widgets/MarkdownReader';

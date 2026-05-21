@@ -33,7 +33,7 @@ Custom data providers can implement `isConfigured()` or `getConfigurationState()
 
 ## Use data with Grid
 
-`Grid` subscribes to the active `DataProvider` when `source` is a provider path or a db-style source object.
+`Grid` subscribes to the active `DataProvider` when `path` points to a provider collection.
 
 ```tsx
 import { Grid, Badge } from 'react-firestrap';
@@ -41,15 +41,16 @@ import { Grid, Badge } from 'react-firestrap';
 function CustomersPage() {
   return (
     <Grid
-      source={{ path: "/customers", order: { name: "asc" } }}
+      path="/customers"
+      order={{ name: "asc" }}
       title="Customers"
       columns={[
-        { key: 'name', label: 'Name', sort: true },
+        { key: 'name', label: 'Name', sortable: true },
         { key: 'email', label: 'Email' },
         {
           key: 'status',
           label: 'Status',
-          transform: ({ value }) => (
+          render: ({ value }) => (
             <Badge type={value === 'active' ? 'success' : 'secondary'}>
               {value}
             </Badge>

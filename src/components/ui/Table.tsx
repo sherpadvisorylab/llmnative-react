@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { ArrowDown, ArrowUp, ArrowUpDown, GripVertical } from 'lucide-react';
 import { useTheme } from "../../Theme";
 import { RecordArray, RecordProps } from "../../providers/data/DataProvider";
@@ -24,6 +24,7 @@ export type TableReorderMeta = {
 type DropIndicatorPosition = 'before' | 'after';
 
 export type TableSelectionState = RecordSelectionState<RecordProps>;
+export type TableSelectionMode = 'single' | 'multiple';
 
 interface TableProps extends UIProps {
     header?: TableHeaderProp[],
@@ -32,6 +33,7 @@ interface TableProps extends UIProps {
     onClick?: (record: RecordProps) => void;
     onReorder?: (reorderedRecords: RecordArray, meta: TableReorderMeta) => void;
     onSelectionChange?: (selection: TableSelectionState) => void;
+    selectionMode?: TableSelectionMode;
     sortable?: boolean | OrderConfig;
     pagination?: PaginationParams;
     activeKey?: string | null;
@@ -52,6 +54,7 @@ function Table({
     onClick = undefined,
     onReorder = undefined,
     onSelectionChange = undefined,
+    selectionMode = 'multiple',
     sortable = false,
     pagination = undefined,
     activeKey = undefined,
@@ -86,6 +89,7 @@ function Table({
     const paginationNavRef = useCallback((node: HTMLDivElement | null) => {
         if (node) setPaginationNavEl(node);
     }, []);
+    const singleSelectionGroupName = useId();
 
     const reorderable = !!onReorder;
     const hasSortConfiguration = sortingEnabled || !!Order.normalize(sortableOrder);
@@ -144,7 +148,7 @@ function Table({
 
     const sortedBody = useMemo<RecordArray>(() => Order.records(rows, currentOrder) || [], [rows, currentOrder]);
 
-    const handleClick = (e: React.MouseEvent<HTMLElement>, record: RecordProps) => {
+    const handleClick = (e: React.MouseEvent<HTMLElement>, record: RecordProps, absoluteIndex?: number) => {
         let currentElement = e.target as HTMLElement;
 
         while (currentElement && currentElement.tagName !== 'TR') {
@@ -154,8 +158,9 @@ function Table({
             currentElement = currentElement.parentNode as HTMLElement;
         }
 
+        const rowKey = getRecordKey(record, absoluteIndex);
+
         if (activeClass) {
-            const rowKey = getRecordKey(record);
             if (activeKey === undefined) {
                 setActiveRowKey((current) => current === rowKey ? null : rowKey);
             }
@@ -178,6 +183,11 @@ function Table({
             ? activeSelectedKeys.filter((key) => key !== rowKey)
             : [...activeSelectedKeys, rowKey];
         updateSelection(nextKeys);
+    }, [activeSelectedKeys, getRecordKey, updateSelection]);
+
+    const toggleSingleRowSelection = useCallback((record: RecordProps, absoluteIndex: number) => {
+        const rowKey = getRecordKey(record, absoluteIndex);
+        updateSelection(activeSelectedKeys.includes(rowKey) ? [] : [rowKey]);
     }, [activeSelectedKeys, getRecordKey, updateSelection]);
 
     const handleDrop = useCallback((targetRecord: RecordProps, targetIndex: number) => {
@@ -273,19 +283,23 @@ function Table({
                         <tr>
                             {showSelection && (
                                 <th style={{ width: '1%', whiteSpace: 'nowrap' }}>
-                                    <div className="th-inner py-1">
-                                        <input
-                                            type="checkbox"
-                                            aria-label="Select all rows"
-                                            checked={selectionState.records.length > 0 && selectionState.records.length === rows.length}
-                                            onChange={(event) => {
-                                                const nextKeys = event.target.checked
-                                                    ? sortedBody.map((record, index) => getRecordKey(record, index))
-                                                    : [];
-                                                updateSelection(nextKeys);
-                                            }}
-                                        />
-                                    </div>
+                                    {selectionMode !== 'single' ? (
+                                        <div className="th-inner py-1">
+                                            <input
+                                                type="checkbox"
+                                                aria-label="Select all rows"
+                                                checked={selectionState.records.length > 0 && selectionState.records.length === rows.length}
+                                                onChange={(event) => {
+                                                    const nextKeys = event.target.checked
+                                                        ? sortedBody.map((record, index) => getRecordKey(record, index))
+                                                        : [];
+                                                    updateSelection(nextKeys);
+                                                }}
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="th-inner py-1" />
+                                    )}
                                 </th>
                             )}
                             {reorderable && (
@@ -391,7 +405,9 @@ function Table({
                                                     opacity: isDragged ? 0.45 : 1,
                                                 }}
                                                 onClick={(e) => {
-                                                    if (onClick) handleClick(e, record);
+                                                    if (onClick) {
+                                                        handleClick(e, record, absoluteIndex);
+                                                    }
                                                 }}
                                                 onDragStart={() => {
                                                     setDraggedKey(rowKey);
@@ -434,11 +450,24 @@ function Table({
                                                 {showSelection && (
                                                     <td style={{ width: '1%', whiteSpace: 'nowrap' }}>
                                                         <input
-                                                            type="checkbox"
+                                                            type={selectionMode === 'single' ? 'radio' : 'checkbox'}
+                                                            name={selectionMode === 'single' ? singleSelectionGroupName : undefined}
                                                             aria-label={`Select row ${rowKey}`}
                                                             checked={isSelected}
-                                                            onChange={() => toggleRowSelection(record, absoluteIndex)}
-                                                            onClick={(event) => event.stopPropagation()}
+                                                            onChange={() => {
+                                                                if (selectionMode === 'single') {
+                                                                    toggleSingleRowSelection(record, absoluteIndex);
+                                                                    return;
+                                                                }
+                                                                toggleRowSelection(record, absoluteIndex);
+                                                            }}
+                                                            onClick={(event) => {
+                                                                event.stopPropagation();
+                                                                if (selectionMode === 'single') {
+                                                                    event.preventDefault();
+                                                                    toggleSingleRowSelection(record, absoluteIndex);
+                                                                }
+                                                            }}
                                                         />
                                                     </td>
                                                 )}

@@ -1481,7 +1481,7 @@ function Helper() {
                     <h2 id='grid'>Grid</h2>
                     <Card className='mb-3' title=''>
                       <Grid
-                        source={[
+                        records={[
                           {
                             id: 1,
                             name: "Alice Johnson",
@@ -1518,14 +1518,15 @@ function Helper() {
                           { key: 'role', label: 'Role' },
                           { key: 'status', label: 'Status' }
                         ]}
-                        onClick={() => { }}
+                        recordId="id"
+                        onClickRow={() => { }}
                       />
                     </Card>
                   </Col>
                   <Col lg={7} className='mb-5'>
                     <Code language='jsx' className='h-100 d-flex flex-grow-1 m-0'>
                       {`<Grid
-                        source={[
+                        records={[
                           {
                             id: 1,
                             name: "Alice Johnson",
@@ -1562,7 +1563,8 @@ function Helper() {
                           { key: 'role', label: 'Role' },
                           { key: 'status', label: 'Status' }
                         ]}
-                        onClick={() => { }}
+                        recordId="id"
+                        onClickRow={() => { }}
                       />
                       `}
                     </Code>

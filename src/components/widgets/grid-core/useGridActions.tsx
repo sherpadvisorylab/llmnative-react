@@ -1,0 +1,256 @@
+import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { type FormRef } from "../Form";
+import Form from "../Form";
+import { type DataProviderAdapter, type RecordProps } from "../../../providers/data/DataProvider";
+import {
+    type GridAction,
+    type GridActionContext,
+    type GridActions,
+    type GridFormContext,
+    type GridRecordKey,
+} from "./types";
+import {
+    getActionLabel,
+    getRecordKeyResolver,
+    isActionDisabled,
+    isActionVisible,
+    normalizeActions,
+    sanitizeHashPart,
+} from "./utils";
+
+export type GridActiveAction<TRecord extends RecordProps> = {
+    actionKey: string;
+    record?: TRecord;
+};
+
+type UseGridActionsArgs<TRecord extends RecordProps> = {
+    actions?: GridActions<TRecord>;
+    form?: React.ReactElement | ((ctx: GridFormContext<TRecord>) => React.ReactNode);
+    routeSync?: { edit?: boolean };
+    preparedRecords: TRecord[];
+    recordId: GridRecordKey<TRecord>;
+    sourcePath?: string;
+    db: DataProviderAdapter;
+    onSave?: (args: { record?: TRecord; action: "create" | "update"; storagePath?: string }) => Promise<string | undefined>;
+    onDelete?: (args: { record?: TRecord }) => Promise<string | undefined>;
+    onAfterAction?: (args: { record?: TRecord; action: "create" | "update" | "delete" }) => Promise<boolean>;
+    createRecordKey?: (record: TRecord) => string;
+    audit?: boolean;
+};
+
+function useGridActions<TRecord extends RecordProps>({
+    actions,
+    form,
+    routeSync,
+    preparedRecords,
+    recordId,
+    sourcePath,
+    db,
+    onSave,
+    onDelete,
+    onAfterAction,
+    createRecordKey,
+    audit = false,
+}: UseGridActionsArgs<TRecord>) {
+    const location = useLocation();
+    const navigate = useNavigate();
+    const reactId = useId();
+    const formRef = useRef<FormRef | undefined>(undefined);
+    const getRecordKey = useMemo(() => getRecordKeyResolver(recordId), [recordId]);
+    const normalizedActions = useMemo(() => normalizeActions(actions, !!form), [actions, form]);
+    const [activeAction, setActiveAction] = useState<GridActiveAction<TRecord> | null>(null);
+    const gridHashId = useMemo(() => {
+        const sourceId = sourcePath || "grid-records";
+        return `${sanitizeHashPart(sourceId)}-${sanitizeHashPart(reactId)}`;
+    }, [reactId, sourcePath]);
+
+    const close = useCallback(() => {
+        setActiveAction(null);
+        formRef.current = undefined;
+        if (routeSync?.edit && location.hash.startsWith(`#${gridHashId}:`)) {
+            navigate({ pathname: location.pathname, search: location.search, hash: "" }, { replace: true });
+        }
+    }, [gridHashId, location.hash, location.pathname, location.search, navigate, routeSync?.edit]);
+
+    const open = useCallback(async (actionKey: string, record?: TRecord) => {
+        const action = normalizedActions[actionKey];
+        if (!action) return;
+        if (!isActionVisible(action, record) || isActionDisabled(action, record)) return;
+
+        const context: GridActionContext<TRecord> = {
+            actionKey,
+            record,
+            recordKey: record ? getRecordKey(record) : undefined,
+            rowIndex: record?._index,
+            isNewRecord: !record,
+            close,
+            save: async () => formRef.current?.handleSave({ preventDefault: () => undefined } as React.MouseEvent<HTMLButtonElement>) ?? false,
+            remove: async () => {
+                if (!record) return false;
+                const storagePath = onDelete
+                    ? await onDelete({ record })
+                    : sourcePath
+                        ? `${sourcePath}/${getRecordKey(record)}`
+                        : undefined;
+                if (!storagePath) return false;
+                await db.remove(storagePath);
+                const result = await onAfterAction?.({ record, action: "delete" }) ?? true;
+                if (result) close();
+                return result;
+            },
+            open: (nextActionKey: string, nextRecord?: TRecord) => open(nextActionKey, nextRecord),
+        };
+
+        if (action.kind === "route") {
+            const target = typeof action.to === "function" ? action.to(context) : action.to;
+            navigate(target);
+            return;
+        }
+
+        if (action.kind === "external") {
+            const target = typeof action.href === "function" ? action.href(context) : action.href;
+            window.open(target, "_blank", "noopener,noreferrer");
+            return;
+        }
+
+        if (action.kind === "inline") {
+            await action.run(context);
+            return;
+        }
+
+        if (actionKey === "edit" && routeSync?.edit && record) {
+            navigate({ hash: `${gridHashId}:${encodeURIComponent(getRecordKey(record))}` }, { replace: false });
+        }
+
+        setActiveAction({ actionKey, record });
+    }, [close, db, getRecordKey, gridHashId, navigate, normalizedActions, onAfterAction, onDelete, routeSync?.edit, sourcePath]);
+
+    const getActionContext = useCallback((actionKey: string, record?: TRecord): GridActionContext<TRecord> => ({
+        actionKey,
+        record,
+        recordKey: record ? getRecordKey(record) : undefined,
+        rowIndex: record?._index,
+        isNewRecord: !record,
+        close,
+        save: async () => formRef.current?.handleSave({ preventDefault: () => undefined } as React.MouseEvent<HTMLButtonElement>) ?? false,
+        remove: async () => {
+            if (!record) return false;
+            const storagePath = onDelete
+                ? await onDelete({ record })
+                : sourcePath
+                    ? `${sourcePath}/${getRecordKey(record)}`
+                    : undefined;
+            if (!storagePath) return false;
+            await db.remove(storagePath);
+            const result = await onAfterAction?.({ record, action: "delete" }) ?? true;
+            if (result) close();
+            return result;
+        },
+        open: (nextActionKey: string, nextRecord?: TRecord) => open(nextActionKey, nextRecord),
+    }), [close, db, getRecordKey, onAfterAction, onDelete, open, sourcePath]);
+
+    useEffect(() => {
+        if (!routeSync?.edit) return;
+
+        const hash = location.hash.replace(/^#/, "");
+        const prefix = `${gridHashId}:`;
+        if (!hash.startsWith(prefix)) {
+            if (activeAction?.actionKey === "edit") setActiveAction(null);
+            return;
+        }
+
+        const decodedRecordKey = decodeURIComponent(hash.slice(prefix.length));
+        const nextRecord = preparedRecords.find((record) => getRecordKey(record) === decodedRecordKey);
+        if (nextRecord) {
+            setActiveAction((current) => (
+                current?.actionKey === "edit" && current.record && getRecordKey(current.record) === decodedRecordKey
+                    ? current
+                    : { actionKey: "edit", record: nextRecord }
+            ));
+        }
+    }, [activeAction?.actionKey, getRecordKey, gridHashId, location.hash, preparedRecords, routeSync?.edit]);
+
+    const activeActionConfig = activeAction ? normalizedActions[activeAction.actionKey] : undefined;
+
+    const activeActionNode = useMemo(() => {
+        if (!activeAction || !activeActionConfig) return null;
+        const context = getActionContext(activeAction.actionKey, activeAction.record);
+
+        if (activeActionConfig.kind === "modal" && activeActionConfig.render) {
+            return typeof activeActionConfig.render === "function"
+                ? activeActionConfig.render(context)
+                : activeActionConfig.render;
+        }
+
+        if (activeActionConfig.kind === "delete") {
+            if (typeof activeActionConfig.confirmBody === "function") return activeActionConfig.confirmBody(context);
+            if (activeActionConfig.confirmBody !== undefined) return activeActionConfig.confirmBody;
+            return (
+                <div className="space-y-2">
+                    <p>Delete this record?</p>
+                    {activeAction.record && <p className="text-sm text-muted-foreground">{getRecordKey(activeAction.record)}</p>}
+                </div>
+            );
+        }
+
+        if ((activeAction.actionKey === "add" || activeAction.actionKey === "edit") && form) {
+            const formNode = typeof form === "function"
+                ? form({ ...context, record: activeAction.record })
+                : form;
+            if (!React.isValidElement(formNode)) return formNode;
+
+            return (
+                <Form
+                    aspect="empty"
+                    defaultValues={activeAction.record}
+                    log={audit}
+                    onSave={onSave ? async ({ record, action, storagePath }) => (
+                        onSave({
+                            record: record as TRecord | undefined,
+                            action,
+                            storagePath,
+                        })
+                    ) : undefined}
+                    onDelete={onDelete ? async ({ record }) => (
+                        onDelete({
+                            record: record as TRecord | undefined,
+                        })
+                    ) : undefined}
+                    onFinally={async ({ record, action }) => {
+                        const success = await onAfterAction?.({ record: record as TRecord | undefined, action }) ?? true;
+                        if (success) close();
+                        return success;
+                    }}
+                    savePath={({ record }) => {
+                        if (!sourcePath) return undefined;
+                        const recordToSave = record as TRecord;
+                        const nextKey = createRecordKey?.(recordToSave) || getRecordKey(recordToSave) || `${Date.now()}`;
+                        return `${sourcePath}/${nextKey}`;
+                    }}
+                    ref={(ref) => { formRef.current = ref ?? undefined; }}
+                >
+                    {formNode}
+                </Form>
+            );
+        }
+
+        return null;
+    }, [activeAction, activeActionConfig, audit, close, createRecordKey, form, getActionContext, getRecordKey, onAfterAction, onDelete, onSave, sourcePath]);
+
+    return {
+        normalizedActions,
+        activeAction,
+        activeActionConfig,
+        activeActionNode,
+        activeKey: activeAction?.actionKey === "edit" && activeAction.record ? getRecordKey(activeAction.record) : null,
+        open,
+        close,
+        getActionContext,
+        getRecordKey,
+        formRef,
+        gridHashId,
+    };
+}
+
+export default useGridActions;

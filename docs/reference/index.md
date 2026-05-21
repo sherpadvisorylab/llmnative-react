@@ -29,49 +29,68 @@ Carica un record da database, gestisce lo stato dei campi figli, salva e cancell
 </Form>
 ```
 
-### `<Grid>`
+### `<Grid>`, `<GridArray>`, `<GridDB>`
 
-Lista dati con real-time updates, sorting, paginazione e workflow CRUD centrati su `actions`.
-Propaga la stessa semantica di selezione di `Table` e `Gallery`: `selectedKeys` e `onSelectionChange`.
-In modalita' `table`, `onReorder` abilita il drag & drop e restituisce il record set completo nell'ordine finale.
-`form` definisce il contenuto condiviso di default per `add` e `edit`; ogni action puo' poi scegliere il proprio `mode` e `render`. Il layout standard dell'header usa `title` insieme al bottone Add.
+`Grid` e' il gateway comodo. `GridArray` e `GridDB` sono le entrypoint esplicite AI-first:
+
+- `GridArray` quando hai gia' i record in memoria
+- `GridDB` quando i record arrivano da `DataProvider`
+- `Grid` quando vuoi una facciata unica che instrada al wrapper corretto
+
+`form` definisce il contenuto condiviso di default per `add` e `edit`.
+`actions` usa un catalogo esplicito con `kind: "modal" | "route" | "external" | "inline" | "delete"`.
+`selection` rende la selezione esplicita.
+`reorderable` dichiara il drag in table mode, mentre `onReorder` riceve il record set finale ordinato.
 
 ```tsx
-<Grid
-  source="/collection"            // provider path (real-time listener)
-  // oppure:
-  // source={{ path: "/collection", where: {...}, order: {...} }}
-  // source={records}             // alternativa: dati in memoria
+<GridDB
+  path="/users"
+  order={{ name: "asc" }}
   columns={[
     {
-      key: 'fieldName',
-      label: 'Label colonna',
-      sort: true,                 // abilita sorting su questa colonna
-      transform: ({ value, record, key }) => <span>{value}</span>,
-      // oppure: transform: 'toDate' (converter built-in)
-    }
+      key: 'name',
+      label: 'Name',
+      sortable: true,
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      render: ({ value }) => <Badge>{value}</Badge>,
+    },
   ]}
-  title="Users"                   // titolo per l'header standard
-  form={<CustomFormFields />}
-  actions={{
-    edit: { mode: { position: "right" } },
-    delete: { render: ({ remove }) => <DeleteConfirm onYes={remove} /> },
-  }}
-  sortable={{ field: "name", dir: "asc" }} // oppure true
-  selectedKeys={selectedKeys}
-  onSelectionChange={({ keys, records, clear, hasSelection }) => {}}
-  onReorder={(reorderedRecords, meta) => {}}
-  view="table"                    // "table" | "gallery"
-  groupBy="status"                // stringa o array di stringhe
+  title="Users"
+  form={<UserFormFields />}
+  actions={["add", "edit", "delete"]}
+  layout="table"
+  selection="multiple"
   pagination={{ limit: 20, align: "end" }}
-  sticky="top"                    // "top" | "bottom"
-  header={({ title, Actions }) => <Header title={title} add={Actions.add ? <Actions.add /> : null} />}
-  footer={({ Actions }) => <Footer actions={Actions.delete ? <Actions.delete /> : null} />}
+  reorderable
+  onReorder={(records, meta) => {}}
+  header={({ title, selection, open }) => (
+    <Header
+      title={title}
+      selectedCount={selection.keys.length}
+      onAdd={() => open("add")}
+    />
+  )}
+  footer={({ records }) => <Footer total={records.length} />}
   transformRecords={(records) => records.filter((record) => record.active)}
-  onClick={(record) => navigate(`/detail/${record._key}`)}
+  onClickRow={(record) => navigate(`/detail/${record._key}`)}
   onSave={async ({ record, action, storagePath }) => ""}
   onDelete={async ({ record }) => ""}
   onAfterAction={async ({ record, action }) => true}
+/>
+```
+
+Con dati locali:
+
+```tsx
+<GridArray
+  records={records}
+  recordId="_key"
+  columns={columns}
+  layout="gallery"
+  groupBy=" | "
 />
 ```
 

@@ -80,17 +80,24 @@ export { Order } from './libs/order';
 export type { TableHeaderProp, TableReorderMeta, TableSelectionState } from './components/ui/Table';
 export type { GallerySelectionState } from './components/ui/Gallery';
 export type {
-    GridActionConfig,
-    GridActionButtonProps,
-    GridActionRenderContext,
+    GridAction,
     GridActions,
+    GridArrayProps,
     GridColumn,
-    GridColumnTransform,
+    GridCoreProps,
+    GridDBQuery,
+    GridDBProps,
     GridFooterContext,
+    GridFormContext,
+    GridGalleryViewProps,
     GridHeaderContext,
+    GridLayout,
+    GridRecordKey,
     GridProps,
-    GridSource,
-    GridSortable,
+    GridSelectionMode,
+    GridSelectionState,
+    GridSticky,
+    GridTableViewProps,
 } from './components/widgets/Grid';
 export type { ProviderConfigurable, ProviderConfigurationState } from './providers/ProviderConfiguration';
 export { getProviderConfigurationState } from './providers/ProviderConfiguration';

@@ -1,7 +1,6 @@
 import Grid from '../components/widgets/Grid';
 import React, { useState } from 'react'
 import BlogPost from './BlogPost'
-import { RecordProps } from '../providers/data/DataProvider';
 
 interface Post {
     title: string;
@@ -26,10 +25,8 @@ function Blog() {
         <>
             <h1>Blog</h1>
             <Grid
-                createRecordKey={(record: RecordProps) => {
-                    console.log(record)
-                    return record.title
-                }}
+                records={posts}
+                recordId="title"
                 columns={columns}
                 form={<BlogPost data={{ lang: 'Italiano', voice: 'Informative', style: 'Descriptive', limit: '3' }} />}
             />

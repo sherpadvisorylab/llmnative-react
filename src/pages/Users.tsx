@@ -7,7 +7,7 @@ import { RecordProps } from "../providers/data/DataProvider";
 function Users() {
   return (
     <Grid
-        source={"/users"}
+        path={"/users"}
         createRecordKey={(record: RecordProps) => record.email.replace('@', '-')}
         form={(
             <>

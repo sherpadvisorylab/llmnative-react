@@ -21,17 +21,19 @@ react-firestrap is an **opinionated React framework** that eliminates CRUD boile
 react-firestrap is schema-driven, which means AI agents can generate correct, working interfaces in a single pass:
 
 ```tsx
-// An AI agent can write this correctly without knowing your backend
-<Grid
-  dataStoragePath="/users"
+import { GridDB, Badge } from 'react-firestrap'
+
+<GridDB
+  path="/users"
+  order={{ name: "asc" }}
   columns={[
-    { key: 'name', label: 'Name', sort: true },
+    { key: 'name', label: 'Name', sortable: true },
     { key: 'email', label: 'Email' },
-    { key: 'role', label: 'Role', onDisplay: ({ value }) => <Badge>{value}</Badge> },
+    { key: 'role', label: 'Role', render: ({ value }) => <Badge>{value}</Badge> },
   ]}
-  allowedActions={["add", "edit", "delete"]}
-  modal={{ mode: "form" }}
-  pagination={{ perPage: 20 }}
+  form={<UserFormFields />}
+  actions={["add", "edit", "delete"]}
+  pagination={{ limit: 20 }}
 />
 ```
 
@@ -91,21 +93,21 @@ export default function Root() {
 ### 1. CRUD table (most common)
 
 ```tsx
-import { Grid } from 'react-firestrap'
+import { GridDB } from 'react-firestrap'
 
 export default function UserList() {
   return (
-    <Grid
-      dataStoragePath="/users"
+    <GridDB
+      path="/users"
+      order={{ name: "asc" }}
       columns={[
-        { key: 'name', label: 'Name', sort: true },
+        { key: 'name', label: 'Name', sortable: true },
         { key: 'email', label: 'Email' },
         { key: 'role', label: 'Role' },
       ]}
-      allowedActions={["add", "edit", "delete"]}
-      modal={{ mode: "form" }}
-      type="table"
-      pagination={{ perPage: 20 }}
+      form={<UserFormFields />}
+      actions={["add", "edit", "delete"]}
+      pagination={{ limit: 20 }}
     />
   )
 }
@@ -150,19 +152,19 @@ export default function UserForm() {
 ### 4. Custom column formatters
 
 ```tsx
-<Grid
-  dataStoragePath="/orders"
+<GridDB
+  path="/orders"
   columns={[
     {
       key: 'status',
       label: 'Status',
-      onDisplay: ({ value }) => {
+      render: ({ value }) => {
         const colors = { pending: 'warning', done: 'success', failed: 'danger' }
         return <Badge variant={colors[value]}>{value}</Badge>
       }
     },
-    { key: 'amount', label: 'Amount', onDisplay: ({ value }) => `€ ${value.toFixed(2)}` },
-    { key: 'createdAt', onDisplay: 'toDate' },
+    { key: 'amount', label: 'Amount', render: ({ value }) => `€ ${value.toFixed(2)}` },
+    { key: 'createdAt', format: 'date' },
   ]}
   groupBy="status"
 />
