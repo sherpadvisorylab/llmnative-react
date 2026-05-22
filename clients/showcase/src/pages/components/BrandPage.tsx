@@ -2,7 +2,7 @@ import React from 'react';
 import { Brand } from 'react-firestrap';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
-import PropsTable from '../../components/PropsTable';
+import PropDocsTable from '../../components/PropDocsTable';
 import { usePlayground } from '../../context/PlaygroundContext';
 import type { PropDef, PlaygroundConfig } from '../../types/playground';
 
@@ -49,7 +49,7 @@ export default function BrandPage() {
 <Brand url="/" logo={logoUrl} label="react-firestrap" width={32} height={32} />`}
             />
 
-            <PropsTable props={BRAND_PROPS} />
+            <PropDocsTable props={BRAND_PROPS} />
         </PageLayout>
     );
 }

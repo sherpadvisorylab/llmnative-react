@@ -2,7 +2,7 @@ import React from 'react';
 import { Tab, TabItem } from 'react-firestrap';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
-import PropsTable from '../../components/PropsTable';
+import PropDocsTable from '../../components/PropDocsTable';
 import { usePlayground } from '../../context/PlaygroundContext';
 import type { PropDef, PlaygroundConfig } from '../../types/playground';
 
@@ -113,8 +113,8 @@ export default function TabPage() {
                 />
             ))}
 
-            <PropsTable props={TAB_PROPS} title="Tab props" />
-            <PropsTable props={TABITEM_PROPS} title="TabItem props" />
+            <PropDocsTable props={TAB_PROPS} title="Tab props" />
+            <PropDocsTable props={TABITEM_PROPS} title="TabItem props" />
 
         </PageLayout>
     );

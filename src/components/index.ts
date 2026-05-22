@@ -15,7 +15,7 @@ export { default as Card } from './ui/Card';
 export { default as Code } from './ui/Code';
 export { default as Gallery} from './ui/Gallery';
 export * from './ui/Gallery';
-export type { GallerySelectionState } from './ui/Gallery';
+export type { GallerySelectionChangeHandler, GallerySelectionState } from './ui/Gallery';
 export * from './ui/GridSystem';
 export { default as Image } from './ui/Image';
 export { default as ImageAvatar } from './ui/ImageAvatar';
@@ -27,7 +27,7 @@ export { default as Repeat } from './ui/Repeat';
 export { default as Tab } from './ui/Tab';
 export * from './ui/Tab';
 export { default as Table } from './ui/Table';
-export type { TableHeaderProp, TableReorderMeta, TableSelectionState } from './ui/Table';
+export type { TableHeaderProp, TableReorderHandler, TableReorderMeta, TableSelectionChangeHandler, TableSelectionState } from './ui/Table';
 export { default as Icon } from './ui/Icon';
 export { LayoutBuilder } from './ui/LayoutBuilder';
 export * from './ui/fields/Input';
@@ -41,11 +41,14 @@ export { default as AssistantAI } from './ui/fields/AssistantAI';
 export { default as Menu } from './blocks/Menu';
 
 export { default as Form } from './widgets/Form';
+export type { FormDeleteArgs, FormDeleteHandler, FormFinallyArgs, FormFinallyHandler, FormSaveArgs, FormSaveHandler, SavePathProps } from './widgets/Form';
 export { default as Grid } from './widgets/Grid';
 export { GridArray, GridCore, GridDB, GridGalleryView, GridTableView } from './widgets/grid-core';
 export type {
     GridAction,
     GridActions,
+    GridAfterActionArgs,
+    GridAfterActionHandler,
     GridArrayProps,
     GridColumn,
     GridCoreProps,
@@ -56,8 +59,15 @@ export type {
     GridGalleryViewProps,
     GridHeaderContext,
     GridLayout,
+    GridMutationDeleteArgs,
+    GridMutationDeleteHandler,
+    GridMutationSaveArgs,
+    GridMutationSaveHandler,
+    GridReorderHandler,
+    GridReorderMeta,
     GridRecordKey,
     GridProps,
+    GridSelectionChangeHandler,
     GridSelectionMode,
     GridSelectionState,
     GridSticky,
@@ -71,4 +81,5 @@ export { default as TabDynamic } from './widgets/TabDynamic';
 export { default as Component } from './Component';
 export { ComponentBlock } from './Component';
 export * from './Template';
+export type { ModalDeleteHandler, ModalSaveHandler } from './ui/Modal';
 

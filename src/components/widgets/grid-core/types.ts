@@ -44,6 +44,19 @@ export type GridSelectionState<TRecord> = {
     clear: () => void;
 };
 
+export type GridSelectionChangeHandler<TRecord> = (selection: GridSelectionState<TRecord>) => void;
+
+export type GridReorderMeta<TRecord> = {
+    fromIndex: number;
+    toIndex: number;
+    record: TRecord;
+};
+
+export type GridReorderHandler<TRecord> = (
+    records: TRecord[],
+    meta: GridReorderMeta<TRecord>
+) => void;
+
 export type GridActionContext<TRecord> = {
     actionKey: string;
     record?: TRecord;
@@ -155,14 +168,26 @@ export type GridMutationSaveArgs<TRecord> = {
     storagePath?: string;
 };
 
+export type GridMutationSaveHandler<TRecord> = (
+    args: GridMutationSaveArgs<TRecord>
+) => Promise<string | undefined>;
+
 export type GridMutationDeleteArgs<TRecord> = {
     record?: TRecord;
 };
+
+export type GridMutationDeleteHandler<TRecord> = (
+    args: GridMutationDeleteArgs<TRecord>
+) => Promise<string | undefined>;
 
 export type GridAfterActionArgs<TRecord> = {
     record?: TRecord;
     action: "create" | "update" | "delete";
 };
+
+export type GridAfterActionHandler<TRecord> = (
+    args: GridAfterActionArgs<TRecord>
+) => Promise<boolean>;
 
 export type GridRouteSync = {
     edit?: boolean;
@@ -182,20 +207,17 @@ export type GridBehavior<TRecord> = {
     selection?: GridSelectionMode;
     selectedKeys?: string[];
     defaultSelectedKeys?: string[];
-    onSelectionChange?: (selection: GridSelectionState<TRecord>) => void;
+    onSelectionChange?: GridSelectionChangeHandler<TRecord>;
     onClickRow?: (record: TRecord) => void;
     reorderable?: boolean;
-    onReorder?: (
-        records: TRecord[],
-        meta: { fromIndex: number; toIndex: number; record: TRecord }
-    ) => void;
+    onReorder?: GridReorderHandler<TRecord>;
     groupBy?: keyof TRecord | string | Array<keyof TRecord | string>;
 };
 
 export type GridPersistence<TRecord> = {
-    onSave?: (args: GridMutationSaveArgs<TRecord>) => Promise<string | undefined>;
-    onDelete?: (args: GridMutationDeleteArgs<TRecord>) => Promise<string | undefined>;
-    onAfterAction?: (args: GridAfterActionArgs<TRecord>) => Promise<boolean>;
+    onSave?: GridMutationSaveHandler<TRecord>;
+    onDelete?: GridMutationDeleteHandler<TRecord>;
+    onAfterAction?: GridAfterActionHandler<TRecord>;
     createRecordKey?: (record: TRecord) => string;
     audit?: boolean;
 };
@@ -263,13 +285,10 @@ export type GridTableViewProps<TRecord extends RecordProps> = {
     pagination?: PaginationParams;
     selection?: GridSelectionMode;
     selectedKeys?: string[];
-    onSelectionChange?: (selection: GridSelectionState<TRecord>) => void;
+    onSelectionChange?: GridSelectionChangeHandler<TRecord>;
     onClickRow?: (record: TRecord) => void;
     reorderable?: boolean;
-    onReorder?: (
-        records: TRecord[],
-        meta: { fromIndex: number; toIndex: number; record: TRecord }
-    ) => void;
+    onReorder?: GridReorderHandler<TRecord>;
     activeKey?: string | null;
     wrapClass?: string;
 };
@@ -281,7 +300,7 @@ export type GridGalleryViewProps<TRecord extends RecordProps> = {
     pagination?: PaginationParams;
     selection?: GridSelectionMode;
     selectedKeys?: string[];
-    onSelectionChange?: (selection: GridSelectionState<TRecord>) => void;
+    onSelectionChange?: GridSelectionChangeHandler<TRecord>;
     onClickRow?: (record: TRecord) => void;
     groupBy?: keyof TRecord | string | Array<keyof TRecord | string>;
     wrapClass?: string;

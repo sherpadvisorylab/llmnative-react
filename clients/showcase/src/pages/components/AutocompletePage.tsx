@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Autocomplete, Form } from 'react-firestrap';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
-import PropsTable from '../../components/PropsTable';
+import PropDocsTable from '../../components/PropDocsTable';
 import { usePlayground } from '../../context/PlaygroundContext';
 import type { PropDef, PlaygroundConfig } from '../../types/playground';
 
@@ -27,11 +27,24 @@ const AUTOCOMPLETE_PROPS: PropDef[] = [
     { name: 'name', type: 'string', required: true, description: 'Field name used as form key', control: 'text' },
     { name: 'label', type: 'string', description: 'Label above the input', control: 'text' },
     { name: 'title', type: 'string', description: 'Native title attribute on the text input', control: 'text' },
-    { name: 'options', type: 'Array<{ label: string; value: string }> | string[] | number[]', description: 'Static options for suggestions', control: 'json' },
+    { name: 'options', type: 'Option[] | string[] | number[]', description: 'Static options for suggestions', control: 'json', typeDetails: `Array<{ label: string; value: string }> | string[] | number[]`, example: `options={[
+  { label: 'Alice Johnson', value: 'alice' },
+  { label: 'Bob Martinez', value: 'bob' },
+]}` },
     {
         name: 'db',
-        type: '{ path?: string; fieldMap?: object; where?: object; order?: object }',
+        type: 'AutocompleteDbConfig',
         description: 'DataProvider path used to fetch suggestions',
+        typeDetails: `{
+  path?: string;
+  fieldMap?: Record<string, string>;
+  where?: Record<string, unknown>;
+  order?: { field: string; dir: 'asc' | 'desc' };
+}`,
+        example: `db={{
+  path: '/showcase/users',
+  order: { field: 'label', dir: 'asc' },
+}}`,
         control: 'text',
         readOnly: true,
         help: 'This playground uses a MockDataProvider. Edit the records in Mock database below to change the suggestions returned by this path.',
@@ -40,13 +53,18 @@ const AUTOCOMPLETE_PROPS: PropDef[] = [
     { name: 'min', type: 'number', description: 'Minimum number of selected items', control: 'number', min: 0 },
     { name: 'max', type: 'number', description: 'Maximum number of selected items', control: 'number', min: 1 },
     { name: 'creatable', type: 'boolean', default: 'false', description: 'Allow typing free values not in options list; press Enter to confirm', control: 'boolean' },
-    { name: 'onCreate', type: '(value: string) => Promise<void> | void', description: 'Called when a new free value is confirmed; use this to persist the new option' },
+    { name: 'onCreate', type: '(value: string) => Promise<void> | void', description: 'Called when a new free value is confirmed; use this to persist the new option', example: `onCreate={async (value) => {
+  await db.set(\`/tags/\${value}\`, { label: value, value });
+}}` },
     { name: 'required', type: 'boolean', default: 'false', description: 'Marks field as required', control: 'boolean' },
     { name: 'disabled', type: 'boolean', default: 'false', description: 'Disables the field', control: 'boolean' },
     { name: 'updatable', type: 'boolean', default: 'true', description: 'When false, an existing value locks the input', control: 'boolean' },
     { name: 'defaultValue', type: 'string[] | string', description: 'Initial selected values', control: 'json' },
     { name: 'feedback', type: 'string', description: 'Validation feedback message shown below the field', control: 'text' },
-    { name: 'order', type: '{ field: "label" | "value"; dir: "asc" | "desc" }', description: 'Sort order for options (default: label asc)', control: 'json' },
+    { name: 'order', type: 'OrderConfig', description: 'Sort order for options (default: label asc)', control: 'json', typeDetails: `{
+  field: 'label' | 'value';
+  dir: 'asc' | 'desc';
+}`, example: `order={{ field: 'label', dir: 'asc' }}` },
     { name: 'pre', type: 'ReactNode', description: 'Content rendered before the autocomplete inside an input group', control: 'text' },
     { name: 'post', type: 'ReactNode', description: 'Content rendered after the autocomplete inside an input group', control: 'text' },
     { name: 'className', type: 'string', description: 'CSS classes on the input element', control: 'text' },
@@ -284,7 +302,7 @@ function TagField() {
 </Form>`}
             />
 
-            <PropsTable props={AUTOCOMPLETE_PROPS} />
+            <PropDocsTable props={AUTOCOMPLETE_PROPS} />
         </PageLayout>
     );
 }

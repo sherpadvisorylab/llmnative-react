@@ -2,14 +2,17 @@ import React from 'react';
 import { Menu } from 'react-firestrap';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
-import PropsTable from '../../components/PropsTable';
+import PropDocsTable from '../../components/PropDocsTable';
 import { usePlayground } from '../../context/PlaygroundContext';
 import type { PropDef, PlaygroundConfig } from '../../types/playground';
 
 const MENU_PROPS: PropDef[] = [
     { name: 'context', type: 'string', required: true, description: 'Menu context key passed to useMenu', control: 'select', options: ['components', 'docs', 'providers', 'examples'] },
     { name: 'Type', type: '"ul" | "ol"', default: '"ul"', description: 'List element type', control: 'select', options: ['ul', 'ol'] },
-    { name: 'badges', type: 'Record<string, { type?; children }>', description: 'Badges keyed by lower-case item title', control: 'json' },
+    { name: 'badges', type: 'Record<string, BadgeConfig>', description: 'Badges keyed by lower-case item title', control: 'json', typeDetails: `Record<string, {
+  type?: string;
+  children: ReactNode;
+}>` },
     { name: 'pre', type: 'ReactNode', description: 'Content before menu', control: 'text' },
     { name: 'post', type: 'ReactNode', description: 'Content after menu', control: 'text' },
     { name: 'wrapClass', type: 'string', description: 'CSS classes on wrapper', control: 'text' },
@@ -78,7 +81,7 @@ export default function MenuPage() {
 <Menu context="components" />`}
             />
 
-            <PropsTable props={MENU_PROPS} />
+            <PropDocsTable props={MENU_PROPS} />
         </PageLayout>
     );
 }

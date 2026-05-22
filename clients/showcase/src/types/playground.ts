@@ -3,6 +3,9 @@ export type PropControl = 'text' | 'number' | 'boolean' | 'select' | 'json' | 'r
 export type PropDef = {
     name: string;
     type: string;
+    shape?: string;
+    typeDetails?: string;
+    example?: string;
     group?: string;
     default?: string;
     required?: boolean;

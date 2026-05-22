@@ -7,14 +7,17 @@ import { useMotionEffect, useMotionState } from '../../motion';
 import Icon from './Icon';
 import { cn } from '../../libs/cn';
 
+export type ModalSaveHandler = (e: React.MouseEvent<HTMLButtonElement>) => Promise<boolean>;
+export type ModalDeleteHandler = (e: React.MouseEvent<HTMLButtonElement>) => Promise<boolean>;
+
 interface ModalProps extends MotionUIProps {
     children: React.ReactNode;
     title?: React.ReactNode;
     header?: React.ReactNode;
     footer?: React.ReactNode | false;
     onClose?: () => void;
-    onSave?: (e: React.MouseEvent<HTMLButtonElement>) => Promise<boolean>;
-    onDelete?: (e: React.MouseEvent<HTMLButtonElement>) => Promise<boolean>;
+    onSave?: ModalSaveHandler;
+    onDelete?: ModalDeleteHandler;
     size?: "sm" | "md" | "lg" | "xl" | "fullscreen";
     position?: "center" | "top" | "left" | "right" | "bottom";
     buttonFullscreen?: boolean;

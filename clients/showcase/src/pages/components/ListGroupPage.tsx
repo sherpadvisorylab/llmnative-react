@@ -2,7 +2,7 @@ import React from 'react';
 import { Badge, ListGroup } from 'react-firestrap';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
-import PropsTable from '../../components/PropsTable';
+import PropDocsTable from '../../components/PropDocsTable';
 import { usePlayground } from '../../context/PlaygroundContext';
 import type { PropDef, PlaygroundConfig } from '../../types/playground';
 
@@ -83,7 +83,7 @@ export default function ListGroupPage() {
 </ListGroup>`}
             />
 
-            <PropsTable props={LIST_GROUP_PROPS} />
+            <PropDocsTable props={LIST_GROUP_PROPS} />
         </PageLayout>
     );
 }

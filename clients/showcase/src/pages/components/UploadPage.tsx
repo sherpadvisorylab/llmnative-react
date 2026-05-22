@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Form, UploadCSV, UploadDocument, UploadImage } from 'react-firestrap';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
-import PropsTable from '../../components/PropsTable';
+import PropDocsTable from '../../components/PropDocsTable';
 import { usePlayground } from '../../context/PlaygroundContext';
 import type { PropDef, PlaygroundConfig } from '../../types/playground';
 
@@ -33,7 +33,43 @@ const UPLOAD_CSV_PROPS: PropDef[] = [
     { name: 'label', type: 'string', description: 'Drop zone label text' },
     { name: 'normalizeKeys', type: 'boolean', default: 'false', description: 'Convert header keys to camelCase' },
     { name: 'removeEmptyFields', type: 'boolean', default: 'false', description: 'Strip fields with empty/null values' },
-    { name: 'onDataLoaded', type: '(result: { data: any[]; fields: string[] }) => void', description: 'Callback fired after CSV is parsed' },
+    {
+        name: 'onDataLoaded',
+        type: 'UploadCSVDataLoadedHandler',
+        description: 'Callback fired after CSV is parsed.',
+        shape: `type UploadCSVDataLoadedHandler = (
+  results: UploadCSVData
+) => void
+
+interface UploadCSVData {
+  data: UploadCSVRow[];
+  fields: string[];
+  file: File;
+}
+
+interface UploadCSVRow {
+  [key: string]: UploadCSVCell;
+}
+
+type UploadCSVCell = string | null | undefined`,
+        example: `onDataLoaded={(result) => {
+  console.log(result.fields, result.data);
+}}`,
+    },
+    {
+        name: 'onParseField',
+        type: 'UploadCSVParseFieldHandler',
+        description: 'Optional field-level transform hook before parsed values are committed into the result rows.',
+        shape: `type UploadCSVParseFieldHandler = (
+  field: UploadCSVParseField
+) => UploadCSVParseField | undefined
+
+type UploadCSVParseField = [key: string, value: UploadCSVCell]`,
+        example: `onParseField={([key, value]) => {
+  if (key === 'price') return [key, Number(value)];
+  return [key, value];
+}}`,
+    },
 ];
 
 const PLAYGROUND: PlaygroundConfig = {
@@ -186,9 +222,9 @@ export default function UploadPage() {
 </Form>`}
             />
 
-            <PropsTable props={UPLOAD_IMAGE_PROPS} title="UploadImage props" />
-            <PropsTable props={UPLOAD_DOCUMENT_PROPS} title="UploadDocument props" />
-            <PropsTable props={UPLOAD_CSV_PROPS} title="UploadCSV props" />
+            <PropDocsTable props={UPLOAD_IMAGE_PROPS} title="UploadImage props" />
+            <PropDocsTable props={UPLOAD_DOCUMENT_PROPS} title="UploadDocument props" />
+            <PropDocsTable props={UPLOAD_CSV_PROPS} title="UploadCSV props" />
 
         </PageLayout>
     );

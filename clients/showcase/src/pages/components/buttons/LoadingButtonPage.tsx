@@ -2,7 +2,7 @@ import React from 'react';
 import { LoadingButton } from 'react-firestrap';
 import PageLayout from '../../../components/PageLayout';
 import Section from '../../../components/Section';
-import PropsTable from '../../../components/PropsTable';
+import PropDocsTable from '../../../components/PropDocsTable';
 import { usePlayground } from '../../../context/PlaygroundContext';
 import type { PropDef, PlaygroundConfig } from '../../../types/playground';
 
@@ -28,7 +28,10 @@ const BUTTON_CLASSES = [
 const PROPS: PropDef[] = [
     { name: 'icon', type: 'string', description: 'Icon name shown while idle', control: 'icon' },
     { name: 'label', type: 'string | ReactNode', description: 'Visible button label', control: 'text' },
-    { name: 'badge', type: 'ReactNode | { content; type? }', description: 'Optional badge rendered while idle', control: 'json' },
+    { name: 'badge', type: 'ReactNode | BadgeConfig', description: 'Optional badge rendered while idle', control: 'json', typeDetails: `ReactNode | {
+  content: ReactNode;
+  type?: string;
+}` },
     { name: 'title', type: 'string', description: 'Native button title attribute', control: 'text' },
     { name: 'disabled', type: 'boolean', default: 'false', description: 'Disables the button', control: 'boolean' },
     { name: 'showLoader', type: 'boolean', default: 'false', description: 'Controlled loading state from outside the component', control: 'boolean' },
@@ -73,7 +76,7 @@ export default function LoadingButtonPage() {
   }}
 />`}
             />
-            <PropsTable props={PROPS} />
+            <PropDocsTable props={PROPS} />
         </PageLayout>
     );
 }

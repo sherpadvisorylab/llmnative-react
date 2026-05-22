@@ -2,7 +2,7 @@ import React from 'react';
 import { Form, Select } from 'react-firestrap';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
-import PropsTable from '../../components/PropsTable';
+import PropDocsTable from '../../components/PropDocsTable';
 import { usePlayground } from '../../context/PlaygroundContext';
 import type { PropDef, PlaygroundConfig } from '../../types/playground';
 
@@ -25,22 +25,43 @@ const SELECT_PROPS: PropDef[] = [
     { name: 'name', type: 'string', required: true, description: 'Field name used as form key', control: 'text' },
     { name: 'label', type: 'string', description: 'Label displayed above the select', control: 'text' },
     { name: 'title', type: 'string', description: 'Native title attribute on the select element', control: 'text' },
-    { name: 'options', type: 'Array<{ label: string; value: string }> | string[] | number[]', description: 'Static options array', control: 'json' },
+    { name: 'options', type: 'Option[] | string[] | number[]', description: 'Static options array', control: 'json', typeDetails: `Array<{ label: string; value: string }> | string[] | number[]`, example: `options={[
+  { label: 'Admin', value: 'admin' },
+  { label: 'Editor', value: 'editor' },
+]}` },
     {
         name: 'db',
-        type: '{ path?: string; fieldMap?: object; where?: object; order?: object }',
+        type: 'SelectDbConfig',
         description: 'DataProvider path used to fetch options',
+        typeDetails: `{
+  path?: string;
+  fieldMap?: Record<string, string>;
+  where?: Record<string, unknown>;
+  order?: { field: string; dir: 'asc' | 'desc' };
+}`,
+        example: `db={{
+  path: '/showcase/categories',
+  fieldMap: { label: 'name', value: '_key' },
+  where: { active: true },
+  order: { field: 'label', dir: 'asc' },
+}}`,
         control: 'text',
         readOnly: true,
         help: 'This playground uses a MockDataProvider. Edit the records in Mock database below to change the options returned by this path.',
     },
-    { name: 'optionEmpty', type: '{ label: string; value: string } | null', description: 'Placeholder option shown when nothing is selected; set to null to hide it', control: 'json' },
+    { name: 'optionEmpty', type: 'Option | null', description: 'Placeholder option shown when nothing is selected; set to null to hide it', control: 'json', typeDetails: `{
+  label: string;
+  value: string;
+} | null`, example: `optionEmpty={{ label: 'Select...', value: '' }}` },
     { name: 'required', type: 'boolean', default: 'false', description: 'Marks field as required', control: 'boolean' },
     { name: 'disabled', type: 'boolean', default: 'false', description: 'Disables the select', control: 'boolean' },
     { name: 'updatable', type: 'boolean', default: 'true', description: 'When false, an existing value locks the select', control: 'boolean' },
     { name: 'defaultValue', type: 'any', description: 'Initial selected value', control: 'text' },
     { name: 'feedback', type: 'string', description: 'Validation feedback message shown below the field', control: 'text' },
-    { name: 'order', type: '{ field: "label" | "value"; dir: "asc" | "desc" }', description: 'Sort order for options (default: label asc)', control: 'json' },
+    { name: 'order', type: 'OrderConfig', description: 'Sort order for options (default: label asc)', control: 'json', typeDetails: `{
+  field: 'label' | 'value';
+  dir: 'asc' | 'desc';
+}`, example: `order={{ field: 'label', dir: 'asc' }}` },
     { name: 'pre', type: 'ReactNode', description: 'Content rendered before the select inside an input group', control: 'text' },
     { name: 'post', type: 'ReactNode', description: 'Content rendered after the select inside an input group', control: 'text' },
     { name: 'onChange', type: 'FieldOnChange', description: 'Custom change handler called by the Form context' },
@@ -176,7 +197,7 @@ const ROLES = [
 </Form>`}
             />
 
-            <PropsTable props={SELECT_PROPS} />
+            <PropDocsTable props={SELECT_PROPS} />
         </PageLayout>
     );
 }

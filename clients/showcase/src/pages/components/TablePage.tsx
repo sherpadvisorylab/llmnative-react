@@ -2,7 +2,7 @@ import React from 'react';
 import { ActionButton, Badge, Modal, Table, buttonOutlineSecondaryClass, buttonPrimaryClass, useDataProvider } from 'react-firestrap';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
-import PropsTable from '../../components/PropsTable';
+import PropDocsTable from '../../components/PropDocsTable';
 import { usePlayground } from '../../context/PlaygroundContext';
 import type { PropDef, PlaygroundConfig } from '../../types/playground';
 
@@ -80,7 +80,7 @@ const TABLE_HEADER_PROP_TYPE = `{
   label: string;
   className?: string;
   sort?: boolean;
-}[]`;
+}`;
 
 const PAGINATION_PARAMS_TYPE = `{
   page?: number;
@@ -99,15 +99,44 @@ const TABLE_SELECTION_STATE_TYPE = `{
   hasSelection: boolean;
 }`;
 
+const TABLE_REORDER_META_TYPE = `{
+  fromIndex: number;
+  toIndex: number;
+  record: RecordProps;
+}`;
+
 const TABLE_PROPS: PropDef[] = [
-    { name: 'header', type: TABLE_HEADER_PROP_TYPE, description: 'Optional column definitions. Each item describes a table column and can override sorting locally.' },
+    { name: 'header', type: 'TableHeaderProp[]', description: 'Optional column definitions. Each item describes a table column and can override sorting locally.', shape: `type TableHeaderProp = ${TABLE_HEADER_PROP_TYPE}`, example: `header={[
+  { key: 'name', label: 'Name' },
+  { key: 'role', label: 'Role' },
+  { key: 'status', label: 'Status' },
+  { key: 'team', label: 'Team', sort: false },
+]}` },
     { name: 'body', type: 'RecordArray', required: true, description: 'Array of row records to render.' },
-    { name: 'onReorder', type: '(reorderedRecords, meta) => void', description: 'Called after a drag reorder with the full reordered record set and the moved row metadata. When provided, drag and drop is enabled automatically.' },
+    { name: 'onReorder', type: 'TableReorderHandler', description: 'Called after a drag reorder with the full reordered record set and the moved row metadata. When provided, drag and drop is enabled automatically.', shape: `type TableReorderHandler = (
+  reorderedRecords: RecordArray,
+  meta: TableReorderMeta
+) => void
+
+type TableReorderMeta = ${TABLE_REORDER_META_TYPE}`, example: `onReorder={(reorderedRecords, meta) => {
+  setRows(reorderedRecords);
+  console.log(meta.fromIndex, meta.toIndex);
+}}` },
     { name: 'selectedKeys', type: 'string[]', description: 'Controlled selection state. When you provide it together with onSelectionChange, the table renders multi-select checkboxes.' },
-    { name: 'onSelectionChange', type: `(selection: ${TABLE_SELECTION_STATE_TYPE}) => void`, description: 'Called whenever selected rows change. When provided, the selection checkbox column appears automatically.' },
-    { name: 'sortable', type: 'boolean | OrderConfig', default: 'false', description: 'Enables header sorting. Pass an OrderConfig object to set the initial client-side sort without a separate order prop.', control: 'json' },
+    { name: 'onSelectionChange', type: 'TableSelectionChangeHandler', description: 'Called whenever selected rows change. When provided, the selection checkbox column appears automatically.', shape: `type TableSelectionChangeHandler = (
+  selection: TableSelectionState
+) => void
+
+type TableSelectionState = ${TABLE_SELECTION_STATE_TYPE}`, example: `onSelectionChange={(selection) => {
+  setSelectedKeys(selection.keys);
+  setSelectedRecords(selection.records);
+}}` },
+    { name: 'sortable', type: 'boolean | OrderConfig', default: 'false', description: 'Enables header sorting. Pass an OrderConfig object to set the initial client-side sort without a separate order prop.', control: 'json', typeDetails: `boolean | {
+  field: string;
+  dir: 'asc' | 'desc';
+}`, example: `sortable={{ field: 'name', dir: 'asc' }}` },
     { name: 'onClick', type: '(record) => void', description: 'Called with the clicked record.' },
-    { name: 'pagination', type: PAGINATION_PARAMS_TYPE, description: 'Shared pagination configuration. Default align is "end", so controls are right-aligned unless overridden.', control: 'json' },
+    { name: 'pagination', type: PAGINATION_PARAMS_TYPE, description: 'Shared pagination configuration. Default align is "end", so controls are right-aligned unless overridden.', control: 'json', typeDetails: PAGINATION_PARAMS_TYPE, example: `pagination={{ limit: 4, align: 'end', sticky: false }}` },
     { name: 'Footer', type: 'ReactNode', description: 'Footer row or content rendered inside tfoot.', control: 'text' },
     { name: 'selectedClass', type: 'string', description: 'Class applied to the active row after click.', control: 'text' },
     { name: 'wrapClass', type: 'string', description: 'CSS class applied to the outer responsive wrapper. Use it for width and horizontal overflow behavior.', control: 'text' },
@@ -611,7 +640,7 @@ const [exportOpen, setExportOpen] = useState(false);
 />`}
             />
 
-            <PropsTable props={TABLE_PROPS} />
+            <PropDocsTable props={TABLE_PROPS} />
         </PageLayout>
     );
 }

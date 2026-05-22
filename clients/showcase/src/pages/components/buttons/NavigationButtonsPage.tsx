@@ -2,7 +2,7 @@ import React from 'react';
 import { BackLink, GoSite, ReferSite } from 'react-firestrap';
 import PageLayout from '../../../components/PageLayout';
 import Section from '../../../components/Section';
-import PropsTable from '../../../components/PropsTable';
+import PropDocsTable from '../../../components/PropDocsTable';
 
 const PROPS = [
     { name: 'label', type: 'string', description: 'Visible label' },
@@ -29,7 +29,7 @@ export default function NavigationButtonsPage() {
 <GoSite label="React" url="https://react.dev" />
 <ReferSite title="React" url="https://react.dev" imageUrl="/logo.png" width={30} />`}
             />
-            <PropsTable props={PROPS} />
+            <PropDocsTable props={PROPS} />
         </PageLayout>
     );
 }

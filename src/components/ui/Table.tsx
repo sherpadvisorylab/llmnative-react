@@ -25,14 +25,16 @@ type DropIndicatorPosition = 'before' | 'after';
 
 export type TableSelectionState = RecordSelectionState<RecordProps>;
 export type TableSelectionMode = 'single' | 'multiple';
+export type TableSelectionChangeHandler = (selection: TableSelectionState) => void;
+export type TableReorderHandler = (reorderedRecords: RecordArray, meta: TableReorderMeta) => void;
 
 interface TableProps extends UIProps {
     header?: TableHeaderProp[],
     body?: RecordArray,
     Footer?: string | React.ReactNode,
     onClick?: (record: RecordProps) => void;
-    onReorder?: (reorderedRecords: RecordArray, meta: TableReorderMeta) => void;
-    onSelectionChange?: (selection: TableSelectionState) => void;
+    onReorder?: TableReorderHandler;
+    onSelectionChange?: TableSelectionChangeHandler;
     selectionMode?: TableSelectionMode;
     sortable?: boolean | OrderConfig;
     pagination?: PaginationParams;

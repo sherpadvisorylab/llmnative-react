@@ -2,7 +2,7 @@ import React from 'react';
 import { AuthButton } from 'react-firestrap';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
-import PropsTable from '../../components/PropsTable';
+import PropDocsTable from '../../components/PropDocsTable';
 import { usePlayground } from '../../context/PlaygroundContext';
 import type { PlaygroundConfig, PropDef } from '../../types/playground';
 
@@ -12,10 +12,20 @@ const AUTH_BUTTON_PROPS: PropDef[] = [
     { name: 'provider', type: 'string', description: 'AuthProvider driver key. Defaults to the app auth service.', control: 'text' },
     { name: 'intent', type: '"signIn" | "connect" | "signOut" | "disconnect" | "reauthorize"', default: '"signIn"', description: 'Action requested from the selected AuthProvider.', control: 'select', options: ['signIn', 'connect', 'signOut', 'disconnect', 'reauthorize'] },
     { name: 'aspect', type: '"button" | "avatar"', default: '"button"', description: 'Visual presentation of the auth action.', control: 'select', options: ['button', 'avatar'] },
-    { name: 'scopes', type: 'string[]', description: 'Scopes requested from the selected provider.', control: 'json' },
+    { name: 'scopes', type: 'string[]', description: 'Scopes requested from the selected provider.', control: 'json', typeDetails: `string[]`, example: `scopes={['files.metadata.read', 'files.content.read']}` },
     { name: 'iconLogout', type: 'string', default: '"log-out"', description: 'IconProvider key used for the avatar logout menu item.', control: 'icon' },
     { name: 'avatarClass', type: 'string', description: 'CSS classes applied to the profile avatar.', control: 'text' },
-    { name: 'options', type: 'IButton', description: 'ActionButton options such as label, icon, className and disabled.', control: 'json' },
+    { name: 'options', type: 'IButton', description: 'ActionButton options such as label, icon, className and disabled.', control: 'json', typeDetails: `{
+  label?: string;
+  icon?: string;
+  className?: string;
+  disabled?: boolean;
+}`, example: `options={{
+  label: 'Connect Dropbox',
+  icon: 'link',
+  className: 'btn-primary',
+  disabled: true,
+}}` },
 ];
 
 const AUTH_BUTTON_PLAYGROUND_PROPS: PropDef[] = [
@@ -113,7 +123,7 @@ export default function AuthPage() {
 const token = await getAccessToken(import.meta.env.VITE_DROPBOX_CLIENT_ID);`}
             />
 
-            <PropsTable props={AUTH_BUTTON_PROPS} title="AuthButton props" />
+            <PropDocsTable props={AUTH_BUTTON_PROPS} title="AuthButton props" />
         </PageLayout>
     );
 }

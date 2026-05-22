@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
-import PropsTable from '../../components/PropsTable';
+import PropDocsTable from '../../components/PropDocsTable';
 import { usePlayground } from '../../context/PlaygroundContext';
 import type { PropDef, PlaygroundConfig } from '../../types/playground';
 
@@ -118,7 +118,7 @@ export default function PaginationPage() {
 </Pagination>`}
             />
 
-            <PropsTable props={PROPS_CONFIG} />
+            <PropDocsTable props={PROPS_CONFIG} />
 
         </PageLayout>
     );

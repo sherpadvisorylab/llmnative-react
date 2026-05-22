@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { MarkdownReader } from 'react-firestrap';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
-import PropsTable from '../../components/PropsTable';
+import PropDocsTable from '../../components/PropDocsTable';
 import { usePlayground } from '../../context/PlaygroundContext';
 import type { PropDef, PlaygroundConfig } from '../../types/playground';
 
@@ -35,7 +35,10 @@ Continue to [Quick start](/docs/quick-start).`;
 
 const PROPS_CONFIG: PropDef[] = [
     { name: 'content', type: 'string', required: true, description: 'Markdown string to render' },
-    { name: 'head', type: '{ title?: string; description?: string }', description: 'SEO metadata injected via Head component' },
+    { name: 'head', type: 'HeadConfig', description: 'SEO metadata injected via Head component', typeDetails: `{
+  title?: string;
+  description?: string;
+}` },
     { name: 'onNavigateInternal', type: '(href: string) => void', description: 'Intercepts clicks on internal links (relative paths). Use to navigate with React Router.' },
     { name: 'className', type: 'string', description: 'Additional CSS classes on the prose wrapper', control: 'text' },
 ];
@@ -96,7 +99,7 @@ export default function MarkdownReaderPage() {
 />`}
             />
 
-            <PropsTable props={PROPS_CONFIG} />
+            <PropDocsTable props={PROPS_CONFIG} />
 
         </PageLayout>
     );

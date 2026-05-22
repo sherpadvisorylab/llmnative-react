@@ -2,7 +2,7 @@ import React from 'react';
 import { Form, Input, TextArea, Checkbox } from 'react-firestrap';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
-import PropsTable from '../../components/PropsTable';
+import PropDocsTable from '../../components/PropDocsTable';
 import { usePlayground } from '../../context/PlaygroundContext';
 import type { PropDef, PlaygroundConfig } from '../../types/playground';
 
@@ -169,7 +169,7 @@ export default function InputPage() {
                 <Input name="slug" label="Slug"      defaultValue="my-article-slug" updatable />
             </LiveForm>
 
-            <PropsTable props={PROPS_CONFIG} title="Input props" />
+            <PropDocsTable props={PROPS_CONFIG} title="Input props" />
 
         </PageLayout>
     );

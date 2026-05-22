@@ -86,16 +86,15 @@ import { Grid } from 'react-firestrap'
 export default function UserList() {
   return (
     <Grid
-      dataStoragePath="/users"
+      path="/users"
       columns={[
-        { key: 'name', label: 'Nome', sort: true },
+        { key: 'name', label: 'Nome', sortable: true },
         { key: 'email', label: 'Email' },
-        { key: 'role', label: 'Ruolo', onDisplay: ({ value }) => <Badge>{value}</Badge> },
+        { key: 'role', label: 'Ruolo', render: ({ value }) => <Badge>{value}</Badge> },
       ]}
-      allowedActions={["add", "edit", "delete"]}
-      modal={{ mode: "form" }}
-      type="table"
-      pagination={{ perPage: 20 }}
+      actions={["add", "edit", "delete"]}
+      layout="table"
+      pagination={{ limit: 20 }}
     />
   )
 }
@@ -156,21 +155,20 @@ export default function UserForm() {
 
 ```tsx
 <Grid
-  dataStoragePath="/orders"
+  path="/orders"
   columns={[
-    { key: 'status', label: 'Stato', onDisplay: ({ value }) => {
+    { key: 'status', label: 'Stato', render: ({ value }) => {
       const colors = { pending: 'warning', done: 'success', failed: 'danger' }
       return <Badge variant={colors[value]}>{value}</Badge>
     }},
-    { key: 'amount', label: 'Importo', onDisplay: ({ value }) => `€ ${value.toFixed(2)}` },
-    { key: 'createdAt', onDisplay: 'toDate' },   // converter built-in
+    { key: 'amount', label: 'Importo', render: ({ value }) => `€ ${value.toFixed(2)}` },
+    { key: 'createdAt', label: 'Creato', render: 'date' },
   ]}
   groupBy="status"
-  allowedSorting
 />
 ```
 
-**Converter built-in:** `toDate`, `toCamel`, `toSnake`, `toKebab` — usabili come stringa in `onDisplay`.
+**Renderer built-in:** `text`, `email`, `date`, `datetime`, `badge`, `image`, `boolean`, `json`.
 
 ---
 
@@ -214,18 +212,17 @@ export default function UserForm() {
 
 | Prop | Tipo | Descrizione |
 |------|------|-------------|
-| `dataStoragePath` | `string` | Path Firebase (real-time listener automatico) |
-| `dataArray` | `RecordArray` | Dati in memoria (alternativa a Firebase) |
-| `columns` | `Column[]` | Definizione colonne con `key`, `label`, `sort`, `onDisplay` |
-| `allowedActions` | `Array<"add"\|"edit"\|"delete">` | Azioni abilitate |
-| `modal` | `{ mode: "form"\|"empty", size?, position? }` | Configurazione modal |
-| `type` | `"table"\|"gallery"` | Tipo di visualizzazione |
+| `path` | `string \| "fromUrl"` | Path provider-backed |
+| `records` | `RecordArray` | Dati in memoria (alternativa al provider) |
+| `columns` | `Column[]` | Definizione colonne con `key`, `label`, `sortable`, `render` |
+| `actions` | `Array<"add"\|"edit"\|"delete"> \| Record<string, GridAction>` | Azioni abilitate o custom |
+| `layout` | `"table"\|"gallery"` | Tipo di visualizzazione |
 | `groupBy` | `string \| string[]` | Raggruppa per campo |
-| `pagination` | `{ perPage: number }` | Paginazione |
-| `allowedSorting` | `boolean` | Abilita sorting su colonne |
-| `onLoadRecord` | `(record, index) => record \| false` | Filtra/trasforma record in ingresso |
-| `onSave` | `async ({ record, action }) => string` | Hook dopo salvataggio |
-| `onFinally` | `async ({ record, action }) => boolean` | Dopo ogni operazione |
+| `pagination` | `{ limit: number }` | Paginazione |
+| `sortable` | `boolean \| OrderConfig` | Sorting globale |
+| `form` | `ReactElement \| ((ctx) => ReactNode)` | Form condiviso per CRUD |
+| `onSave` | `async ({ record, action }) => string` | Hook prima del salvataggio |
+| `onAfterAction` | `async ({ record, action }) => boolean` | Dopo create/update/delete |
 
 ---
 

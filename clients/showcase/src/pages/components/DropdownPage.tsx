@@ -2,15 +2,21 @@ import React from 'react';
 import { DataProvider, Dropdown, DropdownDivider, DropdownHeader, DropdownItem, MockDataProvider, useDataProvider } from 'react-firestrap';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
-import PropsTable from '../../components/PropsTable';
+import PropDocsTable from '../../components/PropDocsTable';
 import { usePlayground } from '../../context/PlaygroundContext';
 import type { PropDef, PlaygroundConfig } from '../../types/playground';
 
 const DROPDOWN_PROPS: PropDef[] = [
     { name: 'children', type: 'ReactNode', required: true, description: 'Dropdown menu content' },
     { name: 'itemsPath', type: 'string', default: '/dropdown-items', description: 'Mock database collection used to render menu records in the playground', control: 'text' },
-    { name: 'toggleButton', type: 'string | ReactNode | { icon?: string; text?: string }', required: true, description: 'Button content or icon/text config', control: 'text' },
-    { name: 'badge', type: 'ReactNode | { content; type? }', description: 'Badge displayed on the toggle', control: 'json' },
+    { name: 'toggleButton', type: 'string | ReactNode | ToggleButtonConfig', required: true, description: 'Button content or icon/text config', control: 'text', typeDetails: `string | ReactNode | {
+  icon?: string;
+  text?: string;
+}` },
+    { name: 'badge', type: 'ReactNode | BadgeConfig', description: 'Badge displayed on the toggle', control: 'json', typeDetails: `ReactNode | {
+  content: ReactNode;
+  type?: string;
+}` },
     { name: 'header', type: 'ReactNode', description: 'Header content above menu items', control: 'text' },
     { name: 'footer', type: 'ReactNode', description: 'Footer content below menu items', control: 'text' },
     { name: 'defaultOpen', type: 'boolean', default: 'false', description: 'Starts the uncontrolled dropdown open on first render', control: 'boolean' },
@@ -355,7 +361,7 @@ function DropdownItemsFromMock({ path }) {
 </Dropdown>`}
             />
 
-            <PropsTable props={DROPDOWN_PROPS} />
+            <PropDocsTable props={DROPDOWN_PROPS} />
         </PageLayout>
     );
 }

@@ -2,14 +2,22 @@ import React from 'react';
 import { AssistantAI, Form } from 'react-firestrap';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
-import PropsTable from '../../components/PropsTable';
+import PropDocsTable from '../../components/PropDocsTable';
 import { usePlayground } from '../../context/PlaygroundContext';
 import type { PropDef, PlaygroundConfig } from '../../types/playground';
 
 const ASSISTANT_AI_PROPS: PropDef[] = [
     { name: 'name', type: 'string', required: true, description: 'Card title and field name', control: 'text' },
-    { name: 'promptTopic', type: '{ prompt: string; label: string }', required: true, description: 'Prompt template and label', control: 'json' },
-    { name: 'configVariables', type: '{ lang; voice; style; limit }', required: true, description: 'Variables injected into the prompt template', control: 'json' },
+    { name: 'promptTopic', type: 'PromptTopic', required: true, description: 'Prompt template and label', control: 'json', typeDetails: `{
+  prompt: string;
+  label: string;
+}` },
+    { name: 'configVariables', type: 'ConfigVariables', required: true, description: 'Variables injected into the prompt template', control: 'json', typeDetails: `{
+  lang: string;
+  voice: string;
+  style: string;
+  limit: string | number;
+}` },
     { name: 'initialValue', type: 'string', description: 'Initial user input', control: 'text' },
     { name: 'children', type: 'ReactNode', description: 'Optional custom content inside the card' },
     { name: 'onChange', type: '(e: any) => void', required: true, description: 'Called when a response is selected' },
@@ -88,7 +96,7 @@ export default function AssistantAIPage() {
 </Form>`}
             />
 
-            <PropsTable props={ASSISTANT_AI_PROPS} />
+            <PropDocsTable props={ASSISTANT_AI_PROPS} />
         </PageLayout>
     );
 }

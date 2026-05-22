@@ -54,6 +54,7 @@ type GalleryRenderedRecord =
     | { kind: "group"; element: React.ReactElement };
 
 export type GallerySelectionState = RecordSelectionState<GalleryRecord>;
+export type GallerySelectionChangeHandler = (selection: GallerySelectionState) => void;
 
 interface GalleryProps extends UIProps {
     body?: GalleryRecord[];
@@ -61,7 +62,7 @@ interface GalleryProps extends UIProps {
     Footer?: string | React.ReactNode;
     overlays?: GalleryOverlay[];
     onClick?: (record: GalleryRecord) => void;
-    onSelectionChange?: (selection: GallerySelectionState) => void;
+    onSelectionChange?: GallerySelectionChangeHandler;
     sortable?: boolean | OrderConfig;
     pagination?: PaginationParams;
     scrollToTopOnChange?: boolean;

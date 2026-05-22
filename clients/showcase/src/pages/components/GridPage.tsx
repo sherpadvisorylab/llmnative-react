@@ -15,8 +15,9 @@ import {
 } from 'react-firestrap';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
-import PropsTable from '../../components/PropsTable';
+import PropDocsTable from '../../components/PropDocsTable';
 import { usePlayground } from '../../context/PlaygroundContext';
+import { definePropDocs } from '../../types/propDocs';
 import type { PlaygroundConfig, PropDef } from '../../types/playground';
 
 type UserRecord = {
@@ -29,6 +30,40 @@ type UserRecord = {
     team: string;
     city: string;
     img?: React.ReactNode;
+};
+
+type GridDocSurface = {
+    records: unknown;
+    recordId: unknown;
+    path: unknown;
+    where: unknown;
+    order: unknown;
+    fieldMap: unknown;
+    onLoad: unknown;
+    columns: unknown;
+    layout: unknown;
+    sortable: unknown;
+    pagination: unknown;
+    groupBy: unknown;
+    title: unknown;
+    header: unknown;
+    footer: unknown;
+    form: unknown;
+    actions: unknown;
+    selection: unknown;
+    selectedKeys: unknown;
+    defaultSelectedKeys: unknown;
+    onSelectionChange: unknown;
+    onClickRow: unknown;
+    reorderable: unknown;
+    onReorder: unknown;
+    routeSync: unknown;
+    transformRecords: unknown;
+    createRecordKey: unknown;
+    onSave: unknown;
+    onDelete: unknown;
+    onAfterAction: unknown;
+    audit: unknown;
 };
 
 const GRID_SOURCE_PATH = '/showcase/grid/users';
@@ -538,39 +573,321 @@ function ActionsPreview({ provider }: { provider: MockDataProvider }) {
     );
 }
 
-const GRID_PROPS: PropDef[] = [
-    { name: 'records', type: 'RecordArray', description: 'Use with GridArray when the caller already owns the full record set.', group: 'Data' },
-    { name: 'recordId', type: 'keyof TRecord | ((record) => string)', description: 'Stable record key strategy for selection, reorder and edit state.', group: 'Data' },
-    { name: 'path', type: 'string', description: 'Use with GridDB when records come from a DataProvider collection path.', group: 'Data' },
-    { name: 'where', type: 'WhereClause', description: 'Optional provider-side filtering for GridDB.', control: 'json', group: 'Data' },
-    { name: 'order', type: 'OrderClause', description: 'Optional provider-side ordering for GridDB.', control: 'json', group: 'Data' },
-    { name: 'fieldMap', type: 'Record<string,string>', description: 'Optional provider-side field remapping for GridDB.', control: 'json', group: 'Data' },
-    { name: 'onLoad', type: '(data) => data', description: 'Optional provider-side normalization hook for GridDB responses.', group: 'Data' },
-    { name: 'columns', type: 'GridColumn<TRecord>[]', description: 'Column definitions with sortable, format and render hooks.', group: 'Display' },
-    { name: 'layout', type: '"table" | "gallery"', default: '"table"', description: 'Visual surface used by GridCore.', control: 'select', options: ['table', 'gallery'], group: 'Display' },
-    { name: 'sortable', type: 'boolean | OrderConfig', default: 'true', description: 'Enables sorting or sets the initial sort order.', control: 'json', group: 'Display' },
-    { name: 'pagination', type: 'PaginationParams', description: 'Shared pagination configuration forwarded to Table or Gallery.', control: 'json', group: 'Display' },
-    { name: 'groupBy', type: 'string | string[]', description: 'Gallery grouping separators or field names.', control: 'text', group: 'Display' },
-    { name: 'title', type: 'ReactNode', description: 'Title used by the default card header.', control: 'text', group: 'Layout' },
-    { name: 'header', type: 'ReactNode | ((ctx) => ReactNode)', description: 'Optional custom header. Receives title, records, selection and runAction().', group: 'Layout' },
-    { name: 'footer', type: 'ReactNode | ((ctx) => ReactNode)', description: 'Optional custom footer. Receives records, selection and runAction().', group: 'Layout' },
-    { name: 'form', type: 'ReactElement | ((ctx) => ReactNode)', description: 'Default add/edit form surface for modal workflows. The form context is record-first and uses runAction() for extra grid actions.', group: 'Actions' },
-    { name: 'actions', type: '("add" | "edit" | "delete")[] | Record<string, GridAction<TRecord>>', description: 'Action catalog with explicit kinds: modal, route, external, inline, delete. Modal actions can define title, header, body and footer, plus size and position.', group: 'Actions' },
-    { name: 'selection', type: 'false | "single" | "multiple"', default: 'false', description: 'Explicit selection mode for table and gallery.', control: 'select', options: ['false', 'single', 'multiple'], group: 'Behavior' },
-    { name: 'selectedKeys', type: 'string[]', description: 'Controlled selection keys.', group: 'Behavior' },
-    { name: 'defaultSelectedKeys', type: 'string[]', description: 'Uncontrolled initial selection state.', group: 'Behavior' },
-    { name: 'onSelectionChange', type: '(selection) => void', description: 'Selection callback with keys, records, clear() and hasSelection.', group: 'Behavior' },
-    { name: 'onClickRow', type: '(record) => void', description: 'Called with the original record after row or card click.', group: 'Behavior' },
-    { name: 'reorderable', type: 'boolean', default: 'false', description: 'Turns on row drag in table mode when used together with onReorder.', control: 'boolean', group: 'Behavior' },
-    { name: 'onReorder', type: '(records, meta) => void', description: 'Receives the reordered source records and drag metadata.', group: 'Behavior' },
-    { name: 'routeSync', type: '{ edit?: boolean }', description: 'Opt-in edit hash sync for modal editing workflows.', control: 'json', group: 'Behavior' },
-    { name: 'transformRecords', type: '(records) => records | Promise<records>', description: 'Normalize or enrich records before display.', group: 'Data lifecycle' },
-    { name: 'createRecordKey', type: '(record) => string', description: 'Provider-backed create key override used when saving new records.', group: 'Data lifecycle' },
-    { name: 'onSave', type: '(args) => Promise<string | undefined>', description: 'Override the save target path or implement custom persistence.', group: 'Data lifecycle' },
-    { name: 'onDelete', type: '(args) => Promise<string | undefined>', description: 'Override the delete target path before provider removal.', group: 'Data lifecycle' },
-    { name: 'onAfterAction', type: '(args) => Promise<boolean>', description: 'Post-action hook used to keep or close the current workflow.', group: 'Data lifecycle' },
-    { name: 'audit', type: 'boolean', default: 'false', description: 'Enables form-level audit logging during modal saves.', control: 'boolean', group: 'Data lifecycle' },
-];
+const GRID_PROP_DOCS = definePropDocs<GridDocSurface>()([
+    { name: 'records', type: 'RecordArray', description: 'Use with GridArray when the caller already owns the full record set.', category: 'Data' },
+    { name: 'recordId', type: 'keyof TRecord | ((record) => string)', description: 'Stable record key strategy for selection, reorder and edit state.', category: 'Data' },
+    { name: 'path', type: 'string | "fromUrl"', description: 'Use with GridDB when records come from a DataProvider collection path. "fromUrl" forwards the current pathname as-is.', category: 'Data' },
+    {
+        name: 'where',
+        type: 'WhereClause',
+        shape: `{
+  [field: string]:
+    | string
+    | number
+    | boolean
+    | null
+    | string[]
+    | number[]
+    | {
+        eq?: string | number | boolean | null
+        gt?: string | number | boolean
+        gte?: string | number | boolean
+        lt?: string | number | boolean
+        lte?: string | number | boolean
+        in?: string[] | number[]
+        nin?: string[] | number[]
+      }
+}`,
+        description: 'Optional provider-side filtering for GridDB.',
+        category: 'Data',
+    },
+    {
+        name: 'order',
+        type: 'OrderClause',
+        shape: `{
+  [field: string]: "asc" | "desc"
+}`,
+        description: 'Optional provider-side ordering for GridDB.',
+        category: 'Data',
+    },
+    {
+        name: 'fieldMap',
+        type: 'Record<string, string>',
+        shape: `{
+  [targetField: string]: string
+}`,
+        description: 'Optional provider-side field remapping for GridDB. Useful when the provider record shape does not match the UI field names.',
+        category: 'Data',
+    },
+    {
+        name: 'onLoad',
+        type: '(data) => data',
+        shape: `(
+  data: Record<string, Record<string, any>>
+) => Record<string, Record<string, any>>`,
+        description: 'Optional provider-side normalization hook for GridDB responses before Grid converts them into records.',
+        category: 'Data',
+    },
+    {
+        name: 'columns',
+        type: 'GridColumn<TRecord>[]',
+        shape: `Array<{
+  key: keyof TRecord | string
+  label: string
+  sortable?: boolean
+  className?: string
+  render?:
+    | "text"
+    | "email"
+    | "date"
+    | "datetime"
+    | "badge"
+    | "image"
+    | "boolean"
+    | "json"
+    | ((ctx: {
+        record: TRecord
+        value: unknown
+        key: string
+        rowIndex: number
+        runAction: (actionKey: string) => void
+      }) => React.ReactNode)
+}>`,
+        example: `columns={[
+  { key: "name", label: "Name", sortable: true },
+  { key: "email", label: "Email", sortable: true },
+  {
+    key: "role",
+    label: "Role",
+    render: "badge",
+  },
+  {
+    key: "actions",
+    label: "",
+    sortable: false,
+    render: ({ runAction }) => (
+      <ActionButton icon="eye" variant="link" onClick={() => runAction("preview")} />
+    ),
+  },
+]}`,
+        description: 'Column definitions with sortable, className and render support. The render function receives a record-bound runAction().',
+        category: 'Display',
+    },
+    { name: 'layout', type: '"table" | "gallery"', default: '"table"', description: 'Visual surface used by GridCore.', category: 'Display' },
+    {
+        name: 'sortable',
+        type: 'boolean | OrderConfig',
+        shape: `{
+  [field: string]: "asc" | "desc"
+}`,
+        default: 'true',
+        description: 'Enables sorting or sets the initial sort order.',
+        category: 'Display',
+    },
+    {
+        name: 'pagination',
+        type: 'PaginationParams',
+        shape: `{
+  limit?: number
+  align?: "start" | "center" | "end"
+  sticky?: false | "top" | "bottom"
+}`,
+        description: 'Shared pagination configuration forwarded to Table or Gallery.',
+        category: 'Display',
+    },
+    { name: 'groupBy', type: 'string | string[]', description: 'Gallery grouping separators or field names.', category: 'Display' },
+    { name: 'title', type: 'ReactNode', description: 'Title used by the default card header.', category: 'Layout' },
+    {
+        name: 'header',
+        type: 'ReactNode | ((ctx) => ReactNode)',
+        shape: `ReactNode | ((ctx: {
+  title?: ReactNode
+  records: TRecord[]
+  selection: GridSelectionState<TRecord>
+  runAction: (actionKey: string, record?: TRecord) => void
+}) => ReactNode)`,
+        description: 'Optional custom header. Use this to replace the default title row with your own layout and actions.',
+        category: 'Layout',
+    },
+    {
+        name: 'footer',
+        type: 'ReactNode | ((ctx) => ReactNode)',
+        shape: `ReactNode | ((ctx: {
+  records: TRecord[]
+  selection: GridSelectionState<TRecord>
+  runAction: (actionKey: string, record?: TRecord) => void
+}) => ReactNode)`,
+        description: 'Optional custom footer. Useful for bulk summaries, custom pagination wrappers or extra actions.',
+        category: 'Layout',
+    },
+    {
+        name: 'form',
+        type: 'ReactElement | ((ctx) => ReactNode)',
+        shape: `ReactElement | ((ctx: {
+  actionKey: string
+  record?: TRecord
+  recordKey?: string
+  rowIndex?: number
+  isNewRecord: boolean
+  runAction: (actionKey: string, record?: TRecord) => void
+}) => ReactNode)`,
+        description: 'Default add/edit form surface for CRUD workflows. Grid wraps it in Form automatically when the active action is add or edit.',
+        category: 'Actions',
+    },
+    {
+        name: 'actions',
+        type: '("add" | "edit" | "delete")[] | Record<string, GridAction<TRecord>>',
+        shape: `Shortcut
+("add" | "edit" | "delete")[]
+
+Explicit map
+Record<string, false | GridAction<TRecord>>
+
+Modal / delete
+{
+  kind: "modal" | "delete"
+  label?: string
+  icon?: string
+  visible?: boolean | ((record?: TRecord) => boolean)
+  disabled?: boolean | ((record?: TRecord) => boolean)
+  title?: ReactNode | ((ctx) => ReactNode)
+  size?: "sm" | "md" | "lg" | "xl" | "fullscreen"
+  position?: "center" | "top" | "left" | "right" | "bottom"
+  buttonFullscreen?: boolean
+  header?: ReactNode | ((ctx) => ReactNode)
+  body?: ReactNode | ((ctx) => ReactNode)
+  footer?: ReactNode | false | ((ctx) => ReactNode)
+}
+
+Route
+{
+  kind: "route"
+  label?: string
+  icon?: string
+  to: string | ((ctx) => string)
+}
+
+External
+{
+  kind: "external"
+  label?: string
+  icon?: string
+  href: string | ((ctx) => string)
+}
+
+Inline
+{
+  kind: "inline"
+  label?: string
+  icon?: string
+  run: (ctx) => void | Promise<void>
+}`,
+        example: `actions={["add", "edit", "delete"]}
+
+actions={{
+  add: {
+    kind: "modal",
+    title: "Add teammate",
+    size: "lg",
+    position: "center",
+  },
+  preview: {
+    kind: "modal",
+    label: "Preview",
+    position: "right",
+    title: ({ record }) => record?.name,
+    body: ({ record }) => <PreviewCard record={record} />,
+    footer: false,
+  },
+  docs: {
+    kind: "route",
+    label: "Open docs",
+    to: "/docs/grid",
+  },
+}}`,
+        description: 'Action catalog. Use the array shortcut for standard CRUD, or the record form for explicit modal, route, external, inline and delete actions.',
+        category: 'Actions',
+    },
+    { name: 'selection', type: 'false | "single" | "multiple"', default: 'false', description: 'Explicit selection mode for table and gallery.', category: 'Behavior' },
+    { name: 'selectedKeys', type: 'string[]', description: 'Controlled selection keys.', category: 'Behavior' },
+    { name: 'defaultSelectedKeys', type: 'string[]', description: 'Uncontrolled initial selection state.', category: 'Behavior' },
+    { name: 'onSelectionChange', type: 'GridSelectionChangeHandler<TRecord>', description: 'Selection callback with keys, records, clear() and hasSelection.', shape: `type GridSelectionChangeHandler<TRecord> = (
+  selection: GridSelectionState<TRecord>
+) => void
+
+type GridSelectionState<TRecord> = {
+  keys: string[];
+  records: TRecord[];
+  clear: () => void;
+  hasSelection: boolean;
+}`, category: 'Behavior' },
+    { name: 'onClickRow', type: '(record) => void', description: 'Called with the original record after row or card click.', category: 'Behavior' },
+    { name: 'reorderable', type: 'boolean', default: 'false', description: 'Turns on row drag in table mode when used together with onReorder.', category: 'Behavior' },
+    { name: 'onReorder', type: 'GridReorderHandler<TRecord>', description: 'Receives the reordered source records and drag metadata.', shape: `type GridReorderHandler<TRecord> = (
+  records: TRecord[],
+  meta: GridReorderMeta<TRecord>
+) => void
+
+type GridReorderMeta<TRecord> = {
+  fromIndex: number;
+  toIndex: number;
+  record: TRecord;
+}`, category: 'Behavior' },
+    {
+        name: 'routeSync',
+        type: 'RouteSyncConfig',
+        shape: `{
+  edit?: boolean
+}`,
+        description: 'Opt-in edit hash sync for modal editing workflows.',
+        category: 'Behavior',
+    },
+    { name: 'transformRecords', type: '(records) => records | Promise<records>', description: 'Normalize or enrich records before display.', category: 'Data lifecycle' },
+    { name: 'createRecordKey', type: '(record) => string', description: 'Provider-backed create key override used when saving new records.', category: 'Data lifecycle' },
+    {
+        name: 'onSave',
+        type: 'GridMutationSaveHandler<TRecord>',
+        description: 'Override the save target path or implement custom persistence.',
+        shape: `type GridMutationSaveHandler<TRecord> = (
+  args: GridMutationSaveArgs<TRecord>
+) => Promise<string | undefined>
+
+type GridMutationSaveArgs<TRecord> = {
+  record?: TRecord;
+  action: "create" | "update";
+  storagePath?: string;
+}`,
+        category: 'Data lifecycle',
+    },
+    {
+        name: 'onDelete',
+        type: 'GridMutationDeleteHandler<TRecord>',
+        description: 'Override the delete target path before provider removal.',
+        shape: `type GridMutationDeleteHandler<TRecord> = (
+  args: GridMutationDeleteArgs<TRecord>
+) => Promise<string | undefined>
+
+type GridMutationDeleteArgs<TRecord> = {
+  record?: TRecord;
+}`,
+        category: 'Data lifecycle',
+    },
+    {
+        name: 'onAfterAction',
+        type: 'GridAfterActionHandler<TRecord>',
+        description: 'Post-action hook used to keep or close the current workflow.',
+        shape: `type GridAfterActionHandler<TRecord> = (
+  args: GridAfterActionArgs<TRecord>
+) => Promise<boolean>
+
+type GridAfterActionArgs<TRecord> = {
+  record?: TRecord;
+  action: "create" | "update" | "delete";
+}`,
+        category: 'Data lifecycle',
+    },
+    { name: 'audit', type: 'boolean', default: 'false', description: 'Enables form-level audit logging during modal saves.', category: 'Data lifecycle' },
+]);
 
 function GridPlaygroundPreview({ p }: { p: Record<string, any> }) {
     const [selectionKeys, setSelectionKeys] = React.useState<string[]>([]);
@@ -1411,7 +1728,7 @@ const [selectedRecords, setSelectedRecords] = useState<RecordArray>([]);
                 ]}
             />
 
-            <PropsTable props={GRID_PROPS} />
+            <PropDocsTable props={GRID_PROP_DOCS} />
         </PageLayout>
     );
 }

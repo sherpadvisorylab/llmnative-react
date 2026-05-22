@@ -2,7 +2,7 @@ import React from 'react';
 import { Form, Switch } from 'react-firestrap';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
-import PropsTable from '../../components/PropsTable';
+import PropDocsTable from '../../components/PropDocsTable';
 import { usePlayground } from '../../context/PlaygroundContext';
 import type { PropDef, PlaygroundConfig } from '../../types/playground';
 
@@ -61,7 +61,7 @@ export default function SwitchPage() {
 </Form>`}
             />
 
-            <PropsTable props={SWITCH_PROPS} />
+            <PropDocsTable props={SWITCH_PROPS} />
         </PageLayout>
     );
 }

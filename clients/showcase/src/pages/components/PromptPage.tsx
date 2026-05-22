@@ -2,7 +2,7 @@ import React from 'react';
 import { Form, Prompt, PromptMode } from 'react-firestrap';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
-import PropsTable from '../../components/PropsTable';
+import PropDocsTable from '../../components/PropDocsTable';
 import { usePlayground } from '../../context/PlaygroundContext';
 import type { PropDef, PlaygroundConfig } from '../../types/playground';
 
@@ -11,7 +11,16 @@ const PROMPT_PROPS: PropDef[] = [
     { name: 'label', type: 'string', description: 'Textarea label', control: 'text' },
     { name: 'mode', type: 'PromptMode', default: '"editor"', description: 'Editor mode or live prompt mode', control: 'select', options: ['editor', 'live'] },
     { name: 'required', type: 'boolean', default: 'false', description: 'Marks text area as required', control: 'boolean' },
-    { name: 'defaultValue', type: '{ value; enabled; role; language; voice; style; model; temperature }', description: 'Initial prompt config', control: 'json' },
+    { name: 'defaultValue', type: 'PromptValue', description: 'Initial prompt config', control: 'json', typeDetails: `{
+  value: string;
+  enabled: boolean;
+  role: string;
+  language: string;
+  voice: string;
+  style: string;
+  model: string;
+  temperature: number;
+}` },
     { name: 'rows', type: 'number', description: 'Textarea rows', control: 'number', min: 2, max: 14 },
     { name: 'onRunPrompt', type: '(prompt, config, data) => Promise<string>', description: 'Custom executor used in live mode' },
     { name: 'renderPromptDisabled', type: '(props) => ReactNode', description: 'Custom disabled renderer in live mode' },
@@ -90,7 +99,7 @@ export default function PromptPage() {
 </Form>`}
             />
 
-            <PropsTable props={PROMPT_PROPS} />
+            <PropDocsTable props={PROMPT_PROPS} />
         </PageLayout>
     );
 }

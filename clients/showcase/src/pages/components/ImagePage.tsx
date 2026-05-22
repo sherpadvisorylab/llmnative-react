@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Image, Modal, Icon, useImage } from 'react-firestrap';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
-import PropsTable from '../../components/PropsTable';
+import PropDocsTable from '../../components/PropDocsTable';
 import { usePlayground } from '../../context/PlaygroundContext';
 import type { PropDef, PlaygroundConfig } from '../../types/playground';
 
@@ -615,7 +615,7 @@ const json   = img.toJson(srcset);   // JSON string — for CMS / SSR / metadata
 const params = img.params(srcset);   // ImageParams object — for custom serialisation`}
             />
 
-            <PropsTable props={IMAGE_PROPS} />
+            <PropDocsTable props={IMAGE_PROPS} />
         </PageLayout>
     );
 }

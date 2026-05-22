@@ -2,7 +2,7 @@ import React from 'react';
 import { ActionButton } from 'react-firestrap';
 import PageLayout from '../../../components/PageLayout';
 import Section from '../../../components/Section';
-import PropsTable from '../../../components/PropsTable';
+import PropDocsTable from '../../../components/PropDocsTable';
 import { usePlayground } from '../../../context/PlaygroundContext';
 import type { PropDef, PlaygroundConfig } from '../../../types/playground';
 
@@ -28,7 +28,10 @@ const BUTTON_CLASSES = [
 const PROPS: PropDef[] = [
     { name: 'icon', type: 'string', description: 'Icon name resolved by the active IconProvider', control: 'icon' },
     { name: 'label', type: 'string | ReactNode', description: 'Visible button label', control: 'text' },
-    { name: 'badge', type: 'ReactNode | { content; type? }', description: 'Optional badge rendered on the top-right corner', control: 'json' },
+    { name: 'badge', type: 'ReactNode | BadgeConfig', description: 'Optional badge rendered on the top-right corner', control: 'json', typeDetails: `ReactNode | {
+  content: ReactNode;
+  type?: string;
+}` },
     { name: 'title', type: 'string', description: 'Native button title attribute', control: 'text' },
     { name: 'disabled', type: 'boolean', default: 'false', description: 'Disables the button', control: 'boolean' },
     { name: 'className', type: 'string', description: 'CSS classes applied to the button', control: 'select', options: BUTTON_CLASSES },
@@ -65,7 +68,7 @@ export default function ActionButtonPage() {
                 }
                 code={`<ActionButton className="btn-primary" icon="save" label="Save" />`}
             />
-            <PropsTable props={PROPS} />
+            <PropDocsTable props={PROPS} />
         </PageLayout>
     );
 }

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Modal } from 'react-firestrap';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
-import PropsTable from '../../components/PropsTable';
+import PropDocsTable from '../../components/PropDocsTable';
 import { usePlayground } from '../../context/PlaygroundContext';
 import type { PropDef, PlaygroundConfig } from '../../types/playground';
 
@@ -37,13 +37,28 @@ function DemoModal({ position, onClose }: { position: Position; onClose: () => v
 const PROPS_CONFIG: PropDef[] = [
     { name: 'children', type: 'ReactNode', required: true, description: 'Modal body content', control: 'text' },
     { name: 'title', type: 'string', description: 'Modal title shown in the header', control: 'text' },
-    { name: 'header', type: 'ReactNode', description: 'Custom header content (overrides title)', control: 'text' },
-    { name: 'footer', type: 'ReactNode | false', description: 'Custom footer content, or false to hide footer entirely', control: 'text' },
+    { name: 'header', type: 'ReactNode', description: 'Custom header content (overrides title)', control: 'text', example: `header={<div className="text-sm text-muted-foreground">Extra context above the body.</div>}` },
+    { name: 'footer', type: 'ReactNode | false', description: 'Custom footer content, or false to hide footer entirely', control: 'text', typeDetails: `ReactNode | false`, example: `footer={(
+  <div className="flex justify-end gap-2">
+    <button>Cancel</button>
+    <button>Confirm</button>
+  </div>
+)}` },
     { name: 'size', type: '"sm" | "md" | "lg" | "xl" | "fullscreen"', default: '"md"', description: 'Dialog width', control: 'select', options: ['sm', 'md', 'lg', 'xl', 'fullscreen'] },
     { name: 'position', type: '"center" | "top" | "left" | "right" | "bottom"', default: '"center"', description: 'Where the modal appears. Non-center positions render as edge panels.', control: 'select', options: ['center', 'top', 'left', 'right', 'bottom'] },
     { name: 'onClose', type: '() => void', description: 'Called when the user dismisses the modal' },
-    { name: 'onSave', type: 'async (e) => boolean', description: 'Async save handler. Return true to close, false to keep open.' },
-    { name: 'onDelete', type: 'async (e) => boolean', description: 'Async delete handler. Shows a delete button in the footer.' },
+    { name: 'onSave', type: 'ModalSaveHandler', description: 'Async save handler. Return true to close, false to keep open.', shape: `type ModalSaveHandler = (
+  e: React.MouseEvent<HTMLButtonElement>
+) => Promise<boolean>`, example: `onSave={async () => {
+  await saveRecord();
+  return true;
+}}` },
+    { name: 'onDelete', type: 'ModalDeleteHandler', description: 'Async delete handler. Shows a delete button in the footer.', shape: `type ModalDeleteHandler = (
+  e: React.MouseEvent<HTMLButtonElement>
+) => Promise<boolean>`, example: `onDelete={async () => {
+  await deleteRecord();
+  return true;
+}}` },
     { name: 'closeOnBackdrop', type: 'boolean', default: 'true', description: 'Close the modal when the backdrop is clicked', control: 'boolean' },
     { name: 'buttonFullscreen', type: 'boolean', default: 'false', description: 'Show fullscreen toggle button in the header', control: 'boolean' },
     { name: 'headerClass', type: 'string', description: 'CSS classes on the header element', control: 'text' },
@@ -186,7 +201,7 @@ const [open, setOpen] = useState(false);
 )}`}
             />
 
-            <PropsTable props={PROPS_CONFIG} />
+            <PropDocsTable props={PROPS_CONFIG} />
 
         </PageLayout>
     );

@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import { Form, Input, Select, TextArea, MockDataProvider, DataProvider } from 'react-firestrap';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
-import PropsTable from '../../components/PropsTable';
+import PropDocsTable from '../../components/PropDocsTable';
 import { usePlayground } from '../../context/PlaygroundContext';
 import type { PropDef, PlaygroundConfig } from '../../types/playground';
 
@@ -44,9 +44,46 @@ const FORM_PROPS: PropDef[] = [
     { name: 'aspect', type: '"card" | "none"', default: '"none"', description: 'Visual wrapper style', control: 'select', options: ['none', 'card'] },
     { name: 'showBack', type: 'boolean', default: 'false', description: 'Show a back navigation button', control: 'boolean' },
     { name: 'onLoad', type: '(data: object) => object', description: 'Transform record data after loading (e.g. unit conversions)' },
-    { name: 'onSave', type: 'async ({ record }) => object', description: 'Transform record before saving' },
-    { name: 'onDelete', type: 'async ({ record }) => void', description: 'Hook called before deletion' },
-    { name: 'onFinally', type: 'async ({ action }) => boolean', description: 'Called after save or delete. Return true to close modal, false to stay.' },
+    {
+        name: 'onSave',
+        type: 'FormSaveHandler',
+        description: 'Transform record before saving.',
+        shape: `type FormSaveHandler = (
+  args: FormSaveArgs
+) => Promise<string | undefined>
+
+type FormSaveArgs = {
+  record?: RecordProps;
+  prevRecord?: RecordProps;
+  storagePath?: string;
+  action: "create" | "update";
+}`,
+    },
+    {
+        name: 'onDelete',
+        type: 'FormDeleteHandler',
+        description: 'Hook called before deletion.',
+        shape: `type FormDeleteHandler = (
+  args: FormDeleteArgs
+) => Promise<string | undefined>
+
+type FormDeleteArgs = {
+  record?: RecordProps;
+}`,
+    },
+    {
+        name: 'onFinally',
+        type: 'FormFinallyHandler',
+        description: 'Called after save or delete. Return true to close modal, false to stay.',
+        shape: `type FormFinallyHandler = (
+  args: FormFinallyArgs
+) => Promise<boolean>
+
+type FormFinallyArgs = {
+  record?: RecordProps;
+  action: "create" | "update" | "delete";
+}`,
+    },
     { name: 'setPrimaryKey', type: '() => string', description: 'Custom primary key generator for new records' },
     { name: 'savePath', type: '(record) => string', description: 'Custom save path (overrides dataStoragePath)' },
 ];
@@ -211,7 +248,7 @@ const mockProvider = new MockDataProvider();
 </Form>`}
             />
 
-            <PropsTable props={FORM_PROPS} />
+            <PropDocsTable props={FORM_PROPS} />
 
         </PageLayout>
     );

@@ -2,7 +2,7 @@ import React from 'react';
 import { Icon } from 'react-firestrap';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
-import PropsTable from '../../components/PropsTable';
+import PropDocsTable from '../../components/PropDocsTable';
 import { usePlayground } from '../../context/PlaygroundContext';
 import type { PropDef, PlaygroundConfig } from '../../types/playground';
 
@@ -54,7 +54,7 @@ export default function IconPage() {
 <Icon name="settings" className="text-primary" />`}
             />
 
-            <PropsTable props={ICON_PROPS} />
+            <PropDocsTable props={ICON_PROPS} />
         </PageLayout>
     );
 }

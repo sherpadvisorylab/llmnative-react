@@ -2,7 +2,7 @@ import React from 'react';
 import { Breadcrumbs } from 'react-firestrap';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
-import PropsTable from '../../components/PropsTable';
+import PropDocsTable from '../../components/PropDocsTable';
 import { usePlayground } from '../../context/PlaygroundContext';
 import type { PropDef, PlaygroundConfig } from '../../types/playground';
 
@@ -35,7 +35,7 @@ export default function BreadcrumbsPage() {
 <Breadcrumbs path="/components/forms/checklist" pre="Home" />`}
             />
 
-            <PropsTable props={BREADCRUMBS_PROPS} />
+            <PropDocsTable props={BREADCRUMBS_PROPS} />
         </PageLayout>
     );
 }

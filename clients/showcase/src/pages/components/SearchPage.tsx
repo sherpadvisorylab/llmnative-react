@@ -2,7 +2,7 @@ import React from 'react';
 import { Search } from 'react-firestrap';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
-import PropsTable from '../../components/PropsTable';
+import PropDocsTable from '../../components/PropDocsTable';
 import { usePlayground } from '../../context/PlaygroundContext';
 import type { PropDef, PlaygroundConfig } from '../../types/playground';
 
@@ -29,7 +29,7 @@ export default function SearchPage() {
 <Search handleSearch={(event) => console.log(event.target.value)} />`}
             />
 
-            <PropsTable props={SEARCH_PROPS} />
+            <PropDocsTable props={SEARCH_PROPS} />
         </PageLayout>
     );
 }

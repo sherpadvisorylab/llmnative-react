@@ -280,6 +280,26 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
         storagePath?: string;
     }
 
+    export type FormSaveArgs = {
+        record?: RecordProps;
+        prevRecord?: RecordProps;
+        storagePath?: string;
+        action: 'create' | 'update';
+    }
+
+    export type FormDeleteArgs = {
+        record?: RecordProps;
+    }
+
+    export type FormFinallyArgs = {
+        record?: RecordProps;
+        action: 'create' | 'update' | 'delete';
+    }
+
+    export type FormSaveHandler = (args: FormSaveArgs) => Promise<string | undefined>;
+    export type FormDeleteHandler = (args: FormDeleteArgs) => Promise<string | undefined>;
+    export type FormFinallyHandler = (args: FormFinallyArgs) => Promise<boolean>;
+
     interface BaseFormProps {
         aspect?: "card" | "empty";
         header?: React.ReactNode;
@@ -290,9 +310,9 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
         savePath?: (props: SavePathProps) => string | undefined;
         onLoad?: (record: RecordProps) => void;
         onChange?: (record: RecordProps) => void;
-        onSave?: ({record, prevRecord, action, storagePath}: {record?: RecordProps, prevRecord?: RecordProps, storagePath?: string, action: 'create' | 'update'}) => Promise<string | undefined>;
-        onDelete?: ({record}: {record?: RecordProps}) => Promise<string | undefined>;
-        onFinally?: ({record, action}: {record?: RecordProps, action: 'create' | 'update' | 'delete'}) => Promise<boolean>;
+        onSave?: FormSaveHandler;
+        onDelete?: FormDeleteHandler;
+        onFinally?: FormFinallyHandler;
         log?: boolean;
         showNotice?: boolean;
         showBack?: boolean;

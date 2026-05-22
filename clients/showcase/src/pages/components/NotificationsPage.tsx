@@ -2,7 +2,7 @@ import React from 'react';
 import { Notifications } from 'react-firestrap';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
-import PropsTable from '../../components/PropsTable';
+import PropDocsTable from '../../components/PropDocsTable';
 import { usePlayground } from '../../context/PlaygroundContext';
 import type { PropDef, PlaygroundConfig } from '../../types/playground';
 
@@ -47,7 +47,7 @@ export default function NotificationsPage() {
 </Notifications>`}
             />
 
-            <PropsTable props={NOTIFICATIONS_PROPS} />
+            <PropDocsTable props={NOTIFICATIONS_PROPS} />
         </PageLayout>
     );
 }

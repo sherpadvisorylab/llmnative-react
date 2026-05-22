@@ -2,7 +2,7 @@ import React from 'react';
 import { Form, TextArea } from 'react-firestrap';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
-import PropsTable from '../../components/PropsTable';
+import PropDocsTable from '../../components/PropDocsTable';
 import { usePlayground } from '../../context/PlaygroundContext';
 import type { PropDef, PlaygroundConfig } from '../../types/playground';
 
@@ -67,7 +67,7 @@ export default function TextAreaPage() {
 </Form>`}
             />
 
-            <PropsTable props={TEXTAREA_PROPS} />
+            <PropDocsTable props={TEXTAREA_PROPS} />
         </PageLayout>
     );
 }

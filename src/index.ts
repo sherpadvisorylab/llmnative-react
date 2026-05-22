@@ -77,11 +77,13 @@ export { useGlobalVars, getGlobalVars, setGlobalVars, removeGlobalVars} from './
 export type { DataProviderAdapter, RecordProps, RecordArray, DatabaseOptions, DBConfig, ReadOptions, WhereClause, OrderClause, Condition } from './providers/data/DataProvider';
 export type { OrderConfig, OrderDirection } from './libs/order';
 export { Order } from './libs/order';
-export type { TableHeaderProp, TableReorderMeta, TableSelectionState } from './components/ui/Table';
-export type { GallerySelectionState } from './components/ui/Gallery';
+export type { TableHeaderProp, TableReorderHandler, TableReorderMeta, TableSelectionChangeHandler, TableSelectionState } from './components/ui/Table';
+export type { GallerySelectionChangeHandler, GallerySelectionState } from './components/ui/Gallery';
 export type {
     GridAction,
     GridActions,
+    GridAfterActionArgs,
+    GridAfterActionHandler,
     GridArrayProps,
     GridColumn,
     GridCoreProps,
@@ -93,8 +95,15 @@ export type {
     GridGalleryViewProps,
     GridHeaderContext,
     GridLayout,
+    GridMutationDeleteArgs,
+    GridMutationDeleteHandler,
+    GridMutationSaveArgs,
+    GridMutationSaveHandler,
+    GridReorderHandler,
+    GridReorderMeta,
     GridRecordKey,
     GridProps,
+    GridSelectionChangeHandler,
     GridSelectionMode,
     GridSelectionState,
     GridSticky,

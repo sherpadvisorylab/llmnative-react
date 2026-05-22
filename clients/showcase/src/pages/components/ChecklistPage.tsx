@@ -2,7 +2,7 @@ import React from 'react';
 import { Checklist, Form } from 'react-firestrap';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
-import PropsTable from '../../components/PropsTable';
+import PropDocsTable from '../../components/PropDocsTable';
 import { usePlayground } from '../../context/PlaygroundContext';
 import type { PropDef, PlaygroundConfig } from '../../types/playground';
 
@@ -25,11 +25,17 @@ const CHECKLIST_PROPS: PropDef[] = [
     { name: 'name', type: 'string', required: true, description: 'Field name used as form key; stores selected values as an array', control: 'text' },
     { name: 'label', type: 'string', description: 'Group label above the checkboxes', control: 'text' },
     { name: 'title', type: 'string', description: 'Native title attribute on each checkbox input', control: 'text' },
-    { name: 'options', type: 'Array<{ label: string; value: string }> | string[] | number[]', description: 'Static checkbox options', control: 'json' },
+    { name: 'options', type: 'Option[] | string[] | number[]', description: 'Static checkbox options', control: 'json', typeDetails: `Array<{ label: string; value: string }> | string[] | number[]` },
     {
         name: 'db',
-        type: '{ path?: string; fieldMap?: object; where?: object; order?: object }',
+        type: 'ChecklistDbConfig',
         description: 'DataProvider path used to fetch checkbox options',
+        typeDetails: `{
+  path?: string;
+  fieldMap?: Record<string, string>;
+  where?: Record<string, unknown>;
+  order?: { field: string; dir: 'asc' | 'desc' };
+}`,
         control: 'text',
         readOnly: true,
         help: 'This playground uses a MockDataProvider. Edit the records in Mock database below to change the options returned by this path.',
@@ -39,7 +45,10 @@ const CHECKLIST_PROPS: PropDef[] = [
     { name: 'updatable', type: 'boolean', default: 'true', description: 'When false, an existing value locks the checklist', control: 'boolean' },
     { name: 'defaultValue', type: 'string[] | string', description: 'Initial selected values', control: 'json' },
     { name: 'feedback', type: 'string', description: 'Validation feedback message shown below the list', control: 'text' },
-    { name: 'order', type: '{ field: "label" | "value"; dir: "asc" | "desc" }', description: 'Sort order for options (default: label asc)', control: 'json' },
+    { name: 'order', type: 'OrderConfig', description: 'Sort order for options (default: label asc)', control: 'json', typeDetails: `{
+  field: 'label' | 'value';
+  dir: 'asc' | 'desc';
+}` },
     { name: 'pre', type: 'ReactNode', description: 'Content rendered before the checklist inside an input group', control: 'text' },
     { name: 'post', type: 'ReactNode', description: 'Content rendered after the checklist inside an input group', control: 'text' },
     { name: 'onChange', type: 'FieldOnChange', description: 'Custom change handler called by the Form context' },
@@ -177,7 +186,7 @@ export default function ChecklistPage() {
 <Checklist name="tags" label="Disabled" options={options} disabled />`}
             />
 
-            <PropsTable props={CHECKLIST_PROPS} />
+            <PropDocsTable props={CHECKLIST_PROPS} />
         </PageLayout>
     );
 }

@@ -2,7 +2,7 @@ import React from 'react';
 import { Carousel } from 'react-firestrap';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
-import PropsTable from '../../components/PropsTable';
+import PropDocsTable from '../../components/PropDocsTable';
 import { usePlayground } from '../../context/PlaygroundContext';
 import type { PropDef, PlaygroundConfig } from '../../types/playground';
 
@@ -22,7 +22,11 @@ const CAROUSEL_PROPS: PropDef[] = [
     { name: 'showControls', type: 'boolean', default: 'false', description: 'Shows previous/next controls on hover', control: 'boolean' },
     { name: 'showCaption', type: 'boolean', default: 'false', description: 'Shows captions from image alt/description on hover', control: 'boolean' },
     { name: 'layoutDark', type: 'boolean', default: 'false', description: 'Uses dark control layout', control: 'boolean' },
-    { name: 'autoPlay', type: '{ interval; pause; wrap }', description: 'Bootstrap carousel autoplay options', control: 'json' },
+    { name: 'autoPlay', type: 'AutoPlayConfig', description: 'Bootstrap carousel autoplay options', control: 'json', typeDetails: `{
+  interval?: number;
+  pause?: "hover" | false;
+  wrap?: boolean;
+}` },
     { name: 'startSlide', type: 'number', default: '0', description: 'Initial active slide index', control: 'number', min: 0, max: 2 },
     { name: 'onParseCaption', type: '(image) => ReactElement', description: 'Custom caption renderer' },
     { name: 'onClick', type: '(event) => void', description: 'Click handler on carousel inner area' },
@@ -68,7 +72,7 @@ export default function CarouselPage() {
 </Carousel>`}
             />
 
-            <PropsTable props={CAROUSEL_PROPS} />
+            <PropDocsTable props={CAROUSEL_PROPS} />
         </PageLayout>
     );
 }

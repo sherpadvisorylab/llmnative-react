@@ -5,21 +5,23 @@ import { Icon, normalizeKey, UIProps } from '../../..';
 import { cn } from '../../../libs/cn';
 import { smartTypeCast } from '../../../libs/utils';
 
-type CsvCell = string | null | undefined;
-interface CsvDataProps {
-  [key: string]: CsvCell;
+export type UploadCSVCell = string | null | undefined;
+export interface UploadCSVRow {
+  [key: string]: UploadCSVCell;
 }
-interface UploadCSVData {
-  data: CsvDataProps[];
+export interface UploadCSVData {
+  data: UploadCSVRow[];
   fields: string[];
   file: File;
 }
-type ParseFieldProp = [key: string, value: CsvCell];
+export type UploadCSVParseField = [key: string, value: UploadCSVCell];
+export type UploadCSVDataLoadedHandler = (results: UploadCSVData) => void;
+export type UploadCSVParseFieldHandler = (field: UploadCSVParseField) => UploadCSVParseField | undefined;
 
 interface UploadCSVProps extends UIProps {
   name: string;
-  onDataLoaded: (results: UploadCSVData) => void;
-  onParseField?: (field: ParseFieldProp) => ParseFieldProp | undefined;
+  onDataLoaded: UploadCSVDataLoadedHandler;
+  onParseField?: UploadCSVParseFieldHandler;
   label?: string;
   icon?: string;
   delimiter?: string;
@@ -43,13 +45,13 @@ export const UploadCSV: React.FC<UploadCSVProps> = ({
 }) => {
   const [error, setError] = useState<string | null>(null);
 
-  const sanitizeField = ([key, value]: ParseFieldProp) => {
+  const sanitizeField = ([key, value]: UploadCSVParseField) => {
     if (["", null, undefined].includes(key)) return;
     if (value === undefined) return;
     if (removeEmptyFields && ["", null].includes(value)) return;
     if (normalizeKeys) key = normalizeKey(key);
     if (onParseField) return onParseField([key, value]);
-    return [key.trim(), smartTypeCast(value)] as ParseFieldProp;
+    return [key.trim(), smartTypeCast(value)] as UploadCSVParseField;
   }
 
   const handleFile = (file: File | null) => {
@@ -60,12 +62,12 @@ export const UploadCSV: React.FC<UploadCSVProps> = ({
       skipEmptyLines: true,
       delimiter: delimiter,
       dynamicTyping: false,
-      complete: (results: ParseResult<CsvDataProps>) => {
+      complete: (results: ParseResult<UploadCSVRow>) => {
         setError(null);
         onDataLoaded({
           data: results.data.map(item =>
             Object.fromEntries(
-              Object.entries(item).reduce<ParseFieldProp[]>((acc, [k, v]) => {
+              Object.entries(item).reduce<UploadCSVParseField[]>((acc, [k, v]) => {
                 const sanitizedField = sanitizeField([k, v]);
                 if (sanitizedField) acc.push(sanitizedField);
                 return acc;

@@ -2,7 +2,7 @@ import React from 'react';
 import { Form, ImageUrl, PromptMode } from 'react-firestrap';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
-import PropsTable from '../../components/PropsTable';
+import PropDocsTable from '../../components/PropDocsTable';
 import { usePlayground } from '../../context/PlaygroundContext';
 import type { PropDef, PlaygroundConfig } from '../../types/playground';
 
@@ -77,7 +77,7 @@ export default function ImageUrlPage() {
 </Form>`}
             />
 
-            <PropsTable props={IMAGE_URL_PROPS} />
+            <PropDocsTable props={IMAGE_URL_PROPS} />
         </PageLayout>
     );
 }

@@ -2,7 +2,7 @@ import React from 'react';
 import { ActionButton, Gallery, Modal, buttonOutlineSecondaryClass, buttonPrimaryClass, useDataProvider } from 'react-firestrap';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
-import PropsTable from '../../components/PropsTable';
+import PropDocsTable from '../../components/PropDocsTable';
 import { usePlayground } from '../../context/PlaygroundContext';
 import type { PropDef, PlaygroundConfig } from '../../types/playground';
 
@@ -53,10 +53,27 @@ const GALLERY_PROPS: PropDef[] = [
     { name: 'body', type: 'GalleryRecord[]', description: 'Records containing img or thumbnail data', control: 'json', readOnly: true },
     { name: 'Header', type: 'ReactNode', description: 'Header content above gallery', control: 'text' },
     { name: 'Footer', type: 'ReactNode', description: 'Footer content below gallery', control: 'text' },
-    { name: 'sortable', type: 'boolean | OrderConfig', description: 'Gallery has no sortable header UI, but you can pass an OrderConfig object to sort the incoming record set before rendering.', control: 'json' },
-    { name: 'overlays', type: 'GalleryOverlay[]', description: 'Overlay rules based on position and record filters', control: 'json' },
+    { name: 'sortable', type: 'boolean | OrderConfig', description: 'Gallery has no sortable header UI, but you can pass an OrderConfig object to sort the incoming record set before rendering.', control: 'json', typeDetails: `boolean | {
+  field: string;
+  dir: "asc" | "desc";
+}` },
+    { name: 'overlays', type: 'GalleryOverlay[]', description: 'Overlay rules based on position and record filters', control: 'json', typeDetails: `Array<{
+  position: "topLeft" | "topRight" | "bottomLeft" | "bottomRight";
+  badge: ReactNode | { content: ReactNode; type?: string };
+  when?: Record<string, unknown>;
+  className?: string;
+}>` },
     { name: 'onClick', type: '(record) => void', description: 'Called with the clicked record' },
-    { name: 'onSelectionChange', type: `(selection: ${GALLERY_SELECTION_STATE_TYPE}) => void`, description: 'Called whenever selected items change. When provided, selection checkboxes appear automatically.' },
+    {
+        name: 'onSelectionChange',
+        type: 'GallerySelectionChangeHandler',
+        description: 'Called whenever selected items change. When provided, selection checkboxes appear automatically.',
+        shape: `type GallerySelectionChangeHandler = (
+  selection: GallerySelectionState
+) => void
+
+type GallerySelectionState = ${GALLERY_SELECTION_STATE_TYPE}`,
+    },
     { name: 'selectedKeys', type: 'string[]', description: 'Controlled selection state shared with external bulk commands.' },
     { name: 'pagination', type: 'PaginationParams', description: 'Shared pagination config', control: 'json' },
     { name: 'gutterSize', type: '0 | 1 | 2 | 3 | 4 | 5', description: 'Item padding size', control: 'number', min: 0, max: 5 },
@@ -330,7 +347,7 @@ const [exportOpen, setExportOpen] = useState(false);
 />`}
             />
 
-            <PropsTable props={GALLERY_PROPS} />
+            <PropDocsTable props={GALLERY_PROPS} />
         </PageLayout>
     );
 }
