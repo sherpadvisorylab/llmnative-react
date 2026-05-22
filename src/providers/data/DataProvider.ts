@@ -56,11 +56,11 @@ export interface DataProviderAdapter extends ProviderConfigurable {
     set(path: string, data: object, exception?: boolean): Promise<void>;
     update(path: string, data: object, exception?: boolean): Promise<void>;
     remove(path: string, exception?: boolean): Promise<void>;
-    useListener(
+    subscribe(
         path: string | undefined,
         setRecords: (records: RecordArray) => void,
         options?: DatabaseOptions
-    ): void;
+    ): () => void;
     // Optional extended methods — not all providers need to implement these
     count?(path: string): Promise<number>;
     readShallow?(path: string, exception?: boolean): Promise<string[]>;

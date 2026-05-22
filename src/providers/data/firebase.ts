@@ -1,4 +1,3 @@
-import { useEffect, useMemo } from "react";
 import firebase from "firebase/compat/app";
 import 'firebase/compat/database';
 import { onAuthStateChanged } from "firebase/auth";
@@ -291,79 +290,75 @@ export class FirebaseDataProvider implements DataProviderAdapter {
         return keys.length;
     };
 
-    useListener = <T extends RecordProps = RecordProps>(
+    subscribe = <T extends RecordProps = RecordProps>(
         path: string | undefined,
         setRecords: (records: T[]) => void,
         { where, order, fieldMap, onLoad }: DatabaseOptions = {}
-    ): void => {
-        const auth = useMemo(() => getSafeAuth(), []);
-        if (!auth) return;
+    ): (() => void) => {
+        const auth = getSafeAuth();
+        if (!auth || !path) return () => undefined;
 
-        useEffect(() => {
-            if (!path) return;
+        const fetchData = () => {
+            const { dbRef, clientWhere } = buildQueryPlan(getDatabase().ref(path), order, where);
 
-            const fetchData = () => {
-                const { dbRef, clientWhere } = buildQueryPlan(getDatabase().ref(path), order, where);
+            const onValueChange = (snapshot: firebase.database.DataSnapshot) => {
+                const val: RecordObject = snapshot.val();
+                if (!val) { setRecords([]); return; }
 
-                const onValueChange = (snapshot: firebase.database.DataSnapshot) => {
-                    const val: RecordObject = snapshot.val();
-                    if (!val) { setRecords([]); return; }
+                const data = onLoad
+                    ? onLoad(processRecordObject(val, clientWhere, order))
+                    : processRecordObject(val, clientWhere, order);
 
-                    const data = onLoad
-                        ? onLoad(processRecordObject(val, clientWhere, order))
-                        : processRecordObject(val, clientWhere, order);
+                const entries = Object.entries(data);
 
-                    const entries = Object.entries(data);
-
-                    if (!fieldMap) {
-                        const records = entries.map(([key, value], index) => (
-                            typeof value === "object" && value !== null
-                                ? { _index: index, _key: key, ...value }
-                                : { _index: index, _key: key, [SYSTEM_FIELDS.value]: value }
-                        )) as T[];
-                        setRecords(records);
-                        return;
-                    }
-
-                    const mapKeys = Object.keys(fieldMap);
-                    const records = entries.map(([key, value], index) => {
-                        const source = typeof value === "object" && value !== null
-                            ? { [SYSTEM_FIELDS.key]: key, ...value }
-                            : { [SYSTEM_FIELDS.key]: key, [SYSTEM_FIELDS.value]: value };
-                        const mapped: Record<string, any> = {};
-                        for (const prop of mapKeys) {
-                            const field = fieldMap[prop];
-                            mapped[prop] = field.includes("{")
-                                ? converter.parse(source, field)
-                                : field === SYSTEM_FIELDS.key ? key
-                                : field === SYSTEM_FIELDS.value ? value
-                                : source[field];
-                        }
-                        return { _key: key, _index: index, ...mapped } as T;
-                    });
+                if (!fieldMap) {
+                    const records = entries.map(([key, value], index) => (
+                        typeof value === "object" && value !== null
+                            ? { _index: index, _key: key, ...value }
+                            : { _index: index, _key: key, [SYSTEM_FIELDS.value]: value }
+                    )) as T[];
                     setRecords(records);
-                };
-
-                dbRef.on("value", onValueChange);
-                return () => { dbRef.off("value", onValueChange); };
-            };
-
-            let unsubscribeData: (() => void) | undefined;
-            const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-                unsubscribeData?.();
-                unsubscribeData = undefined;
-                if (!user) {
-                    setRecords([]);
-                } else {
-                    unsubscribeData = fetchData();
+                    return;
                 }
-            });
 
-            return () => {
-                unsubscribeData?.();
-                unsubscribeAuth();
+                const mapKeys = Object.keys(fieldMap);
+                const records = entries.map(([key, value], index) => {
+                    const source = typeof value === "object" && value !== null
+                        ? { [SYSTEM_FIELDS.key]: key, ...value }
+                        : { [SYSTEM_FIELDS.key]: key, [SYSTEM_FIELDS.value]: value };
+                    const mapped: Record<string, any> = {};
+                    for (const prop of mapKeys) {
+                        const field = fieldMap[prop];
+                        mapped[prop] = field.includes("{")
+                            ? converter.parse(source, field)
+                            : field === SYSTEM_FIELDS.key ? key
+                            : field === SYSTEM_FIELDS.value ? value
+                            : source[field];
+                    }
+                    return { _key: key, _index: index, ...mapped } as T;
+                });
+                setRecords(records);
             };
-        }, [path, setRecords, fieldMap, onLoad, order, where]);
+
+            dbRef.on("value", onValueChange);
+            return () => { dbRef.off("value", onValueChange); };
+        };
+
+        let unsubscribeData: (() => void) | undefined;
+        const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+            unsubscribeData?.();
+            unsubscribeData = undefined;
+            if (!user) {
+                setRecords([]);
+            } else {
+                unsubscribeData = fetchData();
+            }
+        });
+
+        return () => {
+            unsubscribeData?.();
+            unsubscribeAuth();
+        };
     };
 }
 

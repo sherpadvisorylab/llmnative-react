@@ -127,16 +127,18 @@ function CustomerStats() {
 
 ## Realtime records
 
-For live lists, use `useListener`. This is the same pattern used internally by `Grid`.
+For live lists, use `subscribe()`. This is the same primitive used internally by `Grid`; React components should call it from `useEffect`.
 
 ```tsx
 function LiveCustomers() {
   const data = useDataProvider();
   const [records, setRecords] = React.useState([]);
 
-  data.useListener('/customers', setRecords, {
-    order: { name: 'asc' },
-  });
+  React.useEffect(() => {
+    return data.subscribe('/customers', setRecords, {
+      order: { name: 'asc' },
+    });
+  }, [data]);
 
   return (
     <ul>
@@ -209,18 +211,19 @@ export class RestDataProvider implements DataProviderAdapter {
     await fetch(this.baseUrl + path, { method: 'DELETE' });
   }
 
-  useListener(path: string | undefined, setRecords: (records: RecordArray) => void) {
-    React.useEffect(() => {
-      if (!path) return;
-      this.read(path).then((data) => {
-        const records = Object.entries(data ?? {}).map(([key, value], index) => ({
-          _key: key,
-          _index: index,
-          ...(value as object),
-        }));
-        setRecords(records);
-      });
-    }, [path]);
+  subscribe(path: string | undefined, setRecords: (records: RecordArray) => void) {
+    if (!path) return () => undefined;
+
+    this.read(path).then((data) => {
+      const records = Object.entries(data ?? {}).map(([key, value], index) => ({
+        _key: key,
+        _index: index,
+        ...(value as object),
+      }));
+      setRecords(records);
+    });
+
+    return () => undefined;
   }
 }
 ```

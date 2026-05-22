@@ -101,4 +101,22 @@ describe('Gallery overlays', () => {
         fireEvent.click(screen.getAllByRole('checkbox')[0]);
         expect(selections.at(-1)).toEqual(['Alpha']);
     });
+
+    it('keeps grouped gallery checkboxes checked after selection changes', () => {
+        render(
+            <Gallery
+                body={[
+                    { _key: 'u1', name: 'Alice', role: 'Admin', img: <img src="alice.png" alt="Admin | Alice" /> },
+                    { _key: 'u2', name: 'Julia', role: 'Admin', img: <img src="julia.png" alt="Admin | Julia" /> },
+                ]}
+                groupBy=" | "
+                onSelectionChange={() => undefined}
+            />
+        );
+
+        const checkbox = screen.getByLabelText('Select item u1');
+        fireEvent.click(checkbox);
+
+        expect(checkbox).toBeChecked();
+    });
 });

@@ -85,6 +85,7 @@ export type {
     GridArrayProps,
     GridColumn,
     GridCoreProps,
+    GridDBPath,
     GridDBQuery,
     GridDBProps,
     GridFooterContext,

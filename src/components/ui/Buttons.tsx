@@ -19,6 +19,7 @@ export interface IButton extends MotionUIProps {
     showLoader?: boolean;
     iconClass?: string;
     style?: React.CSSProperties;
+    variant?: "primary" | "secondary" | "danger" | "success" | "warning" | "info" | "light" | "dark" | "outline-primary" | "outline-secondary" | "outline-danger" | "outline-success" | "link";
 }
 
 export type SetMessagePayload = { message: string; chunkDone?: number; totalChunks?: number };
@@ -42,6 +43,25 @@ export const buttonOutlineSecondaryClass = "btn-outline-secondary";
 export const buttonOutlineDangerClass = "btn-outline-danger";
 export const buttonOutlineSuccessClass = "btn-outline-success";
 export const buttonLinkClass = "btn-link";
+
+const resolveButtonVariant = (variant?: IButton["variant"]) => {
+    switch (variant) {
+        case "primary": return buttonPrimaryClass;
+        case "secondary": return buttonSecondaryClass;
+        case "danger": return buttonDangerClass;
+        case "success": return buttonSuccessClass;
+        case "warning": return buttonWarningClass;
+        case "info": return buttonInfoClass;
+        case "light": return buttonLightClass;
+        case "dark": return buttonDarkClass;
+        case "outline-primary": return buttonOutlinePrimaryClass;
+        case "outline-secondary": return buttonOutlineSecondaryClass;
+        case "outline-danger": return buttonOutlineDangerClass;
+        case "outline-success": return buttonOutlineSuccessClass;
+        case "link": return buttonLinkClass;
+        default: return undefined;
+    }
+};
   
 export const LoadingButton = ({
     onClick,
@@ -58,6 +78,7 @@ export const LoadingButton = ({
     iconClass       = undefined,
     style           = undefined,
     loadingLabel    = undefined,
+    variant         = undefined,
     motion: motionConfig = undefined
 }: LoadingButtonProps = {}) => {
     const [loader, setLoader] = useState(showLoader);
@@ -80,7 +101,12 @@ export const LoadingButton = ({
     const button = (
         <button
             title={title}
-            className={cn(buttonBaseClass, className || theme.LoadingButton.className, loader && "whitespace-nowrap")}
+            className={cn(
+                buttonBaseClass,
+                variant ? resolveButtonVariant(variant) : (className || theme.LoadingButton.className),
+                variant ? className : undefined,
+                loader && "whitespace-nowrap"
+            )}
             style={motion.style}
             disabled={disable || loader}
             {...motion.pressHandlers}
@@ -124,6 +150,7 @@ export const ActionButton = ({
     className       = undefined,
     iconClass       = undefined,
     style           = undefined,
+    variant         = undefined,
     motion: motionConfig = undefined
 }: IButton = {}) => {
     const theme = useTheme("button");
@@ -131,7 +158,11 @@ export const ActionButton = ({
     const button = (
         <button
             title={title}
-            className={cn(buttonBaseClass, className || theme.ActionButton.className)}
+            className={cn(
+                buttonBaseClass,
+                variant ? resolveButtonVariant(variant) : (className || theme.ActionButton.className),
+                variant ? className : undefined
+            )}
             style={motion.style}
             disabled={disabled}
             {...motion.pressHandlers}

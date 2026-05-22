@@ -35,7 +35,7 @@ function createDataProvider(id: string): DataProviderAdapter {
         set: vi.fn(),
         update: vi.fn(),
         remove: vi.fn(),
-        useListener: vi.fn(),
+        subscribe: vi.fn(() => () => undefined),
     } as unknown as DataProviderAdapter;
 }
 

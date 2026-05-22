@@ -154,7 +154,9 @@ function TablePlaygroundPreview({ p }: { p: Record<string, any> }) {
         toIndex: null,
     });
 
-    provider.useListener(TABLE_PLAYGROUND_PATH, setSourceRows);
+    React.useEffect(() => {
+        return provider.subscribe(TABLE_PLAYGROUND_PATH, setSourceRows);
+    }, [provider]);
 
     const mapRows = React.useCallback((rows: Array<Record<string, any>>) => rows.map((row) => ({
         ...row,

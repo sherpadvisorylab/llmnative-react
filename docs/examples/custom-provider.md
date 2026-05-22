@@ -44,30 +44,28 @@ export class RestDataProvider implements DataProviderAdapter {
     if (!res.ok && res.status !== 404) throw new Error(`Delete failed: ${res.status}`);
   }
 
-  useListener(
+  subscribe(
     path: string | undefined,
     setRecords: (records: RecordArray) => void,
     _options?: DatabaseOptions
-  ): void {
-    React.useEffect(() => {
-      if (!path) return;
+  ): () => void {
+    if (!path) return () => undefined;
 
-      let cancelled = false;
+    let cancelled = false;
 
-      const load = async () => {
-        const data = await this.read(path);
-        if (cancelled) return;
-        setRecords(this.toRecordArray(data));
-      };
+    const load = async () => {
+      const data = await this.read(path);
+      if (cancelled) return;
+      setRecords(this.toRecordArray(data));
+    };
 
-      load();
-      const interval = window.setInterval(load, 5000);
+    load();
+    const interval = window.setInterval(load, 5000);
 
-      return () => {
-        cancelled = true;
-        window.clearInterval(interval);
-      };
-    }, [path]);
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
   }
 
   private url(path: string): string {
@@ -88,7 +86,7 @@ export class RestDataProvider implements DataProviderAdapter {
 }
 ```
 
-Nota: `useListener` e' un hook-like method per compatibilita con l'API storica. Le implementazioni attuali lo chiamano durante il render di componenti React, quindi possono usare `React.useEffect` internamente.
+Nota: `subscribe` e' una primitive provider-agnostic. I componenti React la chiamano dentro `useEffect`, mentre il provider ritorna sempre una funzione di cleanup.
 
 ## Uso in App
 

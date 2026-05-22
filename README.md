@@ -243,8 +243,12 @@ export class RestDataProvider implements DataProviderAdapter {
   async set(path: string, data: object): Promise<void> { /* your POST */ }
   async update(path: string, data: object): Promise<void> { /* your PATCH */ }
   async remove(path: string): Promise<void> { /* your DELETE */ }
-  useListener(path: string | undefined, callback: (records: RecordArray) => void): void {
-    // useEffect with polling or WebSocket
+  subscribe(
+    path: string | undefined,
+    callback: (records: RecordArray) => void,
+  ): () => void {
+    // polling or WebSocket subscription
+    return () => undefined
   }
 }
 ```

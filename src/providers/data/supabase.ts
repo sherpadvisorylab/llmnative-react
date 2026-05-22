@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { DataProviderAdapter, DatabaseOptions, ReadOptions, RecordArray, RecordProps } from "./DataProvider";
 import {
     createConfigurationState,
@@ -82,29 +81,27 @@ export class SupabaseDataProvider implements DataProviderAdapter {
         });
     };
 
-    useListener = (
+    subscribe = (
         path: string | undefined,
         setRecords: (records: RecordArray) => void,
         _options?: DatabaseOptions
-    ): void => {
-        useEffect(() => {
-            if (!path) return;
-            warn("useListener — polling every 5s (no real-time)");
-            const [, table] = path.split("/");
-            const poll = async () => {
-                const res = await fetch(`${this.config.url}/rest/v1/${table}`, {
-                    headers: {
-                        apikey: this.config.anonKey,
-                        Authorization: `Bearer ${this.config.anonKey}`,
-                    },
-                });
-                const data: any[] = await res.json();
-                setRecords(data.map((r, i) => ({ ...r, _key: String(r.id ?? i), _index: i })));
-            };
-            poll();
-            const interval = setInterval(poll, 5000);
-            return () => clearInterval(interval);
-        }, [path]);
+    ): (() => void) => {
+        if (!path) return () => undefined;
+        warn("subscribe — polling every 5s (no real-time)");
+        const [, table] = path.split("/");
+        const poll = async () => {
+            const res = await fetch(`${this.config.url}/rest/v1/${table}`, {
+                headers: {
+                    apikey: this.config.anonKey,
+                    Authorization: `Bearer ${this.config.anonKey}`,
+                },
+            });
+            const data: any[] = await res.json();
+            setRecords(data.map((r, i) => ({ ...r, _key: String(r.id ?? i), _index: i })));
+        };
+        void poll();
+        const interval = setInterval(poll, 5000);
+        return () => clearInterval(interval);
     };
 
     count = async (path: string): Promise<number> => {

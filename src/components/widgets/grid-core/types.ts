@@ -26,6 +26,7 @@ export type GridCellContext<TRecord> = {
     value: unknown;
     key: string;
     rowIndex: number;
+    runAction: (actionKey: string) => void;
 };
 
 export type GridColumn<TRecord> = {
@@ -33,8 +34,7 @@ export type GridColumn<TRecord> = {
     label: string;
     sortable?: boolean;
     className?: string;
-    format?: GridFormat;
-    render?: (ctx: GridCellContext<TRecord>) => React.ReactNode;
+    render?: GridFormat | ((ctx: GridCellContext<TRecord>) => React.ReactNode);
 };
 
 export type GridSelectionState<TRecord> = {
@@ -50,10 +50,16 @@ export type GridActionContext<TRecord> = {
     recordKey?: string;
     rowIndex?: number;
     isNewRecord: boolean;
-    close: () => void;
-    save: () => Promise<boolean>;
-    remove: () => Promise<boolean>;
-    open: (actionKey: string, record?: TRecord) => void;
+    runAction: (actionKey: string, record?: TRecord) => void;
+};
+
+export type GridModalActionContext<TRecord> = {
+    actionKey: string;
+    record?: TRecord;
+    recordKey?: string;
+    rowIndex?: number;
+    isNewRecord: boolean;
+    runAction: (actionKey: string) => void;
 };
 
 type GridActionPredicate<TRecord> = boolean | ((record?: TRecord) => boolean);
@@ -64,10 +70,13 @@ export type GridModalAction<TRecord> = {
     icon?: string;
     visible?: GridActionPredicate<TRecord>;
     disabled?: GridActionPredicate<TRecord>;
-    title?: React.ReactNode | ((ctx: GridActionContext<TRecord>) => React.ReactNode);
+    title?: React.ReactNode | ((ctx: GridModalActionContext<TRecord>) => React.ReactNode);
     size?: "sm" | "md" | "lg" | "xl" | "fullscreen";
     position?: "center" | "top" | "left" | "right" | "bottom";
-    render?: React.ReactNode | ((ctx: GridActionContext<TRecord>) => React.ReactNode);
+    buttonFullscreen?: boolean;
+    header?: React.ReactNode | ((ctx: GridModalActionContext<TRecord>) => React.ReactNode);
+    body?: React.ReactNode | ((ctx: GridModalActionContext<TRecord>) => React.ReactNode);
+    footer?: React.ReactNode | false | ((ctx: GridModalActionContext<TRecord>) => React.ReactNode);
 };
 
 export type GridRouteAction<TRecord> = {
@@ -103,10 +112,13 @@ export type GridDeleteAction<TRecord> = {
     icon?: string;
     visible?: GridActionPredicate<TRecord>;
     disabled?: GridActionPredicate<TRecord>;
+    title?: React.ReactNode | ((ctx: GridModalActionContext<TRecord>) => React.ReactNode);
     size?: "sm" | "md" | "lg" | "xl" | "fullscreen";
     position?: "center" | "top" | "left" | "right" | "bottom";
-    confirmTitle?: React.ReactNode | ((ctx: GridActionContext<TRecord>) => React.ReactNode);
-    confirmBody?: React.ReactNode | ((ctx: GridActionContext<TRecord>) => React.ReactNode);
+    buttonFullscreen?: boolean;
+    header?: React.ReactNode | ((ctx: GridModalActionContext<TRecord>) => React.ReactNode);
+    body?: React.ReactNode | ((ctx: GridModalActionContext<TRecord>) => React.ReactNode);
+    footer?: React.ReactNode | false | ((ctx: GridModalActionContext<TRecord>) => React.ReactNode);
 };
 
 export type GridAction<TRecord> =
@@ -124,13 +136,13 @@ export type GridHeaderContext<TRecord> = {
     title?: React.ReactNode;
     records: TRecord[];
     selection: GridSelectionState<TRecord>;
-    open: (actionKey: string, record?: TRecord) => void;
+    runAction: (actionKey: string, record?: TRecord) => void;
 };
 
 export type GridFooterContext<TRecord> = {
     records: TRecord[];
     selection: GridSelectionState<TRecord>;
-    open: (actionKey: string, record?: TRecord) => void;
+    runAction: (actionKey: string, record?: TRecord) => void;
 };
 
 export type GridFormContext<TRecord> = GridActionContext<TRecord> & {
@@ -219,11 +231,13 @@ export type GridArrayProps<TRecord extends RecordProps> = GridBaseProps<TRecord>
 
 export type GridDBQuery = Pick<DatabaseOptions, "where" | "order" | "fieldMap" | "onLoad">;
 
+export type GridDBPath = string | "fromUrl";
+
 export type GridDBProps<TRecord extends RecordProps = RecordProps> =
     GridBaseProps<TRecord>
     & GridDBQuery
     & {
-        path: string;
+        path: GridDBPath;
         recordId?: GridRecordKey<TRecord>;
     };
 
@@ -244,6 +258,7 @@ export type GridTableViewProps<TRecord extends RecordProps> = {
     records: TRecord[];
     recordId: GridRecordKey<TRecord>;
     columns: GridColumn<TRecord>[];
+    runAction: (actionKey: string, record?: TRecord) => void;
     sortable?: boolean | OrderConfig;
     pagination?: PaginationParams;
     selection?: GridSelectionMode;

@@ -39,7 +39,11 @@ const formatValue = (format: GridFormat | undefined, value: unknown) => {
     return formatter ? formatter(value) : value as React.ReactNode;
 };
 
-export const buildDisplayRecords = <TRecord extends RecordProps>(records: TRecord[], columns: GridColumn<TRecord>[]) => {
+export const buildDisplayRecords = <TRecord extends RecordProps>(
+    records: TRecord[],
+    columns: GridColumn<TRecord>[],
+    runAction: (actionKey: string, record?: TRecord) => void
+) => {
     return records.map((record, rowIndex) => {
         const displayRecord: RecordProps = { ...record, _index: rowIndex };
 
@@ -51,10 +55,11 @@ export const buildDisplayRecords = <TRecord extends RecordProps>(records: TRecor
                 value,
                 key: columnKey,
                 rowIndex,
+                runAction: (actionKey: string) => runAction(actionKey, record),
             };
-            displayRecord[columnKey] = column.render
+            displayRecord[columnKey] = typeof column.render === "function"
                 ? column.render(context)
-                : formatValue(column.format, value);
+                : formatValue(column.render, value);
         }
 
         return displayRecord as TRecord;

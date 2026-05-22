@@ -104,6 +104,10 @@ const Gallery = ({
 }: GalleryProps) => {
     const theme = useTheme("gallery");
     const activeClass = selectedClass || theme.Gallery.selectedClass;
+    const [paginationNavEl, setPaginationNavEl] = useState<HTMLElement | null>(null);
+    const paginationNavRef = useCallback((node: HTMLDivElement | null) => {
+        if (node) setPaginationNavEl(node);
+    }, []);
     const paddingSize = gutterSize ?? theme.Gallery.gutterSize;
     const numCols = rowCols ?? theme.Gallery.rowCols;
     const spacingScale: Record<number, string> = {
@@ -114,8 +118,7 @@ const Gallery = ({
         4: "1.5rem",
         5: "3rem",
     };
-    const itemPadding = spacingScale[paddingSize] || spacingScale[2];
-    const itemGap = itemPadding;
+    const itemGap = spacingScale[paddingSize] || spacingScale[2];
     const overlayOffset = "0.75rem";
     const overlayLaneWidth = "calc(50% - 1rem)";
     const itemWidth = `calc((100% - (${itemGap} * ${numCols - 1})) / ${numCols})`;
@@ -189,10 +192,10 @@ const Gallery = ({
                     aspectRatio: imgElement.props.style?.aspectRatio || "16 / 11",
                     cursor: onClick ? "pointer" : "default",
                 },
-                onClick: (e: React.MouseEvent<HTMLImageElement>) => {
+                onClick: onClick ? ((e: React.MouseEvent<HTMLImageElement>) => {
                     handleClick(e, item);
                     imgElement.props.onClick?.(e);
-                },
+                }) : imgElement.props.onClick,
             }) as ImageProps;
         }
 
@@ -208,7 +211,7 @@ const Gallery = ({
                 width={item.width}
                 height={item.height}
                 style={{ aspectRatio: "16 / 11", cursor: onClick ? "pointer" : "default" }}
-                onClick={(e: React.MouseEvent<HTMLImageElement>) => handleClick(e, item)}
+                onClick={onClick ? ((e: React.MouseEvent<HTMLImageElement>) => handleClick(e, item)) : undefined}
             />
         );
     };
@@ -298,7 +301,6 @@ const Gallery = ({
             key={index}
             className={cn("item min-w-0", isSelected && activeClasses)}
             style={{
-                padding: itemPadding,
                 flex: `0 0 ${itemWidth}`,
                 maxWidth: itemWidth,
             }}
@@ -363,7 +365,7 @@ const Gallery = ({
         return groupBy
             ? getGroups(orderedBody, groupBy)
             : orderedBody.map((item, index) => ({ kind: "item", image: getImage(item, index), item, index }) as GalleryRenderedRecord);
-    }, [body, groupBy, overlays, sortableOrder]);
+    }, [activeSelectedKeys, body, groupBy, overlays, sortableOrder, toggleSelection]);
 
     if (renderedBody === undefined) {
         return <p className={"p-4"}><span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />Caricamento in corso...</p>;
@@ -372,34 +374,38 @@ const Gallery = ({
     }
 
     return (
-        <Wrapper className={cn("flex items-center gap-3", wrapClass || theme.Gallery.wrapClass)}>
+        <div className={cn("flex items-stretch gap-3", wrapClass || theme.Gallery.wrapClass)}>
             {pre && <div className="gallery-pre flex shrink-0 items-center self-stretch">{pre}</div>}
-            <Wrapper className={cn("min-w-0 flex-1", className || theme.Gallery.className)}>
+            <Wrapper className={cn("min-w-0 flex-1 flex flex-col", className || theme.Gallery.className)}>
                 {Header && <div className={headerClass || theme.Gallery.headerClass}>{Header}</div>}
-                <Wrapper className={scrollClass || theme.Gallery.scrollClass}>
+                <Wrapper className={cn("min-w-0 flex-1", scrollClass || theme.Gallery.scrollClass)}>
                     <Pagination
                         recordSet={renderedBody}
-                        wrapClass="pt-4"
+                        appendTo={paginationNavEl}
+                        wrapClass="px-3 pt-4 pb-2"
                         {...(pagination || {})}
                     >
                         {(pageRecords, pageOffset) => (
-                            <div
-                                className={"flex flex-wrap text-center items-center row-cols-" + numCols + " " + (bodyClass || theme.Gallery.bodyClass)}
-                                style={{ gap: itemGap }}
-                            >
-                                {pageRecords.map((record) => (
-                                    record.kind === "group"
-                                        ? record.element
-                                        : renderItem(record.image, record.index, record.item)
-                                ))}
+                            <div className="p-3">
+                                <div
+                                    className={"flex flex-wrap text-center items-center row-cols-" + numCols + " " + (bodyClass || theme.Gallery.bodyClass)}
+                                    style={{ gap: itemGap }}
+                                >
+                                    {pageRecords.map((record) => (
+                                        record.kind === "group"
+                                            ? record.element
+                                            : renderItem(record.image, record.index, record.item)
+                                    ))}
+                                </div>
                             </div>
                         )}
                     </Pagination>
                 </Wrapper>
+                <div ref={paginationNavRef} className="mt-auto" />
                 {Footer && <div className={footerClass || theme.Gallery.footerClass}>{Footer}</div>}
             </Wrapper>
             {post && <div className="gallery-post flex shrink-0 items-center self-stretch">{post}</div>}
-        </Wrapper>)
+        </div>)
 }
 
 export default Gallery;

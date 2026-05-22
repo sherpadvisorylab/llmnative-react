@@ -1,9 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { type DatabaseOptions, type RecordArray, type RecordProps } from "../../../providers/data/DataProvider";
 import { useDataProvider } from "../../../providers/data/DataProviderContext";
 
 type UseGridDBRecordsArgs = {
-    path: string;
+    path?: string;
     where?: DatabaseOptions["where"];
     order?: DatabaseOptions["order"];
     fieldMap?: DatabaseOptions["fieldMap"];
@@ -24,7 +24,9 @@ function useGridDBRecords<TRecord extends RecordProps>({
         return { where, order, fieldMap, onLoad };
     }, [fieldMap, onLoad, order, where]);
 
-    db.useListener(path, setRecords, options);
+    useEffect(() => {
+        return db.subscribe(path, setRecords, options);
+    }, [db, options, path]);
 
     return records as TRecord[];
 }

@@ -42,6 +42,18 @@ const USERS: Record<string, Omit<UserRecord, '_key' | 'img'>> = {
     u6: { name: 'Noah White', email: 'noah@example.com', role: 'viewer', status: 'active', team: 'Support', city: 'Paris' },
 };
 
+const createMockSeed = () => ({
+    [GRID_SOURCE_PATH]: Object.fromEntries(
+        Object.entries(USERS).map(([key, record]) => [key, { ...record }]),
+    ),
+    '/components/grid/users': Object.fromEntries(
+        Object.entries(USERS).map(([key, record]) => [key, { ...record }]),
+    ),
+    '/components/grid': Object.fromEntries(
+        Object.entries(USERS).map(([key, record]) => [key, { ...record }]),
+    ),
+});
+
 const statusClass = (status: string) => (
     status === 'active'
         ? 'bg-success'
@@ -58,6 +70,45 @@ const roleClass = (role: string) => (
             : 'bg-secondary'
 );
 
+const galleryAccent = (role: UserRecord['role']) => (
+    role === 'admin'
+        ? { start: '#DBEAFE', end: '#BFDBFE', ink: '#1E3A8A' }
+        : role === 'editor'
+            ? { start: '#DCFCE7', end: '#BBF7D0', ink: '#166534' }
+            : { start: '#F3E8FF', end: '#E9D5FF', ink: '#6B21A8' }
+);
+
+const buildGalleryThumb = (record: UserRecord) => {
+    const palette = galleryAccent(record.role);
+    const svg = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 540">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="${palette.start}"/>
+      <stop offset="100%" stop-color="${palette.end}"/>
+    </linearGradient>
+  </defs>
+  <rect width="720" height="540" rx="36" fill="url(#g)"/>
+  <rect x="34" y="34" width="188" height="42" rx="21" fill="rgba(255,255,255,0.72)"/>
+  <text x="128" y="61" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="${palette.ink}">
+    ${record.role.toUpperCase()}
+  </text>
+  <text x="48" y="340" font-family="Arial, sans-serif" font-size="46" font-weight="700" fill="#0F172A">
+    ${record.name}
+  </text>
+  <text x="48" y="396" font-family="Arial, sans-serif" font-size="26" font-weight="600" fill="#334155">
+    ${record.team}
+  </text>
+  <text x="48" y="432" font-family="Arial, sans-serif" font-size="22" fill="#475569">
+    ${record.city}
+  </text>
+  <circle cx="624" cy="104" r="52" fill="rgba(255,255,255,0.6)"/>
+  <circle cx="590" cy="446" r="88" fill="rgba(255,255,255,0.35)"/>
+</svg>`;
+
+    return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+};
+
 const toArrayRecords = () => (
     Object.entries(USERS).map(([_key, record]) => ({
         _key,
@@ -66,17 +117,20 @@ const toArrayRecords = () => (
     }))
 );
 
-const toGalleryRecords = () => (
-    toArrayRecords().map((record) => ({
+const withGalleryThumbs = (records: UserRecord[]) => (
+    records.map((record) => ({
         ...record,
         img: (
             <img
-                src={`https://placehold.co/960x640/E2E8F0/0F172A?text=${encodeURIComponent(`${record.team}\n${record.city}\n${record.name}`)}`}
-                alt={`${record.team} | ${record.name}`}
+                src={buildGalleryThumb(record)}
+                alt={`${record.role} | ${record.team} | ${record.name}`}
+                style={{ aspectRatio: '4 / 3' }}
             />
         ),
     }))
 );
+
+const toGalleryRecords = () => withGalleryThumbs(toArrayRecords());
 
 const baseColumns = [
     { key: 'name', label: 'Name', sortable: true },
@@ -126,14 +180,24 @@ const partiallySortableCompactColumns = [
     { key: 'role', label: 'Role', sortable: false },
 ];
 
-function WithMock({ children }: { children: React.ReactNode }) {
-    const provider = React.useMemo(() => new MockDataProvider({
-        [GRID_SOURCE_PATH]: USERS,
-        '/components/grid/users': USERS,
-    }), []);
+const layoutColumns = [
+    { key: 'name', label: 'Name', sortable: true },
+    { key: 'role', label: 'Role', sortable: true },
+    { key: 'team', label: 'Team', sortable: true },
+    { key: 'city', label: 'City', sortable: true },
+];
+
+function WithMock({
+    children,
+    provider,
+}: {
+    children: React.ReactNode;
+    provider?: MockDataProvider;
+}) {
+    const scopedProvider = React.useMemo(() => provider ?? new MockDataProvider(createMockSeed()), [provider]);
 
     return (
-        <DataProvider registry={{ default: provider }} defaultKey="default">
+        <DataProvider registry={{ default: scopedProvider }} defaultKey="default">
             {children}
         </DataProvider>
     );
@@ -188,21 +252,21 @@ function TabbedSection({
     tabs: ExampleTab[];
 }) {
     return (
-        <div className="border rounded-lg bg-card">
+        <div className="overflow-hidden rounded-lg border bg-card">
             <div className="px-5 pt-4">
                 <div>
                     <h2 className="font-semibold text-foreground">{title}</h2>
                     {description && <p className="mt-0.5 text-sm text-muted-foreground">{description}</p>}
                 </div>
-                <div className="mt-4">
-                    <Tab tabPosition="default">
-                    {tabs.map((tab) => (
-                        <TabItem key={tab.label} label={tab.label}>
-                            <TabbedSectionBody tab={tab} />
-                        </TabItem>
-                    ))}
-                    </Tab>
-                </div>
+            </div>
+            <div className="mt-4">
+                <Tab tabPosition="default" className="min-w-0">
+                {tabs.map((tab) => (
+                    <TabItem key={tab.label} label={tab.label}>
+                        <TabbedSectionBody tab={tab} />
+                    </TabItem>
+                ))}
+                </Tab>
             </div>
         </div>
     );
@@ -218,24 +282,25 @@ function TabbedSectionBody({ tab }: { tab: ExampleTab }) {
     };
 
     return (
-        <div className="space-y-5">
-            {(tab.title || tab.description) ? (
-                <div className="space-y-1">
-                    {tab.title ? <h3 className="text-base font-semibold text-foreground">{tab.title}</h3> : null}
-                    {tab.description ? <p className="text-sm text-muted-foreground">{tab.description}</p> : null}
+        <div>
+            <div className="space-y-5 px-5 py-5">
+                {(tab.title || tab.description) ? (
+                    <div className="space-y-1">
+                        {tab.title ? <h3 className="text-base font-semibold text-foreground">{tab.title}</h3> : null}
+                        {tab.description ? <p className="text-sm text-muted-foreground">{tab.description}</p> : null}
+                    </div>
+                ) : null}
+                <div className="min-h-[80px] w-full min-w-0 rounded-lg bg-background p-6">
+                    <div className="w-full min-w-0 max-w-5xl">
+                        {tab.preview}
+                    </div>
                 </div>
-            ) : null}
-            <div className="flex flex-wrap gap-3 items-start min-h-[80px]">
-                {tab.preview}
             </div>
-            <div className="relative border-t bg-muted/50 -mx-6 -mb-6 px-0 pb-0 overflow-hidden">
-                <button
-                    onClick={copy}
-                    className="absolute right-3 top-3 text-xs px-2 py-1 rounded border bg-background hover:bg-accent transition-colors"
-                >
-                    {copied ? 'Copied!' : 'Copy'}
-                </button>
-                <pre className="p-5 text-xs text-foreground overflow-x-auto leading-relaxed">
+            <div className="relative overflow-hidden border-t bg-muted/50">
+                <div className="absolute right-3 top-3">
+                    <ActionButton variant="secondary" className="btn-sm" label={copied ? 'Copied!' : 'Copy'} onClick={copy} />
+                </div>
+                <pre className="overflow-x-auto p-5 pr-20 text-xs leading-relaxed text-foreground">
                     <code>{tab.code.trim()}</code>
                 </pre>
             </div>
@@ -246,7 +311,15 @@ function TabbedSectionBody({ tab }: { tab: ExampleTab }) {
 function MinimalGridPreview() {
     return (
         <WithMock>
-            <Grid path={GRID_SOURCE_PATH} pagination={{ limit: 4, align: 'end', sticky: false }} />
+            <Grid path={GRID_SOURCE_PATH} wrapClass="w-full" pagination={{ limit: 4, align: 'end', sticky: false }} />
+        </WithMock>
+    );
+}
+
+function FromUrlGridPreview() {
+    return (
+        <WithMock>
+            <Grid path="fromUrl" wrapClass="w-full" pagination={{ limit: 4, align: 'end', sticky: false }} />
         </WithMock>
     );
 }
@@ -259,8 +332,8 @@ function SingleSelectionPreview() {
             <GridArray
                 records={toArrayRecords()}
                 recordId="_key"
-                columns={compactColumns}
                 title="Choose one option"
+                wrapClass="w-full"
                 selection="single"
                 selectedKeys={clickedKey ? [clickedKey] : []}
                 onSelectionChange={(selection) => setClickedKey(selection.keys[0] || '')}
@@ -282,8 +355,8 @@ function MultipleSelectionPreview() {
             <GridArray
                 records={toArrayRecords()}
                 recordId="_key"
-                columns={compactColumns}
                 title="Bulk selection"
+                wrapClass="w-full"
                 selection="multiple"
                 selectedKeys={selectedKeys}
                 onSelectionChange={(selection) => {
@@ -296,7 +369,7 @@ function MultipleSelectionPreview() {
                         label: 'Export selected',
                         disabled: () => !selectedKeys.length,
                         title: `Export ${selectedKeys.length} selected`,
-                        render: () => (
+                        body: () => (
                             <pre className="overflow-auto rounded-md bg-muted p-3 text-xs">
                                 {JSON.stringify(selectedRecords, null, 2)}
                             </pre>
@@ -309,14 +382,15 @@ function MultipleSelectionPreview() {
     );
 }
 
-function CrudPresetPreview() {
+function CrudPresetPreview({ provider }: { provider: MockDataProvider }) {
     return (
-        <WithMock>
+        <WithMock provider={provider}>
             <GridDB
                 path={GRID_SOURCE_PATH}
                 order={{ name: 'asc' }}
-                columns={compactColumns}
+                columns={explicitCompactColumns}
                 title="Preset CRUD"
+                wrapClass="w-full"
                 form={<GridUserForm />}
                 actions={['add', 'edit', 'delete']}
                 pagination={{ limit: 4, align: 'end', sticky: false }}
@@ -325,14 +399,15 @@ function CrudPresetPreview() {
     );
 }
 
-function RouteActionPreview() {
+function RouteActionPreview({ provider }: { provider: MockDataProvider }) {
     return (
-        <WithMock>
+        <WithMock provider={provider}>
             <GridDB
                 path={GRID_SOURCE_PATH}
                 order={{ name: 'asc' }}
-                columns={compactColumns}
+                columns={explicitCompactColumns}
                 title="Route action"
+                wrapClass="w-full"
                 actions={{
                     add: {
                         kind: 'route',
@@ -346,91 +421,119 @@ function RouteActionPreview() {
     );
 }
 
-function ActionsPreview() {
-    const [copied, setCopied] = React.useState(false);
+function ActionsPreview({ provider }: { provider: MockDataProvider }) {
+    const actionColumns = React.useMemo(() => ([
+        ...explicitCompactColumns,
+        {
+            key: 'actions',
+            label: '',
+            sortable: false,
+            className: 'text-end',
+            render: ({ record, runAction }: { record: UserRecord; runAction: (actionKey: string) => void }) => (
+                <div className="flex justify-end">
+                    <ActionButton
+                        icon="eye"
+                        title={`Preview ${record.name}`}
+                        variant="link"
+                        onClick={() => runAction('preview')}
+                    />
+                </div>
+            ),
+        },
+    ]), []);
 
     return (
-        <WithMock>
-            <GridDB
-                path={GRID_SOURCE_PATH}
-                order={{ name: 'asc' }}
-                columns={baseColumns}
-                title="Team directory"
-                form={<GridUserForm />}
-                actions={{
-                    add: {
-                        kind: 'modal',
-                        title: 'Add teammate',
-                        size: 'lg',
-                        position: 'center',
-                    },
-                    edit: {
-                        kind: 'modal',
-                        size: 'xl',
-                        position: 'right',
-                        title: ({ record }) => `Review ${record?.name}`,
-                        render: ({ record, open }) => (
-                            <div className="space-y-4">
-                                <div>
-                                    <div className="text-lg font-semibold">{record?.name}</div>
-                                    <div className="text-sm text-muted-foreground">{record?.email}</div>
-                                </div>
-                                <div className="grid gap-2 text-sm">
-                                    <div><span className="font-medium">Role:</span> {record?.role}</div>
-                                    <div><span className="font-medium">Status:</span> {record?.status}</div>
-                                    <div><span className="font-medium">Team:</span> {record?.team}</div>
-                                    <div><span className="font-medium">City:</span> {record?.city}</div>
-                                </div>
-                                <div className="flex flex-wrap justify-end gap-2">
-                                    <ActionButton label="Delete teammate" className="btn-danger btn-sm" onClick={() => open('delete', record)} />
-                                </div>
-                            </div>
-                        ),
-                    },
-                    delete: {
-                        kind: 'delete',
-                        size: 'sm',
-                        position: 'center',
-                        confirmTitle: ({ record }) => `Delete ${record?.name}?`,
-                        confirmBody: ({ record }) => (
-                            <div className="text-sm">
-                                This teammate will be removed from the mock provider: <span className="font-medium">{record?.email}</span>
-                            </div>
-                        ),
-                    },
-                    preview: {
-                        kind: 'route',
-                        label: 'Preview',
-                        to: ({ record }) => `/components/grid/preview?record=${record?._key || ''}`,
-                    },
-                    copy: {
-                        kind: 'inline',
-                        label: copied ? 'Copied' : 'Copy email',
-                        run: async ({ record }) => {
-                            if (!record?.email) return;
-                            await navigator.clipboard.writeText(record.email);
-                            setCopied(true);
-                            setTimeout(() => setCopied(false), 1000);
+        <WithMock provider={provider}>
+            <>
+                <GridDB
+                    path={GRID_SOURCE_PATH}
+                    order={{ name: 'asc' }}
+                    columns={actionColumns}
+                    title="Team directory"
+                    wrapClass="w-full"
+                    form={<GridUserForm />}
+                    actions={{
+                        add: {
+                            kind: 'modal',
+                            title: 'Add teammate',
+                            size: 'lg',
+                            position: 'center',
                         },
-                    },
-                }}
-                header={({ title, open, selection }) => (
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                        <div>
-                            <div>{title}</div>
-                            <div className="text-xs text-muted-foreground">
-                                Add opens a centered form, edit docks to the right, and delete stays compact.
+                        edit: {
+                            kind: 'modal',
+                            size: 'lg',
+                            position: 'left',
+                            title: ({ record }) => `Edit ${record?.name}`,
+                            body: () => <GridUserForm />,
+                            footer: ({ runAction }) => (
+                                <>
+                                    <ActionButton label="Save" onClick={() => runAction('save')} />
+                                    <ActionButton variant="danger" label="Delete" onClick={() => runAction('remove')} />
+                                </>
+                            ),
+                        },
+                        delete: {
+                            kind: 'delete',
+                            size: 'sm',
+                            position: 'center',
+                            title: ({ record }) => `Delete ${record?.name}?`,
+                            body: ({ record }) => (
+                                <div className="text-sm">
+                                    This teammate will be removed from the mock provider: <span className="font-medium">{record?.email}</span>
+                                </div>
+                            ),
+                        },
+                        preview: {
+                            kind: 'modal',
+                            label: 'Preview',
+                            size: 'xl',
+                            position: 'right',
+                            title: ({ record }) => record?.name,
+                            header: ({ record }) => (
+                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+                                    <span>{record?.email}</span>
+                                    <span>{record?.role}</span>
+                                    <span>{record?.status}</span>
+                                    <span>{record?.team}</span>
+                                    <span>{record?.city}</span>
+                                </div>
+                            ),
+                            body: ({ record }) => (
+                                <div className="space-y-4">
+                                    <div>
+                                        <div className="text-lg font-semibold">{record?.name}</div>
+                                        <div className="text-sm text-muted-foreground">{record?.email}</div>
+                                    </div>
+                                    <div className="grid gap-2 text-sm">
+                                        <div><span className="font-medium">Role:</span> {record?.role}</div>
+                                        <div><span className="font-medium">Status:</span> {record?.status}</div>
+                                        <div><span className="font-medium">Team:</span> {record?.team}</div>
+                                        <div><span className="font-medium">City:</span> {record?.city}</div>
+                                    </div>
+                                </div>
+                            ),
+                            footer: false,
+                        },
+                    }}
+                    header={({ title, runAction, selection }) => (
+                        <div className="flex w-full items-start justify-between gap-3">
+                            <div className="min-w-0">
+                                <div>{title}</div>
+                                <div className="text-xs text-muted-foreground">
+                                    Add opens a centered form, the custom edit footer keeps only save and delete, the base edit workflow still includes save, delete and cancel automatically, and the extra preview action docks to the right.
+                                </div>
+                            </div>
+                            <div className="ml-auto flex shrink-0 items-center gap-2">
+                                <ActionButton label="Add teammate" onClick={() => runAction('add')} />
+                                {selection.hasSelection ? (
+                                    <span className="text-xs text-muted-foreground">{selection.keys.length} selected</span>
+                                ) : null}
                             </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <ActionButton label="Add teammate" onClick={() => open('add')} />
-                            {selection.hasSelection ? (
-                                <span className="text-xs text-muted-foreground">{selection.keys.length} selected</span>
-                            ) : null}
-                        </div>
-                    </div>
-                )}
-            />
+                    )}
+                    pagination={{ limit: 4, align: 'end', sticky: false }}
+                />
+            </>
         </WithMock>
     );
 }
@@ -449,10 +552,10 @@ const GRID_PROPS: PropDef[] = [
     { name: 'pagination', type: 'PaginationParams', description: 'Shared pagination configuration forwarded to Table or Gallery.', control: 'json', group: 'Display' },
     { name: 'groupBy', type: 'string | string[]', description: 'Gallery grouping separators or field names.', control: 'text', group: 'Display' },
     { name: 'title', type: 'ReactNode', description: 'Title used by the default card header.', control: 'text', group: 'Layout' },
-    { name: 'header', type: 'ReactNode | ((ctx) => ReactNode)', description: 'Optional custom header. Receives title, records, selection and open().', group: 'Layout' },
-    { name: 'footer', type: 'ReactNode | ((ctx) => ReactNode)', description: 'Optional custom footer. Receives records, selection and open().', group: 'Layout' },
-    { name: 'form', type: 'ReactElement | ((ctx) => ReactNode)', description: 'Default add/edit form surface for modal workflows.', group: 'Actions' },
-    { name: 'actions', type: '("add" | "edit" | "delete")[] | Record<string, GridAction<TRecord>>', description: 'Action catalog with explicit kinds: modal, route, external, inline, delete. Modal and delete actions can also set size and position.', group: 'Actions' },
+    { name: 'header', type: 'ReactNode | ((ctx) => ReactNode)', description: 'Optional custom header. Receives title, records, selection and runAction().', group: 'Layout' },
+    { name: 'footer', type: 'ReactNode | ((ctx) => ReactNode)', description: 'Optional custom footer. Receives records, selection and runAction().', group: 'Layout' },
+    { name: 'form', type: 'ReactElement | ((ctx) => ReactNode)', description: 'Default add/edit form surface for modal workflows. The form context is record-first and uses runAction() for extra grid actions.', group: 'Actions' },
+    { name: 'actions', type: '("add" | "edit" | "delete")[] | Record<string, GridAction<TRecord>>', description: 'Action catalog with explicit kinds: modal, route, external, inline, delete. Modal actions can define title, header, body and footer, plus size and position.', group: 'Actions' },
     { name: 'selection', type: 'false | "single" | "multiple"', default: 'false', description: 'Explicit selection mode for table and gallery.', control: 'select', options: ['false', 'single', 'multiple'], group: 'Behavior' },
     { name: 'selectedKeys', type: 'string[]', description: 'Controlled selection keys.', group: 'Behavior' },
     { name: 'defaultSelectedKeys', type: 'string[]', description: 'Uncontrolled initial selection state.', group: 'Behavior' },
@@ -473,54 +576,203 @@ function GridPlaygroundPreview({ p }: { p: Record<string, any> }) {
     const [selectionKeys, setSelectionKeys] = React.useState<string[]>([]);
     const [selectedRecords, setSelectedRecords] = React.useState<UserRecord[]>([]);
     const [records, setRecords] = React.useState<UserRecord[]>(toArrayRecords());
+    const [clickedRecordKey, setClickedRecordKey] = React.useState<string>('');
+    const playgroundProvider = React.useMemo(() => new MockDataProvider(createMockSeed()), []);
     const layout = p.layout as 'table' | 'gallery';
     const useProvider = p.useProvider === true;
     const useGallery = layout === 'gallery';
-    const previewRecords = useGallery ? toGalleryRecords() : records;
+    const selectionMode = p.selection === 'false' ? false : p.selection;
+    const columnsMode = p.columnsMode || 'render';
+    const actionsMode = p.actionsMode || 'crud';
+    const groupBy = useGallery && p.groupBy !== 'none' ? p.groupBy : undefined;
+    const sticky = p.sticky === 'false' ? false : p.sticky;
+    const where = useProvider && p.filterStatus !== 'all' ? { status: p.filterStatus } : undefined;
+    const providerPath = useProvider && p.pathMode === 'fromUrl' ? 'fromUrl' : GRID_SOURCE_PATH;
+    const previewRecords = React.useMemo(() => (
+        useGallery ? withGalleryThumbs(records) : records
+    ), [records, useGallery]);
+    const columns = columnsMode === 'infer'
+        ? undefined
+        : columnsMode === 'explicit'
+            ? explicitCompactColumns
+            : baseColumns;
+    const actions = actionsMode === 'none'
+        ? undefined
+        : actionsMode === 'custom'
+            ? {
+                add: {
+                    kind: 'modal',
+                    title: 'Add teammate',
+                    size: 'lg',
+                    position: 'center',
+                },
+                edit: {
+                    kind: 'modal',
+                    title: ({ record }: { record?: UserRecord }) => `Edit ${record?.name}`,
+                    size: 'lg',
+                    position: 'left',
+                    body: () => <GridUserForm />,
+                    footer: ({ runAction }: { runAction: (actionKey: string) => void }) => (
+                        <>
+                            <ActionButton label="Save" onClick={() => runAction('save')} />
+                            <ActionButton variant="danger" label="Delete" onClick={() => runAction('remove')} />
+                        </>
+                    ),
+                },
+                delete: {
+                    kind: 'delete',
+                    position: 'center',
+                    size: 'sm',
+                },
+                preview: {
+                    kind: 'modal',
+                    label: 'Preview',
+                    size: 'xl',
+                    position: 'right',
+                    title: ({ record }: { record?: UserRecord }) => record?.name,
+                    header: ({ record }: { record?: UserRecord }) => (
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+                            <span>{record?.email}</span>
+                            <span>{record?.role}</span>
+                            <span>{record?.status}</span>
+                            <span>{record?.team}</span>
+                            <span>{record?.city}</span>
+                        </div>
+                    ),
+                    body: ({ record }: { record?: UserRecord }) => (
+                        <div className="space-y-4">
+                            <div>
+                                <div className="text-lg font-semibold">{record?.name}</div>
+                                <div className="text-sm text-muted-foreground">{record?.email}</div>
+                            </div>
+                            <div className="grid gap-2 text-sm">
+                                <div><span className="font-medium">Role:</span> {record?.role}</div>
+                                <div><span className="font-medium">Status:</span> {record?.status}</div>
+                                <div><span className="font-medium">Team:</span> {record?.team}</div>
+                                <div><span className="font-medium">City:</span> {record?.city}</div>
+                            </div>
+                        </div>
+                    ),
+                    footer: false,
+                },
+            }
+            : ['add', 'edit', 'delete'];
+
+    const customHeader = p.headerMode === 'custom'
+        ? ({ title, runAction, selection }: Record<string, any>) => (
+            <div className="flex w-full items-start justify-between gap-3">
+                <div className="min-w-0">
+                    <div>{title}</div>
+                    <div className="text-xs text-muted-foreground">
+                        Playground header with selection summary and primary add action.
+                    </div>
+                </div>
+                <div className="ml-auto flex shrink-0 items-center gap-2">
+                    {actionsMode !== 'none' ? <ActionButton label="Add teammate" onClick={() => runAction('add')} /> : null}
+                    {selection.hasSelection ? (
+                        <span className="text-xs text-muted-foreground">{selection.keys.length} selected</span>
+                    ) : null}
+                </div>
+            </div>
+        )
+        : undefined;
+
+    const customFooter = p.footerMode === 'summary'
+        ? ({ selection }: Record<string, any>) => (
+            <div className="text-xs text-muted-foreground">
+                {selection.hasSelection ? `${selection.keys.length} selected` : 'No active selection'}
+            </div>
+        )
+        : undefined;
+
+    const handleSelectionChange = selectionMode === false
+        ? undefined
+        : (selection: any) => {
+            setSelectionKeys(selection.keys);
+            setSelectedRecords(selection.records as UserRecord[]);
+        };
+    const handleArraySave = async ({ record, action }: { record?: UserRecord; action: 'create' | 'update' }) => {
+        if (!record) return '';
+
+        setRecords((prev) => {
+            const recordKey = record._key || record.id || `u${Date.now()}`;
+            const nextRecord = { ...record, _key: recordKey, id: record.id || recordKey } as UserRecord;
+
+            if (action === 'create') {
+                return [nextRecord, ...prev];
+            }
+
+            return prev.map((entry) => (
+                (entry._key || entry.id) === recordKey ? nextRecord : entry
+            ));
+        });
+
+        return '';
+    };
+    const handleArrayDelete = async ({ record }: { record?: UserRecord }) => {
+        if (!record) return '';
+        const recordKey = record._key || record.id;
+        setRecords((prev) => prev.filter((entry) => (entry._key || entry.id) !== recordKey));
+        setSelectionKeys((prev) => prev.filter((key) => key !== recordKey));
+        setSelectedRecords((prev) => prev.filter((entry) => (entry._key || entry.id) !== recordKey));
+        if (clickedRecordKey === recordKey) setClickedRecordKey('');
+        return '';
+    };
 
     return (
-        <WithMock>
+        <WithMock provider={playgroundProvider}>
             <div className="space-y-4">
                 {useProvider ? (
                     <GridDB
-                        path={GRID_SOURCE_PATH}
-                        order={{ name: 'asc' }}
-                        columns={baseColumns}
+                        path={providerPath}
+                        where={where}
+                        order={p.sortable ? { [p.orderField || 'name']: p.orderDir || 'asc' } : undefined}
+                        columns={columns}
                         title={p.title || 'Playground grid'}
                         layout={layout}
-                        form={<GridUserForm />}
-                        actions={['add', 'edit', 'delete']}
-                        selection={p.selection === 'false' ? false : p.selection}
-                        selectedKeys={p.selection === 'false' ? undefined : selectionKeys}
-                        onSelectionChange={p.selection === 'false' ? undefined : (selection) => {
-                            setSelectionKeys(selection.keys);
-                            setSelectedRecords(selection.records as UserRecord[]);
-                        }}
-                        routeSync={{ edit: p.routeSync }}
-                        sortable={p.sortable ? { field: 'name', dir: 'asc' } : false}
+                        form={p.formEnabled ? <GridUserForm /> : undefined}
+                        actions={actions as any}
+                        header={customHeader}
+                        footer={customFooter}
+                        loading={p.loading}
+                        sticky={sticky}
+                        selection={selectionMode}
+                        selectedKeys={selectionMode === false ? undefined : selectionKeys}
+                        onSelectionChange={handleSelectionChange}
+                        onClickRow={p.clickable ? (record) => setClickedRecordKey(record._key || '') : undefined}
+                        routeSync={p.routeSync && actionsMode !== 'none' && p.formEnabled ? { edit: true } : undefined}
+                        sortable={p.sortable ? { field: p.orderField || 'name', dir: p.orderDir || 'asc' } : false}
                         pagination={{ limit: Number(p.limit || 4), align: 'end', sticky: false }}
-                        groupBy={useGallery ? ' | ' : undefined}
+                        groupBy={groupBy}
+                        audit={p.audit}
+                        createRecordKey={(record) => record._key || record.id || `u${Date.now()}`}
                     />
                 ) : (
                     <GridArray
                         records={previewRecords}
                         recordId="_key"
-                        columns={baseColumns}
+                        columns={columns}
                         title={p.title || 'Playground grid'}
                         layout={layout}
-                        form={<GridUserForm />}
-                        actions={['add', 'edit', 'delete']}
-                        selection={p.selection === 'false' ? false : p.selection}
-                        selectedKeys={p.selection === 'false' ? undefined : selectionKeys}
-                        onSelectionChange={p.selection === 'false' ? undefined : (selection) => {
-                            setSelectionKeys(selection.keys);
-                            setSelectedRecords(selection.records as UserRecord[]);
-                        }}
-                        sortable={p.sortable ? { field: 'name', dir: 'asc' } : false}
+                        form={p.formEnabled ? <GridUserForm /> : undefined}
+                        actions={actions as any}
+                        header={customHeader}
+                        footer={customFooter}
+                        loading={p.loading}
+                        sticky={sticky}
+                        selection={selectionMode}
+                        selectedKeys={selectionMode === false ? undefined : selectionKeys}
+                        onSelectionChange={handleSelectionChange}
+                        onClickRow={p.clickable ? (record) => setClickedRecordKey(record._key || '') : undefined}
+                        sortable={p.sortable ? { field: p.orderField || 'name', dir: p.orderDir || 'asc' } : false}
                         pagination={{ limit: Number(p.limit || 4), align: 'end', sticky: false }}
                         reorderable={!useGallery && p.reorderable}
                         onReorder={!useGallery && p.reorderable ? (nextRecords) => setRecords(nextRecords) : undefined}
-                        groupBy={useGallery ? ' | ' : undefined}
+                        groupBy={groupBy}
+                        audit={p.audit}
+                        createRecordKey={(record) => record._key || record.id || `u${Date.now()}`}
+                        onSave={p.formEnabled && actionsMode !== 'none' ? handleArraySave : undefined}
+                        onDelete={p.formEnabled && actionsMode !== 'none' ? handleArrayDelete : undefined}
                     />
                 )}
 
@@ -536,9 +788,16 @@ function GridPlaygroundPreview({ p }: { p: Record<string, any> }) {
                         </pre>
                     </div>
                     <div className="rounded-md border bg-muted/40 p-3">
-                        <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Current array order</div>
+                        <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Runtime state</div>
                         <pre className="overflow-auto whitespace-pre-wrap break-all text-xs text-foreground">
-                            {JSON.stringify(records.map((record) => record._key), null, 2)}
+                            {JSON.stringify({
+                                arrayOrder: records.map((record) => record._key),
+                                clickedRecordKey: clickedRecordKey || null,
+                                providerPath,
+                                filterStatus: p.filterStatus,
+                                orderField: p.orderField,
+                                orderDir: p.orderDir,
+                            }, null, 2)}
                         </pre>
                     </div>
                 </div>
@@ -555,23 +814,51 @@ const PLAYGROUND: PlaygroundConfig = {
     },
     props: [
         { name: 'useProvider', type: 'boolean', default: 'true', description: 'Switch between GridDB and GridArray.', control: 'boolean' },
+        { name: 'pathMode', type: '"explicit" | "fromUrl"', default: '"explicit"', description: 'Choose between a fixed provider path and path="fromUrl".', control: 'select', options: ['explicit', 'fromUrl'], hidden: (props) => !props.useProvider },
         { name: 'layout', type: '"table" | "gallery"', default: '"table"', description: 'Layout rendered by GridCore.', control: 'select', options: ['table', 'gallery'] },
+        { name: 'columnsMode', type: '"infer" | "explicit" | "render"', default: '"render"', description: 'Switch between inferred columns, explicit labels or rendered cells.', control: 'select', options: ['infer', 'explicit', 'render'] },
+        { name: 'actionsMode', type: '"none" | "crud" | "custom"', default: '"custom"', description: 'No actions, built-in CRUD, or explicit modal kinds.', control: 'select', options: ['none', 'crud', 'custom'] },
+        { name: 'formEnabled', type: 'boolean', default: 'true', description: 'Attach the shared form to add/edit workflows.', control: 'boolean', hidden: (props) => props.actionsMode === 'none' },
         { name: 'selection', type: 'false | "single" | "multiple"', default: '"multiple"', description: 'Selection mode used in the preview.', control: 'select', options: ['false', 'single', 'multiple'] },
         { name: 'sortable', type: 'boolean', default: 'true', description: 'Turns on initial client-side sorting.', control: 'boolean' },
+        { name: 'orderField', type: '"name" | "email" | "team" | "city"', default: '"name"', description: 'Field used for initial sort or provider order.', control: 'select', options: ['name', 'email', 'team', 'city'], hidden: (props) => !props.sortable },
+        { name: 'orderDir', type: '"asc" | "desc"', default: '"asc"', description: 'Sort direction.', control: 'select', options: ['asc', 'desc'], hidden: (props) => !props.sortable },
+        { name: 'filterStatus', type: '"all" | "active" | "review" | "inactive"', default: '"all"', description: 'Provider-side filter used in GridDB mode.', control: 'select', options: ['all', 'active', 'review', 'inactive'], hidden: (props) => !props.useProvider },
         { name: 'reorderable', type: 'boolean', default: 'false', description: 'Turns on drag reorder in table mode.', control: 'boolean', hidden: (props) => props.layout === 'gallery' },
-        { name: 'routeSync', type: 'boolean', default: 'false', description: 'Sync edit modal state to location hash.', control: 'boolean', hidden: (props) => props.layout === 'gallery' },
+        { name: 'routeSync', type: 'boolean', default: 'false', description: 'Sync edit modal state to location hash.', control: 'boolean', hidden: (props) => props.layout === 'gallery' || props.actionsMode === 'none' || !props.formEnabled },
+        { name: 'groupBy', type: '"none" | "role" | "status" | "team"', default: '"none"', description: 'Gallery grouping field.', control: 'select', options: ['none', 'role', 'status', 'team'], hidden: (props) => props.layout !== 'gallery' },
+        { name: 'sticky', type: 'false | "top" | "bottom"', default: '"false"', description: 'Wrap the grid in a sticky card shell.', control: 'select', options: ['false', 'top', 'bottom'] },
         { name: 'limit', type: 'number', default: '4', description: 'Pagination limit.', control: 'number', min: 2, max: 8, step: 1 },
         { name: 'title', type: 'string', default: '"Playground grid"', description: 'Header title used by the default chrome.', control: 'text' },
+        { name: 'headerMode', type: '"default" | "custom"', default: '"default"', description: 'Use the default card header or a custom Grid header render prop.', control: 'select', options: ['default', 'custom'] },
+        { name: 'footerMode', type: '"none" | "summary"', default: '"none"', description: 'Optional Grid footer render prop.', control: 'select', options: ['none', 'summary'] },
+        { name: 'clickable', type: 'boolean', default: 'false', description: 'Attach onClickRow and expose the clicked record in runtime state.', control: 'boolean' },
+        { name: 'loading', type: 'boolean', default: 'false', description: 'Show the component loading state.', control: 'boolean' },
+        { name: 'audit', type: 'boolean', default: 'false', description: 'Enable form audit logging for add/edit flows.', control: 'boolean', hidden: (props) => !props.formEnabled || props.actionsMode === 'none' },
     ],
     defaultProps: {
         useProvider: true,
+        pathMode: 'explicit',
         layout: 'table',
+        columnsMode: 'render',
+        actionsMode: 'custom',
+        formEnabled: true,
         selection: 'multiple',
         sortable: true,
+        orderField: 'name',
+        orderDir: 'asc',
+        filterStatus: 'all',
         reorderable: false,
         routeSync: false,
+        groupBy: 'none',
+        sticky: 'false',
         limit: 4,
         title: 'Playground grid',
+        headerMode: 'default',
+        footerMode: 'none',
+        clickable: false,
+        loading: false,
+        audit: false,
     },
     render: (p) => <GridPlaygroundPreview p={p} />,
 };
@@ -579,6 +866,8 @@ const PLAYGROUND: PlaygroundConfig = {
 export default function GridPage() {
     usePlayground(PLAYGROUND, 'Grid');
     const [arrayRecords, setArrayRecords] = React.useState(toArrayRecords());
+    const crudProvider = React.useMemo(() => new MockDataProvider(createMockSeed()), []);
+    const layoutRecords = React.useMemo(() => toGalleryRecords(), []);
 
     return (
         <PageLayout
@@ -586,8 +875,8 @@ export default function GridPage() {
             description="AI-first orchestration layer built on top of Table and Gallery. The page now moves from the smallest valid grid to progressively more explicit data, selection, action and layout patterns."
         >
             <TabbedSection
-                title="How records enter Grid"
-                description="This is the first decision to make. Start from the shortest working shape, then add query constraints or switch to caller-owned records when you need more control."
+                title="Grid data sources"
+                description="This section shows where Grid records come from. Start from the shortest provider-backed shape, then add route-based sourcing, query constraints, or switch to caller-owned records when you need more control."
                 tabs={[
                     {
                         label: 'Minimal',
@@ -601,14 +890,14 @@ export default function GridPage() {
                     },
                     {
                         label: 'Path + query',
-                        title: 'GridDB with filtering and ordering',
-                        description: 'The same provider-backed load, now with one filter and one order. Grid still infers the columns from the incoming records.',
+                        title: 'GridDB with filter + ordering',
+                        description: 'The same provider-backed load, now reduced to active teammates and reordered by email ascending. Grid still infers the columns from the incoming records.',
                         preview: (
                             <WithMock>
                                 <GridDB
                                     path={GRID_SOURCE_PATH}
                                     where={{ status: 'active' }}
-                                    order={{ name: 'asc' }}
+                                    order={{ email: 'asc' }}
                                     pagination={{ limit: 4, align: 'end', sticky: false }}
                                 />
                             </WithMock>
@@ -616,7 +905,7 @@ export default function GridPage() {
                         code: `<GridDB
   path="/showcase/grid/users"
   where={{ status: "active" }}
-  order={{ name: "asc" }}
+  order={{ email: "asc" }}
   pagination={{ limit: 4, align: "end", sticky: false }}
 />`,
                     },
@@ -628,6 +917,7 @@ export default function GridPage() {
                             <GridArray
                                 records={toArrayRecords()}
                                 recordId="_key"
+                                wrapClass="w-full"
                                 pagination={{ limit: 4, align: 'end', sticky: false }}
                             />
                         ),
@@ -658,6 +948,16 @@ export default function GridPage() {
   pagination={{ limit: 4, align: "end", sticky: false }}
 />`,
                     },
+                    {
+                        label: 'fromUrl',
+                        title: 'Load data from the current URL',
+                        description: 'Use path="fromUrl" when the current route already matches the provider path you want to read. Grid forwards the pathname as-is, without query string or hash.',
+                        preview: <FromUrlGridPreview />,
+                        code: `<Grid
+  path="fromUrl"
+  pagination={{ limit: 4, align: "end", sticky: false }}
+/>`,
+                    },
                 ]}
             />
 
@@ -684,6 +984,7 @@ export default function GridPage() {
                                 records={toArrayRecords()}
                                 recordId="_key"
                                 columns={explicitCompactColumns}
+                                wrapClass="w-full"
                                 pagination={{ limit: 4, align: 'end', sticky: false }}
                             />
                         ),
@@ -707,6 +1008,7 @@ export default function GridPage() {
                                 records={toArrayRecords()}
                                 recordId="_key"
                                 columns={compactColumns}
+                                wrapClass="w-full"
                                 pagination={{ limit: 4, align: 'end', sticky: false }}
                             />
                         ),
@@ -742,6 +1044,7 @@ export default function GridPage() {
                                 records={toArrayRecords()}
                                 recordId="_key"
                                 columns={nonSortableCompactColumns}
+                                wrapClass="w-full"
                                 sortable={false}
                                 pagination={{ limit: 4, align: 'end', sticky: false }}
                             />
@@ -767,6 +1070,7 @@ export default function GridPage() {
                                 records={toArrayRecords()}
                                 recordId="_key"
                                 columns={partiallySortableCompactColumns}
+                                wrapClass="w-full"
                                 pagination={{ limit: 4, align: 'end', sticky: false }}
                             />
                         ),
@@ -790,6 +1094,7 @@ export default function GridPage() {
                                 records={toArrayRecords()}
                                 recordId="_key"
                                 columns={explicitCompactColumns}
+                                wrapClass="w-full"
                                 pagination={{ limit: 4, align: 'end', sticky: false }}
                             />
                         ),
@@ -821,7 +1126,6 @@ export default function GridPage() {
 <GridArray
   records={records}
   recordId="_key"
-  columns={columns}
   title="Choose one option"
   selection="single"
   selectedKeys={clickedKey ? [clickedKey] : []}
@@ -839,7 +1143,6 @@ const [selectedRecords, setSelectedRecords] = useState<RecordArray>([]);
 <GridArray
   records={records}
   recordId="_key"
-  columns={columns}
   title="Bulk selection"
   selection="multiple"
   selectedKeys={selectedKeys}
@@ -853,7 +1156,7 @@ const [selectedRecords, setSelectedRecords] = useState<RecordArray>([]);
       label: "Export selected",
       disabled: () => !selectedKeys.length,
       title: \`Export \${selectedKeys.length} selected\`,
-      render: () => (
+      body: () => (
         <pre className="overflow-auto rounded-md bg-muted p-3 text-xs">
           {JSON.stringify(selectedRecords, null, 2)}
         </pre>
@@ -873,19 +1176,14 @@ const [selectedRecords, setSelectedRecords] = useState<RecordArray>([]);
                         label: 'CRUD preset',
                         title: 'Preset add/edit/delete',
                         description: 'This is the shortest path to add, edit and delete with the shared form.',
-                        preview: <CrudPresetPreview />,
+                        preview: <CrudPresetPreview provider={crudProvider} />,
                         code: `<GridDB
   path="/showcase/grid/users"
   order={{ name: "asc" }}
   columns={[
     { key: "name", label: "Name", sortable: true },
     { key: "email", label: "Email", sortable: true },
-    {
-      key: "role",
-      label: "Role",
-      sortable: true,
-      render: ({ value }) => <Badge className={roleClass(value)}>{value}</Badge>,
-    },
+    { key: "role", label: "Role", sortable: true },
   ]}
   title="Preset CRUD"
   form={<GridUserForm />}
@@ -897,18 +1195,28 @@ const [selectedRecords, setSelectedRecords] = useState<RecordArray>([]);
                         label: 'Custom kinds',
                         title: 'Explicit modal kinds',
                         description: 'The same CRUD surface with explicit action kinds and different modal positions for add, edit and delete.',
-                        preview: <ActionsPreview />,
+                        preview: <ActionsPreview provider={crudProvider} />,
                         code: `<GridDB
   path="/showcase/grid/users"
   order={{ name: "asc" }}
   columns={[
     { key: "name", label: "Name", sortable: true },
     { key: "email", label: "Email", sortable: true },
+    { key: "role", label: "Role", sortable: true },
     {
-      key: "role",
-      label: "Role",
-      sortable: true,
-      render: ({ value }) => <Badge className={roleClass(value)}>{value}</Badge>,
+      key: "actions",
+      label: "",
+      sortable: false,
+      render: ({ record, runAction }) => (
+        <div className="flex justify-end">
+          <ActionButton
+            icon="eye"
+            title={\`Preview \${record.name}\`}
+            variant="link"
+            onClick={() => runAction("preview")}
+          />
+        </div>
+      ),
     },
   ]}
   form={<GridUserForm />}
@@ -921,36 +1229,91 @@ const [selectedRecords, setSelectedRecords] = useState<RecordArray>([]);
     },
     edit: {
       kind: "modal",
-      size: "xl",
-      position: "right",
-      title: ({ record }) => \`Review \${record?.name}\`,
+      size: "lg",
+      position: "left",
+      title: ({ record }) => \`Edit \${record?.name}\`,
+      body: () => <GridUserForm />,
+      footer: ({ runAction }) => (
+        <>
+          <ActionButton label="Save" onClick={() => runAction("save")} />
+          <ActionButton variant="danger" label="Delete" onClick={() => runAction("remove")} />
+        </>
+      ),
     },
     delete: {
       kind: "delete",
       size: "sm",
       position: "center",
-      confirmTitle: ({ record }) => \`Delete \${record?.name}?\`,
+      title: ({ record }) => \`Delete \${record?.name}?\`,
+      body: ({ record }) => (
+        <div className="text-sm">
+          This teammate will be removed from the mock provider: <span className="font-medium">{record?.email}</span>
+        </div>
+      ),
+    },
+    preview: {
+      kind: "modal",
+      label: "Preview",
+      size: "xl",
+      position: "right",
+      title: ({ record }) => record?.name,
+      header: ({ record }) => (
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+          <span>{record?.email}</span>
+          <span>{record?.role}</span>
+          <span>{record?.status}</span>
+          <span>{record?.team}</span>
+          <span>{record?.city}</span>
+        </div>
+      ),
+      body: ({ record }) => (
+        <div className="space-y-4">
+          <div>
+            <div className="text-lg font-semibold">{record?.name}</div>
+            <div className="text-sm text-muted-foreground">{record?.email}</div>
+          </div>
+          <div className="grid gap-2 text-sm">
+            <div><span className="font-medium">Role:</span> {record?.role}</div>
+            <div><span className="font-medium">Status:</span> {record?.status}</div>
+            <div><span className="font-medium">Team:</span> {record?.team}</div>
+            <div><span className="font-medium">City:</span> {record?.city}</div>
+          </div>
+        </div>
+      ),
+      footer: false,
     },
   }}
+  header={({ title, runAction, selection }) => (
+    <div className="flex w-full items-start justify-between gap-3">
+      <div className="min-w-0">
+        <div>{title}</div>
+        <div className="text-xs text-muted-foreground">
+          Add opens a centered form, edit keeps save and delete in the modal footer, the base edit workflow still includes delete and cancel automatically, and the extra preview action docks to the right.
+        </div>
+      </div>
+      <div className="ml-auto flex shrink-0 items-center gap-2">
+        <ActionButton label="Add teammate" onClick={() => runAction("add")} />
+        {selection.hasSelection ? (
+          <span className="text-xs text-muted-foreground">{selection.keys.length} selected</span>
+        ) : null}
+      </div>
+    </div>
+  )}
+  pagination={{ limit: 4, align: "end", sticky: false }}
 />`,
                     },
                     {
                         label: 'Route',
                         title: 'Routing action',
                         description: 'Use a route action when the next step belongs to navigation, not to a modal workflow.',
-                        preview: <RouteActionPreview />,
+                        preview: <RouteActionPreview provider={crudProvider} />,
                         code: `<GridDB
   path="/showcase/grid/users"
   order={{ name: "asc" }}
   columns={[
     { key: "name", label: "Name", sortable: true },
     { key: "email", label: "Email", sortable: true },
-    {
-      key: "role",
-      label: "Role",
-      sortable: true,
-      render: ({ value }) => <Badge className={roleClass(value)}>{value}</Badge>,
-    },
+    { key: "role", label: "Role", sortable: true },
   ]}
   actions={{
     add: {
@@ -971,8 +1334,8 @@ const [selectedRecords, setSelectedRecords] = useState<RecordArray>([]);
                     <GridArray
                         records={arrayRecords}
                         recordId="_key"
-                        columns={baseColumns}
                         title="Manual ordering"
+                        wrapClass="w-full"
                         sortable={false}
                         reorderable
                         onReorder={(records) => setArrayRecords(records)}
@@ -989,7 +1352,6 @@ const [selectedRecords, setSelectedRecords] = useState<RecordArray>([]);
 <GridArray
   records={records}
   recordId="_key"
-  columns={columns}
   title="Manual ordering"
   sortable={false}
   reorderable
@@ -1004,12 +1366,13 @@ const [selectedRecords, setSelectedRecords] = useState<RecordArray>([]);
                     {
                         label: 'Table',
                         title: 'Table layout',
-                        description: 'The default surface for lists, sorting, row click and reorder.',
+                        description: 'The default surface for lists. It uses the same records as the gallery tab so the only change is the surface.',
                         preview: (
                             <GridArray
-                                records={toArrayRecords()}
+                                records={layoutRecords}
                                 recordId="_key"
-                                columns={compactColumns}
+                                columns={layoutColumns}
+                                wrapClass="w-full"
                                 pagination={{ limit: 4, align: 'end', sticky: false }}
                             />
                         ),
@@ -1018,13 +1381,9 @@ const [selectedRecords, setSelectedRecords] = useState<RecordArray>([]);
   recordId="_key"
   columns={[
     { key: "name", label: "Name", sortable: true },
-    { key: "email", label: "Email", sortable: true },
-    {
-      key: "role",
-      label: "Role",
-      sortable: true,
-      render: ({ value }) => <Badge className={roleClass(value)}>{value}</Badge>,
-    },
+    { key: "role", label: "Role", sortable: true },
+    { key: "team", label: "Team", sortable: true },
+    { key: "city", label: "City", sortable: true },
   ]}
   pagination={{ limit: 4, align: "end", sticky: false }}
 />`,
@@ -1032,35 +1391,21 @@ const [selectedRecords, setSelectedRecords] = useState<RecordArray>([]);
                     {
                         label: 'Gallery',
                         title: 'Gallery layout',
-                        description: 'The same data contract rendered as cards, still supporting selection and grouping.',
+                        description: 'The same records rendered as cards. Labels, order and data stay aligned with the table tab.',
                         preview: (
                             <GridArray
-                                records={toGalleryRecords()}
+                                records={layoutRecords}
                                 recordId="_key"
-                                columns={baseColumns}
+                                wrapClass="w-full"
                                 layout="gallery"
-                                selection="multiple"
-                                groupBy=" | "
-                                pagination={{ limit: 6, align: 'center', sticky: false }}
+                                pagination={{ limit: 4, align: 'end', sticky: false }}
                             />
                         ),
                         code: `<GridArray
-  records={galleryRecords}
+  records={records}
   recordId="_key"
-  columns={[
-    { key: "name", label: "Name", sortable: true },
-    { key: "email", label: "Email", sortable: true },
-    {
-      key: "role",
-      label: "Role",
-      sortable: true,
-      render: ({ value }) => <Badge className={roleClass(value)}>{value}</Badge>,
-    },
-  ]}
   layout="gallery"
-  selection="multiple"
-  groupBy=" | "
-  pagination={{ limit: 6, align: "center", sticky: false }}
+  pagination={{ limit: 4, align: "end", sticky: false }}
 />`,
                     },
                 ]}

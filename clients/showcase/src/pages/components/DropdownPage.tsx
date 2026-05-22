@@ -58,7 +58,9 @@ function DropdownItemsFromMock({ path }: { path: string }) {
     const provider = useDataProvider();
     const [records, setRecords] = React.useState<Array<DropdownMockItem & { _key?: string; _index?: number }>>([]);
 
-    provider.useListener(path, setRecords);
+    React.useEffect(() => {
+        return provider.subscribe(path, setRecords);
+    }, [path, provider]);
 
     if (records.length === 0) {
         return <DropdownHeader>No dropdown items</DropdownHeader>;
@@ -178,7 +180,9 @@ function DropdownItemsFromMock({ path }) {
     const provider = useDataProvider();
     const [records, setRecords] = React.useState([]);
 
-    provider.useListener(path, setRecords);
+    React.useEffect(() => {
+        return provider.subscribe(path, setRecords);
+    }, [path, provider]);
 
     return records.map((record) => {
         if (record.type === 'header') return <DropdownHeader key={record._key}>{record.label}</DropdownHeader>;

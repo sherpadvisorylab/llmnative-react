@@ -9,7 +9,7 @@ import { cn } from '../../libs/cn';
 
 interface ModalProps extends MotionUIProps {
     children: React.ReactNode;
-    title?: string;
+    title?: React.ReactNode;
     header?: React.ReactNode;
     footer?: React.ReactNode | false;
     onClose?: () => void;
@@ -18,6 +18,7 @@ interface ModalProps extends MotionUIProps {
     size?: "sm" | "md" | "lg" | "xl" | "fullscreen";
     position?: "center" | "top" | "left" | "right" | "bottom";
     buttonFullscreen?: boolean;
+    buttonCancel?: boolean;
     headerClass?: string;
     titleClass?: string;
     subTitleClass?: string;
@@ -27,7 +28,7 @@ interface ModalProps extends MotionUIProps {
 }
 
 interface ModalYesNoProps {
-    title?: string;
+    title?: React.ReactNode;
     children: React.ReactNode;
     onYes?: (e: React.MouseEvent<HTMLButtonElement>) => Promise<boolean>;
     onNo?: (e: React.MouseEvent<HTMLButtonElement>) => Promise<boolean>;
@@ -36,7 +37,7 @@ interface ModalYesNoProps {
 
 interface ModalOkProps {
     children: React.ReactNode;
-    title?: string;
+    title?: React.ReactNode;
     onClose?: () => void;
 }
 
@@ -55,6 +56,7 @@ const ModalDefault = ({
                           size              = undefined,
                           position          = undefined,
                           buttonFullscreen  = true,
+                          buttonCancel      = true,
                           pre               = undefined,
                           post              = undefined,
                           wrapClass         = undefined,
@@ -196,7 +198,7 @@ const ModalDefault = ({
         cursor: modalPosition === "center" && closeOnBackdrop && onClose ? 'pointer' : 'default',
     };
 
-    const showFooter = footer !== false && (footer || onSave || onDelete || onClose);
+    const showFooter = footer !== false && (footer || onSave || onDelete || (buttonCancel && onClose));
 
     const closeButtonClass = "inline-flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
@@ -271,7 +273,7 @@ const ModalDefault = ({
                                 handleClose()
                             }}
                         />}
-                        {onClose && <ActionButton
+                        {buttonCancel && onClose && <ActionButton
                             className="btn-link"
                             label={"Cancel"}
                             onClick={handleClose}

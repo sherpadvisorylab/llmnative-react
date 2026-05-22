@@ -8,6 +8,7 @@ function GridTableView<TRecord extends RecordProps>({
     records,
     recordId,
     columns,
+    runAction,
     sortable,
     pagination,
     selection = false,
@@ -27,7 +28,7 @@ function GridTableView<TRecord extends RecordProps>({
         }, new Map());
     }, [getRecordKey, records]);
 
-    const displayRecords = useMemo(() => buildDisplayRecords(records, columns), [columns, records]);
+    const displayRecords = useMemo(() => buildDisplayRecords(records, columns, runAction), [columns, records, runAction]);
 
     return (
         <Table

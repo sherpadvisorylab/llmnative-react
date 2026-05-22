@@ -3,6 +3,7 @@ export { default as GridArray } from "./GridArray";
 export { default as GridDB } from "./GridDB";
 export { default as GridTableView } from "./GridTableView";
 export { default as GridGalleryView } from "./GridGalleryView";
+export { resolveGridPathFromUrl } from "./resolveGridPathFromUrl";
 export type {
     GridAction,
     GridActions,
@@ -12,6 +13,7 @@ export type {
     GridCellContext,
     GridColumn,
     GridCoreProps,
+    GridDBPath,
     GridDBQuery,
     GridDBProps,
     GridFooterContext,

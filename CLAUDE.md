@@ -431,8 +431,9 @@ export class RestDataProvider implements DataProviderAdapter {
   async set(path: string, data: object): Promise<void> { /* ... */ }
   async update(path: string, data: object): Promise<void> { /* ... */ }
   async remove(path: string): Promise<void> { /* ... */ }
-  useListener(path: string | undefined, callback: (records: RecordArray) => void): void {
-    // Use React.useEffect internally if the provider polls/subscribes.
+  subscribe(path: string | undefined, callback: (records: RecordArray) => void): () => void {
+    // Return a cleanup function if the provider polls/subscribes.
+    return () => undefined
   }
 }
 ```

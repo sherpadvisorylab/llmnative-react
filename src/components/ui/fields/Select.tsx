@@ -80,7 +80,9 @@ function getOptionsDB(
     db?: DBConfig
 ): DatabaseOptions {
     return {
-        fieldMap: normalizeOption(db?.fieldMap),
+        fieldMap: db?.fieldMap
+            ? normalizeOption(db.fieldMap)
+            : undefined,
         where: db?.where,
         order: db?.order,
         onLoad: db?.onLoad,
@@ -151,7 +153,9 @@ export const Select = ({
     const dbOptions = useMemo(() => getOptionsDB(db), [db?.fieldMap, db?.where, db?.order, db?.onLoad]);
     const database = useDataProvider();
     const [lookup, setLookup] = useState<Option[]>([]);
-    database.useListener(db?.path, (records) => setLookup(normalizeLookup(records)), dbOptions);
+    useEffect(() => {
+        return database.subscribe(db?.path, (records) => setLookup(normalizeLookup(records)), dbOptions);
+    }, [database, db?.path, dbOptions]);
 
     const opts = useMemo(() => {
         const combinedOptions = getOptions(options, lookup, order, db?.order, dbOptions.fieldMap);
@@ -233,7 +237,9 @@ export const Autocomplete = ({
     const dbOptions = useMemo(() => getOptionsDB(db), [db?.fieldMap, db?.where, db?.order, db?.onLoad]);
     const database = useDataProvider();
     const [lookup, setLookup] = useState<Option[]>([]);
-    database.useListener(db?.path, (records) => setLookup(normalizeLookup(records)), dbOptions);
+    useEffect(() => {
+        return database.subscribe(db?.path, (records) => setLookup(normalizeLookup(records)), dbOptions);
+    }, [database, db?.path, dbOptions]);
 
     const [localOpts, setLocalOpts] = useState<Option[]>([]);
 
@@ -360,7 +366,9 @@ export const Checklist = ({
     const dbOptions = useMemo(() => getOptionsDB(db), [db?.fieldMap, db?.where, db?.order, db?.onLoad]);
     const database = useDataProvider();
     const [lookup, setLookup] = useState<Option[]>([]);
-    database.useListener(db?.path, (records) => setLookup(normalizeLookup(records)), dbOptions);
+    useEffect(() => {
+        return database.subscribe(db?.path, (records) => setLookup(normalizeLookup(records)), dbOptions);
+    }, [database, db?.path, dbOptions]);
 
     const opts = useMemo(() => {
         const combinedOptions = getOptions(options, lookup, order, db?.order, dbOptions.fieldMap);

@@ -95,7 +95,9 @@ function GalleryPlaygroundPreview({ p }: { p: Record<string, any> }) {
     const [playgroundSelectedKeys, setPlaygroundSelectedKeys] = React.useState<string[]>([]);
     const [selectionPayload, setSelectionPayload] = React.useState<{ keys: string[]; records: string[]; hasSelection: boolean } | null>(null);
 
-    provider.useListener(GALLERY_PLAYGROUND_PATH, setSourceAssets);
+    React.useEffect(() => {
+        return provider.subscribe(GALLERY_PLAYGROUND_PATH, setSourceAssets);
+    }, [provider]);
 
     const playgroundBody = React.useMemo(() => sourceAssets.map((asset) => ({
         ...asset,

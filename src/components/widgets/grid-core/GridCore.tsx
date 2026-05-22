@@ -13,6 +13,7 @@ import {
     type GridCoreProps,
     type GridFooterContext,
     type GridHeaderContext,
+    type GridModalActionContext,
 } from "./types";
 import {
     getActionLabel,
@@ -25,13 +26,17 @@ import useGridColumns from "./useGridColumns";
 import useGridPreparedRecords from "./useGridPreparedRecords";
 import useGridSelection from "./useGridSelection";
 
-const buildActionTitle = <TRecord extends RecordProps>(actionKey: string, action: GridAction<TRecord> | undefined, context: GridActionContext<TRecord>) => {
+const buildActionTitle = <TRecord extends RecordProps>(
+    actionKey: string,
+    action: GridAction<TRecord> | undefined,
+    context: GridActionContext<TRecord> | GridModalActionContext<TRecord>
+) => {
     if (action?.kind === "delete") {
-        if (typeof action.confirmTitle === "function") return action.confirmTitle(context);
-        return action.confirmTitle || "Delete record";
+        if (typeof action.title === "function") return action.title(context as GridModalActionContext<TRecord>);
+        return action.title || "Delete record";
     }
     if (action?.kind === "modal") {
-        if (typeof action.title === "function") return action.title(context);
+        if (typeof action.title === "function") return action.title(context as GridModalActionContext<TRecord>);
         return action.title || getActionLabel(actionKey, action);
     }
     return getActionLabel(actionKey, action);
@@ -82,11 +87,12 @@ function GridCore<TRecord extends RecordProps>({
         normalizedActions,
         activeAction,
         activeActionConfig,
-        activeActionNode,
+        activeActionBody,
         activeKey,
-        open,
+        runAction,
         close,
         getActionContext,
+        getModalActionContext,
         getRecordKey,
         formRef,
     } = useGridActions({
@@ -114,8 +120,8 @@ function GridCore<TRecord extends RecordProps>({
             close();
             return;
         }
-        open("edit", record);
-    }, [activeAction?.actionKey, activeAction?.record, canOpenEditFromRow, close, getRecordKey, onClickRow, open]);
+        runAction("edit", record);
+    }, [activeAction?.actionKey, activeAction?.record, canOpenEditFromRow, close, getRecordKey, onClickRow, runAction]);
 
     const rowClickHandler = onClickRow || canOpenEditFromRow
         ? handleRowClick
@@ -130,10 +136,10 @@ function GridCore<TRecord extends RecordProps>({
                 icon={action.icon}
                 label={getActionLabel(actionKey, action)}
                 disabled={isActionDisabled(action, record)}
-                onClick={() => open(actionKey, record)}
+                onClick={() => runAction(actionKey, record)}
             />
         );
-    }, [normalizedActions, open]);
+    }, [normalizedActions, runAction]);
 
     const headerActionKeys = useMemo(() => {
         return Object.entries(normalizedActions)
@@ -145,14 +151,14 @@ function GridCore<TRecord extends RecordProps>({
         title,
         records: preparedRecords,
         selection: selectionState,
-        open,
-    }), [open, preparedRecords, selectionState, title]);
+        runAction,
+    }), [preparedRecords, runAction, selectionState, title]);
 
     const footerContext = useMemo<GridFooterContext<TRecord>>(() => ({
         records: preparedRecords,
         selection: selectionState,
-        open,
-    }), [open, preparedRecords, selectionState]);
+        runAction,
+    }), [preparedRecords, runAction, selectionState]);
 
     const resolvedHeader = useMemo(() => {
         if (header !== undefined) {
@@ -182,6 +188,29 @@ function GridCore<TRecord extends RecordProps>({
         }
         return undefined;
     }, [footer, footerContext]);
+
+    const activeModalContext = useMemo(() => {
+        if (!activeAction || !activeActionConfig || (activeActionConfig.kind !== "modal" && activeActionConfig.kind !== "delete")) return undefined;
+        return getModalActionContext(activeAction.actionKey, activeAction.record);
+    }, [activeAction, activeActionConfig, getModalActionContext]);
+
+    const activeModalHeader = useMemo(() => {
+        if (!activeActionConfig || (activeActionConfig.kind !== "modal" && activeActionConfig.kind !== "delete") || activeActionConfig.header === undefined || !activeModalContext) {
+            return undefined;
+        }
+        return typeof activeActionConfig.header === "function"
+            ? activeActionConfig.header(activeModalContext)
+            : activeActionConfig.header;
+    }, [activeActionConfig, activeModalContext]);
+
+    const activeModalFooter = useMemo(() => {
+        if (!activeActionConfig || (activeActionConfig.kind !== "modal" && activeActionConfig.kind !== "delete")) return undefined;
+        if (activeActionConfig.footer === false) return false;
+        if (activeActionConfig.footer === undefined || !activeModalContext) return undefined;
+        return typeof activeActionConfig.footer === "function"
+            ? activeActionConfig.footer(activeModalContext)
+            : activeActionConfig.footer;
+    }, [activeActionConfig, activeModalContext]);
 
     const initialSort = resolveInitialOrder(sortable);
 
@@ -216,6 +245,7 @@ function GridCore<TRecord extends RecordProps>({
                         records={preparedRecords}
                         recordId={recordId}
                         columns={inferredColumns}
+                        runAction={runAction}
                         sortable={initialSort || sortable}
                         pagination={pagination}
                         selection={selection}
@@ -241,23 +271,60 @@ function GridCore<TRecord extends RecordProps>({
                             ? activeActionConfig.position || theme.Grid.Modal.position
                             : theme.Grid.Modal.position
                     }
-                    header={buildActionTitle(activeAction.actionKey, activeActionConfig, getActionContext(activeAction.actionKey, activeAction.record))}
+                    header={activeModalHeader}
+                    title={buildActionTitle(
+                        activeAction.actionKey,
+                        activeActionConfig,
+                        activeActionConfig.kind === "modal" || activeActionConfig.kind === "delete"
+                            ? getModalActionContext(activeAction.actionKey, activeAction.record)
+                            : getActionContext(activeAction.actionKey, activeAction.record)
+                    )}
                     onClose={close}
-                    onSave={activeActionConfig.kind === "modal" && (activeAction.actionKey === "add" || activeAction.actionKey === "edit") ? (event) => formRef.current?.handleSave(event) ?? Promise.resolve(false) : undefined}
-                    onDelete={activeActionConfig.kind === "delete" ? async () => {
-                        const record = activeAction.record;
-                        if (!record) return false;
-                        const storagePath = onDelete
-                            ? await onDelete({ record })
-                            : sourcePath
-                                ? `${sourcePath}/${getRecordKey(record)}`
-                                : undefined;
-                        if (!storagePath) return false;
-                        await db.remove(storagePath);
-                        const success = await onAfterAction?.({ record, action: "delete" }) ?? true;
-                        if (success) close();
-                        return success;
-                    } : undefined}
+                    onSave={
+                        activeActionConfig.kind === "modal"
+                        && activeActionConfig.footer === undefined
+                        && (activeAction.actionKey === "add" || activeAction.actionKey === "edit")
+                            ? (event) => formRef.current?.handleSave(event) ?? Promise.resolve(false)
+                            : undefined
+                    }
+                    onDelete={
+                        activeActionConfig.kind === "delete"
+                            ? async () => {
+                                const record = activeAction.record;
+                                if (!record) return false;
+                                const storagePath = onDelete
+                                    ? await onDelete({ record })
+                                    : sourcePath
+                                        ? `${sourcePath}/${getRecordKey(record)}`
+                                        : undefined;
+                                if (!storagePath && !onDelete) return false;
+                                if (storagePath) await db.remove(storagePath);
+                                const success = await onAfterAction?.({ record, action: "delete" }) ?? true;
+                                if (success) close();
+                                return success;
+                            }
+                            : activeActionConfig.kind === "modal"
+                                && activeActionConfig.footer === undefined
+                                && activeAction.actionKey === "edit"
+                                && !!activeAction.record
+                                && !!normalizedActions.delete
+                                    ? async () => {
+                                        await getModalActionContext(activeAction.actionKey, activeAction.record).runAction("remove");
+                                        return false;
+                                    }
+                                    : undefined
+                    }
+                    footer={activeModalFooter}
+                    buttonCancel={
+                        activeActionConfig.kind === "modal" || activeActionConfig.kind === "delete"
+                            ? activeActionConfig.footer === undefined
+                            : true
+                    }
+                    buttonFullscreen={
+                        activeActionConfig.kind === "modal" || activeActionConfig.kind === "delete"
+                            ? activeActionConfig.buttonFullscreen
+                            : true
+                    }
                     wrapClass={theme.Grid.Modal.wrapClass}
                     className={theme.Grid.Modal.className}
                     headerClass={theme.Grid.Modal.headerClass}
@@ -265,7 +332,7 @@ function GridCore<TRecord extends RecordProps>({
                     bodyClass={theme.Grid.Modal.bodyClass}
                     footerClass={theme.Grid.Modal.footerClass}
                 >
-                    {activeActionNode}
+                    {activeActionBody}
                 </Modal>
             )}
         </>

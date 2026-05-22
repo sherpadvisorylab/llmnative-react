@@ -42,6 +42,8 @@ vi.mock('../../../src/Theme', () => ({
 }));
 
 import Grid from '../../../src/components/widgets/Grid';
+import GridDB from '../../../src/components/widgets/grid-core/GridDB';
+import { resolveGridPathFromUrl } from '../../../src/components/widgets/grid-core/resolveGridPathFromUrl';
 import { MockDataProvider } from '../../../src/providers/data/mock';
 import { renderWithProviders } from '../../helpers/renderWithProviders';
 
@@ -102,6 +104,46 @@ describe('Grid - provider source', () => {
         });
 
         await waitFor(() => expect(screen.queryByText('Bob')).not.toBeInTheDocument());
+    });
+
+    it('resolves path="fromUrl" from the current route in Grid', async () => {
+        const provider = new MockDataProvider({ '/members': USERS });
+        renderWithProviders(
+            <Grid
+                path="fromUrl"
+                columns={COLUMNS}
+            />,
+            { provider, route: '/members?status=active#top' }
+        );
+
+        await waitFor(() => {
+            expect(screen.getByText('Alice')).toBeInTheDocument();
+            expect(screen.getByText('Bob')).toBeInTheDocument();
+        });
+    });
+
+    it('resolves path="fromUrl" from the current route in GridDB', async () => {
+        const provider = new MockDataProvider({ '/members/u1': USERS });
+        renderWithProviders(
+            <GridDB
+                path="fromUrl"
+                columns={COLUMNS}
+            />,
+            { provider, route: '/members/u1' }
+        );
+
+        await waitFor(() => {
+            expect(screen.getByText('Alice')).toBeInTheDocument();
+            expect(screen.getByText('Bob')).toBeInTheDocument();
+        });
+    });
+});
+
+describe('resolveGridPathFromUrl', () => {
+    it('returns the pathname as-is', () => {
+        expect(resolveGridPathFromUrl('/users')).toBe('/users');
+        expect(resolveGridPathFromUrl('/users/123')).toBe('/users/123');
+        expect(resolveGridPathFromUrl('/companies/acme/orders')).toBe('/companies/acme/orders');
     });
 });
 
@@ -244,7 +286,42 @@ describe('Grid - form and modal workflows', () => {
         expect(screen.getByTestId('location-hash').textContent).toBe('');
     });
 
-    it('supports custom action kinds for modal and route-free delete flows', async () => {
+    it('shows save, delete and cancel in the default edit modal footer', async () => {
+        const provider = new MockDataProvider({ '/users': USERS });
+
+        renderWithProviders(
+            <Grid
+                path="/users"
+                columns={COLUMNS}
+                form={<UserFormFields />}
+                actions={['add', 'edit', 'delete']}
+            />,
+            { provider }
+        );
+
+        await waitFor(() => expect(screen.getByText('Alice')).toBeInTheDocument());
+
+        await act(async () => {
+            screen.getByText('Alice').click();
+        });
+
+        await waitFor(() => expect(screen.getByText('Editor')).toBeInTheDocument());
+        const saveButton = screen.getByRole('button', { name: 'Save' });
+        const deleteButton = screen.getByRole('button', { name: 'Delete' });
+        const cancelButton = screen.getByRole('button', { name: 'Cancel' });
+
+        expect(saveButton).toBeInTheDocument();
+        expect(deleteButton).toBeInTheDocument();
+        expect(cancelButton).toBeInTheDocument();
+
+        const footer = saveButton.parentElement;
+        expect(footer).not.toBeNull();
+        expect(footer?.children[0]).toBe(saveButton);
+        expect(footer?.children[1]).toBe(deleteButton);
+        expect(footer?.textContent).toContain('SaveDeleteCancel');
+    });
+
+    it('supports custom action kinds for modal and record-bound remove flows', async () => {
         const user = userEvent.setup();
         const provider = new MockDataProvider({ '/users': USERS });
 
@@ -257,16 +334,21 @@ describe('Grid - form and modal workflows', () => {
                     add: { kind: 'modal' },
                     edit: {
                         kind: 'modal',
-                        render: ({ record, open }) => (
+                        body: ({ record }) => (
                             <div>
                                 <div>Edit {record?.name}</div>
-                                <button type="button" onClick={() => open('delete', record)}>Delete now</button>
                             </div>
+                        ),
+                        footer: ({ runAction }) => (
+                            <>
+                                <button type="button" onClick={() => runAction('save')}>Save now</button>
+                                <button type="button" onClick={() => runAction('remove')}>Delete now</button>
+                            </>
                         ),
                     },
                     delete: {
                         kind: 'delete',
-                        confirmBody: ({ record }) => <div>Delete {record?.name}?</div>,
+                        body: ({ record }) => <div>Delete {record?.name}?</div>,
                     },
                 }}
             />,
@@ -276,8 +358,50 @@ describe('Grid - form and modal workflows', () => {
         await waitFor(() => expect(screen.getByText('Alice')).toBeInTheDocument());
         await user.click(screen.getByText('Alice'));
         await waitFor(() => expect(screen.getByText('Edit Alice')).toBeInTheDocument());
+        expect(screen.queryByRole('button', { name: 'Cancel' })).not.toBeInTheDocument();
+        const saveNowButton = screen.getByRole('button', { name: 'Save now' });
+        const deleteNowButton = screen.getByRole('button', { name: 'Delete now' });
+        const footer = saveNowButton.parentElement;
+        expect(footer).not.toBeNull();
+        expect(footer?.children[0]).toBe(saveNowButton);
+        expect(footer?.children[1]).toBe(deleteNowButton);
+        expect(footer?.textContent).toContain('Save nowDelete now');
         await user.click(screen.getByRole('button', { name: 'Delete now' }));
-        await waitFor(() => expect(screen.getByText('Delete Alice?')).toBeInTheDocument());
+        await waitFor(() => expect(screen.queryByText('Alice')).not.toBeInTheDocument());
+    });
+
+    it('supports array-backed delete workflows through onDelete without a provider path', async () => {
+        const user = userEvent.setup();
+
+        function ArrayCrudHarness() {
+            const [records, setRecords] = React.useState([
+                { _key: 'u1', name: 'Alice', role: 'admin', status: 'active', email: 'alice@example.com' },
+                { _key: 'u2', name: 'Bob', role: 'editor', status: 'inactive', email: 'bob@example.com' },
+            ]);
+
+            return (
+                <Grid
+                    records={records}
+                    recordId="_key"
+                    columns={COLUMNS}
+                    form={<UserFormFields />}
+                    actions={['add', 'edit', 'delete']}
+                    onDelete={async ({ record }) => {
+                        if (!record?._key) return '';
+                        setRecords((prev) => prev.filter((entry) => entry._key !== record._key));
+                        return '';
+                    }}
+                />
+            );
+        }
+
+        renderWithProviders(<ArrayCrudHarness />);
+
+        await waitFor(() => expect(screen.getByText('Alice')).toBeInTheDocument());
+        await user.click(screen.getByText('Alice'));
+        await waitFor(() => expect(screen.getByText('Editor')).toBeInTheDocument());
+        await user.click(screen.getByRole('button', { name: 'Delete' }));
+        await waitFor(() => expect(screen.queryByText('Alice')).not.toBeInTheDocument());
     });
 });
 
@@ -308,6 +432,36 @@ describe('Grid - event payloads', () => {
         });
 
         expect(clicks).toEqual(['u1']);
+    });
+
+    it('reflects provider-side order as the initial visible grid sort when sortable is implicit', async () => {
+        const provider = new MockDataProvider({
+            '/users': {
+                u1: { name: 'Zed', role: 'admin', status: 'active', email: 'alice@example.com' },
+                u2: { name: 'Amy', role: 'editor', status: 'active', email: 'zoe@example.com' },
+            },
+        });
+
+        renderWithProviders(
+            <Grid
+                path="/users"
+                order={{ email: 'asc' }}
+                columns={[
+                    { key: 'name', label: 'Name', sortable: true },
+                    { key: 'email', label: 'Email', sortable: true },
+                ]}
+            />,
+            { provider }
+        );
+
+        await waitFor(() => expect(screen.getByText('Zed')).toBeInTheDocument());
+
+        const emailHeader = screen.getByRole('button', { name: /sort by email, currently ascending/i });
+        expect(emailHeader.closest('th')).toHaveAttribute('aria-sort', 'ascending');
+
+        const rows = screen.getAllByRole('row');
+        expect(rows[1]).toHaveTextContent('Zed');
+        expect(rows[2]).toHaveTextContent('Amy');
     });
 
     it('returns original records through onSelectionChange in table mode', async () => {
