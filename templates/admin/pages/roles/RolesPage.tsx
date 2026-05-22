@@ -1,5 +1,5 @@
 import React from 'react';
-import { Grid, Input } from 'react-firestrap';
+import { Grid, Input } from '@ash/react';
 
 export default function RolesPage() {
     return (

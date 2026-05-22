@@ -1,5 +1,5 @@
 import React from 'react';
-import { Icon } from 'react-firestrap';
+import { Icon } from '@ash/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -48,7 +48,7 @@ export default function IconPage() {
                         ))}
                     </div>
                 }
-                code={`import { Icon } from 'react-firestrap';
+                code={`import { Icon } from '@ash/react';
 
 <Icon name="search" size={18} />
 <Icon name="settings" className="text-primary" />`}

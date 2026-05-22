@@ -18,7 +18,7 @@ src/pages/
 ## Lista utenti — `pages/users/index.tsx`
 
 ```tsx
-import { Grid, Badge } from 'react-firestrap'
+import { Grid, Badge } from '@ash/react'
 import { useNavigate } from 'react-router-dom'
 
 export default function UserList() {
@@ -81,7 +81,7 @@ Note:
 Per una pagina separata con più campi o logica complessa.
 
 ```tsx
-import { Form, Input, Select, Upload } from 'react-firestrap'
+import { Form, Input, Select, Upload } from '@ash/react'
 import { useParams, useNavigate } from 'react-router-dom'
 
 export default function UserEdit() {

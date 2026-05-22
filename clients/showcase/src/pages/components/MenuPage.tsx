@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu } from 'react-firestrap';
+import { Menu } from '@ash/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -76,7 +76,7 @@ export default function MenuPage() {
             <Section
                 title="Components menu"
                 preview={<Menu context="components" wrapClass="max-h-80 overflow-auto rounded-md border p-3" className="space-y-1" itemClass="list-none" linkClass="flex items-center gap-2 rounded px-2 py-1 text-sm hover:bg-accent" />}
-                code={`import { Menu } from 'react-firestrap';
+                code={`import { Menu } from '@ash/react';
 
 <Menu context="components" />`}
             />

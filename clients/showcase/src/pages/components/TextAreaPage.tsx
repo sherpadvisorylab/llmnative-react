@@ -1,5 +1,5 @@
 import React from 'react';
-import { Form, TextArea } from 'react-firestrap';
+import { Form, TextArea } from '@ash/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -60,7 +60,7 @@ export default function TextAreaPage() {
                         <TextArea name="notes" label="Notes" rows={4} />
                     </Form>
                 }
-                code={`import { Form, TextArea } from 'react-firestrap';
+                code={`import { Form, TextArea } from '@ash/react';
 
 <Form defaultValues={{ notes: 'Initial note' }}>
     <TextArea name="notes" label="Notes" rows={4} />

@@ -1,5 +1,5 @@
 import React from 'react';
-import { AssistantAI, Form } from 'react-firestrap';
+import { AssistantAI, Form } from '@ash/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -83,7 +83,7 @@ export default function AssistantAIPage() {
                         />
                     </Form>
                 }
-                code={`import { AssistantAI, Form } from 'react-firestrap';
+                code={`import { AssistantAI, Form } from '@ash/react';
 
 <Form>
     <AssistantAI

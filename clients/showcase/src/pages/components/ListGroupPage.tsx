@@ -1,5 +1,5 @@
 import React from 'react';
-import { Badge, ListGroup } from 'react-firestrap';
+import { Badge, ListGroup } from '@ash/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -72,7 +72,7 @@ export default function ListGroupPage() {
                         ]}
                     </ListGroup>
                 }
-                code={`import { Badge, ListGroup } from 'react-firestrap';
+                code={`import { Badge, ListGroup } from '@ash/react';
 
 <ListGroup label="Workflow" actives={[1]}>
     {[

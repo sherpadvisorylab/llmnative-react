@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActionButton, buttonOutlineSecondaryClass } from 'react-firestrap';
+import { ActionButton, buttonOutlineSecondaryClass } from '@ash/react';
 import { useLocation } from 'react-router-dom';
 import PageLayout from '../../components/PageLayout';
 

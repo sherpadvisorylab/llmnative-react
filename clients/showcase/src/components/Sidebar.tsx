@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { useMenu } from 'react-firestrap';
+import { useMenu } from '@ash/react';
 
 type MenuItem = { path: string; title?: string; group?: string; [key: string]: any };
 

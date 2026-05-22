@@ -1,5 +1,5 @@
 import React from 'react';
-import { Breadcrumbs } from 'react-firestrap';
+import { Breadcrumbs } from '@ash/react';
 
 export default function PageHeader() {
     return (

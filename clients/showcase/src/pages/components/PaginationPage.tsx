@@ -83,7 +83,7 @@ export default function PaginationPage() {
                 title="Interactive pagination — 50 records, 8 per page"
                 description="Click the page controls to navigate through the dataset."
                 preview={<DemoPagination perPage={8} />}
-                code={`import { Pagination } from 'react-firestrap';
+                code={`import { Pagination } from '@ash/react';
 
 <Pagination recordSet={items} limit={10}>
     {(pageRecords, pageOffset) => (

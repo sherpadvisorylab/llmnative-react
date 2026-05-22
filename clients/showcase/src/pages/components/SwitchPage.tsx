@@ -1,5 +1,5 @@
 import React from 'react';
-import { Form, Switch } from 'react-firestrap';
+import { Form, Switch } from '@ash/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -54,7 +54,7 @@ export default function SwitchPage() {
                         <Switch name="published" label="Published" valueChecked="yes" />
                     </Form>
                 }
-                code={`import { Form, Switch } from 'react-firestrap';
+                code={`import { Form, Switch } from '@ash/react';
 
 <Form defaultValues={{ published: 'yes' }}>
     <Switch name="published" label="Published" valueChecked="yes" />

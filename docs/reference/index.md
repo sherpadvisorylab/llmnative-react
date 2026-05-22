@@ -209,7 +209,7 @@ Con dati locali:
 Campo AI: configura ed esegue un prompt, scrive il risultato nel record.
 
 ```tsx
-import { Prompt, PromptMode } from 'react-firestrap'
+import { Prompt, PromptMode } from '@ash/react'
 
 <Prompt
   name="content"

@@ -11,7 +11,7 @@ description: From zero to a running app in under 5 minutes using the official sc
 The fastest path is the official scaffold. Run one command, answer a few prompts, and you have a fully wired Vite app with routing, providers, theme and icons ready.
 
 ```bash
-npx react-firestrap create
+npx ash create
 cd my-app
 npm install
 npm run dev
@@ -87,7 +87,7 @@ Open `src/conf/menu.ts` and `src/conf/app.ts` — these two files are where almo
 Create `src/pages/users/UsersPage.tsx`:
 
 ```tsx
-import { Grid } from 'react-firestrap';
+import { Grid } from '@ash/react';
 
 export default function UsersPage() {
   return (

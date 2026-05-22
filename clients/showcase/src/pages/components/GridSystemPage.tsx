@@ -1,5 +1,5 @@
 import React from 'react';
-import { Col, Container, Row, Wrapper } from 'react-firestrap';
+import { Col, Container, Row, Wrapper } from '@ash/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -178,7 +178,7 @@ export default function GridSystemPage() {
                         </DemoRow>
                     </div>
                 }
-                code={`import { Col, Row } from 'react-firestrap';
+                code={`import { Col, Row } from '@ash/react';
 
 <Row>
     <Col>1 of 3</Col>
@@ -208,7 +208,7 @@ export default function GridSystemPage() {
                         </DemoRow>
                     </div>
                 }
-                code={`import { Col, Row } from 'react-firestrap';
+                code={`import { Col, Row } from '@ash/react';
 
 <Row>
     <Col>1 of 3</Col>
@@ -239,7 +239,7 @@ export default function GridSystemPage() {
                         </DemoRow>
                     </div>
                 }
-                code={`import { Col, Row } from 'react-firestrap';
+                code={`import { Col, Row } from '@ash/react';
 
 <Row>
     <Col lg={2}>1 of 3</Col>
@@ -263,7 +263,7 @@ export default function GridSystemPage() {
                         <Col xs={12} md={4} xl={3}><GridCell label="xs=12 md=4 xl=3" tone="muted" /></Col>
                     </DemoRow>
                 }
-                code={`import { Col, Row } from 'react-firestrap';
+                code={`import { Col, Row } from '@ash/react';
 
 <Row>
     <Col xs={12} md={8} xl={9}>Main</Col>
@@ -287,7 +287,7 @@ export default function GridSystemPage() {
                         </Wrapper>
                     </div>
                 }
-                code={`import { Col, Container, Row, Wrapper } from 'react-firestrap';
+                code={`import { Col, Container, Row, Wrapper } from '@ash/react';
 
 <Container>
     <Row>

@@ -1,5 +1,5 @@
 {
-  "name": "react-firestrap-showcase",
+  "name": "ash-showcase",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -13,7 +13,7 @@
     "lucide-react": "^1.14.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-firestrap": "file:../../",
+    "@ash/react": "file:../../",
     "react-router-dom": "^6.22.0"
   },
   "devDependencies": {

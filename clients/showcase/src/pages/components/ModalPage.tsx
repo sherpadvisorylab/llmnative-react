@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal } from 'react-firestrap';
+import { Modal } from '@ash/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -140,7 +140,7 @@ export default function ModalPage() {
                         {open && <DemoModal position={open} onClose={() => setOpen(null)} />}
                     </div>
                 }
-                code={`import { Modal } from 'react-firestrap';
+                code={`import { Modal } from '@ash/react';
 
 const [open, setOpen] = useState(false);
 
@@ -170,7 +170,7 @@ const [open, setOpen] = useState(false);
                         calling delete on the DataProvider.
                     </div>
                 }
-                code={`import { ModalYesNo } from 'react-firestrap';
+                code={`import { ModalYesNo } from '@ash/react';
 
 {open && (
     <ModalYesNo
@@ -192,7 +192,7 @@ const [open, setOpen] = useState(false);
                         Use <code className="font-mono">ModalOk</code> for read-only info dialogs that only need an OK button.
                     </div>
                 }
-                code={`import { ModalOk } from 'react-firestrap';
+                code={`import { ModalOk } from '@ash/react';
 
 {open && (
     <ModalOk title="Import complete" onClose={() => setOpen(false)}>

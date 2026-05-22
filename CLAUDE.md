@@ -1,4 +1,4 @@
-# react-firestrap — AI Reference
+# @ash/react — AI Reference
 
 Framework React per UI data-driven. Schema-driven: definisci i campi → ottieni UI + persistenza con pochissimo codice.
 
@@ -8,7 +8,7 @@ Framework React per UI data-driven. Schema-driven: definisci i campi → ottieni
 
 > **CR-004 completata come compatibility layer:** Bootstrap e' stato rimosso come dipendenza runtime. Il CSS e' ora generato da Tailwind v4  
 > tramite `@layer components` che ricrea le stesse classi Bootstrap (`.btn`, `.badge`, `.alert`, `.modal`, ecc.).  
-> I consumer devono importare `react-firestrap/dist/index.css` una sola volta.
+> I consumer devono importare `@ash/react/dist/index.css` una sola volta.
 >
 > **CR-015:** la build root e lo scaffolding ufficiale sono Vite-first.
 
@@ -57,9 +57,9 @@ npm run test          # Vitest
 Lo scaffold ufficiale genera app Vite:
 
 ```bash
-npx react-firestrap create
-npx react-firestrap create --yes --provider=mock
-npx react-firestrap devtools
+npx @ash/react create
+npx @ash/react create --yes --provider=mock
+npx @ash/react devtools
 ```
 
 Lo scaffold crea `index.html`, `vite.config.ts`, `src/index.tsx`, `src/conf/`, `src/layouts/`,
@@ -80,7 +80,7 @@ dallo showcase. Le pagine componenti/live restano TSX. Vedi `docs/README.md` per
 ## Pattern 1 — Grid CRUD (il più comune)
 
 ```tsx
-import { Grid } from 'react-firestrap'
+import { Grid } from '@ash/react'
 
 // Lista con add/edit/delete, modal automatico, real-time updates
 export default function UserList() {
@@ -105,7 +105,7 @@ export default function UserList() {
 ## Pattern 2 — Form standalone
 
 ```tsx
-import { Form, Input, Select } from 'react-firestrap'
+import { Form, Input, Select } from '@ash/react'
 
 // Carica da Firebase, salva su Firebase, validazione built-in
 export default function UserForm() {
@@ -336,7 +336,7 @@ Built-in themes: `default`, `flat`, `cyber`.
 ## AI integration
 
 ```tsx
-import { AI } from 'react-firestrap'
+import { AI } from '@ash/react'
 
 // Risposta testuale
 const text = await AI.fetch("Scrivi un titolo per: {keyword}", { keywords: ["React"] })
@@ -359,7 +359,7 @@ Tutti i provider seguono il pattern **Ports & Adapters**: un'interfaccia (port) 
 ### Configurazione dichiarativa
 
 ```tsx
-import { App } from 'react-firestrap'
+import { App } from '@ash/react'
 
 <App
   providers={{
@@ -404,7 +404,7 @@ Registra piu' backend e seleziona quale usare per ogni servizio:
 ### Consumo nei componenti
 
 ```tsx
-import { useDataProvider, useAuthProvider, useStorageProvider, useEmailProvider } from 'react-firestrap'
+import { useDataProvider, useAuthProvider, useStorageProvider, useEmailProvider } from '@ash/react'
 
 // provider di default
 const data = useDataProvider()
@@ -421,7 +421,7 @@ const email   = useEmailProvider('gmail')   // null se 'gmail' non registrato
 
 ```typescript
 // my-providers/RestDataProvider.ts
-import { DataProviderAdapter, RecordArray } from 'react-firestrap'
+import { DataProviderAdapter, RecordArray } from '@ash/react'
 
 export class RestDataProvider implements DataProviderAdapter {
   async read(path: string): Promise<any> { /* ... */ }

@@ -23,7 +23,7 @@ const external = (id: string) => {
 export default defineConfig({
     plugins: [
         {
-            name: 'react-firestrap-css-filename',
+            name: 'ash-css-filename',
             closeBundle() {
                 const stylePath = resolve(__dirname, 'dist/style.css');
                 const indexPath = resolve(__dirname, 'dist/index.css');

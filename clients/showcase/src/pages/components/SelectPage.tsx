@@ -1,5 +1,5 @@
 import React from 'react';
-import { Form, Select } from 'react-firestrap';
+import { Form, Select } from '@ash/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -146,7 +146,7 @@ export default function SelectPage() {
                         </Form>
                     </div>
                 }
-                code={`import { Form, Select } from 'react-firestrap';
+                code={`import { Form, Select } from '@ash/react';
 
 const ROLES = [
     { label: 'Admin',  value: 'admin'  },

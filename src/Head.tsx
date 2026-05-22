@@ -205,7 +205,7 @@ export interface HeadController {
 const HeadContext = createContext<HeadController | null>(null);
 let metadataEntryId = 0;
 
-export const DEFAULT_HEAD_APP_NAME = 'react-firestrap';
+export const DEFAULT_HEAD_APP_NAME = 'Ash';
 export const DEFAULT_DOCUMENT_HEAD: DocumentHeadState = {
     charset: 'UTF-8',
     viewport: 'width=device-width, initial-scale=1.0',

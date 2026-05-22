@@ -38,7 +38,7 @@ console.log(state?.configured, state?.missingKeys);
 ## Show the current user
 
 ```tsx
-import { useAuthProvider } from 'react-firestrap';
+import { useAuthProvider } from '@ash/react';
 
 function CurrentUser() {
   const auth = useAuthProvider();
@@ -100,7 +100,7 @@ function GoogleApiButton() {
 Use `AuthButton` with `aspect="avatar"` when the app needs a ready-made sign-in/profile/logout surface.
 
 ```tsx
-import { AuthButton } from 'react-firestrap';
+import { AuthButton } from '@ash/react';
 
 function HeaderAuth() {
   return <AuthButton provider="googleAuth" intent="signIn" aspect="avatar" />;
@@ -110,7 +110,7 @@ function HeaderAuth() {
 Use `AuthButton` with `aspect="button"` when an integration needs a browser OAuth flow and the resulting access token can be reused later with `getAccessToken()`.
 
 ```tsx
-import { AuthButton, getAccessToken } from 'react-firestrap';
+import { AuthButton, getAccessToken } from '@ash/react';
 
 function DropboxConnect() {
   return (
@@ -168,7 +168,7 @@ For the full `google` object, scopes and environment variables, see [GoogleOAuth
 Use a custom provider when your app already has sessions, JWT auth or enterprise SSO.
 
 ```ts
-import type { AuthProviderAdapter, UserProfile } from 'react-firestrap';
+import type { AuthProviderAdapter, UserProfile } from '@ash/react';
 
 class SessionAuthProvider implements AuthProviderAdapter {
   private user: UserProfile | null = null;

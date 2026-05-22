@@ -1,7 +1,7 @@
 {
-  "name": "react-firestrap",
-  "version": "1.5.8",
-  "description": "Schema-driven React framework for admin panels, dashboards, and internal tools. Define fields once — get UI, validation, state, and persistence automatically. Provider-agnostic: Firebase, Supabase, or custom backends. Built for developers and AI agents alike.",
+  "name": "@ash/react",
+  "version": "0.1.0",
+  "description": "Schema-driven React framework for admin panels, dashboards, and internal tools. Define fields once — get UI, validation, state, and persistence automatically. Provider-agnostic: Firebase, Supabase, or custom backends. AI-first by design.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/types/index.d.ts",
@@ -27,7 +27,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "bin": {
-    "react-firestrap": "./bin/cli.js"
+    "ash": "./bin/cli.js"
   },
   "files": [
     "dist",
@@ -38,7 +38,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sherpadvisorylab/react-quicksuite.git"
+    "url": "git+https://github.com/sherpadvisorylab/ash-react.git"
   },
   "keywords": [
     "react",
@@ -49,12 +49,8 @@
     "admin-panel",
     "backoffice",
     "internal-tools",
-    "data-driven",
-    "form-generator",
-    "grid",
+    "ai-first",
     "ai-assisted",
-    "firebase",
-    "supabase",
     "provider-agnostic",
     "framework",
     "typescript",
@@ -64,9 +60,9 @@
   "author": "wolfgan",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/sherpadvisorylab/react-quicksuite/issues"
+    "url": "https://github.com/sherpadvisorylab/ash-react/issues"
   },
-  "homepage": "https://github.com/sherpadvisorylab/react-quicksuite#readme",
+  "homepage": "https://github.com/sherpadvisorylab/ash-react#readme",
   "peerDependencies": {
     "@phosphor-icons/react": "^2.0.0",
     "firebase": "^10.14.0",

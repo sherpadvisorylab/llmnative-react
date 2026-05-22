@@ -133,7 +133,7 @@ function createPackageJson(params) {
     const version = JSON.parse(fs.readFileSync(packagePath, 'utf8')).version;
 
     ensureFile(path.join(root, 'package.json'), JSON.stringify({
-        name: normalizeFirebaseProjectId(params.projectname) || 'react-firestrap-app',
+        name: normalizeFirebaseProjectId(params.projectname) || 'ash-app',
         version: '0.1.0',
         private: true,
         type: 'module',
@@ -150,7 +150,7 @@ function createPackageJson(params) {
             'lucide-react': '^0.400.0',
             react: '^18.2.0',
             'react-dom': '^18.2.0',
-            'react-firestrap': `^${version}`,
+            '@ash/react': `^${version}`,
             'react-router-dom': '^6.22.0',
         },
         devDependencies: {
@@ -311,7 +311,7 @@ function createSourceFiles(params) {
 
     ensureFile(path.join(root, 'src/styles/globals.css'), `
 @import "tailwindcss";
-@import "react-firestrap/dist/index.css";
+@import "@ash/react/dist/index.css";
 
 @theme inline {
     --color-background:             hsl(var(--rf-background));
@@ -367,7 +367,7 @@ export const appConfig = {
     ensureFile(path.join(root, 'src/index.tsx'), `
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { App } from 'react-firestrap';
+import { App } from '@ash/react';
 import './styles/globals.css';
 
 import { appConfig } from './conf/app';

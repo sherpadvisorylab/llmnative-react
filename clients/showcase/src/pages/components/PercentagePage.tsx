@@ -1,5 +1,5 @@
 import React from 'react';
-import { Badge, Percentage } from 'react-firestrap';
+import { Badge, Percentage } from '@ash/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -81,7 +81,7 @@ export default function PercentagePage() {
                         <Percentage label="Risk" val={12} type="danger" thickness={16} fontSize={12} wrapClass="w-full" />
                     </div>
                 }
-                code={`import { Percentage } from 'react-firestrap';
+                code={`import { Percentage } from '@ash/react';
 
 <Percentage label="Storage" val={64} type="success" thickness={22} />
 <Percentage label="Budget used" val={38} type="warning" thickness={18} />

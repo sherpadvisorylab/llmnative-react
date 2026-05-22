@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActionButton, Badge, Modal, Table, buttonOutlineSecondaryClass, buttonPrimaryClass, useDataProvider } from 'react-firestrap';
+import { ActionButton, Badge, Modal, Table, buttonOutlineSecondaryClass, buttonPrimaryClass, useDataProvider } from '@ash/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -371,7 +371,7 @@ export default function TablePage() {
                         pagination={{ limit: 4, align: 'end', sticky: false }}
                     />
                 }
-                code={`import { Table, Badge } from 'react-firestrap';
+                code={`import { Table, Badge } from '@ash/react';
 
 <Table
   header={[

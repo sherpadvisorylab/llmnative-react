@@ -1,5 +1,5 @@
 import React from 'react';
-import { BackLink, GoSite, ReferSite } from 'react-firestrap';
+import { BackLink, GoSite, ReferSite } from '@ash/react';
 import PageLayout from '../../../components/PageLayout';
 import Section from '../../../components/Section';
 import PropDocsTable from '../../../components/PropDocsTable';

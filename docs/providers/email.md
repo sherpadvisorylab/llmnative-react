@@ -31,7 +31,7 @@ const state = mail?.getConfigurationState?.();
 ## Send an email
 
 ```tsx
-import { useEmailProvider } from 'react-firestrap';
+import { useEmailProvider } from '@ash/react';
 
 function SendInviteButton({ email }: { email: string }) {
   const mail = useEmailProvider();
@@ -92,7 +92,7 @@ For the full `google` object, scopes and environment variables, see [GoogleOAuth
 Use a custom provider when email should go through SendGrid, Mailgun, SES or your own backend.
 
 ```ts
-import type { EmailProviderAdapter, EmailSendParams } from 'react-firestrap';
+import type { EmailProviderAdapter, EmailSendParams } from '@ash/react';
 
 class ApiEmailProvider implements EmailProviderAdapter {
   isConfigured() {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Head } from 'react-firestrap';
+import { Head } from '@ash/react';
 
 interface PageLayoutProps {
     title: string;

@@ -1,17 +1,17 @@
-﻿---
+---
 title: App reference
 group: Getting started
 order: 40
 path: /docs/app-configuration
-description: Complete reference for all App props â€” providers, routing, layout, theme and icons.
+description: Complete reference for all App props — providers, routing, layout, theme and icons.
 ---
 
 # App reference
 
-`<App>` is the single orchestration point for the entire framework. Mount it once at the root â€” it wires React Router, the provider registry, the theme system and the icon system, then renders pages through `LayoutDefault`.
+`<App>` is the single orchestration point for the entire framework. Mount it once at the root — it wires React Router, the provider registry, the theme system and the icon system, then renders pages through `LayoutDefault`.
 
 ```tsx
-import { App } from 'react-firestrap';
+import { App } from '@ash/react';
 
 <App
   LayoutDefault={AppLayout}
@@ -25,17 +25,17 @@ import { App } from 'react-firestrap';
 
 ---
 
-## `AppProps` â€” full interface
+## `AppProps` — full interface
 
 ```ts
 interface AppProps {
-  /** Displayed in the browser title and Brand component. Default: 'react-firestrap' */
+  /** Displayed in the browser title and Brand component. Default: '@ash/react' */
   appName?: string;
 
   /**
    * Shell component rendered around every page.
    * Must render <Outlet /> from react-router-dom to display page content.
-   * Accepts React.ComponentType only â€” not a string.
+   * Accepts React.ComponentType only — not a string.
    * Individual routes can override this with the layout field in MenuEntry.
    */
   LayoutDefault?: React.ComponentType;
@@ -92,37 +92,37 @@ interface AppProps {
 
 ## Service map
 
-react-firestrap has four **service slots** â€” each represents a capability the framework needs. You choose which driver powers each slot via `services`. A provider that is declared but whose drivers are not assigned to any slot is still instantiated but not used as the default.
+react-firestrap has four **service slots** — each represents a capability the framework needs. You choose which driver powers each slot via `services`. A provider that is declared but whose drivers are not assigned to any slot is still instantiated but not used as the default.
 
 | Service slot | What it does | Built-in drivers |
 |---|---|---|
-| `data` | Read/write records â€” used by `Grid`, `Form`, `useDataProvider` | `dbRealtime` Â· `supabaseDb` Â· `mock` Â· custom |
-| `storage` | File upload/download â€” used by `Upload`, `useStorageProvider` | `firestorage` Â· `supabaseStorage` Â· custom |
-| `auth` | Sign-in / sign-out / current user â€” used by `AuthButton`, `useAuthProvider` | `googleAuth` Â· `dropboxAuth` Â· custom |
-| `email` | Outbound email â€” used by `useEmailProvider` | `gmail` Â· custom |
+| `data` | Read/write records — used by `Grid`, `Form`, `useDataProvider` | `dbRealtime` · `supabaseDb` · `mock` · custom |
+| `storage` | File upload/download — used by `Upload`, `useStorageProvider` | `firestorage` · `supabaseStorage` · custom |
+| `auth` | Sign-in / sign-out / current user — used by `AuthButton`, `useAuthProvider` | `googleAuth` · `dropboxAuth` · custom |
+| `email` | Outbound email — used by `useEmailProvider` | `gmail` · custom |
 
 Standalone AI configuration is not a service slot. Dropbox is hybrid: `providers.dropbox` registers `dropboxAuth` for OAuth, while Dropbox file APIs remain dedicated utilities instead of `StorageProvider`.
 
-> **Custom providers:** all four service slots support custom adapter implementations via `providers.custom`. Implement the corresponding interface (`DataProviderAdapter`, `StorageProviderAdapter`, `AuthProviderAdapter`, `EmailProviderAdapter`) and register it â€” the framework treats it identically to any built-in provider. See [Provider pattern](/docs/providers) for the interfaces and a complete example.
+> **Custom providers:** all four service slots support custom adapter implementations via `providers.custom`. Implement the corresponding interface (`DataProviderAdapter`, `StorageProviderAdapter`, `AuthProviderAdapter`, `EmailProviderAdapter`) and register it — the framework treats it identically to any built-in provider. See [Provider pattern](/docs/providers) for the interfaces and a complete example.
 
 ---
 
 ## `AppProvidersConfig`
 
-Declares all backends and routes each service slot to a specific backend. Only the keys you declare are instantiated â€” unused backends add no overhead.
+Declares all backends and routes each service slot to a specific backend. Only the keys you declare are instantiated — unused backends add no overhead.
 
 ```ts
 interface AppProvidersConfig {
-  // â”€â”€ Provider configs â€” each key activates a provider's drivers â”€â”€â”€â”€
+  // ── Provider configs — each key activates a provider's drivers ────
 
-  /** Firebase â€” activates drivers: dbRealtime (data), firestorage (storage). */
+  /** Firebase — activates drivers: dbRealtime (data), firestorage (storage). */
   firebase?: FirebaseConfig;
 
-  /** Supabase â€” activates drivers: supabaseDb (data), supabaseStorage (storage). */
+  /** Supabase — activates drivers: supabaseDb (data), supabaseStorage (storage). */
   supabase?: SupabaseProviderConfig;
 
   /**
-   * Google â€” activates drivers: googleAuth (auth), gmail (email).
+   * Google — activates drivers: googleAuth (auth), gmail (email).
    * Both drivers share this single config object.
    */
   google?: {
@@ -133,7 +133,7 @@ interface AppProvidersConfig {
   };
 
   /**
-   * Dropbox â€” activates driver: dropboxAuth (auth).
+   * Dropbox — activates driver: dropboxAuth (auth).
    * File APIs are still consumed through Dropbox utilities, not StorageProvider.
    */
   dropbox?: {
@@ -141,7 +141,7 @@ interface AppProvidersConfig {
     rootPath:  string;  // base path inside the Dropbox folder
   };
 
-  /** In-memory mock â€” activates driver: mock (data). Resets on reload. No credentials needed. */
+  /** In-memory mock — activates driver: mock (data). Resets on reload. No credentials needed. */
   mock?: {
     data?: Record<string, Record<string, object>>;
     // { '/users': { u1: { name: 'Alice' } }, '/posts': { ... } }
@@ -162,7 +162,7 @@ interface AppProvidersConfig {
 
   /**
    * Routes each service slot to a specific driver by name.
-   * Omit a slot to leave it unconfigured â€” its hook returns null.
+   * Omit a slot to leave it unconfigured — its hook returns null.
    *
    * Built-in driver names:
    *   data:    'dbRealtime' | 'supabaseDb' | 'mock'
@@ -177,14 +177,14 @@ interface AppProvidersConfig {
     email?:   'gmail' | string;
   };
 
-  // â”€â”€ Standalone integrations (not service slots) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Standalone integrations (not service slots) ────────────────
 
 }
 ```
 
 ### Quick examples
 
-**Mock only** â€” no credentials, resets on reload:
+**Mock only** — no credentials, resets on reload:
 ```tsx
 providers={{
   mock: { data: { '/users': { u1: { name: 'Alice', role: 'admin' } } } },
@@ -210,7 +210,7 @@ providers={{
 }}
 ```
 
-**Mixed backends â€” different service per backend:**
+**Mixed backends — different service per backend:**
 ```tsx
 const provider = import.meta.env.VITE_PROVIDER ?? 'mock';
 const dataDriver =
@@ -248,9 +248,9 @@ providers={{
 
 ## `FirebaseConfig`
 
-All fields are required. Copy them from the Firebase console under **Project settings â†’ Your apps â†’ SDK setup and configuration â†’ Config**.
+All fields are required. Copy them from the Firebase console under **Project settings → Your apps → SDK setup and configuration → Config**.
 
-â†’ [Firebase docs: get config object](https://firebase.google.com/docs/web/setup#config-object)
+→ [Firebase docs: get config object](https://firebase.google.com/docs/web/setup#config-object)
 
 ```ts
 interface FirebaseConfig {
@@ -285,14 +285,14 @@ export const firebaseConfig: FirebaseConfig = {
 
 ## `SupabaseProviderConfig`
 
-Copy the URL and anonymous key from the Supabase dashboard under **Project settings â†’ API**.
+Copy the URL and anonymous key from the Supabase dashboard under **Project settings → API**.
 
-â†’ [Supabase docs: project API settings](https://supabase.com/dashboard/project/_/settings/api)
+→ [Supabase docs: project API settings](https://supabase.com/dashboard/project/_/settings/api)
 
 ```ts
 interface SupabaseProviderConfig {
   url:      string;   // 'https://xyzabc.supabase.co'
-  anonKey:  string;   // 'eyJhbGci...' â€” safe to expose in the browser
+  anonKey:  string;   // 'eyJhbGci...' — safe to expose in the browser
   bucket?:  string;   // Storage bucket name, default: 'public'
 }
 ```
@@ -307,11 +307,11 @@ export const supabaseConfig: SupabaseProviderConfig = {
 
 ---
 
-## `GoogleOAuth2` â€” sign-in config
+## `GoogleOAuth2` — sign-in config
 
-The `clientId` comes from the Google Cloud Console under **APIs & Services â†’ Credentials â†’ OAuth 2.0 Client IDs**. Make sure `http://localhost:5173` (or your domain) is listed in **Authorised JavaScript origins**.
+The `clientId` comes from the Google Cloud Console under **APIs & Services → Credentials → OAuth 2.0 Client IDs**. Make sure `http://localhost:5173` (or your domain) is listed in **Authorised JavaScript origins**.
 
-â†’ [Google Cloud Console: credentials](https://console.cloud.google.com/apis/credentials)
+→ [Google Cloud Console: credentials](https://console.cloud.google.com/apis/credentials)
 
 ```ts
 interface GoogleOAuth2 {
@@ -333,19 +333,19 @@ export const googleOAuth2: GoogleOAuth2 = {
 
 AI settings are not service slots and are not accessible via provider hooks. Dropbox is listed here because its file APIs are consumed directly, even though `providers.dropbox` also registers the `dropboxAuth` auth driver.
 
-### `AIConfig` â€” passed via `aiConfig` prop
+### `AIConfig` — passed via `aiConfig` prop
 
-Multi-model AI integration. `AI.fetch`, `AI.json` and `AI.array` automatically use the first key that is set. You can configure multiple providers simultaneously â€” the utilities will pick the active one based on priority order.
+Multi-model AI integration. `AI.fetch`, `AI.json` and `AI.array` automatically use the first key that is set. You can configure multiple providers simultaneously — the utilities will pick the active one based on priority order.
 
-â†’ [AI integration](/providers/integrations)
+→ [AI integration](/providers/integrations)
 
 ```ts
 interface AIConfig {
-  geminiApiKey?:    string;  // Google AI Studio â†’ aistudio.google.com/apikey
-  openaiApiKey?:    string;  // platform.openai.com â†’ API keys
-  anthropicApiKey?: string;  // console.anthropic.com â†’ API keys
-  deepSeekApiKey?:  string;  // platform.deepseek.com â†’ API keys
-  mistralApiKey?:   string;  // console.mistral.ai â†’ API keys
+  geminiApiKey?:    string;  // Google AI Studio → aistudio.google.com/apikey
+  openaiApiKey?:    string;  // platform.openai.com → API keys
+  anthropicApiKey?: string;  // console.anthropic.com → API keys
+  deepSeekApiKey?:  string;  // platform.deepseek.com → API keys
+  mistralApiKey?:   string;  // console.mistral.ai → API keys
 }
 ```
 
@@ -358,15 +358,15 @@ interface AIConfig {
 />
 ```
 
-### `DropboxConfig` â€” declared inside `providers.dropbox`
+### `DropboxConfig` — declared inside `providers.dropbox`
 
-Dropbox file access used by Dropbox-specific components and utilities. It registers `dropboxAuth` for OAuth connection buttons, but it does **not** power the `storage` service slot â€” `useStorageProvider()` will not return a Dropbox adapter.
+Dropbox file access used by Dropbox-specific components and utilities. It registers `dropboxAuth` for OAuth connection buttons, but it does **not** power the `storage` service slot — `useStorageProvider()` will not return a Dropbox adapter.
 
-â†’ [Dropbox App Console](https://www.dropbox.com/developers/apps)
+→ [Dropbox App Console](https://www.dropbox.com/developers/apps)
 
 ```ts
 interface DropboxConfig {
-  clientId:  string;  // from Dropbox App Console â†’ App key
+  clientId:  string;  // from Dropbox App Console → App key
   rootPath:  string;  // base path inside the Dropbox folder, e.g. '/my-app'
 }
 ```
@@ -392,7 +392,7 @@ interface MenuEntry {
   page?:      React.ComponentType        // static component (always loaded)
             | (() => Promise<{ default: React.ComponentType }>);  // dynamic import
   layout?:    React.ComponentType;       // per-route layout override
-  children?:  MenuEntry[];              // nested entries â†’ submenu
+  children?:  MenuEntry[];              // nested entries → submenu
 }
 ```
 
@@ -406,7 +406,7 @@ Vite exposes `VITE_*` variables via `import.meta.env`. Centralise all runtime co
 
 ```ts
 // src/conf/app.ts
-import type { AppProvidersConfig } from 'react-firestrap';
+import type { AppProvidersConfig } from '@ash/react';
 import { firebaseConfig } from './firebase';
 import { supabaseConfig } from './supabase';
 
@@ -433,11 +433,11 @@ export const providers: AppProvidersConfig = {
 ```
 
 ```
-# .env.local  â€” never commit this file
+# .env.local  — never commit this file
 VITE_PROVIDER=firebase
 VITE_FIREBASE_API_KEY=AIzaSy...
 VITE_FIREBASE_PROJECT_ID=my-project
-# â€¦ other keys
+# … other keys
 ```
 
 ---
@@ -452,13 +452,13 @@ import {
   useStorageProvider,
   useAuthProvider,
   useEmailProvider,
-} from 'react-firestrap';
+} from '@ash/react';
 
 const data    = useDataProvider();           // services.data provider
 const storage = useStorageProvider();        // null if storage not configured
 const auth    = useAuthProvider();
 
-// Named access by driver name â€” useful when multiple backends are registered
+// Named access by driver name — useful when multiple backends are registered
 const supabase = useDataProvider('supabaseDb');
 const gmail    = useEmailProvider('gmail');  // null if not configured
 ```

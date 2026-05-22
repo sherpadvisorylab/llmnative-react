@@ -12,7 +12,7 @@ import {
     String as TextField,
     Tab,
     TabItem,
-} from 'react-firestrap';
+} from '@ash/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';

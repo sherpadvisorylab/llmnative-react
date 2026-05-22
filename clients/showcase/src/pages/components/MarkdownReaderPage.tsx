@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MarkdownReader } from 'react-firestrap';
+import { MarkdownReader } from '@ash/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -8,7 +8,7 @@ import type { PropDef, PlaygroundConfig } from '../../types/playground';
 
 const SAMPLE_MARKDOWN = `# MarkdownReader
 
-Render repository-friendly Markdown with react-firestrap styling.
+Render repository-friendly Markdown with @ash/react styling.
 
 ## Features
 
@@ -65,7 +65,7 @@ export default function MarkdownReaderPage() {
     return (
         <PageLayout
             title="MarkdownReader"
-            description="Render Markdown with react-firestrap styling, GFM support, code copy and internal link handling."
+            description="Render Markdown with @ash/react styling, GFM support, code copy and internal link handling."
         >
             <Section
                 title="Rendered markdown"
@@ -87,7 +87,7 @@ export default function MarkdownReaderPage() {
                         )}
                     </div>
                 }
-                code={`import { MarkdownReader } from 'react-firestrap';
+                code={`import { MarkdownReader } from '@ash/react';
 
 <MarkdownReader
   content={markdown}

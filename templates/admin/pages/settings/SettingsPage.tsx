@@ -1,5 +1,5 @@
 import React from 'react';
-import { Form, Input, Select } from 'react-firestrap';
+import { Form, Input, Select } from '@ash/react';
 
 const timezoneOptions = [
     { label: 'UTC',              value: 'UTC' },

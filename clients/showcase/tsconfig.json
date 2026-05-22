@@ -14,7 +14,7 @@
     "strict": true,
     "paths": {
       "@/*": ["./src/*"],
-      "react-firestrap": ["../../dist/types/index.d.ts"]
+      "@ash/react": ["../../dist/types/index.d.ts"]
     }
   },
   "include": ["src"]

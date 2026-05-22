@@ -1,5 +1,5 @@
 import React from 'react';
-import { Carousel } from 'react-firestrap';
+import { Carousel } from '@ash/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -64,7 +64,7 @@ export default function CarouselPage() {
             <Section
                 title="Slides with captions"
                 preview={<Carousel showIndicators showControls showCaption>{slides}</Carousel>}
-                code={`import { Carousel } from 'react-firestrap';
+                code={`import { Carousel } from '@ash/react';
 
 <Carousel showIndicators showControls showCaption>
     <img src={slide1} alt="Slide 1" description="Demo slide" />

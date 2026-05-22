@@ -308,7 +308,7 @@ Non serve competere con React Admin (26k stelle) o Refine (30k stelle). Serve un
 
 ### P4.2 — CLI e scaffolding
 
-- [ ] **Verificare build del progetto generato** — test automatico che `npx react-firestrap create` produce un progetto buildabile
+- [ ] **Verificare build del progetto generato** — test automatico che `npx ash create` produce un progetto buildabile
 - [ ] **Template `saas`** con auth + CRUD + tenant
 - [ ] **Template `ai`** con AI integration preconfigurata
 - [ ] **CLI `devtools`** — inspector per provider state, tema, routing

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Brand } from 'react-firestrap';
+import { Brand } from '@ash/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -24,7 +24,7 @@ const PLAYGROUND: PlaygroundConfig = {
     props: BRAND_PROPS,
     defaultProps: {
         url: '/',
-        label: 'react-firestrap',
+        label: '@ash/react',
         logo: LOGO,
         width: 32,
         height: 32,
@@ -43,10 +43,10 @@ export default function BrandPage() {
         <PageLayout title="Brand" description="Application brand block with optional router link, logo and text label.">
             <Section
                 title="Logo and label"
-                preview={<Brand url="/" logo={LOGO} label="react-firestrap" width={32} height={32} />}
-                code={`import { Brand } from 'react-firestrap';
+                preview={<Brand url="/" logo={LOGO} label="@ash/react" width={32} height={32} />}
+                code={`import { Brand } from '@ash/react';
 
-<Brand url="/" logo={logoUrl} label="react-firestrap" width={32} height={32} />`}
+<Brand url="/" logo={logoUrl} label="@ash/react" width={32} height={32} />`}
             />
 
             <PropDocsTable props={BRAND_PROPS} />

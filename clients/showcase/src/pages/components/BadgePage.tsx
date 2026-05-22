@@ -1,5 +1,5 @@
 import React from 'react';
-import { Badge } from 'react-firestrap';
+import { Badge } from '@ash/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -54,7 +54,7 @@ export default function BadgePage() {
                         ))}
                     </div>
                 }
-                code={`import { Badge } from 'react-firestrap';
+                code={`import { Badge } from '@ash/react';
 
 <Badge type="primary">primary</Badge>
 <Badge type="success">success</Badge>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Form, LayoutBuilder, ListGroup } from 'react-firestrap';
+import { Form, LayoutBuilder, ListGroup } from '@ash/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -51,7 +51,7 @@ export default function LayoutBuilderPage() {
                         <LayoutBuilder name="layout" defaultSpan={3} heightPx={140} />
                     </Form>
                 }
-                code={`import { Form, LayoutBuilder, ListGroup } from 'react-firestrap';
+                code={`import { Form, LayoutBuilder, ListGroup } from '@ash/react';
 
 <Form>
     <ListGroup draggable label="Fields">

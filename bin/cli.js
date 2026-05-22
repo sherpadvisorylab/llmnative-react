@@ -8,31 +8,31 @@ const args = process.argv.slice(3);
 
 function printGeneralHelp() {
     console.log(`
-React FireStrap CLI
+Ash CLI
 
 Available commands:
 
   create     - Generates a Vite + React project scaffold
   devtools   - Generates Vite, TypeScript, and PostCSS config only
-  version    - Prints the installed react-firestrap version
+  version    - Prints the installed @ash/react version
   help       - Displays this help message
 
 Examples:
-  npx react-firestrap create
-  npx react-firestrap create --yes --provider=mock
-  npx react-firestrap create --help
-  npx react-firestrap devtools
-  npx react-firestrap version
+  npx @ash/react create
+  npx @ash/react create --yes --provider=mock
+  npx @ash/react create --help
+  npx @ash/react devtools
+  npx @ash/react version
     `);
 }
 
 function printCreateHelp() {
     console.log(`
-React FireStrap create
+Ash create
 
 Usage:
-  npx react-firestrap create
-  npx react-firestrap create --yes --name=my-app --provider=mock
+  npx ash create
+  npx ash create --yes --name=my-app --provider=mock
 
 Interactive prompts:
   project name
@@ -89,7 +89,7 @@ switch (cmd) {
     case '--version':
     case '-v':
         const pkg = require(path.join(__dirname, '../package.json'));
-        console.log(`react-firestrap version: ${pkg.version}`);
+        console.log(`@ash/react version: ${pkg.version}`);
         break;
 
     case 'help':

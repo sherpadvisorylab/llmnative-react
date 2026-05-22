@@ -1,5 +1,5 @@
 import React from 'react';
-import { Form, ImageUrl, PromptMode } from 'react-firestrap';
+import { Form, ImageUrl, PromptMode } from '@ash/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -70,7 +70,7 @@ export default function ImageUrlPage() {
                         <ImageUrl name="hero" label="Hero image" defaultValue={{ url: SAMPLE_IMAGE, width: 320, height: 180 }} />
                     </Form>
                 }
-                code={`import { Form, ImageUrl } from 'react-firestrap';
+                code={`import { Form, ImageUrl } from '@ash/react';
 
 <Form>
     <ImageUrl name="hero" label="Hero image" />

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Checkbox, Form } from 'react-firestrap';
+import { Checkbox, Form } from '@ash/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -54,7 +54,7 @@ export default function CheckboxPage() {
                         <Checkbox name="accepted" label="Accepted" valueChecked="yes" />
                     </Form>
                 }
-                code={`import { Checkbox, Form } from 'react-firestrap';
+                code={`import { Checkbox, Form } from '@ash/react';
 
 <Form defaultValues={{ accepted: 'yes' }}>
     <Checkbox name="accepted" label="Accepted" valueChecked="yes" />

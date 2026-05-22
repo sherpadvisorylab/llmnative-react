@@ -1,5 +1,5 @@
 import React from 'react';
-import { Grid, Input, Select } from 'react-firestrap';
+import { Grid, Input, Select } from '@ash/react';
 
 const industryOptions = [
     { label: 'Technology',    value: 'Technology' },

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card } from 'react-firestrap';
+import { Card } from '@ash/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -75,7 +75,7 @@ export default function CardPage() {
                         Card body content goes here.
                     </Card>
                 }
-                code={`import { Card } from 'react-firestrap';
+                code={`import { Card } from '@ash/react';
 
 <Card>Card body content goes here.</Card>`}
             />

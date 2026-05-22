@@ -17,7 +17,7 @@ There are two ways to get started with react-firestrap. Pick the one that fits y
 The official scaffold generates a complete Vite app with routing, providers, theme and icons already wired. You go from zero to a running app in under 5 minutes.
 
 ```bash
-npx react-firestrap create
+npx ash create
 ```
 
 → Continue with [Quick start](/docs/quick-start)

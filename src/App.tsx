@@ -176,7 +176,7 @@ function App({
                  scrapeConfig       = undefined,
                  tenantsURI         = undefined,
                  proxyURI           = undefined,
-                 appName            = "react-firestrap",
+                 appName = "Ash",
                  menuConfig         = {},
                  providers          = {},
                  iconProvider,

@@ -1,5 +1,5 @@
 import React from 'react';
-import { LoadingButton } from 'react-firestrap';
+import { LoadingButton } from '@ash/react';
 import PageLayout from '../../../components/PageLayout';
 import Section from '../../../components/Section';
 import PropDocsTable from '../../../components/PropDocsTable';

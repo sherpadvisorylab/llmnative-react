@@ -1,5 +1,5 @@
 import React from 'react';
-import { Grid, Badge, Input, Select } from 'react-firestrap';
+import { Grid, Badge, Input, Select } from '@ash/react';
 
 const roleOptions = [
     { label: 'Administrator', value: 'admin' },

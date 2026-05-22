@@ -17,7 +17,7 @@ For a new project use the scaffold — it generates the full folder structure wi
 Wherever you start, import the library CSS once at the app entry:
 
 ```tsx
-import 'react-firestrap/dist/index.css';
+import '@ash/react/dist/index.css';
 ```
 
 ---
@@ -27,7 +27,7 @@ import 'react-firestrap/dist/index.css';
 The most common screen is a list with add/edit/delete actions and an automatic modal form.
 
 ```tsx
-import { Grid } from 'react-firestrap';
+import { Grid } from '@ash/react';
 
 export default function UserList() {
   return (
@@ -70,7 +70,7 @@ export default function UserList() {
 Use `Form` for detail pages that load, edit, save and delete a single record.
 
 ```tsx
-import { Form, Input, Select, Upload } from 'react-firestrap';
+import { Form, Input, Select, Upload } from '@ash/react';
 import { useParams } from 'react-router-dom';
 
 export default function UserEdit() {

@@ -7,7 +7,7 @@ Scenario: form preventivo con sezione cliente, indirizzo, e righe prodotto dinam
 ## Form completo
 
 ```tsx
-import { Form, Input, Select, Repeat, Upload } from 'react-firestrap'
+import { Form, Input, Select, Repeat, Upload } from '@ash/react'
 
 export default function QuoteForm() {
   return (

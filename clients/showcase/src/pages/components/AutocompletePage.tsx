@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Autocomplete, Form } from 'react-firestrap';
+import { Autocomplete, Form } from '@ash/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -178,7 +178,7 @@ export default function AutocompletePage() {
                         </Form>
                     </div>
                 }
-                code={`import { Autocomplete, Form } from 'react-firestrap';
+                code={`import { Autocomplete, Form } from '@ash/react';
 
 <Form>
     <Autocomplete
@@ -254,7 +254,7 @@ export default function AutocompletePage() {
                 description="Enable creatable to let users type values not in the list. Press Enter to confirm. Use onCreate to persist the new option to your DataProvider."
                 preview={<CreatableDemo />}
                 code={`import { useState } from 'react';
-import { Autocomplete, Form, useDataProvider } from 'react-firestrap';
+import { Autocomplete, Form, useDataProvider } from '@ash/react';
 
 function TagField() {
     const db = useDataProvider();

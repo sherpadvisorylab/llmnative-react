@@ -1,5 +1,5 @@
 import React from 'react';
-import { Grid } from 'react-firestrap';
+import { Grid } from '@ash/react';
 
 export default function HomePage() {
     return (

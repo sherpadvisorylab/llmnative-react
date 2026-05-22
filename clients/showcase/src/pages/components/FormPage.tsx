@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Form, Input, Select, TextArea, MockDataProvider, DataProvider } from 'react-firestrap';
+import { Form, Input, Select, TextArea, MockDataProvider, DataProvider } from '@ash/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -148,7 +148,7 @@ export default function FormPage() {
                         </div>
                     </WithMock>
                 }
-                code={`import { MockDataProvider, DataProvider, Form, Input, Select, TextArea } from 'react-firestrap';
+                code={`import { MockDataProvider, DataProvider, Form, Input, Select, TextArea } from '@ash/react';
 
 const mockProvider = new MockDataProvider();
 

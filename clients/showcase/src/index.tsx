@@ -1,7 +1,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { App } from 'react-firestrap';
-import 'react-firestrap/dist/index.css';
+import { App } from '@ash/react';
+import '@ash/react/dist/index.css';
 import './globals.css';
 
 import ShowcaseLayout from './layouts/ShowcaseLayout';
@@ -27,7 +27,7 @@ function importPage(pageSource: string): Promise<{ default: React.ComponentType 
 const root = createRoot(document.getElementById('root')!);
 root.render(
     <App
-        appName="react-firestrap showcase"
+        appName="@ash/react showcase"
         importPage={importPage}
         LayoutDefault={ShowcaseLayout}
         menuConfig={menu}

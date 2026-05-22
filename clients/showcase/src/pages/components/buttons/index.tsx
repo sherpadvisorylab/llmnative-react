@@ -77,7 +77,7 @@ export default function ButtonsIndexPage() {
                         ))}
                     </div>
                 }
-                code={`import { ActionButton, LoadingButton } from 'react-firestrap';`}
+                code={`import { ActionButton, LoadingButton } from '@ash/react';`}
             />
         </PageLayout>
     );

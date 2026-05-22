@@ -1,5 +1,5 @@
 import React from 'react';
-import { Notifications } from 'react-firestrap';
+import { Notifications } from '@ash/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -38,7 +38,7 @@ export default function NotificationsPage() {
             <Section
                 title="Notification menu"
                 preview={<Notifications badge={2}>{NOTIFICATIONS}</Notifications>}
-                code={`import { Notifications } from 'react-firestrap';
+                code={`import { Notifications } from '@ash/react';
 
 <Notifications badge={2}>
     {[

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu } from 'react-firestrap';
+import { Menu } from '@ash/react';
 
 type SidebarProps = {
     open: boolean;

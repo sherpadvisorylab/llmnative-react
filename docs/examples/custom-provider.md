@@ -9,7 +9,7 @@ import type {
   DatabaseOptions,
   ReadOptions,
   RecordArray,
-} from 'react-firestrap';
+} from '@ash/react';
 
 export class RestDataProvider implements DataProviderAdapter {
   constructor(private readonly baseUrl: string) {}
@@ -91,7 +91,7 @@ Nota: `subscribe` e' una primitive provider-agnostic. I componenti React la chia
 ## Uso in App
 
 ```tsx
-import { App } from 'react-firestrap';
+import { App } from '@ash/react';
 import { RestDataProvider } from './providers/RestDataProvider';
 
 export default function Root() {

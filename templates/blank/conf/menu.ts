@@ -1,4 +1,4 @@
-import type { MenuConfig } from 'react-firestrap';
+import type { MenuConfig } from '@ash/react';
 import HomePage from '../pages/home/HomePage';
 import Default from '../layouts/Default';
 

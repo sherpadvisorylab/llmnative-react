@@ -1,5 +1,5 @@
 import React from 'react';
-import { Brand, Menu, Notifications, SignInButton } from 'react-firestrap';
+import { Brand, Menu, Notifications, SignInButton } from '@ash/react';
 
 type HeaderProps = {
     onMenuToggle?: () => void;

@@ -1,2 +1,2 @@
-import { Icon } from 'react-firestrap';
+import { Icon } from '@ash/react';
 export default Icon;
