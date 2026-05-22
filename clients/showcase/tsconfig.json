@@ -14,7 +14,7 @@
     "strict": true,
     "paths": {
       "@/*": ["./src/*"],
-      "@ash/react": ["../../dist/types/index.d.ts"]
+      "@ash/react": ["../../dist/types/src/index.d.ts"]
     }
   },
   "include": ["src"]

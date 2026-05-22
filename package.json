@@ -4,7 +4,7 @@
   "description": "Schema-driven React framework for admin panels, dashboards, and internal tools. Define fields once — get UI, validation, state, and persistence automatically. Provider-agnostic: Firebase, Supabase, or custom backends. AI-first by design.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
-  "types": "dist/types/index.d.ts",
+  "types": "dist/types/src/index.d.ts",
   "style": "dist/index.css",
   "exports": {
     ".": {
