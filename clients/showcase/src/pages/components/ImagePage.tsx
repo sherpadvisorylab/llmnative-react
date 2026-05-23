@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Image, Modal, Icon, useImage } from '@ash/react';
+import { Image, Modal, Icon, useImage } from '@llmnative/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -16,7 +16,7 @@ function makePortraitSvg(label: string, bg: string, accent: string) {
     return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 }
 
-const SAMPLE_LANDSCAPE = makeLandscapeSvg('@ash/react', '#2563eb', '#facc15');
+const SAMPLE_LANDSCAPE = makeLandscapeSvg('@llmnative/react', '#2563eb', '#facc15');
 const SAMPLE_LANDSCAPE_ALT = makeLandscapeSvg('Campaign hero', '#059669', '#a7f3d0');
 const SAMPLE_PORTRAIT = makePortraitSvg('Portrait', '#7c3aed', '#ddd6fe');
 
@@ -226,7 +226,7 @@ export default function ImagePage() {
                         className="rounded-xl border max-w-md w-full"
                     />
                 }
-                code={`import { Image } from '@ash/react';
+                code={`import { Image } from '@llmnative/react';
 
 <Image
     src={imageUrl}
@@ -258,7 +258,7 @@ export default function ImagePage() {
                         />
                     </div>
                 }
-                code={`import { Image } from '@ash/react';
+                code={`import { Image } from '@llmnative/react';
 
 // plain text caption
 <Image
@@ -301,7 +301,7 @@ export default function ImagePage() {
                         </div>
                     </div>
                 }
-                code={`import { Image } from '@ash/react';
+                code={`import { Image } from '@llmnative/react';
 
 // theme default placeholder
 <Image src="" label="Missing image" className="rounded-lg border" />
@@ -352,7 +352,7 @@ export default function ImagePage() {
                         />
                     </div>
                 }
-                code={`import { Image } from '@ash/react';
+                code={`import { Image } from '@llmnative/react';
 
 // pre = left, post = right, both vertically centred
 <Image
@@ -395,7 +395,7 @@ export default function ImagePage() {
                         ))}
                     </div>
                 }
-                code={`import { Image } from '@ash/react';
+                code={`import { Image } from '@llmnative/react';
 
 // cover  — crops to fill the box, no empty space (default for thumbnails)
 <Image src={url} width={160} height={160} fit="cover" className="rounded-lg border" />
@@ -453,7 +453,7 @@ export default function ImagePage() {
                         </div>
                     </div>
                 }
-                code={`import { Image } from '@ash/react';
+                code={`import { Image } from '@llmnative/react';
 
 // thumbnail — square crop
 <Image src={url} label="Thumbnail" width={120} height={120} fit="cover" className="rounded border" />
@@ -497,7 +497,7 @@ export default function ImagePage() {
                         />
                     </div>
                 }
-                code={`import { Image } from '@ash/react';
+                code={`import { Image } from '@llmnative/react';
 
 // circle avatar
 <Image src={url} label="Avatar" width={96} height={96} fit="cover" className="rounded-full border-4 border-primary" />
@@ -556,7 +556,7 @@ export default function ImagePage() {
                         </div>
                     </div>
                 }
-                code={`import { useImage } from '@ash/react';
+                code={`import { useImage } from '@llmnative/react';
 
 // Density mode — fixed-size images (logo, avatar, icon)
 // Files expected: hero.jpg  hero@2x.jpg  hero@3x.jpg
@@ -605,7 +605,7 @@ logo.toHtml({ mode: 'density', densities: [1, 2], suffix: (d) => d === 1 ? '' : 
                         </div>
                     </div>
                 }
-                code={`import { useImage } from '@ash/react';
+                code={`import { useImage } from '@llmnative/react';
 
 const img = useImage({ src: 'card.jpg', alt: 'Card image', width: 640, height: 360, fit: 'cover', loading: 'lazy' });
 const srcset = { mode: 'width', widths: [320, 640, 1280], sizes: '(max-width: 768px) 100vw, 640px' };

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Form, Input, TabDynamic } from '@ash/react';
+import { Form, Input, TabDynamic } from '@llmnative/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -66,7 +66,7 @@ export default function TabDynamicPage() {
                         </TabDynamic>
                     </Form>
                 }
-                code={`import { Form, Input, TabDynamic } from '@ash/react';
+                code={`import { Form, Input, TabDynamic } from '@llmnative/react';
 
 <Form defaultValues={{ sections: [{ title: 'Intro' }] }}>
     <TabDynamic name="sections" label="Section">

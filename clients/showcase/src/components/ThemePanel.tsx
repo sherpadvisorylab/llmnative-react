@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { Modal, Icon, PhosphorIconProvider, useIconController, useThemeController } from '@ash/react';
-import type { PhosphorWeight, ColorScale } from '@ash/react';
+import { Modal, Icon, PhosphorIconProvider, useIconController, useThemeController } from '@llmnative/react';
+import type { PhosphorWeight, ColorScale } from '@llmnative/react';
 
 interface ThemePanelProps {
     open: boolean;
@@ -112,7 +112,7 @@ export default function ThemePanel({ open, onClose }: ThemePanelProps) {
     const iconLibraryId = (providerId === 'phosphor' ? 'phosphor' : 'lucide') as IconLibraryId;
 
     const appConfiguration = useMemo(() => {
-        return `import { App } from '@ash/react';
+        return `import { App } from '@llmnative/react';
 
 <App
     iconProvider="${iconLibraryId}"

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Checklist, Form } from '@ash/react';
+import { Checklist, Form } from '@llmnative/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -131,7 +131,7 @@ export default function ChecklistPage() {
                         </Form>
                     </div>
                 }
-                code={`import { Checklist, Form } from '@ash/react';
+                code={`import { Checklist, Form } from '@llmnative/react';
 
 <Form defaultValues={{ tags: ['react', 'typescript'] }}>
     <Checklist

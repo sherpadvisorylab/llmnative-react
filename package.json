@@ -1,7 +1,7 @@
 {
-  "name": "@ash/react",
+  "name": "@llmnative/react",
   "version": "0.1.0",
-  "description": "Schema-driven React framework for admin panels, dashboards, and internal tools. Define fields once — get UI, validation, state, and persistence automatically. Provider-agnostic: Firebase, Supabase, or custom backends. AI-first by design.",
+  "description": "LLM-native React framework for deterministic UI generation. Data-driven by default, schema-driven optional. Ultra-low token consumption — built for AI agents, not just humans.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/types/src/index.d.ts",
@@ -27,7 +27,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "bin": {
-    "ash": "./bin/cli.js"
+    "llmnative": "./bin/cli.js"
   },
   "files": [
     "dist",
@@ -38,7 +38,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sherpadvisorylab/ash-react.git"
+    "url": "git+https://github.com/sherpadvisorylab/llmnative-react.git"
   },
   "keywords": [
     "react",
@@ -60,9 +60,9 @@
   "author": "wolfgan",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/sherpadvisorylab/ash-react/issues"
+    "url": "https://github.com/sherpadvisorylab/llmnative-react/issues"
   },
-  "homepage": "https://github.com/sherpadvisorylab/ash-react#readme",
+  "homepage": "https://github.com/sherpadvisorylab/llmnative-react#readme",
   "peerDependencies": {
     "@phosphor-icons/react": "^2.0.0",
     "firebase": "^10.14.0",

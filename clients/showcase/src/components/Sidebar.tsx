@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { useMenu } from '@ash/react';
+import { useMenu } from '@llmnative/react';
 
 type MenuItem = { path: string; title?: string; group?: string; [key: string]: any };
 

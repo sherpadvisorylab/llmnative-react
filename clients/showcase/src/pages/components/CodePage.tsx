@@ -1,5 +1,5 @@
 import React from 'react';
-import { Badge, Code } from '@ash/react';
+import { Badge, Code } from '@llmnative/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -27,7 +27,7 @@ const LANGUAGES = [
 const THEMES = ['prism', 'dark', 'coy', 'funky', 'okaidia', 'solarizedlight', 'tomorrow', 'twilight'];
 const BACKGROUNDS = ['default', 'transparent', 'primary', 'secondary', 'success', 'danger', 'warning', 'info', 'light', 'dark', 'white', 'black'];
 
-const SAMPLE_TSX = `import { Code } from '@ash/react';
+const SAMPLE_TSX = `import { Code } from '@llmnative/react';
 
 export function Example() {
   return (
@@ -38,12 +38,12 @@ export function Example() {
 }`;
 
 const SAMPLE_JSON = `{
-  "name": "@ash/react",
+  "name": "@llmnative/react",
   "component": "Code",
   "features": ["syntax highlight", "copy", "theme"]
 }`;
 
-const SAMPLE_BASH = `npm install @ash/react
+const SAMPLE_BASH = `npm install @llmnative/react
 npm run build`;
 
 const CODE_PROPS: PropDef[] = [
@@ -106,7 +106,7 @@ export default function CodePage() {
                         </Code>
                     </div>
                 }
-                code={`import { Code } from '@ash/react';
+                code={`import { Code } from '@llmnative/react';
 
 <Code language="tsx" theme="tomorrow">
   {source}

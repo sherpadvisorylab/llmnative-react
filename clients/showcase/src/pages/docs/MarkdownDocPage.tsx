@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MarkdownReader } from '@ash/react';
+import { MarkdownReader } from '@llmnative/react';
 import PageLayout from '../../components/PageLayout';
 import type { MarkdownDoc } from '../../docs/markdownDocs';
 import { resolveMarkdownDocHref } from '../../docs/markdownDocs';

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Breadcrumbs } from '@ash/react';
+import { Breadcrumbs } from '@llmnative/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -30,7 +30,7 @@ export default function BreadcrumbsPage() {
             <Section
                 title="Generated path"
                 preview={<Breadcrumbs path="/components/forms/checklist" pre="Home" />}
-                code={`import { Breadcrumbs } from '@ash/react';
+                code={`import { Breadcrumbs } from '@llmnative/react';
 
 <Breadcrumbs path="/components/forms/checklist" pre="Home" />`}
             />

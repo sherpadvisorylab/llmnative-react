@@ -12,7 +12,7 @@ description: menuConfig is the single source of truth for routes, sidebar naviga
 
 ```ts
 // src/conf/menu.ts
-import type { MenuConfig } from '@ash/react';
+import type { MenuConfig } from '@llmnative/react';
 import HomePage  from '../pages/home/HomePage';
 import UsersPage from '../pages/users/UsersPage';
 
@@ -235,7 +235,7 @@ export const menuConfig: MenuConfig = {
 Read a specific section in your layout component:
 
 ```tsx
-import { useMenu } from '@ash/react';
+import { useMenu } from '@llmnative/react';
 
 function Sidebar() {
   const items = useMenu('app');  // section name as string

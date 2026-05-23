@@ -11,7 +11,7 @@ description: Complete reference for all App props — providers, routing, layout
 `<App>` is the single orchestration point for the entire framework. Mount it once at the root — it wires React Router, the provider registry, the theme system and the icon system, then renders pages through `LayoutDefault`.
 
 ```tsx
-import { App } from '@ash/react';
+import { App } from '@llmnative/react';
 
 <App
   LayoutDefault={AppLayout}
@@ -29,7 +29,7 @@ import { App } from '@ash/react';
 
 ```ts
 interface AppProps {
-  /** Displayed in the browser title and Brand component. Default: '@ash/react' */
+  /** Displayed in the browser title and Brand component. Default: '@llmnative/react' */
   appName?: string;
 
   /**
@@ -406,7 +406,7 @@ Vite exposes `VITE_*` variables via `import.meta.env`. Centralise all runtime co
 
 ```ts
 // src/conf/app.ts
-import type { AppProvidersConfig } from '@ash/react';
+import type { AppProvidersConfig } from '@llmnative/react';
 import { firebaseConfig } from './firebase';
 import { supabaseConfig } from './supabase';
 
@@ -452,7 +452,7 @@ import {
   useStorageProvider,
   useAuthProvider,
   useEmailProvider,
-} from '@ash/react';
+} from '@llmnative/react';
 
 const data    = useDataProvider();           // services.data provider
 const storage = useStorageProvider();        // null if storage not configured

@@ -1,5 +1,5 @@
 import React from 'react';
-import { BackLink, GoSite, ReferSite } from '@ash/react';
+import { BackLink, GoSite, ReferSite } from '@llmnative/react';
 import PageLayout from '../../../components/PageLayout';
 import Section from '../../../components/Section';
 import PropDocsTable from '../../../components/PropDocsTable';

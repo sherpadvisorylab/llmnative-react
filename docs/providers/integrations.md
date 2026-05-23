@@ -33,7 +33,7 @@ const files = await dropBox.listFolders({ path: '/Projects' });
 ## AI integration
 
 ```tsx
-import { App, AI } from '@ash/react';
+import { App, AI } from '@llmnative/react';
 
 <App
   aiConfig={{
@@ -57,7 +57,7 @@ const summary = await AI.fetch(
 Dropbox is configured under `providers.dropbox`. It registers `dropboxAuth` for OAuth, but it does not power `StorageProvider`. `useStorageProvider()` will not return Dropbox.
 
 ```tsx
-import { App, AuthButton, dropBox } from '@ash/react';
+import { App, AuthButton, dropBox } from '@llmnative/react';
 
 <App
   providers={{

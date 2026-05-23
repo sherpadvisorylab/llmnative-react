@@ -1,5 +1,5 @@
 import React from 'react';
-import { Badge, ListGroup } from '@ash/react';
+import { Badge, ListGroup } from '@llmnative/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -72,7 +72,7 @@ export default function ListGroupPage() {
                         ]}
                     </ListGroup>
                 }
-                code={`import { Badge, ListGroup } from '@ash/react';
+                code={`import { Badge, ListGroup } from '@llmnative/react';
 
 <ListGroup label="Workflow" actives={[1]}>
     {[

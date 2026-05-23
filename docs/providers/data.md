@@ -36,7 +36,7 @@ Custom data providers can implement `isConfigured()` or `getConfigurationState()
 `Grid` subscribes to the active `DataProvider` when `path` points to a provider collection.
 
 ```tsx
-import { Grid, Badge } from '@ash/react';
+import { Grid, Badge } from '@llmnative/react';
 
 function CustomersPage() {
   return (
@@ -73,7 +73,7 @@ When you use `onSelectionChange` or `onReorder`, `Grid` maps the visual rows bac
 `Form` loads and saves one record through the active provider.
 
 ```tsx
-import { Form, Input, Select } from '@ash/react';
+import { Form, Input, Select } from '@llmnative/react';
 
 function CustomerForm({ id }: { id: string }) {
   return (
@@ -98,7 +98,7 @@ function CustomerForm({ id }: { id: string }) {
 Use `useDataProvider()` when the screen is custom and not covered by `Grid` or `Form`.
 
 ```tsx
-import { useDataProvider } from '@ash/react';
+import { useDataProvider } from '@llmnative/react';
 
 function CustomerStats() {
   const data = useDataProvider();
@@ -168,7 +168,7 @@ See [FirebaseConfig](/docs/app-configuration#firebaseconfig), [SupabaseProviderC
 Create a custom provider when your records live behind a REST API, GraphQL endpoint or internal SDK.
 
 ```ts
-import type { DataProviderAdapter, RecordArray } from '@ash/react';
+import type { DataProviderAdapter, RecordArray } from '@llmnative/react';
 
 export class RestDataProvider implements DataProviderAdapter {
   constructor(private baseUrl: string) {}

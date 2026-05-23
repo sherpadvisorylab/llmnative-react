@@ -1,5 +1,5 @@
 import React from 'react';
-import { Head } from '@ash/react';
+import { Head } from '@llmnative/react';
 
 interface PageLayoutProps {
     title: string;

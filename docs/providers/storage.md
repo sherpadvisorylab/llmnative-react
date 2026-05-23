@@ -32,7 +32,7 @@ Custom storage providers can implement `isConfigured()` or `getConfigurationStat
 ## Use storage in custom components
 
 ```tsx
-import { useStorageProvider } from '@ash/react';
+import { useStorageProvider } from '@llmnative/react';
 
 function PublicFileLink({ path }: { path: string }) {
   const storage = useStorageProvider();
@@ -108,7 +108,7 @@ See [FirebaseConfig](/docs/app-configuration#firebaseconfig) and [SupabaseProvid
 Use a custom provider for S3, a private REST API or any storage backend that is not built in.
 
 ```ts
-import type { StorageProviderAdapter } from '@ash/react';
+import type { StorageProviderAdapter } from '@llmnative/react';
 
 class RestStorageProvider implements StorageProviderAdapter {
   constructor(private baseUrl: string) {}

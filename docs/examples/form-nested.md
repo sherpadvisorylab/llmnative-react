@@ -7,7 +7,7 @@ Scenario: form preventivo con sezione cliente, indirizzo, e righe prodotto dinam
 ## Form completo
 
 ```tsx
-import { Form, Input, Select, Repeat, Upload } from '@ash/react'
+import { Form, Input, Select, Repeat, Upload } from '@llmnative/react'
 
 export default function QuoteForm() {
   return (

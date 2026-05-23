@@ -58,7 +58,7 @@ if (state && !state.configured) {
 Hooks are useful for custom screens, dashboards, workflow buttons and integration glue.
 
 ```tsx
-import { useDataProvider, useStorageProvider, useAuthProvider, useEmailProvider } from '@ash/react';
+import { useDataProvider, useStorageProvider, useAuthProvider, useEmailProvider } from '@llmnative/react';
 
 function WorkspaceSummary() {
   const data = useDataProvider();

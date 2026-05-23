@@ -17,7 +17,7 @@ description: Declare document metadata, social tags, assets, PWA hints and struc
 Three constant defaults ship with the framework. They apply until a page overrides them.
 
 ```ts
-export const DEFAULT_HEAD_APP_NAME = 'Ash';
+export const DEFAULT_HEAD_APP_NAME = 'LLM Native';
 
 export const DEFAULT_DOCUMENT_HEAD = {
   charset: 'UTF-8',
@@ -60,7 +60,7 @@ All hooks are no-ops when called without arguments — safe to use conditionally
 Use `useHead` or the `<Head>` shorthand for the two most common fields: `title` and `description`. The title becomes `document.title`; the description is written as `<meta name="description">`.
 
 ```tsx
-import { useHead, Head } from '@ash/react';
+import { useHead, Head } from '@llmnative/react';
 
 // hook form — use when you also need the controller reference
 function ArticlePage() {
@@ -115,7 +115,7 @@ useHead({
 Use `useDocumentHead` for technical document settings. These apply once per page — the last caller wins.
 
 ```tsx
-import { useDocumentHead } from '@ash/react';
+import { useDocumentHead } from '@llmnative/react';
 
 function ProductPage() {
   useDocumentHead({
@@ -157,7 +157,7 @@ interface DocumentHeadState {
 Use `useSocialHead` to set Open Graph and Twitter card tags together.
 
 ```tsx
-import { useSocialHead } from '@ash/react';
+import { useSocialHead } from '@llmnative/react';
 
 function BlogPostPage() {
   useSocialHead({
@@ -219,7 +219,7 @@ interface TwitterHeadState {
 `useLanguageHead` updates `<html lang>` and `<html dir>`, and adds `<link rel="alternate" hreflang="…">` for multilingual sites.
 
 ```tsx
-import { useLanguageHead } from '@ash/react';
+import { useLanguageHead } from '@llmnative/react';
 
 function ItalianPage() {
   useLanguageHead({
@@ -260,7 +260,7 @@ interface LanguageAlternateLink {
 Use `usePaginationHead` to declare `rel="prev"` and `rel="next"` for paginated content.
 
 ```tsx
-import { usePaginationHead } from '@ash/react';
+import { usePaginationHead } from '@llmnative/react';
 
 function BlogListPage({ page }: { page: number }) {
   usePaginationHead({
@@ -278,7 +278,7 @@ function BlogListPage({ page }: { page: number }) {
 Use `useAssetsHead` to inject external and inline scripts, stylesheets and font resources. Each item can carry both an external `src`/`href` and an `inline` string; they are rendered consecutively in the head.
 
 ```tsx
-import { useAssetsHead } from '@ash/react';
+import { useAssetsHead } from '@llmnative/react';
 
 function DocsPage() {
   useAssetsHead({
@@ -359,7 +359,7 @@ interface HeadFontAsset {
 Use `usePwaHead` for app-like browser hints: web manifest, theme color, color scheme, application name and icons.
 
 ```tsx
-import { usePwaHead } from '@ash/react';
+import { usePwaHead } from '@llmnative/react';
 
 function App() {
   usePwaHead({
@@ -402,7 +402,7 @@ interface PwaHeadState {
 Use `useSchemaOrgHead` to inject one or more `<script type="application/ld+json">` blocks.
 
 ```tsx
-import { useSchemaOrgHead } from '@ash/react';
+import { useSchemaOrgHead } from '@llmnative/react';
 
 function ProductPage({ product }) {
   useSchemaOrgHead({
@@ -440,7 +440,7 @@ useSchemaOrgHead({
 Use `useHeadLinks` for any `<link>` element not covered by the specialized hooks.
 
 ```tsx
-import { useHeadLinks } from '@ash/react';
+import { useHeadLinks } from '@llmnative/react';
 
 function ArticlePage() {
   useHeadLinks({
@@ -507,7 +507,7 @@ function FullBlogPost({ post }) {
 In the scaffold, every page in `src/pages/` can call `<Head>` at the top of its JSX to register metadata without any extra wiring:
 
 ```tsx
-import { Head } from '@ash/react';
+import { Head } from '@llmnative/react';
 
 export default function ContactsPage() {
   return (

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Form, Select } from '@ash/react';
+import { Form, Select } from '@llmnative/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -146,7 +146,7 @@ export default function SelectPage() {
                         </Form>
                     </div>
                 }
-                code={`import { Form, Select } from '@ash/react';
+                code={`import { Form, Select } from '@llmnative/react';
 
 const ROLES = [
     { label: 'Admin',  value: 'admin'  },

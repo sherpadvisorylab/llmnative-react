@@ -1,5 +1,5 @@
 import React from 'react';
-import { Form, Input, TextArea, Checkbox } from '@ash/react';
+import { Form, Input, TextArea, Checkbox } from '@llmnative/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -94,7 +94,7 @@ export default function InputPage() {
             <LiveForm
                 title="Text variants"
                 description="The most common input types. All support label, required, placeholder and disabled props."
-                code={`import { Form, Input } from '@ash/react';
+                code={`import { Form, Input } from '@llmnative/react';
 
 <Form aspect="empty">
     <Input name="firstName" label="First name" required />
@@ -143,7 +143,7 @@ export default function InputPage() {
             <LiveForm
                 title="Textarea"
                 description="Multi-line text with configurable rows."
-                code={`import { TextArea } from '@ash/react';
+                code={`import { TextArea } from '@llmnative/react';
 
 <TextArea name="bio" label="Bio" rows={4} placeholder="Tell us about yourself…" />`}
             >
@@ -152,7 +152,7 @@ export default function InputPage() {
 
             <LiveForm
                 title="Checkbox"
-                code={`import { Checkbox } from '@ash/react';
+                code={`import { Checkbox } from '@llmnative/react';
 
 <Checkbox name="terms" label="I accept the terms and conditions" required />`}
             >

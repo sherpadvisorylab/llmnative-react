@@ -87,7 +87,7 @@ Open `src/conf/menu.ts` and `src/conf/app.ts` — these two files are where almo
 Create `src/pages/users/UsersPage.tsx`:
 
 ```tsx
-import { Grid } from '@ash/react';
+import { Grid } from '@llmnative/react';
 
 export default function UsersPage() {
   return (

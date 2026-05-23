@@ -1,5 +1,5 @@
 import React from 'react';
-import { Checkbox, Form } from '@ash/react';
+import { Checkbox, Form } from '@llmnative/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -54,7 +54,7 @@ export default function CheckboxPage() {
                         <Checkbox name="accepted" label="Accepted" valueChecked="yes" />
                     </Form>
                 }
-                code={`import { Checkbox, Form } from '@ash/react';
+                code={`import { Checkbox, Form } from '@llmnative/react';
 
 <Form defaultValues={{ accepted: 'yes' }}>
     <Checkbox name="accepted" label="Accepted" valueChecked="yes" />

@@ -52,7 +52,7 @@ For small app-local changes, use `themeOverride`. This is the only supported pat
 Register full themes with `themes`. A custom theme should provide `preset`, `motion`, and a complete `components` object.
 
 ```tsx
-import { App, type ThemeDefinition } from '@ash/react';
+import { App, type ThemeDefinition } from '@llmnative/react';
 import { components as defaultComponents, motion as defaultMotion } from './themes/default';
 
 const brand: ThemeDefinition = {

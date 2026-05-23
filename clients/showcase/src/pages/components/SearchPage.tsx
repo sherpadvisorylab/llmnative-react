@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search } from '@ash/react';
+import { Search } from '@llmnative/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -24,7 +24,7 @@ export default function SearchPage() {
             <Section
                 title="Search trigger"
                 preview={<Search />}
-                code={`import { Search } from '@ash/react';
+                code={`import { Search } from '@llmnative/react';
 
 <Search handleSearch={(event) => console.log(event.target.value)} />`}
             />

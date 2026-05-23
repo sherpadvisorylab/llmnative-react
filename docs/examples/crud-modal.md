@@ -7,7 +7,7 @@ Scenario: catalogo prodotti con modal che mostra dettagli estesi e tab.
 ## Grid con modal custom
 
 ```tsx
-import { Grid, Form, Input, Select, Upload, Tab, Badge } from '@ash/react'
+import { Grid, Form, Input, Select, Upload, Tab, Badge } from '@llmnative/react'
 
 export default function ProductCatalog() {
   return (

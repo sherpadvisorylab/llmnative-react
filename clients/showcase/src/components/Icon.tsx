@@ -1,2 +1,2 @@
-import { Icon } from '@ash/react';
+import { Icon } from '@llmnative/react';
 export default Icon;

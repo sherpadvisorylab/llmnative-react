@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Form, UploadCSV, UploadDocument, UploadImage } from '@ash/react';
+import { Form, UploadCSV, UploadDocument, UploadImage } from '@llmnative/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -118,7 +118,7 @@ export default function UploadPage() {
                         </Form>
                     </div>
                 }
-                code={`import { Form, UploadImage } from '@ash/react';
+                code={`import { Form, UploadImage } from '@llmnative/react';
 
 <Form>
   <UploadImage
@@ -148,7 +148,7 @@ export default function UploadPage() {
                         </Form>
                     </div>
                 }
-                code={`import { Form, UploadDocument } from '@ash/react';
+                code={`import { Form, UploadDocument } from '@llmnative/react';
 
 <Form>
   <UploadDocument
@@ -183,7 +183,7 @@ export default function UploadPage() {
                         </div>
                     </div>
                 }
-                code={`import { UploadCSV } from '@ash/react';
+                code={`import { UploadCSV } from '@llmnative/react';
 
 <UploadCSV
   name="csv"
@@ -204,7 +204,7 @@ export default function UploadPage() {
                         The local showcase intentionally leaves storagePath unset so demos work without credentials.
                     </div>
                 }
-                code={`import { App, FirebaseStorageProvider, Form, UploadImage } from '@ash/react';
+                code={`import { App, FirebaseStorageProvider, Form, UploadImage } from '@llmnative/react';
 
 <App
   providers={{

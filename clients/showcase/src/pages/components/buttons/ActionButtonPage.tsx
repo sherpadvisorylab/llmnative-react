@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActionButton } from '@ash/react';
+import { ActionButton } from '@llmnative/react';
 import PageLayout from '../../../components/PageLayout';
 import Section from '../../../components/Section';
 import PropDocsTable from '../../../components/PropDocsTable';

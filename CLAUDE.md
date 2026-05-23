@@ -1,14 +1,13 @@
-# @ash/react — AI Reference
+# @llmnative/react — AI Reference
 
-Framework React per UI data-driven. Schema-driven: definisci i campi → ottieni UI + persistenza con pochissimo codice.
+Framework React AI-first per generazione deterministica di UI. Data-driven di default, schema-driven opzionale. Ottimizzato per il minimo consumo di token AI.
 
-**Branch attivo:** `modernize` (v2 in sviluppo — vedi `docs/ROADMAP.md`)  
-**Stack attuale:** React 18 + Vite library build + Firebase/DataProvider + Tailwind CSS (Bootstrap compatibility layer)
-**Stack target v2:** React 18 + Vite-first scaffolding + DataProvider pattern + Tailwind compatibility layer
+**Branch attivo:** `main`
+**Stack attuale:** React 18 + Vite library build + DataProvider pattern + Tailwind CSS compatibility layer
 
 > **CR-004 completata come compatibility layer:** Bootstrap e' stato rimosso come dipendenza runtime. Il CSS e' ora generato da Tailwind v4  
 > tramite `@layer components` che ricrea le stesse classi Bootstrap (`.btn`, `.badge`, `.alert`, `.modal`, ecc.).  
-> I consumer devono importare `@ash/react/dist/index.css` una sola volta.
+> I consumer devono importare `@llmnative/react/dist/index.css` una sola volta.
 >
 > **CR-015:** la build root e lo scaffolding ufficiale sono Vite-first.
 
@@ -57,9 +56,9 @@ npm run test          # Vitest
 Lo scaffold ufficiale genera app Vite:
 
 ```bash
-npx @ash/react create
-npx @ash/react create --yes --provider=mock
-npx @ash/react devtools
+npx @llmnative/react create
+npx @llmnative/react create --yes --provider=mock
+npx @llmnative/react devtools
 ```
 
 Lo scaffold crea `index.html`, `vite.config.ts`, `src/index.tsx`, `src/conf/`, `src/layouts/`,
@@ -80,7 +79,7 @@ dallo showcase. Le pagine componenti/live restano TSX. Vedi `docs/README.md` per
 ## Pattern 1 — Grid CRUD (il più comune)
 
 ```tsx
-import { Grid } from '@ash/react'
+import { Grid } from '@llmnative/react'
 
 // Lista con add/edit/delete, modal automatico, real-time updates
 export default function UserList() {
@@ -105,7 +104,7 @@ export default function UserList() {
 ## Pattern 2 — Form standalone
 
 ```tsx
-import { Form, Input, Select } from '@ash/react'
+import { Form, Input, Select } from '@llmnative/react'
 
 // Carica da Firebase, salva su Firebase, validazione built-in
 export default function UserForm() {
@@ -336,7 +335,7 @@ Built-in themes: `default`, `flat`, `cyber`.
 ## AI integration
 
 ```tsx
-import { AI } from '@ash/react'
+import { AI } from '@llmnative/react'
 
 // Risposta testuale
 const text = await AI.fetch("Scrivi un titolo per: {keyword}", { keywords: ["React"] })
@@ -359,7 +358,7 @@ Tutti i provider seguono il pattern **Ports & Adapters**: un'interfaccia (port) 
 ### Configurazione dichiarativa
 
 ```tsx
-import { App } from '@ash/react'
+import { App } from '@llmnative/react'
 
 <App
   providers={{
@@ -404,7 +403,7 @@ Registra piu' backend e seleziona quale usare per ogni servizio:
 ### Consumo nei componenti
 
 ```tsx
-import { useDataProvider, useAuthProvider, useStorageProvider, useEmailProvider } from '@ash/react'
+import { useDataProvider, useAuthProvider, useStorageProvider, useEmailProvider } from '@llmnative/react'
 
 // provider di default
 const data = useDataProvider()
@@ -421,7 +420,7 @@ const email   = useEmailProvider('gmail')   // null se 'gmail' non registrato
 
 ```typescript
 // my-providers/RestDataProvider.ts
-import { DataProviderAdapter, RecordArray } from '@ash/react'
+import { DataProviderAdapter, RecordArray } from '@llmnative/react'
 
 export class RestDataProvider implements DataProviderAdapter {
   async read(path: string): Promise<any> { /* ... */ }
@@ -500,16 +499,15 @@ In corso sul branch `modernize`. Vedi `docs/CHANGE_REQUESTS.md` per i dettagli.
 | CR-017 | App-managed theme + icon registries | ✅ done |
 
 ---
-
 ## Session state
 
 > Aggiornato automaticamente alla fine di ogni sessione AI.
 > Il piano completo vive in `docs/COMPETITIVENESS_CHECKLIST.md`.
-> Discussione naming in `docs/NAMING.md`.
 
-**Ultimo task completato:** — *(nessuno, sessione iniziale)*
-**Prossimo task:** Da definire (attendendo via dal team)
-**Branch:** `modernize`
+**Ultimo task completato:** Naming finale: `@llmnative/react` (LLM Native).
+**Prossimo task:** npm publish (2FA bypass token needed).
+**Branch:** `main`
+**Repo:** `github.com/sherpadvisorylab/llmnative-react.git`
 
 ### Progresso checklist
 

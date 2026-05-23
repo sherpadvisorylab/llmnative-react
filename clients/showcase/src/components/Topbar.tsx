@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { useThemeController } from '@ash/react';
+import { useThemeController } from '@llmnative/react';
 import Icon from './Icon';
 import { usePlaygroundContext } from '../context/PlaygroundContext';
 
@@ -31,7 +31,7 @@ export default function Topbar({ onOpenThemePanel }: TopbarProps) {
 
             {/* Logo */}
             <NavLink to="/" className="flex items-center gap-2 shrink-0">
-                <span className="font-bold text-foreground">@ash/react</span>
+                <span className="font-bold text-foreground">@llmnative/react</span>
                 <span className="badge bg-secondary text-xs hidden sm:inline-flex">showcase</span>
             </NavLink>
 

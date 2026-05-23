@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Modal, Icon, MockDataProvider, DataProvider, useMotionEffect, useMotionState } from '@ash/react';
+import { Modal, Icon, MockDataProvider, DataProvider, useMotionEffect, useMotionState } from '@llmnative/react';
 import type { PropDef, PlaygroundConfig } from '../types/playground';
 
 const BASE_INPUT = 'w-full rounded-md border border-border bg-background px-2.5 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring';

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Form, Input, Repeat } from '@ash/react';
+import { Form, Input, Repeat } from '@llmnative/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -67,7 +67,7 @@ export default function RepeatPage() {
                         </Repeat>
                     </Form>
                 }
-                code={`import { Form, Input, Repeat } from '@ash/react';
+                code={`import { Form, Input, Repeat } from '@llmnative/react';
 
 <Form defaultValues={{ items: [{ name: 'Design' }] }}>
     <Repeat name="items" label="Tasks" min={1} max={5}>

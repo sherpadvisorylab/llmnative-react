@@ -176,7 +176,7 @@ function App({
                  scrapeConfig       = undefined,
                  tenantsURI         = undefined,
                  proxyURI           = undefined,
-                 appName = "Ash",
+                 appName = "LLM Native",
                  menuConfig         = {},
                  providers          = {},
                  iconProvider,

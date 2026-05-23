@@ -1,5 +1,5 @@
 import React from 'react';
-import { Form, Prompt, PromptMode } from '@ash/react';
+import { Form, Prompt, PromptMode } from '@llmnative/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -87,7 +87,7 @@ export default function PromptPage() {
                         <Prompt name="summary" label="Summary" rows={5} defaultValue={{ value: 'Write a concise project summary.', enabled: true }} />
                     </Form>
                 }
-                code={`import { Form, Prompt } from '@ash/react';
+                code={`import { Form, Prompt } from '@llmnative/react';
 
 <Form>
     <Prompt

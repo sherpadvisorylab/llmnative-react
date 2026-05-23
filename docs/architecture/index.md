@@ -24,7 +24,7 @@ providers
 
 ## Framework source — `src/`
 
-The library itself. Published to npm as `@ash/react`.
+The library itself. Published to npm as `@llmnative/react`.
 
 ```text
 src/
@@ -90,7 +90,7 @@ dist/
 Consumers import the stylesheet once at the app entry:
 
 ```tsx
-import '@ash/react/dist/index.css';
+import '@llmnative/react/dist/index.css';
 ```
 
 ---
@@ -163,7 +163,7 @@ All app-level configuration lives here. Application pages and components never i
 
 ```css
 @import "tailwindcss";
-@import "@ash/react/dist/index.css";
+@import "@llmnative/react/dist/index.css";
 
 @theme inline {
   --color-primary:     hsl(var(--rf-primary));

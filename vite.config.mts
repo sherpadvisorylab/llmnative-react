@@ -23,7 +23,7 @@ const external = (id: string) => {
 export default defineConfig({
     plugins: [
         {
-            name: 'ash-css-filename',
+            name: 'dynai-css-filename',
             closeBundle() {
                 const stylePath = resolve(__dirname, 'dist/style.css');
                 const indexPath = resolve(__dirname, 'dist/index.css');

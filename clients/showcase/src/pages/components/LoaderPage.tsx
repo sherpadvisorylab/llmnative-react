@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Loader, LoadingButton } from '@ash/react';
+import { Loader, LoadingButton } from '@llmnative/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -63,7 +63,7 @@ export default function LoaderPage() {
                         </Loader>
                     </div>
                 }
-                code={`import { Loader } from '@ash/react';
+                code={`import { Loader } from '@llmnative/react';
 
 const [loading, setLoading] = useState(true);
 
@@ -89,7 +89,7 @@ const [loading, setLoading] = useState(true);
                         </Loader>
                     </div>
                 }
-                code={`import { Loader } from '@ash/react';
+                code={`import { Loader } from '@llmnative/react';
 
 // Custom icon + title + description
 <Loader show icon="custom-loader" title="Saving…" description="Please wait">
@@ -112,7 +112,7 @@ const [loading, setLoading] = useState(true);
                 title="Card integration"
                 description="Card exposes a showLoader prop as a convenience shorthand — it wraps the card body in a Loader automatically."
                 preview={null}
-                code={`import { Card } from '@ash/react';
+                code={`import { Card } from '@llmnative/react';
 
 <Card showLoader={isLoading} title="Users">
     <UserTable data={data} />
@@ -124,7 +124,7 @@ const [loading, setLoading] = useState(true);
             {/* ── Other loading indicators ── */}
             <Section
                 title="Other loading indicators in the framework"
-                description="@ash/react ships additional loading patterns for different contexts."
+                description="@llmnative/react ships additional loading patterns for different contexts."
                 preview={
                     <div className="space-y-6">
                         {/* CSS spinner */}
@@ -169,7 +169,7 @@ const [loading, setLoading] = useState(true);
 <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
 
 // ── LoadingButton ────────────────────────────────────────────
-import { LoadingButton } from '@ash/react';
+import { LoadingButton } from '@llmnative/react';
 
 // Spinner replaces label automatically while onClick is pending.
 <LoadingButton

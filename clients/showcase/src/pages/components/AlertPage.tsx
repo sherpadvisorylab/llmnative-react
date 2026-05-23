@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert } from '@ash/react';
+import { Alert } from '@llmnative/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -72,7 +72,7 @@ export default function AlertPage() {
                         ))}
                     </div>
                 }
-                code={`import { Alert } from '@ash/react';
+                code={`import { Alert } from '@llmnative/react';
 
 <Alert type="info">Informational message</Alert>
 <Alert type="success">Operation completed successfully</Alert>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { DataProvider, Dropdown, DropdownDivider, DropdownHeader, DropdownItem, MockDataProvider, useDataProvider } from '@ash/react';
+import { DataProvider, Dropdown, DropdownDivider, DropdownHeader, DropdownItem, MockDataProvider, useDataProvider } from '@llmnative/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -157,7 +157,7 @@ export default function DropdownPage() {
                         </Dropdown>
                     </div>
                 }
-                code={`import { Dropdown, DropdownDivider, DropdownHeader, DropdownItem } from '@ash/react';
+                code={`import { Dropdown, DropdownDivider, DropdownHeader, DropdownItem } from '@llmnative/react';
 
 <Dropdown toggleButton="Actions" header="Menu">
     <DropdownHeader>Record actions</DropdownHeader>
@@ -180,7 +180,7 @@ export default function DropdownPage() {
                         </WithDropdownMock>
                     </div>
                 }
-                code={`import { Dropdown, DropdownDivider, DropdownHeader, DropdownItem, useDataProvider } from '@ash/react';
+                code={`import { Dropdown, DropdownDivider, DropdownHeader, DropdownItem, useDataProvider } from '@llmnative/react';
 
 function DropdownItemsFromMock({ path }) {
     const provider = useDataProvider();
@@ -220,7 +220,7 @@ function DropdownItemsFromMock({ path }) {
                         </Dropdown>
                     </div>
                 }
-                code={`import { Dropdown, DropdownDivider, DropdownItem } from '@ash/react';
+                code={`import { Dropdown, DropdownDivider, DropdownItem } from '@llmnative/react';
 
 <Dropdown
     toggleButton={{ icon: 'bell', text: 'Notifications' }}
@@ -252,7 +252,7 @@ function DropdownItemsFromMock({ path }) {
                         </Dropdown>
                     </div>
                 }
-                code={`import { Dropdown, DropdownItem } from '@ash/react';
+                code={`import { Dropdown, DropdownItem } from '@llmnative/react';
 
 <Dropdown
     toggleButton={{ icon: 'settings', text: 'Settings' }}
@@ -283,7 +283,7 @@ function DropdownItemsFromMock({ path }) {
                         </Dropdown>
                     </div>
                 }
-                code={`import { Dropdown, DropdownHeader, DropdownItem } from '@ash/react';
+                code={`import { Dropdown, DropdownHeader, DropdownItem } from '@llmnative/react';
 
 <Dropdown
     toggleButton="Workspace"
@@ -321,7 +321,7 @@ function DropdownItemsFromMock({ path }) {
                         </Dropdown>
                     </div>
                 }
-                code={`import { Dropdown, DropdownDivider, DropdownHeader, DropdownItem } from '@ash/react';
+                code={`import { Dropdown, DropdownDivider, DropdownHeader, DropdownItem } from '@llmnative/react';
 
 <Dropdown toggleButton="Filters" header="Filter records">
     <DropdownHeader>Status</DropdownHeader>
@@ -352,7 +352,7 @@ function DropdownItemsFromMock({ path }) {
                         <DropdownItem icon="download">Export report</DropdownItem>
                     </Dropdown>
                 }
-                code={`import { Dropdown, DropdownItem } from '@ash/react';
+                code={`import { Dropdown, DropdownItem } from '@llmnative/react';
 
 <Dropdown alwaysOpen header="Quick actions" footer={<button type="button" className="btn btn-link">View all</button>}>
     <DropdownItem icon="plus">Create record</DropdownItem>

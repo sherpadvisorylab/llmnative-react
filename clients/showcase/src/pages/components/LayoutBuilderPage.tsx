@@ -1,5 +1,5 @@
 import React from 'react';
-import { Form, LayoutBuilder, ListGroup } from '@ash/react';
+import { Form, LayoutBuilder, ListGroup } from '@llmnative/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -51,7 +51,7 @@ export default function LayoutBuilderPage() {
                         <LayoutBuilder name="layout" defaultSpan={3} heightPx={140} />
                     </Form>
                 }
-                code={`import { Form, LayoutBuilder, ListGroup } from '@ash/react';
+                code={`import { Form, LayoutBuilder, ListGroup } from '@llmnative/react';
 
 <Form>
     <ListGroup draggable label="Fields">

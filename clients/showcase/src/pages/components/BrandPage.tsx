@@ -1,5 +1,5 @@
 import React from 'react';
-import { Brand } from '@ash/react';
+import { Brand } from '@llmnative/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -24,7 +24,7 @@ const PLAYGROUND: PlaygroundConfig = {
     props: BRAND_PROPS,
     defaultProps: {
         url: '/',
-        label: '@ash/react',
+        label: '@llmnative/react',
         logo: LOGO,
         width: 32,
         height: 32,
@@ -43,10 +43,10 @@ export default function BrandPage() {
         <PageLayout title="Brand" description="Application brand block with optional router link, logo and text label.">
             <Section
                 title="Logo and label"
-                preview={<Brand url="/" logo={LOGO} label="@ash/react" width={32} height={32} />}
-                code={`import { Brand } from '@ash/react';
+                preview={<Brand url="/" logo={LOGO} label="@llmnative/react" width={32} height={32} />}
+                code={`import { Brand } from '@llmnative/react';
 
-<Brand url="/" logo={logoUrl} label="@ash/react" width={32} height={32} />`}
+<Brand url="/" logo={logoUrl} label="@llmnative/react" width={32} height={32} />`}
             />
 
             <PropDocsTable props={BRAND_PROPS} />

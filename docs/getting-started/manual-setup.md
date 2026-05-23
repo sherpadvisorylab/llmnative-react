@@ -33,7 +33,7 @@ Import the library stylesheet once at the top of your app entry. It provides the
 
 ```ts
 // src/index.tsx  (or main.tsx)
-import '@ash/react/dist/index.css';
+import '@llmnative/react/dist/index.css';
 ```
 
 ---
@@ -45,7 +45,7 @@ If you use Tailwind v4, add this `@theme inline` block to your CSS entry so that
 ```css
 /* src/styles/globals.css */
 @import "tailwindcss";
-@import "@ash/react/dist/index.css";
+@import "@llmnative/react/dist/index.css";
 
 @theme inline {
   --color-background:  hsl(var(--rf-background));
@@ -79,7 +79,7 @@ body {
 ```tsx
 // src/layouts/AppLayout.tsx
 import { Outlet } from 'react-router-dom';
-import { Menu, Brand } from '@ash/react';
+import { Menu, Brand } from '@llmnative/react';
 
 export default function AppLayout() {
   return (
@@ -104,7 +104,7 @@ Define your navigation tree in a dedicated file. Each entry maps a label and ico
 
 ```ts
 // src/conf/menu.ts
-import type { MenuConfig } from '@ash/react';
+import type { MenuConfig } from '@llmnative/react';
 
 export const menuConfig: MenuConfig = [
   { label: 'Home',  icon: 'home',  path: '/home' },
@@ -124,7 +124,7 @@ See [Routing & menu](/docs/menu-config) for the full `MenuConfig` type and all o
 // src/index.tsx
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { App } from '@ash/react';
+import { App } from '@llmnative/react';
 import './styles/globals.css';
 
 import AppLayout from './layouts/AppLayout';

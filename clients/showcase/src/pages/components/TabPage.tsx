@@ -1,5 +1,5 @@
 import React from 'react';
-import { Tab, TabItem } from '@ash/react';
+import { Tab, TabItem } from '@llmnative/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -103,7 +103,7 @@ export default function TabPage() {
                     title={`tabPosition="${pos}"`}
                     description={POSITION_NOTES[pos]}
                     preview={<DemoTabs position={pos} />}
-                    code={`import { Tab, TabItem } from '@ash/react';
+                    code={`import { Tab, TabItem } from '@llmnative/react';
 
 <Tab tabPosition="${pos}">
     <TabItem label="General">General content</TabItem>

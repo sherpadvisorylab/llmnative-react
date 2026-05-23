@@ -1,5 +1,5 @@
 import React from 'react';
-import { LoadingButton } from '@ash/react';
+import { LoadingButton } from '@llmnative/react';
 import PageLayout from '../../../components/PageLayout';
 import Section from '../../../components/Section';
 import PropDocsTable from '../../../components/PropDocsTable';

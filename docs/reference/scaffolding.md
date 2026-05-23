@@ -121,7 +121,7 @@ Switch the provider at any time by editing `VITE_PROVIDER` in `.env` — no code
 
 ```ts
 // src/conf/menu.ts  — example from the crm template
-import type { MenuConfig } from '@ash/react';
+import type { MenuConfig } from '@llmnative/react';
 import Default from '../layouts/Default';
 import ContactsPage from '../pages/contacts/ContactsPage';
 
@@ -170,7 +170,7 @@ Without this file, `bg-primary` compiles to a static color that ignores theme ch
 
 ```css
 @import "tailwindcss";
-@import "@ash/react/dist/index.css";
+@import "@llmnative/react/dist/index.css";
 
 @theme inline {
   --color-background: hsl(var(--rf-background));

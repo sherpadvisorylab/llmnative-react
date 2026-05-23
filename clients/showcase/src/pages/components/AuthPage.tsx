@@ -1,5 +1,5 @@
 import React from 'react';
-import { AuthButton } from '@ash/react';
+import { AuthButton } from '@llmnative/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -88,7 +88,7 @@ export default function AuthPage() {
                 preview={
                     <AuthButton provider="googleAuth" intent="signIn" aspect="avatar" iconLogout="log-out" />
                 }
-                code={`import { AuthButton } from '@ash/react';
+                code={`import { AuthButton } from '@llmnative/react';
 
 <AuthButton provider="googleAuth" intent="signIn" aspect="avatar" iconLogout="log-out" />`}
             />
@@ -110,7 +110,7 @@ export default function AuthPage() {
                         }}
                     />
                 }
-                code={`import { AuthButton, getAccessToken } from '@ash/react';
+                code={`import { AuthButton, getAccessToken } from '@llmnative/react';
 
 <AuthButton
   provider="dropboxAuth"

@@ -79,7 +79,7 @@ Use this form when you need to decouple semantic names used in your components f
 `useIconController()` gives full programmatic access to the icon registry without a page reload. Use it in settings panels, theme customizers, or anywhere the user should be able to switch icon library or Phosphor weight on the fly. The hook must be called inside `<App>` or a standalone `<IconProvider>`.
 
 ```tsx
-import { useIconController, PhosphorIconProvider } from '@ash/react';
+import { useIconController, PhosphorIconProvider } from '@llmnative/react';
 
 const {
   providerId,        // id of the currently active provider, e.g. 'phosphor'
@@ -108,7 +108,7 @@ setProvider('heroicons');
 To use any icon library not built in, implement `IconProviderAdapter` — just two members. The example below wraps `@heroicons/react`. The same pattern works for any library that exports named React components: Material Icons, Tabler, Radix Icons, and more.
 
 ```ts
-import type { IconProviderAdapter, IconComponentProps } from '@ash/react';
+import type { IconProviderAdapter, IconComponentProps } from '@llmnative/react';
 import * as HeroIcons from '@heroicons/react/24/outline';
 
 // Convert kebab-case to PascalCase: 'arrow-right' → 'ArrowRight'

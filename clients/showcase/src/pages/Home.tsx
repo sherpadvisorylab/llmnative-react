@@ -17,7 +17,7 @@ export default function Home() {
     return (
         <div className="p-8 max-w-4xl mx-auto">
             <div className="mb-10">
-                <h1 className="text-3xl font-bold text-foreground">@ash/react showcase</h1>
+                <h1 className="text-3xl font-bold text-foreground">@llmnative/react showcase</h1>
                 <p className="mt-2 text-lg text-muted-foreground">
                     Interactive documentation for all components, widgets and providers of the framework.
                 </p>
@@ -27,13 +27,13 @@ export default function Home() {
             <div className="mb-10 p-5 rounded-lg border bg-card">
                 <h2 className="font-semibold mb-3">Quick start</h2>
                 <pre className="text-xs bg-muted rounded p-4 overflow-x-auto leading-relaxed">{`// 1. Install
-npm install @ash/react
+npm install @llmnative/react
 
 // 2. Import the stylesheet once in your entry point
-import '@ash/react/dist/index.css';
+import '@llmnative/react/dist/index.css';
 
 // 3. Use the components
-import { Alert, Badge, Grid, Form } from '@ash/react';`}</pre>
+import { Alert, Badge, Grid, Form } from '@llmnative/react';`}</pre>
             </div>
 
             {/* Component grid */}

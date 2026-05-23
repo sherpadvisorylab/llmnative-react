@@ -8,31 +8,31 @@ const args = process.argv.slice(3);
 
 function printGeneralHelp() {
     console.log(`
-Ash CLI
+LLM Native CLI
 
 Available commands:
 
   create     - Generates a Vite + React project scaffold
   devtools   - Generates Vite, TypeScript, and PostCSS config only
-  version    - Prints the installed @ash/react version
+  version    - Prints the installed @llmnative/react version
   help       - Displays this help message
 
 Examples:
-  npx @ash/react create
-  npx @ash/react create --yes --provider=mock
-  npx @ash/react create --help
-  npx @ash/react devtools
-  npx @ash/react version
+  npx @llmnative/react create
+  npx @llmnative/react create --yes --provider=mock
+  npx @llmnative/react create --help
+  npx @llmnative/react devtools
+  npx @llmnative/react version
     `);
 }
 
 function printCreateHelp() {
     console.log(`
-Ash create
+LLM Native create
 
 Usage:
-  npx ash create
-  npx ash create --yes --name=my-app --provider=mock
+  npx llmnative create
+  npx llmnative create --yes --name=my-app --provider=mock
 
 Interactive prompts:
   project name
@@ -89,7 +89,7 @@ switch (cmd) {
     case '--version':
     case '-v':
         const pkg = require(path.join(__dirname, '../package.json'));
-        console.log(`@ash/react version: ${pkg.version}`);
+        console.log(`@llmnative/react version: ${pkg.version}`);
         break;
 
     case 'help':

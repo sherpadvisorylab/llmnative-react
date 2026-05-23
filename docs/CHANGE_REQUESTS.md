@@ -462,7 +462,7 @@ Il framework deve offrire un blocco `Sidebar` riusabile in `src/components/block
 
 `Sidebar` è un **block/componente del framework**, non una section:
 
-- `blocks`: componente riusabile, provider-aware, esportato da `@ash/react`.
+- `blocks`: componente riusabile, provider-aware, esportato da `@llmnative/react`.
 - `sections`: composizioni locali dei template/client, dove si decide posizione, stato mobile, header e layout.
 
 Percorso previsto:
@@ -539,7 +539,7 @@ type SidebarProps = {
 
 ### Criteri di accettazione
 
-- [ ] `import { Sidebar } from '@ash/react'` funziona.
+- [ ] `import { Sidebar } from '@llmnative/react'` funziona.
 - [ ] `<Sidebar context="sidebar" />` renderizza il menu di quel contesto.
 - [ ] `<Sidebar contexts={{ '/docs': 'docs' }} />` seleziona il contesto dalla route corrente.
 - [ ] Le voci possono essere raggruppate per `group` o renderizzate flat.
@@ -1381,7 +1381,7 @@ dist/index.js            ← bundle JS invariato
 ### Consumer setup
 ```tsx
 // main.tsx / App.tsx del consumer
-import '@ash/react/dist/index.css';   // ← un solo import
+import '@llmnative/react/dist/index.css';   // ← un solo import
 ```
 
 ### Checklist
@@ -1664,7 +1664,7 @@ App separata in `clients/showcase/` nella root del repo (non dentro `src/`). Usa
 
 ```
 clients/showcase/
-  package.json                   ← dipendenza: "@ash/react": "file:../../"
+  package.json                   ← dipendenza: "@llmnative/react": "file:../../"
   webpack.config.js              ← dev/build webpack, entry `src/index.tsx`
   src/
     index.tsx                    ← entry `<App>` react-firestrap + provider/env config
@@ -2036,7 +2036,7 @@ Il PhosphorIconProvider fa caching dei componenti wrappati per evitare re-render
 ### Provider custom
 
 ```ts
-import type { IconProviderAdapter, IconComponentProps } from '@ash/react';
+import type { IconProviderAdapter, IconComponentProps } from '@llmnative/react';
 
 export class HeroIconProvider implements IconProviderAdapter {
     readonly id = 'heroicons';
@@ -2279,8 +2279,8 @@ my-app/
 - [x] `npm run test` passa
 - [x] `npm pack --dry-run` contiene `dist`, types, CSS, CLI e themes previsti
 - [x] Uno scaffold generato installa dipendenze e parte con `npm run dev`
-- [x] Un consumer Vite importa `@ash/react` senza doppia istanza React
-- [x] Gli import CSS documentati funzionano: `import '@ash/react/dist/index.css'`
+- [x] Un consumer Vite importa `@llmnative/react` senza doppia istanza React
+- [x] Gli import CSS documentati funzionano: `import '@llmnative/react/dist/index.css'`
 
 ---
 
@@ -2638,7 +2638,7 @@ Frontmatter e caricamento file non fanno parte del componente base: saranno gest
 ### API target
 
 ```tsx
-import { MarkdownReader } from '@ash/react';
+import { MarkdownReader } from '@llmnative/react';
 
 <MarkdownReader
   content={markdown}
@@ -3093,7 +3093,7 @@ Alternative da valutare prima di procedere:
 ### API target
 
 ```tsx
-import { RichEditor } from '@ash/react';
+import { RichEditor } from '@llmnative/react';
 
 // Dentro un Form
 <Form dataStoragePath="/articles">
@@ -3204,7 +3204,7 @@ Il componente `ContextMenu` (già abbozzato in `src/components/ui/fields/Command
 ### API target
 
 ```tsx
-import { RichEditor, ContextMenu } from '@ash/react';
+import { RichEditor, ContextMenu } from '@llmnative/react';
 
 <RichEditor name="body">
   {/* slash command: digita / per vedere le azioni */}
@@ -3326,7 +3326,7 @@ Definire una convenzione e un'infrastruttura leggera per builder hook tipo `useX
 - è una factory pura (zero dipendenze React)
 - vive in `src/libs/` seguendo la regola architetturale del layer
 - espone `{ toHtml, toJson, params }` come contratto uniforme
-- viene importato con named export da `@ash/react`
+- viene importato con named export da `@llmnative/react`
 
 ### Candidati concreti
 

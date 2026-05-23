@@ -1,5 +1,5 @@
 import React from 'react';
-import { ImageAvatar } from '@ash/react';
+import { ImageAvatar } from '@llmnative/react';
 import PageLayout from '../../components/PageLayout';
 import Section from '../../components/Section';
 import PropDocsTable from '../../components/PropDocsTable';
@@ -105,7 +105,7 @@ export default function ImageAvatarPage() {
                         ))}
                     </div>
                 }
-                code={`import { ImageAvatar } from '@ash/react';
+                code={`import { ImageAvatar } from '@llmnative/react';
 
 <ImageAvatar src={url} title="Ada" width={32} className="rounded-full border" />
 <ImageAvatar src={url} title="Ada" width={64} className="rounded-full border" />
@@ -132,7 +132,7 @@ export default function ImageAvatarPage() {
                         ))}
                     </div>
                 }
-                code={`import { ImageAvatar } from '@ash/react';
+                code={`import { ImageAvatar } from '@llmnative/react';
 
 // circle
 <ImageAvatar src={url} title="Ada" width={72} className="rounded-full border-2 border-primary" />
@@ -175,7 +175,7 @@ export default function ImageAvatarPage() {
                         </div>
                     </div>
                 }
-                code={`import { ImageAvatar } from '@ash/react';
+                code={`import { ImageAvatar } from '@llmnative/react';
 
 // status dot — omit content, only type
 <ImageAvatar src={url} title="Ada" width={64} className="rounded-full border"
@@ -218,7 +218,7 @@ export default function ImageAvatarPage() {
                         ))}
                     </div>
                 }
-                code={`import { ImageAvatar } from '@ash/react';
+                code={`import { ImageAvatar } from '@llmnative/react';
 
 <ImageAvatar
     src={url}
@@ -251,7 +251,7 @@ export default function ImageAvatarPage() {
                         </div>
                     </div>
                 }
-                code={`import { ImageAvatar } from '@ash/react';
+                code={`import { ImageAvatar } from '@llmnative/react';
 
 // empty src → theme placeholder
 <ImageAvatar src="" title="No image" width={64} className="rounded-full border" />
@@ -274,7 +274,7 @@ export default function ImageAvatarPage() {
                         <div>localStorage.getItem(<span className="text-primary">'avatar::https://cdn.example.com/avatars/42.jpg'</span>) <span className="text-success">✓</span></div>
                     </div>
                 }
-                code={`import { ImageAvatar } from '@ash/react';
+                code={`import { ImageAvatar } from '@llmnative/react';
 
 // Remote URL — fetched once, cached as base64, served instantly thereafter
 <ImageAvatar src="https://cdn.example.com/avatars/42.jpg" title="Ada" width={48} className="rounded-full" />
