@@ -28,7 +28,7 @@ export type GridActiveAction<TRecord extends RecordProps> = {
 type UseGridActionsArgs<TRecord extends RecordProps> = {
     actions?: GridActions<TRecord>;
     form?: React.ReactElement | ((ctx: GridFormContext<TRecord>) => React.ReactNode);
-    routeSync?: { edit?: boolean };
+    editDeepLink?: boolean;
     preparedRecords: TRecord[];
     recordId: GridRecordKey<TRecord>;
     sourcePath?: string;
@@ -49,7 +49,7 @@ type InternalGridActionContext<TRecord extends RecordProps> = GridActionContext<
 function useGridActions<TRecord extends RecordProps>({
     actions,
     form,
-    routeSync,
+    editDeepLink,
     preparedRecords,
     recordId,
     sourcePath,
@@ -75,10 +75,10 @@ function useGridActions<TRecord extends RecordProps>({
     const close = useCallback(() => {
         setActiveAction(null);
         formRef.current = undefined;
-        if (routeSync?.edit && location.hash.startsWith(`#${gridHashId}:`)) {
+        if (editDeepLink && location.hash.startsWith(`#${gridHashId}:`)) {
             navigate({ pathname: location.pathname, search: location.search, hash: "" }, { replace: true });
         }
-    }, [gridHashId, location.hash, location.pathname, location.search, navigate, routeSync?.edit]);
+    }, [gridHashId, location.hash, location.pathname, location.search, navigate, editDeepLink]);
 
     const removeRecord = useCallback(async (record: TRecord, closeOnSuccess = true) => {
         const storagePath = onDelete
@@ -134,12 +134,12 @@ function useGridActions<TRecord extends RecordProps>({
             return;
         }
 
-        if (actionKey === "edit" && routeSync?.edit && record) {
+        if (actionKey === "edit" && editDeepLink && record) {
             navigate({ hash: `${gridHashId}:${encodeURIComponent(getRecordKey(record))}` }, { replace: false });
         }
 
         setActiveAction({ actionKey, record });
-    }, [close, getRecordKey, gridHashId, navigate, normalizedActions, removeRecord, routeSync?.edit, saveCurrentAction]);
+    }, [close, getRecordKey, gridHashId, navigate, normalizedActions, removeRecord, editDeepLink, saveCurrentAction]);
 
     const getActionContext = useCallback((actionKey: string, record?: TRecord): GridActionContext<TRecord> => ({
         actionKey,
@@ -184,7 +184,7 @@ function useGridActions<TRecord extends RecordProps>({
     }), [getRecordKey, runModalAction]);
 
     useEffect(() => {
-        if (!routeSync?.edit) return;
+        if (!editDeepLink) return;
 
         const hash = location.hash.replace(/^#/, "");
         const prefix = `${gridHashId}:`;
@@ -202,7 +202,7 @@ function useGridActions<TRecord extends RecordProps>({
                     : { actionKey: "edit", record: nextRecord }
             ));
         }
-    }, [activeAction?.actionKey, getRecordKey, gridHashId, location.hash, preparedRecords, routeSync?.edit]);
+    }, [activeAction?.actionKey, getRecordKey, gridHashId, location.hash, preparedRecords, editDeepLink]);
 
     const activeActionConfig = activeAction ? normalizedActions[activeAction.actionKey] : undefined;
 

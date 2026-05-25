@@ -164,17 +164,25 @@ function PropControl({ def, value, onChange }: { def: PropDef; value: any; onCha
                         onChange={(e) => onChange(e.target.value)}
                     />
                 )}
-                {def.control === 'json' && (
-                    <textarea
-                        className={`${inputClass} font-mono text-xs resize-y`}
-                        rows={4}
-                        value={typeof value === 'string' ? value : JSON.stringify(value, null, 2)}
-                        readOnly={def.readOnly}
-                        onChange={(e) => {
-                            try { onChange(JSON.parse(e.target.value)); } catch { onChange(e.target.value); }
-                        }}
-                    />
-                )}
+                {def.control === 'json' && (() => {
+                    const isInvalid = !def.readOnly && typeof value === 'string' && value.trim() !== '' && value.trim() !== '{}' && value.trim() !== '[]';
+                    return (
+                        <div className="space-y-1">
+                            <textarea
+                                className={`${inputClass} font-mono text-xs resize-y${isInvalid ? ' border-destructive' : ''}`}
+                                rows={4}
+                                value={typeof value === 'string' ? value : JSON.stringify(value, null, 2)}
+                                readOnly={def.readOnly}
+                                onChange={(e) => {
+                                    try { onChange(JSON.parse(e.target.value)); } catch { onChange(e.target.value); }
+                                }}
+                            />
+                            {isInvalid && (
+                                <p className="text-xs text-destructive">Invalid JSON — keys must be quoted: {`{"key":"value"}`}</p>
+                            )}
+                        </div>
+                    );
+                })()}
                 {def.control === 'icon' && (
                     <IconPickerControl value={value} onChange={onChange} />
                 )}
@@ -348,6 +356,7 @@ export default function PlaygroundDrawer({ title, config, open, onClose }: Playg
             headerClass="h-14 !py-0 px-4"
             bodyClass="min-h-0 flex-1 overflow-hidden p-4"
             footer={false}
+            zIndex={31}
         >
             <div className={splitLayout ? "grid h-full min-h-0 -m-4 lg:grid-cols-[minmax(20rem,26rem)_1fr]" : "flex flex-col h-full -m-4"}>
 

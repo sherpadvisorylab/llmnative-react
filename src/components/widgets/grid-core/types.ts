@@ -189,10 +189,6 @@ export type GridAfterActionHandler<TRecord> = (
     args: GridAfterActionArgs<TRecord>
 ) => Promise<boolean>;
 
-export type GridRouteSync = {
-    edit?: boolean;
-};
-
 export type GridPresentation = {
     layout?: GridLayout;
     sticky?: GridSticky;
@@ -235,7 +231,7 @@ export type GridBaseProps<TRecord> =
         columns?: GridColumn<TRecord>[];
         actions?: GridActions<TRecord>;
         form?: React.ReactElement | ((ctx: GridFormContext<TRecord>) => React.ReactNode);
-        routeSync?: GridRouteSync;
+        editDeepLink?: boolean;
         header?: React.ReactNode | ((ctx: GridHeaderContext<TRecord>) => React.ReactNode);
         footer?: React.ReactNode | ((ctx: GridFooterContext<TRecord>) => React.ReactNode);
     };

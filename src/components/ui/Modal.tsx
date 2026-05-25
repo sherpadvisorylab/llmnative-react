@@ -28,6 +28,7 @@ interface ModalProps extends MotionUIProps {
     bodyClass?: string;
     footerClass?: string;
     closeOnBackdrop?: boolean;
+    zIndex?: number;
 }
 
 interface ModalYesNoProps {
@@ -70,6 +71,7 @@ const ModalDefault = ({
                           bodyClass         = undefined,
                           footerClass       = undefined,
                           closeOnBackdrop   = true,
+                          zIndex            = undefined,
                           motion: motionConfig = undefined
 }: ModalProps) => {
     const theme = useTheme("modal");
@@ -115,7 +117,7 @@ const ModalDefault = ({
             footerClass: cn("flex items-center justify-end gap-2 border-t px-4 py-3", footerClass || theme.Modal.footerClass),
         },
         top: {
-            coverClass: "",
+            coverClass: "fixed inset-0 z-50",
             dialogClass: cn("fixed left-0 right-0 top-0 z-50 flex flex-col border-b bg-card shadow-xl", verticalHeightClass, wrapClass || theme.Modal.wrapClass),
             contentClass: cn("flex min-h-0 flex-1 flex-col", className || theme.Modal.className),
             headerClass: cn("flex items-center justify-between gap-3 border-b px-4 py-3", headerClass || theme.Modal.headerClass),
@@ -125,7 +127,7 @@ const ModalDefault = ({
             footerClass: cn("flex items-center justify-end gap-2 border-t px-4 py-3", footerClass || theme.Modal.footerClass),
         },
         left: {
-            coverClass: "",
+            coverClass: "fixed inset-0 z-50",
             dialogClass: cn("fixed bottom-0 left-0 top-0 z-50 flex max-w-full flex-col border-r bg-card shadow-xl", sideWidthClass, wrapClass || theme.Modal.wrapClass),
             contentClass: cn("flex min-h-0 flex-1 flex-col", className || theme.Modal.className),
             headerClass: cn("flex items-center justify-between gap-3 border-b px-4 py-3", headerClass || theme.Modal.headerClass),
@@ -135,7 +137,7 @@ const ModalDefault = ({
             footerClass: cn("flex items-center justify-end gap-2 border-t px-4 py-3", footerClass || theme.Modal.footerClass),
         },
         right: {
-            coverClass: "",
+            coverClass: "fixed inset-0 z-50",
             dialogClass: cn("fixed bottom-0 right-0 top-0 z-50 flex max-w-full flex-col border-l bg-card shadow-xl", sideWidthClass, wrapClass || theme.Modal.wrapClass),
             contentClass: cn("flex min-h-0 flex-1 flex-col", className || theme.Modal.className),
             headerClass: cn("flex items-center justify-between gap-3 border-b px-4 py-3", headerClass || theme.Modal.headerClass),
@@ -145,7 +147,7 @@ const ModalDefault = ({
             footerClass: cn("flex items-center justify-end gap-2 border-t px-4 py-3", footerClass || theme.Modal.footerClass),
         },
         bottom: {
-            coverClass: "",
+            coverClass: "fixed inset-0 z-50",
             dialogClass: cn("fixed bottom-0 left-0 right-0 z-50 flex flex-col border-t bg-card shadow-xl", verticalHeightClass, wrapClass || theme.Modal.wrapClass),
             contentClass: cn("flex min-h-0 flex-1 flex-col", className || theme.Modal.className),
             headerClass: cn("flex items-center justify-between gap-3 border-b px-4 py-3", headerClass || theme.Modal.headerClass),
@@ -195,10 +197,12 @@ const ModalDefault = ({
     const backdropStyle: React.CSSProperties = {
         ...useMotionState(entered, theme.Modal.motion?.backdrop ?? 'fade', theme.Modal.motion?.backdrop ?? 'fade'),
         cursor: closeOnBackdrop && onClose ? 'pointer' : 'default',
+        ...(zIndex !== undefined ? { zIndex: zIndex - 10 } : {}),
     };
 
     const coverStyle: React.CSSProperties = {
-        cursor: modalPosition === "center" && closeOnBackdrop && onClose ? 'pointer' : 'default',
+        cursor: closeOnBackdrop && onClose ? 'pointer' : 'default',
+        ...(zIndex !== undefined ? { zIndex } : {}),
     };
 
     const showFooter = footer !== false && (footer || onSave || onDelete || (buttonCancel && onClose));
@@ -210,12 +214,12 @@ const ModalDefault = ({
             className={coverClass}
             style={coverStyle}
             onClick={() => {
-                if (modalPosition === "center" && closeOnBackdrop && onClose) {
+                if (closeOnBackdrop && onClose) {
                     handleClose();
                 }
             }}
         >
-            <div className={pos.dialogClass} style={dialogStyle} onClick={(e) => e.stopPropagation()}>
+            <div className={pos.dialogClass} style={{ ...dialogStyle, ...(zIndex !== undefined ? { zIndex } : {}) }} onClick={(e) => e.stopPropagation()}>
                 {pre}
                 <div className={pos.contentClass}>
                     {(header || title || buttonFullscreen || onClose) && <div className={pos.headerClass}>

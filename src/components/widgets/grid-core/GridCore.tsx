@@ -49,7 +49,7 @@ function GridCore<TRecord extends RecordProps>({
     columns,
     actions,
     form,
-    routeSync,
+    editDeepLink,
     header,
     footer,
     layout = "table",
@@ -98,7 +98,7 @@ function GridCore<TRecord extends RecordProps>({
     } = useGridActions({
         actions,
         form,
-        routeSync,
+        editDeepLink,
         preparedRecords,
         recordId,
         sourcePath,
