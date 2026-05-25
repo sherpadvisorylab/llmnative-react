@@ -8,7 +8,7 @@
   "style": "dist/index.css",
   "exports": {
     ".": {
-      "types": "./dist/types/index.d.ts",
+      "types": "./dist/types/src/index.d.ts",
       "import": "./dist/index.mjs",
       "require": "./dist/index.js"
     },
@@ -27,7 +27,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "bin": {
-    "llmnative": "./bin/cli.js"
+    "llmnative": "bin/cli.js"
   },
   "files": [
     "dist",

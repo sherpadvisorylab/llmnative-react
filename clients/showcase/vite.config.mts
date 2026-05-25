@@ -7,7 +7,8 @@ export default defineConfig(({ mode }) => {
         plugins: [react()],
         resolve: {
             alias: [
-                { find: /^@llmnative/react$/, replacement: resolve(__dirname, '../../src/index.ts') },
+                { find: /^@llmnative\/react\/dist\/index\.css$/, replacement: resolve(__dirname, '../../dist/index.css') },
+                { find: /^@llmnative\/react$/, replacement: resolve(__dirname, '../../src/index.ts') },
             ],
             dedupe: ['react', 'react-dom', 'react-router-dom'],
         },
