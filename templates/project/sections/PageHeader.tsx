@@ -1,5 +1,5 @@
 import React from 'react';
-import { Breadcrumbs } from '@ash/react';
+import { Breadcrumbs } from '@llmnative/react';
 
 export default function PageHeader() {
     return (

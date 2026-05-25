@@ -1,5 +1,5 @@
 import React from 'react';
-import { Grid, Input } from '@ash/react';
+import { Grid, Input } from '@llmnative/react';
 
 export default function CategoriesPage() {
     return (

@@ -32,7 +32,7 @@ describe('MarkdownReader', () => {
                 content={'# Installation'}
                 head={{
                     title: 'Installation',
-                    description: 'Install react-firestrap in a Vite app.',
+                    description: 'Install @llmnative/react in a Vite app.',
                 }}
             />
         );
@@ -42,7 +42,7 @@ describe('MarkdownReader', () => {
         });
         expect(document.head.querySelector('meta[name="description"]')).toHaveAttribute(
             'content',
-            'Install react-firestrap in a Vite app.'
+            'Install @llmnative/react in a Vite app.'
         );
     });
 

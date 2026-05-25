@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu } from '@ash/react';
+import { Menu } from '@llmnative/react';
 
 type SidebarProps = {
     open: boolean;

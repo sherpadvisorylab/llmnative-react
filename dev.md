@@ -1,39 +1,44 @@
-# Install React-firestrap for dev
-- Create new folder react-firestrap
-- Clone repository react-firestrap in folder react-firestrap
-- npm install
-- npm run build:local
-- npm link
+# Install LLM Native For Dev
 
-# Create new project
-- Create new folder, the name of the folder is project 
-- Put the package.json inside the project foldername
-- npm install
-- delete folder in node_modules/react-firestrap
-- npm link react-firestrap
+- Create a local workspace folder for `llmnative-react`
+- Clone the `@llmnative/react` repository into that folder
+- Run `npm install`
+- Run `npm run build:local`
+- Run `npm link`
 
-# Scaffold new project
-- npx react-firestrap create
-- follow the instructions
+# Create New Project
 
-# Reinstall project after scaffold
-- go in react-firestrap folder
-- npm run build:local
-- go in project folder
-- Copy .env project file out of the project folder
-- npx react-firestrap create --reset
-- Copy .env file back to project folder
+- Create the project folder
+- Put the `package.json` inside the project folder
+- Run `npm install`
+- Delete `node_modules/@llmnative` if you need to relink a fresh local build
+- Run `npm link @llmnative/react`
 
-# Create new theme
-- Clean all project folder except package.json, package-lock.json, node_modules
-- Create src and public folders
-- Create theme
-- npm start
+# Scaffold New Project
 
-# Porting theme
-- Inside of react-firestrap create in themes/[theme-name]
-- Copy inside [theme-name] src and public folders of new theme project
+- Run `npx @llmnative/react create`
+- Follow the instructions
 
+# Reinstall Project After Scaffold
+
+- Go into the `llmnative-react` folder
+- Run `npm run build:local`
+- Go into the project folder
+- Copy the project `.env` file somewhere safe
+- Run `npx @llmnative/react create --reset`
+- Copy the `.env` file back
+
+# Create New Theme
+
+- Clean the project folder except `package.json`, `package-lock.json`, and `node_modules`
+- Create `src` and `public`
+- Create the theme
+- Run `npm start`
+
+# Porting Theme
+
+- Inside `@llmnative/react`, create the theme in `themes/[theme-name]`
+- Copy the `src` and `public` folders from the new theme project
 
 ```json
 {
@@ -53,37 +58,24 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-papaparse": "^4",
-    "react-firestrap": "^1.2.9",
+    "@llmnative/react": "^0.1.1",
     "react-router-dom": "^6.22.0",
     "react-scripts": "^5"
   },
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.0"
-  },
-  "eslintConfig": {
-    "extends": "react-app"
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
   }
 }
 ```
 
+# Deploy LLM Native
 
-# Deploy React Firestrap
-- go in folder react-firestrap
-- npm run build:local
+- Go into the `llmnative-react` folder
+- Run `npm run build:local`
 
+# Kill Process By Port 3000
 
-# Kill process by port 3000
+```bash
 netstat -aon | findstr :3000
 taskkill /PID [pid_number] /F
+```

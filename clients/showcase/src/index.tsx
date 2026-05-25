@@ -1,7 +1,6 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from '@llmnative/react';
-import '@llmnative/react/dist/index.css';
 import './globals.css';
 
 import ShowcaseLayout from './layouts/ShowcaseLayout';

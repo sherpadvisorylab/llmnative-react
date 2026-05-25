@@ -1,169 +1,105 @@
-# 🛠️ React FireStrap – Guida completa per sviluppo locale + CLI `npx react-firestrap`
+# LLM Native - Local Development And CLI Guide
 
-Questa guida ti aiuta a:
+This guide helps you:
 
-- Lavorare su `react-firestrap` localmente
-- Collegarlo a un progetto esterno (`d2uno.app`) tramite `npm link`
-- Usare il CLI manuale: `npx react-firestrap setup`
-- Pulire ambienti e testare modifiche in tempo reale
+- work on `@llmnative/react` locally
+- link it into another project with `npm link`
+- verify the current CLI commands
+- reset the environment when local linking gets messy
 
----
-
-## ✅ 1. Pulizia del pacchetto `react-firestrap`
+## 1. Clean The Local Package
 
 ```bash
-cd react-firestrap
-npm unlink react-firestrap --no-save
+cd llmnative-react
+npm unlink @llmnative/react --no-save
 rm -rf node_modules package-lock.json
 ```
 
----
-
-## ✅ 2. Reinstalla le dipendenze (senza lock)
+## 2. Reinstall Dependencies
 
 ```bash
 npm install --no-package-lock
-
 ```
 
-👉 Questo assicura che vengano installate **solo le dipendenze dichiarate** (`peerDependencies` restano esclusi, come giusto che sia).
-
----
-
-## ✅ 3. Compila la libreria
+## 3. Build The Library
 
 ```bash
 npm run build
-rm -rf node_modules/react-*
 ```
 
-Assicurati che vengano generati:
+Expected outputs:
 
 - `dist/index.js`
-- `dist/types/index.d.ts`
+- `dist/index.mjs`
+- `dist/index.css`
+- `dist/types`
 
----
-
-## ✅ 4. Collega il pacchetto globalmente via `npm link`
+## 4. Link The Package Globally
 
 ```bash
 npm link
 ```
 
-Questo crea un symlink globale del pacchetto, visibile da altri progetti.
-
----
-
-## ✅ 5. Vai nel progetto che lo usa (es. `d2uno.app`) e collega il pacchetto
+## 5. Link It From A Consumer Project
 
 ```bash
 cd ../d2uno.app
-npm unlink react-firestrap --no-save
-npm link react-firestrap
+npm unlink @llmnative/react --no-save
+npm link @llmnative/react
 ```
 
-Ora `react-firestrap` sarà incluso in `node_modules` di `d2uno.app` come symlink.
+At this point `@llmnative/react` is available in the consumer project's `node_modules` as a symlink.
 
----
-
-## ✅ 6. Esegui il CLI di scaffolding (manuale)
+## 6. Verify The CLI
 
 ```bash
-npx react-firestrap help
-npx react-firestrap setup
+npx @llmnative/react help
+npx @llmnative/react create --help
 ```
 
-Se hai configurato correttamente `bin/cli.js`, vedrai un messaggio CLI personalizzato.
+Current top-level commands are `create`, `devtools`, `version`, and `help`.
 
----
+## 7. CLI Structure
 
-## ✅ 7. Struttura CLI nel pacchetto `react-firestrap`
-
-```
-react-firestrap/
-├── bin/
-│   └── cli.js          # entrypoint CLI, eseguito da `npx react-firestrap`
-├── scripts/
-│   └── setup.js        # contiene lo script di scaffolding
-├── src/
-│   └── index.ts
-├── dist/
-│   ├── index.js
-│   └── types/
-├── package.json
-└── ...
+```text
+llmnative-react/
+  bin/
+    cli.js
+  scripts/
+    cli/
+      setup-project.js
+      setup-devtools.js
+  src/
+  dist/
+  package.json
 ```
 
-Nel tuo `package.json` deve essere presente:
+Current `package.json` CLI binding:
 
 ```json
 "bin": {
-  "react-firestrap": "./bin/cli.js"
+  "llmnative": "./bin/cli.js"
 }
 ```
 
-E in `bin/cli.js`:
+## 8. Unlink / Reset
 
-```js
-#!/usr/bin/env node
-
-const [,, cmd] = process.argv;
-
-switch (cmd) {
-  case 'setup':
-    require('../scripts/setup');
-    break;
-  case 'help':
-  default:
-    console.log(\`
-✨ React FireStrap CLI ✨
-
-Comandi disponibili:
-
-  setup     - Crea una configurazione base (React + Webpack)
-  help      - Mostra questo messaggio
-
-Usa: npx react-firestrap <comando>
-    \`);
-    break;
-}
-```
-
----
-
-## 🧼 Extra – Reset/Unlink se qualcosa va storto
-
-### 🔁 Da `d2uno.app` (per scollegare il pacchetto):
+From the consumer project:
 
 ```bash
-npm unlink react-firestrap --no-save
+npm unlink @llmnative/react --no-save
 ```
 
-### 🔁 Da `react-firestrap` (per eliminare il symlink globale):
+From the local framework repo:
 
 ```bash
 npm unlink
 ```
 
----
+## 9. Published Usage
 
-## 🚀 Quando pubblichi su npm
-
-Una volta pubblicato, chiunque potrà usare:
+Once published, the scaffold command is:
 
 ```bash
-npx react-firestrap setup
+npx @llmnative/react create
 ```
-
-Anche senza `npm install` preliminare!
-
----
-
-## 📌 Suggerimenti
-
-- Puoi evolvere il CLI usando librerie come `commander`, `yargs`, `inquirer` per aggiungere interattività (`--typescript`, `--vite`, ecc.)
-- Ricorda di mettere `react`, `react-dom`, ecc. in `peerDependencies` e non in `dependencies` del pacchetto
-
----
-
-✅ Pronto! Hai un pacchetto React modulare con CLI integrato, usabile sia localmente che via NPM!

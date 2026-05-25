@@ -15,7 +15,7 @@ Versioning basato su [Semantic Versioning](https://semver.org/lang/it/).
 - Build libreria Vite in library mode con output ESM/CJS: `dist/index.mjs` e `dist/index.js`.
 - CSS bundle mantenuto come `dist/index.css`.
 - CLI scaffold Vite-first con provider selection (`firebase`, `supabase`, `mock`, `custom`).
-- Comando non interattivo `npx react-firestrap create --yes --provider=mock`.
+- Comando non interattivo `npx @llmnative/react create --yes --provider=mock`.
 - Docs provider pattern aggiornate dopo CR-002.
 - Esempio `docs/examples/custom-provider.md` per implementare un DataProvider custom.
 - Pagina showcase Upload con demo image, document e CSV.
@@ -47,7 +47,7 @@ Versioning basato su [Semantic Versioning](https://semver.org/lang/it/).
 - Sistema tema via React Context con deep merge
 - Upload file con Firebase Storage
 - Google OAuth 2.0
-- CLI scaffolding (`npx react-firestrap create`)
+- CLI scaffolding (`npx @llmnative/react create`)
 - Multi-tenancy via localStorage
 - Componenti: Input, Select, Upload, Prompt, AssistantAI, UploadCSV
 - Widgets: Form, Grid, ImageEditor

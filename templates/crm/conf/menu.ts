@@ -1,4 +1,4 @@
-import type { MenuConfig } from '@ash/react';
+import type { MenuConfig } from '@llmnative/react';
 import Default from '../layouts/Default';
 import HomePage from '../pages/home/HomePage';
 import ContactsPage from '../pages/contacts/ContactsPage';

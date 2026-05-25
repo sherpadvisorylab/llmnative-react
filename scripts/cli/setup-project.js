@@ -133,7 +133,7 @@ function createPackageJson(params) {
     const version = JSON.parse(fs.readFileSync(packagePath, 'utf8')).version;
 
     ensureFile(path.join(root, 'package.json'), JSON.stringify({
-        name: normalizeFirebaseProjectId(params.projectname) || 'ash-app',
+        name: normalizeFirebaseProjectId(params.projectname) || 'llmnative-app',
         version: '0.1.0',
         private: true,
         type: 'module',

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Grid } from '@ash/react';
+import { Grid } from '@llmnative/react';
 
 export default function HomePage() {
     return (
@@ -7,7 +7,7 @@ export default function HomePage() {
             <div className="space-y-1">
                 <h1 className="text-2xl font-semibold">Welcome to [projectname]</h1>
                 <p className="text-sm text-muted-foreground">
-                    Scaffolded with react-firestrap. Edit this page at <code>src/pages/home/HomePage.tsx</code>.
+                    Scaffolded with LLM Native. Edit this page at <code>src/pages/home/HomePage.tsx</code>.
                 </p>
             </div>
 

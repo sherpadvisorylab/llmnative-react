@@ -1,5 +1,5 @@
 import React from 'react';
-import { Brand, Menu, Notifications, SignInButton } from '@ash/react';
+import { Brand, Menu, Notifications, SignInButton } from '@llmnative/react';
 
 type HeaderProps = {
     onMenuToggle?: () => void;

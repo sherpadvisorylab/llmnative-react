@@ -1,5 +1,5 @@
 import React from 'react';
-import { Grid, Badge, Input, Select } from '@ash/react';
+import { Grid, Badge, Input, Select } from '@llmnative/react';
 
 const categoryOptions = [
     { label: 'Electronics',   value: 'Electronics' },

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Form, Input, Select } from '@ash/react';
+import { Form, Input, Select } from '@llmnative/react';
 
 const timezoneOptions = [
     { label: 'UTC',              value: 'UTC' },
