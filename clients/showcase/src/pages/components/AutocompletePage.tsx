@@ -27,7 +27,11 @@ const AUTOCOMPLETE_PROPS: PropDef[] = [
     { name: 'name', type: 'string', required: true, description: 'Field name used as form key', control: 'text' },
     { name: 'label', type: 'string', description: 'Label above the input', control: 'text' },
     { name: 'title', type: 'string', description: 'Native title attribute on the text input', control: 'text' },
-    { name: 'options', type: 'Option[] | string[] | number[]', description: 'Static options for suggestions', control: 'json', typeDetails: `Array<{ label: string; value: string }> | string[] | number[]`, example: `options={[
+    { name: 'options', type: 'Option[] | string[] | number[]', description: 'Static options for suggestions', control: 'json', rows: 6, shortcuts: [
+        { label: 'people', value: PEOPLE, help: 'Named people options.' },
+        { label: 'tags', value: TAGS, help: 'Technology tags.' },
+        { label: 'simple', value: ['alpha', 'beta', 'gamma'], help: 'Simple string list.' },
+    ], typeDetails: `Array<{ label: string; value: string }> | string[] | number[]`, example: `options={[
   { label: 'Alice Johnson', value: 'alice' },
   { label: 'Bob Martinez', value: 'bob' },
 ]}` },
@@ -59,9 +63,17 @@ const AUTOCOMPLETE_PROPS: PropDef[] = [
     { name: 'required', type: 'boolean', default: 'false', description: 'Marks field as required', control: 'boolean' },
     { name: 'disabled', type: 'boolean', default: 'false', description: 'Disables the field', control: 'boolean' },
     { name: 'updatable', type: 'boolean', default: 'true', description: 'When false, an existing value locks the input', control: 'boolean' },
-    { name: 'defaultValue', type: 'string[] | string', description: 'Initial selected values', control: 'json' },
+    { name: 'defaultValue', type: 'string[] | string', description: 'Initial selected values', control: 'json', rows: 3, shortcuts: [
+        { label: 'single', value: 'alice', help: 'Single selected value.' },
+        { label: 'multi', value: ['alice', 'carla'], help: 'Multiple selected values.' },
+        { label: 'empty', value: [], help: 'No initial value.' },
+    ] },
     { name: 'feedback', type: 'string', description: 'Validation feedback message shown below the field', control: 'text' },
-    { name: 'order', type: 'OrderConfig', description: 'Sort order for options (default: label asc)', control: 'json', typeDetails: `{
+    { name: 'order', type: 'OrderConfig', description: 'Sort order for options (default: label asc)', control: 'json', rows: 4, shortcuts: [
+        { label: 'label asc', value: { field: 'label', dir: 'asc' }, help: 'Sort by label ascending.' },
+        { label: 'label desc', value: { field: 'label', dir: 'desc' }, help: 'Sort by label descending.' },
+        { label: 'value asc', value: { field: 'value', dir: 'asc' }, help: 'Sort by value ascending.' },
+    ], typeDetails: `{
   field: 'label' | 'value';
   dir: 'asc' | 'desc';
 }`, example: `order={{ field: 'label', dir: 'asc' }}` },

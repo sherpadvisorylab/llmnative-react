@@ -1,52 +1,55 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { type RecordProps } from "../../../providers/data/DataProvider";
-import { type GridSelectionState } from "./types";
+import { type GridSelectionConfig, type GridSelectionState } from "./types";
 
 type UseGridSelectionArgs<TRecord extends RecordProps> = {
-    selectedKeys?: string[];
-    defaultSelectedKeys?: string[];
-    onSelectionChange?: (selection: GridSelectionState<TRecord>) => void;
+    selection?: false | "single" | "multiple" | GridSelectionConfig<TRecord>;
 };
 
 function useGridSelection<TRecord extends RecordProps>({
-    selectedKeys,
-    defaultSelectedKeys,
-    onSelectionChange,
+    selection,
 }: UseGridSelectionArgs<TRecord>) {
-    const [internalSelectedKeys, setInternalSelectedKeys] = useState<string[]>(defaultSelectedKeys || []);
-    const [internalSelectedRecords, setInternalSelectedRecords] = useState<TRecord[]>([]);
+    const isConfig = selection !== null && selection !== false && typeof selection === "object";
+    const mode = !selection
+        ? false as const
+        : typeof selection === "string"
+            ? selection
+            : selection.mode;
+    const defaultKeys = isConfig ? (selection as GridSelectionConfig<TRecord>).defaultKeys : undefined;
+    const onChange = isConfig ? (selection as GridSelectionConfig<TRecord>).onChange : undefined;
 
+    const [internalKeys, setInternalKeys] = useState<string[]>(defaultKeys ?? []);
+    const [internalRecords, setInternalRecords] = useState<TRecord[]>([]);
+
+    const defaultKeysKey = defaultKeys?.join("\0") ?? "";
     useEffect(() => {
-        if (selectedKeys !== undefined) setInternalSelectedKeys(selectedKeys);
-    }, [selectedKeys]);
-
-    const activeSelectionKeys = selectedKeys ?? internalSelectedKeys;
+        setInternalKeys(defaultKeys ?? []);
+        setInternalRecords([]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [defaultKeysKey]);
 
     const clearSelection = useCallback(() => {
-        if (selectedKeys === undefined) {
-            setInternalSelectedKeys([]);
-        }
-        setInternalSelectedRecords([]);
-        onSelectionChange?.({ keys: [], records: [], hasSelection: false, clear: () => undefined });
-    }, [onSelectionChange, selectedKeys]);
+        setInternalKeys([]);
+        setInternalRecords([]);
+        onChange?.({ keys: [], records: [], hasSelection: false, clear: () => undefined });
+    }, [onChange]);
 
     const selectionState = useMemo<GridSelectionState<TRecord>>(() => ({
-        keys: activeSelectionKeys,
-        records: internalSelectedRecords,
-        hasSelection: activeSelectionKeys.length > 0,
+        keys: internalKeys,
+        records: internalRecords,
+        hasSelection: internalKeys.length > 0,
         clear: clearSelection,
-    }), [activeSelectionKeys, clearSelection, internalSelectedRecords]);
+    }), [clearSelection, internalKeys, internalRecords]);
 
     const handleSelectionChange = useCallback((nextSelection: GridSelectionState<TRecord>) => {
-        if (selectedKeys === undefined) {
-            setInternalSelectedKeys(nextSelection.keys);
-        }
-        setInternalSelectedRecords(nextSelection.records);
-        onSelectionChange?.(nextSelection);
-    }, [onSelectionChange, selectedKeys]);
+        setInternalKeys(nextSelection.keys);
+        setInternalRecords(nextSelection.records);
+        onChange?.(nextSelection);
+    }, [onChange]);
 
     return {
-        activeSelectionKeys,
+        mode,
+        activeSelectionKeys: internalKeys,
         selectionState,
         handleSelectionChange,
     };

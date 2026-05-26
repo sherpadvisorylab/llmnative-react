@@ -7,7 +7,6 @@ type UseGridDBRecordsArgs = {
     where?: DatabaseOptions["where"];
     order?: DatabaseOptions["order"];
     fieldMap?: DatabaseOptions["fieldMap"];
-    onLoad?: DatabaseOptions["onLoad"];
 };
 
 function useGridDBRecords<TRecord extends RecordProps>({
@@ -15,14 +14,13 @@ function useGridDBRecords<TRecord extends RecordProps>({
     where,
     order,
     fieldMap,
-    onLoad,
 }: UseGridDBRecordsArgs) {
     const db = useDataProvider();
     const [records, setRecords] = useState<RecordArray>([]);
     const options = useMemo<DatabaseOptions | undefined>(() => {
-        if (!where && !order && !fieldMap && !onLoad) return undefined;
-        return { where, order, fieldMap, onLoad };
-    }, [fieldMap, onLoad, order, where]);
+        if (!where && !order && !fieldMap) return undefined;
+        return { where, order, fieldMap };
+    }, [fieldMap, order, where]);
 
     useEffect(() => {
         return db.subscribe(path, setRecords, options);

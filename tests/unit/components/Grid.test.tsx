@@ -110,10 +110,10 @@ describe('Grid - provider source', () => {
         const provider = new MockDataProvider({ '/members': USERS });
         renderWithProviders(
             <Grid
-                path="fromUrl"
+                fromUrl
                 columns={COLUMNS}
             />,
-            { provider, route: '/members?status=active#top' }
+            { provider, route: '/members' }
         );
 
         await waitFor(() => {
@@ -126,7 +126,7 @@ describe('Grid - provider source', () => {
         const provider = new MockDataProvider({ '/members/u1': USERS });
         renderWithProviders(
             <GridDB
-                path="fromUrl"
+                fromUrl
                 columns={COLUMNS}
             />,
             { provider, route: '/members/u1' }
@@ -207,6 +207,108 @@ describe('Grid - array source', () => {
         expect(row).not.toBeNull();
         expect(row).toHaveStyle({ cursor: 'default' });
     });
+
+    it('transforms only the records visible on the current page in table mode', async () => {
+        const renderSpy = vi.fn(({ value }) => `View ${String(value)}`);
+
+        renderWithProviders(
+            <Grid
+                records={[
+                    { id: 'u1', name: 'Alpha' },
+                    { id: 'u2', name: 'Bravo' },
+                    { id: 'u3', name: 'Charlie' },
+                    { id: 'u4', name: 'Delta' },
+                    { id: 'u5', name: 'Echo' },
+                ]}
+                recordId="id"
+                sortable={false}
+                pagination={{ limit: 2, align: 'end' }}
+                columns={[
+                    { key: 'name', label: 'Name', sortable: false, render: renderSpy },
+                ]}
+            />
+        );
+
+        await waitFor(() => {
+            expect(screen.getByText('View Alpha')).toBeInTheDocument();
+            expect(screen.getByText('View Bravo')).toBeInTheDocument();
+        });
+
+        expect(screen.queryByText('View Charlie')).not.toBeInTheDocument();
+        expect(renderSpy).toHaveBeenCalledTimes(2);
+
+        await act(async () => {
+            screen.getByRole('button', { name: '2' }).click();
+        });
+
+        await waitFor(() => {
+            expect(screen.getByText('View Charlie')).toBeInTheDocument();
+            expect(screen.getByText('View Delta')).toBeInTheDocument();
+        });
+
+        expect(renderSpy).toHaveBeenCalledTimes(4);
+    });
+
+    it('reuses cached transformed cells when previously visible records become visible again', async () => {
+        const renderSpy = vi.fn(({ value }) => `View ${String(value)}`);
+
+        renderWithProviders(
+            <Grid
+                records={[
+                    { id: 'u1', name: 'Alpha' },
+                    { id: 'u2', name: 'Bravo' },
+                    { id: 'u3', name: 'Charlie' },
+                    { id: 'u4', name: 'Delta' },
+                ]}
+                recordId="id"
+                sortable
+                pagination={{ limit: 2, align: 'end' }}
+                columns={[
+                    { key: 'name', label: 'Name', sortable: true, render: renderSpy },
+                ]}
+            />
+        );
+
+        await waitFor(() => {
+            expect(screen.getByText('View Alpha')).toBeInTheDocument();
+            expect(screen.getByText('View Bravo')).toBeInTheDocument();
+        });
+
+        expect(renderSpy).toHaveBeenCalledTimes(2);
+
+        await act(async () => {
+            screen.getByRole('button', { name: '2' }).click();
+        });
+
+        await waitFor(() => {
+            expect(screen.getByText('View Charlie')).toBeInTheDocument();
+            expect(screen.getByText('View Delta')).toBeInTheDocument();
+        });
+
+        expect(renderSpy).toHaveBeenCalledTimes(4);
+
+        await act(async () => {
+            screen.getByRole('button', { name: /sort by name, currently ascending/i }).click();
+        });
+
+        await waitFor(() => {
+            expect(screen.getByText('View Bravo')).toBeInTheDocument();
+            expect(screen.getByText('View Alpha')).toBeInTheDocument();
+        });
+
+        expect(renderSpy).toHaveBeenCalledTimes(6);
+
+        await act(async () => {
+            screen.getByRole('button', { name: /sort by name, currently descending/i }).click();
+        });
+
+        await waitFor(() => {
+            expect(screen.getByText('View Charlie')).toBeInTheDocument();
+            expect(screen.getByText('View Delta')).toBeInTheDocument();
+        });
+
+        expect(renderSpy).toHaveBeenCalledTimes(6);
+    });
 });
 
 describe('Grid - form and modal workflows', () => {
@@ -263,7 +365,7 @@ describe('Grid - form and modal workflows', () => {
                     columns={COLUMNS}
                     form={<UserFormFields />}
                     actions={['add', 'edit', 'delete']}
-                    routeSync={{ edit: true }}
+                    editDeepLink
                 />
             </>,
             { provider, route: '/members' }
@@ -475,8 +577,10 @@ describe('Grid - event payloads', () => {
                 ]}
                 recordId="_key"
                 columns={[{ key: 'name', label: 'Name', sortable: true }]}
-                selection="multiple"
-                onSelectionChange={(selection) => selections.push(selection.records.map((record) => record._key || ''))}
+                selection={{
+                    mode: 'multiple',
+                    onChange: (selection) => selections.push(selection.records.map((record) => record._key || '')),
+                }}
             />
         );
 
@@ -499,8 +603,10 @@ describe('Grid - event payloads', () => {
                 ]}
                 recordId="_key"
                 columns={[{ key: 'name', label: 'Name', sortable: true }]}
-                selection="single"
-                onSelectionChange={(selection) => selections.push(selection.keys)}
+                selection={{
+                    mode: 'single',
+                    onChange: (selection) => selections.push(selection.keys),
+                }}
             />
         );
 

@@ -51,6 +51,8 @@ import ChecklistPage from '../pages/components/ChecklistPage';
 import UploadPage from '../pages/components/UploadPage';
 import FormPage from '../pages/components/FormPage';
 import GridPage from '../pages/components/GridPage';
+import GridArrayPage from '../pages/components/GridArrayPage';
+import GridDbPage from '../pages/components/GridDbPage';
 import GridPreviewPage from '../pages/components/GridPreviewPage';
 import MarkdownReaderPage from '../pages/components/MarkdownReaderPage';
 
@@ -139,7 +141,16 @@ export const menu = {
         { path: '/components/upload', title: 'Upload', page: UploadPage, group: 'Form fields' },
         { path: '/components/assistant-ai', title: 'AssistantAI', page: AssistantAIPage, group: 'Widgets' },
         { path: '/components/form', title: 'Form', page: FormPage, group: 'Widgets' },
-        { path: '/components/grid', title: 'Grid', page: GridPage, group: 'Widgets' },
+        {
+            path: '/components/grid',
+            title: 'Grid',
+            page: GridPage,
+            group: 'Widgets',
+            children: [
+                { path: '/components/grid/array', title: 'GridArray', page: GridArrayPage },
+                { path: '/components/grid/db', title: 'GridDB', page: GridDbPage },
+            ],
+        },
         { path: '/components/layout-builder', title: 'LayoutBuilder', page: LayoutBuilderPage, group: 'Widgets' },
         { path: '/components/markdown-reader', title: 'MarkdownReader', page: MarkdownReaderPage, group: 'Widgets' },
         { path: '/components/repeat', title: 'Repeat', page: RepeatPage, group: 'Widgets' },

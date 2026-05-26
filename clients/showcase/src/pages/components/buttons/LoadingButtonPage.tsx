@@ -28,7 +28,11 @@ const BUTTON_CLASSES = [
 const PROPS: PropDef[] = [
     { name: 'icon', type: 'string', description: 'Icon name shown while idle', control: 'icon' },
     { name: 'label', type: 'string | ReactNode', description: 'Visible button label', control: 'text' },
-    { name: 'badge', type: 'ReactNode | BadgeConfig', description: 'Optional badge rendered while idle', control: 'json', typeDetails: `ReactNode | {
+    { name: 'badge', type: 'ReactNode | BadgeConfig', description: 'Optional badge rendered while idle', control: 'json', rows: 4, shortcuts: [
+        { label: 'none', value: null, help: 'No badge.' },
+        { label: 'count', value: { content: '3', type: 'danger' }, help: 'Numeric danger badge.' },
+        { label: 'sync', value: { content: 'sync', type: 'info' }, help: 'Status badge while idle.' },
+    ], typeDetails: `ReactNode | {
   content: ReactNode;
   type?: string;
 }` },

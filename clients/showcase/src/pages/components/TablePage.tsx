@@ -131,12 +131,36 @@ type TableSelectionState = ${TABLE_SELECTION_STATE_TYPE}`, example: `onSelection
   setSelectedKeys(selection.keys);
   setSelectedRecords(selection.records);
 }}` },
-    { name: 'sortable', type: 'boolean | OrderConfig', default: 'false', description: 'Enables header sorting. Pass an OrderConfig object to set the initial client-side sort without a separate order prop.', control: 'json', typeDetails: `boolean | {
+    { name: 'sortable', type: 'boolean | OrderConfig', default: 'false', description: 'Enables header sorting. Pass an OrderConfig object to set the initial client-side sort without a separate order prop.', control: 'json', rows: 4, shortcuts: [
+        { label: 'false', value: false, help: 'Disable sorting.' },
+        { label: 'name asc', value: { field: 'name', dir: 'asc' }, help: 'Start sorted by name ascending.' },
+        { label: 'status desc', value: { field: 'status', dir: 'desc' }, help: 'Start sorted by status descending.' },
+    ], typeDetails: `boolean | {
   field: string;
   dir: 'asc' | 'desc';
 }`, example: `sortable={{ field: 'name', dir: 'asc' }}` },
     { name: 'onClick', type: '(record) => void', description: 'Called with the clicked record.' },
-    { name: 'pagination', type: PAGINATION_PARAMS_TYPE, description: 'Shared pagination configuration. Default align is "end", so controls are right-aligned unless overridden.', control: 'json', typeDetails: PAGINATION_PARAMS_TYPE, example: `pagination={{ limit: 4, align: 'end', sticky: false }}` },
+    { name: 'pagination', type: PAGINATION_PARAMS_TYPE, description: 'Shared pagination configuration. Default align is "end", so controls are right-aligned unless overridden.', control: 'json', rows: 6, shortcuts: [
+        { label: 'default', value: { limit: 4, align: 'end', sticky: false }, help: 'Right-aligned default pagination.' },
+        { label: 'compact', value: { limit: 2, align: 'center', sticky: false }, help: 'Smaller pages, centered controls.' },
+        { label: 'sticky', value: { limit: 4, align: 'end', sticky: true }, help: 'Sticky footer pagination.' },
+    ], typeDetails: PAGINATION_PARAMS_TYPE, example: `pagination={{ limit: 4, align: 'end', sticky: false }}` },
+    {
+        name: 'groupBy',
+        type: 'string | string[]',
+        description: 'Group rows by a field name. Inserts a separator header row when the field value changes. Works alongside sorting — rows cluster naturally when sorted by the same field. Pass an array for multi-level grouping.',
+        control: 'textarea',
+        textareaMode: 'text',
+        rows: 1,
+        placeholder: 'e.g. role or ["role","status"]',
+        shortcuts: [
+            { label: 'off', value: '', help: 'No grouping.' },
+            { label: 'role', value: 'role', help: 'Group by role.' },
+            { label: 'status', value: 'status', help: 'Group by status.' },
+            { label: 'team', value: 'team', help: 'Group by team.' },
+            { label: 'role+status', value: ['role', 'status'], help: 'Multi-level: role then status.' },
+        ],
+    },
     { name: 'Footer', type: 'ReactNode', description: 'Footer row or content rendered inside tfoot.', control: 'text' },
     { name: 'selectedClass', type: 'string', description: 'Class applied to the active row after click.', control: 'text' },
     { name: 'wrapClass', type: 'string', description: 'CSS class applied to the outer responsive wrapper. Use it for width and horizontal overflow behavior.', control: 'text' },
@@ -156,6 +180,7 @@ const PLAYGROUND: PlaygroundConfig = {
     defaultProps: {
         sortable: { field: 'name', dir: 'asc' },
         pagination: { limit: 4, align: 'end', sticky: false },
+        groupBy: '',
         Footer: '8 team members',
         selectedClass: '',
         wrapClass: '',
@@ -215,6 +240,21 @@ function TablePlaygroundPreview({ p }: { p: Record<string, any> }) {
             toIndex: null,
         });
     }, [mapRows, sourceRows]);
+
+    const groupBy: string | string[] | undefined = (() => {
+        const val = p.groupBy;
+        if (!val) return undefined;
+        if (Array.isArray(val)) return (val as string[]).length > 0 ? val as string[] : undefined;
+        if (typeof val === 'string') {
+            const trimmed = val.trim();
+            if (!trimmed) return undefined;
+            if (trimmed.startsWith('[')) {
+                try { return JSON.parse(trimmed) as string[]; } catch { /* fall through */ }
+            }
+            return trimmed;
+        }
+        return undefined;
+    })();
 
     return (
         <div className="min-w-0 space-y-4">
@@ -284,6 +324,7 @@ function TablePlaygroundPreview({ p }: { p: Record<string, any> }) {
                     });
                 }) : undefined}
                 sortable={dragEnabled ? false : p.sortable}
+                groupBy={groupBy}
                 pagination={p.pagination && typeof p.pagination === 'object' ? p.pagination : undefined}
                 Footer={p.Footer ? (
                     <tr>
@@ -637,6 +678,35 @@ const [exportOpen, setExportOpen] = useState(false);
       <td colSpan={4}>8 team members across 6 teams</td>
     </tr>
   )}
+/>`}
+            />
+
+            <Section
+                title="Grouped rows"
+                description="Pass a field name to groupBy to insert a separator header row between groups. Grouping pairs naturally with sorting on the same field — rows cluster automatically. Pass an array for multi-level grouping."
+                preview={
+                    <Table
+                        header={header}
+                        body={tableBody}
+                        sortable={{ field: 'role', dir: 'asc' }}
+                        groupBy="role"
+                        pagination={{ limit: 4, align: 'end', sticky: false }}
+                    />
+                }
+                code={`<Table
+  header={header}
+  body={rows}
+  sortable={{ field: 'role', dir: 'asc' }}
+  groupBy="role"
+  pagination={{ limit: 4, align: 'end', sticky: false }}
+/>
+
+// Multi-level grouping
+<Table
+  header={header}
+  body={rows}
+  sortable={{ field: 'role', dir: 'asc' }}
+  groupBy={['role', 'status']}
 />`}
             />
 

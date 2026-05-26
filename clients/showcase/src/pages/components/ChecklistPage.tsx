@@ -25,7 +25,11 @@ const CHECKLIST_PROPS: PropDef[] = [
     { name: 'name', type: 'string', required: true, description: 'Field name used as form key; stores selected values as an array', control: 'text' },
     { name: 'label', type: 'string', description: 'Group label above the checkboxes', control: 'text' },
     { name: 'title', type: 'string', description: 'Native title attribute on each checkbox input', control: 'text' },
-    { name: 'options', type: 'Option[] | string[] | number[]', description: 'Static checkbox options', control: 'json', typeDetails: `Array<{ label: string; value: string }> | string[] | number[]` },
+    { name: 'options', type: 'Option[] | string[] | number[]', description: 'Static checkbox options', control: 'json', rows: 6, shortcuts: [
+        { label: 'tags', value: TAGS, help: 'Technology checklist.' },
+        { label: 'permissions', value: PERMISSIONS, help: 'Permission checklist.' },
+        { label: 'simple', value: ['one', 'two', 'three'], help: 'Simple string values.' },
+    ], typeDetails: `Array<{ label: string; value: string }> | string[] | number[]` },
     {
         name: 'db',
         type: 'ChecklistDbConfig',
@@ -43,9 +47,17 @@ const CHECKLIST_PROPS: PropDef[] = [
     { name: 'required', type: 'boolean', default: 'false', description: 'Marks the field as required', control: 'boolean' },
     { name: 'disabled', type: 'boolean', default: 'false', description: 'Disables all checkboxes', control: 'boolean' },
     { name: 'updatable', type: 'boolean', default: 'true', description: 'When false, an existing value locks the checklist', control: 'boolean' },
-    { name: 'defaultValue', type: 'string[] | string', description: 'Initial selected values', control: 'json' },
+    { name: 'defaultValue', type: 'string[] | string', description: 'Initial selected values', control: 'json', rows: 3, shortcuts: [
+        { label: 'single', value: 'react', help: 'Single default selection.' },
+        { label: 'multi', value: ['react', 'typescript'], help: 'Multiple defaults.' },
+        { label: 'empty', value: [], help: 'No default selections.' },
+    ] },
     { name: 'feedback', type: 'string', description: 'Validation feedback message shown below the list', control: 'text' },
-    { name: 'order', type: 'OrderConfig', description: 'Sort order for options (default: label asc)', control: 'json', typeDetails: `{
+    { name: 'order', type: 'OrderConfig', description: 'Sort order for options (default: label asc)', control: 'json', rows: 4, shortcuts: [
+        { label: 'label asc', value: { field: 'label', dir: 'asc' }, help: 'Sort by label ascending.' },
+        { label: 'label desc', value: { field: 'label', dir: 'desc' }, help: 'Sort by label descending.' },
+        { label: 'value asc', value: { field: 'value', dir: 'asc' }, help: 'Sort by value ascending.' },
+    ], typeDetails: `{
   field: 'label' | 'value';
   dir: 'asc' | 'desc';
 }` },

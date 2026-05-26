@@ -4,25 +4,25 @@ import { type RecordProps } from "../../../providers/data/DataProvider";
 
 type UseGridPreparedRecordsArgs<TRecord extends RecordProps> = {
     records: TRecord[];
-    transformRecords?: (records: TRecord[]) => TRecord[] | Promise<TRecord[]>;
+    onLoad?: (records: TRecord[]) => TRecord[] | Promise<TRecord[]>;
 };
 
 function useGridPreparedRecords<TRecord extends RecordProps>({
     records,
-    transformRecords,
+    onLoad,
 }: UseGridPreparedRecordsArgs<TRecord>) {
     const [preparedRecords, setPreparedRecords] = useState<TRecord[]>(records);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        if (!transformRecords) {
+        if (!onLoad) {
             setPreparedRecords(records);
             setLoading(false);
             return;
         }
 
         let active = true;
-        const next = transformRecords(safeClone(records));
+        const next = onLoad(safeClone(records));
         if (next instanceof Promise) {
             setLoading(true);
             next
@@ -39,7 +39,7 @@ function useGridPreparedRecords<TRecord extends RecordProps>({
 
         setPreparedRecords(next);
         setLoading(false);
-    }, [records, transformRecords]);
+    }, [records, onLoad]);
 
     return {
         preparedRecords,

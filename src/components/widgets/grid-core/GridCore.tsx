@@ -57,12 +57,11 @@ function GridCore<TRecord extends RecordProps>({
     wrapClass,
     loading = false,
     title,
+    pre,
+    post,
     sortable = true,
     pagination,
-    selection = false,
-    selectedKeys,
-    defaultSelectedKeys,
-    onSelectionChange,
+    selection,
     onClickRow,
     reorderable = false,
     onReorder,
@@ -70,19 +69,14 @@ function GridCore<TRecord extends RecordProps>({
     onSave,
     onDelete,
     onAfterAction,
-    createRecordKey,
     audit = false,
-    transformRecords,
+    onLoad,
 }: GridCoreProps<TRecord>) {
     const theme = useTheme("grid");
     const db = useDataProvider();
-    const { preparedRecords, loading: preparedRecordsLoading } = useGridPreparedRecords({ records, transformRecords });
+    const { preparedRecords, loading: preparedRecordsLoading } = useGridPreparedRecords({ records, onLoad });
     const inferredColumns = useGridColumns({ columns, records: preparedRecords, form });
-    const { activeSelectionKeys, selectionState, handleSelectionChange } = useGridSelection({
-        selectedKeys,
-        defaultSelectedKeys,
-        onSelectionChange,
-    });
+    const { mode: selectionMode, activeSelectionKeys, selectionState, handleSelectionChange } = useGridSelection({ selection });
     const {
         normalizedActions,
         activeAction,
@@ -106,7 +100,6 @@ function GridCore<TRecord extends RecordProps>({
         onSave,
         onDelete,
         onAfterAction,
-        createRecordKey,
         audit,
     });
     const canOpenEditFromRow = !!normalizedActions.edit && !!form;
@@ -233,12 +226,14 @@ function GridCore<TRecord extends RecordProps>({
                         recordId={recordId}
                         sortable={initialSort || sortable}
                         pagination={pagination}
-                        selection={selection}
+                        selection={selectionMode}
                         selectedKeys={activeSelectionKeys}
-                        onSelectionChange={handleSelectionChange}
+                        onSelectionChange={selectionMode ? handleSelectionChange : undefined}
                         onClickRow={rowClickHandler}
                         groupBy={groupBy}
                         wrapClass={theme.Grid.Gallery.wrapClass}
+                        pre={pre}
+                        post={post}
                     />
                 ) : (
                     <GridTableView
@@ -248,14 +243,17 @@ function GridCore<TRecord extends RecordProps>({
                         runAction={runAction}
                         sortable={initialSort || sortable}
                         pagination={pagination}
-                        selection={selection}
+                        selection={selectionMode}
                         selectedKeys={activeSelectionKeys}
-                        onSelectionChange={handleSelectionChange}
+                        onSelectionChange={selectionMode ? handleSelectionChange : undefined}
                         onClickRow={rowClickHandler}
                         reorderable={reorderable}
                         onReorder={onReorder}
                         activeKey={activeKey}
+                        groupBy={groupBy}
                         wrapClass={theme.Grid.Table.wrapClass}
+                        pre={pre}
+                        post={post}
                     />
                 )}
             </Card>

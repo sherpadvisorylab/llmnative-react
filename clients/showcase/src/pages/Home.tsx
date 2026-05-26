@@ -30,7 +30,6 @@ export default function Home() {
 npm install @llmnative/react
 
 // 2. Import the stylesheet once in your entry point
-import '@llmnative/react/dist/index.css';
 
 // 3. Use the components
 import { Alert, Badge, Grid, Form } from '@llmnative/react';`}</pre>

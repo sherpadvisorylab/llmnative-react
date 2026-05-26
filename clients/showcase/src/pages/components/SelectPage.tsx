@@ -25,7 +25,11 @@ const SELECT_PROPS: PropDef[] = [
     { name: 'name', type: 'string', required: true, description: 'Field name used as form key', control: 'text' },
     { name: 'label', type: 'string', description: 'Label displayed above the select', control: 'text' },
     { name: 'title', type: 'string', description: 'Native title attribute on the select element', control: 'text' },
-    { name: 'options', type: 'Option[] | string[] | number[]', description: 'Static options array', control: 'json', typeDetails: `Array<{ label: string; value: string }> | string[] | number[]`, example: `options={[
+    { name: 'options', type: 'Option[] | string[] | number[]', description: 'Static options array', control: 'json', rows: 6, shortcuts: [
+        { label: 'roles', value: ROLES, help: 'Admin/editor/viewer roles.' },
+        { label: 'countries', value: COUNTRIES, help: 'Country options.' },
+        { label: 'simple', value: ['draft', 'review', 'published'], help: 'Simple string list.' },
+    ], typeDetails: `Array<{ label: string; value: string }> | string[] | number[]`, example: `options={[
   { label: 'Admin', value: 'admin' },
   { label: 'Editor', value: 'editor' },
 ]}` },
@@ -49,7 +53,11 @@ const SELECT_PROPS: PropDef[] = [
         readOnly: true,
         help: 'This playground uses a MockDataProvider. Edit the records in Mock database below to change the options returned by this path.',
     },
-    { name: 'optionEmpty', type: 'Option | null', description: 'Placeholder option shown when nothing is selected; set to null to hide it', control: 'json', typeDetails: `{
+    { name: 'optionEmpty', type: 'Option | null', description: 'Placeholder option shown when nothing is selected; set to null to hide it', control: 'json', rows: 3, shortcuts: [
+        { label: 'default', value: { label: 'Select...', value: '' }, help: 'Default empty option.' },
+        { label: 'choose', value: { label: 'Choose a role', value: '' }, help: 'Custom placeholder text.' },
+        { label: 'null', value: null, help: 'Hide the empty option.' },
+    ], typeDetails: `{
   label: string;
   value: string;
 } | null`, example: `optionEmpty={{ label: 'Select...', value: '' }}` },
@@ -58,7 +66,11 @@ const SELECT_PROPS: PropDef[] = [
     { name: 'updatable', type: 'boolean', default: 'true', description: 'When false, an existing value locks the select', control: 'boolean' },
     { name: 'defaultValue', type: 'any', description: 'Initial selected value', control: 'text' },
     { name: 'feedback', type: 'string', description: 'Validation feedback message shown below the field', control: 'text' },
-    { name: 'order', type: 'OrderConfig', description: 'Sort order for options (default: label asc)', control: 'json', typeDetails: `{
+    { name: 'order', type: 'OrderConfig', description: 'Sort order for options (default: label asc)', control: 'json', rows: 4, shortcuts: [
+        { label: 'label asc', value: { field: 'label', dir: 'asc' }, help: 'Sort by label ascending.' },
+        { label: 'label desc', value: { field: 'label', dir: 'desc' }, help: 'Sort by label descending.' },
+        { label: 'value asc', value: { field: 'value', dir: 'asc' }, help: 'Sort by value ascending.' },
+    ], typeDetails: `{
   field: 'label' | 'value';
   dir: 'asc' | 'desc';
 }`, example: `order={{ field: 'label', dir: 'asc' }}` },

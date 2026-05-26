@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "@llmnative/react/dist/index.css";
 
 @theme inline {
     --color-background:             hsl(var(--rf-background));

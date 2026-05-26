@@ -46,6 +46,12 @@ export type GridSelectionState<TRecord> = {
 
 export type GridSelectionChangeHandler<TRecord> = (selection: GridSelectionState<TRecord>) => void;
 
+export type GridSelectionConfig<TRecord> = {
+    mode: "single" | "multiple";
+    defaultKeys?: string[];
+    onChange?: GridSelectionChangeHandler<TRecord>;
+};
+
 export type GridReorderMeta<TRecord> = {
     fromIndex: number;
     toIndex: number;
@@ -195,15 +201,14 @@ export type GridPresentation = {
     wrapClass?: string;
     loading?: boolean;
     title?: React.ReactNode;
+    pre?: React.ReactNode;
+    post?: React.ReactNode;
 };
 
 export type GridBehavior<TRecord> = {
     sortable?: boolean | OrderConfig;
     pagination?: PaginationParams;
-    selection?: GridSelectionMode;
-    selectedKeys?: string[];
-    defaultSelectedKeys?: string[];
-    onSelectionChange?: GridSelectionChangeHandler<TRecord>;
+    selection?: false | "single" | "multiple" | GridSelectionConfig<TRecord>;
     onClickRow?: (record: TRecord) => void;
     reorderable?: boolean;
     onReorder?: GridReorderHandler<TRecord>;
@@ -214,20 +219,15 @@ export type GridPersistence<TRecord> = {
     onSave?: GridMutationSaveHandler<TRecord>;
     onDelete?: GridMutationDeleteHandler<TRecord>;
     onAfterAction?: GridAfterActionHandler<TRecord>;
-    createRecordKey?: (record: TRecord) => string;
     audit?: boolean;
-};
-
-export type GridTransform<TRecord> = {
-    transformRecords?: (records: TRecord[]) => TRecord[] | Promise<TRecord[]>;
 };
 
 export type GridBaseProps<TRecord> =
     & GridPresentation
     & GridBehavior<TRecord>
     & GridPersistence<TRecord>
-    & GridTransform<TRecord>
     & {
+        onLoad?: (records: TRecord[]) => TRecord[] | Promise<TRecord[]>;
         columns?: GridColumn<TRecord>[];
         actions?: GridActions<TRecord>;
         form?: React.ReactElement | ((ctx: GridFormContext<TRecord>) => React.ReactNode);
@@ -247,17 +247,17 @@ export type GridArrayProps<TRecord extends RecordProps> = GridBaseProps<TRecord>
     recordId: GridRecordKey<TRecord>;
 };
 
-export type GridDBQuery = Pick<DatabaseOptions, "where" | "order" | "fieldMap" | "onLoad">;
+export type GridDBQuery = Pick<DatabaseOptions, "where" | "order" | "fieldMap">;
 
-export type GridDBPath = string | "fromUrl";
+export type GridDBPath = string;
 
 export type GridDBProps<TRecord extends RecordProps = RecordProps> =
     GridBaseProps<TRecord>
     & GridDBQuery
-    & {
-        path: GridDBPath;
-        recordId?: GridRecordKey<TRecord>;
-    };
+    & (
+        | { fromUrl: true; path?: never; recordId?: GridRecordKey<TRecord> }
+        | { fromUrl?: false; path: GridDBPath; recordId?: GridRecordKey<TRecord> }
+    );
 
 export type GridGatewayArrayProps<TRecord extends RecordProps> = GridArrayProps<TRecord> & {
     path?: never;
@@ -286,7 +286,10 @@ export type GridTableViewProps<TRecord extends RecordProps> = {
     reorderable?: boolean;
     onReorder?: GridReorderHandler<TRecord>;
     activeKey?: string | null;
+    groupBy?: keyof TRecord | string | Array<keyof TRecord | string>;
     wrapClass?: string;
+    pre?: React.ReactNode;
+    post?: React.ReactNode;
 };
 
 export type GridGalleryViewProps<TRecord extends RecordProps> = {
@@ -300,4 +303,6 @@ export type GridGalleryViewProps<TRecord extends RecordProps> = {
     onClickRow?: (record: TRecord) => void;
     groupBy?: keyof TRecord | string | Array<keyof TRecord | string>;
     wrapClass?: string;
+    pre?: React.ReactNode;
+    post?: React.ReactNode;
 };

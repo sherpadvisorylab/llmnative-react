@@ -11,7 +11,11 @@ const PROMPT_PROPS: PropDef[] = [
     { name: 'label', type: 'string', description: 'Textarea label', control: 'text' },
     { name: 'mode', type: 'PromptMode', default: '"editor"', description: 'Editor mode or live prompt mode', control: 'select', options: ['editor', 'live'] },
     { name: 'required', type: 'boolean', default: 'false', description: 'Marks text area as required', control: 'boolean' },
-    { name: 'defaultValue', type: 'PromptValue', description: 'Initial prompt config', control: 'json', typeDetails: `{
+    { name: 'defaultValue', type: 'PromptValue', description: 'Initial prompt config', control: 'json', rows: 10, shortcuts: [
+        { label: 'summary', value: { value: 'Write a concise project summary for {projectName}.', enabled: true, role: '', language: 'English', voice: '', style: '', model: '', temperature: 0.7 }, help: 'Summary prompt.' },
+        { label: 'email', value: { value: 'Draft a short follow-up email for {customerName}.', enabled: true, role: '', language: 'English', voice: 'friendly', style: 'concise', model: '', temperature: 0.5 }, help: 'Email prompt.' },
+        { label: 'disabled', value: { value: 'Write a concise project summary for {projectName}.', enabled: false, role: '', language: 'English', voice: '', style: '', model: '', temperature: 0.7 }, help: 'Stored but disabled prompt.' },
+    ], typeDetails: `{
   value: string;
   enabled: boolean;
   role: string;

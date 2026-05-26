@@ -8,18 +8,18 @@ import { resolveGridPathFromUrl } from "./resolveGridPathFromUrl";
 
 function GridDB<TRecord extends RecordProps = RecordProps>({
     path,
+    fromUrl,
     where,
     order,
     fieldMap,
-    onLoad,
     recordId = "_key" as keyof TRecord,
     ...rest
 }: GridDBProps<TRecord>) {
     const location = useLocation();
-    const resolvedPath = path === "fromUrl"
+    const resolvedPath = fromUrl
         ? resolveGridPathFromUrl(location.pathname)
         : path;
-    const records = useGridDBRecords<TRecord>({ path: resolvedPath, where, order, fieldMap, onLoad });
+    const records = useGridDBRecords<TRecord>({ path: resolvedPath, where, order, fieldMap });
     const providerOrder = React.useMemo(() => {
         if (!order) return undefined;
         const firstEntry = Object.entries(order)[0];

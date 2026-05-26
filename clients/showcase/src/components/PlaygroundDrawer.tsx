@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Modal, Icon, MockDataProvider, DataProvider, useMotionEffect, useMotionState } from '@llmnative/react';
 import type { PropDef, PlaygroundConfig } from '../types/playground';
+import PresetTextareaControl from './PresetTextareaControl';
 
 const BASE_INPUT = 'w-full rounded-md border border-border bg-background px-2.5 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring';
 
-// Curated icon names that work across lucide and phosphor providers
 const PLAYGROUND_ICONS = [
     'activity', 'alert-circle', 'archive', 'arrow-down', 'arrow-left', 'arrow-right', 'arrow-up',
     'bell', 'bell-off', 'bookmark', 'calendar', 'camera', 'check', 'check-circle',
@@ -18,8 +18,6 @@ const PLAYGROUND_ICONS = [
     'user', 'users', 'video', 'warning', 'wifi', 'x-circle', 'zoom-in', 'zoom-out',
 ];
 
-// ── WithMock helper (local, same as in GridPage) ──────────────────────────────
-
 function WithMock({ seed, children }: { seed: Record<string, Record<string, any>>; children: React.ReactNode }) {
     const provider = useMemo(() => new MockDataProvider(seed), [JSON.stringify(seed)]);
     return (
@@ -28,10 +26,6 @@ function WithMock({ seed, children }: { seed: Record<string, Record<string, any>
         </DataProvider>
     );
 }
-
-// ── Individual prop control ───────────────────────────────────────────────────
-
-// ── Icon picker control ───────────────────────────────────────────────────────
 
 function IconPickerControl({ value, onChange }: { value: boolean | string; onChange: (v: boolean | string) => void }) {
     const hasIcon = value !== false;
@@ -55,8 +49,8 @@ function IconPickerControl({ value, onChange }: { value: boolean | string; onCha
                             className={`${BASE_INPUT} appearance-none pr-7`}
                             value={selectValue}
                             onChange={(e) => {
-                                const v = e.target.value;
-                                onChange(v === '__auto__' ? true : v);
+                                const next = e.target.value;
+                                onChange(next === '__auto__' ? true : next);
                             }}
                         >
                             <option value="__auto__">Auto (default for type)</option>
@@ -69,16 +63,13 @@ function IconPickerControl({ value, onChange }: { value: boolean | string; onCha
                     <div className="w-6 shrink-0 flex items-center justify-center text-foreground">
                         {typeof value === 'string' && value
                             ? <Icon name={value} size={18} />
-                            : <span className="text-xs text-muted-foreground italic">auto</span>
-                        }
+                            : <span className="text-xs text-muted-foreground italic">auto</span>}
                     </div>
                 </div>
             )}
         </div>
     );
 }
-
-// ── Individual prop control ───────────────────────────────────────────────────
 
 function PropControl({ def, value, onChange }: { def: PropDef; value: any; onChange: (v: any) => void }) {
     const inputClass = def.readOnly
@@ -148,41 +139,49 @@ function PropControl({ def, value, onChange }: { def: PropDef; value: any; onCha
                             disabled={def.readOnly}
                             onChange={(e) => onChange(e.target.value)}
                         >
-                            {def.options?.map((o) => (
-                                <option key={o} value={o}>{o || '(none)'}</option>
+                            {def.options?.map((option) => (
+                                <option key={option} value={option}>{option || '(none)'}</option>
                             ))}
                         </select>
                         <Icon name="chevron-down" size={13} className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
                     </div>
                 )}
                 {def.control === 'textarea' && (
-                    <textarea
-                        className={`${inputClass} resize-y`}
-                        rows={3}
-                        value={value ?? ''}
+                    def.shortcuts?.length || def.textareaMode === 'json' || def.validationMessage || def.placeholder ? (
+                        <PresetTextareaControl
+                            value={value}
+                            readOnly={def.readOnly}
+                            inputClassName={`${inputClass} resize-y`}
+                            mode={def.textareaMode ?? 'text'}
+                            rows={def.rows ?? 3}
+                            placeholder={def.placeholder}
+                            validationMessage={def.validationMessage}
+                            shortcuts={def.shortcuts}
+                            onChange={onChange}
+                        />
+                    ) : (
+                        <textarea
+                            className={`${inputClass} resize-y`}
+                            value={typeof value === 'string' ? value : (value ?? '')}
+                            rows={def.rows ?? 3}
+                            readOnly={def.readOnly}
+                            onChange={(e) => onChange(e.target.value)}
+                        />
+                    )
+                )}
+                {def.control === 'json' && (
+                    <PresetTextareaControl
+                        value={value}
                         readOnly={def.readOnly}
-                        onChange={(e) => onChange(e.target.value)}
+                        inputClassName={`${inputClass} font-mono text-xs resize-y`}
+                        mode="json"
+                        rows={def.rows ?? 4}
+                        placeholder={def.placeholder}
+                        validationMessage={def.validationMessage}
+                        shortcuts={def.shortcuts}
+                        onChange={onChange}
                     />
                 )}
-                {def.control === 'json' && (() => {
-                    const isInvalid = !def.readOnly && typeof value === 'string' && value.trim() !== '' && value.trim() !== '{}' && value.trim() !== '[]';
-                    return (
-                        <div className="space-y-1">
-                            <textarea
-                                className={`${inputClass} font-mono text-xs resize-y${isInvalid ? ' border-destructive' : ''}`}
-                                rows={4}
-                                value={typeof value === 'string' ? value : JSON.stringify(value, null, 2)}
-                                readOnly={def.readOnly}
-                                onChange={(e) => {
-                                    try { onChange(JSON.parse(e.target.value)); } catch { onChange(e.target.value); }
-                                }}
-                            />
-                            {isInvalid && (
-                                <p className="text-xs text-destructive">Invalid JSON — keys must be quoted: {`{"key":"value"}`}</p>
-                            )}
-                        </div>
-                    );
-                })()}
                 {def.control === 'icon' && (
                     <IconPickerControl value={value} onChange={onChange} />
                 )}
@@ -193,8 +192,6 @@ function PropControl({ def, value, onChange }: { def: PropDef; value: any; onCha
         </div>
     );
 }
-
-// ── MockDbEditor (inline, collapsible) ────────────────────────────────────────
 
 function MockDbEditor({ seed, onApply }: { seed: Record<string, any>; onApply: (s: Record<string, any>) => void }) {
     const [open, setOpen] = useState(false);
@@ -218,7 +215,7 @@ function MockDbEditor({ seed, onApply }: { seed: Record<string, any>; onApply: (
         <div className="border-t">
             <button
                 type="button"
-                onClick={() => setOpen((v) => !v)}
+                onClick={() => setOpen((current) => !current)}
                 className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-foreground hover:bg-accent transition-colors"
             >
                 <span className="flex items-center gap-2">
@@ -244,8 +241,6 @@ function MockDbEditor({ seed, onApply }: { seed: Record<string, any>; onApply: (
     );
 }
 
-// ── Accordion ────────────────────────────────────────────────────────────────
-
 function Accordion({ icon, label, defaultOpen = false, children }: {
     icon: string;
     label: string;
@@ -260,7 +255,7 @@ function Accordion({ icon, label, defaultOpen = false, children }: {
         <div className="flex min-h-0 flex-col border-t">
             <button
                 type="button"
-                onClick={() => setOpen((v) => !v)}
+                onClick={() => setOpen((current) => !current)}
                 className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-foreground hover:bg-accent transition-colors"
             >
                 <span className="flex items-center gap-2">
@@ -277,14 +272,12 @@ function Accordion({ icon, label, defaultOpen = false, children }: {
                     }}
                 />
             </button>
-            <div className={open ? "min-h-0 flex-1 overflow-hidden" : "hidden"} style={contentStyle}>
+            <div className={open ? 'min-h-0 overflow-hidden' : 'hidden'} style={contentStyle}>
                 {children}
             </div>
         </div>
     );
 }
-
-// ── PlaygroundDrawer ──────────────────────────────────────────────────────────
 
 interface PlaygroundDrawerProps {
     title: string;
@@ -298,7 +291,6 @@ export default function PlaygroundDrawer({ title, config, open, onClose }: Playg
     const [mockSeed, setMockSeed] = useState<Record<string, Record<string, any>>>(config.mockSeed ?? {});
     const [formValues, setFormValues] = useState<Record<string, any> | null>(null);
 
-    // reset when config changes (different page)
     useEffect(() => {
         setProps(config.defaultProps);
         setMockSeed(config.mockSeed ?? {});
@@ -309,15 +301,15 @@ export default function PlaygroundDrawer({ title, config, open, onClose }: Playg
         setProps((prev) => ({ ...prev, [name]: value }));
     };
 
-    const controlledProps = config.props.filter((p) => p.control !== undefined);
-    const visibleProps = (subset: PropDef[]) => subset.filter((p) => !p.hidden?.(props));
+    const controlledProps = config.props.filter((prop) => prop.control !== undefined);
+    const visibleProps = (subset: PropDef[]) => subset.filter((prop) => !prop.hidden?.(props));
     const propGroups = controlledProps.reduce<Array<{ name: string; props: PropDef[] }>>((groups, prop) => {
-        const name = prop.group || 'Props';
-        const existing = groups.find((group) => group.name === name);
+        const groupName = prop.group || 'Props';
+        const existing = groups.find((group) => group.name === groupName);
         if (existing) {
             existing.props.push(prop);
         } else {
-            groups.push({ name, props: [prop] });
+            groups.push({ name: groupName, props: [prop] });
         }
         return groups;
     }, []);
@@ -337,9 +329,7 @@ export default function PlaygroundDrawer({ title, config, open, onClose }: Playg
     if (!open) return null;
 
     const rendered = config.render(props, setFormValues);
-    const preview = hasMock
-        ? <WithMock seed={mockSeed}>{rendered}</WithMock>
-        : rendered;
+    const preview = hasMock ? <WithMock seed={mockSeed}>{rendered}</WithMock> : rendered;
 
     const SIZES = ['md', 'lg', 'xl', 'fullscreen'] as const;
     const size = SIZES.includes(config.size as any) ? config.size! : 'md';
@@ -358,11 +348,9 @@ export default function PlaygroundDrawer({ title, config, open, onClose }: Playg
             footer={false}
             zIndex={31}
         >
-            <div className={splitLayout ? "grid h-full min-h-0 -m-4 lg:grid-cols-[minmax(20rem,26rem)_1fr]" : "flex flex-col h-full -m-4"}>
-
-                {/* Controls section — scrollable */}
+            <div className={splitLayout ? 'grid h-full min-h-0 -m-4 lg:grid-cols-[minmax(20rem,26rem)_1fr]' : 'flex flex-col h-full -m-4'}>
                 {controlledProps.length > 0 && (
-                    <div className={splitLayout ? "min-h-0 overflow-y-auto border-b px-4 pb-3 pt-4 space-y-3 lg:border-b-0 lg:border-r" : "px-4 pt-4 pb-3 border-b space-y-3 overflow-y-auto flex-1 min-h-0"}>
+                    <div className={splitLayout ? 'min-h-0 overflow-y-auto border-b px-4 pb-3 pt-4 space-y-3 lg:border-b-0 lg:border-r' : 'px-4 pt-4 pb-3 border-b space-y-3 overflow-y-auto flex-1 min-h-0'}>
                         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Props</p>
                         {hasPropGroups
                             ? propGroups.map((group, index) => {
@@ -371,44 +359,44 @@ export default function PlaygroundDrawer({ title, config, open, onClose }: Playg
                                 return (
                                     <Accordion key={group.name} icon="settings" label={group.name} defaultOpen={index === 0}>
                                         <div className="space-y-3 px-1 py-3">
-                                            {visible.map((p) => (
-                                                <PropControl key={p.name} def={p} value={props[p.name]} onChange={(v) => updateProp(p.name, v)} />
+                                            {visible.map((prop) => (
+                                                <PropControl key={prop.name} def={prop} value={props[prop.name]} onChange={(next) => updateProp(prop.name, next)} />
                                             ))}
                                         </div>
                                     </Accordion>
                                 );
                             })
-                            : visibleProps(controlledProps).map((p) => (
-                                <PropControl key={p.name} def={p} value={props[p.name]} onChange={(v) => updateProp(p.name, v)} />
+                            : visibleProps(controlledProps).map((prop) => (
+                                <PropControl key={prop.name} def={prop} value={props[prop.name]} onChange={(next) => updateProp(prop.name, next)} />
                             ))}
                     </div>
                 )}
 
-                {/* Fixed bottom area — always visible */}
-                <div className={splitLayout ? "flex min-h-0 flex-col overflow-hidden" : "shrink-0"}>
-                    {/* Preview accordion — open by default */}
-                    <Accordion icon="eye" label="Preview" defaultOpen>
-                            <div className={splitLayout ? "h-full min-h-0 overflow-auto px-5 pb-5 pt-3" : "min-h-72 overflow-auto px-4 pb-4 pt-2 pr-8"}>
+                <div className={splitLayout ? 'flex min-h-0 flex-col overflow-hidden' : 'shrink-0'}>
+                    <div className="min-h-0 flex-1 overflow-y-auto">
+                        <Accordion icon="eye" label="Preview" defaultOpen>
+                            <div className={splitLayout ? 'min-h-0 overflow-auto px-5 pb-5 pt-3' : 'min-h-72 overflow-auto px-4 pb-4 pt-2 pr-8'}>
                                 <div className="min-w-0">
                                     {preview}
                                 </div>
                             </div>
-                    </Accordion>
-
-                    {/* Form record JSON accordion — only for form-field components */}
-                    {config.showFormRecord && (
-                        <Accordion icon="code" label="Form record (JSON)" defaultOpen>
-                            <div className="px-4 pb-4">
-                                <pre className="w-full rounded-md border border-border bg-muted font-mono text-xs px-3 py-2 text-foreground overflow-x-auto whitespace-pre-wrap break-all">
-                                    {formValues !== null ? JSON.stringify(formValues, null, 2) : '— interact with the preview to see the record —'}
-                                </pre>
-                            </div>
                         </Accordion>
-                    )}
 
-                    {/* Mock DB editor */}
+                        {config.showFormRecord && (
+                            <Accordion icon="code" label="Form record (JSON)" defaultOpen>
+                                <div className="px-4 pb-4">
+                                    <pre className="w-full rounded-md border border-border bg-muted font-mono text-xs px-3 py-2 text-foreground overflow-x-auto whitespace-pre-wrap break-all">
+                                        {formValues !== null ? JSON.stringify(formValues, null, 2) : '- interact with the preview to see the record -'}
+                                    </pre>
+                                </div>
+                            </Accordion>
+                        )}
+                    </div>
+
                     {hasMock && (
-                        <MockDbEditor seed={mockSeed} onApply={setMockSeed} />
+                        <div className="mt-auto shrink-0">
+                            <MockDbEditor seed={mockSeed} onApply={setMockSeed} />
+                        </div>
                     )}
                 </div>
             </div>

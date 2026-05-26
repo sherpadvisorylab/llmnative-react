@@ -325,37 +325,30 @@ const Gallery = ({
         );
     };
 
-    const getGroups = (body: GalleryRecord[], seps: string | string[]): GalleryRenderedRecord[] => {
-        const groupMap: Record<string, Array<{ image: ImageProps; item: GalleryRecord; index: number }>> = {};
+    const getGroups = (body: GalleryRecord[], fields: string | string[]): GalleryRenderedRecord[] => {
+        const groupFields = Array.isArray(fields) ? fields : [fields];
+        const groupMap = new Map<string, Array<{ image: ImageProps; item: GalleryRecord; index: number }>>();
 
         body.forEach((item, index) => {
             const imgElement = getImage(item, index);
-            const alt = imgElement.props.alt || "";
-            const src = imgElement.props.src || "";
-            if (!alt || !src) return;
-
-            const [leftPart] = converter.splitFirst(alt.toUpperCase(), seps, /^\d/g);
-            const groupKey = leftPart || "GROUP";
-
-            if (!groupMap[groupKey]) groupMap[groupKey] = [];
-            groupMap[groupKey].push({ image: imgElement, item, index });
+            const groupKey = groupFields.map((f) => String(item[f] ?? '')).join(' · ') || '—';
+            if (!groupMap.has(groupKey)) groupMap.set(groupKey, []);
+            groupMap.get(groupKey)!.push({ image: imgElement, item, index });
         });
 
-        return Object.entries(groupMap).map(([groupName, items]) => (
-            {
-                kind: "group",
-                element: (
-                    <section key={groupName} className="gallery-group rounded-lg border bg-card p-3 text-left">
-                        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                            {groupName.toLowerCase()}
-                        </h3>
-                        <div className={cn("flex flex-wrap items-center", "row-cols-" + numCols)} style={{ gap: itemGap }}>
-                            {items.map(({ image, item, index }) => renderItem(image, index, item))}
-                        </div>
-                    </section>
-                )
-            }
-        ));
+        return Array.from(groupMap.entries()).map(([groupName, items]) => ({
+            kind: "group",
+            element: (
+                <section key={groupName} className="gallery-group rounded-lg border bg-card p-3 text-left">
+                    <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                        {groupName}
+                    </h3>
+                    <div className={cn("flex flex-wrap items-center", "row-cols-" + numCols)} style={{ gap: itemGap }}>
+                        {items.map(({ image, item, index }) => renderItem(image, index, item))}
+                    </div>
+                </section>
+            )
+        }));
     };
 
     const renderedBody = useMemo(() => {

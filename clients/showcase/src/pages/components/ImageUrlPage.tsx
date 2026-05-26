@@ -12,7 +12,11 @@ const IMAGE_URL_PROPS: PropDef[] = [
     { name: 'name', type: 'string', required: true, description: 'Object field name in the Form record', control: 'text' },
     { name: 'label', type: 'string', description: 'Label for the URL field', control: 'text' },
     { name: 'required', type: 'boolean', default: 'false', description: 'Marks nested fields as required', control: 'boolean' },
-    { name: 'defaultValue', type: 'object', description: 'Initial nested image object', control: 'json' },
+    { name: 'defaultValue', type: 'object', description: 'Initial nested image object', control: 'json', rows: 8, shortcuts: [
+        { label: 'hero', value: { url: SAMPLE_IMAGE, alt: { value: 'Blue hero illustration' }, width: 320, height: 180 }, help: 'Hero image example.' },
+        { label: 'square', value: { url: SAMPLE_IMAGE, alt: { value: 'Square thumbnail' }, width: 240, height: 240 }, help: 'Square image example.' },
+        { label: 'empty', value: { url: '', alt: { value: '' }, width: 320, height: 180 }, help: 'Empty starting object.' },
+    ] },
     { name: 'mode', type: 'PromptMode', description: 'Prompt mode used for alt text', control: 'select', options: ['editor', 'live'] },
     { name: 'pre', type: 'ReactNode', description: 'Content before the field group', control: 'text' },
     { name: 'post', type: 'ReactNode', description: 'Content after the field group', control: 'text' },

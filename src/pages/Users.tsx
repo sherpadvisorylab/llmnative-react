@@ -8,7 +8,7 @@ function Users() {
   return (
     <Grid
         path={"/users"}
-        createRecordKey={(record: RecordProps) => record.email.replace('@', '-')}
+        recordId={(record: RecordProps) => record.email.replace('@', '-')}
         form={(
             <>
               <String name={"username"}

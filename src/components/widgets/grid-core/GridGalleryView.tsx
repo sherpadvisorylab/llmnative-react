@@ -15,6 +15,8 @@ function GridGalleryView<TRecord extends RecordProps>({
     onClickRow,
     groupBy,
     wrapClass,
+    pre,
+    post,
 }: GridGalleryViewProps<TRecord>) {
     const getRecordKey = useMemo(() => getRecordKeyResolver(recordId), [recordId]);
     const sourceByKey = useMemo(() => {
@@ -56,6 +58,8 @@ function GridGalleryView<TRecord extends RecordProps>({
             onClick={onClickRow ? (record) => onClickRow(record as TRecord) : undefined}
             groupBy={groupBy as string | string[] | undefined}
             wrapClass={wrapClass}
+            pre={pre}
+            post={post}
         />
     );
 }

@@ -13,7 +13,11 @@ const DROPDOWN_PROPS: PropDef[] = [
   icon?: string;
   text?: string;
 }` },
-    { name: 'badge', type: 'ReactNode | BadgeConfig', description: 'Badge displayed on the toggle', control: 'json', typeDetails: `ReactNode | {
+    { name: 'badge', type: 'ReactNode | BadgeConfig', description: 'Badge displayed on the toggle', control: 'json', rows: 4, shortcuts: [
+        { label: 'none', value: null, help: 'No badge on the toggle.' },
+        { label: 'count', value: { content: '3', type: 'danger' }, help: 'Numeric danger badge.' },
+        { label: 'live', value: { content: 'live', type: 'success' }, help: 'Status badge.' },
+    ], typeDetails: `ReactNode | {
   content: ReactNode;
   type?: string;
 }` },

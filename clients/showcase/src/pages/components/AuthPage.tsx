@@ -38,7 +38,18 @@ const AUTH_BUTTON_PLAYGROUND_PROPS: PropDef[] = [
     { name: 'className', type: 'string', default: 'primary button classes', description: 'Button CSS classes.', control: 'text' },
     { name: 'avatarClass', type: 'string', description: 'Avatar CSS classes.', control: 'text' },
     { name: 'disabled', type: 'boolean', default: 'true', description: 'Keep enabled only when you want to start a real OAuth flow.', control: 'boolean' },
-    { name: 'scopes', type: 'string[]', description: 'Requested OAuth scopes.', control: 'json' },
+    {
+        name: 'scopes',
+        type: 'string[]',
+        description: 'Requested OAuth scopes.',
+        control: 'json',
+        rows: 4,
+        shortcuts: [
+            { label: 'dropbox', value: ['files.metadata.read', 'files.content.read'], help: 'Dropbox read scopes.' },
+            { label: 'drive', value: ['https://www.googleapis.com/auth/drive.readonly'], help: 'Google Drive readonly scope.' },
+            { label: 'empty', value: [], help: 'No extra scopes.' },
+        ],
+    },
 ];
 
 const PLAYGROUND: PlaygroundConfig = {

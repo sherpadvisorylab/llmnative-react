@@ -73,9 +73,17 @@ export default function PropDocsTable({
                         const expandable = Boolean(prop.shape || prop.example);
                         const isOpen = openProp === prop.name;
                         const rowTone = i % 2 === 0 ? 'bg-background' : 'bg-muted/20';
+                        const showGroupHeader = prop.category && (i === 0 || prop.category !== normalizedProps[i - 1].category);
 
                         return (
                             <React.Fragment key={prop.name}>
+                                {showGroupHeader && (
+                                    <tr>
+                                        <td colSpan={5} className="border-b border-t bg-muted/50 px-5 py-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                                            {prop.category}
+                                        </td>
+                                    </tr>
+                                )}
                                 <tr
                                     className={`border-b align-top ${rowTone} ${expandable ? 'cursor-pointer hover:bg-muted/30' : ''}`}
                                     onClick={expandable ? () => setOpenProp(isOpen ? null : prop.name) : undefined}

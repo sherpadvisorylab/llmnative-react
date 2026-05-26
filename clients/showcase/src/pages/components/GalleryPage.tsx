@@ -53,11 +53,24 @@ const GALLERY_PROPS: PropDef[] = [
     { name: 'body', type: 'GalleryRecord[]', description: 'Records containing img or thumbnail data', control: 'json', readOnly: true },
     { name: 'Header', type: 'ReactNode', description: 'Header content above gallery', control: 'text' },
     { name: 'Footer', type: 'ReactNode', description: 'Footer content below gallery', control: 'text' },
-    { name: 'sortable', type: 'boolean | OrderConfig', description: 'Gallery has no sortable header UI, but you can pass an OrderConfig object to sort the incoming record set before rendering.', control: 'json', typeDetails: `boolean | {
+    { name: 'sortable', type: 'boolean | OrderConfig', description: 'Gallery has no sortable header UI, but you can pass an OrderConfig object to sort the incoming record set before rendering.', control: 'json', rows: 4, shortcuts: [
+        { label: 'false', value: false, help: 'Disable client sorting.' },
+        { label: 'name asc', value: { field: 'name', dir: 'asc' }, help: 'Sort by name ascending.' },
+        { label: 'status desc', value: { field: 'status', dir: 'desc' }, help: 'Sort by status descending.' },
+    ], typeDetails: `boolean | {
   field: string;
   dir: "asc" | "desc";
 }` },
-    { name: 'overlays', type: 'GalleryOverlay[]', description: 'Overlay rules based on position and record filters', control: 'json', typeDetails: `Array<{
+    { name: 'overlays', type: 'GalleryOverlay[]', description: 'Overlay rules based on position and record filters', control: 'json', rows: 8, shortcuts: [
+        { label: 'none', value: [], help: 'No overlays.' },
+        { label: 'status', value: [
+            { position: 'topRight', badge: { content: 'new', type: 'primary' }, className: 'uppercase' },
+            { position: 'bottomRight', badge: { content: 'review', type: 'warning' }, when: { status: 'review' } },
+        ], help: 'Status-oriented overlays.' },
+        { label: 'brand', value: [
+            { position: 'bottomLeft', badge: { content: 'brand', type: 'success' }, when: { category: 'Brand' } },
+        ], help: 'Category-based brand badge.' },
+    ], typeDetails: `Array<{
   position: "topLeft" | "topRight" | "bottomLeft" | "bottomRight";
   badge: ReactNode | { content: ReactNode; type?: string };
   when?: Record<string, unknown>;
@@ -75,10 +88,28 @@ const GALLERY_PROPS: PropDef[] = [
 type GallerySelectionState = ${GALLERY_SELECTION_STATE_TYPE}`,
     },
     { name: 'selectedKeys', type: 'string[]', description: 'Controlled selection state shared with external bulk commands.' },
-    { name: 'pagination', type: 'PaginationParams', description: 'Shared pagination config', control: 'json' },
+    { name: 'pagination', type: 'PaginationParams', description: 'Shared pagination config', control: 'json', rows: 6, shortcuts: [
+        { label: 'default', value: { page: 1, limit: 4, navLimit: 5, align: 'center', sticky: false, scrollToTopOnChange: false, scrollBehavior: 'smooth' }, help: 'Centered default pagination.' },
+        { label: 'compact', value: { page: 1, limit: 2, navLimit: 3, align: 'start', sticky: false, scrollToTopOnChange: false, scrollBehavior: 'smooth' }, help: 'Smaller pages and nav.' },
+        { label: 'sticky', value: { page: 1, limit: 4, navLimit: 5, align: 'center', sticky: 'bottom', scrollToTopOnChange: false, scrollBehavior: 'smooth' }, help: 'Sticky bottom controls.' },
+    ] },
     { name: 'gutterSize', type: '0 | 1 | 2 | 3 | 4 | 5', description: 'Item padding size', control: 'number', min: 0, max: 5 },
     { name: 'rowCols', type: '1 | 2 | 3 | 4 | 6', description: 'Columns per row', control: 'select', options: ['1', '2', '3', '4', '6'] },
-    { name: 'groupBy', type: 'string | string[]', description: 'Grouping separator or separators', control: 'text' },
+    {
+        name: 'groupBy',
+        type: 'string | string[]',
+        description: 'Group cards by a field name. Records with the same field value are rendered inside the same section. Pass an array for multi-level grouping.',
+        control: 'textarea',
+        textareaMode: 'text',
+        rows: 1,
+        placeholder: 'e.g. category or ["category","status"]',
+        shortcuts: [
+            { label: 'off', value: '', help: 'No grouping.' },
+            { label: 'category', value: 'category', help: 'Group by category.' },
+            { label: 'status', value: 'status', help: 'Group by status.' },
+            { label: 'cat+status', value: ['category', 'status'], help: 'Multi-level: category then status.' },
+        ],
+    },
     { name: 'selectedClass', type: 'string', description: 'Class applied to the active item', control: 'text' },
 ];
 
@@ -121,6 +152,21 @@ function GalleryPlaygroundPreview({ p }: { p: Record<string, any> }) {
         img: <img src={svgAsset(asset.name, asset.color, asset.accent)} alt={asset.name} />,
     })), [sourceAssets]);
 
+    const groupBy: string | string[] | undefined = (() => {
+        const val = p.groupBy;
+        if (!val) return undefined;
+        if (Array.isArray(val)) return (val as string[]).length > 0 ? val as string[] : undefined;
+        if (typeof val === 'string') {
+            const trimmed = val.trim();
+            if (!trimmed) return undefined;
+            if (trimmed.startsWith('[')) {
+                try { return JSON.parse(trimmed) as string[]; } catch { /* fall through */ }
+            }
+            return trimmed;
+        }
+        return undefined;
+    })();
+
     return (
         <div className="min-w-0 space-y-3">
             <div className="rounded-md border bg-muted/30 p-3">
@@ -161,7 +207,7 @@ function GalleryPlaygroundPreview({ p }: { p: Record<string, any> }) {
                 pagination={p.pagination && typeof p.pagination === 'object' ? p.pagination : undefined}
                 gutterSize={Number(p.gutterSize) as any}
                 rowCols={Number(p.rowCols) as any}
-                groupBy={p.groupBy || undefined}
+                groupBy={groupBy}
                 selectedClass={p.selectedClass || undefined}
             />
             <div className="rounded-md border bg-muted/40 p-3">
@@ -327,22 +373,30 @@ const [exportOpen, setExportOpen] = useState(false);
 
             <Section
                 title="Grouped and paged"
-                description="Grouping still works on top of the sorted record set. Pagination remains delegated to the shared Pagination component."
+                description="Pass a field name to groupBy to group cards into labelled sections. Pairing it with sortable on the same field clusters records naturally. Pass an array for multi-level grouping."
                 preview={
                     <Gallery
                         body={body}
-                        Header="Grouped by first space"
+                        Header="Assets by category"
                         sortable={{ field: 'category', dir: 'asc' }}
-                        groupBy=" "
-                        pagination={{ limit: 2, align: 'center', sticky: false }}
+                        groupBy="category"
+                        pagination={{ limit: 3, align: 'center', sticky: false }}
                         rowCols={2}
                     />
                 }
                 code={`<Gallery
   body={records}
   sortable={{ field: 'category', dir: 'asc' }}
-  groupBy=" "
-  pagination={{ limit: 2, align: 'center', sticky: false }}
+  groupBy="category"
+  pagination={{ limit: 3, align: 'center', sticky: false }}
+  rowCols={2}
+/>
+
+// Multi-level grouping
+<Gallery
+  body={records}
+  sortable={{ field: 'category', dir: 'asc' }}
+  groupBy={['category', 'status']}
   rowCols={2}
 />`}
             />

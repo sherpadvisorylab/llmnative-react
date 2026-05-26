@@ -22,7 +22,11 @@ const CAROUSEL_PROPS: PropDef[] = [
     { name: 'showControls', type: 'boolean', default: 'false', description: 'Shows previous/next controls on hover', control: 'boolean' },
     { name: 'showCaption', type: 'boolean', default: 'false', description: 'Shows captions from image alt/description on hover', control: 'boolean' },
     { name: 'layoutDark', type: 'boolean', default: 'false', description: 'Uses dark control layout', control: 'boolean' },
-    { name: 'autoPlay', type: 'AutoPlayConfig', description: 'Bootstrap carousel autoplay options', control: 'json', typeDetails: `{
+    { name: 'autoPlay', type: 'AutoPlayConfig', description: 'Bootstrap carousel autoplay options', control: 'json', rows: 4, shortcuts: [
+        { label: 'off', value: null, help: 'Disable autoplay.' },
+        { label: 'default', value: { interval: 3000, pause: 'hover', wrap: true }, help: 'Standard autoplay with hover pause.' },
+        { label: 'fast', value: { interval: 1200, pause: false, wrap: true }, help: 'Fast looping carousel.' },
+    ], typeDetails: `{
   interval?: number;
   pause?: "hover" | false;
   wrap?: boolean;

@@ -8,11 +8,19 @@ import type { PropDef, PlaygroundConfig } from '../../types/playground';
 
 const ASSISTANT_AI_PROPS: PropDef[] = [
     { name: 'name', type: 'string', required: true, description: 'Card title and field name', control: 'text' },
-    { name: 'promptTopic', type: 'PromptTopic', required: true, description: 'Prompt template and label', control: 'json', typeDetails: `{
+    { name: 'promptTopic', type: 'PromptTopic', required: true, description: 'Prompt template and label', control: 'json', rows: 5, shortcuts: [
+        { label: 'titles', value: { prompt: 'Write 3 short titles about {keyword}.', label: 'Keyword' }, help: 'Generate title ideas.' },
+        { label: 'summary', value: { prompt: 'Summarize {keyword} in 3 concise bullet points.', label: 'Topic' }, help: 'Summary-oriented prompt.' },
+        { label: 'cta', value: { prompt: 'Write 3 CTA variants for {keyword}.', label: 'Offer' }, help: 'Marketing CTA prompt.' },
+    ], typeDetails: `{
   prompt: string;
   label: string;
 }` },
-    { name: 'configVariables', type: 'ConfigVariables', required: true, description: 'Variables injected into the prompt template', control: 'json', typeDetails: `{
+    { name: 'configVariables', type: 'ConfigVariables', required: true, description: 'Variables injected into the prompt template', control: 'json', rows: 6, shortcuts: [
+        { label: 'friendly', value: { lang: 'English', voice: 'friendly', style: 'concise', limit: '3' }, help: 'Friendly concise output.' },
+        { label: 'formal', value: { lang: 'English', voice: 'formal', style: 'professional', limit: '5' }, help: 'Formal professional output.' },
+        { label: 'italian', value: { lang: 'Italian', voice: 'friendly', style: 'clear', limit: '3' }, help: 'Italian language output.' },
+    ], typeDetails: `{
   lang: string;
   voice: string;
   style: string;

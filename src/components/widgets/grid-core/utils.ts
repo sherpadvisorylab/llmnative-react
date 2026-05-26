@@ -26,7 +26,7 @@ export const getRecordKeyResolver = <TRecord extends RecordProps>(recordId: Grid
     };
 };
 
-const formatValue = (format: GridFormat | undefined, value: unknown) => {
+export const formatGridValue = (format: GridFormat | undefined, value: unknown) => {
     if (format == null || format === "text") return value as React.ReactNode;
     if (format === "boolean") return value ? "Yes" : "No";
     if (format === "json") return value == null ? "" : JSON.stringify(value, null, 2);
@@ -37,6 +37,15 @@ const formatValue = (format: GridFormat | undefined, value: unknown) => {
     const converterKey = format === "datetime" ? "dateTime" : format;
     const formatter = (converter as Record<string, ((value: unknown) => React.ReactNode) | undefined>)[converterKey];
     return formatter ? formatter(value) : value as React.ReactNode;
+};
+
+export const renderGridCellValue = <TRecord extends RecordProps>(
+    column: GridColumn<TRecord>,
+    context: GridCellContext<TRecord>
+) => {
+    return typeof column.render === "function"
+        ? column.render(context)
+        : formatGridValue(column.render, context.value);
 };
 
 export const buildDisplayRecords = <TRecord extends RecordProps>(
@@ -57,9 +66,7 @@ export const buildDisplayRecords = <TRecord extends RecordProps>(
                 rowIndex,
                 runAction: (actionKey: string) => runAction(actionKey, record),
             };
-            displayRecord[columnKey] = typeof column.render === "function"
-                ? column.render(context)
-                : formatValue(column.render, value);
+            displayRecord[columnKey] = renderGridCellValue(column, context);
         }
 
         return displayRecord as TRecord;
@@ -79,7 +86,8 @@ export const inferColumns = <TRecord extends RecordProps>(
 ) => {
     if (columns?.length) return columns;
     if (React.isValidElement(form)) {
-        return extractComponentProps(form, (props) => defaultHeader<TRecord>(props.name));
+        const formCols = extractComponentProps(form, (props) => defaultHeader<TRecord>(props.name));
+        if (formCols.length > 0) return formCols;
     }
     const firstRecord = records[0];
     if (!firstRecord) return [];

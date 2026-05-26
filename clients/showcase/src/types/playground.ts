@@ -1,5 +1,11 @@
 export type PropControl = 'text' | 'number' | 'boolean' | 'select' | 'json' | 'range' | 'textarea' | 'icon';
 
+export type PropShortcut = {
+    label: string;
+    value: unknown;
+    help?: string;
+};
+
 export type PropDef = {
     name: string;
     type: string;
@@ -17,6 +23,11 @@ export type PropDef = {
     min?: number;
     max?: number;
     step?: number;
+    rows?: number;
+    textareaMode?: 'text' | 'json';
+    placeholder?: string;
+    validationMessage?: string;
+    shortcuts?: PropShortcut[];
     /** Hide this control when the predicate returns true. Evaluated against current prop values. */
     hidden?: (props: Record<string, any>) => boolean;
 };

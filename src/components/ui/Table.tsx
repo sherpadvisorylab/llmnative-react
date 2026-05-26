@@ -41,12 +41,14 @@ interface TableProps extends UIProps {
     activeKey?: string | null;
     selectedKeys?: string[];
     selectedRowKeys?: string[];
+    groupBy?: string | string[];
     headerClass?: string,
     bodyClass?: string,
     footerClass?: string,
     heightClass?: string,
     scrollClass?: string,
-    selectedClass?: string
+    selectedClass?: string,
+    renderCell?: (record: RecordProps, key: string, absoluteIndex: number) => React.ReactNode
 };
 
 function Table({
@@ -62,6 +64,7 @@ function Table({
     activeKey = undefined,
     selectedKeys = undefined,
     selectedRowKeys = undefined,
+    groupBy = undefined,
     pre = undefined,
     post = undefined,
     wrapClass = undefined,
@@ -71,7 +74,8 @@ function Table({
     footerClass = undefined,
     heightClass = undefined,
     scrollClass = undefined,
-    selectedClass = undefined
+    selectedClass = undefined,
+    renderCell = undefined
 }: TableProps) {
     const theme = useTheme("table");
     const activeClass = selectedClass || theme.Table.selectedClass;
@@ -171,7 +175,8 @@ function Table({
         onClick?.(record);
     };
 
-    const getFieldComponent = (item: RecordProps, key: string): React.ReactNode => {
+    const getFieldComponent = (item: RecordProps, key: string, absoluteIndex: number): React.ReactNode => {
+        if (renderCell) return renderCell(item, key, absoluteIndex);
         const v = (item[key]?.prompt && item[key]?.value) || item[key];
         if (React.isValidElement(v) || v == null || typeof v !== 'object') return v;
         return Array.isArray(v) && !v.some((entry) => typeof entry === 'object' && entry)
@@ -277,10 +282,11 @@ function Table({
     };
 
     return (
-        <div ref={paginationNavRef} className={"table-responsive " + (wrapClass || theme.Table.wrapClass)}>
-            <div className={viewportClass}>
-                {pre && <div className="mb-3">{pre}</div>}
-                <table className={"table " + (className || theme.Table.className)}>
+        <div className="flex items-stretch gap-3">
+            {pre && <div className="table-pre flex shrink-0 items-center self-stretch">{pre}</div>}
+            <div ref={paginationNavRef} className={"table-responsive min-w-0 flex-1 " + (wrapClass || theme.Table.wrapClass)}>
+                <div className={viewportClass}>
+                    <table className={"table " + (className || theme.Table.className)}>
                     <thead className={headerClass || theme.Table.headerClass}>
                         <tr>
                             {showSelection && (
@@ -383,10 +389,19 @@ function Table({
                             wrapClass="px-3 pt-4 pb-2"
                             {...(pagination || {})}
                         >
-                            {(pageRecords, pageOffset) =>
-                                pageRecords.map((record, index) => {
+                            {(pageRecords, pageOffset) => {
+                                const groupFields = groupBy
+                                    ? (Array.isArray(groupBy) ? groupBy : [groupBy])
+                                    : null;
+                                let prevGroupKey: string | undefined;
+                                return pageRecords.map((record, index) => {
                                     const absoluteIndex = pageOffset + index;
                                     const rowKey = getRecordKey(record, absoluteIndex);
+                                    const currentGroupKey = groupFields
+                                        ? groupFields.map((f) => String(record[f] ?? '')).join(' · ')
+                                        : undefined;
+                                    const showGroupHeader = currentGroupKey !== undefined && currentGroupKey !== prevGroupKey;
+                                    prevGroupKey = currentGroupKey;
                                     const isSelected = activeSelectedKeys.includes(rowKey);
                                     const isDraggedOver = dragOverKey === rowKey;
                                     const isDragged = draggedKey === rowKey;
@@ -395,6 +410,16 @@ function Table({
 
                                     return (
                                         <React.Fragment key={rowKey}>
+                                            {showGroupHeader && (
+                                                <tr aria-hidden="true">
+                                                    <td
+                                                        colSpan={totalColumns}
+                                                        className="bg-muted/40 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+                                                    >
+                                                        {currentGroupKey}
+                                                    </td>
+                                                </tr>
+                                            )}
                                             {renderDropIndicator(rowKey, 'before', record, absoluteIndex)}
                                             <tr
                                                 draggable={reorderable}
@@ -497,20 +522,21 @@ function Table({
                                                     </td>
                                                 )}
                                                 {headers.map((hdr) => (
-                                                    <td key={hdr.key}>{getFieldComponent(record, hdr.key)}</td>
+                                                    <td key={hdr.key}>{getFieldComponent(record, hdr.key, absoluteIndex)}</td>
                                                 ))}
                                             </tr>
                                             {renderDropIndicator(rowKey, 'after', record, absoluteIndex)}
                                         </React.Fragment>
                                     );
-                                })
-                            }
+                                });
+                            }}
                         </Pagination>
                     </tbody>
                     {Footer && <tfoot className={footerClass || theme.Table.footerClass}>{Footer}</tfoot>}
-                </table>
-                {post && <div className="mt-3">{post}</div>}
+                    </table>
+                </div>
             </div>
+            {post && <div className="table-post flex shrink-0 items-center self-stretch">{post}</div>}
         </div>
     );
 }

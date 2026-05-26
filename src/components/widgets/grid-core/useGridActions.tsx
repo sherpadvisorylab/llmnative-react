@@ -36,7 +36,6 @@ type UseGridActionsArgs<TRecord extends RecordProps> = {
     onSave?: (args: { record?: TRecord; action: "create" | "update"; storagePath?: string }) => Promise<string | undefined>;
     onDelete?: (args: { record?: TRecord }) => Promise<string | undefined>;
     onAfterAction?: (args: { record?: TRecord; action: "create" | "update" | "delete" }) => Promise<boolean>;
-    createRecordKey?: (record: TRecord) => string;
     audit?: boolean;
 };
 
@@ -57,7 +56,6 @@ function useGridActions<TRecord extends RecordProps>({
     onSave,
     onDelete,
     onAfterAction,
-    createRecordKey,
     audit = false,
 }: UseGridActionsArgs<TRecord>) {
     const location = useLocation();
@@ -257,7 +255,7 @@ function useGridActions<TRecord extends RecordProps>({
                     savePath={({ record }) => {
                         if (!sourcePath) return undefined;
                         const recordToSave = record as TRecord;
-                        const nextKey = createRecordKey?.(recordToSave) || getRecordKey(recordToSave) || `${Date.now()}`;
+                        const nextKey = getRecordKey(recordToSave) || `${Date.now()}`;
                         return `${sourcePath}/${nextKey}`;
                     }}
                     ref={(ref) => { formRef.current = ref ?? undefined; }}
@@ -274,14 +272,14 @@ function useGridActions<TRecord extends RecordProps>({
         }
 
         return null;
-    }, [activeAction, activeActionConfig, audit, close, createRecordKey, form, getActionContext, getModalActionContext, getRecordKey, onAfterAction, onDelete, onSave, sourcePath]);
+    }, [activeAction, activeActionConfig, audit, close, form, getActionContext, getModalActionContext, getRecordKey, onAfterAction, onDelete, onSave, sourcePath]);
 
     return {
         normalizedActions,
         activeAction,
         activeActionConfig,
         activeActionBody,
-        activeKey: activeAction?.actionKey === "edit" && activeAction.record ? getRecordKey(activeAction.record) : null,
+        activeKey: activeAction?.actionKey === "edit" && activeAction.record ? getRecordKey(activeAction.record) : undefined,
         runAction,
         runModalAction,
         close,

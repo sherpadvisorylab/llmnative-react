@@ -37,10 +37,10 @@ type GridDocSurface = {
     records: unknown;
     recordId: unknown;
     path: unknown;
+    fromUrl: unknown;
     where: unknown;
     order: unknown;
     fieldMap: unknown;
-    onLoad: unknown;
     columns: unknown;
     layout: unknown;
     sortable: unknown;
@@ -55,15 +55,10 @@ type GridDocSurface = {
     form: unknown;
     actions: unknown;
     selection: unknown;
-    selectedKeys: unknown;
-    defaultSelectedKeys: unknown;
-    onSelectionChange: unknown;
     onClickRow: unknown;
     reorderable: unknown;
     onReorder: unknown;
     editDeepLink: unknown;
-    transformRecords: unknown;
-    createRecordKey: unknown;
     onSave: unknown;
     onDelete: unknown;
     onAfterAction: unknown;
@@ -226,6 +221,297 @@ const layoutColumns = [
     { key: 'city', label: 'City', sortable: true },
 ];
 
+const playgroundColumnsBase = [
+    { key: 'name', label: 'Name', sortable: true },
+    { key: 'email', label: 'Email', sortable: true, render: 'email' },
+    { key: 'role', label: 'Role', sortable: true },
+    { key: 'status', label: 'Status', sortable: true },
+    { key: 'team', label: 'Team', sortable: true },
+    { key: 'city', label: 'City', sortable: true },
+];
+
+const playgroundColumnsCompact = [
+    { key: 'name', label: 'Name', sortable: true },
+    { key: 'email', label: 'Email', sortable: true, render: 'email' },
+    { key: 'role', label: 'Role', sortable: true, render: 'badge' },
+];
+
+const playgroundColumnsAligned = [
+    { key: 'name', label: 'Name', sortable: true, className: 'min-w-[15rem]' },
+    { key: 'team', label: 'Team', sortable: true },
+    { key: 'city', label: 'City', sortable: true, className: 'text-center' },
+    { key: 'status', label: 'Status', sortable: true, render: 'badge', className: 'text-right' },
+];
+
+const playgroundColumnsBadgeFocus = [
+    { key: 'name', label: 'Name', sortable: true },
+    { key: 'role', label: 'Role', sortable: true, render: 'badge' },
+    { key: 'status', label: 'Status', sortable: true, render: 'badge' },
+    { key: 'email', label: 'Contact', sortable: false, render: 'email' },
+];
+
+const playgroundColumnsFieldMap = [
+    { key: 'fullName', label: 'Full name', sortable: true },
+    { key: 'mail', label: 'Email', sortable: true, render: 'email' },
+    { key: 'state', label: 'Status', sortable: true, render: 'badge' },
+];
+
+const playgroundCrudActions = ['add', 'edit', 'delete'];
+
+const playgroundCustomActions = {
+    add: {
+        kind: 'modal',
+        label: 'Add teammate',
+        title: 'Add teammate',
+        size: 'lg',
+        position: 'center',
+    },
+    edit: {
+        kind: 'modal',
+        label: 'Edit',
+        title: 'Edit teammate',
+        size: 'lg',
+        position: 'left',
+    },
+    delete: {
+        kind: 'delete',
+        label: 'Delete',
+        title: 'Delete teammate?',
+        body: 'The selected teammate will be removed from the mock provider.',
+        size: 'sm',
+        position: 'center',
+    },
+    preview: {
+        kind: 'modal',
+        label: 'Preview',
+        title: 'Teammate preview',
+        body: 'Open a read-only side panel for the selected teammate.',
+        size: 'xl',
+        position: 'right',
+        footer: false,
+    },
+};
+
+type PlaygroundActionJson =
+    | false
+    | string[]
+    | Record<string, true | false | {
+        kind?: 'modal' | 'delete' | 'route' | 'external';
+        label?: string;
+        icon?: string;
+        visible?: boolean;
+        disabled?: boolean;
+        title?: string;
+        size?: 'sm' | 'md' | 'lg' | 'xl' | 'fullscreen';
+        position?: 'center' | 'top' | 'left' | 'right' | 'bottom';
+        buttonFullscreen?: boolean;
+        header?: string;
+        body?: string;
+        footer?: string | false;
+        to?: string;
+        href?: string;
+    }>;
+
+const playgroundInferColumns = [
+    { key: 'name', label: 'Name', sortable: true },
+    { key: 'email', label: 'Email', sortable: true },
+    { key: 'role', label: 'Role', sortable: true },
+    { key: 'status', label: 'Status', sortable: true },
+    { key: 'team', label: 'Team', sortable: true },
+    { key: 'city', label: 'City', sortable: true },
+];
+
+const mapPlaygroundColumn = (column: Record<string, any>) => {
+    if (column.render === 'badge') {
+        return {
+            ...column,
+            render: ({ value, key }: { value: unknown; key: string }) => {
+                const text = value == null ? '' : String(value);
+                const badgeClass = key === 'status'
+                    ? statusClass(text)
+                    : key === 'role'
+                        ? roleClass(text)
+                        : undefined;
+                return <Badge className={badgeClass}>{text}</Badge>;
+            },
+        };
+    }
+
+    if (column.render === 'email') {
+        return {
+            ...column,
+            render: ({ value }: { value: unknown }) => {
+                const text = value == null ? '' : String(value);
+                return text ? (
+                    <a className="text-primary underline-offset-2 hover:underline" href={`mailto:${text}`}>
+                        {text}
+                    </a>
+                ) : null;
+            },
+        };
+    }
+
+    return column;
+};
+
+const renderActionTextBlock = (text?: string, tone: 'body' | 'header' | 'footer' = 'body') => {
+    if (!text) return undefined;
+    const className = tone === 'header'
+        ? 'text-sm text-muted-foreground'
+        : tone === 'footer'
+            ? 'text-xs text-muted-foreground'
+            : 'text-sm whitespace-pre-wrap';
+    return <div className={className}>{text}</div>;
+};
+
+const compilePlaygroundArrowFunction = <TArg, TResult>(value: string) => {
+    const match = value.trim().match(/^\(?\s*([A-Za-z_$][\w$]*)\s*\)?\s*=>\s*([\s\S]+)$/);
+    if (!match) return undefined;
+
+    const [, paramName, rawBody] = match;
+    const body = rawBody.trim();
+
+    try {
+        if (body.startsWith('{') && body.endsWith('}')) {
+            return new Function(paramName, body) as (arg: TArg) => TResult;
+        }
+        return new Function(paramName, `return (${body});`) as (arg: TArg) => TResult;
+    } catch {
+        return undefined;
+    }
+};
+
+const resolvePlaygroundRecordId = (recordIdValue: unknown) => {
+    if (typeof recordIdValue !== 'string') return '_key';
+
+    const trimmed = recordIdValue.trim();
+    if (!trimmed) return '_key';
+    if (!trimmed.includes('=>')) return trimmed;
+    return compilePlaygroundArrowFunction<Record<string, any>, string>(trimmed) || '_key';
+};
+
+const resolvePlaygroundBoolean = (value: unknown) => {
+    if (typeof value === 'boolean') return value;
+    if (typeof value === 'string') {
+        const normalized = value.trim().toLowerCase();
+        if (normalized === 'true') return true;
+        if (normalized === 'false' || normalized === '') return false;
+    }
+    return Boolean(value);
+};
+
+const resolvePlaygroundNode = <TCtx,>(value: unknown) => {
+    if (value === false || value == null) return undefined;
+    if (typeof value === 'string') {
+        const normalized = value.trim();
+        if (!normalized || normalized.toLowerCase() === 'false') return undefined;
+
+        const compiled = normalized.includes('=>')
+            ? compilePlaygroundArrowFunction<TCtx, React.ReactNode>(normalized)
+            : undefined;
+
+        if (compiled) {
+            return (ctx: TCtx) => {
+                const result = compiled(ctx);
+                return result === false || result == null ? undefined : result;
+            };
+        }
+
+        return normalized;
+    }
+
+    return undefined;
+};
+
+const buildPlaygroundActions = (actionsValue: unknown) => {
+    if (actionsValue === false || actionsValue == null) return undefined;
+
+    if (typeof actionsValue === 'string') {
+        if (actionsValue === 'none') return undefined;
+        if (actionsValue === 'crud') return playgroundCrudActions;
+        if (actionsValue === 'custom') return playgroundCustomActions;
+        return undefined;
+    }
+
+    if (Array.isArray(actionsValue)) {
+        const entries = actionsValue.filter((value): value is string => typeof value === 'string');
+        return entries.length ? entries : undefined;
+    }
+
+    if (typeof actionsValue !== 'object') return undefined;
+
+    const entries = Object.entries(actionsValue as PlaygroundActionJson);
+    if (!entries.length) return undefined;
+
+    const resolved = entries.reduce<Record<string, any>>((acc, [actionKey, config]) => {
+        if (!config) return acc;
+
+        if (config === true) {
+            if (actionKey === 'delete') acc[actionKey] = { kind: 'delete' };
+            else acc[actionKey] = { kind: 'modal' };
+            return acc;
+        }
+
+        const kind = config.kind ?? (actionKey === 'delete' ? 'delete' : 'modal');
+
+        if (kind === 'route' && config.to) {
+            acc[actionKey] = {
+                kind,
+                label: config.label,
+                icon: config.icon,
+                visible: config.visible,
+                disabled: config.disabled,
+                to: config.to,
+            };
+            return acc;
+        }
+
+        if (kind === 'external' && config.href) {
+            acc[actionKey] = {
+                kind,
+                label: config.label,
+                icon: config.icon,
+                visible: config.visible,
+                disabled: config.disabled,
+                href: config.href,
+            };
+            return acc;
+        }
+
+        acc[actionKey] = {
+            kind,
+            label: config.label,
+            icon: config.icon,
+            visible: config.visible,
+            disabled: config.disabled,
+            title: config.title,
+            size: config.size,
+            position: config.position,
+            buttonFullscreen: config.buttonFullscreen,
+            header: renderActionTextBlock(config.header, 'header'),
+            body: renderActionTextBlock(config.body, 'body'),
+            footer: config.footer === false ? false : renderActionTextBlock(config.footer, 'footer'),
+        };
+
+        return acc;
+    }, {});
+
+    return Object.keys(resolved).length ? resolved : undefined;
+};
+
+const hasPlaygroundAction = (actionsValue: unknown, actionKey: string) => {
+    if (actionsValue === false || actionsValue == null) return false;
+    if (typeof actionsValue === 'string') {
+        if (actionsValue === 'none') return false;
+        if (actionsValue === 'crud') return playgroundCrudActions.includes(actionKey);
+        if (actionsValue === 'custom') return Object.prototype.hasOwnProperty.call(playgroundCustomActions, actionKey);
+        return false;
+    }
+    if (Array.isArray(actionsValue)) return actionsValue.includes(actionKey);
+    if (typeof actionsValue === 'object') return Object.prototype.hasOwnProperty.call(actionsValue, actionKey) && (actionsValue as Record<string, unknown>)[actionKey] !== false;
+    return false;
+};
+
 function WithMock({
     children,
     provider,
@@ -358,7 +644,7 @@ function MinimalGridPreview() {
 function FromUrlGridPreview() {
     return (
         <WithMock>
-            <Grid path="fromUrl" wrapClass="w-full" pagination={{ limit: 4, align: 'end', sticky: false }} />
+            <Grid fromUrl wrapClass="w-full" pagination={{ limit: 4, align: 'end', sticky: false }} />
         </WithMock>
     );
 }
@@ -373,9 +659,7 @@ function SingleSelectionPreview() {
                 recordId="_key"
                 title="Choose one option"
                 wrapClass="w-full"
-                selection="single"
-                selectedKeys={clickedKey ? [clickedKey] : []}
-                onSelectionChange={(selection) => setClickedKey(selection.keys[0] || '')}
+                selection={{ mode: 'single', onChange: (s) => setClickedKey(s.keys[0] || '') }}
                 pagination={{ limit: 4, align: 'end', sticky: false }}
             />
             <div className="text-xs text-muted-foreground">
@@ -396,11 +680,12 @@ function MultipleSelectionPreview() {
                 recordId="_key"
                 title="Bulk selection"
                 wrapClass="w-full"
-                selection="multiple"
-                selectedKeys={selectedKeys}
-                onSelectionChange={(selection) => {
-                    setSelectedKeys(selection.keys);
-                    setSelectedRecords(selection.records as UserRecord[]);
+                selection={{
+                    mode: 'multiple',
+                    onChange: (s) => {
+                        setSelectedKeys(s.keys);
+                        setSelectedRecords(s.records as UserRecord[]);
+                    },
                 }}
                 actions={{
                     exportSelected: {
@@ -579,8 +864,9 @@ function ActionsPreview({ provider }: { provider: MockDataProvider }) {
 
 const GRID_PROP_DOCS = definePropDocs<GridDocSurface>()([
     { name: 'records', type: 'RecordArray', description: 'Use with GridArray when the caller already owns the full record set.', category: 'Data' },
-    { name: 'recordId', type: 'keyof TRecord | ((record) => string)', description: 'Stable record key strategy for selection, reorder and edit state.', category: 'Data' },
-    { name: 'path', type: 'string | "fromUrl"', description: 'Use with GridDB when records come from a DataProvider collection path. "fromUrl" forwards the current pathname as-is.', category: 'Data' },
+    { name: 'recordId', type: 'keyof TRecord | ((record) => string)', description: 'Single record identity strategy used for selection, reorder, edit state and create/update storage paths.', category: 'Data' },
+    { name: 'path', type: 'string', description: 'Use with GridDB to specify the DataProvider collection path.', category: 'Data' },
+    { name: 'fromUrl', type: 'boolean', description: 'Use with GridDB to derive the collection path from the current route pathname. Mutually exclusive with path.', category: 'Data' },
     {
         name: 'where',
         type: 'WhereClause',
@@ -625,11 +911,9 @@ const GRID_PROP_DOCS = definePropDocs<GridDocSurface>()([
     },
     {
         name: 'onLoad',
-        type: '(data) => data',
-        shape: `(
-  data: Record<string, Record<string, any>>
-) => Record<string, Record<string, any>>`,
-        description: 'Optional provider-side normalization hook for GridDB responses before Grid converts them into records.',
+        type: '(records: TRecord[]) => TRecord[] | Promise<TRecord[]>',
+        shape: `(records: TRecord[]) => TRecord[] | Promise<TRecord[]>`,
+        description: 'Normalize or enrich records before display. Runs after the provider converts raw data into the typed record array. Supports async — Grid shows a spinner while the Promise resolves. Available on both GridDB and GridArray.',
         category: 'Data',
     },
     {
@@ -703,6 +987,8 @@ const GRID_PROP_DOCS = definePropDocs<GridDocSurface>()([
     { name: 'loading', type: 'boolean', default: 'false', description: 'Show a loading spinner on the grid card. Useful while async data is being prepared before passing it to records.', category: 'Display' },
     { name: 'sticky', type: '"top" | "bottom"', description: 'Stick the card to the top or bottom of the scroll container. Applies a CSS sticky class to the card wrapper.', category: 'Display' },
     { name: 'wrapClass', type: 'string', description: 'Extra CSS class forwarded to the outer card wrapper. Use this to set width constraints (e.g. w-full) or margins.', category: 'Display' },
+    { name: 'pre', type: 'ReactNode', description: 'Optional content rendered above the table or gallery body, inside the grid card.', category: 'Layout' },
+    { name: 'post', type: 'ReactNode', description: 'Optional content rendered below the table or gallery body, inside the grid card.', category: 'Layout' },
     { name: 'title', type: 'ReactNode', description: 'Title used by the default card header.', category: 'Layout' },
     {
         name: 'header',
@@ -815,19 +1101,29 @@ actions={{
         description: 'Action catalog. Use the array shortcut for standard CRUD, or the record form for explicit modal, route, external, inline and delete actions.',
         category: 'Actions',
     },
-    { name: 'selection', type: 'false | "single" | "multiple"', default: 'false', description: 'Explicit selection mode for table and gallery.', category: 'Behavior' },
-    { name: 'selectedKeys', type: 'string[]', description: 'Controlled selection keys.', category: 'Behavior' },
-    { name: 'defaultSelectedKeys', type: 'string[]', description: 'Uncontrolled initial selection state.', category: 'Behavior' },
-    { name: 'onSelectionChange', type: 'GridSelectionChangeHandler<TRecord>', description: 'Selection callback with keys, records, clear() and hasSelection.', shape: `type GridSelectionChangeHandler<TRecord> = (
-  selection: GridSelectionState<TRecord>
-) => void
+    {
+        name: 'selection',
+        type: 'false | "single" | "multiple" | GridSelectionConfig<TRecord>',
+        shape: `// string shorthand — Grid manages state, no callback
+"single" | "multiple"
+
+// object form — initial keys and/or callback
+{
+  mode: "single" | "multiple"
+  defaultKeys?: string[]
+  onChange?: (selection: GridSelectionState<TRecord>) => void
+}
 
 type GridSelectionState<TRecord> = {
-  keys: string[];
-  records: TRecord[];
-  clear: () => void;
-  hasSelection: boolean;
-}`, category: 'Behavior' },
+  keys: string[]
+  records: TRecord[]
+  hasSelection: boolean
+  clear: () => void
+}`,
+        default: 'false',
+        description: 'Enables row selection. Use the string shorthand when Grid only needs to show selection UI. Add the object form to receive change callbacks via onChange or pre-select rows via defaultKeys. Grid always manages selection state internally.',
+        category: 'Behavior',
+    },
     { name: 'onClickRow', type: '(record) => void', description: 'Called with the original record after row or card click.', category: 'Behavior' },
     { name: 'reorderable', type: 'boolean', default: 'false', description: 'Turns on row drag in table mode when used together with onReorder.', category: 'Behavior' },
     { name: 'onReorder', type: 'GridReorderHandler<TRecord>', description: 'Receives the reordered source records and drag metadata.', shape: `type GridReorderHandler<TRecord> = (
@@ -841,8 +1137,6 @@ type GridReorderMeta<TRecord> = {
   record: TRecord;
 }`, category: 'Behavior' },
     { name: 'editDeepLink', type: 'boolean', default: 'false', description: 'Sync edit modal to URL hash. Opening a row edit appends #edit/{key} so the modal survives reload and is bookmarkable.', category: 'Behavior' },
-    { name: 'transformRecords', type: '(records) => records | Promise<records>', description: 'Normalize or enrich records before display.', category: 'Data lifecycle' },
-    { name: 'createRecordKey', type: '(record) => string', description: 'Provider-backed create key override used when saving new records.', category: 'Data lifecycle' },
     {
         name: 'onSave',
         type: 'GridMutationSaveHandler<TRecord>',
@@ -892,40 +1186,78 @@ function GridPlaygroundPreview({ p }: { p: Record<string, any> }) {
     const [selectionKeys, setSelectionKeys] = React.useState<string[]>([]);
     const [selectedRecords, setSelectedRecords] = React.useState<UserRecord[]>([]);
     const [clickedRecord, setClickedRecord] = React.useState<UserRecord | null>(null);
+    const [reorderPayload, setReorderPayload] = React.useState<{
+        records: string[];
+        meta: { fromIndex: number; toIndex: number; record: string | null };
+    } | null>(null);
     const db = useDataProvider();
 
     const sourceMode = (p.source as 'db' | 'array') ?? 'db';
-    const selectionMode = p.selection === 'false' ? false : (p.selection as 'single' | 'multiple' | false);
-    const actionsPreset = p.actions as 'none' | 'crud' | 'custom';
-    const columnsPreset = (p.columns as 'base' | 'compact' | 'infer') ?? 'base';
-    const recordId = (p.recordId as string) ?? '_key';
-    const groupBy = p.layout === 'gallery' && p.groupBy ? (p.groupBy as string) : undefined;
+    const selectionMode = React.useMemo((): false | 'single' | 'multiple' => {
+        const val = p.selection;
+        if (!val || val === 'false' || val === false) return false;
+        if (typeof val === 'string') return val as 'single' | 'multiple';
+        return ((val as any).mode as 'single' | 'multiple') || false;
+    }, [p.selection]);
+    const recordId = React.useMemo(() => resolvePlaygroundRecordId(p.recordId), [p.recordId]);
+    const isColumnsInfer = p.columns == null || (typeof p.columns === 'object' && !Array.isArray(p.columns) && Object.keys(p.columns).length === 0);
+    const reorderableRequested = resolvePlaygroundBoolean(p.reorderable);
+    const previewLayout = reorderableRequested ? 'table' : p.layout;
+    const previewSourceMode = reorderableRequested ? 'array' : sourceMode;
+    const groupBy: string | string[] | undefined = (() => {
+        const val = p.groupBy;
+        if (!val) return undefined;
+        if (Array.isArray(val)) return (val as string[]).length > 0 ? val as string[] : undefined;
+        if (typeof val === 'string') {
+            const trimmed = val.trim();
+            if (!trimmed) return undefined;
+            if (trimmed.startsWith('[')) {
+                try { return JSON.parse(trimmed) as string[]; } catch { /* fall through */ }
+            }
+            return trimmed;
+        }
+        return undefined;
+    })();
     const pagination = typeof p.pagination === 'object' && p.pagination !== null ? p.pagination : { limit: 4 };
-    const where = sourceMode === 'db' && typeof p.where === 'object' && p.where !== null && Object.keys(p.where).length > 0 ? p.where : undefined;
-    const order = sourceMode === 'db' && typeof p.order === 'object' && p.order !== null && Object.keys(p.order).length > 0 ? p.order : undefined;
-    const fieldMap = sourceMode === 'db' && typeof p.fieldMap === 'object' && p.fieldMap !== null && Object.keys(p.fieldMap).length > 0 ? p.fieldMap : undefined;
-    const transformRecords = sourceMode === 'db' && p.layout === 'gallery'
+    const where = previewSourceMode === 'db' && typeof p.where === 'object' && p.where !== null && Object.keys(p.where).length > 0 ? p.where : undefined;
+    const order = previewSourceMode === 'db' && typeof p.order === 'object' && p.order !== null && Object.keys(p.order).length > 0 ? p.order : undefined;
+    const fieldMap = previewSourceMode === 'db' && typeof p.fieldMap === 'object' && p.fieldMap !== null && Object.keys(p.fieldMap).length > 0 ? p.fieldMap : undefined;
+    const onLoadRecords = previewSourceMode === 'db' && previewLayout === 'gallery'
         ? (records: UserRecord[]) => withGalleryThumbs(records)
         : undefined;
     const loading = p.loading as boolean | undefined;
     const sticky = (p.sticky as string) || undefined;
-    const wrapClass = (p.wrapClass as string) || 'w-full';
+    const wrapClass = typeof p.wrapClass === 'string' ? p.wrapClass : '';
+    const actions = React.useMemo(() => buildPlaygroundActions(p.actions), [p.actions]);
+    const hasPreviewAction = React.useMemo(() => hasPlaygroundAction(p.actions, 'preview'), [p.actions]);
+    const resolvedHeaderNode = React.useMemo(() => resolvePlaygroundNode<any>(p.header), [p.header]);
+    const resolvedFooterNode = React.useMemo(() => resolvePlaygroundNode<any>(p.footer), [p.footer]);
+    const resolvedPreNode = typeof p.pre === 'string' && p.pre.trim() && p.pre.trim().toLowerCase() !== 'false'
+        ? p.pre.trim()
+        : undefined;
+    const resolvedPostNode = typeof p.post === 'string' && p.post.trim() && p.post.trim().toLowerCase() !== 'false'
+        ? p.post.trim()
+        : undefined;
 
     const [rawArrayRecords, setRawArrayRecords] = React.useState<UserRecord[]>([]);
     React.useEffect(() => {
-        if (sourceMode !== 'array') return;
+        if (previewSourceMode !== 'array') return;
         return db.subscribe(GRID_SOURCE_PATH, (recs) => setRawArrayRecords(recs as UserRecord[]));
-    }, [db, sourceMode]);
+    }, [db, previewSourceMode]);
 
     const arrayRecords = React.useMemo(
-        () => p.layout === 'gallery' ? withGalleryThumbs(rawArrayRecords) : rawArrayRecords,
-        [p.layout, rawArrayRecords],
+        () => previewLayout === 'gallery' ? withGalleryThumbs(rawArrayRecords) : rawArrayRecords,
+        [previewLayout, rawArrayRecords],
     );
 
     const [reorderState, setReorderState] = React.useState<UserRecord[] | null>(null);
-    React.useEffect(() => { setReorderState(null); }, [rawArrayRecords]);
-    const reorderable = (p.reorderable as boolean) && sourceMode === 'array' && p.layout !== 'gallery';
+    React.useEffect(() => {
+        setReorderState(null);
+        setReorderPayload(null);
+    }, [rawArrayRecords]);
+    const reorderable = reorderableRequested && previewSourceMode === 'array' && previewLayout === 'table';
     const effectiveArrayRecords = reorderable && reorderState !== null ? reorderState : arrayRecords;
+    const effectiveSortable = reorderable ? false : p.sortable;
 
     const previewColumnDef = {
         key: '_preview',
@@ -936,125 +1268,92 @@ function GridPlaygroundPreview({ p }: { p: Record<string, any> }) {
             <ActionButton icon="eye" variant="link" onClick={() => runAction('preview')} />
         ),
     };
-    const baseColumnSet = columnsPreset === 'infer' ? undefined
-        : columnsPreset === 'compact' ? compactColumns
-        : baseColumns;
+    const baseColumnSet = React.useMemo(() => {
+        if (isColumnsInfer) return playgroundInferColumns;
+        if (!Array.isArray(p.columns)) return undefined;
+        return p.columns.map((column) => mapPlaygroundColumn(column));
+    }, [isColumnsInfer, p.columns]);
     const columns = React.useMemo(() => {
         if (!baseColumnSet) return undefined;
-        if (actionsPreset !== 'custom') return baseColumnSet;
+        if (!hasPreviewAction) return baseColumnSet;
         return [...baseColumnSet, previewColumnDef];
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [columnsPreset, actionsPreset]);
+    }, [baseColumnSet, hasPreviewAction]);
 
-    const resolvedHeader = p.header
-        ? ({ title, runAction, selection }: any) => (
-            <div className="flex w-full items-start justify-between gap-3">
-                <div className="min-w-0">
-                    <div>{title}</div>
-                    <div className="text-xs text-muted-foreground">Custom header — title, subtitle, and actions from ctx.</div>
-                </div>
-                <div className="flex shrink-0 items-center gap-2">
-                    {actionsPreset !== 'none' && (
-                        <ActionButton label={actionsPreset === 'crud' ? 'Add' : 'Add teammate'} onClick={() => runAction('add')} />
-                    )}
-                    {selection.hasSelection && (
-                        <span className="text-xs text-muted-foreground">{selection.keys.length} selected</span>
-                    )}
-                </div>
-            </div>
-        )
-        : undefined;
-
-    const resolvedFooter = p.footer
-        ? ({ records }: any) => (
-            <div className="text-xs text-muted-foreground">
-                {records.length} record{records.length !== 1 ? 's' : ''} loaded
-            </div>
-        )
-        : undefined;
-
-    const actions = actionsPreset === 'none'
-        ? undefined
-        : actionsPreset === 'crud'
-            ? ['add', 'edit', 'delete']
-            : {
-                add: { kind: 'modal', title: 'Add teammate', size: 'lg', position: 'center' },
-                edit: {
-                    kind: 'modal',
-                    title: ({ record }: { record?: UserRecord }) => `Edit ${record?.name}`,
-                    size: 'lg',
-                    position: 'left',
-                    body: () => <GridUserForm />,
-                    footer: ({ runAction }: { runAction: (actionKey: string) => void }) => (
-                        <>
-                            <ActionButton label="Save" onClick={() => runAction('save')} />
-                            <ActionButton variant="danger" label="Delete" onClick={() => runAction('remove')} />
-                        </>
-                    ),
-                },
-                delete: { kind: 'delete', position: 'center', size: 'sm' },
-                preview: {
-                    kind: 'modal',
-                    label: 'Preview',
-                    size: 'xl',
-                    position: 'right',
-                    title: ({ record }: { record?: UserRecord }) => record?.name,
-                    body: ({ record }: { record?: UserRecord }) => (
-                        <div className="space-y-2 text-sm">
-                            <div className="text-lg font-semibold">{record?.name}</div>
-                            <div className="text-muted-foreground">{record?.email}</div>
-                            <div><span className="font-medium">Role:</span> {record?.role}</div>
-                            <div><span className="font-medium">Status:</span> {record?.status}</div>
-                            <div><span className="font-medium">Team:</span> {record?.team}</div>
-                        </div>
-                    ),
-                    footer: false,
-                },
-            };
-
-    const handleSelectionChange = selectionMode === false
-        ? undefined
-        : (selection: any) => {
-            setSelectionKeys(selection.keys);
-            setSelectedRecords(selection.records as UserRecord[]);
+    const resolvedSelection = React.useMemo(() => {
+        if (!selectionMode) return undefined;
+        const defaultKeys = p.selection && typeof p.selection === 'object'
+            ? (p.selection as any).defaultKeys as string[] | undefined
+            : undefined;
+        return {
+            mode: selectionMode,
+            ...(defaultKeys?.length ? { defaultKeys } : {}),
+            onChange: (s: any) => {
+                setSelectionKeys(s.keys);
+                setSelectedRecords(s.records as UserRecord[]);
+            },
         };
+    }, [selectionMode, p.selection]);
 
-    const hasOutput = selectionMode !== false || p.onClickRow;
+    React.useEffect(() => {
+        setSelectionKeys([]);
+        setSelectedRecords([]);
+    }, [selectionMode]);
+
+    const hasOutput = selectionMode !== false || p.onClickRow || reorderable;
 
     return (
         <div className="space-y-4">
-            {sourceMode === 'array' ? (
+            {reorderable && (
+                <div className="rounded-md border border-dashed border-primary/30 bg-primary/5 px-3 py-2 text-xs text-muted-foreground">
+                    Reorder preview attivo: il playground usa automaticamente <code>layout="table"</code>, <code>source="array"</code> e <code>sortable=false</code> per mostrare il drag & drop.
+                </div>
+            )}
+            {previewSourceMode === 'array' ? (
                 <GridArray
                     records={effectiveArrayRecords as any}
                     recordId={recordId as any}
                     columns={columns as any}
-                    title={resolvedHeader ? undefined : p.title ?? 'Team members'}
-                    header={resolvedHeader}
-                    footer={resolvedFooter}
-                    layout={p.layout}
+                    title={p.title ?? 'Team members'}
+                    header={resolvedHeaderNode}
+                    footer={resolvedFooterNode}
+                    layout={previewLayout}
                     loading={loading}
                     sticky={sticky as any}
                     wrapClass={wrapClass}
-                    form={actionsPreset !== 'none' ? <GridUserForm /> : undefined}
+                    pre={resolvedPreNode}
+                    post={resolvedPostNode}
+                    form={actions ? <GridUserForm /> : undefined}
                     actions={actions as any}
-                    selection={selectionMode}
-                    selectedKeys={selectionMode === false ? undefined : selectionKeys}
-                    onSelectionChange={handleSelectionChange}
+                    selection={resolvedSelection}
                     onClickRow={p.onClickRow ? (record) => setClickedRecord(record as UserRecord) : undefined}
-                    sortable={p.sortable}
+                    sortable={effectiveSortable}
                     groupBy={groupBy}
                     pagination={pagination}
                     reorderable={reorderable}
-                    onReorder={reorderable ? (records) => setReorderState(records as UserRecord[]) : undefined}
+                    onReorder={reorderable ? (records, meta) => {
+                        const nextRecords = records as UserRecord[];
+                        setReorderState(nextRecords);
+                        setReorderPayload({
+                            records: nextRecords.map((record) => record._key || record.id || record.email),
+                            meta: {
+                                fromIndex: meta.fromIndex,
+                                toIndex: meta.toIndex,
+                                record: (meta.record as UserRecord | undefined)?._key
+                                    || (meta.record as UserRecord | undefined)?.id
+                                    || (meta.record as UserRecord | undefined)?.email
+                                    || null,
+                            },
+                        });
+                    } : undefined}
                     audit={p.audit}
-                    onSave={actionsPreset !== 'none' ? async ({ record }) => {
+                    onSave={actions ? async ({ record }) => {
                         const key = (record as any)?._key || (record as any)?.id || `u${Date.now()}`;
                         return `${GRID_SOURCE_PATH}/${key}`;
                     } : undefined}
-                    onDelete={actionsPreset !== 'none' ? async ({ record }) => (
+                    onDelete={actions ? async ({ record }) => (
                         record ? `${GRID_SOURCE_PATH}/${(record as any)._key}` : undefined
                     ) : undefined}
-                    createRecordKey={(record) => (record as any)._key || (record as any).id || `u${Date.now()}`}
                 />
             ) : (
                 <GridDB
@@ -1064,26 +1363,25 @@ function GridPlaygroundPreview({ p }: { p: Record<string, any> }) {
                     fieldMap={fieldMap}
                     recordId={recordId as any}
                     columns={columns as any}
-                    title={resolvedHeader ? undefined : p.title ?? 'Team members'}
-                    header={resolvedHeader}
-                    footer={resolvedFooter}
-                    layout={p.layout}
+                    title={p.title ?? 'Team members'}
+                    header={resolvedHeaderNode}
+                    footer={resolvedFooterNode}
+                    layout={previewLayout}
                     loading={loading}
                     sticky={sticky as any}
                     wrapClass={wrapClass}
-                    transformRecords={transformRecords as any}
-                    form={actionsPreset !== 'none' ? <GridUserForm /> : undefined}
+                    pre={resolvedPreNode}
+                    post={resolvedPostNode}
+                    onLoad={onLoadRecords as any}
+                    form={actions ? <GridUserForm /> : undefined}
                     actions={actions as any}
-                    selection={selectionMode}
-                    selectedKeys={selectionMode === false ? undefined : selectionKeys}
-                    onSelectionChange={handleSelectionChange}
+                    selection={resolvedSelection}
                     onClickRow={p.onClickRow ? (record) => setClickedRecord(record as UserRecord) : undefined}
-                    sortable={p.sortable}
+                    sortable={effectiveSortable}
                     groupBy={groupBy}
                     pagination={pagination}
                     audit={p.audit}
-                    editDeepLink={p.editDeepLink && actionsPreset !== 'none' ? true : undefined}
-                    createRecordKey={(record) => record._key || record.id || `u${Date.now()}`}
+                    editDeepLink={p.editDeepLink && actions ? true : undefined}
                 />
             )}
 
@@ -1091,7 +1389,7 @@ function GridPlaygroundPreview({ p }: { p: Record<string, any> }) {
                     <div className="grid gap-3 xl:grid-cols-2">
                         {selectionMode !== false && (
                             <div className="rounded-md border bg-muted/40 p-3">
-                                <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">onSelectionChange payload</div>
+                                <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">selection.onChange payload</div>
                                 <pre className="overflow-auto whitespace-pre-wrap break-all text-xs text-foreground">
                                     {JSON.stringify({
                                         keys: selectionKeys,
@@ -1106,6 +1404,21 @@ function GridPlaygroundPreview({ p }: { p: Record<string, any> }) {
                                 <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">onClickRow payload</div>
                                 <pre className="overflow-auto whitespace-pre-wrap break-all text-xs text-foreground">
                                     {JSON.stringify(clickedRecord ?? null, null, 2)}
+                                </pre>
+                            </div>
+                        )}
+                        {reorderable && (
+                            <div className="rounded-md border bg-muted/40 p-3">
+                                <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">onReorder payload</div>
+                                <pre className="overflow-auto whitespace-pre-wrap break-all text-xs text-foreground">
+                                    {JSON.stringify(
+                                        reorderPayload ?? {
+                                            records: effectiveArrayRecords.map((record) => record._key || record.id || record.email),
+                                            meta: null,
+                                        },
+                                        null,
+                                        2,
+                                    )}
                                 </pre>
                             </div>
                         )}
@@ -1124,53 +1437,257 @@ const PLAYGROUND: PlaygroundConfig = {
     props: [
         // ── Data source ──────────────────────────────────────────────────────
         { name: 'source', type: '"db" | "array"', default: '"db"', description: 'Switch between GridDB (provider-backed, supports where/order) and GridArray (caller-owned records).', control: 'select', options: ['db', 'array'] },
-        { name: 'path', type: 'string | "fromUrl"', description: 'GridDB: DataProvider collection path (fixed to mock in playground).', readOnly: true, hidden: (props) => props.source === 'array' },
+        { name: 'path', type: 'string', description: 'GridDB: DataProvider collection path (fixed to mock in playground).', readOnly: true, hidden: (props) => props.source === 'array' },
+        { name: 'fromUrl', type: 'boolean', default: 'false', description: 'GridDB: derive the path from the current route instead.', control: 'boolean', hidden: (props) => props.source === 'array' },
         { name: 'records', type: 'RecordArray', description: 'GridArray: caller-owned record set. Edit the mock database below to change the data.', readOnly: true, hidden: (props) => props.source !== 'array' },
-        { name: 'recordId', type: 'keyof TRecord | ((record) => string)', default: '"_key"', description: 'Stable record key strategy. Both _key and id are present in the playground data.', control: 'select', options: ['_key', 'id'] },
-        { name: 'where', type: 'WhereClause', default: '{}', description: 'Provider-side filter (GridDB only). e.g. {"status":"active"} or {"role":{"in":["admin","editor"]}}.', help: 'Keys and string values must be quoted. Example: {"status":"active"}', control: 'json', hidden: (props) => props.source === 'array' },
-        { name: 'order', type: 'OrderClause', default: '{}', description: 'Provider-side ordering (GridDB only). e.g. {"name":"asc"} or {"email":"desc"}.', help: 'Keys and direction values must be quoted. Example: {"name":"asc"}', control: 'json', hidden: (props) => props.source === 'array' },
-        { name: 'fieldMap', type: 'Record<string, string>', default: '{}', description: 'Provider-side field remapping (GridDB only). Maps target field names to source field names in the provider record.', help: 'Example: {"fullName":"name"} maps the provider "name" field to "fullName".', control: 'json', hidden: (props) => props.source === 'array' },
+        {
+            name: 'recordId',
+            type: 'keyof TRecord | ((record) => string)',
+            default: '"_key"',
+            description: 'Single record identity strategy used across selection, reorder, edit state and create/update paths. Both _key and id are present in the playground data.',
+            help: 'Use a field name like `_key` or `id`, or a one-line arrow function like `record => `${record.team}-${record.id}``. New records are saved using this same resolver, so keep it unique and stable.',
+            control: 'textarea',
+            textareaMode: 'text',
+            rows: 3,
+            shortcuts: [
+                { label: '_key', value: '_key', help: 'Use the provider/native key field.' },
+                { label: 'id', value: 'id', help: 'Use the explicit id field.' },
+                { label: 'fn id', value: 'record => record.id', help: 'Arrow function returning the id field.' },
+                { label: 'concat', value: 'record => `${record.team}-${record.id}`', help: 'Concatenate two fields into a derived key.' },
+            ],
+        },
+        {
+            name: 'where',
+            type: 'WhereClause',
+            default: '{}',
+            description: 'Provider-side filter (GridDB only). e.g. {"status":"active"} or {"role":{"in":["admin","editor"]}}.',
+            help: 'Keys and string values must be quoted. Example: {"status":"active"}',
+            control: 'json',
+            rows: 4,
+            shortcuts: [
+                { label: 'empty', value: {}, help: 'No provider-side filter.' },
+                { label: 'active', value: { status: 'active' }, help: 'Show only active teammates.' },
+                { label: 'admins', value: { role: 'admin' }, help: 'Show only admin records.' },
+                { label: 'team in', value: { team: { in: ['Platform', 'Operations'] } }, help: 'Example with nested operators.' },
+            ],
+            hidden: (props) => props.source === 'array',
+        },
+        {
+            name: 'order',
+            type: 'OrderClause',
+            default: '{}',
+            description: 'Provider-side ordering (GridDB only). e.g. {"name":"asc"} or {"email":"desc"}.',
+            help: 'Keys and direction values must be quoted. Example: {"name":"asc"}',
+            control: 'json',
+            rows: 4,
+            shortcuts: [
+                { label: 'none', value: {}, help: 'Keep provider default order.' },
+                { label: 'name asc', value: { name: 'asc' }, help: 'Order by name ascending.' },
+                { label: 'email desc', value: { email: 'desc' }, help: 'Order by email descending.' },
+            ],
+            hidden: (props) => props.source === 'array',
+        },
+        {
+            name: 'fieldMap',
+            type: 'Record<string, string>',
+            default: '{}',
+            description: 'Provider-side field remapping (GridDB only). Maps target field names to source field names in the provider record.',
+            help: 'Example: {"fullName":"name"} maps the provider "name" field to "fullName".',
+            control: 'json',
+            rows: 4,
+            shortcuts: [
+                { label: 'empty', value: {}, help: 'No field remapping.' },
+                { label: 'fullName', value: { fullName: 'name' }, help: 'Map provider name to UI fullName.' },
+                { label: 'mail', value: { mail: 'email', state: 'status' }, help: 'Example with multiple remapped keys.' },
+            ],
+            hidden: (props) => props.source === 'array',
+        },
         { name: 'onLoad', type: '(data) => data', description: 'Provider-side normalization hook for GridDB responses before records are built (GridDB only).', readOnly: true, hidden: (props) => props.source === 'array' },
         // ── Display ──────────────────────────────────────────────────────────
-        { name: 'columns', type: 'GridColumn<TRecord>[]', default: '"base"', description: 'Column preset (playground shortcut). "base" = all 6 columns, "compact" = 3 columns, "infer" = no columns prop.', control: 'select', options: ['base', 'compact', 'infer'] },
+        {
+            name: 'columns',
+            type: 'GridColumn<TRecord>[]',
+            default: JSON.stringify(playgroundColumnsBase),
+            description: 'Column definitions as JSON. In this playground, `{}` means inferred columns using the current record shape.',
+            help: 'Available JSON-friendly fields here: key, label, sortable, className, render. Playground shorthands supported for render: "email" and "badge". Set `{}` for inferred columns.',
+            control: 'json',
+            shortcuts: [
+                { label: 'infer', value: {}, help: 'Uses playground auto-detect based on the current record shape.' },
+                { label: 'base', value: playgroundColumnsBase, help: 'Neutral full example with standard text columns and email render.' },
+                { label: 'compact', value: playgroundColumnsCompact, help: 'Shorter 3-column setup.' },
+                { label: 'badge', value: playgroundColumnsBadgeFocus, help: 'Highlights badge and email render modes.' },
+                { label: 'fieldMap', value: playgroundColumnsFieldMap, help: 'Works together with the fieldMap example above: fullName -> name, mail -> email, state -> status.' },
+                { label: 'align', value: playgroundColumnsAligned, help: 'Shows className and alignment-oriented configuration.' },
+            ],
+        },
         { name: 'layout', type: '"table" | "gallery"', default: '"table"', description: 'Visual surface used by GridCore.', control: 'select', options: ['table', 'gallery'] },
-        { name: 'sortable', type: 'boolean | OrderConfig', default: 'true', description: 'Enable client-side sorting or set an initial sort order via OrderConfig.', control: 'boolean' },
-        { name: 'pagination', type: 'PaginationParams', default: '{"limit":4,"align":"end"}', description: 'Pagination config forwarded to Table or Gallery.', control: 'json' },
-        { name: 'groupBy', type: 'string | string[]', default: '""', description: 'Gallery grouping field.', control: 'select', options: ['', 'role', 'status', 'team'], hidden: (props) => props.layout !== 'gallery' },
+        {
+            name: 'sortable',
+            type: 'boolean | OrderConfig',
+            default: 'true',
+            description: 'Enable client-side sorting or set an initial sort order via OrderConfig.',
+            help: 'Use true/false or a JSON object like {"name":"asc"}.',
+            control: 'json',
+            rows: 3,
+            shortcuts: [
+                { label: 'true', value: true, help: 'Enable sortable headers.' },
+                { label: 'false', value: false, help: 'Disable sorting.' },
+                { label: 'name asc', value: { name: 'asc' }, help: 'Start with a name ascending sort.' },
+            ],
+        },
+        {
+            name: 'reorderable',
+            type: 'boolean',
+            default: 'false',
+            description: 'Enable row drag reorder. In the playground, turning this on switches the preview to the array/table setup needed for drag & drop and temporarily disables sortable sorting.',
+            help: 'Use true to enable drag & drop. While active, the preview uses array mode, forces table layout, and turns sortable off so the row handle behavior is immediately visible. The callback/function part belongs to `onReorder`, not `reorderable`.',
+            control: 'textarea',
+            textareaMode: 'text',
+            rows: 2,
+            shortcuts: [
+                { label: 'false', value: 'false', help: 'Disable drag & drop.' },
+                { label: 'true', value: 'true', help: 'Enable row drag & drop.' },
+            ],
+        },
+        {
+            name: 'pagination',
+            type: 'PaginationParams',
+            default: '{"limit":4,"align":"end"}',
+            description: 'Pagination config forwarded to Table or Gallery.',
+            control: 'json',
+            rows: 4,
+            shortcuts: [
+                { label: 'default', value: { limit: 4, align: 'end' }, help: 'Default showcase pagination.' },
+                { label: 'compact', value: { limit: 2, align: 'center' }, help: 'Smaller page size, centered controls.' },
+                { label: 'sticky', value: { limit: 4, align: 'end', sticky: 'bottom' }, help: 'Show sticky bottom pagination.' },
+            ],
+        },
+        {
+            name: 'groupBy',
+            type: 'string | string[]',
+            default: '',
+            description: 'Group rows by a field. Works for both table and gallery layouts. Pass a field name or a JSON array for multi-level grouping.',
+            control: 'textarea',
+            textareaMode: 'text',
+            rows: 1,
+            placeholder: 'e.g. role or ["role","status"]',
+            shortcuts: [
+                { label: 'off', value: '', help: 'No grouping.' },
+                { label: 'role', value: 'role', help: 'Group by role.' },
+                { label: 'status', value: 'status', help: 'Group by status.' },
+                { label: 'team', value: 'team', help: 'Group by team.' },
+                { label: 'role+status', value: ['role', 'status'], help: 'Multi-level: role then status.' },
+            ],
+        },
         { name: 'loading', type: 'boolean', default: 'false', description: 'Show a loading spinner on the grid card.', control: 'boolean' },
         { name: 'sticky', type: '"top" | "bottom"', default: '""', description: 'Stick the card at the top or bottom of the scroll container.', control: 'select', options: ['', 'top', 'bottom'] },
-        { name: 'wrapClass', type: 'string', default: '"w-full"', description: 'Extra CSS class forwarded to the outer card wrapper.', control: 'text' },
+        { name: 'wrapClass', type: 'string', default: '""', description: 'Extra CSS class forwarded to the outer card wrapper.', control: 'text' },
+        {
+            name: 'pre',
+            type: 'ReactNode',
+            default: '""',
+            description: 'Optional content rendered above the table or gallery body.',
+            control: 'textarea',
+            rows: 2,
+        },
+        {
+            name: 'post',
+            type: 'ReactNode',
+            default: '""',
+            description: 'Optional content rendered below the table or gallery body.',
+            control: 'textarea',
+            rows: 2,
+        },
         // ── Layout ───────────────────────────────────────────────────────────
         { name: 'title', type: 'ReactNode', default: '"Team members"', description: 'Card header title.', control: 'text' },
-        { name: 'header', type: 'ReactNode | ((ctx) => ReactNode)', default: 'false', description: 'Custom header. Enable to replace the default title row with a custom layout showing title, subtitle and actions.', control: 'boolean' },
-        { name: 'footer', type: 'ReactNode | ((ctx) => ReactNode)', default: 'false', description: 'Custom footer. Enable to show a summary row with total record count.', control: 'boolean' },
+        {
+            name: 'header',
+            type: 'ReactNode | ((ctx) => ReactNode)',
+            default: 'false',
+            description: 'Header override. Use plain text or a one-line arrow function that receives the Grid header ctx.',
+            help: 'Examples: `Team directory` or `ctx => `${ctx.title} · ${ctx.records.length} records``.',
+            control: 'textarea',
+            textareaMode: 'text',
+            rows: 3,
+            shortcuts: [
+                { label: 'false', value: 'false', help: 'Use the default Grid header.' },
+                { label: 'fn', value: 'ctx => `${ctx.title} · ${ctx.records.length} records`', help: 'Function example using the header ctx.' },
+                { label: 'text', value: 'Team directory', help: 'Static text header example.' },
+            ],
+        },
+        {
+            name: 'footer',
+            type: 'ReactNode | ((ctx) => ReactNode)',
+            default: 'false',
+            description: 'Footer override. Use plain text or a one-line arrow function that receives the Grid footer ctx.',
+            help: 'Examples: `4 records loaded` or `ctx => `${ctx.selection.keys.length} selected``.',
+            control: 'textarea',
+            textareaMode: 'text',
+            rows: 3,
+            shortcuts: [
+                { label: 'false', value: 'false', help: 'No custom footer.' },
+                { label: 'fn', value: 'ctx => `${ctx.records.length} records loaded`', help: 'Function example using the footer ctx.' },
+                { label: 'text', value: '4 records loaded', help: 'Static text footer example.' },
+            ],
+        },
         // ── Actions ──────────────────────────────────────────────────────────
-        { name: 'actions', type: '("add" | "edit" | "delete")[] | Record<string, GridAction>', default: '"custom"', description: 'Action catalog. "crud" = ["add","edit","delete"]. "custom" = explicit modal/route/inline map.', control: 'select', options: ['none', 'crud', 'custom'] },
+        {
+            name: 'actions',
+            type: '("add" | "edit" | "delete")[] | Record<string, GridAction>',
+            default: JSON.stringify(playgroundCustomActions),
+            description: 'Action catalog as JSON. Supports CRUD array shorthand and declarative modal, delete, route and external actions.',
+            help: 'JSON cannot express functions, so this playground supports the declarative subset: static strings/booleans plus kind, label, icon, size, position, to, href, header, body and footer=false.',
+            control: 'json',
+            rows: 12,
+            shortcuts: [
+                { label: 'none', value: {}, help: 'No actions.' },
+                { label: 'crud', value: playgroundCrudActions, help: 'Standard add/edit/delete shortcuts.' },
+                { label: 'custom', value: playgroundCustomActions, help: 'Custom modal and preview actions.' },
+                {
+                    label: 'links',
+                    value: {
+                        docs: { kind: 'route', label: 'Open docs', to: '/docs/grid' },
+                        website: { kind: 'external', label: 'Open site', href: 'https://example.com' },
+                    },
+                    help: 'Route and external action examples.',
+                },
+            ],
+        },
         { name: 'form', type: 'ReactElement | ((ctx) => ReactNode)', description: 'Add/edit form. Grid wraps it in Form automatically for add and edit actions.', readOnly: true },
         // ── Behavior ─────────────────────────────────────────────────────────
-        { name: 'selection', type: 'false | "single" | "multiple"', default: '"false"', description: 'Selection mode.', control: 'select', options: ['false', 'single', 'multiple'] },
-        { name: 'selectedKeys', type: 'string[]', description: 'Controlled selection keys (managed internally by the playground).', readOnly: true },
-        { name: 'defaultSelectedKeys', type: 'string[]', description: 'Uncontrolled initial selection state.', readOnly: true },
-        { name: 'onSelectionChange', type: 'GridSelectionChangeHandler<TRecord>', description: 'Selection callback — payload shown below when selection is active.', readOnly: true },
+        {
+            name: 'selection',
+            type: 'false | "single" | "multiple" | GridSelectionConfig<TRecord>',
+            default: false,
+            description: 'Selection mode. The playground wires onChange automatically — the payload is shown below the grid when active.',
+            help: 'Use false to disable, "single"/"multiple" for string shorthand, or an object for defaultKeys. onChange is always wired internally.',
+            control: 'json',
+            rows: 3,
+            shortcuts: [
+                { label: 'off', value: false, help: 'No row selection.' },
+                { label: 'single', value: 'single', help: 'Single selection, Grid manages state internally.' },
+                { label: 'multiple', value: 'multiple', help: 'Multiple selection, Grid manages state internally.' },
+                { label: 'defaultKeys', value: { mode: 'single', defaultKeys: ['u1'] }, help: 'Single with u1 pre-selected on mount.' },
+                { label: 'multi+keys', value: { mode: 'multiple', defaultKeys: ['u1', 'u5'] }, help: 'Multiple with u1 and u5 pre-selected on mount.' },
+            ],
+        },
         { name: 'onClickRow', type: '(record) => void', default: 'false', description: 'Called with the full record on row or card click. Enable to see the payload below.', control: 'boolean' },
-        { name: 'reorderable', type: 'boolean', default: 'false', description: 'Enable row drag reorder (GridArray only). Drag handles appear on each row. onReorder is handled by the playground.', control: 'boolean', hidden: (props) => props.source === 'db' || props.layout === 'gallery' },
-        { name: 'onReorder', type: 'GridReorderHandler<TRecord>', description: 'Receives the reordered record array and drag metadata. Handled internally by the playground when reorderable is true.', readOnly: true, hidden: (props) => !props.reorderable || props.source === 'db' || props.layout === 'gallery' },
-        { name: 'editDeepLink', type: 'boolean', default: 'false', description: 'Sync edit modal to URL hash. Opening a row edit appends #edit/{key} so the modal survives reload and is bookmarkable.', control: 'boolean', hidden: (props) => props.actions === 'none' || props.layout === 'gallery' || props.source === 'array' },
+        { name: 'onReorder', type: 'GridReorderHandler<TRecord>', description: 'Receives the reordered record array and drag metadata. Handled internally by the playground when reorderable is true.', readOnly: true, hidden: (props) => !resolvePlaygroundBoolean(props.reorderable) },
+        { name: 'editDeepLink', type: 'boolean', default: 'false', description: 'Sync edit modal to URL hash. Opening a row edit appends #edit/{key} so the modal survives reload and is bookmarkable.', control: 'boolean', hidden: (props) => !hasPlaygroundAction(props.actions, 'edit') || props.layout === 'gallery' || props.source === 'array' },
         // ── Data lifecycle ────────────────────────────────────────────────────
-        { name: 'transformRecords', type: '(records) => records | Promise<records>', description: 'Normalize or enrich records. In the playground this automatically adds gallery thumbnails when layout is gallery.', readOnly: true },
-        { name: 'createRecordKey', type: '(record) => string', description: 'Override the generated key when saving new records to the provider. Handled automatically by the playground.', readOnly: true },
+        { name: 'onLoad', type: '(records) => records | Promise<records>', description: 'Normalize or enrich records before display. In the playground this automatically adds gallery thumbnails when layout is gallery.', readOnly: true },
         { name: 'onSave', type: 'GridMutationSaveHandler<TRecord>', description: 'Override save target path or implement custom persistence for create/update. Handled automatically by the playground.', readOnly: true },
         { name: 'onDelete', type: 'GridMutationDeleteHandler<TRecord>', description: 'Override delete target path before the provider removes the record. Handled automatically by the playground.', readOnly: true },
         { name: 'onAfterAction', type: 'GridAfterActionHandler<TRecord>', description: 'Post-action hook. Return false to keep the modal open after save/delete.', readOnly: true },
-        { name: 'audit', type: 'boolean', default: 'false', description: 'Enables form-level audit logging during modal saves.', control: 'boolean', hidden: (props) => props.actions === 'none' },
+        { name: 'audit', type: 'boolean', default: 'false', description: 'Enables form-level audit logging during modal saves.', control: 'boolean', hidden: (props) => !buildPlaygroundActions(props.actions) },
     ],
     defaultProps: {
         source: 'db',
         recordId: '_key',
         layout: 'table',
-        columns: 'base',
-        actions: 'custom',
-        selection: 'false',
+        columns: playgroundColumnsBase,
+        actions: playgroundCustomActions,
+        selection: false,
         sortable: true,
         groupBy: '',
         where: {},
@@ -1179,7 +1696,9 @@ const PLAYGROUND: PlaygroundConfig = {
         pagination: { limit: 4, align: 'end' },
         loading: false,
         sticky: '',
-        wrapClass: 'w-full',
+        wrapClass: '',
+        pre: '',
+        post: '',
         title: 'Team members',
         header: false,
         footer: false,
@@ -1279,10 +1798,10 @@ export default function GridPage() {
                     {
                         label: 'fromUrl',
                         title: 'Load data from the current URL',
-                        description: 'Use path="fromUrl" when the current route already matches the provider path you want to read. Grid forwards the pathname as-is, without query string or hash.',
+                        description: 'Use fromUrl when the current route already matches the provider path you want to read. Grid forwards the pathname as-is, without query string or hash.',
                         preview: <FromUrlGridPreview />,
                         code: `<Grid
-  path="fromUrl"
+  fromUrl
   pagination={{ limit: 4, align: "end", sticky: false }}
 />`,
                     },
@@ -1455,9 +1974,7 @@ export default function GridPage() {
   records={records}
   recordId="_key"
   title="Choose one option"
-  selection="single"
-  selectedKeys={clickedKey ? [clickedKey] : []}
-  onSelectionChange={(selection) => setClickedKey(selection.keys[0] || "")}
+  selection={{ mode: "single", onChange: (s) => setClickedKey(s.keys[0] || "") }}
 />`,
                     },
                     {
@@ -1472,11 +1989,12 @@ const [selectedRecords, setSelectedRecords] = useState<RecordArray>([]);
   records={records}
   recordId="_key"
   title="Bulk selection"
-  selection="multiple"
-  selectedKeys={selectedKeys}
-  onSelectionChange={(selection) => {
-    setSelectedKeys(selection.keys);
-    setSelectedRecords(selection.records);
+  selection={{
+    mode: "multiple",
+    onChange: (s) => {
+      setSelectedKeys(s.keys);
+      setSelectedRecords(s.records);
+    },
   }}
   actions={{
     exportSelected: {

@@ -9,7 +9,11 @@ import type { PropDef, PlaygroundConfig } from '../../types/playground';
 const MENU_PROPS: PropDef[] = [
     { name: 'context', type: 'string', required: true, description: 'Menu context key passed to useMenu', control: 'select', options: ['components', 'docs', 'providers', 'examples'] },
     { name: 'Type', type: '"ul" | "ol"', default: '"ul"', description: 'List element type', control: 'select', options: ['ul', 'ol'] },
-    { name: 'badges', type: 'Record<string, BadgeConfig>', description: 'Badges keyed by lower-case item title', control: 'json', typeDetails: `Record<string, {
+    { name: 'badges', type: 'Record<string, BadgeConfig>', description: 'Badges keyed by lower-case item title', control: 'json', rows: 6, shortcuts: [
+        { label: 'none', value: {}, help: 'No menu badges.' },
+        { label: 'single', value: { alert: { type: 'primary', children: 'new' } }, help: 'One badge on alert.' },
+        { label: 'multi', value: { alert: { type: 'primary', children: 'new' }, auth: { type: 'warning', children: 'beta' } }, help: 'Multiple keyed badges.' },
+    ], typeDetails: `Record<string, {
   type?: string;
   children: ReactNode;
 }>` },
