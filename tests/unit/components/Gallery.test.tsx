@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import Gallery from '../../../src/components/ui/Gallery';
 
@@ -118,5 +118,90 @@ describe('Gallery overlays', () => {
         fireEvent.click(checkbox);
 
         expect(checkbox).toBeChecked();
+    });
+
+    it('evaluates overlay functions only for items visible on the current page', async () => {
+        const badgeSpy = vi.fn((item: { name?: string }) => item.name);
+
+        render(
+            <Gallery
+                body={[
+                    { _key: 'u1', name: 'Alpha', img: <img src="alpha.png" alt="Alpha" /> },
+                    { _key: 'u2', name: 'Bravo', img: <img src="bravo.png" alt="Bravo" /> },
+                    { _key: 'u3', name: 'Charlie', img: <img src="charlie.png" alt="Charlie" /> },
+                    { _key: 'u4', name: 'Delta', img: <img src="delta.png" alt="Delta" /> },
+                ]}
+                pagination={{ limit: 2, align: 'end' }}
+                overlays={[{ position: 'topRight', badge: badgeSpy }]}
+            />
+        );
+
+        await waitFor(() => {
+            expect(screen.getByText('Alpha')).toBeInTheDocument();
+            expect(screen.getByText('Bravo')).toBeInTheDocument();
+        });
+
+        expect(screen.queryByText('Charlie')).not.toBeInTheDocument();
+        expect(badgeSpy).toHaveBeenCalledTimes(2);
+
+        fireEvent.click(screen.getByRole('button', { name: '2' }));
+
+        await waitFor(() => {
+            expect(screen.getByText('Charlie')).toBeInTheDocument();
+            expect(screen.getByText('Delta')).toBeInTheDocument();
+        });
+
+        expect(badgeSpy).toHaveBeenCalledTimes(4);
+    });
+
+    it('reuses cached overlay results when previously visible items become visible again', async () => {
+        const badgeSpy = vi.fn((item: { name?: string }) => item.name);
+
+        render(
+            <Gallery
+                body={[
+                    { _key: 'u1', name: 'Alpha', img: <img src="alpha.png" alt="Alpha" /> },
+                    { _key: 'u2', name: 'Bravo', img: <img src="bravo.png" alt="Bravo" /> },
+                    { _key: 'u3', name: 'Charlie', img: <img src="charlie.png" alt="Charlie" /> },
+                    { _key: 'u4', name: 'Delta', img: <img src="delta.png" alt="Delta" /> },
+                ]}
+                pagination={{ limit: 2, align: 'end' }}
+                overlays={[{ position: 'topRight', badge: badgeSpy }]}
+            />
+        );
+
+        await waitFor(() => {
+            expect(screen.getByText('Alpha')).toBeInTheDocument();
+            expect(screen.getByText('Bravo')).toBeInTheDocument();
+        });
+
+        expect(badgeSpy).toHaveBeenCalledTimes(2);
+
+        fireEvent.click(screen.getByRole('button', { name: '2' }));
+
+        await waitFor(() => {
+            expect(screen.getByText('Charlie')).toBeInTheDocument();
+            expect(screen.getByText('Delta')).toBeInTheDocument();
+        });
+
+        expect(badgeSpy).toHaveBeenCalledTimes(4);
+
+        fireEvent.click(screen.getByRole('button', { name: '1' }));
+
+        await waitFor(() => {
+            expect(screen.getByText('Alpha')).toBeInTheDocument();
+            expect(screen.getByText('Bravo')).toBeInTheDocument();
+        });
+
+        expect(badgeSpy).toHaveBeenCalledTimes(4);
+
+        fireEvent.click(screen.getByRole('button', { name: '2' }));
+
+        await waitFor(() => {
+            expect(screen.getByText('Charlie')).toBeInTheDocument();
+            expect(screen.getByText('Delta')).toBeInTheDocument();
+        });
+
+        expect(badgeSpy).toHaveBeenCalledTimes(4);
     });
 });

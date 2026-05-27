@@ -14,7 +14,7 @@
 | Auth/Email layer | `AuthProvider`, `EmailProvider`, `GoogleAuthProvider`, `DropboxAuthProvider` e `GmailEmailProvider` sono presenti ed esportati. `AuthButton` usa i provider auth registrati via manifest. | Mancano integration test reali sui browser OAuth provider e test email concreti. |
 | Runtime/App config | `<App>` usa `RuntimeProvider`, che compone `ConfigContext`, provider registries e stato globale persistito. | `GlobalProvider` resta interno per `useGlobalVars`; la config globale mantiene `onConfigChange` per i provider concreti. |
 | Provider registries | `<App>` usa il driver manifest (`src/providers/manifest.ts`): ogni provider dichiara driver con nome univoco e categoria. `services` seleziona driver come `dbRealtime`, `firestorage`, `googleAuth`, `dropboxAuth`, `gmail`. | Data/Auth hanno fallback automatico; Storage/Email restano opzionali. I driver `firebaseAuth`, `firestore` e `supabaseAuth` non esistono ancora. |
-| Motion system | Esiste un layer motion semantico (`src/motion.ts`) con supporto `prefers-reduced-motion`, theme registry e hook pubblici (`useMotionEffect`, `useMotionState`, `usePressMotion`, `useEnterMotion`). Integrazioni verificate su button, modal, dropdown, tab, image e image avatar. Docs dedicate in `docs/architecture/motion.md`. | Manca ancora un polish specifico per `Notifications`/toast e non esiste ancora una pagina showcase dedicata al motion playground. |
+| Motion system | Esiste un layer motion semantico (`src/motion.ts`) con supporto `prefers-reduced-motion`, theme registry e hook pubblici (`useMotionEffect`, `useMotionState`, `usePressMotion`, `useEnterMotion`). Integrazioni verificate su button, modal, dropdown, tab, image e image avatar. Docs dedicate in `docs/architecture/motion.md`. Lo showcase ora include anche una pagina playground motion dedicata. | Manca ancora un polish specifico per `Notifications`/toast. |
 | Theme/Icon | Theme registry e icon registry sono gestiti da `<App>`. Hook pubblici: `useThemeController`, `useIconController`. I temi `default`, `flat`, `cyber` sono self-contained in `themes/*.ts` con `preset`, `motion` e `components`. | Nessun gap strutturale residuo. Manca solo visual regression profonda. |
 | UI library | CSS runtime Tailwind v4 con compatibility layer Bootstrap-like. `src/globals.css` viene importato dal barrel pubblico. Le utility Bootstrap nel JSX sono state sostituite con classi Tailwind native. | Non e' una migrazione shadcn component-by-component. Rimane da fare visual regression piu' ampia. |
 | TypeScript | `strict: true`; `npm run build` genera bundle e declarations. | Alcuni tipi pubblici usano ancora `any` e pattern legacy; audit in CR-014. |
@@ -62,7 +62,7 @@
 | CR-014 | In progress | La codebase mostra avanzamenti concreti su component API e playground: pagine Buttons separate, GridArray/GridDB, Auth, Notifications, Prompt, Autocomplete e Checklist; test Grid/Table/Modal/Dropdown piu' ricchi. Restano audit API pubblica, chiarimenti docs su Input/Modal/Grid e copertura mancante su `Prompt`. |
 | CR-024 | Todo | WYSIWYG editor `<RichEditor>`. Nessuna implementazione trovata in `src/` o nello showcase. |
 | CR-025 | Todo | ContextMenu con slash command e `@mention`. Il file legacy `src/components/ui/fields/Command.tsx` e' ancora da sostituire. |
-| CR-027 | In progress | Motion system presente in codebase, docs e test. Restano `Notifications`/toast-specific motion e una showcase page/playground dedicata. |
+| CR-027 | In progress | Motion system presente in codebase, docs, test e showcase playground dedicato. Resta `Notifications`/toast-specific motion. |
 | CR-029 | Todo | Nessun `I18nProvider`, `useI18n()` o dizionario framework-level presente oggi. |
 | CR-031 | Todo | La sidebar dello showcase vive ancora in `clients/showcase/src/components/Sidebar.tsx`; non esiste ancora `src/components/blocks/Sidebar.tsx`. |
 | CR-032 | Todo | `FirebaseAuthProvider` non esiste; nessun driver `firebaseAuth` registrato nel manifest. |
@@ -71,6 +71,7 @@
 | CR-035 | Todo | `SupabaseStorageProvider` e' ancora una implementazione fetch-based parziale senza signed URL privati o SDK ufficiale. |
 | CR-036 | Todo | `SupabaseAuthProvider` non esiste; nessun driver `supabaseAuth` registrato nel manifest. |
 | CR-037 | Todo | Esiste `src/libs/imageBuilder.ts`, ma non e' ancora stato estratto un contract condiviso `ComponentBuilderResult` ne' un secondo builder che validi il pattern. |
+| CR-038 | Todo | Naming pubblico da normalizzare in ottica AI-first: `Grid.layout`, `Form.aspect`, `AuthButton.aspect`, `AssistantAI.viewMode`, `ImageUrl.mode` restano ancora incoerenti rispetto al vocabolario target. |
 
 ---
 
@@ -133,7 +134,7 @@ Route reali principali:
 | Area | Route |
 |------|-------|
 | Docs | generate da Markdown in `docs/` |
-| Components | Alert, Badge, Buttons, Card, Code, Dropdown, Gallery, GridSystem, Icon, Image, ImageAvatar, Loader, Modal, Notifications, Pagination, Prompt, Search, Select, Autocomplete, Checklist, Upload, Form, Grid, GridArray, GridDB, MarkdownReader, Repeat, Auth, LayoutBuilder |
+| Components | Alert, Badge, Buttons, Card, Code, Dropdown, Gallery, GridSystem, Icon, Image, ImageAvatar, Loader, Modal, Motion, Notifications, Pagination, Prompt, Search, Select, Autocomplete, Checklist, Upload, Form, Grid, GridArray, GridDB, MarkdownReader, Repeat, Auth, LayoutBuilder |
 | Providers | `/providers`, `/providers/data`, `/providers/storage`, `/providers/auth`, `/providers/email`, `/providers/integrations` |
 | Examples | `/examples/ai` |
 

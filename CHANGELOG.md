@@ -17,7 +17,7 @@ Versioning basato su [Semantic Versioning](https://semver.org/lang/it/).
 - Provider configuration state condiviso (`getConfigurationState()` / `isConfigured()`) per auth, data, storage ed email provider.
 - Motion system theme-driven con supporto `prefers-reduced-motion`, hook pubblici (`useMotionEffect`, `useMotionState`, `usePressMotion`, `useEnterMotion`) e documentazione dedicata in `docs/architecture/motion.md`.
 - Temi self-contained in `themes/default.ts`, `themes/flat.ts` e `themes/cyber.ts`, con export `preset`, `motion` e `components`.
-- Showcase Vite reale con nuove pagine componenti e playground per Auth, Notifications, Buttons, GridArray, GridDB, Prompt, Autocomplete, Checklist, Image, ImageAvatar e LayoutBuilder.
+- Showcase Vite reale con nuove pagine componenti e playground per Auth, Motion, Notifications, Buttons, GridArray, GridDB, Prompt, Autocomplete, Checklist, Image, ImageAvatar e LayoutBuilder.
 - Copertura test ampliata fino a 25 file / 188 test, includendo motion, provider configuration, Table, Modal, Dropdown, Gallery e Buttons.
 
 ### Changed

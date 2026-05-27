@@ -10,9 +10,33 @@ const COL_SIZE_OPTIONS = ['', 'auto', '1', '2', '3', '4', '5', '6', '8', '9', '1
 
 const GRID_SYSTEM_PLAYGROUND_PROPS: PropDef[] = [
     { name: 'containerClass', group: 'Container', type: 'string', description: 'Classes appended to Container.', control: 'text' },
-    { name: 'containerStyle', group: 'Container', type: 'CSSProperties', description: 'Inline styles applied to Container.', control: 'json' },
+    {
+        name: 'containerStyle',
+        group: 'Container',
+        type: 'CSSProperties',
+        description: 'Inline styles applied to Container.',
+        control: 'json',
+        rows: 5,
+        shortcuts: [
+            { label: 'none', value: {}, help: 'No inline styles.' },
+            { label: 'card', value: { padding: '16px', border: '1px solid rgba(148, 163, 184, 0.35)', borderRadius: '16px' }, help: 'Card-like container frame.' },
+            { label: 'panel', value: { padding: '20px', background: 'rgba(15, 23, 42, 0.04)', borderRadius: '20px' }, help: 'Soft panel background.' },
+        ],
+    },
     { name: 'rowClass', group: 'Row', type: 'string', description: 'Classes appended to Row.', control: 'text' },
-    { name: 'rowStyle', group: 'Row', type: 'CSSProperties', description: 'Inline styles applied to Row.', control: 'json' },
+    {
+        name: 'rowStyle',
+        group: 'Row',
+        type: 'CSSProperties',
+        description: 'Inline styles applied to Row.',
+        control: 'json',
+        rows: 5,
+        shortcuts: [
+            { label: 'none', value: {}, help: 'No inline styles.' },
+            { label: 'air', value: { rowGap: '12px' }, help: 'More vertical breathing room.' },
+            { label: 'highlight', value: { padding: '12px', background: 'rgba(59, 130, 246, 0.08)', borderRadius: '16px' }, help: 'Highlight the row area.' },
+        ],
+    },
     { name: 'leftLabel', group: 'Left Col', type: 'ReactNode', description: 'Visible content for the left Col.', control: 'text' },
     { name: 'leftXs', group: 'Left Col', type: 'number | "auto"', description: 'Left Col xs size.', control: 'select', options: COL_SIZE_OPTIONS },
     { name: 'leftSm', group: 'Left Col', type: 'number | "auto"', description: 'Left Col sm size.', control: 'select', options: COL_SIZE_OPTIONS },

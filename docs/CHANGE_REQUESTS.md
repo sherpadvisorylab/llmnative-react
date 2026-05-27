@@ -48,6 +48,7 @@
 | [CR-035](#cr-035--supabasestorageprovider-completo) | SupabaseStorageProvider completo (SDK) | Media | CR-002, CR-023 | ⬜ |
 | [CR-036](#cr-036--supabaseauthprovider) | SupabaseAuthProvider (email/password + OAuth) | Alta | CR-002b, CR-023 | ⬜ |
 | [CR-037](#cr-037--component-builder-system) | Component Builder System — useX() hooks per export HTML/JSON | Media | CR-007 | ⬜ |
+| [CR-038](#cr-038--ai-first-naming-normalization) | AI-first naming normalization | Alta | CR-014, CR-037 | ⬜ |
 
 ---
 
@@ -191,7 +192,7 @@ export const components = {
 - [ ] Animare Notifications/Toast.
 - [x] Aggiungere override globale e locale.
 - [x] Aggiungere docs motion.
-- [ ] Aggiungere showcase motion playground.
+- [x] Aggiungere showcase motion playground.
 - [x] Testare keyboard navigation e reduced motion.
 - [x] `npm run test` e `npm run build` passano.
 
@@ -206,7 +207,7 @@ Implementazione presente e verificata in codebase:
 
 Gap residui confermati:
 - `Notifications` usa ancora principalmente il comportamento del `Dropdown` sottostante; non c'e' un trattamento motion specifico del blocco.
-- Non esiste ancora una pagina showcase/playground dedicata al motion system.
+- La pagina showcase/playground dedicata al motion system e' ora presente in `clients/showcase/src/pages/components/MotionPage.tsx`.
 
 ---
 
@@ -3366,3 +3367,153 @@ interface ComponentBuilderResult<P> {
 - [ ] Aggiungere sezione "Builder hooks" in `docs/architecture/index.md`
 - [ ] Aggiungere showcase demo per ogni builder implementato
 - [ ] `npm run build` passa senza errori
+
+---
+
+## CR-038 — AI-first naming normalization
+
+**Stato:** ⬜ todo  
+**Branch:** `modernize/cr-038-ai-first-naming`  
+**Priorità:** Alta  
+**Dipende da:** CR-014, CR-037  
+**Stima:** 1 settimana  
+**Breaking change:** Sì — rename diretto delle public props senza alias di compatibilità
+
+### Motivazione
+
+La codebase oggi usa parole diverse per concetti simili:
+
+- `Grid.layout` per scegliere `table | gallery`
+- `Form.aspect` per scegliere `card | empty`
+- `AuthButton.aspect` per scegliere `button | avatar`
+- `AssistantAI.viewMode` per scegliere `list | carousel`
+- `ImageUrl.mode` per un comportamento che in realtà riguarda il prompt
+
+Questo genera ambiguità sia per gli umani sia, soprattutto, per gli agenti AI.  
+Un framework AI-first deve usare un vocabolario piccolo, stabile e semanticamente netto: una parola = un concetto.
+
+### Decisione
+
+Il framework adotta questo vocabolario esplicito:
+
+- `view`: data/content representation
+- `appearance`: visual shell
+- `layout`: spatial arrangement
+- `mode`: operational behavior
+- `variant`: semantic tone
+- `position`: anchor point
+- `size`: scale/dimension
+
+### Regola architetturale
+
+Questa CR **non introduce alias**, **non introduce deprecazioni graduali** e **non mantiene nomi legacy**.
+
+Se un public API name è ambiguo:
+- si rinomina direttamente;
+- si aggiornano subito framework, showcase, documentazione, test e scaffolding;
+- il changelog segnala il breaking change;
+- i consumer devono adeguarsi alla nuova naming map.
+
+Motivazione: l'obiettivo primario è la chiarezza AI-first, non la backward compatibility.
+
+### Rinominazioni target
+
+#### 1. View
+
+Usare `view` quando cambia la rappresentazione dei dati o del contenuto.
+
+- `Grid.layout` → `Grid.view`
+- `GridArray.layout` → `GridArray.view`
+- `GridDB.layout` → `GridDB.view`
+- `AssistantAI.viewMode` → `AssistantAI.view`
+
+Valori attesi:
+- `table | gallery`
+- `list | carousel`
+
+#### 2. Appearance
+
+Usare `appearance` quando cambia il guscio visuale del componente.
+
+- `Form.aspect` → `Form.appearance`
+- `AuthButton.aspect` → `AuthButton.appearance`
+
+Valori attesi:
+- `card | plain`
+- `button | avatar`
+
+Nota: dentro questa CR il valore `empty` del Form deve essere rivalutato e, se confermato ambiguo, sostituito con `plain`.
+
+#### 3. Layout
+
+Usare `layout` solo quando cambia la disposizione spaziale interna.
+
+Confermati:
+- `Repeat.layout`
+- `docs-kit` playground `layout: 'split' | 'stacked'`
+
+#### 4. Mode
+
+Usare `mode` solo quando cambia il comportamento operativo.
+
+Confermati:
+- `Prompt.mode`
+- `Theme.mode`
+
+Da rinominare:
+- `ImageUrl.mode` → `ImageUrl.promptMode`
+
+#### 5. Variant / Position / Size
+
+Confermati:
+- `ActionButton.variant`
+- `LoadingButton.variant`
+- `Modal.position`
+- `Modal.size`
+
+### Scope
+
+**Incluso:**
+- Aggiornare i public props name nei componenti framework coinvolti
+- Aggiornare tipi TypeScript, export pubblici e docs inline
+- Aggiornare tutte le pagine showcase e playground
+- Aggiornare `CLAUDE.md` con la tassonomia ufficiale
+- Aggiornare docs di riferimento e pattern docs
+- Aggiornare test unit/component
+- Aggiornare `CHANGELOG.md` con breaking changes espliciti
+
+**Escluso:**
+- Alias backward compatibility
+- Warning di deprecazione
+- Layer di compatibilità in runtime
+- Codemod automatico per i consumer esterni
+
+### File / aree coinvolte
+
+- `src/components/widgets/Grid.tsx`
+- `src/components/widgets/grid-core/*`
+- `src/components/widgets/Form.tsx`
+- `src/auth.tsx`
+- `src/components/ui/fields/ImageUrl.tsx`
+- `src/components/ui/fields/AssistantAI.tsx`
+- `src/components/widgets/Prompt.tsx` (solo verifica semantica, non necessariamente rename)
+- `clients/showcase/src/pages/components/*`
+- `docs/*`
+- `CLAUDE.md`
+
+### Checklist
+
+- [ ] Formalizzare il vocabolario in `CLAUDE.md`
+- [ ] Rinominare `Grid.layout` in `Grid.view`
+- [ ] Rinominare `GridArray.layout` in `GridArray.view`
+- [ ] Rinominare `GridDB.layout` in `GridDB.view`
+- [ ] Rinominare `AssistantAI.viewMode` in `AssistantAI.view`
+- [ ] Rinominare `Form.aspect` in `Form.appearance`
+- [ ] Rinominare `AuthButton.aspect` in `AuthButton.appearance`
+- [ ] Rinominare `ImageUrl.mode` in `ImageUrl.promptMode`
+- [ ] Valutare e normalizzare i valori `empty` → `plain` dove opportuno
+- [ ] Verificare che `Repeat.layout`, `Prompt.mode`, `variant`, `position`, `size` restino semanticamente coerenti
+- [ ] Aggiornare showcase, prop docs e preset playground
+- [ ] Aggiornare test
+- [ ] Aggiornare `CHANGELOG.md`
+- [ ] `npm run build` e `cd clients/showcase && npm run build` passano

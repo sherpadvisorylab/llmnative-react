@@ -47,7 +47,19 @@ const SAMPLE_BASH = `npm install @llmnative/react
 npm run build`;
 
 const CODE_PROPS: PropDef[] = [
-    { name: 'children', type: 'string', required: true, description: 'Code text rendered inside the block', control: 'textarea' },
+    {
+        name: 'children',
+        type: 'string',
+        required: true,
+        description: 'Code text rendered inside the block',
+        control: 'textarea',
+        rows: 10,
+        shortcuts: [
+            { label: 'tsx', value: SAMPLE_TSX, help: 'Component example in TSX.' },
+            { label: 'json', value: SAMPLE_JSON, help: 'JSON payload snippet.' },
+            { label: 'bash', value: SAMPLE_BASH, help: 'CLI install commands.' },
+        ],
+    },
     { name: 'language', type: 'PrismLanguage', required: true, default: '"tsx"', description: 'Prism language used for syntax highlighting', control: 'select', options: LANGUAGES },
     { name: 'showCopy', type: 'boolean', default: 'true', description: 'Shows the copy-to-clipboard action', control: 'boolean' },
     { name: 'theme', type: 'PrismTheme', default: '"tomorrow"', description: 'Prism theme stylesheet loaded for the block', control: 'select', options: THEMES },

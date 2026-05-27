@@ -33,6 +33,7 @@ import LayoutBuilderPage from '../pages/components/LayoutBuilderPage';
 import ListGroupPage from '../pages/components/ListGroupPage';
 import MenuPage from '../pages/components/MenuPage';
 import ModalPage from '../pages/components/ModalPage';
+import MotionPage from '../pages/components/MotionPage';
 import NotificationsPage from '../pages/components/NotificationsPage';
 import PaginationPage from '../pages/components/PaginationPage';
 import PercentagePage from '../pages/components/PercentagePage';
@@ -117,6 +118,7 @@ export const menu = {
         { path: '/components/image-avatar', title: 'ImageAvatar', page: ImageAvatarPage, group: 'UI Primitives' },
         { path: '/components/loader', title: 'Loader', page: LoaderPage, group: 'UI Primitives' },
         { path: '/components/modal', title: 'Modal', page: ModalPage, group: 'UI Primitives' },
+        { path: '/components/motion', title: 'Motion', page: MotionPage, group: 'Foundation' },
         { path: '/components/pagination', title: 'Pagination', page: PaginationPage, group: 'UI Primitives' },
         { path: '/components/percentage', title: 'Percentage', page: PercentagePage, group: 'UI Primitives' },
         { path: '/components/tab', title: 'Tab', page: TabPage, group: 'UI Primitives' },

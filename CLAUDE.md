@@ -76,6 +76,47 @@ dallo showcase. Le pagine componenti/live restano TSX. Vedi `docs/README.md` per
 
 ---
 
+## Naming conventions
+
+- `view`: data/content representation
+- `appearance`: visual shell
+- `layout`: spatial arrangement
+- `mode`: operational behavior
+- `variant`: semantic tone
+- `position`: anchor point
+- `size`: scale/dimension
+
+### Regola AI-first
+
+Ogni public prop deve usare il nome piu' esplicito possibile per un agente AI.  
+Non usare sinonimi intercambiabili se descrivono concetti diversi.
+
+- Usa `view` quando il componente cambia forma di presentazione del contenuto:
+  - `table | gallery`
+  - `list | carousel`
+- Usa `appearance` quando cambia il guscio visuale del componente:
+  - `card | plain`
+  - `button | avatar`
+- Usa `layout` solo quando cambia la disposizione spaziale interna:
+  - `vertical | horizontal | inline`
+  - `split | stacked`
+- Usa `mode` solo quando cambia il comportamento operativo:
+  - `editor | live`
+  - `light | dark | system`
+- Usa `variant` per tono semantico o cromatico:
+  - `primary | secondary | danger`
+- Usa `position` per ancoraggio o comparsa:
+  - `center | left | right | top | bottom`
+- Usa `size` per scala o dimensione:
+  - `sm | md | lg | xl | fullscreen`
+
+### Decisione di pulizia
+
+Il framework preferisce rename espliciti e puliti rispetto a alias o layer di compatibilita'.  
+Se un nome pubblico e' ambiguo, si corregge direttamente nella CR dedicata.
+
+---
+
 ## Pattern 1 — Grid CRUD (il più comune)
 
 ```tsx

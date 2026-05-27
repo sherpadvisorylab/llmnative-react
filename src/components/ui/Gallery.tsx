@@ -1,7 +1,6 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTheme } from "../../Theme";
 import { Wrapper } from "../ui/GridSystem";
-import { converter } from "../../libs/converter";
 import { RecordProps } from "../../providers/data/DataProvider";
 import Pagination, { PaginationParams } from './Pagination';
 import { UIProps } from '../';
@@ -50,8 +49,17 @@ export type GalleryOverlay = {
 };
 
 type GalleryRenderedRecord =
-    | { kind: "item"; image: ImageProps; item: GalleryRecord; index: number }
-    | { kind: "group"; element: React.ReactElement };
+    | { kind: "item"; item: GalleryRecord; index: number }
+    | { kind: "group"; groupName: string; items: Array<{ item: GalleryRecord; index: number }> };
+
+type GalleryVisualCacheEntry = {
+    recordRef: GalleryRecord;
+    overlaysRef: GalleryOverlay[] | undefined;
+    onClickRef: GalleryProps["onClick"];
+    rowIndex: number;
+    image: ImageProps;
+    overlays: React.ReactNode;
+};
 
 export type GallerySelectionState = RecordSelectionState<GalleryRecord>;
 export type GallerySelectionChangeHandler = (selection: GallerySelectionState) => void;
@@ -149,6 +157,16 @@ const Gallery = ({
         onSelectionChange,
         getRecordKey,
     });
+    const visualCacheRef = useRef<Map<string, GalleryVisualCacheEntry>>(new Map());
+
+    useEffect(() => {
+        const validKeys = new Set(galleryRecords.map((record, index) => getRecordKey(record, index)));
+        for (const recordKey of visualCacheRef.current.keys()) {
+            if (!validKeys.has(recordKey)) {
+                visualCacheRef.current.delete(recordKey);
+            }
+        }
+    }, [galleryRecords, getRecordKey]);
 
     const handleClick = (e: React.MouseEvent<HTMLElement>, record: GalleryRecord) => {
         if (activeClass) {
@@ -172,7 +190,7 @@ const Gallery = ({
         }
 
         onClick?.(record);
-    }
+    };
 
     const toggleSelection = useCallback((record: GalleryRecord, index: number) => {
         const recordKey = getRecordKey(record, index);
@@ -292,62 +310,88 @@ const Gallery = ({
         });
     };
 
-    const renderItem = (Component: React.ReactElement, index: number, item: GalleryRecord) => {
+    const getItemVisuals = useCallback((item: GalleryRecord, index: number) => {
+        const recordKey = getRecordKey(item, index);
+        const cached = visualCacheRef.current.get(recordKey);
+
+        if (
+            cached
+            && cached.recordRef === item
+            && cached.overlaysRef === overlays
+            && cached.onClickRef === onClick
+            && cached.rowIndex === index
+        ) {
+            return {
+                image: cached.image,
+                overlays: cached.overlays,
+            };
+        }
+
+        const visuals = {
+            image: getImage(item, index),
+            overlays: renderItemOverlays(item, index),
+        };
+
+        visualCacheRef.current.set(recordKey, {
+            recordRef: item,
+            overlaysRef: overlays,
+            onClickRef: onClick,
+            rowIndex: index,
+            image: visuals.image,
+            overlays: visuals.overlays,
+        });
+
+        return visuals;
+    }, [getRecordKey, onClick, overlays]);
+
+    const renderItem = (index: number, item: GalleryRecord) => {
         const recordKey = getRecordKey(item, index);
         const isSelected = activeSelectedKeys.includes(recordKey);
         const activeClasses = activeClass?.split(/\s+/).filter(Boolean) || [];
+        const visuals = getItemVisuals(item, index);
 
         return (
-        <div
-            key={index}
-            className={cn("item min-w-0", isSelected && activeClasses)}
-            style={{
-                flex: `0 0 ${itemWidth}`,
-                maxWidth: itemWidth,
-            }}
-        >
-            <div className="relative overflow-hidden rounded-lg">
-                {showSelection && (
-                    <label className="absolute left-3 top-3 z-20 inline-flex items-center rounded bg-background/90 px-2 py-1 shadow-sm">
-                        <input
-                            type="checkbox"
-                            aria-label={`Select item ${recordKey}`}
-                            checked={isSelected}
-                            onChange={() => toggleSelection(item, index)}
-                            onClick={(event) => event.stopPropagation()}
-                        />
-                    </label>
-                )}
-                {Component}
-                {renderItemOverlays(item, index)}
+            <div
+                key={recordKey}
+                className={cn("item min-w-0", isSelected && activeClasses)}
+                style={{
+                    flex: `0 0 ${itemWidth}`,
+                    maxWidth: itemWidth,
+                }}
+            >
+                <div className="relative overflow-hidden rounded-lg">
+                    {showSelection && (
+                        <label className="absolute left-3 top-3 z-20 inline-flex items-center rounded bg-background/90 px-2 py-1 shadow-sm">
+                            <input
+                                type="checkbox"
+                                aria-label={`Select item ${recordKey}`}
+                                checked={isSelected}
+                                onChange={() => toggleSelection(item, index)}
+                                onClick={(event) => event.stopPropagation()}
+                            />
+                        </label>
+                    )}
+                    {visuals.image}
+                    {visuals.overlays}
+                </div>
             </div>
-        </div>
         );
     };
 
-    const getGroups = (body: GalleryRecord[], fields: string | string[]): GalleryRenderedRecord[] => {
+    const getGroups = (sourceBody: GalleryRecord[], fields: string | string[]): GalleryRenderedRecord[] => {
         const groupFields = Array.isArray(fields) ? fields : [fields];
-        const groupMap = new Map<string, Array<{ image: ImageProps; item: GalleryRecord; index: number }>>();
+        const groupMap = new Map<string, Array<{ item: GalleryRecord; index: number }>>();
 
-        body.forEach((item, index) => {
-            const imgElement = getImage(item, index);
-            const groupKey = groupFields.map((f) => String(item[f] ?? '')).join(' · ') || '—';
+        sourceBody.forEach((item, index) => {
+            const groupKey = groupFields.map((field) => String(item[field] ?? "")).join(" · ") || "—";
             if (!groupMap.has(groupKey)) groupMap.set(groupKey, []);
-            groupMap.get(groupKey)!.push({ image: imgElement, item, index });
+            groupMap.get(groupKey)!.push({ item, index });
         });
 
         return Array.from(groupMap.entries()).map(([groupName, items]) => ({
             kind: "group",
-            element: (
-                <section key={groupName} className="gallery-group rounded-lg border bg-card p-3 text-left">
-                    <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                        {groupName}
-                    </h3>
-                    <div className={cn("flex flex-wrap items-center", "row-cols-" + numCols)} style={{ gap: itemGap }}>
-                        {items.map(({ image, item, index }) => renderItem(image, index, item))}
-                    </div>
-                </section>
-            )
+            groupName,
+            items,
         }));
     };
 
@@ -358,8 +402,8 @@ const Gallery = ({
 
         return groupBy
             ? getGroups(orderedBody, groupBy)
-            : orderedBody.map((item, index) => ({ kind: "item", image: getImage(item, index), item, index }) as GalleryRenderedRecord);
-    }, [activeSelectedKeys, body, groupBy, overlays, sortableOrder, toggleSelection]);
+            : orderedBody.map((item, index) => ({ kind: "item", item, index }) as GalleryRenderedRecord);
+    }, [body, groupBy, sortableOrder]);
 
     if (renderedBody === undefined) {
         return <p className={"p-4"}><span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />Caricamento in corso...</p>;
@@ -379,7 +423,7 @@ const Gallery = ({
                         wrapClass="px-3 pt-4 pb-2"
                         {...(pagination || {})}
                     >
-                        {(pageRecords, pageOffset) => (
+                        {(pageRecords) => (
                             <div className="p-3">
                                 <div
                                     className={"flex flex-wrap text-center items-center row-cols-" + numCols + " " + (bodyClass || theme.Gallery.bodyClass)}
@@ -387,8 +431,17 @@ const Gallery = ({
                                 >
                                     {pageRecords.map((record) => (
                                         record.kind === "group"
-                                            ? record.element
-                                            : renderItem(record.image, record.index, record.item)
+                                            ? (
+                                                <section key={record.groupName} className="gallery-group rounded-lg border bg-card p-3 text-left">
+                                                    <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                                                        {record.groupName}
+                                                    </h3>
+                                                    <div className={cn("flex flex-wrap items-center", "row-cols-" + numCols)} style={{ gap: itemGap }}>
+                                                        {record.items.map(({ item, index }) => renderItem(index, item))}
+                                                    </div>
+                                                </section>
+                                            )
+                                            : renderItem(record.index, record.item)
                                     ))}
                                 </div>
                             </div>
@@ -399,8 +452,7 @@ const Gallery = ({
                 {Footer && <div className={footerClass || theme.Gallery.footerClass}>{Footer}</div>}
             </Wrapper>
             {post && <div className="gallery-post flex shrink-0 items-center self-stretch">{post}</div>}
-        </div>)
-}
+        </div>);
+};
 
 export default Gallery;
-
