@@ -1,10 +1,11 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import type { PlaygroundConfig } from '../types/playground';
+import React, { createContext, useContext, useState, useCallback } from 'react';
+import type { PlaygroundConfig, PlaygroundEnvironment } from './playground.types';
 
 interface PlaygroundContextValue {
     config: PlaygroundConfig | null;
     title: string;
     open: boolean;
+    environment: PlaygroundEnvironment;
     openPlayground: () => void;
     closePlayground: () => void;
     registerPlayground: (config: PlaygroundConfig, title: string) => void;
@@ -13,7 +14,13 @@ interface PlaygroundContextValue {
 
 const PlaygroundContext = createContext<PlaygroundContextValue | null>(null);
 
-export function PlaygroundProvider({ children }: { children: React.ReactNode }) {
+export function PlaygroundProvider({
+    children,
+    environment,
+}: {
+    children: React.ReactNode;
+    environment: PlaygroundEnvironment;
+}) {
     const [config, setConfig] = useState<PlaygroundConfig | null>(null);
     const [title, setTitle] = useState('');
     const [open, setOpen] = useState(false);
@@ -35,6 +42,7 @@ export function PlaygroundProvider({ children }: { children: React.ReactNode }) 
             config,
             title,
             open,
+            environment,
             openPlayground: () => setOpen(true),
             closePlayground: () => setOpen(false),
             registerPlayground,
@@ -49,15 +57,4 @@ export function usePlaygroundContext(): PlaygroundContextValue {
     const ctx = useContext(PlaygroundContext);
     if (!ctx) throw new Error('usePlaygroundContext must be used inside <PlaygroundProvider>');
     return ctx;
-}
-
-/** Call this in any component page to register it with the topbar playground button. */
-export function usePlayground(config: PlaygroundConfig, title: string) {
-    const { registerPlayground, clearPlayground } = usePlaygroundContext();
-
-    useEffect(() => {
-        registerPlayground(config, title);
-        return () => clearPlayground();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 }

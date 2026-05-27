@@ -8,14 +8,14 @@ import {
     Select,
     String as TextField,
 } from '@llmnative/react';
-import PageLayout from '../../components/PageLayout';
-import Section from '../../components/Section';
-import PropDocsTable from '../../components/PropDocsTable';
-import { usePlayground } from '../../context/PlaygroundContext';
-import { definePropDocs } from '../../types/propDocs';
-import type { PlaygroundConfig, PropDef } from '../../types/playground';
+import PageLayout from '../../showcase/page';
+import Section from '../../docs-kit/page/Section';
+import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
+import { usePlayground } from '../../docs-kit/playground';
+import { definePropDocs } from '../../docs-kit/docs';
+import type { PlaygroundConfig, PropDef } from '../../docs-kit/playground';
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 type UserRecord = {
     _key?: string;
@@ -28,7 +28,7 @@ type UserRecord = {
     city: string;
 };
 
-// ─── Seed data ────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Seed data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const GRID_SOURCE_PATH = '/showcase/grid/users';
 
@@ -42,7 +42,7 @@ const USERS: Record<string, Omit<UserRecord, '_key' | 'id'>> = {
     u6: { name: 'Noah White', email: 'noah@example.com', role: 'viewer', status: 'active', team: 'Support', city: 'Paris' },
 };
 
-// Dataset loaded by fromUrl (resolves to /components/grid/db — the current page URL)
+// Dataset loaded by fromUrl (resolves to /components/grid/db â€” the current page URL)
 const FROM_URL_PATH = '/components/grid/db';
 const FROM_URL_USERS: Record<string, Omit<UserRecord, '_key' | 'id'>> = {
     f1: { name: 'Carlos Diaz', email: 'carlos@demo.com', role: 'admin', status: 'active', team: 'Dev', city: 'Barcelona' },
@@ -51,7 +51,7 @@ const FROM_URL_USERS: Record<string, Omit<UserRecord, '_key' | 'id'>> = {
     f4: { name: 'Lena Schulz', email: 'lena@demo.com', role: 'editor', status: 'inactive', team: 'Support', city: 'Berlin' },
 };
 
-// ─── Column sets ──────────────────────────────────────────────────────────────
+// â”€â”€â”€ Column sets â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const statusClass = (status: string) =>
     status === 'active' ? 'bg-success' : status === 'review' ? 'bg-warning' : 'bg-secondary';
@@ -85,7 +85,7 @@ const displayColumns = [
     { key: 'team', label: 'Team', sortable: true },
 ];
 
-// ─── Playground helpers ───────────────────────────────────────────────────────
+// â”€â”€â”€ Playground helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const compilePlaygroundArrowFunction = <TArg, TResult>(value: string) => {
     const match = value.trim().match(/^\(?\s*([A-Za-z_$][\w$]*)\s*\)?\s*=>\s*([\s\S]+)$/);
@@ -129,7 +129,7 @@ const resolvePlaygroundNode = <TCtx,>(value: unknown) => {
     return undefined;
 };
 
-// ─── Form used inside modal CRUD actions ──────────────────────────────────────
+// â”€â”€â”€ Form used inside modal CRUD actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function GridUserForm() {
     return (
@@ -162,7 +162,7 @@ function GridUserForm() {
     );
 }
 
-// ─── Mock wrapper ─────────────────────────────────────────────────────────────
+// â”€â”€â”€ Mock wrapper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function WithMock({ children, provider }: { children: React.ReactNode; provider?: MockDataProvider }) {
     const scopedProvider = React.useMemo(
@@ -179,7 +179,7 @@ function WithMock({ children, provider }: { children: React.ReactNode; provider?
     );
 }
 
-// ─── Prop docs ────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Prop docs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 type GridDbDocSurface = {
     path: unknown;
@@ -214,7 +214,7 @@ type GridDbDocSurface = {
 };
 
 const GRID_DB_PROP_DOCS = definePropDocs<GridDbDocSurface>()([
-    // ── GridDB-specific ───────────────────────────────────────────────────────
+    // â”€â”€ GridDB-specific â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     {
         name: 'path',
         type: 'string',
@@ -273,10 +273,10 @@ const GRID_DB_PROP_DOCS = definePropDocs<GridDbDocSurface>()([
         category: 'GridDB',
         description: 'Remap provider field names to UI field names. e.g. {"fullName":"name"} maps provider "name" to "fullName".',
         shape: `{ [targetField: string]: string }`,
-        example: `// Map provider field "name" → UI field "fullName"
+        example: `// Map provider field "name" â†’ UI field "fullName"
 fieldMap={{ fullName: "name" }}`,
     },
-    // ── Shared ────────────────────────────────────────────────────────────────
+    // â”€â”€ Shared â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     {
         name: 'columns',
         type: 'GridColumn<TRecord>[]',
@@ -507,7 +507,7 @@ Record<string, false | {
     },
 ]);
 
-// ─── Playground prop definitions ──────────────────────────────────────────────
+// â”€â”€â”€ Playground prop definitions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const GRID_DB_SPECIFIC_PROPS: PropDef[] = [
     {
@@ -658,7 +658,7 @@ const SHARED_PROPS: PropDef[] = [
         group: 'Shared', name: 'header', type: 'ReactNode | ((ctx) => ReactNode)', default: 'false',
         description: 'Full header override. Receives GridHeaderContext when a function.',
         control: 'textarea', textareaMode: 'text', rows: 2,
-        shortcuts: [{ label: 'false', value: 'false' }, { label: 'fn', value: 'ctx => `${ctx.title} · ${ctx.records.length} records`' }],
+        shortcuts: [{ label: 'false', value: 'false' }, { label: 'fn', value: 'ctx => `${ctx.title} Â· ${ctx.records.length} records`' }],
     },
     {
         group: 'Shared', name: 'footer', type: 'ReactNode | ((ctx) => ReactNode)', default: 'false',
@@ -679,7 +679,7 @@ const SHARED_PROPS: PropDef[] = [
     { group: 'Shared', name: 'audit', type: 'boolean', default: 'false', description: 'Enable form-level audit logging during modal saves.', control: 'boolean' },
 ];
 
-// ─── Playground preview component ────────────────────────────────────────────
+// â”€â”€â”€ Playground preview component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function GridDbPlaygroundPreview({ p }: { p: Record<string, any> }) {
     const [selectionKeys, setSelectionKeys] = React.useState<string[]>([]);
@@ -824,7 +824,7 @@ function GridDbPlaygroundPreview({ p }: { p: Record<string, any> }) {
     );
 }
 
-// ─── Playground config ────────────────────────────────────────────────────────
+// â”€â”€â”€ Playground config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const PLAYGROUND: PlaygroundConfig = {
     size: 'fullscreen',
@@ -871,7 +871,7 @@ const PLAYGROUND: PlaygroundConfig = {
     ),
 };
 
-// ─── Section previews ─────────────────────────────────────────────────────────
+// â”€â”€â”€ Section previews â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function BasicUsagePreview() {
     const provider = React.useMemo(() => new MockDataProvider({ [GRID_SOURCE_PATH]: Object.fromEntries(Object.entries(USERS).map(([k, v]) => [k, { ...v }])) }), []);
@@ -947,7 +947,7 @@ function GroupingPreview() {
     );
 }
 
-// ─── Page export ──────────────────────────────────────────────────────────────
+// â”€â”€â”€ Page export â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export default function GridDbPage() {
     usePlayground(PLAYGROUND, 'GridDB');
@@ -979,7 +979,7 @@ export default function GridDbPage() {
             {/* Provider-side filter */}
             <Section
                 title="Provider-side filter"
-                description="where filters records at the provider level before they reach the component — no over-fetch. The example below shows only active teammates."
+                description="where filters records at the provider level before they reach the component â€” no over-fetch. The example below shows only active teammates."
                 preview={<FilterPreview />}
                 code={`<GridDB
   path="/showcase/grid/users"
@@ -1004,7 +1004,7 @@ export default function GridDbPage() {
 
             {/* fromUrl */}
             <Section
-                title="fromUrl — route-driven path"
+                title="fromUrl â€” route-driven path"
                 description={`fromUrl tells GridDB to resolve the collection path from the current route pathname instead of a hardcoded path. fromUrl always wins: path is ignored when fromUrl is set. This preview reads from "${FROM_URL_PATH}" (the current page URL).`}
                 preview={<FromUrlPreview />}
                 code={`// Route: /products/catalog

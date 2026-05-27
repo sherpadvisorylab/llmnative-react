@@ -1,10 +1,10 @@
 import React from 'react';
 import { Form, ImageUrl, PromptMode } from '@llmnative/react';
-import PageLayout from '../../components/PageLayout';
-import Section from '../../components/Section';
-import PropDocsTable from '../../components/PropDocsTable';
-import { usePlayground } from '../../context/PlaygroundContext';
-import type { PropDef, PlaygroundConfig } from '../../types/playground';
+import PageLayout from '../../showcase/page';
+import Section from '../../docs-kit/page/Section';
+import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
+import { usePlayground } from '../../docs-kit/playground';
+import type { PropDef, PlaygroundConfig } from '../../docs-kit/playground';
 
 const SAMPLE_IMAGE = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180"%3E%3Crect width="320" height="180" fill="%232563eb"/%3E%3Ctext x="28" y="98" font-family="Arial" font-size="26" fill="white"%3EImageUrl%3C/text%3E%3C/svg%3E';
 

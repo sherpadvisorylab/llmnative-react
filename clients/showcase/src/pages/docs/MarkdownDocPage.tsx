@@ -1,7 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MarkdownReader } from '@llmnative/react';
-import PageLayout from '../../components/PageLayout';
+import { MarkdownDocPage as DocsKitMarkdownDocPage } from '../../docs-kit/markdown';
+import { PageLayout } from '../../docs-kit/page';
 import type { MarkdownDoc } from '../../docs/markdownDocs';
 import { resolveMarkdownDocHref } from '../../docs/markdownDocs';
 
@@ -13,21 +14,29 @@ export default function MarkdownDocPage({ doc }: MarkdownDocPageProps) {
     const navigate = useNavigate();
 
     return (
-        <PageLayout title={doc.meta.title} description={doc.meta.description} showHeader={false}>
-            <MarkdownReader
-                content={doc.content}
-                head={{
-                    title: doc.meta.title,
-                    description: doc.meta.description,
-                }}
-                onNavigateInternal={(href, event) => {
-                    const nextPath = resolveMarkdownDocHref(href, doc.meta.path);
-                    if (nextPath.startsWith('/')) {
-                        event.preventDefault();
-                        navigate(nextPath);
-                    }
-                }}
-            />
-        </PageLayout>
+        <DocsKitMarkdownDocPage
+            route={doc}
+            layout={({ title, description, children }) => (
+                <PageLayout title={title ?? doc.meta.title} description={description ?? doc.meta.description} showHeader={false}>
+                    {children}
+                </PageLayout>
+            )}
+            renderMarkdown={(content, route) => (
+                <MarkdownReader
+                    content={content}
+                    head={{
+                        title: typeof route.meta.title === 'string' ? route.meta.title : doc.meta.title,
+                        description: typeof route.meta.description === 'string' ? route.meta.description : doc.meta.description,
+                    }}
+                    onNavigateInternal={(href, event) => {
+                        const nextPath = resolveMarkdownDocHref(href, doc.meta.path);
+                        if (nextPath.startsWith('/')) {
+                            event.preventDefault();
+                            navigate(nextPath);
+                        }
+                    }}
+                />
+            )}
+        />
     );
 }

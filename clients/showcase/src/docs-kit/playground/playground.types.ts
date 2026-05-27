@@ -1,3 +1,5 @@
+import React from 'react';
+
 export type PropControl = 'text' | 'number' | 'boolean' | 'select' | 'json' | 'range' | 'textarea' | 'icon';
 
 export type PropShortcut = {
@@ -28,7 +30,6 @@ export type PropDef = {
     placeholder?: string;
     validationMessage?: string;
     shortcuts?: PropShortcut[];
-    /** Hide this control when the predicate returns true. Evaluated against current prop values. */
     hidden?: (props: Record<string, any>) => boolean;
 };
 
@@ -37,12 +38,32 @@ export type PlaygroundConfig = {
     defaultProps: Record<string, any>;
     mockSeed?: Record<string, Record<string, any>>;
     render: (props: Record<string, any>, onValuesChange?: (v: Record<string, any>) => void) => React.ReactNode;
-    /** Width of the playground drawer. Default: 'md' */
     size?: 'sm' | 'md' | 'lg' | 'xl' | 'fullscreen';
-    /** Use a side-by-side controls and preview layout for visual components. Default: false */
     layout?: 'stacked' | 'split';
-    /** Show the Form record (JSON) accordion. Enable only for form-field components. Default: false */
     showFormRecord?: boolean;
 };
 
-import React from 'react';
+export interface PlaygroundIconProps {
+    name: string;
+    size?: number;
+    className?: string;
+    style?: React.CSSProperties;
+}
+
+export interface PlaygroundModalProps {
+    header: React.ReactNode;
+    size?: PlaygroundConfig['size'];
+    onClose: () => void;
+    children: React.ReactNode;
+}
+
+export interface PlaygroundMockProviderProps {
+    seed: Record<string, Record<string, any>>;
+    children: React.ReactNode;
+}
+
+export type PlaygroundEnvironment = {
+    Icon: React.ComponentType<PlaygroundIconProps>;
+    Modal: React.ComponentType<PlaygroundModalProps>;
+    MockProvider?: React.ComponentType<PlaygroundMockProviderProps>;
+};

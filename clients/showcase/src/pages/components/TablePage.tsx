@@ -1,10 +1,10 @@
 import React from 'react';
 import { ActionButton, Badge, Modal, Table, buttonOutlineSecondaryClass, buttonPrimaryClass, useDataProvider } from '@llmnative/react';
-import PageLayout from '../../components/PageLayout';
-import Section from '../../components/Section';
-import PropDocsTable from '../../components/PropDocsTable';
-import { usePlayground } from '../../context/PlaygroundContext';
-import type { PropDef, PlaygroundConfig } from '../../types/playground';
+import PageLayout from '../../showcase/page';
+import Section from '../../docs-kit/page/Section';
+import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
+import { usePlayground } from '../../docs-kit/playground';
+import type { PropDef, PlaygroundConfig } from '../../docs-kit/playground';
 
 const ROWS = [
     { _key: 'u1', name: 'Alice Johnson', role: 'Admin', status: 'active', team: 'Platform' },
@@ -148,7 +148,7 @@ type TableSelectionState = ${TABLE_SELECTION_STATE_TYPE}`, example: `onSelection
     {
         name: 'groupBy',
         type: 'string | string[]',
-        description: 'Group rows by a field name. Inserts a separator header row when the field value changes. Works alongside sorting — rows cluster naturally when sorted by the same field. Pass an array for multi-level grouping.',
+        description: 'Group rows by a field name. Inserts a separator header row when the field value changes. Works alongside sorting â€” rows cluster naturally when sorted by the same field. Pass an array for multi-level grouping.',
         control: 'textarea',
         textareaMode: 'text',
         rows: 1,
@@ -683,7 +683,7 @@ const [exportOpen, setExportOpen] = useState(false);
 
             <Section
                 title="Grouped rows"
-                description="Pass a field name to groupBy to insert a separator header row between groups. Grouping pairs naturally with sorting on the same field — rows cluster automatically. Pass an array for multi-level grouping."
+                description="Pass a field name to groupBy to insert a separator header row between groups. Grouping pairs naturally with sorting on the same field â€” rows cluster automatically. Pass an array for multi-level grouping."
                 preview={
                     <Table
                         header={header}

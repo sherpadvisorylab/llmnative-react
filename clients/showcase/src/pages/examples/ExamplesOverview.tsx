@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import PageLayout from '../../components/PageLayout';
+import PageLayout from '../../showcase/page';
 
 const EXAMPLES = [
     {
@@ -12,7 +12,7 @@ const EXAMPLES = [
     {
         title: 'Dashboard',
         path: '/examples/dashboard',
-        desc: 'Metric cards, charts and a recent-activity table — all from a single DataProvider.',
+        desc: 'Metric cards, charts and a recent-activity table â€” all from a single DataProvider.',
         tags: ['Card', 'Grid', 'Badge'],
     },
     {
@@ -55,7 +55,7 @@ export default function ExamplesOverview() {
                                 </h3>
                                 <p className="mt-1 text-sm text-muted-foreground">{ex.desc}</p>
                             </div>
-                            <span className="text-muted-foreground shrink-0">→</span>
+                            <span className="text-muted-foreground shrink-0">â†’</span>
                         </div>
                         <div className="flex gap-1.5 mt-3 flex-wrap">
                             {ex.tags.map((tag) => (

@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { Loader, LoadingButton } from '@llmnative/react';
-import PageLayout from '../../components/PageLayout';
-import Section from '../../components/Section';
-import PropDocsTable from '../../components/PropDocsTable';
-import { usePlayground } from '../../context/PlaygroundContext';
-import type { PropDef, PlaygroundConfig } from '../../types/playground';
+import PageLayout from '../../showcase/page';
+import Section from '../../docs-kit/page/Section';
+import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
+import { usePlayground } from '../../docs-kit/playground';
+import type { PropDef, PlaygroundConfig } from '../../docs-kit/playground';
 
 const PROPS_CONFIG: PropDef[] = [
-    { name: 'children', type: 'ReactNode', required: true, description: 'Content to wrap — shown when show=false, behind the overlay when show=true.' },
+    { name: 'children', type: 'ReactNode', required: true, description: 'Content to wrap â€” shown when show=false, behind the overlay when show=true.' },
     { name: 'show', type: 'boolean', default: 'false', description: 'When true, renders a blurred overlay with a spinner on top of children.', control: 'boolean' },
     { name: 'icon', type: 'string', description: 'Icon name for the spinner. Defaults to the theme value (Loader.icon).', control: 'icon' },
     { name: 'title', type: 'string', description: 'Heading shown below the spinner. Defaults to the theme value.', control: 'text' },
@@ -42,12 +42,12 @@ export default function LoaderPage() {
     return (
         <PageLayout
             title="Loader"
-            description="Overlay spinner that wraps any content. When show=true, a blurred backdrop with a themed spinner is rendered on top of children — the content remains in the DOM and is revealed instantly when the loader is dismissed."
+            description="Overlay spinner that wraps any content. When show=true, a blurred backdrop with a themed spinner is rendered on top of children â€” the content remains in the DOM and is revealed instantly when the loader is dismissed."
         >
-            {/* ── Show / hide ── */}
+            {/* â”€â”€ Show / hide â”€â”€ */}
             <Section
                 title="Show / hide"
-                description="Toggle show to overlay or reveal the wrapped content. The content is always mounted — no layout shift when the loader disappears."
+                description="Toggle show to overlay or reveal the wrapped content. The content is always mounted â€” no layout shift when the loader disappears."
                 preview={
                     <div className="space-y-4 w-full max-w-sm">
                         <button
@@ -56,7 +56,7 @@ export default function LoaderPage() {
                         >
                             {show ? 'Hide loader' : 'Show loader'}
                         </button>
-                        <Loader show={show} title="Loading data…">
+                        <Loader show={show} title="Loading dataâ€¦">
                             <div className="border rounded-lg p-6 min-h-[100px] flex items-center justify-center">
                                 <p className="text-sm text-muted-foreground">Content is ready.</p>
                             </div>
@@ -67,21 +67,21 @@ export default function LoaderPage() {
 
 const [loading, setLoading] = useState(true);
 
-<Loader show={loading} title="Loading data…">
+<Loader show={loading} title="Loading dataâ€¦">
     <MyDataView data={data} />
 </Loader>`}
             />
 
-            {/* ── Custom icon and message ── */}
+            {/* â”€â”€ Custom icon and message â”€â”€ */}
             <Section
                 title="Custom icon and message"
-                description="Override the theme defaults per-instance with icon, title, and description. The icon value is a class name — any icon supported by the configured icon provider works."
+                description="Override the theme defaults per-instance with icon, title, and description. The icon value is a class name â€” any icon supported by the configured icon provider works."
                 preview={
                     <div className="flex flex-wrap gap-6">
-                        <Loader show title="Saving…" description="Please wait" icon="custom-loader">
+                        <Loader show title="Savingâ€¦" description="Please wait" icon="custom-loader">
                             <div className="border rounded-lg p-6 w-48 min-h-[120px]" />
                         </Loader>
-                        <Loader show title="Uploading…">
+                        <Loader show title="Uploadingâ€¦">
                             <div className="border rounded-lg p-6 w-48 min-h-[120px]" />
                         </Loader>
                         <Loader show>
@@ -92,12 +92,12 @@ const [loading, setLoading] = useState(true);
                 code={`import { Loader } from '@llmnative/react';
 
 // Custom icon + title + description
-<Loader show icon="custom-loader" title="Saving…" description="Please wait">
+<Loader show icon="custom-loader" title="Savingâ€¦" description="Please wait">
     <Content />
 </Loader>
 
 // Title only
-<Loader show title="Uploading…">
+<Loader show title="Uploadingâ€¦">
     <Content />
 </Loader>
 
@@ -107,10 +107,10 @@ const [loading, setLoading] = useState(true);
 </Loader>`}
             />
 
-            {/* ── Card integration ── */}
+            {/* â”€â”€ Card integration â”€â”€ */}
             <Section
                 title="Card integration"
-                description="Card exposes a showLoader prop as a convenience shorthand — it wraps the card body in a Loader automatically."
+                description="Card exposes a showLoader prop as a convenience shorthand â€” it wraps the card body in a Loader automatically."
                 preview={null}
                 code={`import { Card } from '@llmnative/react';
 
@@ -121,7 +121,7 @@ const [loading, setLoading] = useState(true);
 
             <PropDocsTable props={PROPS_CONFIG} />
 
-            {/* ── Other loading indicators ── */}
+            {/* â”€â”€ Other loading indicators â”€â”€ */}
             <Section
                 title="Other loading indicators in the framework"
                 description="@llmnative/react ships additional loading patterns for different contexts."
@@ -129,7 +129,7 @@ const [loading, setLoading] = useState(true);
                     <div className="space-y-6">
                         {/* CSS spinner */}
                         <div>
-                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">CSS spinner — inline</p>
+                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">CSS spinner â€” inline</p>
                             <div className="flex items-center gap-6">
                                 <div className="flex items-center gap-2">
                                     <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
@@ -147,7 +147,7 @@ const [loading, setLoading] = useState(true);
                         </div>
                         {/* LoadingButton */}
                         <div>
-                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">LoadingButton — async action</p>
+                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">LoadingButton â€” async action</p>
                             <div className="flex flex-wrap gap-3">
                                 <LoadingButton
                                     className="btn-primary"
@@ -164,11 +164,11 @@ const [loading, setLoading] = useState(true);
                         </div>
                     </div>
                 }
-                code={`// ── CSS spinner ──────────────────────────────────────────────
+                code={`// â”€â”€ CSS spinner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Use Tailwind's animate-spin with a partial border for a clean ring spinner.
 <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
 
-// ── LoadingButton ────────────────────────────────────────────
+// â”€â”€ LoadingButton â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 import { LoadingButton } from '@llmnative/react';
 
 // Spinner replaces label automatically while onClick is pending.

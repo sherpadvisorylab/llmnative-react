@@ -1,10 +1,10 @@
 import React from 'react';
 import { Form, Input, TabDynamic } from '@llmnative/react';
-import PageLayout from '../../components/PageLayout';
-import Section from '../../components/Section';
-import PropDocsTable from '../../components/PropDocsTable';
-import { usePlayground } from '../../context/PlaygroundContext';
-import type { PropDef, PlaygroundConfig } from '../../types/playground';
+import PageLayout from '../../showcase/page';
+import Section from '../../docs-kit/page/Section';
+import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
+import { usePlayground } from '../../docs-kit/playground';
+import type { PropDef, PlaygroundConfig } from '../../docs-kit/playground';
 
 const TAB_DYNAMIC_PROPS: PropDef[] = [
     { name: 'name', type: 'string', required: true, description: 'Array field name in the Form record', control: 'text' },

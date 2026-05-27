@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useThemeController } from '@llmnative/react';
 import Icon from './Icon';
-import { usePlaygroundContext } from '../context/PlaygroundContext';
+import { usePlaygroundContext } from '../docs-kit/playground';
 
 interface TopbarProps {
     onOpenThemePanel: () => void;

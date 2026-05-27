@@ -1,5 +1,5 @@
 import React from 'react';
-import type { PropDocsInput } from '../types/propDocs';
+import type { PropDocsInput } from './propDocs.types';
 
 interface PropDocsTableProps {
     props: readonly PropDocsInput[];

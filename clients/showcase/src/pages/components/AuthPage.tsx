@@ -1,10 +1,10 @@
 import React from 'react';
 import { AuthButton } from '@llmnative/react';
-import PageLayout from '../../components/PageLayout';
-import Section from '../../components/Section';
-import PropDocsTable from '../../components/PropDocsTable';
-import { usePlayground } from '../../context/PlaygroundContext';
-import type { PlaygroundConfig, PropDef } from '../../types/playground';
+import PageLayout from '../../showcase/page';
+import Section from '../../docs-kit/page/Section';
+import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
+import { usePlayground } from '../../docs-kit/playground';
+import type { PlaygroundConfig, PropDef } from '../../docs-kit/playground';
 
 const primaryButton = 'btn-primary';
 

@@ -3,8 +3,8 @@ import { useLocation } from 'react-router-dom';
 import Topbar from '../components/Topbar';
 import Sidebar from '../components/Sidebar';
 import ThemePanel from '../components/ThemePanel';
-import PlaygroundDrawer from '../components/PlaygroundDrawer';
-import { PlaygroundProvider, usePlaygroundContext } from '../context/PlaygroundContext';
+import { PlaygroundDrawer, PlaygroundProvider, usePlaygroundContext } from '../docs-kit/playground';
+import { llmnativePlaygroundEnvironment } from '../showcase/llmnative';
 
 function LayoutInner({ children }: { children?: React.ReactNode }) {
     const [themePanelOpen, setThemePanelOpen] = useState(false);
@@ -42,7 +42,7 @@ function LayoutInner({ children }: { children?: React.ReactNode }) {
 
 export default function ShowcaseLayout({ children }: { children?: React.ReactNode }) {
     return (
-        <PlaygroundProvider>
+        <PlaygroundProvider environment={llmnativePlaygroundEnvironment}>
             <LayoutInner>{children}</LayoutInner>
         </PlaygroundProvider>
     );

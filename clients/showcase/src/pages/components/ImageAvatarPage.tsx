@@ -1,12 +1,12 @@
 import React from 'react';
 import { ImageAvatar } from '@llmnative/react';
-import PageLayout from '../../components/PageLayout';
-import Section from '../../components/Section';
-import PropDocsTable from '../../components/PropDocsTable';
-import { usePlayground } from '../../context/PlaygroundContext';
-import type { PropDef, PlaygroundConfig } from '../../types/playground';
+import PageLayout from '../../showcase/page';
+import Section from '../../docs-kit/page/Section';
+import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
+import { usePlayground } from '../../docs-kit/playground';
+import type { PropDef, PlaygroundConfig } from '../../docs-kit/playground';
 
-// ── Sample avatars ────────────────────────────────────────────────────────────
+// â”€â”€ Sample avatars â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function makeAvatar(initials: string, bg: string, fg = 'white') {
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160"><rect width="160" height="160" rx="80" fill="${bg}"/><text x="80" y="80" font-family="Arial" font-size="56" font-weight="700" fill="${fg}" text-anchor="middle" dominant-baseline="central">${initials}</text></svg>`;
@@ -28,24 +28,24 @@ const AVATARS = {
     empty: '',
 };
 
-// ── Props definition ──────────────────────────────────────────────────────────
+// â”€â”€ Props definition â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const AVATAR_PROPS: PropDef[] = [
     { name: 'src',       type: 'string',    required: true,       description: 'Avatar image URL or data URI. Empty string shows the placeholder.',          control: 'select', options: ['ada', 'bob', 'carol', 'diana', 'evan', 'photo', 'empty'] },
     { name: 'title',     type: 'string',       description: 'Tooltip and accessible name fallback when alt is not set.',                   control: 'text' },
-    { name: 'alt',       type: 'string',       description: 'Alt text for screen readers — defaults to title or filename.',                control: 'text' },
+    { name: 'alt',       type: 'string',       description: 'Alt text for screen readers â€” defaults to title or filename.',                control: 'text' },
     { name: 'width',     type: 'number', description: 'Avatar width in pixels. When only width is set, height equals width.',       control: 'number', min: 24, max: 160 },
-    { name: 'height',    type: 'number', description: 'Avatar height in pixels — set only when the avatar is not square.',           control: 'number', min: 24, max: 160 },
+    { name: 'height',    type: 'number', description: 'Avatar height in pixels â€” set only when the avatar is not square.',           control: 'number', min: 24, max: 160 },
     { name: 'fit',       type: '"cover" | "contain" | "fill" | "scale-down" | "none"', description: 'CSS object-fit. cover (default) crops to fill the box without distortion.', control: 'select', options: ['cover', 'contain', 'fill', 'scale-down', 'none'] },
-    { name: 'badge',     type: 'BadgeDescriptor',      description: 'Badge overlay at the top-right. Pass { content, type } — omit content for a status dot.', control: 'json' },
-    { name: 'feedback',  type: 'ReactNode',      description: 'Content rendered below the avatar — useful for labels or captions.',         control: 'text' },
+    { name: 'badge',     type: 'BadgeDescriptor',      description: 'Badge overlay at the top-right. Pass { content, type } â€” omit content for a status dot.', control: 'json' },
+    { name: 'feedback',  type: 'ReactNode',      description: 'Content rendered below the avatar â€” useful for labels or captions.',         control: 'text' },
     { name: 'pre',       type: 'ReactNode',      description: 'Content rendered to the left of the avatar.',                                control: 'text' },
-    { name: 'post',      type: 'ReactNode',      description: 'Content rendered to the right of the avatar — ideal for name and role.',    control: 'text' },
+    { name: 'post',      type: 'ReactNode',      description: 'Content rendered to the right of the avatar â€” ideal for name and role.',    control: 'text' },
     { name: 'className', type: 'string',    description: 'CSS classes applied to the img element.',                                    control: 'text' },
     { name: 'wrapClass', type: 'string',    description: 'CSS classes applied to the outer wrapper.',                                  control: 'text' },
 ];
 
-// ── Playground ────────────────────────────────────────────────────────────────
+// â”€â”€ Playground â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const PLAYGROUND: PlaygroundConfig = {
     props: AVATAR_PROPS,
@@ -81,7 +81,7 @@ const PLAYGROUND: PlaygroundConfig = {
     ),
 };
 
-// ── Page ──────────────────────────────────────────────────────────────────────
+// â”€â”€ Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export default function ImageAvatarPage() {
     usePlayground(PLAYGROUND, 'ImageAvatar');
@@ -89,12 +89,12 @@ export default function ImageAvatarPage() {
     return (
         <PageLayout
             title="ImageAvatar"
-            description="Avatar image with placeholder fallback and automatic localStorage caching — fetches remote URLs once, converts to base64, and serves instantly on every subsequent render."
+            description="Avatar image with placeholder fallback and automatic localStorage caching â€” fetches remote URLs once, converts to base64, and serves instantly on every subsequent render."
         >
-            {/* ── Sizes ── */}
+            {/* â”€â”€ Sizes â”€â”€ */}
             <Section
                 title="Sizes"
-                description="Pass width to set the avatar size — height defaults to the same value for a square. fit=cover crops to fill without distortion."
+                description="Pass width to set the avatar size â€” height defaults to the same value for a square. fit=cover crops to fill without distortion."
                 preview={
                     <div className="flex flex-wrap items-end gap-6">
                         {([24, 32, 48, 64, 96, 128] as const).map((s) => (
@@ -112,7 +112,7 @@ export default function ImageAvatarPage() {
 <ImageAvatar src={url} title="Ada" width={96} className="rounded-full border" />`}
             />
 
-            {/* ── Shapes ── */}
+            {/* â”€â”€ Shapes â”€â”€ */}
             <Section
                 title="Shapes"
                 description="className drives the shape. rounded-full for circles, rounded-xl for soft squares. Add border, ring or shadow for visual emphasis."
@@ -147,7 +147,7 @@ export default function ImageAvatarPage() {
 <ImageAvatar src={url} title="Diana" width={72} className="rounded-full shadow-lg shadow-primary/30" />`}
             />
 
-            {/* ── Badge overlay ── */}
+            {/* â”€â”€ Badge overlay â”€â”€ */}
             <Section
                 title="Badge overlay"
                 description="The badge prop renders a Badge component as an overlay anchored to the bottom-right corner. Pass { type } for a status dot, or { content, type } for a labelled badge. Accepts any BadgeProps value."
@@ -177,7 +177,7 @@ export default function ImageAvatarPage() {
                 }
                 code={`import { ImageAvatar } from '@llmnative/react';
 
-// status dot — omit content, only type
+// status dot â€” omit content, only type
 <ImageAvatar src={url} title="Ada" width={64} className="rounded-full border"
     badge={{ content: undefined, type: 'success' }} />
 
@@ -190,9 +190,9 @@ export default function ImageAvatarPage() {
     badge={{ content: 'new', type: 'primary' }} />`}
             />
 
-            {/* ── Post slot — user row ── */}
+            {/* â”€â”€ Post slot â€” user row â”€â”€ */}
             <Section
-                title="Post slot — user row"
+                title="Post slot â€” user row"
                 description="post renders to the right of the avatar, vertically centred. Use it for name, role, or any metadata. pre renders to the left."
                 preview={
                     <div className="flex flex-col gap-3 w-full max-w-xs">
@@ -235,10 +235,10 @@ export default function ImageAvatarPage() {
 />`}
             />
 
-            {/* ── Placeholder fallback ── */}
+            {/* â”€â”€ Placeholder fallback â”€â”€ */}
             <Section
                 title="Placeholder fallback"
-                description="When src is empty, unreachable, or fails to load, ImageAvatar renders the theme's user placeholder automatically — no broken-image icon is ever shown."
+                description="When src is empty, unreachable, or fails to load, ImageAvatar renders the theme's user placeholder automatically â€” no broken-image icon is ever shown."
                 preview={
                     <div className="flex flex-wrap gap-8">
                         <div className="flex flex-col items-center gap-2">
@@ -253,33 +253,33 @@ export default function ImageAvatarPage() {
                 }
                 code={`import { ImageAvatar } from '@llmnative/react';
 
-// empty src → theme placeholder
+// empty src â†’ theme placeholder
 <ImageAvatar src="" title="No image" width={64} className="rounded-full border" />
 
-// broken URL → onError → theme placeholder
+// broken URL â†’ onError â†’ theme placeholder
 <ImageAvatar src="https://broken.invalid/avatar.jpg" title="User" width={64} className="rounded-full border" />`}
             />
 
-            {/* ── Caching ── */}
+            {/* â”€â”€ Caching â”€â”€ */}
             <Section
-                title="Caching — localStorage"
-                description="When src is a remote URL, ImageAvatar fetches it once, converts it to base64 and stores it in localStorage. All subsequent renders load instantly, including offline. The query string is stripped automatically from the cache key — so signed URLs (AWS S3, GCS) that rotate the signature on every request still hit the same cache entry."
+                title="Caching â€” localStorage"
+                description="When src is a remote URL, ImageAvatar fetches it once, converts it to base64 and stores it in localStorage. All subsequent renders load instantly, including offline. The query string is stripped automatically from the cache key â€” so signed URLs (AWS S3, GCS) that rotate the signature on every request still hit the same cache entry."
                 preview={
                     <div className="rounded-lg border bg-muted p-4 text-sm font-mono space-y-1 text-foreground">
                         <div><span className="text-muted-foreground select-none">// first render</span></div>
                         <div>fetch(<span className="text-primary">'https://cdn.example.com/avatars/42.jpg?sig=abc'</span>)</div>
                         <div>localStorage.setItem(<span className="text-primary">'avatar::https://cdn.example.com/avatars/42.jpg'</span>, base64)</div>
-                        <div className="pt-2"><span className="text-muted-foreground select-none">// next render — different signature, same cache hit</span></div>
+                        <div className="pt-2"><span className="text-muted-foreground select-none">// next render â€” different signature, same cache hit</span></div>
                         <div>fetch(<span className="text-primary">'https://cdn.example.com/avatars/42.jpg?sig=xyz'</span>)</div>
-                        <div>localStorage.getItem(<span className="text-primary">'avatar::https://cdn.example.com/avatars/42.jpg'</span>) <span className="text-success">✓</span></div>
+                        <div>localStorage.getItem(<span className="text-primary">'avatar::https://cdn.example.com/avatars/42.jpg'</span>) <span className="text-success">âœ“</span></div>
                     </div>
                 }
                 code={`import { ImageAvatar } from '@llmnative/react';
 
-// Remote URL — fetched once, cached as base64, served instantly thereafter
+// Remote URL â€” fetched once, cached as base64, served instantly thereafter
 <ImageAvatar src="https://cdn.example.com/avatars/42.jpg" title="Ada" width={48} className="rounded-full" />
 
-// Signed URL — query string is stripped internally, cache key stays stable
+// Signed URL â€” query string is stripped internally, cache key stays stable
 <ImageAvatar src={signedUrl} title="Ada" width={48} className="rounded-full" />`}
             />
 

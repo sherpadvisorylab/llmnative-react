@@ -1,7 +1,7 @@
 import React from 'react';
 import { ActionButton, buttonOutlineSecondaryClass } from '@llmnative/react';
 import { useLocation } from 'react-router-dom';
-import PageLayout from '../../components/PageLayout';
+import PageLayout from '../../showcase/page';
 
 type PreviewUser = {
     _key: string;

@@ -1,4 +1,13 @@
-export interface MarkdownDocMeta {
+import {
+    buildMarkdownRoutes,
+    resolveMarkdownRouteHref,
+    sortMarkdownRoutes,
+    type MarkdownDocEntry,
+    type MarkdownRoute,
+    type MarkdownRouteMeta,
+} from '../docs-kit/markdown';
+
+export interface MarkdownDocMeta extends MarkdownRouteMeta {
     title: string;
     group: string;
     order: number;
@@ -6,9 +15,8 @@ export interface MarkdownDocMeta {
     description: string;
 }
 
-export interface MarkdownDoc {
+export interface MarkdownDoc extends MarkdownRoute {
     sourcePath: string;
-    content: string;
     meta: MarkdownDocMeta;
 }
 
@@ -35,14 +43,7 @@ function titleFromFile(sourcePath: string): string {
         .join(' ');
 }
 
-function routeFromFile(sourcePath: string): string {
-    const relative = sourcePath.split('/docs/')[1]?.replace(/\.md$/, '') ?? '';
-    if (relative === 'overview' || relative === 'index') return '/docs';
-    if (relative.endsWith('/index')) return `/docs/${relative.replace(/\/index$/, '')}`;
-    return `/docs/${relative}`;
-}
-
-function parseFrontmatter(raw: string, sourcePath: string): MarkdownDoc {
+function parseFrontmatter(raw: string, sourcePath: string): MarkdownDocEntry {
     const match = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/);
     const meta: Partial<MarkdownDocMeta> = {};
     let content = raw;
@@ -59,33 +60,58 @@ function parseFrontmatter(raw: string, sourcePath: string): MarkdownDoc {
             if (key === 'order') {
                 meta.order = Number(value);
             } else if (key === 'title' || key === 'group' || key === 'path' || key === 'description') {
-                meta[key] = value;
+                meta[key] = value as never;
             }
         }
     }
 
     return {
-        sourcePath,
+        filePath: sourcePath,
         content,
-        meta: {
+        frontmatter: {
             title: meta.title ?? titleFromFile(sourcePath),
             group: meta.group ?? DEFAULT_GROUP,
             order: Number.isFinite(meta.order) ? Number(meta.order) : 999,
-            path: meta.path ?? (match ? routeFromFile(sourcePath) : ''),
+            path: meta.path,
             description: meta.description ?? '',
         },
     };
 }
 
-export const allMarkdownDocs = Object.entries(rawDocs)
-    .map(([sourcePath, raw]) => parseFrontmatter(raw, sourcePath))
-    .sort((a, b) => {
-        const group = (GROUP_ORDER[a.meta.group] ?? 999) - (GROUP_ORDER[b.meta.group] ?? 999);
-        if (group !== 0) return group;
-        const order = a.meta.order - b.meta.order;
-        if (order !== 0) return order;
-        return a.meta.title.localeCompare(b.meta.title);
-    });
+const routeOptions = {
+    baseUrl: '/docs',
+    rootDir: 'docs',
+    indexFileName: 'index',
+    stripExtension: true,
+    stripNumericPrefixes: false,
+    casing: 'preserve' as const,
+};
+
+export const allMarkdownDocs: MarkdownDoc[] = sortMarkdownRoutes(
+    buildMarkdownRoutes(
+        Object.entries(rawDocs).map(([sourcePath, raw]) => parseFrontmatter(raw, sourcePath)),
+        routeOptions
+    )
+).map((route) => {
+    const group = typeof route.meta.group === 'string' ? route.meta.group : DEFAULT_GROUP;
+    return {
+        ...route,
+        sourcePath: route.filePath,
+        meta: {
+            title: typeof route.meta.title === 'string' ? route.meta.title : titleFromFile(route.filePath),
+            group,
+            order: typeof route.meta.order === 'number' ? route.meta.order : 999,
+            path: route.path,
+            description: typeof route.meta.description === 'string' ? route.meta.description : '',
+        },
+    };
+}).sort((a, b) => {
+    const group = (GROUP_ORDER[a.meta.group] ?? 999) - (GROUP_ORDER[b.meta.group] ?? 999);
+    if (group !== 0) return group;
+    const order = a.meta.order - b.meta.order;
+    if (order !== 0) return order;
+    return a.meta.title.localeCompare(b.meta.title);
+});
 
 export const markdownDocs = allMarkdownDocs
     .filter((doc) => doc.meta.path.startsWith('/docs'));
@@ -98,23 +124,5 @@ export function getMarkdownDocByPath(path: string): MarkdownDoc | undefined {
 }
 
 export function resolveMarkdownDocHref(href: string, currentPath: string): string {
-    if (href.startsWith('/')) return href.replace(/\.md(?=#|$)/, '');
-    if (href.startsWith('#')) return href;
-    if (/^[a-z]+:/i.test(href)) return href;
-
-    const [withoutHash, hash = ''] = href.split('#');
-    const clean = withoutHash.replace(/^\.\//, '').replace(/\.md$/, '');
-    const currentSegments = currentPath.split('/').filter(Boolean);
-    const baseSegments = currentSegments.length > 1 ? currentSegments.slice(1, -1) : [];
-    const segments = [...baseSegments];
-
-    for (const part of clean.split('/')) {
-        if (!part || part === '.') continue;
-        if (part === '..') segments.pop();
-        else segments.push(part);
-    }
-
-    const resolved = segments.join('/');
-    const route = resolved === 'overview' || resolved === '' ? '/docs' : `/docs/${resolved}`;
-    return hash ? `${route}#${hash}` : route;
+    return resolveMarkdownRouteHref(href, currentPath, '/docs');
 }

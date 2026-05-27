@@ -1,8 +1,8 @@
 import React from 'react';
 import { BackLink, GoSite, ReferSite } from '@llmnative/react';
-import PageLayout from '../../../components/PageLayout';
-import Section from '../../../components/Section';
-import PropDocsTable from '../../../components/PropDocsTable';
+import PageLayout from '../../../showcase/page';
+import Section from '../../../docs-kit/page/Section';
+import PropDocsTable from '../../../docs-kit/docs/PropDocsTable';
 
 const PROPS = [
     { name: 'label', type: 'string', description: 'Visible label' },

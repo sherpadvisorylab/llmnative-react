@@ -1,5 +1,4 @@
 import React from 'react';
-import { Head } from '@llmnative/react';
 
 interface PageLayoutProps {
     title: string;
@@ -10,8 +9,7 @@ interface PageLayoutProps {
 
 export default function PageLayout({ title, description, children, showHeader = true }: PageLayoutProps) {
     return (
-        <div className="p-8 max-w-5xl mx-auto">
-            <Head title={title} description={description} />
+        <div className="mx-auto max-w-5xl p-8">
             {showHeader && (
                 <div className="mb-8">
                     <h1 className="text-2xl font-bold text-foreground">{title}</h1>

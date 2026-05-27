@@ -1,5 +1,5 @@
 import React from 'react';
-import type { PropShortcut } from '../types/playground';
+import type { PropShortcut } from './playground.types';
 
 type PresetTextareaControlProps = {
     value: unknown;
@@ -36,25 +36,20 @@ export default function PresetTextareaControl({
     shortcuts,
     onChange,
 }: PresetTextareaControlProps) {
-    const [rawText, setRawText] = React.useState(() => toRawText(value, mode ?? 'text'));
-
-    // Sync rawText when an external value change arrives (e.g. shortcut, parent reset).
-    // Skip the sync while the user is actively focused on the textarea to avoid fighting
-    // their input: onChange emits the partial/invalid text as a string, which would
-    // otherwise cause externalKey to change and rawText to get re-encoded on every keystroke.
+    const [rawText, setRawText] = React.useState(() => toRawText(value, mode));
     const isFocusedRef = React.useRef(false);
     const externalKey = React.useMemo(() => {
         try { return JSON.stringify(value); } catch { return String(value); }
     }, [value]);
     const prevKeyRef = React.useRef(externalKey);
+
     React.useEffect(() => {
         if (prevKeyRef.current === externalKey) return;
         prevKeyRef.current = externalKey;
         if (!isFocusedRef.current) {
-            setRawText(toRawText(value, mode ?? 'text'));
+            setRawText(toRawText(value, mode));
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [externalKey]);
+    }, [externalKey, mode, value]);
 
     const isInvalid = React.useMemo(() => {
         if (mode !== 'json' || readOnly) return false;
@@ -102,7 +97,7 @@ export default function PresetTextareaControl({
             )}
             {isInvalid && (
                 <p className="text-xs text-destructive">
-                    {validationMessage ?? 'Invalid JSON — keys must be quoted: {"key":"value"}'}
+                    {validationMessage ?? 'Invalid JSON - keys must be quoted: {"key":"value"}'}
                 </p>
             )}
         </div>

@@ -2,7 +2,7 @@
 
 > Ogni CR rappresenta un'unità di lavoro autonoma con motivazione, scope e checklist.  
 > Stato: `⬜ todo` · `🔄 in progress` · `✅ done` · `🚫 cancelled`  
-> Ultima revisione: 2026-05-18
+> Ultima revisione: 2026-05-27
 
 ---
 
@@ -194,6 +194,19 @@ export const components = {
 - [ ] Aggiungere showcase motion playground.
 - [x] Testare keyboard navigation e reduced motion.
 - [x] `npm run test` e `npm run build` passano.
+
+### Stato verificato al 2026-05-27
+
+Implementazione presente e verificata in codebase:
+- `src/motion.ts` espone registry, resolver e hook pubblici (`useMotionEffect`, `useMotionState`, `usePressMotion`, `useEnterMotion`).
+- I temi built-in esportano `motion` insieme a `preset` e `components`.
+- Le integrazioni effettivamente trovate oggi coprono button/action/loading button, modal, dropdown/menu, tab, image e image avatar.
+- La documentazione dedicata esiste in `docs/architecture/motion.md`.
+- La copertura test include `tests/unit/motion.test.ts`.
+
+Gap residui confermati:
+- `Notifications` usa ancora principalmente il comportamento del `Dropdown` sottostante; non c'e' un trattamento motion specifico del blocco.
+- Non esiste ancora una pagina showcase/playground dedicata al motion system.
 
 ---
 
@@ -1644,6 +1657,24 @@ it('array index — name="items.0.name" aggiorna primo elemento array', async ()
 - [x] Aggiungere script `test`, `test:watch`, `test:coverage` in `package.json`
 - [ ] Aggiungere CI check (GitHub Actions o equivalente)
 
+### Stato verificato al 2026-05-27
+
+Verifica reale eseguita oggi:
+- `npx vitest run --reporter=dot` passa.
+- La suite attuale e' salita a **25 file / 188 test**.
+
+Copertura effettivamente presente oggi:
+- libs: `utils`, `converter`
+- framework/runtime: `App`, `motion`
+- provider/config: `MockDataProvider`, `StorageProviderContext`, `ProviderConfiguration`, `DropboxAuthProvider`, auth manifest
+- componenti: `Form`, `Grid`, `Input`, `Select`, `Upload`, `Repeat`, `MarkdownReader`, `Table`, `Modal`, `Dropdown`, `Gallery`, `Buttons`, `Badge`, `AuthButton`
+
+Gap residui confermati:
+- mancano ancora test `Prompt`
+- mancano integration test Firebase/Supabase
+- mancano test su storage concrete implementations, browser OAuth reali ed email provider
+- mancano E2E Playwright e CI
+
 ---
 
 ## CR-007 — Showcase app
@@ -1660,88 +1691,23 @@ Una showcase app serve a tre cose contemporaneamente: documentazione interattiva
 
 ### Struttura
 
-App separata in `clients/showcase/` nella root del repo (non dentro `src/`). Usa il framework stesso come dipendenza locale:
+App separata in `clients/showcase/` nella root del repo (non dentro `src/`). Oggi usa il framework stesso come dipendenza locale ed e' una **consumer app Vite reale**:
 
 ```
 clients/showcase/
   package.json                   ← dipendenza: "@llmnative/react": "file:../../"
-  webpack.config.js              ← dev/build webpack, entry `src/index.tsx`
+  vite.config.mts                ← build del client showcase
   src/
     index.tsx                    ← entry `<App>` react-firestrap + provider/env config
     conf/
       menu.ts                    ← menuConfig canonico per navigazione e pagine
-    layout/
+    layouts/
       ShowcaseLayout.tsx         ← LayoutDefault custom con sidebar/topbar
     pages/
-      index.tsx                  ← home: overview del framework, link rapidi
-      components/
-        input/
-          index.tsx              ← panoramica Input con tutti i tipi
-          string.tsx             ← Input.String — tutti i props configurabili live
-          number.tsx
-          email.tsx
-          password.tsx
-          color.tsx
-          date.tsx
-          datetime.tsx
-        select/
-          index.tsx
-          basic.tsx              ← Select da array statico
-          from-db.tsx            ← Select da DataProvider
-          autocomplete.tsx
-          checklist.tsx
-        upload/
-          index.tsx
-          image.tsx              ← UploadImage con crop
-          document.tsx
-          csv.tsx
-        form/
-          index.tsx
-          basic.tsx              ← Form minimo funzionante
-          nested-objects.tsx     ← dot notation su oggetti profondi
-          arrays.tsx             ← array index notation
-          validation.tsx         ← tutti i casi di validazione
-          callbacks.tsx          ← onLoad, onSave, onFinally, onDelete
-          ref.tsx                ← FormRef e controllo esterno del form
-          custom-save-path.tsx
-          custom-primary-key.tsx
-        grid/
-          index.tsx
-          basic.tsx              ← Grid minimo
-          sorting.tsx            ← sorting multi-colonna
-          pagination.tsx
-          group-by.tsx
-          real-time.tsx          ← mostra update in real-time
-          modal-form.tsx         ← modal add/edit con form
-          custom-columns.tsx     ← ColumnFormatter personalizzati
-          gallery-mode.tsx       ← type="gallery"
-          allowed-actions.tsx    ← combinazioni di allowedActions
-        prompt/
-          index.tsx
-          editor-mode.tsx        ← PromptMode.EDITOR
-          live-mode.tsx          ← PromptMode.LIVE con AI reale
-          template-vars.tsx      ← interpolazione variabili nel template
-        ai-assistant/
-          index.tsx
-        repeat/
-          index.tsx
-          with-form.tsx          ← Repeat dentro un Form
-        theme/
-          index.tsx              ← switch tema live
-          custom-theme.tsx       ← themeProvider con tema custom
-      providers/
-        index.tsx                ← confronto provider side-by-side
-        firebase.tsx             ← stessa UI con FirebaseDataProvider
-        supabase.tsx             ← stessa UI con SupabaseDataProvider
-      corner-cases/
-        index.tsx
-        empty-states.tsx         ← Grid/Form con dati vuoti
-        deep-nesting.tsx         ← dot notation a 5+ livelli
-        large-dataset.tsx        ← Grid con 10.000+ record
-        concurrent-updates.tsx   ← real-time con modifiche concorrenti
-        null-values.tsx          ← campi con null/undefined/0/false
-        special-chars.tsx        ← path con caratteri speciali
-        slow-network.tsx         ← comportamento con latenza simulata
+      Home.tsx                   ← home: overview del framework, link rapidi
+      components/                ← una pagina per componente o famiglia
+      docs/                      ← pagine markdown/stub
+      examples/                  ← esempi applicativi
 ```
 
 ### Pattern di ogni pagina componente
@@ -1772,7 +1738,7 @@ Il codice generato live è particolarmente utile per l'AI: un developer (o un AI
 
 ### Checklist
 
-- [x] Creare `clients/showcase/` con webpack + React + Tailwind
+- [x] Creare `clients/showcase/` come app separata consumer del framework
 - [x] Collegare come dipendenza locale (`file:../../`)
 - [x] Configurare router (react-router-dom) con sidebar
 - [x] Creare layout: sidebar navigazione + area preview + blocco codice copiabile
@@ -1788,7 +1754,7 @@ Il codice generato live è particolarmente utile per l'AI: un developer (o un AI
 - [x] Pagina Pagination: demo interattiva 50 record, spiegazione sticky
 - [x] Pagina Tab: tutte le posizioni (default/top/left/right/bottom)
 - [x] Pagina Table: striping, selezione riga, colonne custom
-- [x] Build webpack production pulita (0 errori)
+- [x] Build production dello showcase pulita (oggi via Vite, 0 errori)
 - [x] Pagine Input: tutti i tipi (string, number, email, password, color, date, datetime, week, month)
 - [x] Pagine Select: basic, static options, checklist
 - [x] Pagine Select: from-db (richiede DataProvider live), autocomplete
@@ -1797,9 +1763,18 @@ Il codice generato live è particolarmente utile per l'AI: un developer (o un AI
 - [x] Pagine Grid: read-only table, full CRUD, pagination, column formatters, in-memory dataArray — powered by MockDataProvider
 - [x] MockDataProvider: implementazione in-memory del DataProvider per showcase offline
 - [x] Pagine Providers: confronto Firebase vs Supabase side-by-side
-- [x] Pagina Theme: switch tema live + custom theme
+- [x] Showcase migrata a Vite (`vite.config.mts`, `src/index.tsx`, build produzione verificata)
+- [x] Pagine aggiuntive reali: Auth, Notifications, Buttons dedicate, Prompt, GridArray, GridDB, Autocomplete, Checklist, Image, ImageAvatar, LayoutBuilder
 - [ ] Deploy (GitHub Pages o Vercel)
 - [ ] Link alla showcase da `CLAUDE.md` e `docs/`
+
+### Stato verificato al 2026-05-27
+
+Implementazione reale confermata:
+- `clients/showcase` builda con `npm run build`.
+- Il menu espone molte pagine componente reali e non solo i nuclei iniziali.
+- Le docs pubbliche dello showcase arrivano da Markdown via `markdownDocs`.
+- Esistono ancora route stub per alcuni provider concreti e per esempi applicativi (`/examples/crud`, `/examples/dashboard`, `/examples/nested-form`, `/examples/file-manager`, `/examples/google-auth`).
 
 ---
 
@@ -1879,7 +1854,7 @@ L'obiettivo di CR-012 è ricostruire `clients/showcase/` *integralmente* usando 
 - Ogni pagina del catalogo componenti dimostra il componente usando react-firestrap direttamente
 - La pagina "Providers" mostra una configurazione reale con `DataProvider`, `StorageProvider`, ecc.
 - La pagina "Theme" usa il `ThemePanel` collegato a CSS variables reali di react-firestrap
-- Il client usa webpack come bundler unico dello showcase (`webpack.config.js` + `src/index.tsx`)
+- Il client usa la stessa toolchain moderna del repository e resta un consumer reale del package
 
 **Escluso:**
 - Modifiche al core del framework (se serve cambiare qualcosa nel core, aprire CR separata)
@@ -1889,11 +1864,12 @@ L'obiettivo di CR-012 è ricostruire `clients/showcase/` *integralmente* usando 
 
 ```
 clients/showcase/
+  vite.config.mts        ← build Vite del client showcase
   src/
     index.tsx           ← <App> entry point, zero routing custom
     conf/
       menu.ts           ← menuConfig con voci per ogni sezione
-    layout/
+    layouts/
       ShowcaseLayout.tsx  ← LayoutDefault wrapper con Topbar e ThemePanel
     pages/
       components/       ← una pagina per componente (Alert, Badge, Card, ...)
@@ -1902,19 +1878,17 @@ clients/showcase/
       grid/             ← Grid CRUD demo con dataArray
       form/             ← Form demo con schema
     globals.css         ← solo @import tailwindcss + @theme inline (niente layout custom)
-  webpack.config.js     ← entry `src/index.tsx`, alias peer deps, HtmlWebpackPlugin
   tsconfig.json         ← paths per react-firestrap (invariato)
 ```
 
 ### Decisione bundler
 
-Lo showcase usa **webpack**. Motivi:
-- Gli script effettivi del client (`dev`, `start`, `build`) puntano a `webpack serve` / `webpack --mode production`
-- `webpack.config.js` usa `src/index.tsx`, che contiene la configurazione consumer completa (env Firebase, OAuth, AI, layout e menu)
-- Il client showcase deve validare anche il percorso webpack storico usato dallo scaffolding del framework
-- I residui Vite (`vite.config.ts`, `index.html`, `src/main.tsx`) sono stati rimossi per mantenere una sola entry point
+Lo showcase oggi usa **Vite**. La motivazione originaria di questa CR resta valida, ma il percorso tecnico e' stato assorbito da CR-016:
+- gli script effettivi del client buildano via `vite`
+- l'entry consumer resta `src/index.tsx`
+- il client continua a validare l'uso reale del package, ma senza dipendere da una toolchain webpack dedicata
 
-La scelta webpack è un dettaglio di tooling del client, non un'API del framework. Non condiziona la dimostrazione dei pattern react-firestrap.
+La scelta del bundler resta un dettaglio di tooling del client, non un'API del framework. Non condiziona la dimostrazione dei pattern react-firestrap.
 
 ### Checklist
 
@@ -1954,11 +1928,20 @@ La scelta webpack è un dettaglio di tooling del client, non un'API del framewor
 - [ ] Test visivo completo: light/dark, tutti i preset tema, tutte le icon library
 - [ ] Aggiornare `docs/CHANGE_REQUESTS.md` — stato CR-007 e CR-012 a ✅
 
+### Stato verificato al 2026-05-27
+
+Questa CR non e' piu' un refactor "webpack-first": il risultato ricercato esiste gia' in larga parte nello showcase attuale, ma attraverso la migrazione Vite di CR-016.
+
+Stato reale:
+- `<App>` e `menuConfig` sono gia' il centro dello showcase attuale.
+- `clients/showcase/src/index.tsx`, `src/conf/menu.ts` e `src/layouts/ShowcaseLayout.tsx` esistono e buildano.
+- Resta aperta come CR di completamento qualitativo: eliminare gli stub residui e sostituirli con demo native o pagine esplicitamente oneste sullo stato reale dei provider.
+
 ---
 
 ## CR-013 — Icon provider system
 
-**Stato:** 🔄 in progress  
+**Stato:** ✅ done  
 **Branch:** `modernize`  
 **Priorità:** Media  
 **Dipende da:** CR-004  
@@ -2159,6 +2142,18 @@ Aggiunta prop `onChange?: (record: RecordProps) => void` che notifica il consume
 - [x] Fix `Form`: `useEffect` con `JSON.stringify(defaultValues)` per evitare reset spurio
 - [ ] Aggiornare showcase per ogni fix rimanente — le pagine di demo diventano smoke test visivi
 - [ ] Aggiornare `CLAUDE.md` con le API corrette dopo ogni fix
+
+### Stato verificato al 2026-05-27
+
+Avanzamenti concreti visibili oggi in codebase:
+- Showcase molto piu' ampia, utile come smoke test visivo dell'API pubblica.
+- Pagine dedicate per `Buttons`, `Auth`, `Notifications`, `GridArray`, `GridDB`, `Prompt`, `Autocomplete`, `Checklist`, `Image`, `ImageAvatar`, `LayoutBuilder`.
+- Copertura test rafforzata su `Grid`, `Table`, `Modal`, `Dropdown`, `Buttons`, `Badge`, `AuthButton`.
+
+Gap ancora coerenti con la CR:
+- audit completo delle API pubbliche non terminato
+- `Prompt` resta senza test dedicati
+- restano da riallineare alcune docs/props su `Input`, `Grid`, `Modal` e variante bare di `Form`
 
 ---
 

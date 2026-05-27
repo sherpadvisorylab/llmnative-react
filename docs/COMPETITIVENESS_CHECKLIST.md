@@ -1,513 +1,340 @@
-# Competitiveness Checklist
+# Execution Plan
 
-> Roadmap operativa per portare react-firestrap al livello di React Admin, Refine e Contember.
-> Ogni sezione ha priorità P0 (bloccante) → P4 (nice-to-have).
-> Ogni item è un task atomico verificabile: ✅ fatto, ⬜ da fare, 🔄 in progress.
+> Roadmap operativa per portare @llmnative/react al livello di React Admin, Refine e Contember.
+> Ogni item è un task atomico verificabile: ✅ fatto, ⬜ da fare.
 >
-> Ultima revisione: 2026-05-18
-> Basato su analisi codebase `modernize` (v1.5.8 → target v2.0.0)
+> Ultima revisione: 2026-05-27
+> Basato su analisi codebase `main` (v0.1.1 → target v1.0.0)
 
 ---
 
-## Indice
+## Come usare questo documento
 
-1. [P0 — Bloccanti: nessuno lo usa in produzione senza questi](#p0--bloccanti-nessuno-lo-usa-in-produzione-senza-questi)
-2. [P1 — Differenziatori: dove deve raddoppiare](#p1--differenziatori-dove-deve-raddoppiare)
-3. [P2 — Feature parity: cosa hanno gli altri e manca](#p2--feature-parity-cosa-hanno-gli-altri-e-manca)
-4. [P3 — Qualità e trust: test, CI, documentazione](#p3--qualità-e-trust-test-ci-documentazione)
-5. [P4 — Ecosistema e community](#p4--ecosistema-e-community)
-6. [Appendice A — Bug concreti trovati nella codebase](#appendice-a--bug-concreti-trovati-nella-codebase)
-7. [Appendice B — Strategia di posizionamento](#appendice-b--strategia-di-posizionamento)
-8. [Appendice C — Metriche target per v2.0.0](#appendice-c--metriche-target-per-v200)
+Le priorità sono **riviste rispetto alla versione precedente**. La differenza principale:
+
+- **P0 primo**: AI provider — non "feature", ma il cuore del prodotto. Se `AI.fetch()` non funziona, il framework non mantiene la sua promessa. Punto.
+- **i18n** declassato da P0 a P2. Nessuno sceglie un framework per l'i18n. Tutti scelgono un framework per quello che **fa**.
+- **AI provider fix** spostato da "Fase 3 — Differenziatori" a "Fase 0 — Giorno 1"
+- Il piano esecutivo è **sequenziale**: ogni fase presuppone la precedente completata.
 
 ---
 
-## P0 — Bloccanti: nessuno lo usa in produzione senza questi
+## P0 — Bloccanti: impediscono qualsiasi valutazione seria
 
-Sono i problemi che un CTO o un tech lead nota subito e che impediscono qualsiasi valutazione seria.
+### P0.0 — AI provider: il prodotto non mantiene la promessa [CRITICO]
+
+Il framework si definisce "AI-first". Oggi l'AI provider è **rotto su 3 provider su 4**. Un'AI che lo prova impara che non funziona e non torna più.
+
+- [ ] **Unificare i due layer**: oggi `src/providers/ai/index.ts` ha:
+  - Vecchie funzioni (`fetchOpenaiApi`, `fetchGeminiApi`, `fetchAnthropicApi`, `fetchMistralApi`) — usate da codice legacy
+  - Nuovo `PROVIDERS` object + `AI` class — usato dalla nuova API pubblica
+  - `export default function fetchAI()` — stub che ignora il parametro `provider`
+  - Decidere UN solo layer e rimuovere l'altro
+- [ ] **Fixare Gemini endpoint**: `api.gemini.com/v1/predict` (inesistente) → `https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent`
+- [ ] **Fixare Gemini response parsing**: riga 280-282: `if (response?.predictions) { return; }` ritorna `undefined` **sempre**. Il parsing reale a riga 283 è dead code.
+  - Parsing corretto: `response.candidates[0].content.parts[0].text`
+- [ ] **Fixare Anthropic endpoint**: `api.anthropic.com/v1/completions` (deprecato) → `https://api.anthropic.com/v1/messages`
+- [ ] **Fixare Anthropic response parsing**: `response.choices[0].message.content` → `response.content[0].text`
+  - Anthropic non usa il formato `choices[]`, ma `content[]`
+- [ ] **Fixare OpenAI old function**: `engine` → `model` in `chatChatGPTContinue` (riga 147)
+- [ ] **Fixare `fetchAI` export**: deve accettare e usare il parametro `provider`, non ritornare sempre `fetchOpenaiApi` (riga 335-337)
+- [ ] **Implementare DeepSeek**: config key `deepSeekApiKey` esiste in `AIConfig`, ma nessun provider
+- [ ] **Rimuovere debug log da produzione**:
+  - `console.log("Laaaaaaaaaaaa")` (riga 200)
+  - `console.log("<<<<<<<<impossible>>>>>>>>")` (riga 154)
+  - `console.log(this.config.name + "->request", body)` (riga 552)
+  - `console.log(this.config.name + "->response", response)` (riga 560)
+- [ ] **Tipizzare senza `any`**: `parseContent(str: string): any` → tipo concreto; `parseResponse(response: any): any` → tipo concreto; rimuovere `any` da PROVIDERS
+- [ ] **Aggiungere test AI provider**: mock HTTP + verifica chiamate corrette + parse response per ogni provider
 
 ### P0.1 — Provider incompleti
 
-- [ ] **FirebaseAuthProvider** (CR-032) — `src/providers/auth/firebase/FirebaseAuthProvider.ts`
-  - Implementare `signIn({ method: 'email', email, password })` → `signInWithEmailAndPassword`
-  - Implementare `signIn({ method: 'anonymous' })` → `signInAnonymously`
-  - Implementare `signIn({ method: 'emailLink', email })` → `sendSignInLinkToEmail`
-  - Implementare `signOut()` → `signOut(auth)`
-  - Implementare `onAuthChange(cb)` → `onAuthStateChanged(auth, cb)`
-  - Implementare `getUser()` → mappa `auth.currentUser` su `UserProfile`
-  - Implementare `isAuthenticated()` → `auth.currentUser !== null`
-  - Registrare driver `firebaseAuth` in `FIREBASE_MANIFEST` e `AuthDriverName`
-  - Test unitari con emulatore o mock SDK
+- [ ] **FirebaseAuthProvider** (CR-032): email/password, anonymous, magic link
+- [ ] **FirestoreDataProvider** (CR-033): Cloud Firestore con query/filtri/real-time
+- [ ] **SupabaseDataProvider completo** (CR-034): riscrivere con `@supabase/supabase-js` v2, niente più fetch raw
+- [ ] **SupabaseStorageProvider completo** (CR-035): idem, SDK ufficiale con signed URL
+- [ ] **SupabaseAuthProvider** (CR-036): email/password, magic link, OAuth, anonymous
 
-- [ ] **FirestoreDataProvider** (CR-033) — `src/providers/data/firestore.ts`
-  - Implementare `read('/collection')` → `getDocs(collection(db, ...))` con `_key = doc.id`
-  - Implementare `read('/collection/id')` → `getDoc(doc(db, ...))`
-  - Implementare `read` con `WhereClause` (eq, lt, lte, gt, gte, in, nin)
-  - Implementare `read` con `OrderClause` (asc/desc)
-  - Implementare `set('/collection/id', data)` → `setDoc`
-  - Implementare `update('/collection/id', data)` → `updateDoc` (merge parziale)
-  - Implementare `remove('/collection/id', data)` → `deleteDoc`
-  - Implementare `useListener` → `onSnapshot` con query constraints + cleanup
-  - Implementare `count(path)` → `getCountFromServer`
-  - Implementare `setChunks` → batch write
-  - Implementare `getConfigurationState()` → verifica Firebase init
-  - Registrare driver `firestore` in `FIREBASE_MANIFEST` e `DataDriverName`
-  - Test unitari con emulatore o mock SDK
+### P0.2 — Form validation rotta
 
-- [ ] **SupabaseDataProvider completo** (CR-034) — riscrivere `src/providers/data/supabase.ts`
-  - Rimpiazzare `fetch` raw con `@supabase/supabase-js` v2
-  - Singleton client per configurazione (url + anonKey)
-  - Implementare `read('/table')` → `supabase.from('table').select('*')` con `_key = String(row.id)`
-  - Implementare `read('/table/id')` → `.select('*').eq('id', id).single()`
-  - Implementare `read` con `WhereClause` → `.eq()`, `.lt()`, `.gt()`, `.in()`, ecc.
-  - Implementare `read` con `OrderClause` → `.order()`
-  - Implementare `set` → `.upsert()` con `onConflict`
-  - Implementare `update` → `.update(data).eq('id', id)`
-  - Implementare `remove` → `.delete().eq('id', id)`
-  - Implementare `useListener` → `supabase.channel().on('postgres_changes', ...)` con fetch iniziale
-  - Implementare `count` → `.select('*', { count: 'exact', head: true })`
-  - Implementare `setChunks` → upsert in batch
-  - Implementare `getConfigurationState()` → verifica url + anonKey
-  - Rimuovere `console.warn("not fully implemented yet")`
-  - Test contratto con mock client o Supabase test
+- [ ] **Fixare required field validation in Form.tsx**: sostituire `document.querySelectorAll` con validazione React-state-based
+- [ ] **Rimuovere `//return false`** che neutralizza il submit bloccato
+- [ ] **Aggiungere test**: form con required → submit senza valori → errore; con valori → successo
 
-- [ ] **SupabaseStorageProvider completo** (CR-035) — riscrivere `src/providers/storage/supabase.ts`
-  - Usare `@supabase/supabase-js` v2 Storage API
-  - Configurazione bucket (default: `'public'`) + flag `isPrivate`
-  - Implementare `upload(base64DataUrl, path)` → convertire Blob + `.upload()`
-  - Implementare `getURL(path)` → `getPublicUrl()` per bucket pubblici, `createSignedUrl()` per privati
-  - Implementare `download(path)` → `.download(path)` SDK
-  - Implementare `delete(path)` → `.remove([path])`
-  - Rimuovere `console.warn("not fully implemented yet")`
-  - Test contratto
+### P0.3 — Error boundary
 
-- [ ] **SupabaseAuthProvider** (CR-036) — `src/providers/auth/supabase/SupabaseAuthProvider.ts`
-  - Implementare `signIn({ method: 'email', email, password })`
-  - Implementare `signIn({ method: 'magicLink', email })`
-  - Implementare `signIn({ method: 'oauth', provider: 'google' | 'github' | ... })`
-  - Implementare `signIn({ method: 'anonymous' })`
-  - Implementare `signOut()`
-  - Implementare `onAuthChange(cb)` → `supabase.auth.onAuthStateChange`
-  - Implementare `getUser()` → mappa `session.user` su `UserProfile`
-  - Implementare `isAuthenticated()` → `session !== null`
-  - Implementare `getAccessToken()` → `session.access_token`
-  - Registrare driver `supabaseAuth` in manifest
-  - Test con mock client
+- [ ] **ErrorBoundary per `<App>`**: se App crasha, mostra fallback, non white screen
+- [ ] **ErrorBoundary per provider**: se un provider crasha, non abbatte tutta l'app
+- [ ] **ErrorBoundary per route**: pagina che crasha non abbatte navigazione
 
-### P0.2 — Validazione form rotta
+### P0.4 — CI/CD
 
-- [ ] **Fixare required field validation in Form.tsx** (linee 438-442)
-  - Sostituire `document.querySelectorAll` (fragile, solo su DOM iniziale) con validazione React-state-based
-  - Rimuovere `//return false` che neutralizza il blocco del submit
-  - Aggiungere messaggi di errore inline per campo required
-  - Aggiungere test: form con required fields → submit senza valori → errore
-  - Aggiungere test: form con required fields → submit con valori → successo
-
-### P0.3 — Debug log e sicurezza
-
-- [ ] **Rimuovere `console.log("Laaaaaaaaaaaa")`** in `src/providers/ai/index.ts`
-- [ ] **Rimuovere `console.log("<<<<<<<<impossible>>>>>>>>")`** in `src/providers/ai/index.ts`
-- [ ] **Rimuovere log dei request payload** in AI provider (logga API key in chiaro)
-- [ ] **Rimuovere commenti di debug** in `Form.tsx` (linee 127-136, 443-454)
-- [ ] **Rimuovere tutti i `consoleLog`** in `src/providers/data/firebase.ts`
-- [ ] **Verificare che nessun file logghi dati sensibili** (API key, token, password)
-
-### P0.4 — Error boundary
-
-- [ ] **Aggiungere ErrorBoundary** avvolge `<App>`
-- [ ] **Aggiungere ErrorBoundary per provider** — se un provider crasha, non abbatte tutta l'app
-- [ ] **Aggiungere ErrorBoundary per route** — pagina che crasha non abbatte navigazione
-
-### P0.5 — i18n per le stringhe framework
-
-- [ ] **Creare I18nProvider** e hook `useI18n()` (CR-029)
-- [ ] **Estrarre tutte le stringhe hardcoded** in inglese
-- [ ] **Sostituire stringhe italiane** trovate nel codice (`"Caricamento in corso..."`, ecc.)
-- [ ] **Dizionario default `en`** per tutto il framework
-- [ ] **Supporto locale switching** in `<App locale="it" />`
-- [ ] **Test**: fallback lingua → `en` → chiave
+- [ ] **GitHub Actions**: `npm run test` + `npm run build` su ogni PR
+- [ ] **GitHub Actions**: `npm run test:coverage` con soglia minima (es. 40% iniziale, target 60%)
+- [ ] **GitHub Actions**: `cd clients/showcase && npm run build` su ogni PR
+- [ ] **Badge README**: build passing, test count
 
 ---
 
-## P1 — Differenziatori: dove deve raddoppiare
+## P1 — Differenziatori: dove vincere la partita
 
-Qui sta il vantaggio competitivo. React Admin e Refine **non hanno** queste feature o le hanno in forma molto ridotta. react-firestrap deve renderle perfette, documentate e impossibili da ignorare.
+Qui sta il vantaggio competitivo. React Admin e Refine **non hanno** queste feature.
 
-### P1.1 — AI come cittadino di prima classe
+### P1.1 — AI potenziato (dopo il fix P0.0)
 
-- [ ] **Correggere URL API errati**:
-  - Gemini: `https://api.gemini.com/v1/predict` → `https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent`
-  - Anthropic: `https://api.anthropic.com/v1/completions` → `https://api.anthropic.com/v1/messages`
-  - DeepSeek: verificare endpoint corrente
-  - Mistral: verificare endpoint corrente
-- [ ] **Correggere parse response**:
-  - Gemini: `response.predictions[0].text` → `response.candidates[0].content.parts[0].text`
-  - Anthropic: verificare formato messaggi vs completions
-- [ ] **Aggiornare model names**: `gpt-5.2` → dinamico/configurabile, `gemini-2.5-pro` → dinamico
-- [ ] **Test AI provider**: mock HTTP + verifica chiamate corrette + parse response
-- [ ] **Prompt Builder visuale** — componente per costruire template prompt con preview
 - [ ] **AI-form generation**: `<AIForm prompt="Crea form per prodotti" />` → genera schema + campi
-- [ ] **AI-Grid filtering**: input NLP → `"ordini in ritardo"` → filtri applicati
+- [ ] **Zero-config Grid**: se nessuna `columns` specificata, auto-rilevare dal primo record
 - [ ] **AI-assisted form filling**: bottone "Compila con AI" su form → descrizione → campi popolati
 - [ ] **Auto-caption per Upload.Image**: AI genera descrizione dall'immagine
+- [ ] **AI-Grid filtering**: input NLP → `"ordini in ritardo"` → filtri applicati
+- [ ] **Prompt Builder visuale**: componente per costruire template prompt con preview
 
-### P1.2 — CRUD Schema-Driven estremo
+### P1.2 — CRUD schema-driven estremo
 
-- [ ] **Zero-config Grid**: se nessuna `columns` specificata, auto-rilevare dal primo record
+- [ ] **Zero-config Grid** (se nessuna `columns`, auto-rileva dal primo record)
 - [ ] **Auto-join FK**: campo che finisce per `Id` → Select popolata dalla collezione referenziata
-- [ ] **Nested CRUD paths**: `<Grid dataStoragePath="/users/{userId}/posts" />` senza configurazione extra
 - [ ] **Inline edit su Grid**: click su cella → edit senza modal
 - [ ] **Bulk actions**: seleziona righe → azione batch (delete, export, update)
 - [ ] **Export CSV/Excel** nativo da Grid
-- [ ] **Import CSV** con mapping guidato (UploadCSV già esiste, integrarlo in Grid)
-- [ ] **Grid preset view**: salva/carica configurazione colonne, filtri, ordine
 - [ ] **Undo delete**: soft-delete + "Annulla" notification
 
-### P1.3 — Provider Manifest + Configuration State
+### P1.3 — REST adapter generico
 
-- [ ] **Documentare pubblicamente** il pattern manifest: "zero if per provider"
-- [ ] **Provider Configuration Dashboard**: componente `<ProviderStatus />` che mostra stato di tutti i provider
-- [ ] **Expandere `isConfigured()` a tutti i provider** (alcuni mancano)
-- [ ] **Diagnostica avanzata**: `getConfigurationState()` deve dire esattamente cosa manca
-- [ ] **Test automatici**: ogni provider deve passare un test di configuration state
+- [ ] **Adapter REST**: implementa `DataProviderAdapter` con fetch generico. Sblocca il 90% delle API.
 
-### P1.4 — Theme + Motion + Head unificati
+### P1.4 — Command palette
 
-- [ ] **Showcase playground per temi**: switch live tra default/flat/cyber + dark mode
-- [ ] **Showcase playground per motion**: preset selector (none/subtle/standard/expressive) + preview
-- [ ] **Completare animazioni Notifications/Toast** (CR-027, checklist aperta)
-- [ ] **Aggiungere motion preset `none`** che disabilita tutto rispettando `prefers-reduced-motion`
-- [ ] **Testare keyboard navigation + reduced motion** in tutti i componenti animati
-- [ ] **Documentare il theme system** con esempi di tema custom
+- [ ] **Command palette** (Ctrl+K): navigazione e azioni rapide
 
-### P1.5 — Multi-tenant nativo
+### P1.5 — Provider Configuration Dashboard
 
-- [ ] **Documentare `RuntimeProvider` + `TenantMenu`**
-- [ ] **Scrivere test** per tenant switching
-- [ ] **Esempio funzionante** nello showcase: `/examples/multi-tenant`
-- [ ] **Template CLI `--template=saas`** che include multi-tenancy out of the box
-
-### P1.6 — Head Management
-
-- [ ] **Documentare tutti gli hook head** (`useSocialHead`, `usePwaHead`, ecc.)
-- [ ] **Demo interattiva** nello showcase: mostra come cambia il `<head>` in tempo reale
-- [ ] **Test** per ogni hook head
+- [ ] **Componente `<ProviderStatus />`**: mostra stato di tutti i provider, chiavi mancanti, diagnostica
+- [ ] **Expandere `isConfigured()` a tutti i provider**
 
 ---
 
-## P2 — Feature parity: cosa hanno gli altri e manca
+## P2 — Feature parity: cosa hanno gli altri
 
-React Admin e Refine hanno feature che react-firestrap non ha e che sono attese dal mercato.
+Qui si colmano gap che il mercato si aspetta.
 
-### P2.1 — Gestione dati
+### P2.1 — i18n
 
-- [ ] **GraphQL support** — anche minimale (query custom su DataProvider)
-- [ ] **Paginazione server-side** nativa (oggi è tutta client-side)
-- [ ] **Filtri server-side** (WhereClause già esiste, va usato dai widget)
-- [ ] **Ordinamento server-side** (OrderClause già esiste, va usato dai widget)
-- [ ] **Caching con invalidation** (React Query pattern)
+- [ ] **Creare I18nProvider e hook `useI18n()`** (CR-029)
+- [ ] **Estrarre stringhe hardcoded** da componenti pubblici
+- [ ] **Dizionario default `en`** + supporto locale switching in `<App locale="it" />`
 
 ### P2.2 — Auth
 
-- [ ] **OAuth provider multipli**: GitHub, Microsoft, Apple (oggi solo Google + Dropbox)
-- [ ] **Magic link** (Firebase e Supabase lo supportano)
+- [ ] **OAuth provider multipli**: GitHub, Microsoft, Apple
+- [ ] **Magic link** (Firebase e Supabase)
 - [ ] **Session persistence** e refresh token
-- [ ] **2FA** (almeno interfaccia, anche senza implementazione completa)
 
-### P2.3 — UI/UX
+### P2.3 — Gestione dati
 
-- [ ] **Command palette** (Ctrl+K) per navigazione e azioni rapide (Refine ce l'ha)
-- [ ] **Notifications/Toast system** (Refine ha notification provider)
-- [ ] **Guided tours / onboarding**
-- [ ] **WYSIWYG editor** (CR-024 — Tiptap candidato)
+- [ ] **Paginazione server-side** nativa (oggi client-side)
+- [ ] **Filtri e ordinamento server-side** (WhereClause/OrderClause esistono, vanno usati dai widget)
+- [ ] **Caching con invalidation** (React Query pattern)
+
+### P2.4 — UI/UX
+
+- [ ] **Notifications/Toast system**
+- [ ] **WYSIWYG editor** (CR-024 — Tiptap)
 - [ ] **ContextMenu con @mention** (CR-025)
+- [ ] **Sidebar block** (CR-031)
 
-### P2.4 — Developer experience
+### P2.5 — Developer experience
 
-- [ ] **Devtools** (Refine ha Refine Devtools)
-- [ ] **Storybook** per componenti pubblici
-- [ ] **Inferencer** (Refine: auto-genera pagine CRUD da API response)
-- [ ] **Bundle analyzer** e ottimizzazione
+- [ ] **Devtools**: inspector per provider state, tema, routing
+- [ ] **Inferencer**: auto-genera pagine CRUD da API response (Refine lo fa)
 
 ---
 
-## P3 — Qualità e trust: test, CI, documentazione
+## P3 — Qualità e trust
 
-Senza questi, nessuno fiducia. Con questi, si differenzia da progetti amatoriali.
+### P3.1 — Contract test per ogni provider
 
-### P3.1 — Test
+- [ ] **DataProvider**: Mock ✅, Firebase RTDB, Firestore, Supabase
+- [ ] **StorageProvider**: Firebase, Supabase
+- [ ] **AuthProvider**: Google, Firebase, Supabase, Dropbox
+- [ ] **EmailProvider**: Gmail
 
-- [ ] **Contract test per ogni DataProvider** (Mock passa, Firebase/Supabase devono passare)
-- [ ] **Contract test per ogni StorageProvider**
-- [ ] **Contract test per ogni AuthProvider**
-- [ ] **Contract test per ogni EmailProvider**
-- [ ] **Test concreti StorageProvider** (almeno mock adapter con implementazione reale)
-- [ ] **Test Upload** (già fatti, verificare copertura)
-- [ ] **Test Prompt** (esplicitamente mancante)
-- [ ] **Test AI provider** (mock HTTP)
-- [ ] **Test Repeat** (già fatti)
-- [ ] **Test integration Firebase** (con emulatore o skip esplicito)
-- [ ] **Test integration Supabase** (dopo CR-034/035/036)
-- [ ] **Test regressione per ogni bug fix** (prima di chiudere un issue, scrivere test)
+### P3.2 — TypeScript quality
 
-### P3.2 — CI/CD
-
-- [ ] **GitHub Actions**: `npm run test` + `npm run build` su ogni PR
-- [ ] **GitHub Actions**: `npm run test:coverage` con soglia minima (es. 60%)
-- [ ] **GitHub Actions**: `cd clients/showcase && npm run build` su ogni PR
-- [ ] **GitHub Actions**: lint (se configurato)
-- [ ] **Badge README**: build passing, test count, coverage
-- [ ] **Playwright E2E**: almeno un flusso CRUD completo su showcase
-
-### P3.3 — TypeScript quality
-
-- [ ] **Ridurre `any` sostituibili**:
-  - AI provider: `parseContent`, `fetchOpenaiApi`, PROVIDERS object
-  - Firebase provider: parametri `any`
-  - Theme: `deepMerge` function
-  - Config: type assertions (`as unknown as`)
-- [ ] **Verificare TypeScript strict** su tutta la codebase (`npx tsc --noEmit`)
+- [ ] **Ridurre `any` sostituibili** in AI provider, Firebase, Theme, Config
 - [ ] **Aggiungere `noUncheckedIndexedAccess: true`** in tsconfig
 
-### P3.4 — Bundle optimization
+### P3.3 — Bundle optimization
 
-- [ ] **tui-image-editor** → valutare se necessario o sostituibile con alternativa più leggera
-- [ ] **prismjs** → valutare dynamic import o tree-shaking
-- [ ] **Due icon library come peer dep** → documentare che basta installarne una
+- [ ] **tui-image-editor** → valutare alternativa più leggera
+- [ ] **prismjs** → dynamic import o tree-shaking
 - [ ] **Analizzare bundle** con `vite-bundle-visualizer`
+
+### P3.4 — Dead code / legacy
+
+- [ ] **Rimuovere `src/components/Component.tsx`**: pattern legacy con `todo` comment
+- [ ] **Rimuovere `src/components/Template.tsx`**: template legacy
+- [ ] **Rimuovere `src/components/ui/fields/Command.tsx`**: `contentEditable`/`document.execCommand`
+- [ ] **Rimuovere `src/pages/Helper.tsx`**: Bootstrap ScrollSpy storico
+- [ ] **Pulire Firebase**: da `firebase/compat` SDK a modular SDK v9+ (bundle più piccolo)
 
 ### P3.5 — Documentazione pubblica
 
-- [ ] **Landing page** (docs.react-firestrap.dev o simile)
-- [ ] **Tutorial "5 minuti"** — da `npx create` a CRUD funzionante
-- [ ] **Tutorial "30 minuti"** — auth + CRUD + AI + tema custom
+- [ ] **Landing page**
+- [ ] **Tutorial "5 minuti"**: da `npx create` a CRUD funzionante
+- [ ] **Tutorial "30 minuti"**: auth + CRUD + AI + tema custom
 - [ ] **API reference completa** per ogni componente pubblico
-- [ ] **Esempi funzionanti** (non stub) per ogni pattern:
-  - CRUD base con Grid + Form
-  - Form con nested objects e arrays
-  - Grid con custom formatters
-  - Auth (Google, Firebase email, Supabase)
-  - AI integration
-  - Upload immagini
-  - Multi-tenant
 - [ ] **Demo live** (Vercel deploy dello showcase)
-- [ ] **Video** (screencast di 2 minuti)
+- [ ] **Video dimostrativo** (2 minuti)
 
 ---
 
-## P4 — Ecosistema e community
+## P4 — Ecosistema
 
-Non serve competere con React Admin (26k stelle) o Refine (30k stelle). Serve una community piccola ma fedele.
+### P4.1 — CLI e scaffolding
 
-### P4.1 — Adapter ecosystem
-
-- [ ] **Adapter template**: guida per scrivere un DataProvider custom in 10 minuti
-- [ ] **Adapter gallery**: pagina showcase che lista tutti gli adapter disponibili
-- [ ] **Adapter REST generico**: il 90% delle API è REST, un adapter generico sblocca mille casi
-- [ ] **Adapter Airtable, Strapi, Hasura** (i più richiesti)
-
-### P4.2 — CLI e scaffolding
-
-- [ ] **Verificare build del progetto generato** — test automatico che `npx ash create` produce un progetto buildabile
+- [ ] **Verificare build del progetto generato** (test automatico)
 - [ ] **Template `saas`** con auth + CRUD + tenant
 - [ ] **Template `ai`** con AI integration preconfigurata
-- [ ] **CLI `devtools`** — inspector per provider state, tema, routing
+- [ ] **CLI `devtools`**: inspector provider/tema/routing
+
+### P4.2 — Adapter ecosystem
+
+- [ ] **Adapter template**: guida per scrivere un DataProvider custom in 10 minuti
+- [ ] **Adapter gallery**: showcase con tutti gli adapter disponibili
 
 ### P4.3 — Community
 
-- [ ] **Discord server** (o GitHub Discussions)
-- [ ] **Issue template** per bug report, feature request, domande
+- [ ] **GitHub Discussions**
+- [ ] **Issue template**: bug report, feature request
 - [ ] **Contributing guide** (`CONTRIBUTING.md`)
-- [ ] **Code of conduct**
-- [ ] **Changelog pubblico** (CHANGELOG.md già esiste, mantenerlo)
-- [ ] **Release note** su GitHub Releases
 
 ---
 
-## Appendice A — Bug concreti trovati nella codebase
+## Appendice A — Bug concreti nella codebase (verificati 2026-05-27)
 
-Qui elenco i bug specifici identificati durante l'analisi.
+### A.1 AI Provider — tutti ancora presenti
 
-### A.1 AI Provider
-
-| File | Linea | Bug |
-|------|-------|-----|
-| `src/providers/ai/index.ts` | — | `console.log("Laaaaaaaaaaaa")` in hot path |
-| `src/providers/ai/index.ts` | — | `console.log("<<<<<<<<impossible>>>>>>>>")` |
-| `src/providers/ai/index.ts` | — | Logga API key in chiaro nei request payload |
-| `src/providers/ai/index.ts` | — | Gemini URL: `api.gemini.com/v1/predict` (inesistente) |
-| `src/providers/ai/index.ts` | — | Gemini parse: `response.predictions[0].text` (formato sbagliato) |
-| `src/providers/ai/index.ts` | — | Anthropic URL: `api.anthropic.com/v1/completions` (deprecato) |
-| `src/providers/ai/index.ts` | — | Model names hardcoded: `gpt-5.2`, `gemini-2.5-pro`, `claude-3.5` |
-| `src/providers/ai/index.ts` | — | Tipo `any` ovunque: `parseContent`, `fetchOpenaiApi`, PROVIDERS |
+| File | Linea | Bug | Gravità |
+|------|-------|-----|---------|
+| `src/providers/ai/index.ts` | 200 | `console.log("Laaaaaaaaaaaa")` in hot path | Media |
+| `src/providers/ai/index.ts` | 154 | `console.log("<<<<<<<<impossible>>>>>>>>")` | Media |
+| `src/providers/ai/index.ts` | 190/269/552 | Logga request body (potenziale leak dati) | Media |
+| `src/providers/ai/index.ts` | 44 | Gemini URL: `api.gemini.com/v1/predict` (inesistente) | **Critica** |
+| `src/providers/ai/index.ts` | 280-282 | Gemini early return `undefined` — **dead code dopo** | **Critica** |
+| `src/providers/ai/index.ts` | 451 | Anthropic URL: `api.anthropic.com/v1/completions` (deprecato) | **Critica** |
+| `src/providers/ai/index.ts` | 472 | Anthropic parse: `choices[0].message.content` (formato sbagliato) | **Critica** |
+| `src/providers/ai/index.ts` | 147 | OpenAI `chatChatGPTContinue` usa `engine` invece di `model` | Alta |
+| `src/providers/ai/index.ts` | 335-337 | `fetchAI` stub: ignora `provider`, ritorna sempre OpenAI | **Critica** |
+| `src/providers/ai/index.ts` | 394,428,452 | Model names hardcoded: `gpt-5.2`, `gemini-2.5-pro`, `claude-3.5` | Bassa |
+| `src/providers/ai/index.ts` | 86,349,546 | Tipo `any` ovunque: `parseContent`, `parseResponse`, PROVIDERS | Media |
 
 ### A.2 Form
 
 | File | Linea | Bug |
 |------|-------|-----|
-| `src/components/widgets/Form.tsx` | 416 | `useEffect` con `JSON.stringify(defaultValues)` nelle dipendenze → loop su oggetti profondi |
-| `src/components/widgets/Form.tsx` | 438-442 | Required validation via `document.querySelectorAll` → non funziona su campi dinamici |
+| `src/components/widgets/Form.tsx` | 416 | `useEffect` con `JSON.stringify(defaultValues)` → loop su oggetti profondi |
+| `src/components/widgets/Form.tsx` | 458 | Required validation via `document.querySelectorAll` → non funziona su campi dinamici |
 | `src/components/widgets/Form.tsx` | 441 | `//return false` → validazione required non blocca il submit |
 | `src/components/widgets/Form.tsx` | 127-136 | Blocco commentato di 10 righe |
-| `src/components/widgets/Form.tsx` | 443-454 | Blocco commentato `onSave` |
-| `src/components/widgets/Form.tsx` | 130-131 | `console.log("FORM defaultValue!!!!!!!!!!!!")` commentato |
 
 ### A.3 Firebase
 
-| File | Linea | Bug |
-|------|-------|-----|
-| `src/providers/data/firebase.ts` | — | Usa `firebase/compat` SDK (deprecato, bundle più grande) |
-| `src/providers/data/firebase.ts` | — | `firebase/compat/database` non in dipendenze esplicite |
-| `src/providers/data/firebase.ts` | — | `consoleLog` chiamate multiple non rimosse |
+| File | Bug |
+|------|-----|
+| `src/providers/data/firebase.ts` | Usa `firebase/compat` SDK (deprecato, bundle 2x) |
+| `src/providers/data/firebase.ts` | `consoleLog` chiamate multiple non rimosse |
+| `src/providers/data/firebase.ts` | `useListener` chiamato come metodo durante render |
+| `src/providers/data/firebase.ts` | Side effect a module import via `onConfigChange` |
 
-### A.4 Hook violations
-
-| File | Linea | Bug |
-|------|-------|-----|
-| `src/providers/data/firebase.ts` | — | `useListener` chiamato come metodo durante render → fragile, dipende dall'ordine di chiamata |
-| `src/providers/data/firebase.ts` | 39-43 | Side effect registrato a module import via `onConfigChange` (event bus fuori da React lifecycle) |
-| `src/components/widgets/Form.tsx` | 416 | `JSON.stringify` in useEffect deps → identità non stabile |
-
-### A.5 Legacy / dead code
+### A.4 Legay / dead code
 
 | File | Cosa |
 |------|------|
-| `src/components/Component.tsx` | Pattern legacy model/template con `todo` comment |
-| `src/components/Template.tsx` | Template legacy ancora presente |
-| `src/components/ui/fields/Command.tsx` | `contentEditable`/`document.execCommand` — prototipo deprecato |
-| `src/pages/Helper.tsx` | Bootstrap ScrollSpy storico, non parte del flusso moderno |
+| `src/components/Component.tsx` | Pattern legacy con `todo` comment |
+| `src/components/Template.tsx` | Template legacy |
+| `src/components/ui/fields/Command.tsx` | `contentEditable`/`document.execCommand` |
+| `src/pages/Helper.tsx` | Bootstrap ScrollSpy storico |
 
 ---
 
-## Appendice B — Strategia di posizionamento
+## Appendice B — Provider matrix reale (2026-05-27)
 
-### B.1 Chi NON provare a essere
-
-react-firestrap **non deve** competere su:
-- **Ecosistema adapter**: React Admin ha 50+, non li raggiungerà mai
-- **Headless flexibility**: Refine è nato headless, ha 5 UI library integrate
-- **SSR/Next.js**: React Admin e Refine ci stanno investendo
-- **Enterprise support**: React Admin ha un team pagato di 10+ persone
-- **Stars GitHub**: non avrà mai 30k stelle
-
-### B.2 Chi DEVE essere
-
-> **Il framework React per backoffice AI-first, schema-driven, zero-config.**
-
-Target:
-- Team piccoli (1-5 dev) che costruiscono admin panel interni
-- Progetti Firebase o Supabase (non REST/GraphQL generici)
-- App che vogliono AI integrata senza doverla costruire
-- Prototipazione rapida → produzione
-
-### B.3 Value proposition in una riga
-
-> *"10 righe di codice → CRUD + AI + auth + real-time. Qualsiasi backend. Zero configurazione."*
-
-### B.4 Messaggi chiave
-
-1. **"Schema-driven, non resource-driven"** — mentre React Admin ti fa configurare resource per resource, react-firestrap deduce tutto da un path
-2. **"AI first-party"** — non un plugin, non un add-on enterprise. `AI.fetch()` è built-in come `<Input />`
-3. **"Provider manifest: if-less architecture"** — aggiungere un backend = una riga in un array
-4. **"Theme + Motion + Head: unified"** — un unico sistema per look, animazioni e SEO, non 3 library da integrare
-5. **"Diagnostic by design"** — il framework ti dice cosa manca prima che tu fallisca
+| Provider | Data | Storage | Auth | Stato |
+|----------|------|---------|------|-------|
+| Firebase (RTDB) | ✅ | ✅ | ❌ | Manca auth email/password |
+| Firebase (Firestore) | ❌ | ❌ | ❌ | Mai iniziato |
+| Supabase | ❌ stub | ❌ stub | ❌ | Tutti loggano "not fully implemented yet" |
+| Mock | ✅ | N/A | N/A | Funzionante |
+| Google | N/A | N/A | ✅ | Solo OAuth |
+| Dropbox | N/A | ✅ export | ✅ | Parziale |
 
 ---
 
-## Appendice C — Metriche target per v2.0.0
-
-### C.1 Quality gates
-
-| Metrica | Target | Come si misura |
-|---------|--------|----------------|
-| Test count | ≥ 200 | `npm run test -- --reporter=verbose` |
-| Coverage | ≥ 70% | `npm run test:coverage` |
-| TypeScript strict | 0 errori | `npx tsc --noEmit` |
-| CI build | ✅ su ogni PR | GitHub Actions |
-| Showcase build | ✅ | `cd clients/showcase && npm run build` |
-| E2E flussi | ≥ 1 | Playwright |
-
-### C.2 Provider matrix completa
-
-| Provider | Data | Storage | Auth |
-|----------|------|---------|------|
-| Firebase (RTDB) | ✅ | ✅ | ❌ (manca email/password) |
-| Firebase (Firestore) | ❌ (CR-033) | ✅ | ❌ |
-| Supabase | ❌ stub (CR-034) | ❌ stub (CR-035) | ❌ (CR-036) |
-| Mock | ✅ | N/A | N/A |
-| Google | N/A | N/A | ✅ |
-| Dropbox | N/A | ✅ (export) | ✅ |
-
-Target: **tutti ✅**
-
-### C.3 Feature checklist pubblica
-
-| Feature | Stato | Priorità |
-|---------|-------|----------|
-| Grid CRUD | ✅ reale | — |
-| Form + nested | ✅ reale | — |
-| AI integration | 🔄 bug fix needed | P0 |
-| Upload con crop | ✅ reale | — |
-| Repeat dinamico | ✅ reale | — |
-| Theme system | ✅ reale | — |
-| Motion system | 🔄 quasi completo | P1 |
-| Head management | ✅ reale | — |
-| i18n | ❌ | P0 |
-| Sidebar block | ❌ (CR-031) | P2 |
-| WYSIWYG editor | ❌ (CR-024) | P2 |
-| ContextMenu | ❌ (CR-025) | P3 |
-| Command palette | ❌ | P2 |
-| GraphQL | ❌ | P2 |
-| SSR support | ❌ | P3 |
-| E2E tests | ❌ | P0 |
-| CI/CD | ❌ | P0 |
-
----
-
-## Riepilogo ordine di esecuzione consigliato
+## Appendice C — Ordine di esecuzione
 
 ```text
-Fase 1 — Fondamenta (mese 1)
-├── P0.1: Provider incompleti (FirebaseAuth, Firestore, Supabase tutto)
-├── P0.2: Validazione form
-├── P0.3: Debug log puliti
-├── P0.4: Error boundaries
-├── P0.5: i18n base
-└── P3.2: CI/CD
+FASE 0 — ONESTA' (1 settimana)
+├── P0.0: AI provider — fixare TUTTO (URL, parsing, log, tipi, test)
+├── P0.4: CI/CD — GitHub Actions (test + build su ogni PR)
+├── P0.3: ErrorBoundary — 3 livelli (App, provider, route)
+├── A.4: Rimuovere dead code
+└── [DOC] Aggiungere KNOWN_ISSUES.md, rendere README onesto
 
-Fase 2 — Qualità (mese 2)
-├── P3.1: Contract test per tutti i provider
-├── P3.3: TypeScript quality (ridurre any)
-├── P3.4: Bundle optimization
-├── A.5: Rimuovere legacy dead code
-└── P3.5: Documentazione pubblica + tutorial
+FASE 1 — FONDAMENTA (2-3 settimane)
+├── P0.1: Provider incompleti
+│   ├── FirebaseAuthProvider (email/password, anonymous)
+│   ├── FirestoreDataProvider
+│   ├── SupabaseDataProvider completo
+│   ├── SupabaseStorageProvider completo
+│   └── SupabaseAuthProvider
+├── P0.2: Validazione form — fix required fields
+└── P3.4: Firebase SDK compat → modular (bundle -50%)
 
-Fase 3 — Differenziatori (mese 3)
-├── P1.1: AI provider fix + potenziamento
-├── P1.2: CRUD schema-driven estremo
-├── P1.3: Provider configuration state documentato
-├── P1.4: Theme + Motion playground
-├── P1.5: Multi-tenant documentato
-├── P1.6: Head management documentato
-└── P4.2: CLI template saas + ai
+FASE 2 — QUALITA' (3-4 settimane)
+├── P3.1: Contract test per ogni provider
+├── P3.2: TypeScript quality (ridurre any)
+├── P3.3: Bundle optimization
+├── P3.5: Documentazione pubblica + demo live
+└── P4.1: CLI — template saas + ai
 
-Fase 4 — Feature parity (mese 4)
-├── P2.1: Paginazione/filtri server-side
-├── P2.2: Auth provider multipli
-├── P2.3: Command palette, Notifications
-├── P2.4: Devtools
-└── P4.1: REST adapter generico
+FASE 3 — DIFFERENZIATORI (3-4 settimane)
+├── P1.1: AI potenziato (form generation, auto-fill, caption)
+├── P1.2: CRUD schema-driven estremo (inline edit, export, bulk)
+├── P1.3: REST adapter generico
+├── P1.4: Command palette
+├── P1.5: Provider Status Dashboard
+└── P2.1: i18n
 
-Fase 5 — Community (mese 5+)
-├── P4.3: Discord, contributing guide
-├── P2.4: Storybook
-├── P2.1: GraphQL support
-└── v2.0.0 release
+FASE 4 — PARITY + ECOSISTEMA (1-2 mesi)
+├── P2.2: Auth — OAuth provider multipli, magic link
+├── P2.3: Gestione dati — paginazione/filtri server-side
+├── P2.4: UI/UX — Notifications, WYSIWYG, Sidebar
+├── P2.5: Devtools, Inferencer
+├── P4.2: Adapter gallery
+├── P4.3: Community — Discussions, Contributing guide
+└── v1.0.0 release
 ```
 
 ---
 
-> Questo documento è uno strumento di lavoro. Spunta i checkbox man mano che avanzi.
-> Quando tutti i P0 sono ✅, react-firestrap è pronto per produzione.
-> Quando P0 + P1 sono ✅, è pronto per competere.
+## Appendice D — Quality gates per v1.0.0
+
+| Metrica | Target | Come si misura |
+|---------|--------|----------------|
+| Test count | ≥ 200 | `npm run test -- --reporter=verbose` |
+| Coverage | ≥ 60% | `npm run test:coverage` |
+| Test falliti | 0 | `npm run test` |
+| TypeScript strict | 0 errori | `npx tsc --noEmit` |
+| CI build | ✅ su ogni PR | GitHub Actions |
+| Showcase build | ✅ | `cd clients/showcase && npm run build` |
+| E2E flussi | ≥ 1 (CRUD) | Playwright |
+| Provider Data | 4/4 funzionanti | Mock ✅ FirebaseRTDB ✅ Firestore ✅ Supabase ✅ |
+| Provider Auth | 4/4 funzionanti | Google ✅ Firebase ✅ Supabase ✅ Dropbox ✅ |
+
+---
+
+> **Regola**: Quando tutti i P0 sono ✅, il progetto è pronto per produzione.
+> Quando P0 + P1 sono ✅, è pronto per competere seriamente.
 > Quando tutto è ✅, è pronto per vincere.
+
+> **Nota**: i18n è stato declassato da P0 a P2 perché non è un bloccante per l'adozione. Nessuno sceglie un framework per l'internazionalizzazione. La priorità reale è: AI che funziona → provider che funzionano → feature differenzianti → qualità.

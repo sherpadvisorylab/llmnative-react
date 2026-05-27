@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Image, Modal, Icon, useImage } from '@llmnative/react';
-import PageLayout from '../../components/PageLayout';
-import Section from '../../components/Section';
-import PropDocsTable from '../../components/PropDocsTable';
-import { usePlayground } from '../../context/PlaygroundContext';
-import type { PropDef, PlaygroundConfig } from '../../types/playground';
+import PageLayout from '../../showcase/page';
+import Section from '../../docs-kit/page/Section';
+import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
+import { usePlayground } from '../../docs-kit/playground';
+import type { PropDef, PlaygroundConfig } from '../../docs-kit/playground';
 
 function makeLandscapeSvg(label: string, bg: string, accent: string) {
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360"><rect width="640" height="360" fill="${bg}"/><circle cx="510" cy="88" r="72" fill="${accent}"/><path d="M0 260 130 155 250 235 370 115 520 215 640 150V360H0z" fill="#0f172a"/><rect x="40" y="38" width="200" height="14" rx="7" fill="#ffffff44"/><text x="40" y="76" font-family="Arial" font-size="30" font-weight="700" fill="white">${label}</text></svg>`;
@@ -28,20 +28,20 @@ const SRC_PRESETS: Record<string, string> = {
 };
 
 const IMAGE_PROPS: PropDef[] = [
-    { name: 'src', type: 'string', required: true, group: 'Core', description: 'Preset image — selects between the sample assets used in the playground', control: 'select', options: ['landscape', 'landscape-alt', 'portrait', 'empty'] },
+    { name: 'src', type: 'string', required: true, group: 'Core', description: 'Preset image â€” selects between the sample assets used in the playground', control: 'select', options: ['landscape', 'landscape-alt', 'portrait', 'empty'] },
     { name: 'label', type: 'string', group: 'Core', description: 'Alt text shown to screen readers and on broken images', control: 'text' },
-    { name: 'title', type: 'string', group: 'Core', description: 'Native title attribute — shown as tooltip on hover', control: 'text' },
-    { name: 'placeholder', type: 'string', group: 'Core', description: 'Fallback image shown when src is empty or not yet resolved.', control: 'text', help: 'URL (https://…) · path relativo (/img/x.png) · data URI SVG (data:image/svg+xml,…) · base64 (data:image/png;base64,…). Vuoto = placeholder del tema.' },
+    { name: 'title', type: 'string', group: 'Core', description: 'Native title attribute â€” shown as tooltip on hover', control: 'text' },
+    { name: 'placeholder', type: 'string', group: 'Core', description: 'Fallback image shown when src is empty or not yet resolved.', control: 'text', help: 'URL (https://â€¦) Â· path relativo (/img/x.png) Â· data URI SVG (data:image/svg+xml,â€¦) Â· base64 (data:image/png;base64,â€¦). Vuoto = placeholder del tema.' },
     { name: 'width', type: 'number', group: 'Dimensions', description: 'Display width in pixels', control: 'number', min: 40, max: 640 },
     { name: 'height', type: 'number', group: 'Dimensions', description: 'Display height in pixels', control: 'number', min: 40, max: 600 },
-    { name: 'fit', type: '"cover" | "contain" | "fill" | "scale-down" | "none"', group: 'Dimensions', description: 'How the image fills its box — maps to CSS object-fit', control: 'select', options: ['cover', 'contain', 'fill', 'scale-down', 'none'] },
-    { name: 'position', type: 'string', group: 'Dimensions', description: 'Anchor point of the image inside the box — maps to CSS object-position', control: 'select', options: ['center', 'top', 'bottom', 'left', 'right', 'top left', 'top right', 'bottom left', 'bottom right'] },
+    { name: 'fit', type: '"cover" | "contain" | "fill" | "scale-down" | "none"', group: 'Dimensions', description: 'How the image fills its box â€” maps to CSS object-fit', control: 'select', options: ['cover', 'contain', 'fill', 'scale-down', 'none'] },
+    { name: 'position', type: 'string', group: 'Dimensions', description: 'Anchor point of the image inside the box â€” maps to CSS object-position', control: 'select', options: ['center', 'top', 'bottom', 'left', 'right', 'top left', 'top right', 'bottom left', 'bottom right'] },
     { name: 'feedback', type: 'ReactNode', group: 'Slots', description: 'Caption or feedback text rendered below the image', control: 'text' },
     { name: 'pre', type: 'ReactNode', group: 'Slots', description: 'Content rendered to the left of the image', control: 'text' },
     { name: 'post', type: 'ReactNode', group: 'Slots', description: 'Content rendered to the right of the image', control: 'text' },
-    { name: 'responsive', type: 'boolean', group: 'Responsive', description: 'Aggiunge srcset all\'export (toHTML / toJSON). Non cambia il preview — il browser userebbe varianti file che in demo non esistono.', control: 'boolean' },
-    { name: 'srcsetMode', type: '"width" | "density"', group: 'Responsive', description: 'Strategia srcset. width (-400w/-800w/-1600w): immagini fluid/responsive, il browser sceglie in base a viewport + sizes. density (@2x/@3x): immagini a dimensione fissa (logo, avatar), il browser sceglie in base al devicePixelRatio.', control: 'select', options: ['width', 'density'], help: 'width → usa sizes per dire al browser quanto spazio occupa l\'immagine · density → nessun sizes, scelta basata sul DPR dello schermo', hidden: (p) => !p.responsive },
-    { name: 'sizesPreset', type: 'string', group: 'Responsive', description: 'Descrive al browser quanto spazio visivo occupa l\'immagine al variare della viewport.', control: 'select', options: ['Hero — occupa tutta la larghezza', 'Articolo — colonna di testo (max 900px)', 'Card — griglia 2 colonne', 'Card — griglia 3 colonne', 'Thumbnail — elemento piccolo'], help: 'Hero: 100vw · Articolo: (max 900px) 100vw, 900px · Card 2col: (≤640px) 100vw, 50vw · Card 3col: (≤640px) 100vw, (≤1024px) 50vw, 33vw · Thumb: (≤640px) 50vw, 200px', hidden: (p) => !p.responsive || p.srcsetMode === 'density' },
+    { name: 'responsive', type: 'boolean', group: 'Responsive', description: 'Aggiunge srcset all\'export (toHTML / toJSON). Non cambia il preview â€” il browser userebbe varianti file che in demo non esistono.', control: 'boolean' },
+    { name: 'srcsetMode', type: '"width" | "density"', group: 'Responsive', description: 'Strategia srcset. width (-400w/-800w/-1600w): immagini fluid/responsive, il browser sceglie in base a viewport + sizes. density (@2x/@3x): immagini a dimensione fissa (logo, avatar), il browser sceglie in base al devicePixelRatio.', control: 'select', options: ['width', 'density'], help: 'width â†’ usa sizes per dire al browser quanto spazio occupa l\'immagine Â· density â†’ nessun sizes, scelta basata sul DPR dello schermo', hidden: (p) => !p.responsive },
+    { name: 'sizesPreset', type: 'string', group: 'Responsive', description: 'Descrive al browser quanto spazio visivo occupa l\'immagine al variare della viewport.', control: 'select', options: ['Hero â€” occupa tutta la larghezza', 'Articolo â€” colonna di testo (max 900px)', 'Card â€” griglia 2 colonne', 'Card â€” griglia 3 colonne', 'Thumbnail â€” elemento piccolo'], help: 'Hero: 100vw Â· Articolo: (max 900px) 100vw, 900px Â· Card 2col: (â‰¤640px) 100vw, 50vw Â· Card 3col: (â‰¤640px) 100vw, (â‰¤1024px) 50vw, 33vw Â· Thumb: (â‰¤640px) 50vw, 200px', hidden: (p) => !p.responsive || p.srcsetMode === 'density' },
     { name: 'className', type: 'string', group: 'Styling', description: 'CSS classes applied to the <img> element', control: 'text' },
     { name: 'wrapClass', type: 'string', group: 'Styling', description: 'CSS classes applied to the outer wrapper', control: 'text' },
 ];
@@ -71,11 +71,11 @@ function ImageExportPanel(p: Record<string, any>) {
     const exportFilename = SRC_FILENAMES[p.src] ?? (p.src ? `${p.src}.jpg` : 'image.jpg');
 
     const SIZES_MAP: Record<string, string> = {
-        'Hero — occupa tutta la larghezza':      '100vw',
-        'Articolo — colonna di testo (max 900px)': '(max-width: 900px) 100vw, 900px',
-        'Card — griglia 2 colonne':              '(max-width: 640px) 100vw, 50vw',
-        'Card — griglia 3 colonne':              '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw',
-        'Thumbnail — elemento piccolo':          '(max-width: 640px) 50vw, 200px',
+        'Hero â€” occupa tutta la larghezza':      '100vw',
+        'Articolo â€” colonna di testo (max 900px)': '(max-width: 900px) 100vw, 900px',
+        'Card â€” griglia 2 colonne':              '(max-width: 640px) 100vw, 50vw',
+        'Card â€” griglia 3 colonne':              '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw',
+        'Thumbnail â€” elemento piccolo':          '(max-width: 640px) 50vw, 200px',
     };
     const sizesAttr = SIZES_MAP[p.sizesPreset] ?? '(max-width: 640px) 100vw, 50vw';
 
@@ -130,8 +130,8 @@ function ImageExportPanel(p: Record<string, any>) {
             {p.responsive && (
                 <p className="mt-2 text-center text-xs text-muted-foreground">
                     {p.srcsetMode === 'density'
-                        ? <>srcset density attivo — l'export include <code className="font-mono">1x / 2x / 3x</code> (<code className="font-mono">@2x</code> / <code className="font-mono">@3x</code>)</>
-                        : <>srcset width attivo — l'export include <code className="font-mono">400w / 800w / 1600w</code></>
+                        ? <>srcset density attivo â€” l'export include <code className="font-mono">1x / 2x / 3x</code> (<code className="font-mono">@2x</code> / <code className="font-mono">@3x</code>)</>
+                        : <>srcset width attivo â€” l'export include <code className="font-mono">400w / 800w / 1600w</code></>
                     }
                 </p>
             )}
@@ -146,7 +146,7 @@ function ImageExportPanel(p: Record<string, any>) {
 
             {modal?.open && (
                 <Modal
-                    title={modal.mode === 'json' ? 'Image Params — JSON' : 'Image Tag — HTML'}
+                    title={modal.mode === 'json' ? 'Image Params â€” JSON' : 'Image Tag â€” HTML'}
                     size="md"
                     position="center"
                     onClose={() => setModal(null)}
@@ -201,7 +201,7 @@ const PLAYGROUND: PlaygroundConfig = {
         post: '',
         responsive: false,
         srcsetMode: 'width',
-        sizesPreset: 'Card — griglia 2 colonne',
+        sizesPreset: 'Card â€” griglia 2 colonne',
         className: 'rounded-lg border',
         wrapClass: '',
     },
@@ -243,7 +243,7 @@ export default function ImagePage() {
                         <Image
                             src={SAMPLE_LANDSCAPE}
                             label="Hero banner"
-                            feedback="Hero banner — 1280 × 720 px"
+                            feedback="Hero banner â€” 1280 Ã— 720 px"
                             className="rounded-lg border object-cover max-w-xs w-full"
                         />
                         <Image
@@ -251,7 +251,7 @@ export default function ImagePage() {
                             label="Campaign hero"
                             feedback={
                                 <span className="flex items-center gap-1 text-success font-medium">
-                                    ✓ Approved
+                                    âœ“ Approved
                                 </span>
                             }
                             className="rounded-lg border object-cover max-w-xs w-full"
@@ -264,7 +264,7 @@ export default function ImagePage() {
 <Image
     src={bannerUrl}
     label="Hero banner"
-    feedback="Hero banner — 1280 × 720 px"
+    feedback="Hero banner â€” 1280 Ã— 720 px"
     className="rounded-lg border max-w-xs w-full"
 />
 
@@ -272,7 +272,7 @@ export default function ImagePage() {
 <Image
     src={campaignUrl}
     label="Campaign hero"
-    feedback={<span className="text-success font-medium">✓ Approved</span>}
+    feedback={<span className="text-success font-medium">âœ“ Approved</span>}
     className="rounded-lg border max-w-xs w-full"
 />`}
             />
@@ -283,7 +283,7 @@ export default function ImagePage() {
                 preview={
                     <div className="flex flex-wrap gap-6 items-start">
                         <div className="flex flex-col gap-1">
-                            <span className="text-xs text-muted-foreground mb-1">No src — theme default</span>
+                            <span className="text-xs text-muted-foreground mb-1">No src â€” theme default</span>
                             <Image
                                 src=""
                                 label="Missing image"
@@ -317,7 +317,7 @@ export default function ImagePage() {
 
             <Section
                 title="Pre / post slots"
-                description="pre renders to the left of the image, post to the right — both vertically centred. Use them for labels, action buttons or metadata beside the image. feedback still appears below."
+                description="pre renders to the left of the image, post to the right â€” both vertically centred. Use them for labels, action buttons or metadata beside the image. feedback still appears below."
                 preview={
                     <div className="flex flex-col gap-6 w-full">
                         <Image
@@ -331,7 +331,7 @@ export default function ImagePage() {
                             }
                             post={
                                 <div className="flex flex-col gap-1">
-                                    <span className="badge badge-secondary whitespace-nowrap">1280 × 720</span>
+                                    <span className="badge badge-secondary whitespace-nowrap">1280 Ã— 720</span>
                                     <span className="badge badge-light">SVG</span>
                                 </div>
                             }
@@ -344,7 +344,7 @@ export default function ImagePage() {
                             pre={<span className="text-xs text-muted-foreground whitespace-nowrap">2 / 8</span>}
                             post={
                                 <div className="flex flex-col gap-1 items-start">
-                                    <span className="badge badge-secondary whitespace-nowrap">360 × 480</span>
+                                    <span className="badge badge-secondary whitespace-nowrap">360 Ã— 480</span>
                                     <span className="badge badge-light">Portrait</span>
                                 </div>
                             }
@@ -366,7 +366,7 @@ export default function ImagePage() {
     }
     post={
         <div className="flex flex-col gap-1">
-            <span className="badge badge-secondary">1280 × 720</span>
+            <span className="badge badge-secondary">1280 Ã— 720</span>
             <span className="badge badge-light">SVG</span>
         </div>
     }
@@ -397,19 +397,19 @@ export default function ImagePage() {
                 }
                 code={`import { Image } from '@llmnative/react';
 
-// cover  — crops to fill the box, no empty space (default for thumbnails)
+// cover  â€” crops to fill the box, no empty space (default for thumbnails)
 <Image src={url} width={160} height={160} fit="cover" className="rounded-lg border" />
 
-// contain — letterboxes inside the box, full image always visible
+// contain â€” letterboxes inside the box, full image always visible
 <Image src={url} width={160} height={160} fit="contain" className="rounded-lg border bg-muted" />
 
-// fill — stretches to fill exactly, distorts aspect ratio
+// fill â€” stretches to fill exactly, distorts aspect ratio
 <Image src={url} width={160} height={160} fit="fill" className="rounded-lg border" />
 
-// scale-down — like contain but never upscales beyond natural size
+// scale-down â€” like contain but never upscales beyond natural size
 <Image src={url} width={160} height={160} fit="scale-down" className="rounded-lg border bg-muted" />
 
-// none — renders at natural image size, ignores width/height box
+// none â€” renders at natural image size, ignores width/height box
 <Image src={url} width={160} height={160} fit="none" className="rounded-lg border" />`}
             />
 
@@ -426,7 +426,7 @@ export default function ImagePage() {
                                 height={120}
                                 fit="cover"
                                 className="rounded border"
-                                feedback={<span className="text-xs text-muted-foreground">120 × 120</span>}
+                                feedback={<span className="text-xs text-muted-foreground">120 Ã— 120</span>}
                             />
                         </div>
                         <div className="flex flex-col items-center gap-1">
@@ -437,7 +437,7 @@ export default function ImagePage() {
                                 height={135}
                                 fit="cover"
                                 className="rounded-lg border"
-                                feedback={<span className="text-xs text-muted-foreground">240 × 135</span>}
+                                feedback={<span className="text-xs text-muted-foreground">240 Ã— 135</span>}
                             />
                         </div>
                         <div className="flex flex-col items-center gap-1">
@@ -448,17 +448,17 @@ export default function ImagePage() {
                                 height={202}
                                 fit="cover"
                                 className="rounded-xl border"
-                                feedback={<span className="text-xs text-muted-foreground">360 × 202</span>}
+                                feedback={<span className="text-xs text-muted-foreground">360 Ã— 202</span>}
                             />
                         </div>
                     </div>
                 }
                 code={`import { Image } from '@llmnative/react';
 
-// thumbnail — square crop
+// thumbnail â€” square crop
 <Image src={url} label="Thumbnail" width={120} height={120} fit="cover" className="rounded border" />
 
-// card — 16:9 crop
+// card â€” 16:9 crop
 <Image src={url} label="Card" width={240} height={135} fit="cover" className="rounded-lg border" />
 
 // large preview
@@ -510,20 +510,20 @@ export default function ImagePage() {
             />
 
             <Section
-                title="useImage — HTML responsive con srcset"
-                description="useImage(config) restituisce un helper con .toHtml(srcset?) che genera un tag <img> completo e SEO-ottimizzato come stringa. Non ridimensiona le immagini: presuppone che le varianti di file esistano già sul server con la naming convention generata."
+                title="useImage â€” HTML responsive con srcset"
+                description="useImage(config) restituisce un helper con .toHtml(srcset?) che genera un tag <img> completo e SEO-ottimizzato come stringa. Non ridimensiona le immagini: presuppone che le varianti di file esistano giÃ  sul server con la naming convention generata."
                 preview={
                     <div className="flex flex-col gap-8 w-full">
                         {/* Density mode */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
                             <div className="flex flex-col gap-2">
-                                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Immagine — density 1x / 2x / 3x</span>
+                                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Immagine â€” density 1x / 2x / 3x</span>
                                 <Image
                                     src={SAMPLE_LANDSCAPE}
                                     label="Hero banner"
                                     width={280} height={157} fit="cover"
                                     className="rounded-lg border"
-                                    feedback={<span className="text-xs text-muted-foreground">hero.jpg · hero@2x.jpg · hero@3x.jpg</span>}
+                                    feedback={<span className="text-xs text-muted-foreground">hero.jpg Â· hero@2x.jpg Â· hero@3x.jpg</span>}
                                 />
                             </div>
                             <div className="flex flex-col gap-2">
@@ -537,13 +537,13 @@ export default function ImagePage() {
                         {/* Width mode */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
                             <div className="flex flex-col gap-2">
-                                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Immagine — width 400w / 800w / 1200w (LCP)</span>
+                                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Immagine â€” width 400w / 800w / 1200w (LCP)</span>
                                 <Image
                                     src={SAMPLE_LANDSCAPE_ALT}
                                     label="Campaign hero"
                                     width={280} height={157} fit="cover"
                                     className="rounded-lg border"
-                                    feedback={<span className="text-xs text-muted-foreground">photo-400w.jpg · photo-800w.jpg · photo-1200w.jpg</span>}
+                                    feedback={<span className="text-xs text-muted-foreground">photo-400w.jpg Â· photo-800w.jpg Â· photo-1200w.jpg</span>}
                                 />
                             </div>
                             <div className="flex flex-col gap-2">
@@ -558,24 +558,24 @@ export default function ImagePage() {
                 }
                 code={`import { useImage } from '@llmnative/react';
 
-// Density mode — fixed-size images (logo, avatar, icon)
+// Density mode â€” fixed-size images (logo, avatar, icon)
 // Files expected: hero.jpg  hero@2x.jpg  hero@3x.jpg
 const img = useImage({ src: 'hero.jpg', alt: 'Hero banner', width: 400, height: 225, loading: 'lazy' });
 img.toHtml({ mode: 'density', densities: [1, 2, 3] });
 
-// Width mode — responsive images (hero, card, content)
+// Width mode â€” responsive images (hero, card, content)
 // Files expected: photo-400w.jpg  photo-800w.jpg  photo-1200w.jpg
-// priority: true → fetchpriority="high" + loading="eager"  (LCP image)
+// priority: true â†’ fetchpriority="high" + loading="eager"  (LCP image)
 const hero = useImage({ src: 'photo.jpg', alt: 'Campaign hero', width: 800, height: 450, priority: true });
 hero.toHtml({ mode: 'width', widths: [400, 800, 1200], sizes: '(max-width: 640px) 100vw, 800px' });
 
-// Custom suffix override: img.jpg → img-2x.jpg instead of img@2x.jpg
+// Custom suffix override: img.jpg â†’ img-2x.jpg instead of img@2x.jpg
 const logo = useImage({ src: 'img.jpg', alt: 'Img' });
 logo.toHtml({ mode: 'density', densities: [1, 2], suffix: (d) => d === 1 ? '' : \`-\${d}x\` });`}
             />
 
             <Section
-                title="useImage — JSON dei parametri"
+                title="useImage â€” JSON dei parametri"
                 description="useImage(config).toJson(srcset?) restituisce un JSON con tutti gli attributi img. Utile per CMS headless, server-side rendering o quando serve passare i metadati separati dall'HTML. .params(srcset?) restituisce l'oggetto grezzo."
                 preview={
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start w-full">
@@ -586,10 +586,10 @@ logo.toHtml({ mode: 'density', densities: [1, 2], suffix: (d) => d === 1 ? '' : 
                                 label="Card image"
                                 width={280} height={157} fit="cover"
                                 className="rounded-lg border"
-                                feedback={<span className="text-xs text-muted-foreground">card.jpg · 640×360 · fit: cover</span>}
+                                feedback={<span className="text-xs text-muted-foreground">card.jpg Â· 640Ã—360 Â· fit: cover</span>}
                             />
                             <div className="flex flex-col gap-2">
-                                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mt-2">→ HTML</span>
+                                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mt-2">â†’ HTML</span>
                                 <pre className="rounded-lg border bg-muted p-3 text-xs overflow-x-auto whitespace-pre">{
                                     useImage({ src: 'card.jpg', alt: 'Card image', width: 640, height: 360, fit: 'cover', loading: 'lazy' })
                                         .toHtml({ mode: 'width', widths: [320, 640, 1280], sizes: '(max-width: 768px) 100vw, 640px' })
@@ -597,7 +597,7 @@ logo.toHtml({ mode: 'density', densities: [1, 2], suffix: (d) => d === 1 ? '' : 
                             </div>
                         </div>
                         <div className="flex flex-col gap-2">
-                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">→ JSON params</span>
+                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">â†’ JSON params</span>
                             <pre className="rounded-lg border bg-muted p-3 text-xs overflow-x-auto whitespace-pre">{
                                 useImage({ src: 'card.jpg', alt: 'Card image', width: 640, height: 360, fit: 'cover', loading: 'lazy' })
                                     .toJson({ mode: 'width', widths: [320, 640, 1280], sizes: '(max-width: 768px) 100vw, 640px' })
@@ -611,8 +611,8 @@ const img = useImage({ src: 'card.jpg', alt: 'Card image', width: 640, height: 3
 const srcset = { mode: 'width', widths: [320, 640, 1280], sizes: '(max-width: 768px) 100vw, 640px' };
 
 const html   = img.toHtml(srcset);   // <img ...> HTML string
-const json   = img.toJson(srcset);   // JSON string — for CMS / SSR / metadata
-const params = img.params(srcset);   // ImageParams object — for custom serialisation`}
+const json   = img.toJson(srcset);   // JSON string â€” for CMS / SSR / metadata
+const params = img.params(srcset);   // ImageParams object â€” for custom serialisation`}
             />
 
             <PropDocsTable props={IMAGE_PROPS} />

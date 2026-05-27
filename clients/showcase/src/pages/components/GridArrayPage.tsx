@@ -8,14 +8,14 @@ import {
     Select,
     String as TextField,
 } from '@llmnative/react';
-import PageLayout from '../../components/PageLayout';
-import Section from '../../components/Section';
-import PropDocsTable from '../../components/PropDocsTable';
-import { usePlayground } from '../../context/PlaygroundContext';
-import { definePropDocs } from '../../types/propDocs';
-import type { PlaygroundConfig, PropDef } from '../../types/playground';
+import PageLayout from '../../showcase/page';
+import Section from '../../docs-kit/page/Section';
+import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
+import { usePlayground } from '../../docs-kit/playground';
+import { definePropDocs } from '../../docs-kit/docs';
+import type { PlaygroundConfig, PropDef } from '../../docs-kit/playground';
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 type UserRecord = {
     _key?: string;
@@ -28,7 +28,7 @@ type UserRecord = {
     city: string;
 };
 
-// ─── Seed data ────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Seed data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const GRID_SOURCE_PATH = '/showcase/grid/users';
 
@@ -44,7 +44,7 @@ const USERS: Record<string, Omit<UserRecord, '_key' | 'id'>> = {
 const toArrayRecords = (): UserRecord[] =>
     Object.entries(USERS).map(([_key, record]) => ({ _key, id: _key, ...record }));
 
-// ─── Shared helpers ────────────────────────────────────────────────────────────
+// â”€â”€â”€ Shared helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const statusClass = (status: string) =>
     status === 'active' ? 'bg-success' : status === 'review' ? 'bg-warning' : 'bg-secondary';
@@ -60,7 +60,7 @@ const baseColumns = [
     { key: 'team', label: 'Team', sortable: true },
 ];
 
-// ─── Static column sets for section examples ─────────────────────────────────
+// â”€â”€â”€ Static column sets for section examples â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const displayColumns = [
     { key: 'name', label: 'Name', sortable: true },
@@ -80,7 +80,7 @@ const displayColumns = [
     { key: 'team', label: 'Team', sortable: true },
 ];
 
-// ─── Playground helpers ───────────────────────────────────────────────────────
+// â”€â”€â”€ Playground helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const compilePlaygroundArrowFunction = <TArg, TResult>(value: string) => {
     const match = value.trim().match(/^\(?\s*([A-Za-z_$][\w$]*)\s*\)?\s*=>\s*([\s\S]+)$/);
@@ -124,7 +124,7 @@ const resolvePlaygroundNode = <TCtx,>(value: unknown) => {
     return undefined;
 };
 
-// ─── Form used inside modal CRUD actions ──────────────────────────────────────
+// â”€â”€â”€ Form used inside modal CRUD actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function GridUserForm() {
     return (
@@ -157,7 +157,7 @@ function GridUserForm() {
     );
 }
 
-// ─── Mock wrapper ─────────────────────────────────────────────────────────────
+// â”€â”€â”€ Mock wrapper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function WithMock({ children, provider }: { children: React.ReactNode; provider?: MockDataProvider }) {
     const scopedProvider = React.useMemo(
@@ -171,7 +171,7 @@ function WithMock({ children, provider }: { children: React.ReactNode; provider?
     );
 }
 
-// ─── Prop docs ────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Prop docs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 type GridArrayDocSurface = {
     records: unknown;
@@ -203,7 +203,7 @@ type GridArrayDocSurface = {
 };
 
 const GRID_ARRAY_PROP_DOCS = definePropDocs<GridArrayDocSurface>()([
-    // ── GridArray-specific ────────────────────────────────────────────────────
+    // â”€â”€ GridArray-specific â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     {
         name: 'records',
         type: 'TRecord[]',
@@ -230,7 +230,7 @@ onLoad={(records) =>
   records.map((r) => ({ ...r, name: r.name.toUpperCase() }))
 }`,
     },
-    // ── Shared ────────────────────────────────────────────────────────────────
+    // â”€â”€ Shared â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     {
         name: 'columns',
         type: 'GridColumn<TRecord>[]',
@@ -461,7 +461,7 @@ Record<string, false | {
     },
 ]);
 
-// ─── Playground prop definitions ──────────────────────────────────────────────
+// â”€â”€â”€ Playground prop definitions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const GRID_ARRAY_SPECIFIC_PROPS: PropDef[] = [
     {
@@ -469,7 +469,7 @@ const GRID_ARRAY_SPECIFIC_PROPS: PropDef[] = [
         name: 'records',
         type: 'TRecord[]',
         required: true,
-        description: `Caller-owned record array. In this playground the records come from the Mock database (see the accordion below) — edit it to see the grid update live. Path: ${GRID_SOURCE_PATH}`,
+        description: `Caller-owned record array. In this playground the records come from the Mock database (see the accordion below) â€” edit it to see the grid update live. Path: ${GRID_SOURCE_PATH}`,
         readOnly: true,
     },
     {
@@ -568,7 +568,7 @@ const SHARED_PROPS: PropDef[] = [
         group: 'Shared', name: 'header', type: 'ReactNode | ((ctx) => ReactNode)', default: 'false',
         description: 'Full header override. Receives GridHeaderContext when a function.',
         control: 'textarea', textareaMode: 'text', rows: 2,
-        shortcuts: [{ label: 'false', value: 'false' }, { label: 'fn', value: 'ctx => `${ctx.title} · ${ctx.records.length} records`' }],
+        shortcuts: [{ label: 'false', value: 'false' }, { label: 'fn', value: 'ctx => `${ctx.title} Â· ${ctx.records.length} records`' }],
     },
     {
         group: 'Shared', name: 'footer', type: 'ReactNode | ((ctx) => ReactNode)', default: 'false',
@@ -589,7 +589,7 @@ const SHARED_PROPS: PropDef[] = [
     { group: 'Shared', name: 'audit', type: 'boolean', default: 'false', description: 'Enable form-level audit logging during modal saves.', control: 'boolean' },
 ];
 
-// ─── Playground preview component ────────────────────────────────────────────
+// â”€â”€â”€ Playground preview component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function GridArrayPlaygroundPreview({ p }: { p: Record<string, any> }) {
     const [selectionKeys, setSelectionKeys] = React.useState<string[]>([]);
@@ -746,7 +746,7 @@ function GridArrayPlaygroundPreview({ p }: { p: Record<string, any> }) {
     );
 }
 
-// ─── Playground config ────────────────────────────────────────────────────────
+// â”€â”€â”€ Playground config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const PLAYGROUND: PlaygroundConfig = {
     size: 'fullscreen',
@@ -787,7 +787,7 @@ const PLAYGROUND: PlaygroundConfig = {
     ),
 };
 
-// ─── Selection section previews ───────────────────────────────────────────────
+// â”€â”€â”€ Selection section previews â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function SingleSelectionPreview() {
     const [clickedKey, setClickedKey] = React.useState('');
@@ -834,7 +834,7 @@ function MultipleSelectionPreview() {
     );
 }
 
-// ─── Page export ──────────────────────────────────────────────────────────────
+// â”€â”€â”€ Page export â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export default function GridArrayPage() {
     usePlayground(PLAYGROUND, 'GridArray');
@@ -842,7 +842,7 @@ export default function GridArrayPage() {
     return (
         <PageLayout
             title="GridArray"
-            description="In-memory variant of Grid. Pass a caller-owned record array directly — no provider subscription, no network round-trip. Ideal for computed data, local state or small datasets that live entirely in the frontend."
+            description="In-memory variant of Grid. Pass a caller-owned record array directly â€” no provider subscription, no network round-trip. Ideal for computed data, local state or small datasets that live entirely in the frontend."
         >
             {/* Basic usage */}
             <Section
@@ -879,7 +879,7 @@ export default function GridArrayPage() {
             {/* onLoad transform */}
             <Section
                 title="onLoad transform"
-                description="Use onLoad to normalize or enrich records before display. The transform runs once on each render cycle and supports async — Grid shows a spinner while the Promise resolves."
+                description="Use onLoad to normalize or enrich records before display. The transform runs once on each render cycle and supports async â€” Grid shows a spinner while the Promise resolves."
                 preview={(
                     <GridArray
                         records={toArrayRecords()}

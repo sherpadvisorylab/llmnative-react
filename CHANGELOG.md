@@ -9,53 +9,41 @@ Versioning basato su [Semantic Versioning](https://semver.org/lang/it/).
 
 ## [Unreleased]
 
-> Modifiche in corso sul branch `modernize`. Non ancora rilasciate su `main`.
+> Snapshot riallineato al branch `modernize` verificato il 2026-05-27.
 
 ### Added
-- Build libreria Vite in library mode con output ESM/CJS: `dist/index.mjs` e `dist/index.js`.
-- CSS bundle mantenuto come `dist/index.css`.
-- CLI scaffold Vite-first con provider selection (`firebase`, `supabase`, `mock`, `custom`).
-- Comando non interattivo `npx @llmnative/react create --yes --provider=mock`.
-- Docs provider pattern aggiornate dopo CR-002.
-- Esempio `docs/examples/custom-provider.md` per implementare un DataProvider custom.
-- Pagina showcase Upload con demo image, document e CSV.
-- Demo showcase Select autocomplete e DataProvider-backed con MockDataProvider.
-- Confronto provider side-by-side nella showcase.
-- Pagina docs Quick start nello showcase.
-- MarkdownReader pubblico basato su `react-markdown`/remark/rehype, con GFM, heading anchor, code copy e link interni intercettabili.
-- Pagina showcase MarkdownReader.
-- Loader Markdown showcase con frontmatter, route docs generate e link wiki-style interni.
-- Convenzioni docs Markdown in `docs/README.md`.
+- Driver manifest e service registry tipizzato in `src/providers/manifest.ts`, con driver espliciti come `dbRealtime`, `firestorage`, `googleAuth`, `dropboxAuth` e `gmail`.
+- `AuthButton` provider-agnostic e `DropboxAuthProvider`, con integrazione nel manifest auth.
+- Provider configuration state condiviso (`getConfigurationState()` / `isConfigured()`) per auth, data, storage ed email provider.
+- Motion system theme-driven con supporto `prefers-reduced-motion`, hook pubblici (`useMotionEffect`, `useMotionState`, `usePressMotion`, `useEnterMotion`) e documentazione dedicata in `docs/architecture/motion.md`.
+- Temi self-contained in `themes/default.ts`, `themes/flat.ts` e `themes/cyber.ts`, con export `preset`, `motion` e `components`.
+- Showcase Vite reale con nuove pagine componenti e playground per Auth, Notifications, Buttons, GridArray, GridDB, Prompt, Autocomplete, Checklist, Image, ImageAvatar e LayoutBuilder.
+- Copertura test ampliata fino a 25 file / 188 test, includendo motion, provider configuration, Table, Modal, Dropdown, Gallery e Buttons.
 
 ### Changed
-- `npm run build` usa Vite + TypeScript declarations.
-- Webpack resta disponibile come `npm run build:webpack` per confronto temporaneo.
-- `Select`, `Autocomplete` e `Checklist` leggono le opzioni `db` dal DataProvider registrato e accettano sia `db.srcPath` sia `db.path`.
-- Sidebar docs dello showcase riallineata a pattern standard: Introduction, Installation, Quick start, Create an app, App configuration, Routing & menu.
-- Pagine testuali Docs dello showcase migrate da TSX/stub a Markdown in `docs/`.
-- `clients/showcase` usa Vite con `src/index.tsx`, `src/conf/menu.ts` e `vite.config.mts`; Webpack è stato rimosso dal client.
+- `npm run build` usa stabilmente Vite library mode + TypeScript declarations.
+- `clients/showcase` e' un consumer Vite reale del package e non fa piu' parte di una toolchain Webpack attiva.
+- Le docs operative sono state riallineate alla codebase reale: stato verificato, versione corrente `0.1.1`, gap Supabase e stub showcase residui.
+- Il tema runtime ora centralizza anche i motion preset e le reference component-level.
+
+### Fixed
+- Rimosse dalle note di rilascio le indicazioni stale che descrivevano la versione corrente come `1.5.8`.
+- Rimossi dal changelog i riferimenti a uno script `build:webpack` non piu' presente nel `package.json`.
 
 ---
 
-## [1.x.x] — Stato attuale (2026-05-04)
+## [0.1.1]
 
-### Presente
-- Framework React + Firebase Realtime Database + Bootstrap
-- Sistema form con gestione stato contestuale (dot notation, nested objects)
-- Grid con real-time updates via Firebase listener
-- Integrazione AI multi-provider (OpenAI, Gemini, Anthropic, DeepSeek, Mistral)
-- Sistema tema via React Context con deep merge
-- Upload file con Firebase Storage
-- Google OAuth 2.0
-- CLI scaffolding (`npx @llmnative/react create`)
-- Multi-tenancy via localStorage
-- Componenti: Input, Select, Upload, Prompt, AssistantAI, UploadCSV
-- Widgets: Form, Grid, ImageEditor
-- Blocks: Menu, Brand, Breadcrumbs, Notifications, Search, Carousel
+### Present today
+- Framework React/Vite con provider abstraction per data, storage, auth ed email.
+- `RuntimeProvider`, theme registry, icon registry e head management client-side montati da `<App>`.
+- Tailwind v4 runtime con compatibility layer CSS e bundle pubblico `dist/index.css`.
+- `MarkdownReader` pubblico con pipeline `react-markdown` + remark/rehype.
+- CLI scaffolding Vite-first con scelta separata di provider, theme e template.
+- Showcase locale in `clients/showcase/` che consuma il package tramite `file:../../`.
 
-### Problemi noti
-- Firebase Realtime DB hardcoded in Form.tsx e Grid.tsx (nessun abstraction layer)
-- Bootstrap come unico sistema UI (nessun supporto Tailwind/shadcn)
-- `RecordProps` tipizzato come `any` (nessun TypeScript strict)
-- Nessuna documentazione AI-first
-- Cartella `integrations/` e `models/` con naming incoerente rispetto alla struttura target
+### Known gaps
+- `SupabaseDataProvider` e `SupabaseStorageProvider` sono ancora implementazioni parziali basate su `fetch`.
+- Mancano `FirebaseAuthProvider`, `FirestoreDataProvider` e `SupabaseAuthProvider`.
+- Mancano integration test Firebase/Supabase, smoke E2E Playwright e CI.
+- Alcune route showcase per provider concreti ed esempi applicativi restano stub.

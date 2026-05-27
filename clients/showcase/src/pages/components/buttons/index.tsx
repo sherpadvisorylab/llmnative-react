@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import PageLayout from '../../../components/PageLayout';
-import Section from '../../../components/Section';
+import PageLayout from '../../../showcase/page';
+import Section from '../../../docs-kit/page/Section';
 
 const solidVariants = ['primary', 'secondary', 'danger', 'success', 'warning', 'info', 'light', 'dark'] as const;
 const outlineVariants = ['primary', 'secondary', 'danger', 'success', 'warning', 'info', 'light', 'dark'] as const;

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import PageLayout from '../../components/PageLayout';
-import Section from '../../components/Section';
-import PropDocsTable from '../../components/PropDocsTable';
-import { usePlayground } from '../../context/PlaygroundContext';
-import type { PropDef, PlaygroundConfig } from '../../types/playground';
+import PageLayout from '../../showcase/page';
+import Section from '../../docs-kit/page/Section';
+import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
+import { usePlayground } from '../../docs-kit/playground';
+import type { PropDef, PlaygroundConfig } from '../../docs-kit/playground';
 
 const ITEMS = Array.from({ length: 50 }, (_, i) => ({ id: i + 1, label: `Record #${i + 1}` }));
 
@@ -28,10 +28,10 @@ function DemoPagination({ perPage }: { perPage: number }) {
             <nav>
                 <ul className="pagination justify-end">
                     <li className={`page-item ${page === 1 ? 'disabled' : ''}`}>
-                        <button className="page-link" onClick={() => go(1)}>«</button>
+                        <button className="page-link" onClick={() => go(1)}>Â«</button>
                     </li>
                     <li className={`page-item ${page === 1 ? 'disabled' : ''}`}>
-                        <button className="page-link" onClick={() => go(page - 1)}>‹</button>
+                        <button className="page-link" onClick={() => go(page - 1)}>â€¹</button>
                     </li>
                     {pageNumbers.map((p) => (
                         <li key={p} className={`page-item ${p === page ? 'active' : ''}`}>
@@ -39,15 +39,15 @@ function DemoPagination({ perPage }: { perPage: number }) {
                         </li>
                     ))}
                     <li className={`page-item ${page === total ? 'disabled' : ''}`}>
-                        <button className="page-link" onClick={() => go(page + 1)}>›</button>
+                        <button className="page-link" onClick={() => go(page + 1)}>â€º</button>
                     </li>
                     <li className={`page-item ${page === total ? 'disabled' : ''}`}>
-                        <button className="page-link" onClick={() => go(total)}>»</button>
+                        <button className="page-link" onClick={() => go(total)}>Â»</button>
                     </li>
                 </ul>
             </nav>
             <p className="text-xs text-muted-foreground text-right">
-                Page {page} of {total} · {ITEMS.length} total records
+                Page {page} of {total} Â· {ITEMS.length} total records
             </p>
         </div>
     );
@@ -80,7 +80,7 @@ export default function PaginationPage() {
             description="Page navigation with first/prev/next/last controls and a configurable page window. Used automatically by Grid."
         >
             <Section
-                title="Interactive pagination — 50 records, 8 per page"
+                title="Interactive pagination â€” 50 records, 8 per page"
                 description="Click the page controls to navigate through the dataset."
                 preview={<DemoPagination perPage={8} />}
                 code={`import { Pagination } from '@llmnative/react';
