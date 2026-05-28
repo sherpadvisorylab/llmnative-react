@@ -18,7 +18,7 @@ interface ModalProps extends MotionUIProps {
     onClose?: () => void;
     onSave?: ModalSaveHandler;
     onDelete?: ModalDeleteHandler;
-    size?: "sm" | "md" | "lg" | "xl" | "fullscreen";
+    size?: "sm" | "md" | "lg" | "xl" | "2xl" | "fullscreen";
     position?: "center" | "top" | "left" | "right" | "bottom";
     buttonFullscreen?: boolean;
     buttonCancel?: boolean;
@@ -86,6 +86,7 @@ const ModalDefault = ({
         md: "max-w-md",
         lg: "max-w-2xl",
         xl: "max-w-4xl",
+        "2xl": "max-w-6xl",
         fullscreen: "max-w-none w-screen h-dvh rounded-none",
     }[sizeClass || theme.Modal.size || "lg"];
 
@@ -94,6 +95,7 @@ const ModalDefault = ({
         md: "w-96",
         lg: "w-[36rem]",
         xl: "w-[48rem]",
+        "2xl": "w-[64rem]",
         fullscreen: "w-screen",
     }[sizeClass || theme.Modal.size || "lg"];
 
@@ -102,6 +104,7 @@ const ModalDefault = ({
         md: "max-h-[45vh]",
         lg: "max-h-[60vh]",
         xl: "max-h-[85vh]",
+        "2xl": "max-h-[90vh]",
         fullscreen: "h-dvh max-h-none",
     }[sizeClass || theme.Modal.size || "lg"];
 
