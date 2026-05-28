@@ -22,7 +22,7 @@ function DemoModal({ position, onClose }: { position: Position; onClose: () => v
             {position === 'center' ? (
                 <p>
                     Centered dialog. Supports <code>sm</code>, <code>md</code>, <code>lg</code>,{' '}
-                    <code>xl</code> and <code>fullscreen</code> sizes.
+                    <code>xl</code>, <code>2xl</code> and <code>fullscreen</code> sizes.
                 </p>
             ) : (
                 <p>
@@ -44,7 +44,7 @@ const PROPS_CONFIG: PropDef[] = [
     <button>Confirm</button>
   </div>
 )}` },
-    { name: 'size', type: '"sm" | "md" | "lg" | "xl" | "fullscreen"', default: '"md"', description: 'Dialog width', control: 'select', options: ['sm', 'md', 'lg', 'xl', 'fullscreen'] },
+    { name: 'size', type: '"sm" | "md" | "lg" | "xl" | "2xl" | "fullscreen"', default: '"md"', description: 'Dialog width', control: 'select', options: ['sm', 'md', 'lg', 'xl', '2xl', 'fullscreen'] },
     { name: 'position', type: '"center" | "top" | "left" | "right" | "bottom"', default: '"center"', description: 'Where the modal appears. Non-center positions render as edge panels.', control: 'select', options: ['center', 'top', 'left', 'right', 'bottom'] },
     { name: 'onClose', type: '() => void', description: 'Called when the user dismisses the modal' },
     { name: 'onSave', type: 'ModalSaveHandler', description: 'Async save handler. Return true to close, false to keep open.', shape: `type ModalSaveHandler = (
@@ -148,7 +148,7 @@ const [open, setOpen] = useState(false);
     <Modal
         title="Dialog title"
         position="center"     // center | left | right | top | bottom
-        size="lg"             // sm | md | lg | xl | fullscreen
+        size="lg"             // sm | md | lg | xl | 2xl | fullscreen
         onClose={() => setOpen(false)}
         closeOnBackdrop={true}
         onSave={async () => {

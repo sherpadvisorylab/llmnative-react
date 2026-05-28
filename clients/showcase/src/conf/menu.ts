@@ -37,7 +37,10 @@ import MotionPage from '../pages/components/MotionPage';
 import NotificationsPage from '../pages/components/NotificationsPage';
 import PaginationPage from '../pages/components/PaginationPage';
 import PercentagePage from '../pages/components/PercentagePage';
-import PromptPage from '../pages/components/PromptPage';
+import PromptIndexPage from '../pages/components/prompt';
+import PromptEditorPage from '../pages/components/prompt/PromptEditorPage';
+import PromptLivePage from '../pages/components/prompt/PromptLivePage';
+import PromptPlainPage from '../pages/components/prompt/PromptPlainPage';
 import RepeatPage from '../pages/components/RepeatPage';
 import SearchPage from '../pages/components/SearchPage';
 import SwitchPage from '../pages/components/SwitchPage';
@@ -139,7 +142,17 @@ export const menu = {
         { path: '/components/checklist', title: 'Checklist', page: ChecklistPage, group: 'Form fields' },
         { path: '/components/image-url', title: 'ImageUrl', page: ImageUrlPage, group: 'Form fields' },
         { path: '/components/list-group', title: 'ListGroup', page: ListGroupPage, group: 'Form fields' },
-        { path: '/components/prompt', title: 'Prompt', page: PromptPage, group: 'Widgets' },
+        {
+            path: '/components/prompt',
+            title: 'Prompt',
+            page: PromptIndexPage,
+            group: 'Widgets',
+            children: [
+                { path: '/components/prompt/editor', title: 'PromptEditor', page: PromptEditorPage },
+                { path: '/components/prompt/live', title: 'PromptLive', page: PromptLivePage },
+                { path: '/components/prompt/plain', title: 'PromptPlain', page: PromptPlainPage },
+            ],
+        },
         { path: '/components/upload', title: 'Upload', page: UploadPage, group: 'Form fields' },
         { path: '/components/assistant-ai', title: 'AssistantAI', page: AssistantAIPage, group: 'Widgets' },
         { path: '/components/form', title: 'Form', page: FormPage, group: 'Widgets' },
