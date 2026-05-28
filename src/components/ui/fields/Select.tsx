@@ -1,6 +1,12 @@
 import React, { useEffect, useId, useMemo, useState } from 'react';
-import { Label } from "./Input";
-import { Wrapper } from "../GridSystem"
+import {
+    Label,
+    fieldAddonClass,
+    fieldControlBaseClass,
+    fieldFeedbackClass,
+    fieldGroupClass,
+} from "./Input";
+import { Wrapper } from "../GridSystem";
 import { useTheme } from "../../../Theme";
 import { DEFAULT_ORDER, Order, type OrderConfig } from "../../../libs/order";
 import { arraysEqual, arrayUnique, isEmpty, sanitizeKey } from "../../../libs/utils";
@@ -46,12 +52,12 @@ export interface ChecklistProps extends BaseProps {
 }
 
 const valueToArray = (value: string | number | any[] | undefined): any[] => {
-    if (!value) return []
+    if (!value) return [];
 
     return typeof value === 'string' || typeof value === "number"
         ? value.toString().split(',')
         : value;
-}
+};
 
 const normalizeOption = (
     fieldMap: Record<string, any> | string | number | undefined
@@ -103,7 +109,6 @@ const isDbOrdered = (
     return dbField === mappedField && dbDir === order.dir;
 };
 
-
 const getOptions = (
     options: Array<string | number | Option>,
     lookup: Option[],
@@ -122,7 +127,16 @@ const getOptions = (
     }
 
     return Order.records(combined, effectiveOrder) || [];
-}
+};
+
+const SelectAddon = ({ children, side }: { children: React.ReactNode; side: 'pre' | 'post' }) => (
+    <span className={cn(
+        fieldAddonClass,
+        side === 'pre' ? "rounded-l-md rounded-r-none border-r-0" : "rounded-l-none rounded-r-md border-l-0"
+    )}>
+        {children}
+    </span>
+);
 
 export const Select = ({
     name,
@@ -143,11 +157,11 @@ export const Select = ({
     options = [],
     db = undefined,
     order = undefined,
+    inheritFormWrapClass = true,
     wrapClass = undefined,
     className = undefined,
 }: SelectProps) => {
-    const { value, handleChange, formWrapClass } = useFormContext({ name, onChange, wrapClass, defaultValue });
-
+    const { value, handleChange, formWrapClass } = useFormContext({ name, onChange, wrapClass, defaultValue, inheritFormWrapClass });
     const theme = useTheme("select");
 
     const dbOptions = useMemo(() => getOptionsDB(db), [db?.fieldMap, db?.where, db?.order, db?.onLoad]);
@@ -162,27 +176,31 @@ export const Select = ({
 
         return arrayUnique(
             value && !combinedOptions.length
-                ? [...combinedOptions, { label: `❌ ${value.toString()}`, value: value.toString() }]
+                ? [...combinedOptions, { label: `âŒ ${value.toString()}`, value: value.toString() }]
                 : combinedOptions
         );
-
     }, [options, lookup, order, db?.order, dbOptions.fieldMap, value]);
 
     if (!value && !optionEmpty && opts.length > 0) {
         handleChange?.({ target: { name, value: opts[0].value } });
     }
-    
 
     const id = useId();
     return (
         <Wrapper className={formWrapClass || theme.Select.wrapClass}>
             {label && <Label label={label} required={required} htmlFor={id} />}
-            <Wrapper className={pre || post ? "input-group flex-nowrap" : ""}>
-                {pre && <span className="input-group-text">{pre}</span>}
+            <Wrapper className={pre || post ? cn(fieldGroupClass, "flex-nowrap") : ""}>
+                {pre && <SelectAddon side="pre">{pre}</SelectAddon>}
                 <select
                     id={id}
                     name={name}
-                    className={cn("form-select", className || theme.Select.className)}
+                    className={cn(
+                        fieldControlBaseClass,
+                        "appearance-none pr-8",
+                        pre && "!rounded-l-none",
+                        post && "!rounded-r-none",
+                        className || theme.Select.className
+                    )}
                     value={value ?? ''}
                     required={required}
                     disabled={disabled || (!updatable && !isEmpty(value))}
@@ -192,9 +210,9 @@ export const Select = ({
                     {optionEmpty && <option key={`${id}-empty`} value={optionEmpty.value}>{optionEmpty.label}</option>}
                     {opts.map((op, index) => <option key={`${id}-${index}`} value={op.value}>{op.label}</option>)}
                 </select>
-                {post && <span className="input-group-text">{post}</span>}
+                {post && <SelectAddon side="post">{post}</SelectAddon>}
             </Wrapper>
-            {feedback && <div className="feedback">{feedback}</div>}
+            {feedback && <div className={fieldFeedbackClass}>{feedback}</div>}
         </Wrapper>
     );
 };
@@ -217,13 +235,13 @@ export const Autocomplete = ({
     options = [],
     db = undefined,
     order = undefined,
+    inheritFormWrapClass = true,
     wrapClass = undefined,
     className = undefined,
     creatable = false,
     onCreate = undefined,
 }: AutocompleteProps) => {
-    const { value, handleChange, formWrapClass } = useFormContext({ name, onChange, wrapClass, defaultValue });
-
+    const { value, handleChange, formWrapClass } = useFormContext({ name, onChange, wrapClass, defaultValue, inheritFormWrapClass });
     const theme = useTheme("select");
 
     const valueArray = useMemo(() => valueToArray(value), [value]);
@@ -232,7 +250,7 @@ export const Autocomplete = ({
         if (!arraysEqual(valueArray, selectedItems)) {
             setSelectedItems(valueArray);
         }
-    }, [valueArray]);
+    }, [valueArray, selectedItems]);
 
     const dbOptions = useMemo(() => getOptionsDB(db), [db?.fieldMap, db?.where, db?.order, db?.onLoad]);
     const database = useDataProvider();
@@ -267,7 +285,7 @@ export const Autocomplete = ({
     const handleAutocompleteChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const currentValue = e.target.value;
         const inOpts = opts.some(op => op.value === currentValue);
-        if (!inOpts) return; // free input committed via Enter (onKeyDown)
+        if (!inOpts) return;
         commitValue(currentValue, e.target);
     };
 
@@ -301,22 +319,28 @@ export const Autocomplete = ({
     return (
         <Wrapper className={formWrapClass || theme.Autocomplete.wrapClass}>
             {label && <Label label={label} required={required} htmlFor={id} />}
-            <Wrapper className={pre || post ? "input-group flex-nowrap" : ""}>
-                {pre && <span className="input-group-text">{pre}</span>}
-                <div className={`flex flex-wrap items-center gap-1 form-control !h-auto min-h-9 py-1.5 px-2`}>
+            <Wrapper className={pre || post ? cn(fieldGroupClass, "flex-nowrap") : ""}>
+                {pre && <SelectAddon side="pre">{pre}</SelectAddon>}
+                <div className={cn(
+                    fieldControlBaseClass,
+                    "h-auto min-h-9 flex-wrap items-center gap-1 py-1.5 px-2",
+                    pre && "rounded-l-none",
+                    post && "rounded-r-none"
+                )}>
                     {selectedItems.map(item => (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-primary/10 text-primary border border-primary/20 rounded-full" key={item}>
-                            {item}<button type="button" className="opacity-60 hover:opacity-100 transition-opacity ml-0.5" onClick={() => removeItem(item)}>×</button>
+                        <span className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary" key={item}>
+                            {item}
+                            <button type="button" className="ml-0.5 opacity-60 transition-opacity hover:opacity-100" onClick={() => removeItem(item)}>Ã—</button>
                         </span>
                     ))}
                     {(!max || selectedItems.length < max) && (
                         <input
                             id={id}
                             type="text"
-                            className={cn("flex-1 min-w-[120px] border-none outline-none bg-transparent text-sm placeholder:text-muted-foreground", className || theme.Autocomplete.className)}
+                            className={cn("min-w-[120px] flex-1 border-none bg-transparent text-sm outline-none placeholder:text-muted-foreground", className || theme.Autocomplete.className)}
                             required={required && selectedItems.length < (min || 0)}
                             disabled={disabled || (!updatable && !isEmpty(value))}
-                            placeholder={creatable ? (placeholder ?? 'Type or press Enter to create…') : placeholder}
+                            placeholder={creatable ? (placeholder ?? 'Type or press Enter to createâ€¦') : placeholder}
                             title={title}
                             list={listId}
                             onChange={handleAutocompleteChange}
@@ -327,9 +351,9 @@ export const Autocomplete = ({
                 <datalist id={listId}>
                     {opts.map((op, index) => <option value={op.value} key={`${id}-${index}`}>{op.label}</option>)}
                 </datalist>
-                {post && <span className="input-group-text">{post}</span>}
+                {post && <SelectAddon side="post">{post}</SelectAddon>}
             </Wrapper>
-            {feedback && <div className="feedback">{feedback}</div>}
+            {feedback && <div className={fieldFeedbackClass}>{feedback}</div>}
         </Wrapper>
     );
 };
@@ -349,11 +373,12 @@ export const Checklist = ({
     options = [],
     db = undefined,
     order = undefined,
+    inheritFormWrapClass = true,
     wrapClass = undefined,
     className = undefined,
     checkClass = undefined,
 }: ChecklistProps) => {
-    const { value, handleChange, formWrapClass } = useFormContext({ name, onChange, wrapClass, defaultValue });
+    const { value, handleChange, formWrapClass } = useFormContext({ name, onChange, wrapClass, defaultValue, inheritFormWrapClass });
 
     const valueArray = useMemo(() => valueToArray(value), [value]);
     const [selectedItems, setSelectedItems] = useState(() => valueArray);
@@ -361,7 +386,7 @@ export const Checklist = ({
         if (!arraysEqual(valueArray, selectedItems)) {
             setSelectedItems(valueArray);
         }
-    }, [valueArray]);
+    }, [valueArray, selectedItems]);
 
     const dbOptions = useMemo(() => getOptionsDB(db), [db?.fieldMap, db?.where, db?.order, db?.onLoad]);
     const database = useDataProvider();
@@ -379,7 +404,7 @@ export const Checklist = ({
         setSelectedItems(prevState => {
             const updatedItems = prevState.filter(item => item !== currentValue);
             setTimeout(() => {
-                handleChange?.({ target: { name: name, value: updatedItems } }); //, opts
+                handleChange?.({ target: { name, value: updatedItems } });
             }, 0);
 
             return updatedItems;
@@ -405,7 +430,7 @@ export const Checklist = ({
         setSelectedItems(prevState => {
             const updatedItems = [...prevState, currentValue];
             setTimeout(() => {
-                handleChange?.({ target: { name: name, value: updatedItems } }); //, opts
+                handleChange?.({ target: { name, value: updatedItems } });
             }, 0);
 
             return updatedItems;
@@ -416,15 +441,15 @@ export const Checklist = ({
     const isDisabled = disabled || (!updatable && selectedItems.length > 0);
     const checklist = (
         <Wrapper className={cn(
-            pre || post ? "form-control !h-auto min-h-9 w-full min-w-0 flex-col items-start py-2 px-3" : "",
+            pre || post ? cn(fieldControlBaseClass, "h-auto min-h-9 w-full min-w-0 flex-col items-start py-2 px-3") : "",
             "space-y-1"
         )}>
             {opts.map((op) => {
                 const key = sanitizeKey(`cl-${id}-${name}-${op.value}`);
                 return (
-                    <div key={key} className={cn("form-check flex w-full items-center gap-2", checkClass)}>
+                    <div key={key} className={cn("flex w-full items-center gap-2", checkClass)}>
                         <input
-                            className={"form-check-input shrink-0"}
+                            className="h-4 w-4 shrink-0 rounded-sm border border-input bg-background text-primary shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                             type={"checkbox"}
                             id={key}
                             name={name}
@@ -434,7 +459,7 @@ export const Checklist = ({
                             disabled={isDisabled}
                             title={title}
                         />
-                        <label htmlFor={key} className={"form-check-label"}>{op.label}</label>
+                        <label htmlFor={key} className="text-sm font-medium leading-none text-foreground">{op.label}</label>
                     </div>
                 );
             })}
@@ -443,15 +468,15 @@ export const Checklist = ({
 
     return (
         <Wrapper className={cn(formWrapClass, className)}>
-            {label && <><Label label={label} className={"form-check-label"} required={required} /><hr className={"mt-0"} /></>}
+            {label && <><Label label={label} required={required} /><hr className={"mt-0"} /></>}
             {pre || post ? (
-                <Wrapper className="input-group flex-nowrap items-stretch">
-                    {pre && <span className="input-group-text">{pre}</span>}
+                <Wrapper className={cn(fieldGroupClass, "flex-nowrap items-stretch")}>
+                    {pre && <SelectAddon side="pre">{pre}</SelectAddon>}
                     {checklist}
-                    {post && <span className="input-group-text">{post}</span>}
+                    {post && <SelectAddon side="post">{post}</SelectAddon>}
                 </Wrapper>
             ) : checklist}
-            {feedback && <div className="feedback">{feedback}</div>}
+            {feedback && <div className={fieldFeedbackClass}>{feedback}</div>}
         </Wrapper>
     );
 };

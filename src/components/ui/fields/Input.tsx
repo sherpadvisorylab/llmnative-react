@@ -1,8 +1,9 @@
-import React, { useId, useState } from 'react';
+import React, { useEffect, useId, useState } from 'react';
 import { isEmpty, isInteractiveElement } from "../../../libs/utils";
 import { Wrapper } from "../GridSystem";
 import { ActionButton, Icon, UIProps } from '../../..';
 import { FormFieldProps, InputType, useFormContext, useHandleDrop } from '../../widgets/Form';
+import { cn } from '../../../libs/cn';
 
 interface BaseInputProps extends FormFieldProps {
     placeholder?: string;
@@ -13,6 +14,8 @@ interface BaseInputProps extends FormFieldProps {
     min?: number;
     max?: number;
     step?: number;
+    inputId?: string;
+    labelClassName?: string;
 }
 
 interface LabelProps {
@@ -26,6 +29,7 @@ export type InputProps = Omit<BaseInputProps, 'type'>;
 
 export interface CheckboxProps extends FormFieldProps {
     title?: string;
+    ariaLabel?: string;
     valueChecked?: string | number;
 }
 
@@ -34,8 +38,11 @@ export interface TextAreaProps extends FormFieldProps {
     updatable?: boolean;
     disabled?: boolean;
     rows?: number;
+    maxRows?: number;
     feedback?: string;
-    useRef?: any; //da verificare se serve
+    useRef?: React.RefObject<HTMLTextAreaElement | null> | ((el: HTMLTextAreaElement | null) => void) | undefined;
+    inputId?: string;
+    labelClassName?: string;
 }
 
 export interface ListGroupProps extends UIProps {
@@ -50,13 +57,88 @@ export interface ListGroupProps extends UIProps {
     itemClass?: string;
 }
 
+export const fieldLabelClass = "mb-1 block text-sm font-medium leading-5 text-foreground";
+export const fieldFeedbackClass = "mt-1 text-xs text-muted-foreground";
+export const fieldControlBaseClass = "flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
+export const fieldTextAreaBaseClass = "flex min-h-[5rem] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
+export const fieldGroupClass = "flex w-full items-stretch";
+export const fieldAddonClass = "inline-flex shrink-0 items-center border border-input bg-muted px-3 py-1 text-sm text-muted-foreground";
 
+const withFieldEdges = (baseClass: string, { pre, post }: { pre?: React.ReactNode; post?: React.ReactNode }) =>
+    cn(
+        baseClass,
+        pre && "!rounded-l-none",
+        post && "!rounded-r-none"
+    );
 
+const FieldAddon = ({
+    children,
+    side,
+}: {
+    children: React.ReactNode;
+    side: 'pre' | 'post';
+}) => (
+    <span
+        className={cn(
+            fieldAddonClass,
+            side === 'pre' ? "rounded-l-md rounded-r-none border-r-0" : "rounded-l-none rounded-r-md border-l-0"
+        )}
+    >
+        {children}
+    </span>
+);
 
+const useCheckboxField = ({
+    name,
+    onChange,
+    wrapClass,
+    defaultValue,
+    valueChecked,
+    inheritFormWrapClass,
+}: {
+    name: string;
+    onChange?: CheckboxProps["onChange"];
+    wrapClass?: string;
+    defaultValue?: any;
+    valueChecked: string | number;
+    inheritFormWrapClass?: boolean;
+}) => {
+    const toValueString = (v: any): string => (v == null ? "" : `${v}`);
+
+    const { value, handleChange, formWrapClass } = useFormContext({
+        name,
+        onChange,
+        wrapClass,
+        inputType: typeof valueChecked === "number" ? "number" : "text",
+        defaultValue:
+            defaultValue !== undefined
+                ? (toValueString(defaultValue as any) === toValueString(valueChecked) ? toValueString(valueChecked) : "")
+                : undefined,
+        inheritFormWrapClass,
+    });
+
+    const id = useId();
+    const checked = toValueString(value) === toValueString(valueChecked);
+
+    const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        handleChange?.({
+            target: {
+                name,
+                value: event.target.checked ? valueChecked : "",
+            },
+        });
+    };
+
+    return {
+        id,
+        checked,
+        formWrapClass,
+        handleCheckboxChange,
+    };
+};
 
 export const Input = ({
     name,
-    //value = undefined,
     onChange = undefined,
     defaultValue = undefined,
     placeholder = undefined,
@@ -71,23 +153,27 @@ export const Input = ({
     min = undefined,
     max = undefined,
     step = undefined,
+    inputId = undefined,
+    labelClassName = undefined,
+    inheritFormWrapClass = true,
     wrapClass = undefined,
     className = undefined
 }: BaseInputProps) => {
-    const { value, handleChange, formWrapClass } = useFormContext({ name, onChange, wrapClass, inputType: type, defaultValue });
-    const id = useId();
+    const { value, handleChange, formWrapClass } = useFormContext({ name, onChange, wrapClass, inputType: type, defaultValue, inheritFormWrapClass });
+    const generatedId = useId();
+    const id = inputId || generatedId;
     const handleDrop = useHandleDrop({ name, value, handleChange });
 
     return (
         <Wrapper className={formWrapClass}>
-            {label && <Label label={label} required={required} htmlFor={id} />}
-            <Wrapper className={pre || post ? "input-group" : ""}>
-                {pre && <span className="input-group-text">{pre}</span>}
+            {label && <Label label={label} required={required} htmlFor={id} className={labelClassName} />}
+            <Wrapper className={pre || post ? fieldGroupClass : ""}>
+                {pre && <FieldAddon side="pre">{pre}</FieldAddon>}
                 <input
                     id={id}
                     type={type}
                     name={name}
-                    className={`form-control${className ? " " + className : ""}`}
+                    className={withFieldEdges(cn(fieldControlBaseClass, className), { pre, post })}
                     placeholder={placeholder}
                     required={required}
                     disabled={disabled || (!updatable && !isEmpty(value))}
@@ -99,9 +185,9 @@ export const Input = ({
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={handleDrop}
                 />
-                {post && <span className="input-group-text">{post}</span>}
+                {post && <FieldAddon side="post">{post}</FieldAddon>}
             </Wrapper>
-            {feedback && <div className="feedback">{feedback}</div>}
+            {feedback && <div className={fieldFeedbackClass}>{feedback}</div>}
         </Wrapper>
     );
 };
@@ -121,13 +207,13 @@ export const Email = (props: InputProps) => (
 export const Password = (props: InputProps) => {
     const [visible, setVisible] = useState(false);
 
-    return <Input {...props} type={visible ? "text": "password"} post={
-        <ActionButton 
+    return <Input {...props} type={visible ? "text" : "password"} post={
+        <ActionButton
             className="p-0 border-0"
-            icon={visible ? "eye" : "eye-slash"} 
+            icon={visible ? "eye" : "eye-slash"}
             onClick={() => setVisible(!visible)}
         />}
-    />
+    />;
 };
 
 export const Color = (props: InputProps) => (
@@ -155,7 +241,11 @@ export const Month = (props: InputProps) => (
 );
 
 export const Range = (props: InputProps) => (
-    <Input {...props} type="range" />
+    <Input
+        {...props}
+        type="range"
+        className={cn("!border-0 !bg-transparent !shadow-none !px-0 !py-0 !h-auto cursor-pointer accent-primary", props.className)}
+    />
 );
 
 export const Url = (props: InputProps) => (
@@ -164,81 +254,45 @@ export const Url = (props: InputProps) => (
 
 export const Checkbox = ({
     name,
-    //value = false,
     onChange = undefined,
-    defaultValue = undefined,   //todo: da capire come gestirlo
+    defaultValue = undefined,
     label = undefined,
     title = undefined,
+    ariaLabel = undefined,
     required = false,
     valueChecked = "on",
     pre = undefined,
     post = undefined,
+    inheritFormWrapClass = true,
     wrapClass = undefined,
     className = undefined
 }: CheckboxProps) => {
-    //todo:se aggiungo il defaultvalue, succede che impazzisce. vedi pageeditor denominazione-regione
-    //trattements esce object[object]
-    // gli orari nelle card non escono
-    //in page editor quando si usano le select per scegliere i tag html si salvano in un punto sbagliato
-    //il render frontendnelle pagine non funziona quando voglio nascondere un elemento vedi social link
-    //il render frontend l'ultimo elemento dentro al comune se non ha quartiere esce l'ultimo centro estetico
-
-    const toValueString = (v: any): string => (v == null ? "" : `${v}`);
-
-    const { value, handleChange, formWrapClass } = useFormContext({
+    const { id, checked, formWrapClass, handleCheckboxChange } = useCheckboxField({
         name,
         onChange,
         wrapClass,
-        inputType: typeof valueChecked === "number" ? "number" : "text",
-        defaultValue:
-            defaultValue !== undefined
-                ? (toValueString(defaultValue as any) === toValueString(valueChecked) ? toValueString(valueChecked) : "")
-                : undefined
+        defaultValue,
+        valueChecked,
+        inheritFormWrapClass,
     });
 
-    const id = useId();
-
-    const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const nextRawValue = event.target.checked ? valueChecked : "";
-
-        handleChange?.({
-            target: {
-                name,
-                value: nextRawValue,
-            },
-        });
-
-        console.log(
-            "Checkbox",
-            name,
-            value,
-            "valueChecked:",
-            valueChecked,
-            "typeof",
-            typeof value,
-            typeof valueChecked,
-            "savedType",
-            typeof nextRawValue
-        );
-    };
-
-    if (!wrapClass && label) wrapClass = "checkbox";
-
-    //console.log("Checkbox", name, value, defaultValue);
-
     return (
-        <Wrapper className={formWrapClass}>
+        <Wrapper className={cn("flex items-center gap-2", formWrapClass)}>
             {pre}
             <input
                 type="checkbox"
                 id={id}
                 name={name}
                 title={title}
-                className={`form-check-input${className ? " " + className : ""}`}
-                checked={toValueString(value) === toValueString(valueChecked)}
+                aria-label={ariaLabel}
+                className={cn(
+                    "h-4 w-4 shrink-0 rounded-sm border border-input bg-background text-primary shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
+                    className
+                )}
+                checked={checked}
                 onChange={handleCheckboxChange}
             />
-            {label && <label className="form-check-label pl-1" htmlFor={id}>
+            {label && <label className="text-sm font-medium leading-none text-foreground" htmlFor={id}>
                 {label}
                 {required && <span className="text-danger">&nbsp;*</span>}
             </label>}
@@ -247,11 +301,70 @@ export const Checkbox = ({
     );
 };
 
-export const Switch = (props: CheckboxProps) => (
-    <Wrapper className={props?.wrapClass}>
-        <Checkbox {...props} wrapClass='form-check form-switch' />
-    </Wrapper>
-);
+export const Switch = ({
+    name,
+    onChange = undefined,
+    defaultValue = undefined,
+    label = undefined,
+    title = undefined,
+    ariaLabel = undefined,
+    required = false,
+    valueChecked = "on",
+    pre = undefined,
+    post = undefined,
+    inheritFormWrapClass = true,
+    wrapClass = undefined,
+    className = undefined
+}: CheckboxProps) => {
+    const { id, checked, formWrapClass, handleCheckboxChange } = useCheckboxField({
+        name,
+        onChange,
+        wrapClass,
+        defaultValue,
+        valueChecked,
+        inheritFormWrapClass,
+    });
+
+    return (
+        <Wrapper className={cn("flex items-center gap-2", formWrapClass)}>
+            {pre}
+            <label htmlFor={id} className="inline-flex cursor-pointer items-center gap-2 select-none">
+                <input
+                    id={id}
+                    name={name}
+                    type="checkbox"
+                    title={title}
+                    aria-label={ariaLabel}
+                    checked={checked}
+                    onChange={handleCheckboxChange}
+                    className="sr-only"
+                />
+                <span
+                    aria-hidden="true"
+                    className={cn(
+                        "relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors duration-200 ease-out",
+                        checked ? "bg-primary" : "bg-muted-foreground/35",
+                        className
+                    )}
+                >
+                    <span
+                        className={cn(
+                            "pointer-events-none absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-background shadow-sm transition-transform duration-200 ease-out",
+                            checked && "translate-x-4"
+                        )}
+                    />
+                </span>
+                {label && (
+                    <span className="text-sm font-medium leading-none text-foreground">
+                        {label}
+                        {required && <span className="text-danger">&nbsp;*</span>}
+                    </span>
+                )}
+            </label>
+            {post}
+        </Wrapper>
+    );
+};
 
 export const Label = ({
     label,
@@ -260,7 +373,7 @@ export const Label = ({
     className = undefined
 }: LabelProps) => {
     return (
-        <label htmlFor={htmlFor} className={`form-label${className ? " " + className : ""}`}>
+        <label htmlFor={htmlFor} className={cn(fieldLabelClass, className)}>
             {label} {required && <span className="text-danger">*</span>}
         </label>
     );
@@ -268,7 +381,6 @@ export const Label = ({
 
 export const TextArea = ({
     name,
-    //value = undefined,
     onChange = undefined,
     defaultValue = undefined,
     placeholder = undefined,
@@ -277,28 +389,82 @@ export const TextArea = ({
     updatable = true,
     disabled = false,
     rows = undefined,
-    useRef = {},
+    maxRows = undefined,
+    useRef = undefined,
     pre = undefined,
     post = undefined,
     feedback = undefined,
+    inputId = undefined,
+    labelClassName = undefined,
+    inheritFormWrapClass = true,
     className = undefined,
     wrapClass = undefined
 }: TextAreaProps) => {
-    const { value, handleChange, formWrapClass } = useFormContext({ name, onChange, wrapClass, defaultValue });
+    const { value, handleChange, formWrapClass } = useFormContext({ name, onChange, wrapClass, defaultValue, inheritFormWrapClass });
 
-    const id = useId();
+    const generatedId = useId();
+    const id = inputId || generatedId;
     const handleDrop = useHandleDrop({ name, value, handleChange });
+    const internalRef = React.useRef<HTMLTextAreaElement | null>(null);
+
+    const assignRef = (el: HTMLTextAreaElement | null) => {
+        internalRef.current = el;
+
+        if (typeof useRef === "function") {
+            useRef(el);
+            return;
+        }
+
+        if (useRef && typeof useRef === "object" && "current" in useRef) {
+            (useRef as { current: HTMLTextAreaElement | null }).current = el;
+        }
+    };
+
+    useEffect(() => {
+        if (!maxRows || !internalRef.current) return;
+        const el = internalRef.current;
+        const applyResize = () => {
+            const s = getComputedStyle(el);
+            const lh = parseFloat(s.lineHeight) || parseFloat(s.fontSize) * 1.5;
+            const pt = parseFloat(s.paddingTop) || 0;
+            const pb = parseFloat(s.paddingBottom) || 0;
+            const minH = rows ? lh * rows + pt + pb : 0;
+            const maxH = lh * maxRows + pt + pb;
+            el.style.height = 'auto';
+            const h = Math.min(Math.max(el.scrollHeight, minH), maxH);
+            el.style.height = `${h}px`;
+            el.style.overflowY = el.scrollHeight > maxH ? 'auto' : 'hidden';
+        };
+        applyResize();
+        el.addEventListener('input', applyResize);
+        return () => el.removeEventListener('input', applyResize);
+    }, [maxRows, rows]);
+
+    useEffect(() => {
+        if (!maxRows || !internalRef.current) return;
+        const el = internalRef.current;
+        const s = getComputedStyle(el);
+        const lh = parseFloat(s.lineHeight) || parseFloat(s.fontSize) * 1.5;
+        const pt = parseFloat(s.paddingTop) || 0;
+        const pb = parseFloat(s.paddingBottom) || 0;
+        const minH = rows ? lh * rows + pt + pb : 0;
+        const maxH = lh * maxRows + pt + pb;
+        el.style.height = 'auto';
+        const h = Math.min(Math.max(el.scrollHeight, minH), maxH);
+        el.style.height = `${h}px`;
+        el.style.overflowY = el.scrollHeight > maxH ? 'auto' : 'hidden';
+    }, [value, maxRows, rows]);
 
     return (
         <Wrapper className={formWrapClass}>
-            {label && <Label required={required} label={label} htmlFor={id} />}
-            <Wrapper className={pre || post ? "input-group" : ""}>
-                {pre && <span className="input-group-text">{pre}</span>}
+            {label && <Label required={required} label={label} htmlFor={id} className={labelClassName} />}
+            <Wrapper className={pre || post ? fieldGroupClass : ""}>
+                {pre && <FieldAddon side="pre">{pre}</FieldAddon>}
                 <textarea
                     id={id}
                     name={name}
-                    className={`form-control${className ? " " + className : ""}`}
-                    ref={(el) => (useRef = el)}
+                    className={withFieldEdges(cn(fieldTextAreaBaseClass, maxRows && "resize-none", className), { pre, post })}
+                    ref={assignRef}
                     rows={rows}
                     placeholder={placeholder}
                     required={required}
@@ -308,9 +474,9 @@ export const TextArea = ({
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={handleDrop}
                 />
-                {post && <span className="input-group-text">{post}</span>}
+                {post && <FieldAddon side="post">{post}</FieldAddon>}
             </Wrapper>
-            {feedback && <div className="feedback">{feedback}</div>}
+            {feedback && <div className={fieldFeedbackClass}>{feedback}</div>}
         </Wrapper>
     );
 };
@@ -345,8 +511,8 @@ export const ListGroup = ({
     };
 
     const handleDragStart = (e: React.DragEvent<HTMLSpanElement>, text: string) => {
-        e.dataTransfer.setData('text/plain', onDrop?.(text) ?? text)
-    }
+        e.dataTransfer.setData('text/plain', onDrop?.(text) ?? text);
+    };
 
     return <Wrapper className={wrapClass}>
         {pre}
@@ -386,9 +552,9 @@ export const ListGroup = ({
                     >
                         {draggable && <Icon name='grip-vertical' />}
                         {child}
-                    </span>
+                    </span>;
             })}
         </div>
         {post}
-    </Wrapper>
+    </Wrapper>;
 };
