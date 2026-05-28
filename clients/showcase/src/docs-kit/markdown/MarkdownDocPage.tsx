@@ -1,6 +1,5 @@
 import React from 'react';
 import type { MarkdownRoute } from './markdown.types';
-import MarkdownContent from './MarkdownContent';
 
 type MarkdownDocPageProps = {
     route: MarkdownRoute;
@@ -19,15 +18,11 @@ export default function MarkdownDocPage({
 }: MarkdownDocPageProps) {
     const title = typeof route.meta.title === 'string' ? route.meta.title : undefined;
     const description = typeof route.meta.description === 'string' ? route.meta.description : undefined;
-    const body = (
-        <MarkdownContent title={title} description={description}>
-            {renderMarkdown(route.content, route)}
-        </MarkdownContent>
-    );
+    const body = renderMarkdown(route.content, route);
 
     if (layout) {
         return <>{layout({ title, description, children: body })}</>;
     }
 
-    return body;
+    return <>{body}</>;
 }

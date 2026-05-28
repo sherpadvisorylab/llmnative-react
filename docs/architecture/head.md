@@ -42,7 +42,7 @@ Pass `appName` to `<App>` to change the default page title before any page sets 
 | Hook | What it controls | Restores on unmount |
 |------|-----------------|---------------------|
 | `useHead` / `<Head>` | Page title, description, arbitrary meta tags | ✓ previous entry |
-| `useDocumentHead` | charset, viewport, robots, canonical, keywords, base, HTTP-equiv | ✓ framework defaults |
+| `useDocumentHead` | charset, viewport, robots, canonical, keywords, base, HTTP-equiv | ✓ previous state (merge — only touched fields change) |
 | `useSocialHead` | Open Graph and Twitter card tags | ✓ previous value |
 | `useLanguageHead` | `<html lang>`, `dir`, alternate language links | ✓ framework defaults |
 | `usePaginationHead` | `rel="prev"` / `rel="next"` links | ✓ empty |
@@ -66,7 +66,7 @@ import { useHead, Head } from '@llmnative/react';
 function ArticlePage() {
   useHead({
     title: 'Getting started',
-    description: 'Install and scaffold a new react-firestrap project.',
+    description: 'Install and scaffold a new @llmnative/react project.',
   });
   return <main>…</main>;
 }
@@ -112,7 +112,7 @@ useHead({
 
 ## Document metadata
 
-Use `useDocumentHead` for technical document settings. These apply once per page — the last caller wins.
+Use `useDocumentHead` for technical document settings. Values are **merged** on top of the current document state — only the fields you pass are changed, everything else (including the `charset` and `viewport` defaults) is preserved. When the component unmounts the previous state is fully restored.
 
 ```tsx
 import { useDocumentHead } from '@llmnative/react';
@@ -530,3 +530,4 @@ Each hook registers its value when the component mounts and removes it (or resto
 - A page with **no head hooks** restores the app-level defaults (title = `appName`, charset = `UTF-8`, lang = `en`).
 
 There is no global route-change flush — the system relies entirely on React's mount/unmount lifecycle. Every page that cares about its browser title should call at least `<Head title="…" />` or `useHead({ title: '…' })`.
+

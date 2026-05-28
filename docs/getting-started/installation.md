@@ -3,33 +3,43 @@ title: Installation
 group: Getting started
 order: 15
 path: /docs/installation
-description: Choose between the scaffold (new projects) and manual setup (existing projects).
+description: Choose between the scaffold for new projects and manual setup for existing apps.
 ---
 
 # Installation
 
-There are two ways to get started with react-firestrap. Pick the one that fits your situation.
+There are two supported ways to get started with `@llmnative/react`.
 
 ---
 
-## Scaffold — recommended for new projects
+## Scaffold - recommended for new projects
 
-The official scaffold generates a complete Vite app with routing, providers, theme and icons already wired. You go from zero to a running app in under 5 minutes.
+The official scaffold generates a complete Vite app with routing, providers, theme, icons, and all five service slots already wired.
+
+Preferred one-shot command:
 
 ```bash
-npx ash create
+npx @llmnative/react create
 ```
 
-→ Continue with [Quick start](/docs/quick-start)
+Published CLI bin name:
+
+```bash
+npx llmnative create
+```
+
+Both commands target the same CLI. The public package is `@llmnative/react`; the executable bin exported by the package is `llmnative`.
+
+-> Continue with [Quick start](/docs/quick-start)
 
 ---
 
-## Manual — for existing projects
+## Manual setup - for existing projects
 
-Add react-firestrap to a project you already have. Install the package, wire `<App>` manually, and connect the providers you need.
+Add `@llmnative/react` to a project you already have. Install the package, wire `<App>` manually, and connect only the providers you need.
 
 ```bash
-npm install react-firestrap
+npm install @llmnative/react
 ```
 
-→ Continue with [Manual setup](/docs/manual-setup)
+-> Continue with [Manual setup](/docs/manual-setup)

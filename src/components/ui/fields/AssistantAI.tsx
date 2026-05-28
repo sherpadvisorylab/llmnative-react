@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Label, ListGroup, TextArea } from './Input';
 import { ActionButton, LoadingButton } from '../Buttons';
 import { getPrompt, PROMPTS, setPrompt } from '../../../conf/Prompt';
-import fetchAI from '../../../providers/ai';
+import { type AIRequestOptions, formatAIModelRef, parseAIModelRef } from '../../../providers/ai';
+import { useAIProvider } from '../../../providers/ai/AIProviderContext';
 import FormEnhancer from '../../FormEnhancer';
 import Loader from '../Loader';
 import Carousel from '../../blocks/Carousel';
@@ -25,6 +26,9 @@ interface AssistantAIProps extends UIProps {
     name: string;
     promptTopic: { prompt: string; label: string };
     configVariables: { lang: string; voice: string; style: string; limit: string };
+    model?: string;
+    temperature?: number;
+    aiOptions?: Omit<AIRequestOptions, 'model' | 'temperature'>;
     initialValue?: string;
     children?: React.ReactNode;
     onChange: (e: any) => void;
@@ -32,6 +36,17 @@ interface AssistantAIProps extends UIProps {
     autoStart?: boolean;
     onReset?: () => void;
 }
+
+const parseAIResponse = (response: string | null): unknown => {
+    if (!response) return null;
+    try {
+        return response.startsWith('{') || response.startsWith('[')
+            ? JSON.parse(response)
+            : response;
+    } catch {
+        return response;
+    }
+};
 
 /* Pulisce e formatta il testo selezionato dalla risposta AI */
 const cleanSelectedText = (selectedText: string): string => {
@@ -67,6 +82,9 @@ const AssistantAI = ({
     name,
     promptTopic,
     configVariables,
+    model = undefined,
+    temperature = 0.7,
+    aiOptions = undefined,
     initialValue,
     children,
     onChange            = () => { },
@@ -84,8 +102,12 @@ const AssistantAI = ({
     const [selectedResponse, setSelectedResponse] = useState<string>('');
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
-
-    const fetch = fetchAI();
+    const ai = useAIProvider();
+    const defaultModelRef = useMemo(
+        () => ai ? formatAIModelRef(ai.id, ai.defaultModel) : '',
+        [ai]
+    );
+    const modelRef = model || defaultModelRef;
 
     useEffect(() => {
         if (initialValue && autoStart) {
@@ -101,11 +123,20 @@ const AssistantAI = ({
         onReset?.();
 
         try {
+            if (!ai) throw new Error('No AI provider configured');
+
             const finalPrompt = setPrompt(promptTopic.prompt, configVariables, userInput);
-            const response = await fetch(finalPrompt, {
-                model: 'gpt-5.2',
-                temperature: 0.7
+            const parsed = parseAIModelRef(modelRef);
+            const resolvedModel = parsed?.model || modelRef || ai.defaultModel;
+
+            const raw = await ai.complete({
+                ...aiOptions,
+                model: resolvedModel,
+                temperature,
+                prompt: finalPrompt,
             });
+
+            const response = parseAIResponse(raw);
 
             if (!response) {
                 throw new Error('Failed to get response');

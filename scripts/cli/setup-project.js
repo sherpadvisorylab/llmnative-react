@@ -70,6 +70,11 @@ async function askInteractive(callback) {
             ? providerInput.trim()
             : 'mock';
 
+        const aiProviderInput = await question('Which AI provider? (none, openai, gemini, anthropic, mistral; default: none) ');
+        const aiProvider = ['none', 'openai', 'gemini', 'anthropic', 'mistral'].includes(aiProviderInput.trim())
+            ? aiProviderInput.trim()
+            : 'none';
+
         const iconProviderInput = await question('Which icon provider? (lucide, phosphor; default: lucide) ');
         const iconProvider = ['lucide', 'phosphor'].includes(iconProviderInput.trim())
             ? iconProviderInput.trim()
@@ -88,6 +93,7 @@ async function askInteractive(callback) {
         let hosting = 'n';
         const firebase = {};
         const supabase = {};
+        const ai = {};
 
         if (provider === 'firebase') {
             const hostingInput = await question(`Firebase Hosting site? Leave blank to use "${defaultName}", type 'n' to disable: `);
@@ -109,8 +115,24 @@ async function askInteractive(callback) {
             supabase.anonKey = (await question('Supabase anon key: ')).trim();
         }
 
+        if (aiProvider === 'openai') {
+            ai.openaiApiKey = (await question('OpenAI API key: ')).trim();
+        }
+
+        if (aiProvider === 'gemini') {
+            ai.geminiApiKey = (await question('Gemini API key: ')).trim();
+        }
+
+        if (aiProvider === 'anthropic') {
+            ai.anthropicApiKey = (await question('Anthropic API key: ')).trim();
+        }
+
+        if (aiProvider === 'mistral') {
+            ai.mistralApiKey = (await question('Mistral API key: ')).trim();
+        }
+
         rl.close();
-        callback({ projectname, provider, iconProvider, theme, template, hosting, firebase, supabase });
+        callback({ projectname, provider, aiProvider, iconProvider, theme, template, hosting, firebase, supabase, ai });
     } catch (error) {
         rl.close();
         console.error('Error during interactive prompt:', error);
@@ -189,6 +211,7 @@ function createIndexHtml(params) {
 function createEnvFile(params) {
     const env = [
         `VITE_PROVIDER=${params.provider}`,
+        `VITE_AI_PROVIDER=${params.aiProvider ?? 'none'}`,
         `VITE_ICON_PROVIDER=${params.iconProvider}`,
         `VITE_THEME=${params.theme}`,
         `VITE_FIREBASE_APIKEY=${params.firebase.apikey ?? ''}`,
@@ -203,6 +226,10 @@ function createEnvFile(params) {
         'VITE_GOOGLE_SCOPE=',
         `VITE_SUPABASE_URL=${params.supabase.url ?? ''}`,
         `VITE_SUPABASE_ANON_KEY=${params.supabase.anonKey ?? ''}`,
+        `VITE_OPENAI_API_KEY=${params.ai.openaiApiKey ?? ''}`,
+        `VITE_GEMINI_API_KEY=${params.ai.geminiApiKey ?? ''}`,
+        `VITE_ANTHROPIC_API_KEY=${params.ai.anthropicApiKey ?? ''}`,
+        `VITE_MISTRAL_API_KEY=${params.ai.mistralApiKey ?? ''}`,
     ].join('\n');
 
     ensureFile(path.join(root, '.env'), `${env}\n`);
@@ -355,12 +382,69 @@ body {
     `);
 
     ensureFile(path.join(root, 'src/conf/app.ts'), `
+import type { AIConfig, AppProvidersConfig } from '@llmnative/react';
+import { mockData } from '../data/mockData';
+
 const env = import.meta.env;
+const selectedProvider = env.VITE_PROVIDER ?? '${params.provider}';
+const selectedAIProvider = env.VITE_AI_PROVIDER ?? '${params.aiProvider ?? 'none'}';
+
+const dataDriver =
+  selectedProvider === 'firebase' ? 'dbRealtime'
+    : selectedProvider === 'supabase' ? 'supabaseDb'
+      : 'mock';
+
+const storageDriver =
+  selectedProvider === 'firebase' ? 'firestorage'
+    : selectedProvider === 'supabase' ? 'supabaseStorage'
+      : undefined;
+
+const aiDriver = selectedAIProvider !== 'none'
+  ? selectedAIProvider
+  : undefined;
 
 export const appConfig = {
-  provider:     env.VITE_PROVIDER     ?? '${params.provider}',
+  provider:     selectedProvider,
+  aiProvider:   selectedAIProvider,
   iconProvider: env.VITE_ICON_PROVIDER ?? '${params.iconProvider}',
   theme:        env.VITE_THEME        ?? '${params.theme}',
+};
+
+export const aiConfig: AIConfig = {
+  openaiApiKey:    env.VITE_OPENAI_API_KEY ?? '',
+  geminiApiKey:    env.VITE_GEMINI_API_KEY ?? '',
+  anthropicApiKey: env.VITE_ANTHROPIC_API_KEY ?? '',
+  mistralApiKey:   env.VITE_MISTRAL_API_KEY ?? '',
+};
+
+export const providers: AppProvidersConfig = {
+  mock: {
+    data: mockData,
+  },
+  firebase: {
+    apiKey:            env.VITE_FIREBASE_APIKEY ?? '',
+    authDomain:        env.VITE_FIREBASE_AUTH_DOMAIN ?? '',
+    databaseURL:       env.VITE_FIREBASE_DATABASE_URL ?? '',
+    projectId:         env.VITE_FIREBASE_PROJECT_ID ?? '',
+    storageBucket:     env.VITE_FIREBASE_STORAGE_BUCKET ?? '',
+    messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID ?? '',
+    appId:             env.VITE_FIREBASE_APP_ID ?? '',
+    measurementId:     env.VITE_FIREBASE_MEASUREMENT_ID ?? '',
+  },
+  supabase: {
+    url:     env.VITE_SUPABASE_URL ?? '',
+    anonKey: env.VITE_SUPABASE_ANON_KEY ?? '',
+  },
+  google: {
+    clientId: env.VITE_GOOGLE_CLIENT_ID ?? '',
+    scope:    env.VITE_GOOGLE_SCOPE ?? '',
+  },
+  services: {
+    data: dataDriver,
+    ...(storageDriver ? { storage: storageDriver } : {}),
+    auth: 'googleAuth',
+    ...(aiDriver ? { ai: aiDriver } : {}),
+  },
 };
     `);
 
@@ -370,54 +454,16 @@ import { createRoot } from 'react-dom/client';
 import { App } from '@llmnative/react';
 import './styles/globals.css';
 
-import { appConfig } from './conf/app';
+import { aiConfig, appConfig, providers } from './conf/app';
 import { menu } from './conf/menu';
-import { mockData } from './data/mockData';
-
-const env = import.meta.env;
-const selectedProvider = appConfig.provider;
-const dataDriver =
-  selectedProvider === 'firebase' ? 'dbRealtime'
-    : selectedProvider === 'supabase' ? 'supabaseDb'
-      : 'mock';
-const storageDriver =
-  selectedProvider === 'firebase' ? 'firestorage'
-    : selectedProvider === 'supabase' ? 'supabaseStorage'
-      : undefined;
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <App
       importPage={(pageSource) => import(/* @vite-ignore */ pageSource)}
       menuConfig={menu}
-      providers={{
-        mock: {
-          data: mockData,
-        },
-        firebase: {
-          apiKey:            env.VITE_FIREBASE_APIKEY ?? '',
-          authDomain:        env.VITE_FIREBASE_AUTH_DOMAIN ?? '',
-          databaseURL:       env.VITE_FIREBASE_DATABASE_URL ?? '',
-          projectId:         env.VITE_FIREBASE_PROJECT_ID ?? '',
-          storageBucket:     env.VITE_FIREBASE_STORAGE_BUCKET ?? '',
-          messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID ?? '',
-          appId:             env.VITE_FIREBASE_APP_ID ?? '',
-          measurementId:     env.VITE_FIREBASE_MEASUREMENT_ID ?? '',
-        },
-        supabase: {
-          url:     env.VITE_SUPABASE_URL ?? '',
-          anonKey: env.VITE_SUPABASE_ANON_KEY ?? '',
-        },
-        google: {
-          clientId: env.VITE_GOOGLE_CLIENT_ID ?? '',
-          scope:    env.VITE_GOOGLE_SCOPE ?? '',
-        },
-        services: {
-          data:    dataDriver,
-          storage: storageDriver,
-          auth:    'googleAuth',
-        },
-      }}
+      providers={providers}
+      aiConfig={aiConfig}
       iconProvider={appConfig.iconProvider}
       themeProvider={appConfig.theme}
     />
@@ -427,12 +473,15 @@ createRoot(document.getElementById('root')!).render(
 }
 
 function scaffoldProject() {
-    const nonInteractive = args.includes('--yes') || args.some((arg) => arg.startsWith('--provider='));
+    const nonInteractive = args.includes('--yes')
+        || args.some((arg) => arg.startsWith('--provider='))
+        || args.some((arg) => arg.startsWith('--ai-provider='));
     if (nonInteractive) {
         const defaultName = path.basename(root);
         const params = {
             projectname:  getArg('name', defaultName),
             provider:     getArg('provider', 'mock'),
+            aiProvider:   getArg('ai-provider', 'none'),
             iconProvider: getArg('icon-provider', 'lucide'),
             theme:        getArg('theme', getArg('theme-provider', 'default')),
             template:     getArg('template', 'blank'),
@@ -451,6 +500,12 @@ function scaffoldProject() {
             supabase: {
                 url:     getArg('supabase-url'),
                 anonKey: getArg('supabase-anon-key'),
+            },
+            ai: {
+                openaiApiKey:    getArg('openai-api-key'),
+                geminiApiKey:    getArg('gemini-api-key'),
+                anthropicApiKey: getArg('anthropic-api-key'),
+                mistralApiKey:   getArg('mistral-api-key'),
             },
         };
 

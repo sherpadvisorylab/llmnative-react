@@ -421,7 +421,6 @@ function HeadPortal({
                     data-rfs-head="document"
                 />
             ) : null}
-            <title data-rfs-head="title">{metadata.title ?? appName}</title>
             {document.viewport ? <meta name="viewport" content={document.viewport} data-rfs-head="document" /> : null}
             {Object.entries(document.httpEquiv ?? {}).map(([httpEquiv, content]) => (
                 content ? <meta key={`http-equiv:${httpEquiv}`} httpEquiv={httpEquiv} content={content} data-rfs-head="document" /> : null
@@ -541,8 +540,6 @@ export function HeadProvider({ appName = DEFAULT_HEAD_APP_NAME, children }: Head
 
     const activeMetadata = metadataEntries.length > 0 ? metadataEntries[metadataEntries.length - 1].metadata : metadata;
 
-    // Set document.title imperatively so the browser tab updates even when index.html
-    // already has a <title> element (createPortal appends a second one which browsers ignore).
     useEffect(() => {
         if (typeof globalThis.document === 'undefined') return;
         globalThis.document.title = activeMetadata.title ?? resolvedAppName;
@@ -709,9 +706,9 @@ export function useDocumentHead(document?: DocumentHeadState): HeadController | 
 
     useEffect(() => {
         if (!controller || !document) return;
-        const previousDocumentHead = controller.document;
-        controller.setDocumentHead(document);
-        return () => controller.setDocumentHead(previousDocumentHead);
+        const snapshot = controller.document;
+        controller.setDocumentHead({ ...snapshot, ...document });
+        return () => controller.setDocumentHead(snapshot);
     }, [controller?.setDocumentHead, documentKey]);
 
     return controller;

@@ -1,6 +1,6 @@
 # Examples
 
-This folder contains copyable examples for common react-firestrap usage scenarios.
+This folder contains copyable examples for common @llmnative/react usage scenarios.
 
 Use these pages as task recipes:
 
@@ -10,3 +10,4 @@ Use these pages as task recipes:
 - [Custom provider](custom-provider.md) shows how to provide app-specific backend behavior.
 
 The interactive examples shown in the showcase live under the `Examples` top-level menu. These Markdown files are kept as LLM-friendly implementation notes and copyable recipes.
+

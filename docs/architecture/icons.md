@@ -8,7 +8,7 @@ description: Icons are provider-based. App selects the provider; components refe
 
 # Icon system
 
-react-firestrap uses a **provider pattern** for icons: components never import icon libraries directly. Every `<Icon name="…" />` delegates resolution to the active provider, which maps the semantic name to a React component. This means you can swap the entire icon library — or mix multiple libraries — without changing a single component in your UI.
+@llmnative/react uses a **provider pattern** for icons: components never import icon libraries directly. Every `<Icon name="…" />` delegates resolution to the active provider, which maps the semantic name to a React component. This means you can swap the entire icon library — or mix multiple libraries — without changing a single component in your UI.
 
 The default provider is `lucide`. Switch to `phosphor` or bring your own adapter with zero changes to your components.
 
@@ -16,7 +16,7 @@ The default provider is `lucide`. Switch to `phosphor` or bring your own adapter
 
 ## Built-in providers
 
-Two providers ship out of the box with no extra installation or configuration. Both accept the same semantic icon names used throughout react-firestrap components.
+Two providers ship out of the box with no extra installation or configuration. Both accept the same semantic icon names used throughout @llmnative/react components.
 
 | Provider | Icons | Style | Notes |
 |----------|-------|-------|-------|
@@ -192,7 +192,7 @@ type AppIconProviderConfig =
 
 ## `IconProviderAdapter` — interface to implement
 
-The only contract you need to satisfy to bring any icon library into react-firestrap. The `id` must be unique across all registered providers. `resolve` is called on every `<Icon>` render — keep it synchronous, pure, and fast (a simple map lookup or named export access). Return `null` for unknown names; `<Icon>` renders nothing silently rather than throwing.
+The only contract you need to satisfy to bring any icon library into @llmnative/react. The `id` must be unique across all registered providers. `resolve` is called on every `<Icon>` render — keep it synchronous, pure, and fast (a simple map lookup or named export access). Return `null` for unknown names; `<Icon>` renders nothing silently rather than throwing.
 
 ```ts
 interface IconProviderAdapter {
@@ -263,3 +263,4 @@ interface IconController {
   resolve(name: string): React.ComponentType<IconComponentProps> | null;
 }
 ```
+

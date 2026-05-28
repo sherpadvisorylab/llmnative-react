@@ -19,9 +19,8 @@ function toRawText(value: unknown, mode: 'text' | 'json'): string {
         if (Array.isArray(value)) return JSON.stringify(value);
         return String(value);
     }
-    if (typeof value === 'string') {
-        try { JSON.parse(value); return value; } catch { return JSON.stringify(value); }
-    }
+    if (value == null) return '';
+    if (typeof value === 'string') return value;
     return JSON.stringify(value, null, 2);
 }
 
@@ -55,6 +54,8 @@ export default function PresetTextareaControl({
         if (mode !== 'json' || readOnly) return false;
         const trimmed = rawText.trim();
         if (trimmed === '' || trimmed === '{}' || trimmed === '[]') return false;
+        // Plain strings (not objects/arrays) are valid as-is
+        if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) return false;
         try { JSON.parse(trimmed); return false; } catch { return true; }
     }, [mode, readOnly, rawText]);
 

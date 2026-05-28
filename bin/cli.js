@@ -20,6 +20,7 @@ Available commands:
 Examples:
   npx @llmnative/react create
   npx @llmnative/react create --yes --provider=mock
+  npx @llmnative/react create --yes --provider=mock --ai-provider=openai
   npx @llmnative/react create --help
   npx @llmnative/react devtools
   npx @llmnative/react version
@@ -37,15 +38,17 @@ Usage:
 Interactive prompts:
   project name
   data provider: firebase | supabase | mock | custom
+  ai provider: none | openai | gemini | anthropic | mistral
   icon provider: lucide | phosphor
   theme: default | flat | cyber
-  provider credentials for Firebase or Supabase
+  provider credentials for Firebase, Supabase or the selected AI provider
 
 Options:
   --yes
   --reset
   --name=<name>
   --provider=<firebase|supabase|mock|custom>
+  --ai-provider=<none|openai|gemini|anthropic|mistral>
   --icon-provider=<lucide|phosphor>
   --theme=<default|flat|cyber>
   --hosting=<site|n>
@@ -60,15 +63,24 @@ Options:
   --google-client-id=<value>
   --supabase-url=<value>
   --supabase-anon-key=<value>
+  --openai-api-key=<value>
+  --gemini-api-key=<value>
+  --anthropic-api-key=<value>
+  --mistral-api-key=<value>
 
 Generated env:
   VITE_PROVIDER
+  VITE_AI_PROVIDER
   VITE_ICON_PROVIDER
   VITE_THEME
   VITE_FIREBASE_*
   VITE_GOOGLE_CLIENT_ID
   VITE_SUPABASE_URL
   VITE_SUPABASE_ANON_KEY
+  VITE_OPENAI_API_KEY
+  VITE_GEMINI_API_KEY
+  VITE_ANTHROPIC_API_KEY
+  VITE_MISTRAL_API_KEY
     `);
 }
 

@@ -1,7 +1,8 @@
 export type { MotionUIProps, UIProps } from './types';
 
 export { default as Brand } from './blocks/Brand';
-export { default as Breadcrumbs } from './blocks/Breadcrumbs';
+export { default as Breadcrumbs, buildBreadcrumbSchema } from './blocks/Breadcrumbs';
+export type { BreadcrumbItem, BreadcrumbsProps, BreadcrumbSchemaOptions } from './blocks/Breadcrumbs';
 export { default as Carousel } from './blocks/Carousel';
 export * from './blocks/Dropdown';
 export { default as Notifications } from './blocks/Notifications';

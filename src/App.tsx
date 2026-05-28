@@ -19,6 +19,9 @@ import {
     RuntimeProvider,
     ScrapeConfig
 } from "./Config";
+import type { AIProviderAdapter } from "./providers/ai";
+import { AIProvider } from "./providers/ai/AIProviderContext";
+import { createBuiltInAIRegistry } from "./providers/ai";
 import type { DataProviderAdapter } from "./providers/data/DataProvider";
 import { DataProvider } from "./providers/data/DataProviderContext";
 import type { StorageProviderAdapter } from "./providers/storage/StorageProvider";
@@ -37,6 +40,7 @@ import {
     type GoogleProviderConfig,
     type SupabaseProviderConfig,
     type MockProviderConfig,
+    type AIDriverName,
 } from "./providers/manifest";
 
 
@@ -72,6 +76,7 @@ export type AppProvidersConfig = {
         storage?: Record<string, StorageProviderAdapter> | StorageProviderAdapter;
         auth?: Record<string, AuthProviderAdapter> | AuthProviderAdapter;
         email?: Record<string, EmailProviderAdapter> | EmailProviderAdapter;
+        ai?: Record<string, AIProviderAdapter> | AIProviderAdapter;
     };
     services?: ServicesConfig;
 };
@@ -146,6 +151,21 @@ function resolveProviderRegistries(providers: AppProvidersConfig = {}) {
         email:   { registry: email,   defaultKey: selectDefaultKey(email,   svc?.email) },
     };
 }
+
+function resolveAIProviderRegistries(
+    aiConfig: AIConfig | undefined,
+    providers: AppProvidersConfig = {}
+) {
+    const registry = createBuiltInAIRegistry(aiConfig);
+    addCustomProviders(registry, providers.custom?.ai);
+    const preferred = providers.services?.ai as AIDriverName | undefined;
+    return {
+        registry,
+        defaultKey: Object.keys(registry).length > 0
+            ? selectDefaultKey(registry, preferred)
+            : 'openai',
+    };
+}
 const MaybeEmailProvider = ({
     registry,
     defaultKey,
@@ -188,6 +208,7 @@ function App({
     const storageRegistry = providerRegistries.storage;
     const authRegistry = providerRegistries.auth;
     const emailRegistry = providerRegistries.email;
+    const aiRegistry = resolveAIProviderRegistries(aiConfig, providers);
     setStaticMenu(menuConfig);
 
     const LayoutEmpty = ({ children }: { children: React.ReactNode }) => <>{children}</>;
@@ -266,6 +287,7 @@ function App({
                     <DataProvider {...dataRegistry}>
                     <StorageProvider {...storageRegistry}>
                     <MaybeEmailProvider registry={emailRegistry.registry} defaultKey={emailRegistry.defaultKey}>
+                    <AIProvider {...aiRegistry}>
                     <IconProvider config={iconProvider}>
                     <HeadProvider appName={appName}>
                     <ThemeProvider config={themeProvider}>
@@ -289,6 +311,7 @@ function App({
                     </ThemeProvider>
                     </HeadProvider>
                     </IconProvider>
+                    </AIProvider>
                     </MaybeEmailProvider>
                     </StorageProvider>
                     </DataProvider>

@@ -62,6 +62,7 @@ Scaffold a new project:
 ```bash
 npx @llmnative/react create
 npx @llmnative/react create --yes --provider=mock
+npx @llmnative/react create --yes --provider=mock --ai-provider=openai
 ```
 
 ---
@@ -77,8 +78,9 @@ export default function Root() {
     <App
       providers={{
         firebase: firebaseConfig,
-        services: { data: 'dbRealtime', storage: 'firestorage' },
+        services: { data: 'dbRealtime', storage: 'firestorage', ai: 'openai' },
       }}
+      aiConfig={{ openaiApiKey: import.meta.env.VITE_OPENAI_API_KEY }}
       menuConfig={menuConfig}
       importPage={(path) => import(path)}
     />
@@ -194,6 +196,13 @@ export default function UserForm() {
 
 @llmnative/react uses a **Ports & Adapters** architecture. Swap backends without changing your UI.
 
+The framework exposes five service slots:
+- `data`
+- `storage`
+- `auth`
+- `email`
+- `ai`
+
 ### Firebase
 
 ```tsx
@@ -285,12 +294,14 @@ export class RestDataProvider implements DataProviderAdapter {
 ```tsx
 import { AI } from '@llmnative/react'
 
-const text  = await AI.fetch("Write a title for: {keyword}", { keyword: "React" })
-const items = await AI.json("List 5 categories for a tech blog")
-const tags  = await AI.array("5 tags for: machine learning")
+const text = await AI.fetch(
+  "Write a title for: {keyword}",
+  { model: "openai/gpt-5", temperature: 0.4 },
+  { keyword: "React" }
+)
 ```
 
-Supports: OpenAI, Gemini, Anthropic, DeepSeek, Mistral — configured once via `<App>`.
+AI is now a formal fifth service, configured once via `<App aiConfig={...} providers={{ services: { ai: 'openai' } }}>`.
 
 ---
 
@@ -373,3 +384,4 @@ Full pattern reference: [CLAUDE.md](./CLAUDE.md) — 5 copy-paste patterns cover
 ## License
 
 Apache-2.0
+

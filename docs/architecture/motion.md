@@ -3,12 +3,12 @@ title: Motion system
 group: Architecture
 order: 45
 path: /docs/motion
-description: Configure semantic motion effects across react-firestrap.
+description: Configure semantic motion effects across @llmnative/react.
 ---
 
 # Motion system
 
-react-firestrap motion is theme-driven and semantic. Themes define named effects once, then components reference those effects by intent.
+@llmnative/react motion is theme-driven and semantic. Themes define named effects once, then components reference those effects by intent.
 
 The default is intentionally quiet: short transitions, no layout shift, and support for `prefers-reduced-motion`.
 
@@ -117,3 +117,4 @@ Planned next:
 - Dedicated library `Accordion` component, if promoted from showcase-only usage
 - `Notifications`-specific polish on top of dropdown motion
 - Menu/context menu refinements
+

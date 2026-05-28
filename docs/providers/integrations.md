@@ -1,60 +1,57 @@
 ---
 title: Utility integrations
 group: Utility integrations
-order: 60
+order: 70
 path: /providers/integrations
-description: AI is a runtime integration; Dropbox also registers an auth driver for OAuth.
+description: Specialized runtime integrations that are intentionally outside the five service slots.
 ---
 
 # Utility integrations
 
-AI is a runtime integration. Dropbox is configured through `<App>` and exposes specialized file utilities, but it also registers `dropboxAuth` so the OAuth connection can be driven through `AuthButton`.
+`@llmnative/react` has five service slots:
 
-For configuration details, see [AIConfig](/docs/app-configuration#aiconfig--passed-via-aiconfig-prop) and [DropboxConfig](/docs/app-configuration#dropboxconfig--declared-inside-providersdropbox).
+- `data`
+- `storage`
+- `auth`
+- `email`
+- `ai`
+
+Everything that powers framework components should go through one of those provider registries. This page is only for integrations that stay intentionally outside that contract.
+
+Today the main example is Dropbox file utilities: Dropbox can register `dropboxAuth` in the `auth` service slot, but Dropbox file browsing APIs still remain specialized helpers rather than a `StorageProvider`.
+
+## Current utility integrations
 
 | Integration | Config location | Access |
 |---|---|---|
-| AI | `aiConfig` prop | `AI.fetch(...)`, `AI.getModels(...)` |
-| Dropbox | `providers.dropbox` | `dropboxAuth`, `dropBox`, `DropBoxConnectButton`, `useDropBoxConnect` |
+| Dropbox utilities | `providers.dropbox` | `dropBox`, `DropBoxConnectButton`, `useDropBoxConnect` |
 
-## How they differ from service providers
+## How utility integrations differ from service providers
 
-Service providers fill the `data`, `storage`, `auth` and `email` registries. Utility integrations write runtime config and expose direct APIs. Dropbox is hybrid: it registers an auth driver for OAuth, while file operations remain Dropbox-specific utilities rather than `StorageProvider`.
+Service providers:
+
+- are mounted by `<App>`;
+- live behind a stable adapter interface;
+- can be swapped without changing component code;
+- usually power framework widgets or hooks directly.
+
+Utility integrations:
+
+- may still be configured through `<App>`;
+- expose vendor-specific helpers;
+- are not expected to satisfy a generic service contract.
 
 ```tsx
 // Service slot
 const data = useDataProvider();
 
-// Utility integrations
-const result = await AI.fetch(prompt, { provider: 'openai' });
+// Utility integration
 const files = await dropBox.listFolders({ path: '/Projects' });
 ```
 
-## AI integration
-
-```tsx
-import { App, AI } from '@llmnative/react';
-
-<App
-  aiConfig={{
-    openaiApiKey: import.meta.env.VITE_OPENAI_API_KEY,
-    geminiApiKey: import.meta.env.VITE_GEMINI_API_KEY,
-  }}
-  providers={{ mock: { data: mockData } }}
-/>
-
-const summary = await AI.fetch(
-  'Summarize this record',
-  { provider: 'openai', model: 'gpt-5.2' },
-  { title: 'Quarterly report' }
-);
-```
-
-`AI` currently supports these provider ids: `openai`, `gemini`, `anthropic` and `mistral`.
-
 ## Dropbox integration
 
-Dropbox is configured under `providers.dropbox`. It registers `dropboxAuth` for OAuth, but it does not power `StorageProvider`. `useStorageProvider()` will not return Dropbox.
+Dropbox is configured under `providers.dropbox`. It registers `dropboxAuth` for OAuth, but it does **not** power the `storage` service slot. `useStorageProvider()` will not return a Dropbox adapter.
 
 ```tsx
 import { App, AuthButton, dropBox } from '@llmnative/react';
@@ -89,11 +86,13 @@ function DropboxPanel() {
 
 ## When to create a provider instead
 
-Create a provider when a capability should power framework components:
+Create a provider when the capability should stay vendor-agnostic at the framework boundary:
 
-- a record backend for `Form` or `Grid`;
-- a file backend for upload/download flows;
-- an auth backend used across protected UI;
-- an email backend used by app workflows.
+- record persistence for `Form` or `Grid`;
+- upload/download for `Upload`;
+- shared identity and session state;
+- outbound email;
+- model execution through the AI orchestration layer.
 
-Keep an integration when the API is specialized, feature-specific or not one of the framework service slots.
+Keep an integration when the API is feature-specific, vendor-specific or intentionally outside the generic framework contract.
+

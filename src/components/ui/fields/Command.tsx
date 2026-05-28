@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useRef, useState } from "react";
+import { cn } from "../../../libs/cn";
+import { fieldTextAreaBaseClass } from "./Input";
 
 type CommandContextType = {
   registerTrigger: (trigger: string, config: TriggerConfig) => void;
@@ -34,9 +36,9 @@ export const Command: React.FC<{ children: React.ReactNode }> & {
     if (typeof node === "string") {
       document.execCommand("insertText", false, node + " ");
     } else {
-      // Badge inserito come nodo React → semplificato
       const span = document.createElement("span");
-      span.className = "badge bg-primary mr-1";
+      span.className =
+        "mr-1 inline-flex items-center rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground";
       span.innerText = (node as any).props.children;
       const sel = window.getSelection();
       if (sel && sel.rangeCount > 0) {
@@ -74,11 +76,10 @@ export const Command: React.FC<{ children: React.ReactNode }> & {
       <div className="relative">
         <div
           ref={ref}
-          className="form-control"
+          className={cn(fieldTextAreaBaseClass, "h-auto min-h-10 whitespace-pre-wrap")}
           contentEditable
           suppressContentEditableWarning
           onInput={handleInput}
-          style={{ minHeight: "40px" }}
         />
         {children}
       </div>

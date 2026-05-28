@@ -30,6 +30,7 @@
         wrapClass?: string;
         inputType?: InputType;
         defaultValue?: any;
+        inheritFormWrapClass?: boolean;
     }
     interface FormContextResult {
         value: any;
@@ -103,6 +104,7 @@
         required?: boolean;
         onChange?: FieldOnChange;
         defaultValue?: any; //todo: da propagare per le select, checkbox e vrificare la copertura ovunque
+        inheritFormWrapClass?: boolean;
     }
 
     interface SetFormFieldsNameProps {
@@ -115,7 +117,7 @@
     const FormContext = createContext<FormProviderProps | null>(null);
     
 
-export const useFormContext = ({name, onChange, wrapClass, inputType = "text", defaultValue}: FormContextProps): FormContextResult => {
+export const useFormContext = ({name, onChange, wrapClass, inputType = "text", defaultValue, inheritFormWrapClass = true}: FormContextProps): FormContextResult => {
     const ctx = useContext(FormContext);
     if (!ctx) throw new Error("useFormContext must be used within a FormContext.Provider");
     if (!name) throw new Error("useFormContext: name is required");
@@ -166,7 +168,7 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
                     }
                 });
             },
-            formWrapClass: [wrapClass, ctx.wrapClass].filter(Boolean).join(" "),
+            formWrapClass: [wrapClass, inheritFormWrapClass ? ctx.wrapClass : undefined].filter(Boolean).join(" "),
             record: ctx.record ?? {},
         };  
     };
@@ -532,7 +534,7 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
                 case "card":
                 default:
                     return <Card
-                        header={header || <Breadcrumbs pre={(isNewRecord ? theme.Form.i18n.headerAdd : theme.Form.i18n.headerEdit)} path={dataStoragePath ?? theme.Form.i18n.headerNewRecord} />}
+                        header={header || <Breadcrumbs rootItem={(isNewRecord ? theme.Form.i18n.headerAdd : theme.Form.i18n.headerEdit)} trail={dataStoragePath || undefined} />}
                         footer={(footer || !isNewRecord || onSave || onDelete || showBack) && <>
                             {footer}
                             {(onSave || !isNewRecord) && <LoadingButton

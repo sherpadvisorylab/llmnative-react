@@ -11,6 +11,7 @@ export type {
     StorageDriverName,
     AuthDriverName,
     EmailDriverName,
+    AIDriverName,
 } from './providers/manifest';
 export {
     Head,
@@ -134,8 +135,9 @@ export { IconProvider, useIconProvider, useIconController } from './providers/ic
 export type { AppIconProviderConfig, IconController } from './providers/icon/IconProviderContext';
 export { useEmailProvider, EmailProvider } from './providers/email/EmailProviderContext';
 export { GmailEmailProvider } from './providers/email/google/GmailEmailProvider';
-export type { AIFetchConfig } from './providers/ai';
-export { getAIProviderConfigurationState } from './providers/ai';
+export type { AIRequestOptions, AIProviderAdapter, AIModelDescriptor, AIProviderCapabilities } from './providers/ai';
+export { createBuiltInAIRegistry, formatAIModelRef, parseAIModelRef } from './providers/ai';
+export { useAIProvider, useAIProviderRegistry, AIProvider } from './providers/ai/AIProviderContext';
 export { googleGetAccessToken } from './providers/auth/google/GoogleAuth';
 export { sendEmail } from './providers/email/google/email';
 export { getKeywordIdeas } from './providers/seo/google/keyword';
@@ -144,7 +146,6 @@ export { getGoogleTrendsData, getGoogleTrendsRelated } from './providers/seo/goo
 export { default as db } from './providers/data/firebase';
 export { default as storage } from './providers/storage/firebase';
 export { dropBox, useDropBoxConnect, DropBoxConnectButton } from './providers/storage/dropbox';
-export { AI } from './providers/ai';
 export { default as scrape } from './providers/scrape';
 export * from './components';
 export * from './libs';

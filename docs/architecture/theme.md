@@ -8,7 +8,7 @@ description: Built-in self-contained themes, runtime control, custom palettes an
 
 # Theme system
 
-react-firestrap themes are self-contained modules. Each theme exports:
+@llmnative/react themes are self-contained modules. Each theme exports:
 
 - `preset`: visual tokens such as mode, colors, radius, fonts and CSS variables.
 - `motion`: semantic motion effects such as `fade`, `slideFromRight`, `fadeUp` and `press`.
@@ -140,3 +140,4 @@ type AppThemeProviderConfig =
 ```
 
 `Theme` is the resolved, complete runtime shape. `ThemeConfig` is a partial patch shape used only for `themeOverride`.
+

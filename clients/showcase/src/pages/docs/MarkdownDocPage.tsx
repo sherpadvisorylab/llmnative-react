@@ -16,8 +16,8 @@ export default function MarkdownDocPage({ doc }: MarkdownDocPageProps) {
     return (
         <DocsKitMarkdownDocPage
             route={doc}
-            layout={({ title, description, children }) => (
-                <PageLayout title={title ?? doc.meta.title} description={description ?? doc.meta.description} showHeader={false}>
+            layout={({ children }) => (
+                <PageLayout title={doc.meta.title} description={doc.meta.description} showHeader={false}>
                     {children}
                 </PageLayout>
             )}

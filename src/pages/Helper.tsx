@@ -1283,12 +1283,12 @@ function Helper() {
                   <Col lg={5} className='mb-5'>
                     <h2 id='breadcrumb'>Breadcrumbs</h2>
                     <Card className='mb-3' title=''>
-                      <Breadcrumbs className="mb-3" pre={<i className="bi bi-house-door-fill" />} />
+                      <Breadcrumbs className="mb-3" rootItem={{ label: 'Home', href: '/' }} />
                     </Card>
                   </Col>
                   <Col lg={7} className='mb-5'>
                     <Code language='jsx' className='h-100 d-flex flex-grow-1 m-0'>
-                      {` <Breadcrumbs className="mb-3" pre={<i className="bi bi-house-door-fill" />} />
+                      {` <Breadcrumbs className="mb-3" rootItem={{ label: 'Home', href: '/' }} />
                       `}
                     </Code>
                   </Col>

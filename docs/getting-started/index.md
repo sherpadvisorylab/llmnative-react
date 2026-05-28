@@ -3,38 +3,39 @@ title: Introduction
 group: Getting started
 order: 10
 path: /docs
-description: What react-firestrap is, when to use it, and how to navigate the documentation.
+description: What @llmnative/react is, when to use it, and how to navigate the documentation.
 ---
 
 # Introduction
 
-react-firestrap is a **schema-driven React framework** for building data-heavy interfaces quickly. It turns field definitions into working UI, state handling, validation and persistence with much less code than hand-written CRUD screens.
+`@llmnative/react` is an AI-first, schema-driven React framework for building data-heavy interfaces quickly. It turns field definitions into working UI, state handling, validation, persistence and AI workflows with much less code than hand-written CRUD screens.
 
 It is not a generic design system. It is opinionated around a few recurring application needs:
 
 - structured data that must be listed, created, edited and deleted;
 - consistent application screens across a project;
 - provider-backed persistence that can move from Firebase to mock, Supabase or custom backends;
+- AI-backed workflows that can move from OpenAI to Gemini, Anthropic, Mistral or custom gateways;
 - fast delivery for admin tools, internal apps, dashboards and prototypes.
 
-## What It Does
+## What it does
 
 - CRUD screens with `Grid` and `Form`
 - Context-aware form state, validation, nested objects and dynamic arrays
 - Data grids with sorting, pagination, grouping and modal editing
 - File uploads for images, documents and CSV files
-- Provider abstractions for data, storage, auth and email
+- Provider abstractions for data, storage, auth, email and AI
 - App-managed themes and icon providers
-- Vite-first scaffolding through the CLI
+- Vite-first scaffolding through the `llmnative` CLI
 
-## What It Does Not Do
+## What it does not do
 
 - It does not replace your business layer or domain rules.
 - It does not aim to be a marketing-site framework.
 - It does not replace advanced global state tools such as Zustand or Redux for complex apps.
 - It is client-side first; SSR/SSG is not the current target.
 
-## Schema-Driven Core
+## Schema-driven core
 
 The central idea is simple: define data shape and UI intent once, then let the framework render and persist the screen.
 
@@ -61,7 +62,7 @@ The same principle powers `Grid`: columns describe the data and the widget handl
 />
 ```
 
-## Architecture In 30 Seconds
+## Architecture in 30 seconds
 
 ```text
 App
@@ -71,11 +72,11 @@ Pages
 Widgets
   -> Form, Grid, MarkdownReader
 Fields
-  -> Input, Select, Upload
+  -> Input, Select, Upload, Prompt, AssistantAI
 UI primitives
   -> Button, Card, Modal, Table
 Providers
-  -> Firebase, Supabase, mock, custom adapters
+  -> Firebase, Supabase, mock, custom adapters, AI adapters
 ```
 
-Next: [Installation](/docs/installation), [Quick start](/docs/quick-start), or [Provider pattern](/docs/providers).
+Next: [Installation](/docs/installation), [Quick start](/docs/quick-start), or [Providers overview](/providers).

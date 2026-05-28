@@ -93,10 +93,12 @@ export type DataDriverName    = 'dbRealtime' | 'supabaseDb' | 'mock';
 export type StorageDriverName = 'firestorage' | 'supabaseStorage';
 export type AuthDriverName    = 'googleAuth' | 'dropboxAuth';
 export type EmailDriverName   = 'gmail';
+export type AIDriverName      = 'openai' | 'gemini' | 'anthropic' | 'mistral';
 
 export type ServicesConfig = {
     data?:    DataDriverName;
     storage?: StorageDriverName;
     auth?:    AuthDriverName;
     email?:   EmailDriverName;
+    ai?:      AIDriverName;
 };

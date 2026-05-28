@@ -8,11 +8,11 @@ description: Recurring patterns for Grid, Form, nested data, formatters and sche
 
 # Core Patterns
 
-These patterns cover most react-firestrap usage. Read them before building custom abstractions.
+These patterns cover most @llmnative/react usage. Read them before building custom abstractions.
 
 ## Pattern 0: Starting point
 
-For a new project use the scaffold — it generates the full folder structure with providers, theme and routing already wired. See [Quick start](/docs/quick-start) for the walkthrough, or [Manual setup](/docs/manual-setup) if you are adding react-firestrap to an existing project.
+For a new project use the scaffold — it generates the full folder structure with providers, theme and routing already wired. See [Quick start](/docs/quick-start) for the walkthrough, or [Manual setup](/docs/manual-setup) if you are adding @llmnative/react to an existing project.
 
 Wherever you start, import the library CSS once at the app entry:
 
@@ -247,3 +247,4 @@ const [name, setName] = useState('');
 ```
 
 Do not import database adapters directly inside UI components. Use `Form`, `Grid`, or provider hooks instead.
+

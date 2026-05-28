@@ -3,12 +3,12 @@ title: Providers & Integrations
 group: Overview
 order: 10
 path: /providers
-description: What external services react-firestrap can use today, and where each one fits.
+description: What external services @llmnative/react can use today, how the five service slots work, and where specialized integrations still fit.
 ---
 
 # Providers & Integrations
 
-react-firestrap can talk to data stores, file storage, auth systems, email APIs and utility services without coupling your UI to a specific vendor.
+@llmnative/react can talk to data stores, file storage, auth systems, email APIs, AI model providers and specialized utilities without coupling your UI to a specific vendor.
 
 For an app developer, the important idea is simple: configure the services once on `<App>`, then use framework components or hooks. `Grid`, `Form`, `Upload` and provider hooks all use the selected service behind the scenes.
 
@@ -20,7 +20,8 @@ For an app developer, the important idea is simple: configure the services once 
 | Storage | File upload, file URL, download, delete | Firebase Storage, Supabase Storage partial | [StorageProvider](/providers/storage) |
 | Auth | Current user, auth changes, access tokens | Google OAuth, Dropbox OAuth2 | [AuthProvider](/providers/auth) |
 | Email | Outbound email | Gmail | [EmailProvider](/providers/email) |
-| Utilities | AI and Dropbox helpers | OpenAI/Gemini/Anthropic/Mistral, Dropbox | [Utility integrations](/providers/integrations) |
+| AI | Model execution, prompt orchestration, provider/model discovery | OpenAI, Gemini, Anthropic, Mistral | [AIProvider](/providers/ai) |
+| Utilities | Specialized helpers outside the five service slots | Dropbox utilities | [Utility integrations](/providers/integrations) |
 
 ## How you usually use providers
 
@@ -38,6 +39,22 @@ Most of the time, you do not call a provider directly. You configure it and use 
 ```
 
 The `Grid` reads from the active `DataProvider`. If tomorrow you switch from mock data to Firebase, the component does not change.
+
+The same rule now applies to AI-first components:
+
+```tsx
+<Prompt
+  name="summary"
+  mode={PromptMode.LIVE}
+  defaultValue={{
+    enabled: true,
+    value: 'Summarize {title}',
+    model: 'openai/gpt-5',
+  }}
+/>
+```
+
+If later you change `services.ai` from `openai` to `gemini`, the prompt component does not change.
 
 ## Configuration state
 
@@ -87,6 +104,7 @@ At a glance, provider selection looks like this:
       storage: 'firestorage',
       auth: 'googleAuth',
       email: 'gmail',
+      ai: 'openai',
     },
   }}
 />
@@ -100,5 +118,7 @@ If the built-in services are not enough, each service area can receive a custom 
 - custom storage backend;
 - custom auth system;
 - custom email service.
+- custom AI gateway or model router.
 
 Each provider page ends with a custom implementation example.
+

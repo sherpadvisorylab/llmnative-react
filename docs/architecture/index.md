@@ -3,12 +3,12 @@ title: Folder structure
 group: Architecture
 order: 10
 path: /docs/architecture
-description: How the framework source, providers, components and scaffolded consumer apps are organized.
+description: How the framework source, service providers, components and scaffolded consumer apps are organized.
 ---
 
 # Folder structure
 
-react-firestrap is organized around a strict **dependency direction**: application pages compose widgets, widgets use fields, fields use primitives, and all persistence sits behind provider interfaces. Nothing lower in the stack imports from something higher.
+@llmnative/react is organized around a strict **dependency direction**: application pages compose widgets, widgets use fields, fields use primitives, and backend capabilities sit behind provider interfaces. Nothing lower in the stack imports from something higher.
 
 ```
 pages / app code
@@ -53,8 +53,8 @@ src/
     storage/          ← StorageProviderAdapter + FirebaseStorageProvider, SupabaseStorageProvider
     auth/             ← AuthProviderAdapter + GoogleAuthProvider
     email/            ← EmailProviderAdapter + GmailEmailProvider
+    ai/               ← AIProviderAdapter + runtime OpenAI/Gemini/Anthropic/Mistral adapters + orchestration
     icon/             ← IconProviderAdapter + LucideIconProvider, PhosphorIconProvider
-    ai/               ← AI multi-provider (OpenAI, Gemini, Anthropic, DeepSeek, Mistral)
     seo/              ← Google Ads keywords, Trends
     scrape/           ← SerpAPI scraping
 
@@ -69,7 +69,7 @@ src/
 
 - `libs/` must not import React or any component.
 - `components/ui` must not import from `widgets` or `providers`.
-- `components/` must not import concrete provider implementations (Firebase SDK, Supabase SDK, etc.) directly — use provider interfaces.
+- `components/` must not import concrete provider implementations (Firebase SDK, Supabase SDK, AI vendor SDKs, etc.) directly — use provider interfaces.
 - New persistence behavior belongs in `providers/`; shared public types belong in `types/`.
 
 ---
@@ -97,7 +97,7 @@ import '@llmnative/react/dist/index.css';
 
 ## Scaffolded consumer app — `src/`
 
-When you run `npx ash create`, the scaffold generates this structure. Every folder has a specific role — keeping them separate makes the codebase easy to navigate even as it grows.
+When you run `npx @llmnative/react create`, the scaffold generates this structure. Every folder has a specific role — keeping them separate makes the codebase easy to navigate even as it grows.
 
 ```text
 src/
@@ -159,7 +159,7 @@ All app-level configuration lives here. Application pages and components never i
 
 ### `styles/globals.css` — why it is required
 
-`react-firestrap/dist/index.css` injects runtime CSS custom properties (`--rf-primary`, `--rf-background`, etc.) but Tailwind v4 does not know about them at build time. `globals.css` bridges the two systems via `@theme inline`, so utilities like `bg-primary` and `text-success` reflect the active theme at runtime.
+`@llmnative/react/dist/index.css` injects runtime CSS custom properties (`--rf-primary`, `--rf-background`, etc.) but Tailwind v4 does not know about them at build time. `globals.css` bridges the two systems via `@theme inline`, so utilities like `bg-primary` and `text-success` reflect the active theme at runtime.
 
 ```css
 @import "tailwindcss";
@@ -185,11 +185,13 @@ Without this file, `bg-primary` compiles to a static value and ignores theme cha
 ## Repository layout (monorepo)
 
 ```text
-react-firestrap/           ← library root
+@llmnative/react/           ← library root
   src/                     ← framework source (published to npm)
   docs/                    ← markdown docs (AI-first, consumed by the showcase)
   clients/
     showcase/              ← Vite app that documents and demos the library
-  bin/                     ← CLI scripts (npx ash create)
+  bin/                     ← CLI scripts (npx @llmnative/react create)
   dist/                    ← build output (gitignored)
 ```
+
+

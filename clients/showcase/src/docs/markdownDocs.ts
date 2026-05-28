@@ -43,7 +43,9 @@ function titleFromFile(sourcePath: string): string {
         .join(' ');
 }
 
-function parseFrontmatter(raw: string, sourcePath: string): MarkdownDocEntry {
+type ParsedEntry = MarkdownDocEntry & { hasExplicitFrontmatter: boolean };
+
+function parseFrontmatter(raw: string, sourcePath: string): ParsedEntry {
     const match = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/);
     const meta: Partial<MarkdownDocMeta> = {};
     let content = raw;
@@ -68,6 +70,7 @@ function parseFrontmatter(raw: string, sourcePath: string): MarkdownDocEntry {
     return {
         filePath: sourcePath,
         content,
+        hasExplicitFrontmatter: !!match,
         frontmatter: {
             title: meta.title ?? titleFromFile(sourcePath),
             group: meta.group ?? DEFAULT_GROUP,
@@ -89,7 +92,9 @@ const routeOptions = {
 
 export const allMarkdownDocs: MarkdownDoc[] = sortMarkdownRoutes(
     buildMarkdownRoutes(
-        Object.entries(rawDocs).map(([sourcePath, raw]) => parseFrontmatter(raw, sourcePath)),
+        Object.entries(rawDocs)
+            .map(([sourcePath, raw]) => parseFrontmatter(raw, sourcePath))
+            .filter((entry) => entry.hasExplicitFrontmatter),
         routeOptions
     )
 ).map((route) => {

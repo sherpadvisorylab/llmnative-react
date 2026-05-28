@@ -144,8 +144,6 @@ export default function MarkdownReader({
     head,
     onNavigateInternal,
 }: MarkdownReaderProps) {
-    // Extract first H1 from markdown content as automatic title fallback.
-    // head.title always wins; H1 is used when head.title is absent or head is not passed.
     const h1Title = React.useMemo(() => content.match(/^#[ \t]+(.+)/m)?.[1]?.trim(), [content]);
     const effectiveHead: PageMetadataState | undefined = (head || h1Title)
         ? { ...(head ?? {}), title: head?.title ?? h1Title }

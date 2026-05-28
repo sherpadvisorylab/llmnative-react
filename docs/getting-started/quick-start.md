@@ -8,10 +8,10 @@ description: From zero to a running app in under 5 minutes using the official sc
 
 # Quick start
 
-The fastest path is the official scaffold. Run one command, answer a few prompts, and you have a fully wired Vite app with routing, providers, theme and icons ready.
+The fastest path is the official scaffold. Run one command, answer a few prompts, and you have a fully wired Vite app with routing, theme, icons, and all five service slots ready.
 
 ```bash
-npx ash create
+npx @llmnative/react create
 cd my-app
 npm install
 npm run dev
@@ -26,14 +26,15 @@ Your app is running at `http://localhost:5173`.
 ## The prompts
 
 | Prompt | Recommended for a first run |
-|--------|----------------------------|
+|--------|-----------------------------|
 | Project name | any |
-| Data provider | `mock` — no credentials needed |
+| Data provider | `mock` - no credentials needed |
+| AI provider | `none` for a clean start, `openai` if you want AI features immediately |
 | Icon provider | `lucide` |
 | Theme | `default` |
-| App template | `blank` — or pick one that matches your use case |
+| App template | `blank` - or pick one that matches your use case |
 
-You can change every choice later without re-scaffolding — they're just configuration values in `src/conf/app.ts`.
+You can change every choice later without re-scaffolding. The generated app keeps provider wiring centralized in `src/conf/app.ts`.
 
 ---
 
@@ -43,13 +44,13 @@ The scaffold asks which kind of app you are building and generates starter pages
 
 | Template | What it generates |
 |----------|-------------------|
-| `blank` | Home page with a simple task list — clean starting point |
+| `blank` | Home page with a simple task list - clean starting point |
 | `crm` | Contacts, Companies, Deals pipeline grouped by stage |
 | `admin` | Users, Roles, Settings singleton form |
 | `inventory` | Products with price formatting, Categories, stock overview |
 | `project` | Projects, Tasks grouped by status, Team |
 
-All templates use the same sidebar shell — only the pages and mock data differ.
+All templates use the same sidebar shell - only the pages and mock data differ.
 
 ---
 
@@ -60,25 +61,38 @@ The scaffold generates a conventional folder layout. The exact pages depend on t
 ```text
 src/
   conf/
-    app.ts        ← central wiring: provider, theme, icons
-    menu.ts       ← navigation tree (template-specific)
+    app.ts        <- central wiring: data, storage, auth, email, ai, theme, icons
+    menu.ts       <- navigation tree (template-specific)
   layouts/
-    Default.tsx   ← shell: header + sidebar + <Outlet />
+    Default.tsx   <- shell: header + sidebar + <Outlet />
   sections/
-    Header.tsx    ← topbar with Brand, Menu, Notifications
-    Sidebar.tsx   ← responsive sidebar using <Menu>
+    Header.tsx    <- topbar with Brand, Menu, Notifications
+    Sidebar.tsx   <- responsive sidebar using <Menu>
     Footer.tsx
-    PageHeader.tsx← breadcrumbs
-    PreLoader.tsx ← initial spinner
-  pages/          ← starter pages (template-specific)
+    PageHeader.tsx<- breadcrumbs
+    PreLoader.tsx <- initial spinner
+  pages/          <- starter pages (template-specific)
   data/
-    mockData.ts   ← fixture data for MockDataProvider
+    mockData.ts   <- fixture data for MockDataProvider
   styles/
-    globals.css   ← Tailwind v4 + --rf-* color bridge
-  index.tsx       ← Vite entry: mounts <App>
+    globals.css   <- Tailwind v4 + --rf-* color bridge
+  index.tsx       <- Vite entry: mounts <App>
 ```
 
-Open `src/conf/menu.ts` and `src/conf/app.ts` — these two files are where almost all configuration lives.
+Open `src/conf/menu.ts` and `src/conf/app.ts` first. Those two files are where almost all configuration lives.
+
+---
+
+## AI in scaffolded apps
+
+If you choose an AI provider during scaffolding, the generator will:
+
+- add `VITE_AI_PROVIDER` to `.env`
+- add the relevant API key variable (`VITE_OPENAI_API_KEY`, `VITE_GEMINI_API_KEY`, etc.)
+- generate `aiConfig` in `src/conf/app.ts`
+- set `providers.services.ai` so `Prompt`, `AssistantAI`, and `AI.fetch(...)` all use the same orchestrator
+
+The public API stays stable. Switching from `openai` to `gemini` should be a config change in `src/conf/app.ts`, not a component rewrite.
 
 ---
 
@@ -93,11 +107,11 @@ export default function UsersPage() {
   return (
     <Grid
       path="/users"
-      order={{ name: "asc" }}
+      order={{ name: 'asc' }}
       columns={[
-        { key: 'name',  label: 'Name',  sortable: true },
+        { key: 'name', label: 'Name', sortable: true },
         { key: 'email', label: 'Email' },
-        { key: 'role',  label: 'Role' },
+        { key: 'role', label: 'Role' },
       ]}
       title="Users"
       sortable={{ field: 'name', dir: 'asc' }}
@@ -118,13 +132,7 @@ import UsersPage from '../pages/users/UsersPage';
 { path: '/users', title: 'Users', icon: 'users', page: UsersPage, layout: Default, group: 'Management' },
 ```
 
-`Grid` reads and writes through the active `DataProvider` — with `mock`, data lives in memory and resets on reload. Switch the provider to `firebase` in `src/conf/app.ts` when you are ready for persistence.
-
-As the page grows, keep these semantics in mind:
-
-- `sortable` can stay a boolean or accept an `OrderConfig` object to set the initial sort in both table and gallery mode.
-- `selectedKeys` and `onSelectionChange` share the same contract in `Grid`, `Table` and `Gallery`.
-- `reorderable` + `onReorder` enable manual drag reorder only when `layout="table"`. If combined with sorting on the same view, manual reorder takes precedence, sorting is ignored, and the component logs a warning.
+`Grid` reads and writes through the active `DataProvider`. With `mock`, data lives in memory and resets on reload. Switch the provider to `firebase` or `supabase` in `src/conf/app.ts` when you are ready for persistence.
 
 ---
 
@@ -133,7 +141,8 @@ As the page grows, keep these semantics in mind:
 | Goal | Where to go |
 |------|-------------|
 | Understand every generated file | [Scaffold output](/docs/scaffolding) |
-| Add Firebase / Supabase | [App reference](/docs/app-configuration) → Provider configuration |
+| Add Firebase / Supabase / AI | [App reference](/docs/app-configuration) |
 | Customize colors, radius, font | [Theme system](/docs/theme) |
 | Change the icon library | [Icon system](/docs/icons) |
 | Add nested fields, array inputs | [Core patterns](/docs/patterns) |
+
