@@ -36,17 +36,21 @@ export const PROMPT_SHARED_PROPS: PropDef[] = [
 ];
 
 export const PROMPT_EDITOR_PROPS: PropDef[] = [
-    { name: 'mode', type: '"editor"', default: '"editor"', description: 'Authors and stores the prompt itself instead of executing it.', group: 'Specific' },
+    { name: 'mode', type: '"edit"', default: '"edit"', description: 'Authors and stores the prompt itself instead of executing it.', group: 'Specific' },
 ];
 
 export const PROMPT_LIVE_PROPS: PropDef[] = [
-    { name: 'mode', type: '"live"', default: '"live"', description: 'Shows the result surface and lets the user execute the stored prompt against the current form record.', group: 'Specific' },
-    { name: 'onRunPrompt', type: '(prompt, config, data) => Promise<string>', description: 'Optional custom executor used in live mode before falling back to the default AI provider.', group: 'Specific' },
+    { name: 'mode', type: '"run"', default: '"run"', description: 'Shows the result surface and lets the user execute the stored prompt against the current form record.', group: 'Specific' },
+    { name: 'onRunPrompt', type: '(prompt, config, data) => Promise<string>', description: 'Optional custom executor used in run mode before falling back to the default AI provider.', group: 'Specific' },
 ];
 
 export const PROMPT_PLAIN_PROPS: PropDef[] = [
-    { name: 'mode', type: '"live"', default: '"live"', description: 'Plain fallback still uses live mode, but with `defaultValue.enabled` disabled.', group: 'Specific' },
-    { name: 'renderPromptDisabled', type: '(props) => ReactNode', description: 'Custom renderer shown when prompt mode is disabled and the component falls back to a plain textarea.', group: 'Specific' },
+    { name: 'mode', type: '"run"', default: '"run"', description: 'Plain fallback still uses run mode, but with `defaultValue.enabled` disabled.', group: 'Specific' },
+    { name: 'renderPlainFallback', type: '(props) => ReactNode', description: 'Custom renderer shown when prompt mode is disabled and the component falls back to a plain textarea.', group: 'Specific' },
+];
+
+export const PROMPT_AVAILABILITY_PROPS: PropDef[] = [
+    { name: 'renderAIUnavailable', type: '({ mode, providerId, reason, configured }) => ReactNode', description: 'Custom inline renderer used when AI execution is unavailable because the selected provider is missing or not configured.', group: 'Shared' },
 ];
 
 export const executePromptPreview = async (
@@ -67,10 +71,10 @@ export const executePromptPreview = async (
     ].join('\n');
 };
 
-export const createPromptPlaygroundDefaults = (mode: 'editor' | 'live' | 'plain') => {
+export const createPromptPlaygroundDefaults = (mode: 'edit' | 'run' | 'plain') => {
     const shared = {
         name: 'summary',
-        label: mode === 'editor' ? 'Summary prompt' : mode === 'plain' ? 'Summary' : 'AI summary',
+        label: mode === 'edit' ? 'Summary prompt' : mode === 'plain' ? 'Summary' : 'AI summary',
         required: false,
         rows: mode === 'plain' ? 4 : 6,
         pre: '',
@@ -82,7 +86,7 @@ export const createPromptPlaygroundDefaults = (mode: 'editor' | 'live' | 'plain'
     if (mode === 'plain') {
         return {
             ...shared,
-            mode: 'live',
+            mode: 'run',
             defaultValue: {
                 value: 'A short human-written summary.',
                 enabled: false,
@@ -131,9 +135,9 @@ export const createPromptPlaygroundSeed = (defaultValue: any) => ({
 
 export const sharedPromptPlaygroundProps = (
     specificProps: PropDef[],
-): PropDef[] => [...specificProps, ...PROMPT_SHARED_PROPS];
+): PropDef[] => [...specificProps, ...PROMPT_AVAILABILITY_PROPS, ...PROMPT_SHARED_PROPS];
 
-export type PromptPlaygroundMode = 'editor' | 'live' | 'plain';
+export type PromptPlaygroundMode = 'edit' | 'run' | 'plain';
 
 export const createPromptPlayground = (
     mode: PromptPlaygroundMode,

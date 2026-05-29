@@ -39,7 +39,7 @@ const PLAYGROUND: PlaygroundConfig = {
             width: 320,
             height: 180,
         },
-        mode: PromptMode.EDITOR,
+        mode: PromptMode.EDIT,
         pre: '',
         post: '',
         className: '',

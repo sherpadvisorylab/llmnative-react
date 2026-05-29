@@ -6,6 +6,7 @@ interface PlaygroundAccordionProps {
     icon: string;
     label: string;
     defaultOpen?: boolean;
+    fill?: boolean;
     children: React.ReactNode;
 }
 
@@ -14,16 +15,17 @@ export default function PlaygroundAccordion({
     icon,
     label,
     defaultOpen = false,
+    fill = false,
     children,
 }: PlaygroundAccordionProps) {
     const [open, setOpen] = React.useState(defaultOpen);
 
     return (
-        <div className="flex min-h-0 flex-col border-t">
+        <div className={fill ? 'flex min-h-0 flex-1 flex-col border-t' : 'flex min-h-0 flex-col border-t'}>
             <button
                 type="button"
                 onClick={() => setOpen((current) => !current)}
-                className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-foreground hover:bg-accent transition-colors"
+                className="flex w-full shrink-0 items-center justify-between px-4 py-3 text-sm font-medium text-foreground hover:bg-accent transition-colors"
             >
                 <span className="flex items-center gap-2">
                     <Icon name={icon} size={14} />
@@ -36,7 +38,7 @@ export default function PlaygroundAccordion({
                     style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}
                 />
             </button>
-            <div className={open ? 'min-h-0 overflow-hidden' : 'hidden'}>
+            <div className={open ? (fill ? 'min-h-0 flex-1 overflow-auto' : 'min-h-0 overflow-hidden') : 'hidden'}>
                 {children}
             </div>
         </div>

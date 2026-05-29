@@ -38,6 +38,12 @@ export type PlaygroundConfig = {
     defaultProps: Record<string, any>;
     mockSeed?: Record<string, Record<string, any>>;
     render: (props: Record<string, any>, onValuesChange?: (v: Record<string, any>) => void) => React.ReactNode;
+    inspectorSections?: Array<{
+        label: string;
+        icon?: string;
+        render: (props: Record<string, any>, onUpdateProp: (name: string, value: any) => void) => React.ReactNode;
+        hidden?: (props: Record<string, any>) => boolean;
+    }>;
     size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'fullscreen';
     layout?: 'stacked' | 'split';
     showFormRecord?: boolean;

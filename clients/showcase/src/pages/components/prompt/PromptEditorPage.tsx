@@ -1,5 +1,5 @@
 import React from 'react';
-import { Form, Prompt } from '@llmnative/react';
+import { Form, Prompt, PromptMode } from '@llmnative/react';
 import PageLayout from '../../../showcase/page';
 import Section from '../../../docs-kit/page/Section';
 import PropDocsTable from '../../../docs-kit/docs/PropDocsTable';
@@ -7,7 +7,7 @@ import { usePlayground } from '../../../docs-kit/playground';
 import { createPromptPlayground, createPromptPlaygroundSeed, PROMPT_EDITOR_PROPS, PROMPT_SHARED_PROPS } from './promptDocs';
 
 const PLAYGROUND = createPromptPlayground(
-    'editor',
+    'edit',
     (p, onValuesChange) => (
         <Form
             aspect="empty"
@@ -18,6 +18,7 @@ const PLAYGROUND = createPromptPlayground(
                 <Prompt
                     name={p.name || 'summary'}
                     label={p.label || undefined}
+                    mode={PromptMode.EDIT}
                     required={p.required}
                     defaultValue={p.defaultValue}
                     rows={p.rows}
@@ -33,16 +34,16 @@ const PLAYGROUND = createPromptPlayground(
 );
 
 export default function PromptEditorPage() {
-    usePlayground(PLAYGROUND, 'PromptEditor');
+    usePlayground(PLAYGROUND, 'PromptEdit');
 
     return (
         <PageLayout
-            title="PromptEditor"
-            description="Author and maintain the stored prompt template with a dedicated editor surface."
+            title="PromptEdit"
+            description="Author and maintain the stored prompt template with a dedicated edit surface."
         >
             <Section
                 title="Author prompt text"
-                description="Editor mode is the authoring surface: it lets the user store prompt text and switch between plain text and prompt metadata."
+                description="Edit mode is the authoring surface: it lets the user store prompt text, switch between plain text and prompt metadata, and see when AI execution is unavailable."
                 bare
                 preview={(
                     <Form
@@ -60,6 +61,7 @@ export default function PromptEditorPage() {
                             <Prompt
                                 name="summary"
                                 label="Summary prompt"
+                                mode={PromptMode.EDIT}
                                 rows={5}
                                 defaultValue={{ value: 'Write a concise project summary for {projectName}.', enabled: true }}
                             />
@@ -70,6 +72,7 @@ export default function PromptEditorPage() {
   <Prompt
     name="summary"
     label="Summary prompt"
+    mode={PromptMode.EDIT}
     rows={5}
     defaultValue={{
       value: 'Write a concise project summary for {projectName}.',

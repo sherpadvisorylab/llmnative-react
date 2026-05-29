@@ -23,7 +23,7 @@ const PLAYGROUND = createPromptPlayground(
                 <Prompt
                     name={p.name || 'summary'}
                     label={p.label || undefined}
-                    mode={PromptMode.LIVE}
+                    mode={PromptMode.RUN}
                     required={p.required}
                     defaultValue={p.defaultValue}
                     rows={p.rows}
@@ -48,7 +48,7 @@ export default function PromptPlainPage() {
         >
             <Section
                 title="Fallback to plain textarea"
-                description="When prompt metadata is disabled, live mode should degrade cleanly to a simple textarea instead of exposing execution controls."
+                description="When prompt metadata is disabled, run mode should degrade cleanly to a simple textarea instead of exposing execution controls."
                 bare
                 preview={(
                     <Form aspect="empty" defaultValues={{ summary: { value: 'A short human-written summary.' } }}>
@@ -56,7 +56,7 @@ export default function PromptPlainPage() {
                             <Prompt
                                 name="summary"
                                 label="Summary"
-                                mode={PromptMode.LIVE}
+                                mode={PromptMode.RUN}
                                 rows={4}
                                 defaultValue={{ value: 'A short human-written summary.', enabled: false }}
                             />
@@ -67,7 +67,7 @@ export default function PromptPlainPage() {
   <Prompt
     name="summary"
     label="Summary"
-    mode={PromptMode.LIVE}
+    mode={PromptMode.RUN}
     rows={4}
     defaultValue={{ value: 'A short human-written summary.', enabled: false }}
   />

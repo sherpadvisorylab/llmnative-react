@@ -44,10 +44,54 @@ export default function PlaygroundDrawer({ title, config, open, onClose }: Playg
     );
 
     const rendered = config.render(props, setFormValues);
+    const previewIsRenderable = (
+        rendered === null
+        || rendered === undefined
+        || typeof rendered === 'string'
+        || typeof rendered === 'number'
+        || typeof rendered === 'boolean'
+        || React.isValidElement(rendered)
+        || Array.isArray(rendered)
+    );
+    if (!previewIsRenderable) {
+        console.error('Invalid playground preview output', rendered);
+    }
+    const previewContent = previewIsRenderable
+        ? rendered
+        : (
+            <div className="rounded-md border border-danger/30 bg-danger/5 px-3 py-2 text-xs text-danger">
+                Invalid playground preview output.
+            </div>
+        );
     const preview = config.mockSeed !== undefined && MockProvider
-        ? <MockProvider seed={mockSeed}>{rendered}</MockProvider>
-        : rendered;
+        ? <MockProvider seed={mockSeed}>{previewContent}</MockProvider>
+        : previewContent;
     const splitLayout = config.layout === 'split';
+    const renderInspectorSection = (
+        section: NonNullable<PlaygroundConfig['inspectorSections']>[number]
+    ) => {
+        const content = section.render(props, updateProp);
+
+        const renderable = (
+            content === null
+            || content === undefined
+            || typeof content === 'string'
+            || typeof content === 'number'
+            || typeof content === 'boolean'
+            || React.isValidElement(content)
+            || Array.isArray(content)
+        );
+
+        if (renderable) return content;
+
+        console.error('Invalid playground inspector section output', section.label, content);
+
+        return (
+            <div className="rounded-md border border-danger/30 bg-danger/5 px-3 py-2 text-xs text-danger">
+                Invalid inspector section output for "{section.label}".
+            </div>
+        );
+    };
 
     return (
         <Modal header={header} size={config.size ?? 'md'} onClose={onClose}>
@@ -57,17 +101,19 @@ export default function PlaygroundDrawer({ title, config, open, onClose }: Playg
                 </div>
 
                 <div className={splitLayout ? 'flex min-h-0 flex-col overflow-hidden' : 'shrink-0'}>
-                    <div className="min-h-0 flex-1 overflow-y-auto">
-                        <PlaygroundAccordion Icon={Icon} icon="eye" label="Preview" defaultOpen>
-                            <div className={splitLayout ? 'min-h-0 overflow-auto px-5 pb-5 pt-3' : 'min-h-72 overflow-auto px-4 pb-4 pt-2 pr-8'}>
+                    <div className={splitLayout ? 'flex min-h-0 flex-1 flex-col' : ''}>
+                        <PlaygroundAccordion Icon={Icon} icon="eye" label="Preview" defaultOpen fill={splitLayout}>
+                            <div className={splitLayout ? 'h-full overflow-auto px-5 pb-5 pt-3' : 'min-h-72 overflow-auto px-4 pb-4 pt-2 pr-8'}>
                                 <div className="min-w-0">
                                     {preview}
                                 </div>
                             </div>
                         </PlaygroundAccordion>
+                    </div>
 
+                    <div className="shrink-0">
                         {config.showFormRecord && (
-                            <PlaygroundAccordion Icon={Icon} icon="code" label="Form record (JSON)" defaultOpen>
+                            <PlaygroundAccordion Icon={Icon} icon="code" label="Form record (JSON)">
                                 <div className="px-4 pb-4">
                                     <pre className="w-full overflow-x-auto whitespace-pre-wrap break-all rounded-md border border-border bg-muted px-3 py-2 font-mono text-xs text-foreground">
                                         {formValues !== null ? JSON.stringify(formValues, null, 2) : '- interact with the preview to see the record -'}
@@ -75,10 +121,26 @@ export default function PlaygroundDrawer({ title, config, open, onClose }: Playg
                                 </div>
                             </PlaygroundAccordion>
                         )}
+
+                        {config.inspectorSections?.map((section) => (
+                            section.hidden?.(props) ? null : (
+                                <PlaygroundAccordion
+                                    key={section.label}
+                                    Icon={Icon}
+                                    icon={section.icon ?? 'settings'}
+                                    label={section.label}
+                                    defaultOpen
+                                >
+                                    <div className="px-4 pb-4">
+                                        {renderInspectorSection(section)}
+                                    </div>
+                                </PlaygroundAccordion>
+                            )
+                        ))}
                     </div>
 
                     {config.mockSeed !== undefined && (
-                        <div className="mt-auto shrink-0">
+                        <div className="shrink-0">
                             <MockDataEditor Icon={Icon} seed={mockSeed} onApply={setMockSeed} />
                         </div>
                     )}

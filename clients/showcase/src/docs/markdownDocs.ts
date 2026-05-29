@@ -17,6 +17,7 @@ export interface MarkdownDocMeta extends MarkdownRouteMeta {
 
 export interface MarkdownDoc extends MarkdownRoute {
     sourcePath: string;
+    loadContent: () => Promise<string>;
     meta: MarkdownDocMeta;
 }
 
@@ -99,9 +100,11 @@ export const allMarkdownDocs: MarkdownDoc[] = sortMarkdownRoutes(
     )
 ).map((route) => {
     const group = typeof route.meta.group === 'string' ? route.meta.group : DEFAULT_GROUP;
+    const content = route.content ?? '';
     return {
         ...route,
         sourcePath: route.filePath,
+        loadContent: () => Promise.resolve(content),
         meta: {
             title: typeof route.meta.title === 'string' ? route.meta.title : titleFromFile(route.filePath),
             group,

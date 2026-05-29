@@ -5,12 +5,12 @@ import Section from '../../../docs-kit/page/Section';
 
 const variantPages = [
     {
-        title: 'PromptEditor',
+        title: 'PromptEdit',
         path: '/components/prompt/editor',
-        description: 'Author and maintain the stored prompt template with a dedicated editor surface.',
+        description: 'Author and maintain the stored prompt template with a dedicated edit surface.',
     },
     {
-        title: 'PromptLive',
+        title: 'PromptRun',
         path: '/components/prompt/live',
         description: 'Execute the stored prompt against the active form record and write the generated result back into the same field.',
     },
@@ -29,7 +29,7 @@ export default function PromptIndexPage() {
         >
             <Section
                 title="Modes"
-                description="The mode prop selects the surface. editor (default) is for authoring the prompt template. live shows execution controls and writes the result back into the field."
+                description="The mode prop selects the surface. edit (default) is for authoring the prompt template. run shows execution controls, AI availability state, and writes the result back into the field."
                 preview={
                     <div className="grid gap-3 md:grid-cols-3">
                         {variantPages.map((page) => (
@@ -46,19 +46,20 @@ export default function PromptIndexPage() {
                 }
                 code={`import { Form, Prompt, PromptMode } from '@llmnative/react';
 
-// editor mode (default) — author and store the prompt template
+// edit mode (default) - author and store the prompt template
 <Form>
   <Prompt
     name="summary"
     label="Summary"
+    mode={PromptMode.EDIT}
     rows={5}
     defaultValue={{ value: 'Write a concise summary for {projectName}.', enabled: true }}
   />
 </Form>
 
-// live mode — execute and write the result back into the field
+// run mode - execute and write the result back into the field
 <Form>
-  <Prompt name="summary" mode={PromptMode.LIVE} onRunPrompt={myExecutor} />
+  <Prompt name="summary" mode={PromptMode.RUN} onRunPrompt={myExecutor} />
 </Form>`}
             />
         </PageLayout>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MarkdownReader } from '@llmnative/react';
 import { MarkdownDocPage as DocsKitMarkdownDocPage } from '../../docs-kit/markdown';
@@ -12,10 +12,27 @@ interface MarkdownDocPageProps {
 
 export default function MarkdownDocPage({ doc }: MarkdownDocPageProps) {
     const navigate = useNavigate();
+    const [content, setContent] = useState(doc.content || '');
+
+    useEffect(() => {
+        let cancelled = false;
+
+        if (content || !doc.loadContent) return;
+
+        void doc.loadContent().then((nextContent) => {
+            if (!cancelled) {
+                setContent(nextContent);
+            }
+        });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [content, doc]);
 
     return (
         <DocsKitMarkdownDocPage
-            route={doc}
+            route={{ ...doc, content }}
             layout={({ children }) => (
                 <PageLayout title={doc.meta.title} description={doc.meta.description} showHeader={false}>
                     {children}

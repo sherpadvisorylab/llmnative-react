@@ -1,64 +1,69 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 
-import Home from '../pages/Home';
 import { markdownDocs, providerMarkdownDocs } from '../docs/markdownDocs';
 import MarkdownDocPage from '../pages/docs/MarkdownDocPage';
 import Stub from '../pages/docs/Stub';
-import ExamplesOverview from '../pages/examples/ExamplesOverview';
 
-import AlertPage from '../pages/components/AlertPage';
-import AssistantAIPage from '../pages/components/AssistantAIPage';
-import AuthPage from '../pages/components/AuthPage';
-import BadgePage from '../pages/components/BadgePage';
-import BrandPage from '../pages/components/BrandPage';
-import BreadcrumbsPage from '../pages/components/BreadcrumbsPage';
-import ButtonsIndexPage from '../pages/components/buttons';
-import ActionButtonPage from '../pages/components/buttons/ActionButtonPage';
-import LoadingButtonPage from '../pages/components/buttons/LoadingButtonPage';
-import NavigationButtonsPage from '../pages/components/buttons/NavigationButtonsPage';
-import CardPage from '../pages/components/CardPage';
-import CarouselPage from '../pages/components/CarouselPage';
-import CheckboxPage from '../pages/components/CheckboxPage';
-import CodePage from '../pages/components/CodePage';
-import LoaderPage from '../pages/components/LoaderPage';
-import DropdownPage from '../pages/components/DropdownPage';
-import GalleryPage from '../pages/components/GalleryPage';
-import GridSystemPage from '../pages/components/GridSystemPage';
-import IconPage from '../pages/components/IconPage';
-import ImagePage from '../pages/components/ImagePage';
-import ImageAvatarPage from '../pages/components/ImageAvatarPage';
-import ImageUrlPage from '../pages/components/ImageUrlPage';
-import LayoutBuilderPage from '../pages/components/LayoutBuilderPage';
-import ListGroupPage from '../pages/components/ListGroupPage';
-import MenuPage from '../pages/components/MenuPage';
-import ModalPage from '../pages/components/ModalPage';
-import MotionPage from '../pages/components/MotionPage';
-import NotificationsPage from '../pages/components/NotificationsPage';
-import PaginationPage from '../pages/components/PaginationPage';
-import PercentagePage from '../pages/components/PercentagePage';
-import PromptIndexPage from '../pages/components/prompt';
-import PromptEditorPage from '../pages/components/prompt/PromptEditorPage';
-import PromptLivePage from '../pages/components/prompt/PromptLivePage';
-import PromptPlainPage from '../pages/components/prompt/PromptPlainPage';
-import RepeatPage from '../pages/components/RepeatPage';
-import SearchPage from '../pages/components/SearchPage';
-import SwitchPage from '../pages/components/SwitchPage';
-import TabPage from '../pages/components/TabPage';
-import TabDynamicPage from '../pages/components/TabDynamicPage';
-import TablePage from '../pages/components/TablePage';
-import TextAreaPage from '../pages/components/TextAreaPage';
-import InputPage from '../pages/components/InputPage';
-import SelectPage from '../pages/components/SelectPage';
-import AutocompletePage from '../pages/components/AutocompletePage';
-import ChecklistPage from '../pages/components/ChecklistPage';
-import UploadPage from '../pages/components/UploadPage';
-import FormPage from '../pages/components/FormPage';
-import GridPage from '../pages/components/GridPage';
-import GridArrayPage from '../pages/components/GridArrayPage';
-import GridDbPage from '../pages/components/GridDbPage';
-import GridPreviewPage from '../pages/components/GridPreviewPage';
-import MarkdownReaderPage from '../pages/components/MarkdownReaderPage';
+const lazyPage = <T extends { default: React.ComponentType<any> }>(
+    loader: () => Promise<T>
+) => React.lazy(loader);
+
+const Home = lazyPage(() => import('../pages/Home'));
+const ExamplesOverview = lazyPage(() => import('../pages/examples/ExamplesOverview'));
+
+const AlertPage = lazyPage(() => import('../pages/components/AlertPage'));
+const AssistantAIPage = lazyPage(() => import('../pages/components/AssistantAIPage'));
+const AuthPage = lazyPage(() => import('../pages/components/AuthPage'));
+const BadgePage = lazyPage(() => import('../pages/components/BadgePage'));
+const BrandPage = lazyPage(() => import('../pages/components/BrandPage'));
+const BreadcrumbsPage = lazyPage(() => import('../pages/components/BreadcrumbsPage'));
+const ButtonsIndexPage = lazyPage(() => import('../pages/components/buttons'));
+const ActionButtonPage = lazyPage(() => import('../pages/components/buttons/ActionButtonPage'));
+const LoadingButtonPage = lazyPage(() => import('../pages/components/buttons/LoadingButtonPage'));
+const NavigationButtonsPage = lazyPage(() => import('../pages/components/buttons/NavigationButtonsPage'));
+const CardPage = lazyPage(() => import('../pages/components/CardPage'));
+const CarouselPage = lazyPage(() => import('../pages/components/CarouselPage'));
+const CheckboxPage = lazyPage(() => import('../pages/components/CheckboxPage'));
+const CodePage = lazyPage(() => import('../pages/components/CodePage'));
+const LoaderPage = lazyPage(() => import('../pages/components/LoaderPage'));
+const DropdownPage = lazyPage(() => import('../pages/components/DropdownPage'));
+const GalleryPage = lazyPage(() => import('../pages/components/GalleryPage'));
+const GridSystemPage = lazyPage(() => import('../pages/components/GridSystemPage'));
+const IconPage = lazyPage(() => import('../pages/components/IconPage'));
+const ImagePage = lazyPage(() => import('../pages/components/ImagePage'));
+const ImageAvatarPage = lazyPage(() => import('../pages/components/ImageAvatarPage'));
+const ImageUrlPage = lazyPage(() => import('../pages/components/ImageUrlPage'));
+const LayoutBuilderPage = lazyPage(() => import('../pages/components/LayoutBuilderPage'));
+const ListGroupPage = lazyPage(() => import('../pages/components/ListGroupPage'));
+const MenuPage = lazyPage(() => import('../pages/components/MenuPage'));
+const ModalPage = lazyPage(() => import('../pages/components/ModalPage'));
+const MotionPage = lazyPage(() => import('../pages/components/MotionPage'));
+const NotificationsPage = lazyPage(() => import('../pages/components/NotificationsPage'));
+const PaginationPage = lazyPage(() => import('../pages/components/PaginationPage'));
+const PercentagePage = lazyPage(() => import('../pages/components/PercentagePage'));
+const PromptIndexPage = lazyPage(() => import('../pages/components/prompt'));
+const PromptEditorPage = lazyPage(() => import('../pages/components/prompt/PromptEditorPage'));
+const PromptLivePage = lazyPage(() => import('../pages/components/prompt/PromptLivePage'));
+const PromptPlainPage = lazyPage(() => import('../pages/components/prompt/PromptPlainPage'));
+const RepeatPage = lazyPage(() => import('../pages/components/RepeatPage'));
+const SearchPage = lazyPage(() => import('../pages/components/SearchPage'));
+const SwitchPage = lazyPage(() => import('../pages/components/SwitchPage'));
+const TabPage = lazyPage(() => import('../pages/components/TabPage'));
+const TabDynamicPage = lazyPage(() => import('../pages/components/TabDynamicPage'));
+const TablePage = lazyPage(() => import('../pages/components/TablePage'));
+const TextAreaPage = lazyPage(() => import('../pages/components/TextAreaPage'));
+const InputPage = lazyPage(() => import('../pages/components/InputPage'));
+const SelectPage = lazyPage(() => import('../pages/components/SelectPage'));
+const AutocompletePage = lazyPage(() => import('../pages/components/AutocompletePage'));
+const ChecklistPage = lazyPage(() => import('../pages/components/ChecklistPage'));
+const UploadPage = lazyPage(() => import('../pages/components/UploadPage'));
+const FormPage = lazyPage(() => import('../pages/components/FormPage'));
+const GridPage = lazyPage(() => import('../pages/components/GridPage'));
+const GridArrayPage = lazyPage(() => import('../pages/components/GridArrayPage'));
+const GridDbPage = lazyPage(() => import('../pages/components/GridDbPage'));
+const GridPreviewPage = lazyPage(() => import('../pages/components/GridPreviewPage'));
+const MarkdownReaderPage = lazyPage(() => import('../pages/components/MarkdownReaderPage'));
 
 const s = (title: string, description: string): React.ComponentType =>
     () => React.createElement(Stub, { title, description });
@@ -148,8 +153,8 @@ export const menu = {
             page: PromptIndexPage,
             group: 'Widgets',
             children: [
-                { path: '/components/prompt/editor', title: 'PromptEditor', page: PromptEditorPage },
-                { path: '/components/prompt/live', title: 'PromptLive', page: PromptLivePage },
+                { path: '/components/prompt/editor', title: 'PromptEdit', page: PromptEditorPage },
+                { path: '/components/prompt/live', title: 'PromptRun', page: PromptLivePage },
                 { path: '/components/prompt/plain', title: 'PromptPlain', page: PromptPlainPage },
             ],
         },
