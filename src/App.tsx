@@ -1,4 +1,4 @@
-import React, { useState, Suspense, useMemo } from 'react';
+import React, { useState, Suspense, useMemo, useRef } from 'react';
 import {
     BrowserRouter,
     Route,
@@ -6,8 +6,8 @@ import {
     useLocation
 } from 'react-router-dom';
 
-import Authorize, {AUTH_REDIRECT_URI} from "./auth";
-import {converter as convert} from "./libs/converter";
+import Authorize, { AUTH_REDIRECT_URI } from "./auth";
+import { converter as convert } from "./libs/converter";
 import { AppThemeProviderConfig, ThemeProvider } from "./Theme";
 import Users from "./pages/Users";
 import NotFound from './pages/NotFound';
@@ -15,13 +15,13 @@ import Alert from "./components/ui/Alert";
 import {
     AIConfig,
     DropboxConfig,
+    ProxyConfig,
     FirebaseConfig,
     RuntimeProvider,
     ScrapeConfig
 } from "./Config";
 import type { AIProviderAdapter } from "./providers/ai";
 import { AIProvider } from "./providers/ai/AIProviderContext";
-import { createBuiltInAIRegistry } from "./providers/ai";
 import type { DataProviderAdapter } from "./providers/data/DataProvider";
 import { DataProvider } from "./providers/data/DataProviderContext";
 import type { StorageProviderAdapter } from "./providers/storage/StorageProvider";
@@ -40,7 +40,6 @@ import {
     type GoogleProviderConfig,
     type SupabaseProviderConfig,
     type MockProviderConfig,
-    type AIDriverName,
 } from "./providers/manifest";
 
 
@@ -71,6 +70,8 @@ export type AppProvidersConfig = {
     google?: GoogleProviderConfig;
     dropbox?: DropboxConfig;
     mock?: MockProviderConfig;
+    ai?: AIConfig;
+    proxy?: ProxyConfig;
     custom?: {
         data?: Record<string, DataProviderAdapter> | DataProviderAdapter;
         storage?: Record<string, StorageProviderAdapter> | StorageProviderAdapter;
@@ -82,10 +83,8 @@ export type AppProvidersConfig = {
 };
 export type AppProps = {
     appName?: string;
-    aiConfig?: AIConfig;
     scrapeConfig?: ScrapeConfig;
     tenantsURI?: string;
-    proxyURI?: string;
     importPage: (pagesPath: string) => Promise<{ default: React.ComponentType }>;
     LayoutDefault?: React.ComponentType;
     menuConfig: MenuConfig;
@@ -110,10 +109,9 @@ function addCustomProviders<T>(registry: Record<string, T>, custom?: Record<stri
     registry.custom = custom as T;
 }
 
-function selectDefaultKey<T>(registry: Record<string, T>, preferred?: string, fallback?: string): string {
+function selectDefaultKey<T>(registry: Record<string, T>, preferred?: string, emptyFallback = 'default'): string {
     if (preferred && registry[preferred]) return preferred;
-    if (fallback && registry[fallback]) return fallback;
-    return Object.keys(registry)[0] ?? 'default';
+    return Object.keys(registry)[0] ?? emptyFallback;
 }
 
 function resolveProviderRegistries(providers: AppProvidersConfig = {}) {
@@ -121,8 +119,9 @@ function resolveProviderRegistries(providers: AppProvidersConfig = {}) {
     const storage: Record<string, StorageProviderAdapter> = {};
     const auth: Record<string, AuthProviderAdapter> = {};
     const email: Record<string, EmailProviderAdapter> = {};
+    const ai: Record<string, AIProviderAdapter> = {};
 
-    const registries = { data, storage, auth, email } as Record<string, Record<string, any>>;
+    const registries = { data, storage, auth, email, ai } as Record<string, Record<string, any>>;
 
     // Manifest-driven: one loop for all providers — adding a new provider
     // only requires a new entry in PROVIDER_MANIFESTS, not a change here.
@@ -138,6 +137,7 @@ function resolveProviderRegistries(providers: AppProvidersConfig = {}) {
     addCustomProviders(storage, providers.custom?.storage);
     addCustomProviders(auth, providers.custom?.auth);
     addCustomProviders(email, providers.custom?.email);
+    addCustomProviders(ai, providers.custom?.ai);
 
     if (Object.keys(data).length === 0) data.mock = new MockDataProvider();
     if (Object.keys(auth).length === 0) auth.googleAuth = new GoogleAuthProvider();
@@ -145,38 +145,13 @@ function resolveProviderRegistries(providers: AppProvidersConfig = {}) {
     const svc = providers.services;
 
     return {
-        data:    { registry: data,    defaultKey: selectDefaultKey(data,    svc?.data) },
+        data: { registry: data, defaultKey: selectDefaultKey(data, svc?.data) },
         storage: { registry: storage, defaultKey: selectDefaultKey(storage, svc?.storage) },
-        auth:    { registry: auth,    defaultKey: selectDefaultKey(auth,    svc?.auth) },
-        email:   { registry: email,   defaultKey: selectDefaultKey(email,   svc?.email) },
+        auth: { registry: auth, defaultKey: selectDefaultKey(auth, svc?.auth) },
+        email: { registry: email, defaultKey: selectDefaultKey(email, svc?.email) },
+        ai: { registry: ai, defaultKey: selectDefaultKey(ai, svc?.ai) },
     };
 }
-
-function resolveAIProviderRegistries(
-    aiConfig: AIConfig | undefined,
-    providers: AppProvidersConfig = {}
-) {
-    const registry = createBuiltInAIRegistry(aiConfig);
-    addCustomProviders(registry, providers.custom?.ai);
-    const preferred = providers.services?.ai as AIDriverName | undefined;
-    return {
-        registry,
-        defaultKey: Object.keys(registry).length > 0
-            ? selectDefaultKey(registry, preferred)
-            : 'openai',
-    };
-}
-const MaybeEmailProvider = ({
-    registry,
-    defaultKey,
-    children,
-}: {
-    registry: Record<string, EmailProviderAdapter>;
-    defaultKey: string;
-    children: React.ReactNode;
-}) => Object.keys(registry).length > 0
-    ? <EmailProvider registry={registry} defaultKey={defaultKey}>{children}</EmailProvider>
-    : <>{children}</>;
 
 let menu: MenuConfig = {};
 export const setStaticMenu = (config: MenuConfig) => {
@@ -190,25 +165,20 @@ export const getContextMenu = (): string[] => {
 };
 
 function App({
-                 importPage,
-                 LayoutDefault      = undefined,
-                 aiConfig           = undefined,
-                 scrapeConfig       = undefined,
-                 tenantsURI         = undefined,
-                 proxyURI           = undefined,
-                 appName = "LLM Native",
-                 menuConfig         = {},
-                 providers          = {},
-                 iconProvider,
-                 themeProvider,
-                 children,
+    importPage,
+    LayoutDefault = undefined,
+    scrapeConfig = undefined,
+    tenantsURI = undefined,
+    appName = "LLM Native",
+    menuConfig = {},
+    providers = {},
+    iconProvider,
+    themeProvider,
+    children,
 }: AppProps) {
-    const providerRegistries = resolveProviderRegistries(providers);
-    const dataRegistry = providerRegistries.data;
-    const storageRegistry = providerRegistries.storage;
-    const authRegistry = providerRegistries.auth;
-    const emailRegistry = providerRegistries.email;
-    const aiRegistry = resolveAIProviderRegistries(aiConfig, providers);
+    const registriesRef = useRef<ReturnType<typeof resolveProviderRegistries>>();
+    if (!registriesRef.current) registriesRef.current = resolveProviderRegistries(providers);
+    const registries = registriesRef.current;
     setStaticMenu(menuConfig);
 
     const LayoutEmpty = ({ children }: { children: React.ReactNode }) => <>{children}</>;
@@ -220,7 +190,7 @@ function App({
 
     function getRoute(key: string, item: MenuItem, index: number): React.ReactElement {
         const component = item.component ? "/" + item.component :
-            (item.path === "/" 
+            (item.path === "/"
                 ? "/Home"
                 : convert.toCamel(item.path.split("*")[0])
             );
@@ -279,43 +249,43 @@ function App({
                     }
                     : undefined,
                 dropbox: providers.dropbox,
-                ai: aiConfig,
+                ai: providers.ai,
                 scrape: scrapeConfig,
-                proxyURI: proxyURI
+                proxy: providers.proxy,
             }} tenantsURI={tenantsURI}>
-                    <AuthProvider {...authRegistry}>
-                    <DataProvider {...dataRegistry}>
-                    <StorageProvider {...storageRegistry}>
-                    <MaybeEmailProvider registry={emailRegistry.registry} defaultKey={emailRegistry.defaultKey}>
-                    <AIProvider {...aiRegistry}>
-                    <IconProvider config={iconProvider}>
-                    <HeadProvider appName={appName}>
-                    <ThemeProvider config={themeProvider}>
-                        {children}
-                        <Routes>
-                            <Route path={AUTH_REDIRECT_URI} element={<Authorize />}></Route>
-                            <>
-                                {renderRoutes({
-                                    default: [{ path: "/" }], ...{
-                                        ...menu,
-                                        _auth: [{
-                                            path: "/users",
-                                            page: Users,
-                                            layout: LayoutDefault
-                                        }]
-                                    }
-                                })}
-                            </>
-                            <Route path='*' element={<NotFound />}></Route>
-                        </Routes>
-                    </ThemeProvider>
-                    </HeadProvider>
-                    </IconProvider>
-                    </AIProvider>
-                    </MaybeEmailProvider>
-                    </StorageProvider>
+                <AuthProvider {...registries.auth}>
+                    <DataProvider {...registries.data}>
+                        <StorageProvider {...registries.storage}>
+                            <EmailProvider {...registries.email}>
+                                <AIProvider {...registries.ai}>
+                                    <IconProvider config={iconProvider}>
+                                        <HeadProvider appName={appName}>
+                                            <ThemeProvider config={themeProvider}>
+                                                {children}
+                                                <Routes>
+                                                    <Route path={AUTH_REDIRECT_URI} element={<Authorize />}></Route>
+                                                    <>
+                                                        {renderRoutes({
+                                                            default: [{ path: "/" }], ...{
+                                                                ...menu,
+                                                                _auth: [{
+                                                                    path: "/users",
+                                                                    page: Users,
+                                                                    layout: LayoutDefault
+                                                                }]
+                                                            }
+                                                        })}
+                                                    </>
+                                                    <Route path='*' element={<NotFound />}></Route>
+                                                </Routes>
+                                            </ThemeProvider>
+                                        </HeadProvider>
+                                    </IconProvider>
+                                </AIProvider>
+                            </EmailProvider>
+                        </StorageProvider>
                     </DataProvider>
-                    </AuthProvider>
+                </AuthProvider>
             </RuntimeProvider>
         </BrowserRouter>
     );

@@ -13,6 +13,7 @@ export type {
     EmailDriverName,
     AIDriverName,
 } from './providers/manifest';
+export type { ProxyConfig } from './Config';
 export {
     Head,
     HeadProvider,
@@ -135,9 +136,12 @@ export { IconProvider, useIconProvider, useIconController } from './providers/ic
 export type { AppIconProviderConfig, IconController } from './providers/icon/IconProviderContext';
 export { useEmailProvider, EmailProvider } from './providers/email/EmailProviderContext';
 export { GmailEmailProvider } from './providers/email/google/GmailEmailProvider';
-export type { AIRequestOptions, AIProviderAdapter, AIModelDescriptor, AIProviderCapabilities } from './providers/ai';
-export { createBuiltInAIRegistry, formatAIModelRef, parseAIModelRef } from './providers/ai';
+export type { AIRequestOptions, AIProviderAdapter, AIModelDescriptor, AIProviderCapabilities, AIModelCatalog } from './providers/ai';
+export { createAIProviderRegistry, getAIModelCatalog, formatAIModelRef, parseAIModelRef } from './providers/ai';
 export { useAIProvider, useAIProviderRegistry, AIProvider } from './providers/ai/AIProviderContext';
+export { proxyFetch, useProxy, configureProxy } from './providers/proxy';
+export type { ProxyProviderName, ProxyScaffoldDescriptor } from './providers/proxy';
+export { PROXY_SCAFFOLD_MAP, PROXY_PROVIDER_NAMES, getProxyScaffold } from './providers/proxy';
 export { googleGetAccessToken } from './providers/auth/google/GoogleAuth';
 export { sendEmail } from './providers/email/google/email';
 export { getKeywordIdeas } from './providers/seo/google/keyword';

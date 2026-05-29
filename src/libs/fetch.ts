@@ -27,7 +27,8 @@ function resolveContentType(options: FetchOptions) {
 
 export async function fetchRest(
     url: string,
-    options: FetchOptions | null = null
+    options: FetchOptions | null = null,
+    fetchFn: typeof fetch = globalThis.fetch
 ): Promise<any> {
     const request: RequestInit = {
         redirect: "follow",
@@ -62,7 +63,6 @@ export async function fetchRest(
                     if (typeof options.body !== 'string') {
                         throw new Error("Fetch: Body must be a string for text/plain or text/html content types.");
                     }
-
                     request.body = options.body;
                     break;
                 default:
@@ -71,8 +71,7 @@ export async function fetchRest(
         }
     }
 
-    //options.mode = options.mode || "no-cors";
-    return fetch(url, request)
+    return fetchFn(url, request)
         .then(response => {
             if (!response.ok) {
                 return response.text().then(text => { throw { response, text }; });
@@ -124,7 +123,8 @@ export async function fetchRest(
 
 export async function fetchJson(
     url: string,
-    options: FetchOptions | null = null
+    options: FetchOptions | null = null,
+    fetchFn: typeof fetch = globalThis.fetch
 ): Promise<any> {
     return fetchRest(url, {
         ...options,
@@ -133,7 +133,7 @@ export async function fetchJson(
             "Content-Type": "application/json",
             ...options?.headers,
         }
-    })
+    }, fetchFn)
     .then(response => {
         if (response?.error) {
             throw response;
@@ -146,9 +146,10 @@ export async function fetchWithRetry(
     url: string,
     options: RequestInit = {},
     maxRetries: number = 3,
-    statusNoRetry: number[] = [429]
+    statusNoRetry: number[] = [429],
+    fetchFn: typeof fetch = globalThis.fetch
 ): Promise<any | Response> {
-    return fetch(url, options)
+    return fetchFn(url, options)
         .then(response => {
             if (response.ok) {
                 return response.json();
@@ -158,12 +159,11 @@ export async function fetchWithRetry(
                 console.log("Retrying...", maxRetries, url, options);
 
                 return sleep(500)
-                    .then(() => fetchWithRetry(url, options, maxRetries - 1));
+                    .then(() => fetchWithRetry(url, options, maxRetries - 1, statusNoRetry, fetchFn));
             }
 
             console.error(response);
             return response;
-            //throw new Error(`Failed to fetch ${url}`);
         })
         .catch((err) => console.error(err, "BBBBBBBBBBBBBBBBBBBBBBB"));
 }

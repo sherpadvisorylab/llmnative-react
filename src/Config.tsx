@@ -47,12 +47,28 @@ export type AIConfig = {
     geminiApiKey?: string;
     openaiApiKey?: string;
     deepSeekApiKey?: string;
+    openRouterApiKey?: string;
+    openCodeApiKey?: string;
     anthropicApiKey?: string;
     mistralApiKey?: string;
+    openAICompatible?: {
+        apiKey?: string;
+        baseUrl?: string;
+        modelsUrl?: string;
+        chatCompletionsUrl?: string;
+        defaultModel?: string;
+        label?: string;
+        fallbackModels?: string[];
+    };
 };
 
 export type ScrapeConfig = {
     serpApiKey?: string;
+};
+
+export type ProxyConfig = {
+    enabled?: boolean;
+    route?: string;
 };
 
 export type Config = {
@@ -62,7 +78,7 @@ export type Config = {
     dropbox?: DropboxConfig;
     ai?: AIConfig;
     scrape?: ScrapeConfig;
-    proxyURI?: string;
+    proxy?: ProxyConfig;
 };
 
 interface TenantMenuItem {
