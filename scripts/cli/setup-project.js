@@ -34,6 +34,7 @@ function resetProjectDirectory() {
         'public',
         'dist',
         '.env',
+        '.env.example',
         '.firebaserc',
         'database.rules.json',
         'firebase.json',
@@ -70,9 +71,14 @@ async function askInteractive(callback) {
             ? providerInput.trim()
             : 'mock';
 
-        const aiProviderInput = await question('Which AI provider? (none, openai, gemini, anthropic, mistral; default: none) ');
-        const aiProvider = ['none', 'openai', 'gemini', 'anthropic', 'mistral'].includes(aiProviderInput.trim())
+        const aiProviderInput = await question('Which AI provider? (none, openai, openrouter, opencode, gemini, anthropic, deepseek, mistral; default: none) ');
+        const aiProvider = ['none', 'openai', 'openrouter', 'opencode', 'gemini', 'anthropic', 'deepseek', 'mistral'].includes(aiProviderInput.trim())
             ? aiProviderInput.trim()
+            : 'none';
+
+        const proxyProviderInput = await question('Which proxy provider? (none, vite, express, nextjs-app, nextjs-pages, cloudflare; default: none) ');
+        const proxyProvider = ['none', 'vite', 'express', 'nextjs-app', 'nextjs-pages', 'cloudflare'].includes(proxyProviderInput.trim())
+            ? proxyProviderInput.trim()
             : 'none';
 
         const iconProviderInput = await question('Which icon provider? (lucide, phosphor; default: lucide) ');
@@ -118,21 +124,27 @@ async function askInteractive(callback) {
         if (aiProvider === 'openai') {
             ai.openaiApiKey = (await question('OpenAI API key: ')).trim();
         }
-
+        if (aiProvider === 'openrouter') {
+            ai.openRouterApiKey = (await question('OpenRouter API key: ')).trim();
+        }
+        if (aiProvider === 'opencode') {
+            ai.openCodeApiKey = (await question('OpenCode API key: ')).trim();
+        }
         if (aiProvider === 'gemini') {
             ai.geminiApiKey = (await question('Gemini API key: ')).trim();
         }
-
         if (aiProvider === 'anthropic') {
             ai.anthropicApiKey = (await question('Anthropic API key: ')).trim();
         }
-
+        if (aiProvider === 'deepseek') {
+            ai.deepSeekApiKey = (await question('DeepSeek API key: ')).trim();
+        }
         if (aiProvider === 'mistral') {
             ai.mistralApiKey = (await question('Mistral API key: ')).trim();
         }
 
         rl.close();
-        callback({ projectname, provider, aiProvider, iconProvider, theme, template, hosting, firebase, supabase, ai });
+        callback({ projectname, provider, aiProvider, proxyProvider, iconProvider, theme, template, hosting, firebase, supabase, ai });
     } catch (error) {
         rl.close();
         console.error('Error during interactive prompt:', error);
@@ -187,10 +199,6 @@ function createPackageJson(params) {
     }, null, 2));
 }
 
-function createDevTools() {
-    require('./setup-devtools').setupDevTools();
-}
-
 function createIndexHtml(params) {
     ensureFile(path.join(root, 'index.html'), `
 <!doctype html>
@@ -209,11 +217,19 @@ function createIndexHtml(params) {
 }
 
 function createEnvFile(params) {
+    const proxyEnabled = params.proxyProvider && params.proxyProvider !== 'none' ? 'true' : 'false';
     const env = [
+        '# --- Core ---',
         `VITE_PROVIDER=${params.provider}`,
         `VITE_AI_PROVIDER=${params.aiProvider ?? 'none'}`,
         `VITE_ICON_PROVIDER=${params.iconProvider}`,
         `VITE_THEME=${params.theme}`,
+        '',
+        '# --- Proxy (required for AI calls from the browser) ---',
+        `VITE_PROXY_PROVIDER=${params.proxyProvider ?? 'none'}`,
+        `VITE_PROXY_ENABLED=${proxyEnabled}`,
+        '',
+        '# --- Firebase ---',
         `VITE_FIREBASE_APIKEY=${params.firebase.apikey ?? ''}`,
         `VITE_FIREBASE_AUTH_DOMAIN=${params.firebase.authDomain ?? ''}`,
         `VITE_FIREBASE_DATABASE_URL=${params.firebase.dbUrl ?? ''}`,
@@ -222,17 +238,40 @@ function createEnvFile(params) {
         `VITE_FIREBASE_MESSAGING_SENDER_ID=${params.firebase.messSenderId ?? ''}`,
         `VITE_FIREBASE_APP_ID=${params.firebase.appId ?? ''}`,
         `VITE_FIREBASE_MEASUREMENT_ID=${params.firebase.measurementId ?? ''}`,
+        '',
+        '# --- Google OAuth ---',
         `VITE_GOOGLE_CLIENT_ID=${params.firebase.googleClientId ?? ''}`,
         'VITE_GOOGLE_SCOPE=',
+        '',
+        '# --- Supabase ---',
         `VITE_SUPABASE_URL=${params.supabase.url ?? ''}`,
         `VITE_SUPABASE_ANON_KEY=${params.supabase.anonKey ?? ''}`,
+        '',
+        '# --- Dropbox ---',
+        'VITE_DROPBOX_CLIENT_ID=',
+        'VITE_DROPBOX_ROOT_PATH=',
+        '',
+        '# --- AI providers ---',
         `VITE_OPENAI_API_KEY=${params.ai.openaiApiKey ?? ''}`,
+        `VITE_OPENROUTER_API_KEY=${params.ai.openRouterApiKey ?? ''}`,
+        `VITE_OPENCODE_API_KEY=${params.ai.openCodeApiKey ?? ''}`,
         `VITE_GEMINI_API_KEY=${params.ai.geminiApiKey ?? ''}`,
         `VITE_ANTHROPIC_API_KEY=${params.ai.anthropicApiKey ?? ''}`,
+        `VITE_DEEPSEEK_API_KEY=${params.ai.deepSeekApiKey ?? ''}`,
         `VITE_MISTRAL_API_KEY=${params.ai.mistralApiKey ?? ''}`,
+        '',
+        '# --- OpenAI-compatible (leave BASE_URL empty to disable) ---',
+        'VITE_OPENAI_COMPATIBLE_BASE_URL=',
+        'VITE_OPENAI_COMPATIBLE_API_KEY=',
     ].join('\n');
 
     ensureFile(path.join(root, '.env'), `${env}\n`);
+
+    const example = env
+        .split('\n')
+        .map(line => (line && !line.startsWith('#') && line.includes('=') ? line.split('=')[0] + '=' : line))
+        .join('\n');
+    ensureFile(path.join(root, '.env.example'), `${example}\n`);
 }
 
 function createFirebaseConfig(params) {
@@ -412,12 +451,24 @@ export const appConfig = {
 
 export const aiConfig: AIConfig = {
   openaiApiKey:    env.VITE_OPENAI_API_KEY ?? '',
+  openRouterApiKey: env.VITE_OPENROUTER_API_KEY ?? '',
+  openCodeApiKey:  env.VITE_OPENCODE_API_KEY ?? '',
   geminiApiKey:    env.VITE_GEMINI_API_KEY ?? '',
   anthropicApiKey: env.VITE_ANTHROPIC_API_KEY ?? '',
+  deepSeekApiKey:  env.VITE_DEEPSEEK_API_KEY ?? '',
   mistralApiKey:   env.VITE_MISTRAL_API_KEY ?? '',
+  ...(env.VITE_OPENAI_COMPATIBLE_BASE_URL ? {
+    openAICompatible: {
+      apiKey:  env.VITE_OPENAI_COMPATIBLE_API_KEY ?? '',
+      baseUrl: env.VITE_OPENAI_COMPATIBLE_BASE_URL,
+    },
+  } : {}),
 };
 
 export const providers: AppProvidersConfig = {
+  proxy: {
+    enabled: env.VITE_PROXY_ENABLED === 'true',
+  },
   mock: {
     data: mockData,
   },
@@ -439,6 +490,10 @@ export const providers: AppProvidersConfig = {
     clientId: env.VITE_GOOGLE_CLIENT_ID ?? '',
     scope:    env.VITE_GOOGLE_SCOPE ?? '',
   },
+  dropbox: {
+    clientId: env.VITE_DROPBOX_CLIENT_ID ?? '',
+    rootPath: env.VITE_DROPBOX_ROOT_PATH ?? '',
+  },
   services: {
     data: dataDriver,
     ...(storageDriver ? { storage: storageDriver } : {}),
@@ -456,6 +511,8 @@ import './styles/globals.css';
 
 import { aiConfig, appConfig, providers } from './conf/app';
 import { menu } from './conf/menu';
+
+const env = import.meta.env;
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
@@ -482,6 +539,7 @@ function scaffoldProject() {
             projectname:  getArg('name', defaultName),
             provider:     getArg('provider', 'mock'),
             aiProvider:   getArg('ai-provider', 'none'),
+            proxyProvider: getArg('proxy-provider', 'none'),
             iconProvider: getArg('icon-provider', 'lucide'),
             theme:        getArg('theme', getArg('theme-provider', 'default')),
             template:     getArg('template', 'blank'),
@@ -503,8 +561,11 @@ function scaffoldProject() {
             },
             ai: {
                 openaiApiKey:    getArg('openai-api-key'),
+                openRouterApiKey: getArg('openrouter-api-key'),
+                openCodeApiKey:  getArg('opencode-api-key'),
                 geminiApiKey:    getArg('gemini-api-key'),
                 anthropicApiKey: getArg('anthropic-api-key'),
+                deepSeekApiKey:  getArg('deepseek-api-key'),
                 mistralApiKey:   getArg('mistral-api-key'),
             },
         };
@@ -513,7 +574,7 @@ function scaffoldProject() {
 
         console.log(`\nCreating project: ${params.projectname} | theme: ${params.theme} | template: ${params.template}\n`);
         createPackageJson(params);
-        createDevTools();
+        require('./setup-devtools').setupDevTools({ proxyProvider: params.proxyProvider });
         createIndexHtml(params);
         createEnvFile(params);
         createFirebaseConfig(params);
@@ -527,7 +588,7 @@ function scaffoldProject() {
 
         console.log(`\nCreating project: ${params.projectname} | theme: ${params.theme} | template: ${params.template}\n`);
         createPackageJson(params);
-        createDevTools();
+        require('./setup-devtools').setupDevTools({ proxyProvider: params.proxyProvider });
         createIndexHtml(params);
         createEnvFile(params);
         createFirebaseConfig(params);

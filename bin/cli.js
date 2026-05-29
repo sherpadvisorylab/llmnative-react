@@ -21,6 +21,7 @@ Examples:
   npx @llmnative/react create
   npx @llmnative/react create --yes --provider=mock
   npx @llmnative/react create --yes --provider=mock --ai-provider=openai
+  npx @llmnative/react create --yes --provider=mock --proxy-provider=viteDevProxy
   npx @llmnative/react create --help
   npx @llmnative/react devtools
   npx @llmnative/react version
@@ -39,6 +40,7 @@ Interactive prompts:
   project name
   data provider: firebase | supabase | mock | custom
   ai provider: none | openai | gemini | anthropic | mistral
+  proxy provider: none | vite | express | nextjs-app | nextjs-pages | cloudflare
   icon provider: lucide | phosphor
   theme: default | flat | cyber
   provider credentials for Firebase, Supabase or the selected AI provider
@@ -49,6 +51,7 @@ Options:
   --name=<name>
   --provider=<firebase|supabase|mock|custom>
   --ai-provider=<none|openai|gemini|anthropic|mistral>
+  --proxy-provider=<none|vite|express|nextjs-app|nextjs-pages|cloudflare>
   --icon-provider=<lucide|phosphor>
   --theme=<default|flat|cyber>
   --hosting=<site|n>
@@ -64,23 +67,27 @@ Options:
   --supabase-url=<value>
   --supabase-anon-key=<value>
   --openai-api-key=<value>
+  --openrouter-api-key=<value>
+  --opencode-api-key=<value>
   --gemini-api-key=<value>
   --anthropic-api-key=<value>
+  --deepseek-api-key=<value>
   --mistral-api-key=<value>
 
-Generated env:
-  VITE_PROVIDER
-  VITE_AI_PROVIDER
-  VITE_ICON_PROVIDER
-  VITE_THEME
-  VITE_FIREBASE_*
-  VITE_GOOGLE_CLIENT_ID
-  VITE_SUPABASE_URL
-  VITE_SUPABASE_ANON_KEY
-  VITE_OPENAI_API_KEY
-  VITE_GEMINI_API_KEY
-  VITE_ANTHROPIC_API_KEY
-  VITE_MISTRAL_API_KEY
+Generated files:
+  .env                      (filled with values from prompts/flags)
+  .env.example              (same structure, all values empty — commit this)
+
+Generated env variables:
+  VITE_PROVIDER, VITE_AI_PROVIDER, VITE_ICON_PROVIDER, VITE_THEME
+  VITE_PROXY_PROVIDER, VITE_PROXY_ENABLED  (route is fixed: /api/proxy)
+  VITE_FIREBASE_* (apikey, authDomain, databaseURL, projectId, storageBucket, messagingSenderId, appId, measurementId)
+  VITE_GOOGLE_CLIENT_ID, VITE_GOOGLE_SCOPE
+  VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY
+  VITE_DROPBOX_CLIENT_ID, VITE_DROPBOX_ROOT_PATH
+  VITE_OPENAI_API_KEY, VITE_OPENROUTER_API_KEY, VITE_OPENCODE_API_KEY
+  VITE_GEMINI_API_KEY, VITE_ANTHROPIC_API_KEY, VITE_DEEPSEEK_API_KEY, VITE_MISTRAL_API_KEY
+  VITE_OPENAI_COMPATIBLE_BASE_URL, VITE_OPENAI_COMPATIBLE_API_KEY
     `);
 }
 
