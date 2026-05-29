@@ -3,12 +3,17 @@ title: App reference
 group: Getting started
 order: 40
 path: /docs/app-configuration
-description: Complete reference for all App props — providers, routing, theme, icons and the five service slots.
+description: Complete reference for App props, provider wiring, AI config and the six service slots.
 ---
 
 # App reference
 
-`<App>` is the root orchestration point for the entire framework. Mount it once at the top of your consumer app: it wires routing, provider registries, theme, icons and runtime configuration.
+`<App>` is the root orchestration point for the framework. Mount it once at the top of your consumer app to wire:
+
+- routing
+- provider registries
+- theme and icons
+- runtime config
 
 ```tsx
 import { App } from '@llmnative/react';
@@ -34,7 +39,6 @@ interface AppProps {
   aiConfig?: AIConfig;
   scrapeConfig?: ScrapeConfig;
   tenantsURI?: string;
-  proxyURI?: string;
   importPage: (path: string) => Promise<{ default: React.ComponentType }>;
   LayoutDefault?: React.ComponentType;
   menuConfig: MenuConfig;
@@ -49,13 +53,14 @@ interface AppProps {
 
 - `providers` selects which backend powers each framework service slot.
 - `aiConfig` centralizes API keys for built-in AI providers.
-- `services.ai` selects the default AI driver the same way `services.data` selects the default data driver.
+- `providers.proxy` holds the shared proxy config.
+- `services.ai` and `services.proxy` select the default AI and proxy drivers.
 
 ---
 
 ## Service map
 
-@llmnative/react has five service slots. Each slot represents one framework capability behind a stable interface.
+@llmnative/react currently has six service slots.
 
 | Service slot | What it does | Main entry points | Built-in drivers |
 |---|---|---|---|
@@ -63,26 +68,24 @@ interface AppProps {
 | `storage` | Upload, download, delete, file URL | `Upload`, `useStorageProvider` | `firestorage`, `supabaseStorage` |
 | `auth` | Current user, sign-in/out, access token | `AuthButton`, `useAuthProvider` | `googleAuth`, `dropboxAuth` |
 | `email` | Outbound email | `useEmailProvider` | `gmail` |
-| `ai` | Prompt execution and model orchestration | `Prompt`, `AssistantAI`, `AI.fetch(...)`, `useAIProvider` | `openai`, `gemini`, `anthropic`, `mistral` |
+| `ai` | Prompt execution and model orchestration | `Prompt`, `AssistantAI`, `AI.fetch(...)`, `useAIProvider` | `openai`, `openrouter`, `opencode`, `openai-compatible`, `deepseek`, `gemini`, `anthropic`, `mistral` |
+| `proxy` | Same-origin relay for browser-safe external requests | `proxyFetch(...)`, `useProxyProvider` | `viteDevProxy`, `expressProxy` |
 
-The whole point is provider-agnostic UI:
+The point is provider-agnostic UI:
 
 - swap `services.data` without changing `Grid`
 - swap `services.storage` without changing `Upload`
 - swap `services.ai` without changing `Prompt`
+- swap `services.proxy` without changing provider fetch helpers
 
 Dropbox remains a hybrid case:
 
 - `dropboxAuth` is an `auth` driver
-- Dropbox file utilities still stay outside the five service slots
-
-See [Providers overview](/providers) and [Utility integrations](/providers/integrations).
+- Dropbox file utilities still stay outside the service slots
 
 ---
 
 ## `AppProvidersConfig`
-
-`providers` declares available backends and routes each service slot to one active driver.
 
 ```ts
 interface AppProvidersConfig {
@@ -91,6 +94,7 @@ interface AppProvidersConfig {
   google?: GoogleProviderConfig;
   dropbox?: DropboxConfig;
   mock?: MockProviderConfig;
+  proxy?: ProxyConfig;
 
   custom?: {
     data?: DataProviderAdapter | Record<string, DataProviderAdapter>;
@@ -98,6 +102,7 @@ interface AppProvidersConfig {
     auth?: AuthProviderAdapter | Record<string, AuthProviderAdapter>;
     email?: EmailProviderAdapter | Record<string, EmailProviderAdapter>;
     ai?: AIProviderAdapter | Record<string, AIProviderAdapter>;
+    proxy?: ProxyProviderAdapter | Record<string, ProxyProviderAdapter>;
   };
 
   services?: {
@@ -105,16 +110,17 @@ interface AppProvidersConfig {
     storage?: 'firestorage' | 'supabaseStorage' | string;
     auth?: 'googleAuth' | 'dropboxAuth' | string;
     email?: 'gmail' | string;
-    ai?: 'openai' | 'gemini' | 'anthropic' | 'mistral' | string;
+    ai?: 'openai' | 'openrouter' | 'opencode' | 'openai-compatible' | 'deepseek' | 'gemini' | 'anthropic' | 'mistral' | string;
+    proxy?: 'viteDevProxy' | 'expressProxy' | string;
   };
 }
 ```
 
 ### Important behavior
 
-- A provider can be declared but not selected as default.
-- `providers.custom.*` lets you register custom adapters without changing UI code.
-- `services.ai` works exactly like the other service selectors.
+- a provider can be declared but not selected as default
+- `providers.custom.*` lets you register custom adapters without changing UI code
+- `services.ai` and `services.proxy` work exactly like the other service selectors
 
 ---
 
@@ -137,7 +143,7 @@ providers={{
 }}
 ```
 
-### Firebase + Google auth + OpenAI AI service
+### Firebase + Google auth + OpenAI + Vite proxy
 
 ```tsx
 <App
@@ -145,6 +151,9 @@ providers={{
     openaiApiKey: import.meta.env.VITE_OPENAI_API_KEY,
   }}
   providers={{
+    proxy: {
+      enabled: true,
+    },
     firebase: firebaseConfig,
     google: { clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID },
     services: {
@@ -152,29 +161,7 @@ providers={{
       storage: 'firestorage',
       auth: 'googleAuth',
       ai: 'openai',
-    },
-  }}
-/>
-```
-
-### Supabase + Gmail + Gemini
-
-```tsx
-<App
-  aiConfig={{
-    geminiApiKey: import.meta.env.VITE_GEMINI_API_KEY,
-  }}
-  providers={{
-    supabase: supabaseConfig,
-    google: {
-      clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-      scope: 'email profile https://www.googleapis.com/auth/gmail.send',
-    },
-    services: {
-      data: 'supabaseDb',
-      storage: 'supabaseStorage',
-      email: 'gmail',
-      ai: 'gemini',
+      proxy: 'viteDevProxy',
     },
   }}
 />
@@ -197,7 +184,7 @@ providers={{
 
 ---
 
-## `AIConfig` — centralized API keys for the AI service
+## `AIConfig`
 
 Built-in AI providers are enabled by `aiConfig`. Only providers with a configured key are added to the runtime registry.
 
@@ -205,26 +192,22 @@ Built-in AI providers are enabled by `aiConfig`. Only providers with a configure
 interface AIConfig {
   geminiApiKey?: string;
   openaiApiKey?: string;
+  openRouterApiKey?: string;
+  openCodeApiKey?: string;
   anthropicApiKey?: string;
   deepSeekApiKey?: string;
   mistralApiKey?: string;
+  openAICompatible?: {
+    apiKey?: string;
+    baseUrl?: string;
+    modelsUrl?: string;
+    chatCompletionsUrl?: string;
+    defaultModel?: string;
+    label?: string;
+    fallbackModels?: string[];
+  };
 }
 ```
-
-```tsx
-<App
-  aiConfig={{
-    openaiApiKey: import.meta.env.VITE_OPENAI_API_KEY,
-    geminiApiKey: import.meta.env.VITE_GEMINI_API_KEY,
-    anthropicApiKey: import.meta.env.VITE_ANTHROPIC_API_KEY,
-  }}
-  providers={{
-    services: { ai: 'openai' },
-  }}
-/>
-```
-
-### Why `aiConfig` exists separately from `providers`
 
 The AI service uses:
 
@@ -232,7 +215,34 @@ The AI service uses:
 - `providers.services.ai` for default driver selection
 - `providers.custom.ai` for custom adapters
 
-This keeps secret management centralized while preserving the same service-selection pattern as the other providers.
+---
+
+## `ProxyConfig`
+
+The proxy service uses one shared config shape for every built-in driver.
+
+```ts
+type ProxyConfig = {
+  enabled?: boolean;
+};
+```
+
+Example:
+
+```tsx
+providers={{
+  proxy: {
+    enabled: true,
+  },
+  services: {
+    proxy: 'viteDevProxy',
+  },
+}}
+```
+
+When `enabled !== true`, `proxyFetch(...)` falls back to direct `fetch(...)`.
+
+See [Proxy relay](/docs/proxy) and [ProxyProvider](/providers/proxy) for the runtime contract.
 
 ---
 
@@ -247,84 +257,18 @@ provider/model
 Examples:
 
 - `openai/gpt-5`
-- `openai/gpt-5-mini`
-- `gemini/gemini-2.5-pro`
-- `anthropic/claude-opus-4.1`
+- `openrouter/openai/gpt-4`
+- `opencode/kimi-k2.6`
+- `deepseek/deepseek-chat`
 
-This is what `Prompt` stores and what `AI.fetch(...)` can receive.
+Routers split only on the first slash. So `openrouter/openai/gpt-4` resolves to:
 
-```tsx
-await AI.fetch(
-  'Summarize this record',
-  { model: 'openai/gpt-5', temperature: 0.4 },
-  { title: 'Quarterly report' }
-);
-```
-
-If `services.ai` changes later, your component API does not need to change.
-
----
-
-## Provider-specific config sections
-
-### `FirebaseConfig`
-
-```ts
-interface FirebaseConfig {
-  apiKey: string;
-  authDomain: string;
-  databaseURL: string;
-  projectId: string;
-  storageBucket: string;
-  messagingSenderId: string;
-  appId: string;
-  measurementId: string;
-}
-```
-
-### `SupabaseProviderConfig`
-
-```ts
-interface SupabaseProviderConfig {
-  url: string;
-  anonKey: string;
-  bucket?: string;
-}
-```
-
-### `GoogleProviderConfig`
-
-```ts
-interface GoogleProviderConfig {
-  clientId: string;
-  scope?: string;
-  serviceAccount?: GoogleServiceAccount;
-  developerToken?: string;
-}
-```
-
-### `DropboxConfig`
-
-```ts
-interface DropboxConfig {
-  clientId: string;
-  rootPath: string;
-}
-```
-
-### `MockProviderConfig`
-
-```ts
-interface MockProviderConfig {
-  data?: Record<string, Record<string, object>>;
-}
-```
+- provider: `openrouter`
+- upstream model id: `openai/gpt-4`
 
 ---
 
 ## Access providers in components
-
-Once mounted, each service can be accessed through its hook:
 
 ```tsx
 import {
@@ -333,6 +277,7 @@ import {
   useAuthProvider,
   useEmailProvider,
   useAIProvider,
+  useProxyProvider,
 } from '@llmnative/react';
 
 const data = useDataProvider();
@@ -340,14 +285,14 @@ const storage = useStorageProvider();
 const auth = useAuthProvider();
 const email = useEmailProvider();
 const ai = useAIProvider();
+const proxy = useProxyProvider();
 ```
 
 Named access still works for alternate registered drivers:
 
 ```tsx
-const supabase = useDataProvider('supabaseDb');
-const gmail = useEmailProvider('gmail');
 const openai = useAIProvider('openai');
+const expressProxy = useProxyProvider('expressProxy');
 ```
 
 ---
@@ -357,20 +302,18 @@ const openai = useAIProvider('openai');
 Keep runtime wiring centralized in `src/conf/app.ts`:
 
 ```ts
-import type { AppProvidersConfig, AIConfig } from '@llmnative/react';
+import type { AIConfig, AppProvidersConfig } from '@llmnative/react';
 
 export const aiConfig: AIConfig = {
   openaiApiKey: import.meta.env.VITE_OPENAI_API_KEY,
-  geminiApiKey: import.meta.env.VITE_GEMINI_API_KEY,
 };
 
 export const providers: AppProvidersConfig = {
-  firebase: firebaseConfig,
-  google: { clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID },
+  proxy: {
+    enabled: import.meta.env.VITE_PROXY_ENABLED === 'true',
+  },
   services: {
-    data: 'dbRealtime',
-    storage: 'firestorage',
-    auth: 'googleAuth',
+    data: 'mock',
     ai: 'openai',
   },
 };
@@ -379,11 +322,11 @@ export const providers: AppProvidersConfig = {
 Example `.env.local`:
 
 ```bash
-VITE_PROVIDER=firebase
-VITE_FIREBASE_API_KEY=AIzaSy...
-VITE_GOOGLE_CLIENT_ID=123.apps.googleusercontent.com
+VITE_PROVIDER=mock
+VITE_AI_PROVIDER=openai
+VITE_PROXY_PROVIDER=viteDevProxy
+VITE_PROXY_ENABLED=false
 VITE_OPENAI_API_KEY=sk-...
-VITE_GEMINI_API_KEY=...
 ```
 
 ---
@@ -392,9 +335,5 @@ VITE_GEMINI_API_KEY=...
 
 - [Providers overview](/providers)
 - [AIProvider](/providers/ai)
-- [DataProvider](/providers/data)
-- [StorageProvider](/providers/storage)
-- [AuthProvider](/providers/auth)
-- [EmailProvider](/providers/email)
-- [Utility integrations](/providers/integrations)
-
+- [ProxyProvider](/providers/proxy)
+- [Proxy relay](/docs/proxy)

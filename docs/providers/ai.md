@@ -17,6 +17,10 @@ The goal is the same as for `data`, `storage`, `auth` and `email`: keep the exte
 | Driver | Backend | Best for |
 |---|---|---|
 | `openai` | OpenAI API | GPT models and broad ecosystem compatibility |
+| `openrouter` | OpenRouter API | Aggregated vendor routing through one OpenAI-style endpoint |
+| `opencode` | OpenCode Zen API | OpenCode-hosted coding models exposed through chat completions |
+| `openai-compatible` | Your OpenAI-style endpoint | proxies, gateways, local servers, private routers |
+| `deepseek` | DeepSeek API | DeepSeek chat/reasoning models |
 | `gemini` | Google Gemini API | Gemini-native projects and Google ecosystem |
 | `anthropic` | Anthropic API | Claude models |
 | `mistral` | Mistral API | Mistral-hosted text models |
@@ -36,10 +40,18 @@ Examples:
 
 - `openai/gpt-5`
 - `openai/gpt-5-mini`
+- `openrouter/openai/gpt-4`
+- `opencode/kimi-k2.6`
+- `deepseek/deepseek-chat`
 - `gemini/gemini-2.5-pro`
 - `anthropic/claude-opus-4.1`
 
 This avoids ambiguity and keeps stored prompt settings deterministic even when multiple providers are configured at the same time.
+
+For routers such as OpenRouter, only the first slash is treated as the framework separator. So `openrouter/openai/gpt-4` means:
+
+- provider: `openrouter`
+- model id sent upstream: `openai/gpt-4`
 
 ## How the orchestrator works
 
@@ -78,6 +90,10 @@ the components do not change. Only the provider selection does.
 Built-in AI providers expose configuration state like the other service providers.
 
 - `openai` checks `ai.openaiApiKey`
+- `openrouter` checks `ai.openRouterApiKey`
+- `opencode` checks `ai.openCodeApiKey`
+- `openai-compatible` checks `ai.openAICompatible.apiKey` and `ai.openAICompatible.baseUrl`
+- `deepseek` checks `ai.deepSeekApiKey`
 - `gemini` checks `ai.geminiApiKey`
 - `anthropic` checks `ai.anthropicApiKey`
 - `mistral` checks `ai.mistralApiKey`
@@ -105,6 +121,41 @@ At runtime the orchestrator:
 
 This is what powers the `Prompt` model selector.
 
+All built-in providers now follow this pattern:
+
+- `openai`, `openrouter`, `deepseek`, `mistral`, `openai-compatible` -> `GET /models`
+- `gemini` -> `GET /v1beta/models`
+- `anthropic` -> `GET /v1/models`
+- `opencode` -> `GET /zen/v1/models`, filtered to the `chat/completions`-compatible subset
+
+## Public unified catalog
+
+If multiple AI providers are configured, use the public catalog helper to get one merged model list plus provider-grouped breakdown.
+
+```ts
+import { createAIProviderRegistry, getAIModelCatalog } from '@llmnative/react';
+
+const registry = createAIProviderRegistry(aiConfig);
+const catalog = await getAIModelCatalog(registry);
+
+console.log(catalog.models);
+console.log(catalog.modelsByProvider);
+console.log(catalog.capabilitiesByProvider);
+```
+
+`catalog.models` is the unified list.
+
+Each item already carries its provider:
+
+```ts
+{
+  id: 'openrouter/openai/gpt-4',
+  provider: 'openrouter',
+  model: 'openai/gpt-4',
+  label: 'OpenRouter / openai/gpt-4'
+}
+```
+
 ## Use AI in Prompt
 
 `Prompt` reads model options and capabilities from the active AI provider registry.
@@ -115,7 +166,7 @@ import { Prompt, PromptMode } from '@llmnative/react';
 <Prompt
   name="summary"
   label="Summary"
-  mode={PromptMode.LIVE}
+  mode={PromptMode.RUN}
   defaultValue={{
     enabled: true,
     value: 'Write a concise launch summary for {projectName}.',
@@ -126,6 +177,25 @@ import { Prompt, PromptMode } from '@llmnative/react';
 ```
 
 The component does not need to know how OpenAI, Gemini or Anthropic build their HTTP payloads. That stays inside the provider adapter.
+
+## Built-in provider structure
+
+Built-in AI adapters now live one file per provider inside `src/providers/ai/`:
+
+- `openai.ts`
+- `openrouter.ts`
+- `opencode.ts`
+- `openaiCompatible.ts`
+- `deepseek.ts`
+- `gemini.ts`
+- `anthropic.ts`
+- `mistral.ts`
+- `shared.ts` for the common runtime adapter/cache helpers
+- `index.ts` to assemble the built-in registry
+
+This keeps the public API unchanged while making the provider layer easier to extend and audit.
+
+`openrouter` is implemented as a dedicated preset on top of the shared `openaiCompatible.ts` base adapter. `opencode` uses the official Zen model catalog, then filters to the `chat/completions`-compatible subset so the prompt UI only offers models that match the current transport.
 
 ## Use AI in AssistantAI
 
@@ -180,7 +250,15 @@ function AIStatus() {
 <App
   aiConfig={{
     openaiApiKey: import.meta.env.VITE_OPENAI_API_KEY,
+    openRouterApiKey: import.meta.env.VITE_OPENROUTER_API_KEY,
+    openCodeApiKey: import.meta.env.VITE_OPENCODE_API_KEY,
+    deepSeekApiKey: import.meta.env.VITE_DEEPSEEK_API_KEY,
     geminiApiKey: import.meta.env.VITE_GEMINI_API_KEY,
+    openAICompatible: {
+      apiKey: import.meta.env.VITE_GATEWAY_API_KEY,
+      baseUrl: import.meta.env.VITE_GATEWAY_BASE_URL,
+      defaultModel: 'my-default-model',
+    },
   }}
   providers={{
     services: {
@@ -266,3 +344,37 @@ That means:
 - secrets/config stay centralized;
 - provider availability can be diagnosed in one place;
 - model discovery can be filtered to configured providers only.
+
+## Browser CORS and the proxy service
+
+Some providers work poorly or not at all when called directly from the browser because their endpoints reject CORS preflight requests.
+
+Built-in AI adapters do not build proxy URLs themselves anymore. They use the framework fetch helpers, which delegate to `proxyFetch(...)`. When the active proxy provider is enabled, `proxyFetch(...)` rewrites outbound provider calls through that same-origin relay before issuing the request.
+
+```tsx
+<App
+  aiConfig={{
+    openCodeApiKey: import.meta.env.VITE_OPENCODE_API_KEY,
+  }}
+  providers={{
+    proxy: {
+      enabled: import.meta.env.VITE_PROXY_ENABLED === 'true',
+    },
+    services: {
+      ai: 'opencode',
+      proxy: 'viteDevProxy',
+    },
+  }}
+/>
+```
+
+This does not eliminate the need for a relay somewhere, but it does make the relay contract framework-native so browser apps can adopt it without custom per-provider wiring.
+
+Important boundary:
+
+- `proxyFetch(...)` belongs to the library runtime
+- the `/api/proxy` route belongs to the application project
+
+Scaffolded Vite projects generate that relay as a dedicated app-level file (`dev/proxy.ts`) when `--proxy-provider=viteDevProxy` is selected.
+
+See [Proxy relay](/docs/proxy) for the detailed architecture.

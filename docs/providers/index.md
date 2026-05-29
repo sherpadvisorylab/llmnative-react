@@ -3,7 +3,7 @@ title: Providers & Integrations
 group: Overview
 order: 10
 path: /providers
-description: What external services @llmnative/react can use today, how the five service slots work, and where specialized integrations still fit.
+description: What external services @llmnative/react can use today, how the service slots work, and where specialized integrations still fit.
 ---
 
 # Providers & Integrations
@@ -20,8 +20,9 @@ For an app developer, the important idea is simple: configure the services once 
 | Storage | File upload, file URL, download, delete | Firebase Storage, Supabase Storage partial | [StorageProvider](/providers/storage) |
 | Auth | Current user, auth changes, access tokens | Google OAuth, Dropbox OAuth2 | [AuthProvider](/providers/auth) |
 | Email | Outbound email | Gmail | [EmailProvider](/providers/email) |
-| AI | Model execution, prompt orchestration, provider/model discovery | OpenAI, Gemini, Anthropic, Mistral | [AIProvider](/providers/ai) |
-| Utilities | Specialized helpers outside the five service slots | Dropbox utilities | [Utility integrations](/providers/integrations) |
+| AI | Model execution, prompt orchestration, provider/model discovery | OpenAI, OpenRouter, OpenCode, DeepSeek, Gemini, Anthropic, Mistral | [AIProvider](/providers/ai) |
+| Proxy | Same-origin relay for browser-safe external requests | Vite dev proxy, Express proxy | [ProxyProvider](/providers/proxy) |
+| Utilities | Specialized helpers outside the service slots | Dropbox utilities | [Utility integrations](/providers/integrations) |
 
 ## How you usually use providers
 
@@ -45,7 +46,7 @@ The same rule now applies to AI-first components:
 ```tsx
 <Prompt
   name="summary"
-  mode={PromptMode.LIVE}
+  mode={PromptMode.RUN}
   defaultValue={{
     enabled: true,
     value: 'Summarize {title}',
@@ -105,6 +106,7 @@ At a glance, provider selection looks like this:
       auth: 'googleAuth',
       email: 'gmail',
       ai: 'openai',
+      proxy: 'viteDevProxy',
     },
   }}
 />
@@ -119,6 +121,7 @@ If the built-in services are not enough, each service area can receive a custom 
 - custom auth system;
 - custom email service.
 - custom AI gateway or model router.
+- custom proxy runtime.
 
 Each provider page ends with a custom implementation example.
 

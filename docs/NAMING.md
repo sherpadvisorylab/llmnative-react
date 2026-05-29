@@ -1,91 +1,91 @@
 # Naming — Framework Identity
 
-> Documento di lavoro per la scelta del nome del framework.
-> Contesto, criteri, candidati, narrative AI-first.
+> Working document for choosing the framework name.
+> Context, criteria, candidates, AI-first narratives.
 >
-> Ultima revisione: 2026-05-18
+> Last reviewed: 2026-05-18
 
 ---
 
-## 1. Premessa: cosa è questo progetto
+## 1. Background: what this project is
 
-react-firestrap (nome attuale, provvisorio) è un **React framework schema-driven per admin panel, dashboard e internal tools**.
+react-firestrap (current, provisional name) is a **schema-driven React framework for admin panels, dashboards and internal tools**.
 
-Non è "l'ennesimo framework React". È un framework progettato con una filosofia precisa:
+It is not "yet another React framework". It is a framework designed with a precise philosophy:
 
-- **Schema-driven**: definisci campi e path, ottieni UI + validazione + persistenza + real-time
-- **Data-driven opzionale**: se non specifichi colonne, le ricava dal primo record (`Grid.tsx:157-173`)
-- **Provider-agnostico**: Firebase, Supabase, Mock, REST — cambia con una riga
-- **AI integrato**: `AI.fetch()`, `AI.json()`, `AI.array()` sono built-in, non plugin
-- **Real-time nativo**: listener automatici, zero configurazione
-- **Sintetico**: 10 righe dove altri framework ne richiedono 100
-
----
-
-## 2. A chi è destinato
-
-### Target primario: AI agents (LLM)
-
-Questo framework è **AI-first, non human-first**. Il consumatore principale è un **modello linguistico (LLM)** che deve generare interfacce utente. La developer experience umana è importante ma secondaria — il vero vantaggio competitivo è misurato in **token risparmiati per UI generata**.
-
-Un LLM che conosce react-firestrap:
-
-- Scrive `<Grid dataStoragePath="/users" />` invece di 20 righe di React Admin
-- Scrive `<Form><Input name="x" required /></Form>` invece di configurare resource, data provider, validazione, routing
-- Spende 5 token dove con altri framework ne spende 50
-- Produce codice che funziona al primo tentativo, senza dover "indovinare" configurazioni mancanti
-
-### Target secondario: sviluppatori umani
-
-Team piccoli (1-5 dev) che costruiscono:
-
-- Backoffice interni con scadenze strette
-- Dashboard con AI integrata
-- Progetti Firebase o Supabase
-- Prototipi che diventano produzione
+- **Schema-driven**: define fields and paths, get UI + validation + persistence + real-time
+- **Optionally data-driven**: if you do not specify columns, it derives them from the first record (`Grid.tsx:157-173`)
+- **Provider-agnostic**: Firebase, Supabase, Mock, REST — swap with one line
+- **AI integrated**: `AI.fetch()`, `AI.json()`, `AI.array()` are built-in, not plugins
+- **Natively real-time**: automatic listeners, zero configuration
+- **Concise**: 10 lines where other frameworks need 100
 
 ---
 
-## 3. Criteri di naming
+## 2. Who it is for
+
+### Primary target: AI agents (LLM)
+
+This framework is **AI-first, not human-first**. The main consumer is a **language model (LLM)** that needs to generate user interfaces. Human developer experience matters but is secondary — the real competitive advantage is measured in **tokens saved per generated UI**.
+
+An LLM that knows react-firestrap:
+
+- Writes `<Grid dataStoragePath="/users" />` instead of 20 lines of React Admin
+- Writes `<Form><Input name="x" required /></Form>` instead of configuring resource, data provider, validation, routing
+- Spends 5 tokens where other frameworks spend 50
+- Produces code that works on the first attempt, without having to "guess" missing configurations
+
+### Secondary target: human developers
+
+Small teams (1-5 devs) building:
+
+- Internal backoffices with tight deadlines
+- Dashboards with integrated AI
+- Firebase or Supabase projects
+- Prototypes that become production
+
+---
+
+## 3. Naming criteria
 
 ### 3.1 Token efficiency (AI-first)
 
-Il nome sarà scritto **migliaia di volte** da LLM in prompt, import, e codice generato. Ogni carattere è un costo.
+The name will be written **thousands of times** by LLMs in prompts, imports, and generated code. Every character is a cost.
 
-| Criterio | Peso | Spiegazione |
-|----------|------|-------------|
-| **Lunghezza** | Critico | 3-5 caratteri ideale. Ogni carattere extra = token sprecati in ogni sessione AI |
-| **Unicità** | Alto | L'AI non deve confonderlo con React, React Admin, Refine, MUI, shadcn |
-| **Pronunciabilità** | Medio | Umani devono parlarne, ma secondario |
-| **Disponibilità dominio/npm** | Alto | Deve esistere come package e dominio |
-| **Memorizzabilità LLM** | Critico | L'AI deve ricordarlo senza hallucinare varianti |
+| Criterion | Weight | Explanation |
+|-----------|--------|-------------|
+| **Length** | Critical | 3-5 characters ideal. Every extra character = wasted tokens in every AI session |
+| **Uniqueness** | High | The AI must not confuse it with React, React Admin, Refine, MUI, shadcn |
+| **Pronounceability** | Medium | Humans need to talk about it, but secondary |
+| **Domain/npm availability** | High | Must exist as a package and domain |
+| **LLM memorability** | Critical | The AI must remember it without hallucinating variants |
 
-### 3.2 Cosa deve comunicare
+### 3.2 What it must communicate
 
-Il nome non può comunicare tutto, ma dovrebbe evocare:
+The name cannot communicate everything, but should evoke:
 
-1. **Sintetico / efficiente** → poche righe, pochi token
-2. **Adattivo** → schema-driven + data-driven + provider-agnostic
-3. **AI-native** → built for LLM, non retrofit
-4. **Connessione** → tra dati e UI, tra provider e app
+1. **Concise / efficient** — few lines, few tokens
+2. **Adaptive** — schema-driven + data-driven + provider-agnostic
+3. **AI-native** — built for LLM, not retrofit
+4. **Connection** — between data and UI, between provider and app
 
 ---
 
-## 4. Candidati
+## 4. Candidates
 
-### Tier 1 — Raccomandati
+### Tier 1 — Recommended
 
-#### Apt (3 caratteri, 1 token)
+#### Apt (3 characters, 1 token)
 
-| Aspetto | Valutazione |
-|---------|-------------|
-| **Token** | 1 token (3 char) |
-| **Disponibilità** | `apt.dev` libero, `@apt/react` libero su npm |
-| **Unicità** | Alto — nessun framework React si chiama Apt |
-| **Significato** | "Adatto, appropriato, rapido, intelligente" |
+| Aspect | Assessment |
+|--------|------------|
+| **Tokens** | 1 token (3 chars) |
+| **Availability** | `apt.dev` free, `@apt/react` free on npm |
+| **Uniqueness** | High — no React framework is called Apt |
+| **Meaning** | "Suitable, fitting, quick, intelligent" |
 
 
-Narrative AI:
+AI narrative:
 
 ```markdown
 # Apt
@@ -102,13 +102,13 @@ Apt generates UI, validation, persistence, and real-time from your schema.
 AI built-in. Any backend. Minimal tokens.
 ```
 
-Narrative umana:
+Human narrative:
 
 ```text
 "Apt: the framework that fits your data."
 ```
 
-Esempi di comunicazione:
+Communication examples:
 
 ```text
 Apt: Schema-driven React framework. Describe once, run anywhere.
@@ -116,16 +116,16 @@ Apt: AI-first admin panels. Minimal code, maximum output.
 Apt: Your data, your providers, your AI — apt by design.
 ```
 
-#### Pith (4 caratteri)
+#### Pith (4 characters)
 
-| Aspetto | Valutazione |
-|---------|-------------|
-| **Token** | 1 token (4 char) |
-| **Disponibilità** | Da verificare |
-| **Unicità** | Molto alto — parola inglese ma nessun framework tech |
-| **Significato** | "The pith" = l'essenza, il nucleo, la parte più importante |
+| Aspect | Assessment |
+|--------|------------|
+| **Tokens** | 1 token (4 chars) |
+| **Availability** | To verify |
+| **Uniqueness** | Very high — English word but no tech framework |
+| **Meaning** | "The pith" = the essence, the core, the most important part |
 
-Narrative AI:
+AI narrative:
 
 ```markdown
 # Pith
@@ -146,16 +146,16 @@ UI, validation, persistence, real-time, AI — all from a few lines.
 Minimal tokens. Maximum output.
 ```
 
-#### Knit (4 caratteri)
+#### Knit (4 characters)
 
-| Aspetto | Valutazione |
-|---------|-------------|
-| **Token** | 1 token (4 char) |
-| **Disponibilità** | Da verificare |
-| **Unicità** | Alto |
-| **Significato** | Annoda/tesse insieme schema, UI, provider, AI |
+| Aspect | Assessment |
+|--------|------------|
+| **Tokens** | 1 token (4 chars) |
+| **Availability** | To verify |
+| **Uniqueness** | High |
+| **Meaning** | Knits/weaves together schema, UI, provider, AI |
 
-Narrative AI:
+AI narrative:
 
 ```markdown
 # Knit
@@ -172,72 +172,72 @@ Schema-driven React framework. Knit knows the patterns.
 One schema. One framework. Any provider. AI built-in.
 ```
 
-### Tier 2 — Alternativi
+### Tier 2 — Alternatives
 
-| Nome | Char | Perché | Rischi |
-|------|------|--------|--------|
-| **Fuse** | 4 | Fonde dati, UI, AI | `fuse.js` esiste (fuzzy search) — conflitto possibile |
-| **Nexus** | 5 | Connessione, potenza | 5 caratteri, *2 token*. Più costoso. |
-| **Loom** | 4 | Tesse UI dal dato | Loom video messaging (molto noto) |
-| **Axiom** | 5 | Assioma → teorema | 5 caratteri, premium ma più lungo |
-| **Port** | 4 | Portabile, provider-agnostic | `port` su npm è preso (node serial) |
-| **Kern** | 4 | Kernel, nucleo | Suona system-level, un po' freddo |
+| Name | Chars | Why | Risks |
+|------|-------|-----|-------|
+| **Fuse** | 4 | Merges data, UI, AI | `fuse.js` exists (fuzzy search) — possible conflict |
+| **Nexus** | 5 | Connection, power | 5 characters, *2 tokens*. More costly. |
+| **Loom** | 4 | Weaves UI from data | Loom video messaging (very well known) |
+| **Axiom** | 5 | Axiom → theorem | 5 characters, premium but longer |
+| **Port** | 4 | Portable, provider-agnostic | `port` on npm is taken (node serial) |
+| **Kern** | 4 | Kernel, core | Sounds system-level, slightly cold |
 
 ---
 
-## 5. Raccomandazione finale
+## 5. Final recommendation
 
-**Apt** è la scelta che massimizza tutti i criteri:
+**Apt** is the choice that maximises all criteria:
 
-- **3 caratteri** = 1 token LLM. Il più corto possibile.
-- **Non confligge** con nulla nell'ecosistema React/JS
-- **Inglese nativo** con significato positivo : adatto, rapido, intelligente
-- **Ricercabile** : Google "apt framework" punta direttamente a noi
-- **Domain**: `apt.dev` libero, `apt-ui.dev` libero, `apt-react.dev` libero
-- **npm**: `@apt/react`, `@apt/core` tutti liberi
+- **3 characters** = 1 LLM token. As short as possible.
+- **No conflict** with anything in the React/JS ecosystem
+- **Native English** with a positive meaning: fitting, quick, intelligent
+- **Searchable**: Google "apt framework" points directly to us
+- **Domain**: `apt.dev` free, `apt-ui.dev` free, `apt-react.dev` free
+- **npm**: `@apt/react`, `@apt/core` all free
 
-La narrative AI si scrive da sola:
+The AI narrative writes itself:
 
 > *"Apt is the AI-first React framework. Write the schema. Apt generates UI, validation, persistence, and real-time — any provider, any backend. Minimal tokens. Always works."*
 
 ---
 
-## 6. Appendice: esempi comparativi token consumption
+## 6. Appendix: comparative token consumption examples
 
-Per motivare la scelta AI-first, ecco il costo in token di un semplice CRUD per tenere gli ordini:
+To motivate the AI-first choice, here is the token cost of a simple CRUD for managing orders:
 
-### React Admin (~45 token)
+### React Admin (~45 tokens)
 
 ```tsx
 <Resource name="orders" list={OrderList} edit={OrderEdit} create={OrderCreate} />
 ```
 
-### Refine (~40 token)
+### Refine (~40 tokens)
 
 ```tsx
 <Refine dataProvider={dataProvider} resources={[{ name: 'orders', list: OrderList }]} />
 ```
 
-**Apt (~8 token)**
+**Apt (~8 tokens)**
 
 ```tsx
 <Grid dataStoragePath="/orders" allowedActions={["add","edit","delete"]} />
 ```
 
-Rapporto: **Apt consuma ~5x meno token** a parità di risultato.
+Ratio: **Apt consumes ~5x fewer tokens** for equivalent output.
 
-In una sessione di 100 UI generate, Apt consuma ~800 token di codice dove React Admin ne consuma ~4500. Su 100 sessioni di sviluppo AI, il risparmio è di **370.000 token** — l'equivalente di $2-5 in costi API, ma più importante: **meno contesto, meno allucinazioni, meno iterazioni**.
-
----
-
-## 7. Appendice: domande aperte
-
-- [ ] **Apt** è troppo generico? "apt" è un comando Linux (package manager). Conflitto mentale per dev?
-- [ ] **Pith** è troppo oscuro? Non tutti i dev inglesi conoscono la parola.
-- [ ] Prefisso "Apt" o "Apt React" o "AptUI"? `Apt` puro rischia confusione col comando Linux.
-- [ ] Il progetto attuale si chiama react-firestrap. Come gestire la transizione? Rinominare in `apt` o `@apt/react`?
+In a session of 100 generated UIs, Apt consumes ~800 tokens of code where React Admin consumes ~4500. Across 100 AI development sessions, the saving is **370,000 tokens** — equivalent to $2-5 in API costs, but more importantly: **less context, fewer hallucinations, fewer iterations**.
 
 ---
 
-> Questo documento evolve con le decisioni del team.
-> Quando il nome è scelto, aggiornare README, package.json, CLAUDE.md, domini e npm.
+## 7. Appendix: open questions
+
+- [ ] Is **Apt** too generic? "apt" is a Linux command (package manager). Mental conflict for devs?
+- [ ] Is **Pith** too obscure? Not all English-speaking devs know the word.
+- [ ] Prefix "Apt" or "Apt React" or "AptUI"? Plain `Apt` risks confusion with the Linux command.
+- [ ] The current project is called react-firestrap. How to manage the transition? Rename to `apt` or `@apt/react`?
+
+---
+
+> This document evolves with team decisions.
+> When the name is chosen, update README, package.json, CLAUDE.md, domains and npm.

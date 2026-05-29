@@ -1,10 +1,10 @@
-# Esempio: Form con oggetti annidati e array dinamici
+# Example: Form with nested objects and dynamic arrays
 
-Scenario: form preventivo con sezione cliente, indirizzo, e righe prodotto dinamiche.
+Scenario: quote form with customer section, delivery address, and dynamic product lines.
 
 ---
 
-## Form completo
+## Full form
 
 ```tsx
 import { Form, Input, Select, Repeat, Upload } from '@llmnative/react'
@@ -26,50 +26,50 @@ export default function QuoteForm() {
       })}
     >
 
-      {/* ── Sezione cliente ──────────────────────────────── */}
+      {/* ── Customer section ─────────────────────────────── */}
       <Select
         name="customerId"
-        label="Cliente"
+        label="Customer"
         db={{ path: "/customers", labelField: "companyName", valueField: "_key" }}
         required
       />
 
-      {/* ── Indirizzo (oggetto annidato a 2 livelli) ─────── */}
-      <Input name="deliveryAddress.street"   label="Via / N°"  />
-      <Input name="deliveryAddress.zip"      label="CAP"       />
-      <Input name="deliveryAddress.city"     label="Città"     />
+      {/* ── Delivery address (2-level nested object) ──────── */}
+      <Input name="deliveryAddress.street"   label="Street / No."  />
+      <Input name="deliveryAddress.zip"      label="ZIP"           />
+      <Input name="deliveryAddress.city"     label="City"          />
       <Select
         name="deliveryAddress.country"
-        label="Paese"
+        label="Country"
         options={countryOptions}
-        defaultValue="IT"
+        defaultValue="US"
       />
 
-      {/* ── Contatti (array a lunghezza fissa) ───────────── */}
-      <Input name="contacts.0.name"  label="Referente principale - Nome" />
-      <Input name="contacts.0.email" label="Referente principale - Email" inputType="email" />
-      <Input name="contacts.1.name"  label="Referente alternativo - Nome" />
-      <Input name="contacts.1.email" label="Referente alternativo - Email" inputType="email" />
+      {/* ── Contacts (fixed-length array) ────────────────── */}
+      <Input name="contacts.0.name"  label="Primary contact - Name" />
+      <Input name="contacts.0.email" label="Primary contact - Email" inputType="email" />
+      <Input name="contacts.1.name"  label="Alternate contact - Name" />
+      <Input name="contacts.1.email" label="Alternate contact - Email" inputType="email" />
 
-      {/* ── Righe preventivo (array dinamico con Repeat) ─── */}
-      <Repeat name="items" defaultLength={3} label="Righe preventivo">
+      {/* ── Quote lines (dynamic array with Repeat) ──────── */}
+      <Repeat name="items" defaultLength={3} label="Quote lines">
         {(index) => (
           <div key={index} style={{ display: 'grid', gridTemplateColumns: '3fr 1fr 1fr', gap: 8 }}>
             <Input
               name={`items.${index}.description`}
-              label={index === 0 ? "Descrizione" : ""}
-              placeholder="Descrizione prodotto/servizio"
+              label={index === 0 ? "Description" : ""}
+              placeholder="Product/service description"
             />
             <Input
               name={`items.${index}.qty`}
-              label={index === 0 ? "Qtà" : ""}
+              label={index === 0 ? "Qty" : ""}
               inputType="number"
               min={1}
               defaultValue={1}
             />
             <Input
               name={`items.${index}.unitPrice`}
-              label={index === 0 ? "Prezzo unit. €" : ""}
+              label={index === 0 ? "Unit price €" : ""}
               inputType="number"
               step={0.01}
               min={0}
@@ -78,19 +78,19 @@ export default function QuoteForm() {
         )}
       </Repeat>
 
-      {/* ── Metadati ─────────────────────────────────────── */}
+      {/* ── Metadata ─────────────────────────────────────── */}
       <Select
         name="status"
-        label="Stato"
+        label="Status"
         options={[
-          { label: "Bozza",     value: "draft" },
-          { label: "Inviato",   value: "sent" },
-          { label: "Accettato", value: "accepted" },
-          { label: "Rifiutato", value: "rejected" },
+          { label: "Draft",    value: "draft" },
+          { label: "Sent",     value: "sent" },
+          { label: "Accepted", value: "accepted" },
+          { label: "Rejected", value: "rejected" },
         ]}
       />
-      <Input name="notes" label="Note interne" />
-      <Upload.Document name="attachment" label="Allegato" />
+      <Input name="notes"      label="Internal notes" />
+      <Upload.Document name="attachment" label="Attachment" />
 
     </Form>
   )
@@ -103,31 +103,31 @@ function calculateTotal(items: any[] = []) {
 
 ---
 
-## Struttura dati risultante
+## Resulting data structure
 
 ```
 /quotes/
   1746356400000/
     customerId: "-NxKm9abc"
     deliveryAddress:
-      street: "Via Roma 15"
-      zip: "20100"
-      city: "Milano"
-      country: "IT"
+      street: "123 Main St"
+      zip: "10001"
+      city: "New York"
+      country: "US"
     contacts:
       0:
-        name: "Mario Rossi"
-        email: "mario@client.it"
+        name: "John Smith"
+        email: "john@client.com"
       1:
-        name: "Giulia Bianchi"
-        email: "giulia@client.it"
+        name: "Jane Doe"
+        email: "jane@client.com"
     items:
       0:
-        description: "Sviluppo applicazione web"
+        description: "Web application development"
         qty: 1
         unitPrice: 5000
       1:
-        description: "Manutenzione annuale"
+        description: "Annual maintenance"
         qty: 12
         unitPrice: 200
       2:
@@ -135,17 +135,17 @@ function calculateTotal(items: any[] = []) {
         qty: 1
         unitPrice: 0
     status: "draft"
-    notes: "Da rivedere prima dell'invio"
+    notes: "To review before sending"
     total: 7400
     updatedAt: 1746356400000
 ```
 
 ---
 
-## Corner case da tenere a mente
+## Corner cases to keep in mind
 
-**Valori falsy non devono sparire:** `qty: 0` e `unitPrice: 0` devono restare nel record. Il framework gestisce correttamente `null`, `undefined`, `0`, `false`, `""`.
+**Falsy values must not disappear:** `qty: 0` and `unitPrice: 0` must remain in the record. The framework handles `null`, `undefined`, `0`, `false`, `""` correctly.
 
-**Array sparsi:** se l'utente compila solo `items.0` e `items.2` (lasciando `items.1` vuoto), Firebase salva solo i valori non-null. Al ricaricamento, `items.1` sarà `undefined`. Gestire nel `onLoad` se serve normalizzazione.
+**Sparse arrays:** if the user fills only `items.0` and `items.2` (leaving `items.1` empty), Firebase saves only non-null values. On reload, `items.1` will be `undefined`. Handle this in `onLoad` if normalisation is needed.
 
-**Repeat con lunghezza variabile:** `defaultLength` è solo il numero iniziale di righe. L'utente può aggiungere/rimuovere righe — il valore finale è un array di lunghezza variabile.
+**Repeat with variable length:** `defaultLength` is only the initial number of rows. The user can add/remove rows — the final value is an array of variable length.

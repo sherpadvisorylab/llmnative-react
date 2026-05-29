@@ -3,12 +3,12 @@ title: Utility integrations
 group: Utility integrations
 order: 70
 path: /providers/integrations
-description: Specialized runtime integrations that are intentionally outside the five service slots.
+description: Specialized runtime integrations that are intentionally outside the core service slots.
 ---
 
 # Utility integrations
 
-`@llmnative/react` has five service slots:
+`@llmnative/react` has six service slots:
 
 - `data`
 - `storage`

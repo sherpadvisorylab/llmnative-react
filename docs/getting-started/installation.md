@@ -14,7 +14,7 @@ There are two supported ways to get started with `@llmnative/react`.
 
 ## Scaffold - recommended for new projects
 
-The official scaffold generates a complete Vite app with routing, providers, theme, icons, and all five service slots already wired.
+The official scaffold generates a complete Vite app with routing, providers, theme, icons, and all service slots already wired.
 
 Preferred one-shot command:
 

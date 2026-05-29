@@ -1,157 +1,147 @@
 # Execution Plan
 
-> Roadmap operativa per portare @llmnative/react al livello di React Admin, Refine e Contember.
-> Ogni item è un task atomico verificabile: ✅ fatto, ⬜ da fare.
+> Operational roadmap for bringing @llmnative/react to the level of React Admin, Refine and Contember.
+> Each item is an atomic verifiable task: ✅ done, ⬜ to do.
 >
-> Ultima revisione: 2026-05-27
-> Basato su analisi codebase `main` (v0.1.1 → target v1.0.0)
+> Last reviewed: 2026-05-29
+> Based on `main` codebase analysis (v0.1.1 → target v1.0.0)
 
 ---
 
-## Come usare questo documento
+## How to use this document
 
-Le priorità sono **riviste rispetto alla versione precedente**. La differenza principale:
+Priorities have been **revised from the previous version**. The main difference:
 
-- **P0 primo**: AI provider — non "feature", ma il cuore del prodotto. Se `AI.fetch()` non funziona, il framework non mantiene la sua promessa. Punto.
-- **i18n** declassato da P0 a P2. Nessuno sceglie un framework per l'i18n. Tutti scelgono un framework per quello che **fa**.
-- **AI provider fix** spostato da "Fase 3 — Differenziatori" a "Fase 0 — Giorno 1"
-- Il piano esecutivo è **sequenziale**: ogni fase presuppone la precedente completata.
+- **P0 first**: AI provider — not a "feature", but the heart of the product. If `AI.fetch()` does not work, the framework does not keep its promise. Full stop.
+- **i18n** downgraded from P0 to P2. Nobody chooses a framework for i18n. Everyone chooses a framework for what it **does**.
+- **AI provider fix** moved from "Phase 3 — Differentiators" to "Phase 0 — Day 1"
+- The execution plan is **sequential**: each phase assumes the previous one is complete.
 
 ---
 
-## P0 — Bloccanti: impediscono qualsiasi valutazione seria
+## P0 — Blockers: prevent any serious evaluation
 
-### P0.0 — AI provider: il prodotto non mantiene la promessa [CRITICO]
+### P0.0 — AI provider: the product does not keep its promise [CRITICAL]
 
-Il framework si definisce "AI-first". Oggi l'AI provider è **rotto su 3 provider su 4**. Un'AI che lo prova impara che non funziona e non torna più.
+The framework defines itself as "AI-first". Today the AI provider is **completely rewritten with the Adapter pattern**. An AI that tries it finds correct URLs, correct parsing and a clean architecture.
 
-- [ ] **Unificare i due layer**: oggi `src/providers/ai/index.ts` ha:
-  - Vecchie funzioni (`fetchOpenaiApi`, `fetchGeminiApi`, `fetchAnthropicApi`, `fetchMistralApi`) — usate da codice legacy
-  - Nuovo `PROVIDERS` object + `AI` class — usato dalla nuova API pubblica
-  - `export default function fetchAI()` — stub che ignora il parametro `provider`
-  - Decidere UN solo layer e rimuovere l'altro
-- [ ] **Fixare Gemini endpoint**: `api.gemini.com/v1/predict` (inesistente) → `https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent`
-- [ ] **Fixare Gemini response parsing**: riga 280-282: `if (response?.predictions) { return; }` ritorna `undefined` **sempre**. Il parsing reale a riga 283 è dead code.
-  - Parsing corretto: `response.candidates[0].content.parts[0].text`
-- [ ] **Fixare Anthropic endpoint**: `api.anthropic.com/v1/completions` (deprecato) → `https://api.anthropic.com/v1/messages`
-- [ ] **Fixare Anthropic response parsing**: `response.choices[0].message.content` → `response.content[0].text`
-  - Anthropic non usa il formato `choices[]`, ma `content[]`
-- [ ] **Fixare OpenAI old function**: `engine` → `model` in `chatChatGPTContinue` (riga 147)
-- [ ] **Fixare `fetchAI` export**: deve accettare e usare il parametro `provider`, non ritornare sempre `fetchOpenaiApi` (riga 335-337)
-- [ ] **Implementare DeepSeek**: config key `deepSeekApiKey` esiste in `AIConfig`, ma nessun provider
-- [ ] **Rimuovere debug log da produzione**:
-  - `console.log("Laaaaaaaaaaaa")` (riga 200)
-  - `console.log("<<<<<<<<impossible>>>>>>>>")` (riga 154)
-  - `console.log(this.config.name + "->request", body)` (riga 552)
-  - `console.log(this.config.name + "->response", response)` (riga 560)
-- [ ] **Tipizzare senza `any`**: `parseContent(str: string): any` → tipo concreto; `parseResponse(response: any): any` → tipo concreto; rimuovere `any` da PROVIDERS
-- [ ] **Aggiungere test AI provider**: mock HTTP + verifica chiamate corrette + parse response per ogni provider
+- [x] **Unify the two layers**: rewritten with single Adapter architecture. Old functions (`fetchOpenaiApi`, `fetchGeminiApi`, `fetchAnthropicApi`, `fetchMistralApi`), `fetchAI` stub and `chatChatGPTContinue` removed.
+- [x] **Fix Gemini endpoint**: `api.gemini.com/v1/predict` → `generativelanguage.googleapis.com/v1beta/models`
+- [x] **Fix Gemini response parsing**: now uses `response?.candidates?.[0]?.content?.parts` (correct)
+- [x] **Fix Anthropic endpoint**: `api.anthropic.com/v1/completions` → `api.anthropic.com/v1/messages`
+- [x] **Fix Anthropic response parsing**: now uses `response.content` (correct)
+- [x] **Fix OpenAI old function `engine`**: removed — the new architecture uses `model` correctly
+- [x] **Fix `fetchAI` export**: removed — replaced by `createAIProviderRegistry`
+- [x] **Implement DeepSeek**: config key `deepSeekApiKey` now maps to the built-in `deepseek` provider
+- [x] **Remove debug logs from production**: all removed — no `console.log("Laaaaaaaaaaaa")`, `"<<<<<<<<impossible>>>>>>>>"`
+- [ ] **Type without `any`**: `AIProviderDefinition` typed, but `any` persists in `fetchJson` response handling
+- [ ] **Add AI provider tests**: mock HTTP + verify calls + parse response for each provider
 
-### P0.1 — Provider incompleti
+### P0.1 — Incomplete providers
 
 - [ ] **FirebaseAuthProvider** (CR-032): email/password, anonymous, magic link
-- [ ] **FirestoreDataProvider** (CR-033): Cloud Firestore con query/filtri/real-time
-- [ ] **SupabaseDataProvider completo** (CR-034): riscrivere con `@supabase/supabase-js` v2, niente più fetch raw
-- [ ] **SupabaseStorageProvider completo** (CR-035): idem, SDK ufficiale con signed URL
+- [ ] **FirestoreDataProvider** (CR-033): Cloud Firestore with queries/filters/real-time
+- [ ] **Complete SupabaseDataProvider** (CR-034): rewrite with `@supabase/supabase-js` v2, no more raw fetch
+- [ ] **Complete SupabaseStorageProvider** (CR-035): same, official SDK with signed URL
 - [ ] **SupabaseAuthProvider** (CR-036): email/password, magic link, OAuth, anonymous
 
-### P0.2 — Form validation rotta
+### P0.2 — Broken form validation
 
-- [ ] **Fixare required field validation in Form.tsx**: sostituire `document.querySelectorAll` con validazione React-state-based
-- [ ] **Rimuovere `//return false`** che neutralizza il submit bloccato
-- [ ] **Aggiungere test**: form con required → submit senza valori → errore; con valori → successo
+- [ ] **Fix required field validation in Form.tsx**: replace `document.querySelectorAll` with React-state-based validation
+- [ ] **Remove `//return false`** that neutralises the blocked submit
+- [ ] **Add tests**: form with required → submit without values → error; with values → success
 
 ### P0.3 — Error boundary
 
-- [ ] **ErrorBoundary per `<App>`**: se App crasha, mostra fallback, non white screen
-- [ ] **ErrorBoundary per provider**: se un provider crasha, non abbatte tutta l'app
-- [ ] **ErrorBoundary per route**: pagina che crasha non abbatte navigazione
+- [ ] **ErrorBoundary for `<App>`**: if App crashes, show fallback, not white screen
+- [ ] **ErrorBoundary for provider**: if a provider crashes, it does not bring down the whole app
+- [ ] **ErrorBoundary for route**: a crashing page does not bring down navigation
 
 ### P0.4 — CI/CD
 
-- [ ] **GitHub Actions**: `npm run test` + `npm run build` su ogni PR
-- [ ] **GitHub Actions**: `npm run test:coverage` con soglia minima (es. 40% iniziale, target 60%)
-- [ ] **GitHub Actions**: `cd clients/showcase && npm run build` su ogni PR
-- [ ] **Badge README**: build passing, test count
+- [ ] **GitHub Actions**: `npm run test` + `npm run build` on every PR
+- [ ] **GitHub Actions**: `npm run test:coverage` with a minimum threshold (e.g. 40% initial, target 60%)
+- [ ] **GitHub Actions**: `cd clients/showcase && npm run build` on every PR
+- [ ] **README badge**: build passing, test count
 
 ---
 
-## P1 — Differenziatori: dove vincere la partita
+## P1 — Differentiators: where to win
 
-Qui sta il vantaggio competitivo. React Admin e Refine **non hanno** queste feature.
+This is where the competitive advantage lies. React Admin and Refine **do not have** these features.
 
-### P1.1 — AI potenziato (dopo il fix P0.0)
+### P1.1 — Enhanced AI (after P0.0 fix)
 
-- [ ] **AI-form generation**: `<AIForm prompt="Crea form per prodotti" />` → genera schema + campi
-- [ ] **Zero-config Grid**: se nessuna `columns` specificata, auto-rilevare dal primo record
-- [ ] **AI-assisted form filling**: bottone "Compila con AI" su form → descrizione → campi popolati
-- [ ] **Auto-caption per Upload.Image**: AI genera descrizione dall'immagine
-- [ ] **AI-Grid filtering**: input NLP → `"ordini in ritardo"` → filtri applicati
-- [ ] **Prompt Builder visuale**: componente per costruire template prompt con preview
+- [ ] **AI-form generation**: `<AIForm prompt="Create form for products" />` → generates schema + fields
+- [ ] **Zero-config Grid**: if no `columns` specified, auto-detect from the first record
+- [ ] **AI-assisted form filling**: "Fill with AI" button on form → description → fields populated
+- [ ] **Auto-caption for Upload.Image**: AI generates description from the image
+- [ ] **AI-Grid filtering**: NLP input → `"late orders"` → filters applied
+- [ ] **Visual Prompt Builder**: component for building prompt templates with preview
 
-### P1.2 — CRUD schema-driven estremo
+### P1.2 — Extreme schema-driven CRUD
 
-- [ ] **Zero-config Grid** (se nessuna `columns`, auto-rileva dal primo record)
-- [ ] **Auto-join FK**: campo che finisce per `Id` → Select popolata dalla collezione referenziata
-- [ ] **Inline edit su Grid**: click su cella → edit senza modal
-- [ ] **Bulk actions**: seleziona righe → azione batch (delete, export, update)
-- [ ] **Export CSV/Excel** nativo da Grid
-- [ ] **Undo delete**: soft-delete + "Annulla" notification
+- [ ] **Zero-config Grid** (if no `columns`, auto-detect from the first record)
+- [ ] **Auto-join FK**: field ending in `Id` → Select populated from the referenced collection
+- [ ] **Inline edit on Grid**: click on cell → edit without modal
+- [ ] **Bulk actions**: select rows → batch action (delete, export, update)
+- [ ] **Native CSV/Excel export** from Grid
+- [ ] **Undo delete**: soft-delete + "Undo" notification
 
-### P1.3 — REST adapter generico
+### P1.3 — Generic REST adapter
 
-- [ ] **Adapter REST**: implementa `DataProviderAdapter` con fetch generico. Sblocca il 90% delle API.
+- [ ] **REST adapter**: implement `DataProviderAdapter` with generic fetch. Unlocks 90% of APIs.
 
 ### P1.4 — Command palette
 
-- [ ] **Command palette** (Ctrl+K): navigazione e azioni rapide
+- [ ] **Command palette** (Ctrl+K): navigation and quick actions
 
 ### P1.5 — Provider Configuration Dashboard
 
-- [ ] **Componente `<ProviderStatus />`**: mostra stato di tutti i provider, chiavi mancanti, diagnostica
-- [ ] **Expandere `isConfigured()` a tutti i provider**
+- [ ] **`<ProviderStatus />` component**: shows state of all providers, missing keys, diagnostics
+- [ ] **Extend `isConfigured()` to all providers**
 
 ---
 
-## P2 — Feature parity: cosa hanno gli altri
+## P2 — Feature parity: what others have
 
-Qui si colmano gap che il mercato si aspetta.
+This is where gaps that the market expects are closed.
 
 ### P2.1 — i18n
 
-- [ ] **Creare I18nProvider e hook `useI18n()`** (CR-029)
-- [ ] **Estrarre stringhe hardcoded** da componenti pubblici
-- [ ] **Dizionario default `en`** + supporto locale switching in `<App locale="it" />`
+- [ ] **Create I18nProvider and `useI18n()` hook** (CR-029)
+- [ ] **Extract hardcoded strings** from public components
+- [ ] **Default `en` dictionary** + locale switching support in `<App locale="it" />`
 
 ### P2.2 — Auth
 
-- [ ] **OAuth provider multipli**: GitHub, Microsoft, Apple
-- [ ] **Magic link** (Firebase e Supabase)
-- [ ] **Session persistence** e refresh token
+- [ ] **Multiple OAuth providers**: GitHub, Microsoft, Apple
+- [ ] **Magic link** (Firebase and Supabase)
+- [ ] **Session persistence** and refresh token
 
-### P2.3 — Gestione dati
+### P2.3 — Data management
 
-- [ ] **Paginazione server-side** nativa (oggi client-side)
-- [ ] **Filtri e ordinamento server-side** (WhereClause/OrderClause esistono, vanno usati dai widget)
-- [ ] **Caching con invalidation** (React Query pattern)
+- [ ] **Native server-side pagination** (currently client-side)
+- [ ] **Server-side filters and sorting** (WhereClause/OrderClause exist, must be used by widgets)
+- [ ] **Caching with invalidation** (React Query pattern)
 
 ### P2.4 — UI/UX
 
 - [ ] **Notifications/Toast system**
 - [ ] **WYSIWYG editor** (CR-024 — Tiptap)
-- [ ] **ContextMenu con @mention** (CR-025)
+- [ ] **ContextMenu with @mention** (CR-025)
 - [ ] **Sidebar block** (CR-031)
 
 ### P2.5 — Developer experience
 
-- [ ] **Devtools**: inspector per provider state, tema, routing
-- [ ] **Inferencer**: auto-genera pagine CRUD da API response (Refine lo fa)
+- [ ] **Devtools**: inspector for provider state, theme, routing
+- [ ] **Inferencer**: auto-generates CRUD pages from API response (Refine does this)
 
 ---
 
-## P3 — Qualità e trust
+## P3 — Quality and trust
 
-### P3.1 — Contract test per ogni provider
+### P3.1 — Contract tests for each provider
 
 - [ ] **DataProvider**: Mock ✅, Firebase RTDB, Firestore, Supabase
 - [ ] **StorageProvider**: Firebase, Supabase
@@ -160,47 +150,47 @@ Qui si colmano gap che il mercato si aspetta.
 
 ### P3.2 — TypeScript quality
 
-- [ ] **Ridurre `any` sostituibili** in AI provider, Firebase, Theme, Config
-- [ ] **Aggiungere `noUncheckedIndexedAccess: true`** in tsconfig
+- [ ] **Reduce replaceable `any`** in AI provider, Firebase, Theme, Config
+- [ ] **Add `noUncheckedIndexedAccess: true`** in tsconfig
 
 ### P3.3 — Bundle optimization
 
-- [ ] **tui-image-editor** → valutare alternativa più leggera
-- [ ] **prismjs** → dynamic import o tree-shaking
-- [ ] **Analizzare bundle** con `vite-bundle-visualizer`
+- [ ] **tui-image-editor** → evaluate a lighter alternative
+- [ ] **prismjs** → dynamic import or tree-shaking
+- [ ] **Analyse bundle** with `vite-bundle-visualizer`
 
 ### P3.4 — Dead code / legacy
 
-- [ ] **Rimuovere `src/components/Component.tsx`**: pattern legacy con `todo` comment
-- [ ] **Rimuovere `src/components/Template.tsx`**: template legacy
-- [ ] **Rimuovere `src/components/ui/fields/Command.tsx`**: `contentEditable`/`document.execCommand`
-- [ ] **Rimuovere `src/pages/Helper.tsx`**: Bootstrap ScrollSpy storico
-- [ ] **Pulire Firebase**: da `firebase/compat` SDK a modular SDK v9+ (bundle più piccolo)
+- [ ] **Remove `src/components/Component.tsx`**: legacy pattern with `todo` comment
+- [ ] **Remove `src/components/Template.tsx`**: legacy template
+- [ ] **Remove `src/components/ui/fields/Command.tsx`**: `contentEditable`/`document.execCommand`
+- [ ] **Remove `src/pages/Helper.tsx`**: historical Bootstrap ScrollSpy page
+- [ ] **Clean up Firebase**: from `firebase/compat` SDK to modular SDK v9+ (smaller bundle)
 
-### P3.5 — Documentazione pubblica
+### P3.5 — Public documentation
 
 - [ ] **Landing page**
-- [ ] **Tutorial "5 minuti"**: da `npx create` a CRUD funzionante
-- [ ] **Tutorial "30 minuti"**: auth + CRUD + AI + tema custom
-- [ ] **API reference completa** per ogni componente pubblico
-- [ ] **Demo live** (Vercel deploy dello showcase)
-- [ ] **Video dimostrativo** (2 minuti)
+- [ ] **"5-minute" tutorial**: from `npx create` to working CRUD
+- [ ] **"30-minute" tutorial**: auth + CRUD + AI + custom theme
+- [ ] **Full API reference** for every public component
+- [ ] **Live demo** (Vercel deploy of the showcase)
+- [ ] **Demo video** (2 minutes)
 
 ---
 
-## P4 — Ecosistema
+## P4 — Ecosystem
 
-### P4.1 — CLI e scaffolding
+### P4.1 — CLI and scaffolding
 
-- [ ] **Verificare build del progetto generato** (test automatico)
-- [ ] **Template `saas`** con auth + CRUD + tenant
-- [ ] **Template `ai`** con AI integration preconfigurata
-- [ ] **CLI `devtools`**: inspector provider/tema/routing
+- [ ] **Verify generated project build** (automated test)
+- [ ] **`saas` template** with auth + CRUD + tenant
+- [ ] **`ai` template** with pre-configured AI integration
+- [ ] **CLI `devtools`**: provider/theme/routing inspector
 
 ### P4.2 — Adapter ecosystem
 
-- [ ] **Adapter template**: guida per scrivere un DataProvider custom in 10 minuti
-- [ ] **Adapter gallery**: showcase con tutti gli adapter disponibili
+- [ ] **Adapter template**: guide for writing a custom DataProvider in 10 minutes
+- [ ] **Adapter gallery**: showcase with all available adapters
 
 ### P4.3 — Community
 
@@ -210,54 +200,50 @@ Qui si colmano gap che il mercato si aspetta.
 
 ---
 
-## Appendice A — Bug concreti nella codebase (verificati 2026-05-27)
+## Appendix A — Concrete bugs in the codebase (verified 2026-05-29)
 
-### A.1 AI Provider — tutti ancora presenti
+### A.1 AI Provider — ALL FIXED (rewrite 2026-05-29)
 
-| File | Linea | Bug | Gravità |
-|------|-------|-----|---------|
-| `src/providers/ai/index.ts` | 200 | `console.log("Laaaaaaaaaaaa")` in hot path | Media |
-| `src/providers/ai/index.ts` | 154 | `console.log("<<<<<<<<impossible>>>>>>>>")` | Media |
-| `src/providers/ai/index.ts` | 190/269/552 | Logga request body (potenziale leak dati) | Media |
-| `src/providers/ai/index.ts` | 44 | Gemini URL: `api.gemini.com/v1/predict` (inesistente) | **Critica** |
-| `src/providers/ai/index.ts` | 280-282 | Gemini early return `undefined` — **dead code dopo** | **Critica** |
-| `src/providers/ai/index.ts` | 451 | Anthropic URL: `api.anthropic.com/v1/completions` (deprecato) | **Critica** |
-| `src/providers/ai/index.ts` | 472 | Anthropic parse: `choices[0].message.content` (formato sbagliato) | **Critica** |
-| `src/providers/ai/index.ts` | 147 | OpenAI `chatChatGPTContinue` usa `engine` invece di `model` | Alta |
-| `src/providers/ai/index.ts` | 335-337 | `fetchAI` stub: ignora `provider`, ritorna sempre OpenAI | **Critica** |
-| `src/providers/ai/index.ts` | 394,428,452 | Model names hardcoded: `gpt-5.2`, `gemini-2.5-pro`, `claude-3.5` | Bassa |
-| `src/providers/ai/index.ts` | 86,349,546 | Tipo `any` ovunque: `parseContent`, `parseResponse`, PROVIDERS | Media |
+The entire `src/providers/ai/index.ts` was rewritten (~300 lines, down from 584) with a clean Adapter architecture. None of the original bugs are present any more. Replaced by:
+- `src/providers/ai/AIProvider.ts` — `AIProviderAdapter` interface
+- `src/providers/ai/AIProviderContext.tsx` — React Context for registry
+- `src/providers/ai/index.ts` — `createAIProviderRegistry` factory, 4 providers ready
+
+**Remaining bugs (post-rewrite):**
+- `any` not yet eliminated from `fetchJson` response handling
+- DeepSeek not implemented
+- No direct tests for AI provider
 
 ### A.2 Form
 
-| File | Linea | Bug |
-|------|-------|-----|
-| `src/components/widgets/Form.tsx` | 416 | `useEffect` con `JSON.stringify(defaultValues)` → loop su oggetti profondi |
-| `src/components/widgets/Form.tsx` | 458 | Required validation via `document.querySelectorAll` → non funziona su campi dinamici |
-| `src/components/widgets/Form.tsx` | 441 | `//return false` → validazione required non blocca il submit |
-| `src/components/widgets/Form.tsx` | 127-136 | Blocco commentato di 10 righe |
+| File | Line | Bug |
+|------|------|-----|
+| `src/components/widgets/Form.tsx` | 416 | `useEffect` with `JSON.stringify(defaultValues)` → loop on deep objects |
+| `src/components/widgets/Form.tsx` | 458 | Required validation via `document.querySelectorAll` → does not work on dynamic fields |
+| `src/components/widgets/Form.tsx` | 441 | `//return false` → required validation does not block submit |
+| `src/components/widgets/Form.tsx` | 127-136 | Commented-out block of 10 lines |
 
 ### A.3 Firebase
 
 | File | Bug |
 |------|-----|
-| `src/providers/data/firebase.ts` | Usa `firebase/compat` SDK (deprecato, bundle 2x) |
-| `src/providers/data/firebase.ts` | `consoleLog` chiamate multiple non rimosse |
-| `src/providers/data/firebase.ts` | `useListener` chiamato come metodo durante render |
-| `src/providers/data/firebase.ts` | Side effect a module import via `onConfigChange` |
+| `src/providers/data/firebase.ts` | Uses `firebase/compat` SDK (deprecated, 2x bundle) |
+| `src/providers/data/firebase.ts` | Multiple `consoleLog` calls not removed |
+| `src/providers/data/firebase.ts` | `useListener` called as a method during render |
+| `src/providers/data/firebase.ts` | Side effect at module import via `onConfigChange` |
 
-### A.4 Legay / dead code
+### A.4 Legacy / dead code
 
-| File | Cosa |
+| File | What |
 |------|------|
-| `src/components/Component.tsx` | Pattern legacy con `todo` comment |
-| `src/components/Template.tsx` | Template legacy |
+| `src/components/Component.tsx` | Legacy pattern with `todo` comment |
+| `src/components/Template.tsx` | Legacy template |
 | `src/components/ui/fields/Command.tsx` | `contentEditable`/`document.execCommand` |
-| `src/pages/Helper.tsx` | Bootstrap ScrollSpy storico |
+| `src/pages/Helper.tsx` | Historical Bootstrap ScrollSpy page |
 
 ---
 
-## Appendice B — Provider matrix reale (2026-05-27)
+## Appendix B — Real provider matrix (2026-05-29)
 
 | Provider | Data | Storage | Auth | Stato |
 |----------|------|---------|------|-------|
@@ -270,44 +256,46 @@ Qui si colmano gap che il mercato si aspetta.
 
 ---
 
-## Appendice C — Ordine di esecuzione
+## Appendix C — Execution order
 
 ```text
-FASE 0 — ONESTA' (1 settimana)
-├── P0.0: AI provider — fixare TUTTO (URL, parsing, log, tipi, test)
-├── P0.4: CI/CD — GitHub Actions (test + build su ogni PR)
-├── P0.3: ErrorBoundary — 3 livelli (App, provider, route)
-├── A.4: Rimuovere dead code
-└── [DOC] Aggiungere KNOWN_ISSUES.md, rendere README onesto
+PHASE 0 — HONESTY (1 week)
+├── P0.0: AI provider — ✅ DONE (Adapter rewrite 2026-05-29)
+│   └── Remaining: DeepSeek, types, tests
+├── P0.4: CI/CD — GitHub Actions (test + build on every PR)
+├── P0.3: ErrorBoundary — 3 levels (App, provider, route)
+├── A.4: Remove dead code
+├── [DOC] Add KNOWN_ISSUES.md, make README honest
+└── Phase 1 canonical naming: Grid.layout → Grid.view + backward-compat alias
 
-FASE 1 — FONDAMENTA (2-3 settimane)
-├── P0.1: Provider incompleti
+PHASE 1 — FOUNDATIONS (2-3 weeks)
+├── P0.1: Incomplete providers
 │   ├── FirebaseAuthProvider (email/password, anonymous)
 │   ├── FirestoreDataProvider
-│   ├── SupabaseDataProvider completo
-│   ├── SupabaseStorageProvider completo
+│   ├── Complete SupabaseDataProvider
+│   ├── Complete SupabaseStorageProvider
 │   └── SupabaseAuthProvider
-├── P0.2: Validazione form — fix required fields
+├── P0.2: Form validation — fix required fields
 └── P3.4: Firebase SDK compat → modular (bundle -50%)
 
-FASE 2 — QUALITA' (3-4 settimane)
-├── P3.1: Contract test per ogni provider
-├── P3.2: TypeScript quality (ridurre any)
+PHASE 2 — QUALITY (3-4 weeks)
+├── P3.1: Contract tests for each provider
+├── P3.2: TypeScript quality (reduce any)
 ├── P3.3: Bundle optimization
-├── P3.5: Documentazione pubblica + demo live
-└── P4.1: CLI — template saas + ai
+├── P3.5: Public documentation + live demo
+└── P4.1: CLI — saas + ai templates
 
-FASE 3 — DIFFERENZIATORI (3-4 settimane)
-├── P1.1: AI potenziato (form generation, auto-fill, caption)
-├── P1.2: CRUD schema-driven estremo (inline edit, export, bulk)
-├── P1.3: REST adapter generico
+PHASE 3 — DIFFERENTIATORS (3-4 weeks)
+├── P1.1: Enhanced AI (form generation, auto-fill, caption)
+├── P1.2: Extreme schema-driven CRUD (inline edit, export, bulk)
+├── P1.3: Generic REST adapter
 ├── P1.4: Command palette
 ├── P1.5: Provider Status Dashboard
 └── P2.1: i18n
 
-FASE 4 — PARITY + ECOSISTEMA (1-2 mesi)
-├── P2.2: Auth — OAuth provider multipli, magic link
-├── P2.3: Gestione dati — paginazione/filtri server-side
+PHASE 4 — PARITY + ECOSYSTEM (1-2 months)
+├── P2.2: Auth — multiple OAuth providers, magic link
+├── P2.3: Data management — server-side pagination/filters
 ├── P2.4: UI/UX — Notifications, WYSIWYG, Sidebar
 ├── P2.5: Devtools, Inferencer
 ├── P4.2: Adapter gallery
@@ -317,24 +305,24 @@ FASE 4 — PARITY + ECOSISTEMA (1-2 mesi)
 
 ---
 
-## Appendice D — Quality gates per v1.0.0
+## Appendix D — Quality gates for v1.0.0
 
-| Metrica | Target | Come si misura |
-|---------|--------|----------------|
+| Metric | Target | How to measure |
+|--------|--------|----------------|
 | Test count | ≥ 200 | `npm run test -- --reporter=verbose` |
 | Coverage | ≥ 60% | `npm run test:coverage` |
-| Test falliti | 0 | `npm run test` |
-| TypeScript strict | 0 errori | `npx tsc --noEmit` |
-| CI build | ✅ su ogni PR | GitHub Actions |
+| Failing tests | 0 | `npm run test` |
+| TypeScript strict | 0 errors | `npx tsc --noEmit` |
+| CI build | ✅ on every PR | GitHub Actions |
 | Showcase build | ✅ | `cd clients/showcase && npm run build` |
-| E2E flussi | ≥ 1 (CRUD) | Playwright |
-| Provider Data | 4/4 funzionanti | Mock ✅ FirebaseRTDB ✅ Firestore ✅ Supabase ✅ |
-| Provider Auth | 4/4 funzionanti | Google ✅ Firebase ✅ Supabase ✅ Dropbox ✅ |
+| E2E flows | ≥ 1 (CRUD) | Playwright |
+| Data providers | 4/4 working | Mock ✅ FirebaseRTDB ✅ Firestore ✅ Supabase ✅ |
+| Auth providers | 4/4 working | Google ✅ Firebase ✅ Supabase ✅ Dropbox ✅ |
 
 ---
 
-> **Regola**: Quando tutti i P0 sono ✅, il progetto è pronto per produzione.
-> Quando P0 + P1 sono ✅, è pronto per competere seriamente.
-> Quando tutto è ✅, è pronto per vincere.
+> **Rule**: When all P0 are ✅, the project is ready for production.
+> When P0 + P1 are ✅, it is ready to compete seriously.
+> When everything is ✅, it is ready to win.
 
-> **Nota**: i18n è stato declassato da P0 a P2 perché non è un bloccante per l'adozione. Nessuno sceglie un framework per l'internazionalizzazione. La priorità reale è: AI che funziona → provider che funzionano → feature differenzianti → qualità.
+> **Note**: i18n was downgraded from P0 to P2 because it is not a blocker for adoption. Nobody chooses a framework for internationalisation. The real priority is: AI that works → providers that work → differentiating features → quality.

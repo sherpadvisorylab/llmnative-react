@@ -1,10 +1,10 @@
-# Esempio: Grid con modal edit avanzato
+# Example: Grid with advanced modal edit
 
-Scenario: catalogo prodotti con modal che mostra dettagli estesi e tab.
+Scenario: product catalogue with a modal showing extended details and tabs.
 
 ---
 
-## Grid con modal custom
+## Grid with custom modal
 
 ```tsx
 import { Grid, Form, Input, Select, Upload, Tab, Badge } from '@llmnative/react'
@@ -14,19 +14,19 @@ export default function ProductCatalog() {
     <Grid
       dataStoragePath="/products"
       columns={[
-        { key: 'name',     label: 'Prodotto', sort: true },
-        { key: 'category', label: 'Categoria' },
+        { key: 'name',     label: 'Product',  sort: true },
+        { key: 'category', label: 'Category' },
         {
           key: 'price',
-          label: 'Prezzo',
+          label: 'Price',
           onDisplay: ({ value }) => `€ ${Number(value).toFixed(2)}`,
         },
         {
           key: 'status',
-          label: 'Stato',
+          label: 'Status',
           onDisplay: ({ value }) => (
             <Badge variant={value === 'active' ? 'success' : 'secondary'}>
-              {value === 'active' ? 'Attivo' : 'Inattivo'}
+              {value === 'active' ? 'Active' : 'Inactive'}
             </Badge>
           ),
         },
@@ -51,24 +51,24 @@ export default function ProductCatalog() {
           tabs={[
             {
               key: 'info',
-              label: 'Informazioni',
+              label: 'Information',
               content: (
                 <>
-                  <Input name="name"        label="Nome prodotto"  required />
-                  <Input name="sku"         label="Codice SKU" />
-                  <Input name="price"       label="Prezzo (€)"     inputType="number" step={0.01} />
+                  <Input name="name"        label="Product name"   required />
+                  <Input name="sku"         label="SKU code" />
+                  <Input name="price"       label="Price (€)"      inputType="number" step={0.01} />
                   <Select
                     name="category"
-                    label="Categoria"
+                    label="Category"
                     db={{ path: "/categories", labelField: "name", valueField: "_key" }}
                   />
                   <Select
                     name="status"
-                    label="Stato"
+                    label="Status"
                     options={[
-                      { label: "Attivo",   value: "active" },
-                      { label: "Inattivo", value: "inactive" },
-                      { label: "Bozza",    value: "draft" },
+                      { label: "Active",   value: "active" },
+                      { label: "Inactive", value: "inactive" },
+                      { label: "Draft",    value: "draft" },
                     ]}
                     defaultValue="draft"
                   />
@@ -80,23 +80,23 @@ export default function ProductCatalog() {
               label: 'Media',
               content: (
                 <>
-                  <Upload.Image name="cover"   label="Immagine copertina" />
-                  <Upload.Image name="gallery.0" label="Foto 1" />
-                  <Upload.Image name="gallery.1" label="Foto 2" />
-                  <Upload.Image name="gallery.2" label="Foto 3" />
+                  <Upload.Image name="cover"     label="Cover image" />
+                  <Upload.Image name="gallery.0" label="Photo 1" />
+                  <Upload.Image name="gallery.1" label="Photo 2" />
+                  <Upload.Image name="gallery.2" label="Photo 3" />
                 </>
               ),
             },
             {
               key: 'details',
-              label: 'Dettagli',
+              label: 'Details',
               content: (
                 <>
-                  <Input name="description" label="Descrizione breve" />
-                  <Input name="weight"      label="Peso (g)"   inputType="number" />
-                  <Input name="dimensions.w" label="Larghezza (cm)" inputType="number" />
-                  <Input name="dimensions.h" label="Altezza (cm)"   inputType="number" />
-                  <Input name="dimensions.d" label="Profondità (cm)" inputType="number" />
+                  <Input name="description"  label="Short description" />
+                  <Input name="weight"       label="Weight (g)"    inputType="number" />
+                  <Input name="dimensions.w" label="Width (cm)"    inputType="number" />
+                  <Input name="dimensions.h" label="Height (cm)"   inputType="number" />
+                  <Input name="dimensions.d" label="Depth (cm)"    inputType="number" />
                 </>
               ),
             },
@@ -127,9 +127,9 @@ const [rows, setRows] = useState(records)
 
 ---
 
-## Modal con contenuto completamente custom
+## Modal with fully custom content
 
-Quando `modal={{ mode: "empty" }}` il contenuto del modal è interamente gestito dall'`onOpen` callback.
+When `modal={{ mode: "empty" }}` the modal content is entirely managed by the `onOpen` callback.
 
 ```tsx
 <Grid
@@ -146,21 +146,21 @@ Quando `modal={{ mode: "empty" }}` il contenuto del modal è interamente gestito
 
 ---
 
-## Struttura dati risultante
+## Resulting data structure
 
 ```
 /products/
   prod_abc123/
-    name: "Scarpa da corsa"
+    name: "Running shoe"
     sku: "RUN-001"
-    price: 9990           ← in centesimi nel DB, euro nella UI
-    category: "-NxKm9..."  ← _key della categoria
+    price: 9990           ← cents in DB, euros in UI
+    category: "-NxKm9..."  ← _key of the category
     status: "active"
     cover: { base64: "...", name: "cover.jpg", type: "image/jpeg" }
     gallery:
-      0: { base64: "...", name: "foto1.jpg" }
-      1: { base64: "...", name: "foto2.jpg" }
-    description: "Leggera e traspirante"
+      0: { base64: "...", name: "photo1.jpg" }
+      1: { base64: "...", name: "photo2.jpg" }
+    description: "Light and breathable"
     weight: 280
     dimensions: { w: 30, h: 12, d: 10 }
 ```

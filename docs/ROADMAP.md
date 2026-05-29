@@ -1,48 +1,48 @@
 # Roadmap
 
-> Roadmap operativa riallineata alla codebase il 2026-05-08.
-> Il piano storico dettagliato vive in `docs/CHANGE_REQUESTS.md`; lo stato corrente verificato vive in `docs/STATUS.md`.
+> Operational roadmap aligned to the codebase on 2026-05-08.
+> The full historical plan lives in `docs/CHANGE_REQUESTS.md`; the current verified status lives in `docs/STATUS.md`.
 
 ---
 
-## Direzione
+## Direction
 
-React FireStrap sta diventando un framework React Vite-first, provider-agnostic e AI-friendly. Il vantaggio da preservare resta sempre lo stesso: costruire interfacce data-driven complesse con poche righe, senza costringere il consumer a conoscere i dettagli interni del provider.
+React FireStrap is becoming a Vite-first, provider-agnostic and AI-friendly React framework. The core advantage remains the same: build complex data-driven interfaces in a few lines, without forcing the consumer to know the internal details of the provider.
 
 ---
 
-## Stato consolidato
+## Consolidated state
 
-Gia' implementato e verificato:
+Already implemented and verified:
 
-- Vite library build con output CJS/ESM/CSS/types.
-- `DataProvider`, `StorageProvider`, `AuthProvider`, `EmailProvider` e relativi context.
+- Vite library build with CJS/ESM/CSS/types output.
+- `DataProvider`, `StorageProvider`, `AuthProvider`, `EmailProvider` and their contexts.
 - `FirebaseDataProvider`, `FirebaseStorageProvider`, `MockDataProvider`.
-- Implementazioni Supabase presenti ma parziali.
-- App-level provider config dichiarativa in `<App providers={{ ... }}>`.
-- `RuntimeProvider` interno che compone config runtime e stato globale persistito.
-- Head management client-side via `HeadProvider`, `Head` e hook dedicati per metadata/document/social/language/pagination/assets/PWA/schema.org.
-- Theme registry e icon registry controllabili da `<App>`.
-- Tailwind v4 runtime tramite compatibility layer CSS.
-- `MarkdownReader` pubblico.
-- Showcase Vite basato su `<App providers={{ ... }}>` e docs Markdown via frontmatter.
-- Scaffold Vite-first riallineato alla nuova API `providers`.
-- Test unit/component: 14 file, 124 test passanti.
+- Supabase implementations present but partial.
+- App-level declarative provider config via `<App providers={{ ... }}>`.
+- Internal `RuntimeProvider` that composes runtime config and persisted global state.
+- Client-side head management via `HeadProvider`, `Head` and dedicated hooks for metadata/document/social/language/pagination/assets/PWA/schema.org.
+- Theme registry and icon registry controllable from `<App>`.
+- Tailwind v4 runtime via CSS compatibility layer.
+- Public `MarkdownReader`.
+- Vite-based showcase built on `<App providers={{ ... }}>` and Markdown docs via frontmatter.
+- Vite-first scaffold realigned to the new `providers` API.
+- Unit/component tests: 14 files, 124 passing tests.
 
-Non ancora completo:
+Not yet complete:
 
-- Integration test Firebase/Supabase.
-- Test Storage/Auth/Email provider.
-- Test component per Prompt.
-- Test contract sulle implementazioni storage concrete.
-- Playwright E2E e CI.
-- Showcase senza stub per provider ed esempi.
-- Deploy pubblico dello showcase.
-- Audit finale API componenti e rimozione/isolamento del debito legacy.
+- Firebase/Supabase integration tests.
+- Storage/Auth/Email provider tests.
+- Component tests for Prompt.
+- Contract tests for concrete storage implementations.
+- Playwright E2E and CI.
+- Showcase without stubs for providers and examples.
+- Public deploy of the showcase.
+- Final component API audit and removal/isolation of legacy debt.
 
 ---
 
-## Sequenza consigliata
+## Recommended sequence
 
 ```text
 CR-006 tests hardening              in progress
@@ -55,73 +55,73 @@ CR-008..CR-011 themes cleanup       after visual baseline
 
 ---
 
-## Priorita' 1 - Verificabilita'
+## Priority 1 - Verifiability
 
-Obiettivo: poter dire cosa funziona con test automatici, non solo con build.
+Goal: be able to say what works with automated tests, not just with a build.
 
-Task:
+Tasks:
 
-- Aggiungere test `Upload`. *(fatto: copertura component base)*
-- Aggiungere test `Prompt`.
-- Aggiungere test `Repeat`. *(fatto: render/add/readOnly/save nested)*
-- Aggiungere test storage provider almeno su mock/fake adapter o contract dedicato. *(parziale: coperto `StorageProviderContext`)*
-- Aggiungere integration Firebase con emulatore oppure marcarla esplicitamente come manuale fino a setup emulatore.
-- Aggiungere integration Supabase solo quando `SupabaseDataProvider` smette di loggare `not fully implemented yet`.
-- Aggiungere script separati se servono: `test:unit`, `test:integration`, `test:e2e`.
-- Aggiungere CI.
+- Add `Upload` tests. *(done: base component coverage)*
+- Add `Prompt` tests.
+- Add `Repeat` tests. *(done: render/add/readOnly/save nested)*
+- Add storage provider tests at least on mock/fake adapter or dedicated contract. *(partial: `StorageProviderContext` covered)*
+- Add Firebase integration with emulator or explicitly mark it as manual until emulator setup.
+- Add Supabase integration only when `SupabaseDataProvider` stops logging `not fully implemented yet`.
+- Add separate scripts if needed: `test:unit`, `test:integration`, `test:e2e`.
+- Add CI.
 
 ---
 
-## Priorita' 2 - Showcase reale
+## Priority 2 - Real showcase
 
-Obiettivo: eliminare le route stub che oggi danno una percezione piu' completa dello stato reale.
+Goal: remove stub routes that today give a more complete perception than the real state.
 
-Prime pagine da rendere reali:
+First pages to make real:
 
 - `/examples/crud`: `Grid + Form + MockDataProvider`.
-- `/examples/nested-form`: dot notation, array/repeat e default values.
-- `/examples/dashboard`: metriche e tabelle da dati mock.
-- `/providers/data/firebase`: contratto, config e limiti reali.
-- `/providers/data/supabase`: pagina onesta su stato parziale e API REST usata.
-- `/providers/storage`: contratto reale `upload/getURL/download/delete`.
+- `/examples/nested-form`: dot notation, array/repeat and default values.
+- `/examples/dashboard`: metrics and tables from mock data.
+- `/providers/data/firebase`: real contract, config and limits.
+- `/providers/data/supabase`: honest page about partial state and REST API used.
+- `/providers/storage`: real contract `upload/getURL/download/delete`.
 
-Accettazione:
+Acceptance:
 
-- Ogni route nel menu o e' una demo funzionante o dichiara esplicitamente che e' una pagina pianificata.
-- `clients/showcase npm run build` continua a passare.
-
----
-
-## Priorita' 3 - API audit
-
-Obiettivo: far emergere e correggere le incoerenze pubbliche prima della RC.
-
-Issue gia' censite:
-
-- `Input`: chiarire `type` vs `inputType`.
-- `Select`: completare/documentare `placeholder`.
-- `Form`: chiarire la variante bare rispetto ad `aspect`.
-- `Grid`: allineare docs/API su `pagination.limit` vs `pagination.perPage`.
-- `Modal`: verificare props effettivamente esportate.
-- `Icon`: prop `name` unica; la prop `icon` e' stata rimossa dal componente `Icon`.
-- `StorageProvider`: docs allineate alla API reale `getURL`/`delete`.
+- Every route in the menu is either a working demo or explicitly declares it is a planned page.
+- `clients/showcase npm run build` continues to pass.
 
 ---
 
-## Priorita' 4 - Release readiness
+## Priority 3 - API audit
 
-Prima di `2.0.0-rc`:
+Goal: surface and fix public inconsistencies before the RC.
 
-- `npm run test` passa.
-- `npm run build` passa.
-- `cd clients/showcase && npm run build` passa.
-- Showcase senza stub critici nei percorsi principali.
-- Docs operative aggiornate alla stessa data.
-- Gap non risolti dichiarati in `STATUS.md`.
+Known issues:
 
-Prima di `2.0.0`:
+- `Input`: clarify `type` vs `inputType`.
+- `Select`: complete/document `placeholder`.
+- `Form`: clarify the bare variant vs `aspect`.
+- `Grid`: align docs/API on `pagination.limit` vs `pagination.perPage`.
+- `Modal`: verify actually exported props.
+- `Icon`: single `name` prop; the `icon` prop has been removed from the `Icon` component.
+- `StorageProvider`: docs aligned to the real API `getURL`/`delete`.
 
-- CI attiva.
-- Almeno un flusso E2E CRUD.
-- Integration strategy chiara per Firebase e Supabase.
-- README e docs pubbliche allineate allo stato reale.
+---
+
+## Priority 4 - Release readiness
+
+Before `2.0.0-rc`:
+
+- `npm run test` passes.
+- `npm run build` passes.
+- `cd clients/showcase && npm run build` passes.
+- Showcase without critical stubs in main paths.
+- Operational docs updated to the same date.
+- Unresolved gaps declared in `STATUS.md`.
+
+Before `2.0.0`:
+
+- CI active.
+- At least one E2E CRUD flow.
+- Clear integration strategy for Firebase and Supabase.
+- README and public docs aligned to the real state.

@@ -1,21 +1,21 @@
-# Esempio: CRUD base con Grid + Form
+# Example: Basic CRUD with Grid + Form
 
-Scenario: gestione utenti con lista, aggiunta, modifica e cancellazione.
+Scenario: user management with list, add, edit and delete.
 
 ---
 
-## Struttura pagine
+## Page structure
 
 ```
 src/pages/
   users/
-    index.tsx     ← lista utenti (Grid)
-    edit.tsx      ← form modifica (Form)
+    index.tsx     ← user list (Grid)
+    edit.tsx      ← edit form (Form)
 ```
 
 ---
 
-## Lista utenti — `pages/users/index.tsx`
+## User list — `pages/users/index.tsx`
 
 ```tsx
 import { Grid, Badge } from '@llmnative/react'
@@ -28,33 +28,33 @@ export default function UserList() {
     <Grid
       dataStoragePath="/users"
       columns={[
-        { key: 'name',      label: 'Nome',   sort: true },
+        { key: 'name',      label: 'Name',      sort: true },
         { key: 'email',     label: 'Email' },
         {
           key: 'role',
-          label: 'Ruolo',
+          label: 'Role',
           onDisplay: ({ value }) => (
             <Badge variant={value === 'admin' ? 'danger' : 'secondary'}>
               {value}
             </Badge>
           ),
         },
-        { key: 'createdAt', label: 'Iscritto il', onDisplay: 'toDate' },
+        { key: 'createdAt', label: 'Joined on', onDisplay: 'toDate' },
       ]}
       allowedActions={["add", "edit", "delete"]}
       modal={{ mode: "form" }}
       type="table"
       pagination={{ limit: 25, align: "end" }}
       sortable
-      header={<h4>Utenti</h4>}
+      header={<h4>Users</h4>}
     >
       {({ record }) => (
         <>
-          <Input name="name"     label="Nome"   required />
+          <Input name="name"     label="Name"   required />
           <Input name="email"    label="Email"  inputType="email" required />
           <Select
             name="role"
-            label="Ruolo"
+            label="Role"
             options={[
               { label: "Admin", value: "admin" },
               { label: "User",  value: "user" },
@@ -68,17 +68,17 @@ export default function UserList() {
 }
 ```
 
-Note:
+Notes:
 
-- `sortable` abilita l'header sorting della `Table`; `sort: true` o `sort: false` rifiniscono il comportamento colonna per colonna.
-- `onClick` riceve sempre il record completo.
-- `onSelectionChange` e `selectedKeys` usano la stessa semantica di `Table` e `Gallery`, quindi le bulk actions possono stare fuori dal componente.
+- `sortable` enables header sorting on the `Table`; `sort: true` or `sort: false` refine the behaviour column by column.
+- `onClick` always receives the full record.
+- `onSelectionChange` and `selectedKeys` use the same semantics as `Table` and `Gallery`, so bulk actions can live outside the component.
 
 ---
 
-## Form dedicato — `pages/users/edit.tsx`
+## Dedicated form — `pages/users/edit.tsx`
 
-Per una pagina separata con più campi o logica complessa.
+For a separate page with more fields or complex logic.
 
 ```tsx
 import { Form, Input, Select, Upload } from '@llmnative/react'
@@ -105,19 +105,19 @@ export default function UserEdit() {
         return true
       }}
     >
-      <Input name="name"    label="Nome"     required />
-      <Input name="email"   label="Email"    inputType="email" required />
-      <Input name="phone"   label="Telefono" inputType="tel" />
+      <Input name="name"    label="Name"    required />
+      <Input name="email"   label="Email"   inputType="email" required />
+      <Input name="phone"   label="Phone"   inputType="tel" />
       <Select
         name="role"
-        label="Ruolo"
+        label="Role"
         options={[
           { label: "Admin",    value: "admin" },
           { label: "Manager",  value: "manager" },
           { label: "User",     value: "user" },
         ]}
       />
-      <Upload.Image name="avatar" label="Foto profilo" />
+      <Upload.Image name="avatar" label="Profile picture" />
     </Form>
   )
 }
@@ -128,7 +128,7 @@ export default function UserEdit() {
 ## Route configuration
 
 ```tsx
-// In menuConfig o react-router routes
+// In menuConfig or react-router routes
 {
   path: '/users',
   component: UserList,
@@ -139,20 +139,20 @@ export default function UserEdit() {
 },
 {
   path: '/users/new',
-  component: UserEdit,   // recordId sarà undefined → nuovo record
+  component: UserEdit,   // recordId will be undefined → new record
 },
 ```
 
 ---
 
-## Struttura dati Firebase risultante
+## Resulting Firebase data structure
 
 ```
 /users/
   1234567890/
-    name: "Mario Rossi"
-    email: "mario@example.com"
-    phone: "+39 02 1234567"
+    name: "John Smith"
+    email: "john@example.com"
+    phone: "+1 555 1234567"
     role: "admin"
     avatar: { base64: "...", name: "avatar.jpg", type: "image/jpeg" }
     createdAt: 1746356400000

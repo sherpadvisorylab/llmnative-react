@@ -1,6 +1,6 @@
-# Esempio: DataProviderAdapter custom
+# Example: Custom DataProviderAdapter
 
-Questo esempio mostra un adapter REST minimale. L'obiettivo e' rispettare la stessa interfaccia usata da `Form`, `Grid` e dai test contract.
+This example shows a minimal REST adapter. The goal is to satisfy the same interface used by `Form`, `Grid` and the contract tests.
 
 ```ts
 import * as React from 'react';
@@ -86,9 +86,9 @@ export class RestDataProvider implements DataProviderAdapter {
 }
 ```
 
-Nota: `subscribe` e' una primitive provider-agnostic. I componenti React la chiamano dentro `useEffect`, mentre il provider ritorna sempre una funzione di cleanup.
+Note: `subscribe` is a provider-agnostic primitive. React components call it inside `useEffect`, while the provider always returns a cleanup function.
 
-## Uso in App
+## Usage in App
 
 ```tsx
 import { App } from '@llmnative/react';
@@ -114,7 +114,7 @@ export default function Root() {
 
 ## Test contract
 
-Ogni provider nuovo dovrebbe passare il contract condiviso:
+Every new provider should pass the shared contract:
 
 ```ts
 import { runDataProviderContract } from '../tests/unit/providers/DataProvider.contract';
@@ -125,4 +125,4 @@ describe('RestDataProvider contract', () => {
 });
 ```
 
-Per un provider REST reale serve un server di test isolato o un mock server che resetti lo stato tra i test.
+A real REST provider requires an isolated test server or a mock server that resets state between tests.

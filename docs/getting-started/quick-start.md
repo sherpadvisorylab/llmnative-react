@@ -8,7 +8,7 @@ description: From zero to a running app in under 5 minutes using the official sc
 
 # Quick start
 
-The fastest path is the official scaffold. Run one command, answer a few prompts, and you have a fully wired Vite app with routing, theme, icons, and all five service slots ready.
+The fastest path is the official scaffold. Run one command, answer a few prompts, and you have a fully wired Vite app with routing, theme, icons, and all service slots ready.
 
 ```bash
 npx @llmnative/react create
