@@ -28,6 +28,7 @@ import {
     useIconProvider,
 } from '../../src/providers/icon/IconProviderContext';
 
+
 function createDataProvider(id: string): DataProviderAdapter {
     return {
         id,
@@ -45,6 +46,7 @@ function ProbePage() {
     const iconController = useIconController();
     const iconProvider = useIconProvider();
     const dataProvider = useDataProvider();
+
     const SearchIcon = iconProvider?.resolve('search');
 
     return (
@@ -302,6 +304,8 @@ describe('App provider orchestration', () => {
 
         expect(screen.getByTestId('data-provider')).toHaveTextContent('mock-data');
     });
+
+
 
     it('applies page head metadata through HeadProvider', () => {
         renderApp({
