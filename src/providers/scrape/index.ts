@@ -3,7 +3,7 @@ import {currentCountry, currentLang} from "../../libs/locale";
 import {fetchJson} from "../../libs/fetch";
 import {cache} from "../../libs/cache";
 import { Config, onConfigChange, ScrapeConfig } from "../../Config";
-import { normalizeKey, proxy } from "../../libs/utils";
+import { normalizeKey } from "../../libs/utils";
 
 const SERPAPI_ENDPOINT = "https://api.serpapi.com/search";
 
@@ -166,9 +166,7 @@ const fetchSerpApi = async (search: string, engine: string) => {
         });
         console.log(SERPAPI_ENDPOINT, query);
         const params = new URLSearchParams(query);
-        const url = `${SERPAPI_ENDPOINT}?${params}`;
-
-        return proxy(url);
+        return `${SERPAPI_ENDPOINT}?${params}`;
     }
 
     let apiKey = getSerpApikey();

@@ -42,7 +42,7 @@ export default defineConfig({
         rollupOptions: {
             external,
         },
-        sourcemap: true,
+        sourcemap: false,
         emptyOutDir: true,
     },
 });

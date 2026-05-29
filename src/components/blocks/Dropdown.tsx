@@ -24,6 +24,7 @@ interface DropdownProps extends Pick<MotionUIProps, 'motion'> {
     onOpenChange?: (open: boolean) => void;
     alwaysOpen?: boolean;
     position?: "start" | "end";
+    placement?: "auto" | "top" | "bottom";
     wrapClass?: string;
     className?: string;
     buttonClass?: string;
@@ -70,6 +71,7 @@ export const Dropdown = ({
                              onOpenChange       = undefined,
                              alwaysOpen         = false,
                              position           = undefined,
+                             placement          = "bottom",
                              wrapClass          = undefined,
                              className          = undefined,
                              buttonClass        = undefined,
@@ -83,8 +85,10 @@ export const Dropdown = ({
     const theme = useTheme("dropdown");
     const [uncontrolledOpen, setUncontrolledOpen] = React.useState(defaultOpen);
     const rootRef = React.useRef<HTMLDivElement>(null);
+    const menuRef = React.useRef<HTMLDivElement>(null);
     const menuId = React.useId();
     const open = alwaysOpen ? true : controlledOpen ?? uncontrolledOpen;
+    const [resolvedPlacement, setResolvedPlacement] = React.useState<'top' | 'bottom'>('bottom');
     const renderToggle = !alwaysOpen && toggleButton !== undefined;
     const menuMotionStyle = useMotionState(open, motionConfig ?? theme.Dropdown.motion?.open ?? 'fadeDown', theme.Dropdown.motion?.open ?? 'fadeDown');
 
@@ -115,6 +119,14 @@ export const Dropdown = ({
             window.document.removeEventListener('keydown', handleKeyDown);
         };
     }, [alwaysOpen, open, updateOpen]);
+    React.useEffect(() => {
+        if (!open || placement !== 'auto' || !rootRef.current) return;
+        const trigger = rootRef.current.getBoundingClientRect();
+        const spaceBelow = window.innerHeight - trigger.bottom;
+        const menuHeight = menuRef.current ? menuRef.current.scrollHeight : 240;
+        setResolvedPlacement(spaceBelow < menuHeight + 8 ? 'top' : 'bottom');
+    }, [open, placement]);
+
     function isDropdownToggler(button: any): button is DropdownTogglerProps {
         return (
             typeof button === "object" &&
@@ -140,15 +152,20 @@ export const Dropdown = ({
             <div ref={rootRef} className={cn(alwaysOpen ? "inline-block text-left" : "relative inline-block text-left", className || theme.Dropdown.className)}>
                 {Button}
                 <div
+                     ref={menuRef}
                      id={menuId}
                      role="menu"
                      aria-hidden={!open}
                      className={cn(
                          "min-w-56 overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md outline-none",
-                         alwaysOpen ? "relative" : "absolute z-50 mt-2",
+                         alwaysOpen ? "relative" : "absolute z-50",
                          !alwaysOpen && position === "end" && "right-0",
                          !alwaysOpen && position === "start" && "left-0",
-                         menuClass || theme.Dropdown.menuClass
+                         !alwaysOpen && placement === 'auto' && resolvedPlacement === 'bottom' && "top-full mt-1",
+                         !alwaysOpen && placement === 'auto' && resolvedPlacement === 'top' && "bottom-full mb-1",
+                         !alwaysOpen && placement === 'top' && "bottom-full top-auto mb-1",
+                         !alwaysOpen && placement === 'bottom' && "mt-2",
+                         placement !== 'auto' && (menuClass || theme.Dropdown.menuClass)
                      )}
                      style={alwaysOpen
                          ? undefined

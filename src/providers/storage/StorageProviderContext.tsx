@@ -1,4 +1,4 @@
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useMemo } from 'react';
 import type { StorageProviderAdapter } from './StorageProvider';
 
 type StorageProviderContextValue = {
@@ -12,11 +12,10 @@ export const StorageProvider = ({
     registry,
     defaultKey,
     children,
-}: StorageProviderContextValue & { children: React.ReactNode }) => (
-    <StorageProviderContext.Provider value={{ registry, defaultKey }}>
-        {children}
-    </StorageProviderContext.Provider>
-);
+}: StorageProviderContextValue & { children: React.ReactNode }) => {
+    const value = useMemo(() => ({ registry, defaultKey }), [registry, defaultKey]);
+    return <StorageProviderContext.Provider value={value}>{children}</StorageProviderContext.Provider>;
+};
 
 export const useStorageProvider = (name?: string): StorageProviderAdapter | null => {
     const ctx = useContext(StorageProviderContext);

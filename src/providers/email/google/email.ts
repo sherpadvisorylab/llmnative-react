@@ -1,4 +1,3 @@
-import { Buffer } from 'buffer';
 import { googleGetAccessToken } from '../../auth/google/GoogleAuth';
 
 
@@ -34,8 +33,10 @@ export async function sendEmail({ to, bcc, subject, message }: SendEmailParams):
         message,
     ].join('\n');
 
-    const base64EncodedEmail = Buffer.from(email)
-        .toString('base64')
+    const bytes = new TextEncoder().encode(email);
+    let binary = '';
+    for (const byte of bytes) binary += String.fromCharCode(byte);
+    const base64EncodedEmail = btoa(binary)
         .replace(/\+/g, '-')
         .replace(/\//g, '_')
         .replace(/=+$/, '');

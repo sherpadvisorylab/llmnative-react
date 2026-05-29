@@ -1,4 +1,4 @@
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useMemo } from 'react';
 import type { EmailProviderAdapter } from './EmailProvider';
 
 type EmailProviderContextValue = {
@@ -12,11 +12,10 @@ export const EmailProvider = ({
     registry,
     defaultKey,
     children,
-}: EmailProviderContextValue & { children: React.ReactNode }) => (
-    <EmailProviderContext.Provider value={{ registry, defaultKey }}>
-        {children}
-    </EmailProviderContext.Provider>
-);
+}: EmailProviderContextValue & { children: React.ReactNode }) => {
+    const value = useMemo(() => ({ registry, defaultKey }), [registry, defaultKey]);
+    return <EmailProviderContext.Provider value={value}>{children}</EmailProviderContext.Provider>;
+};
 
 export const useEmailProvider = (name?: string): EmailProviderAdapter | null => {
     const ctx = useContext(EmailProviderContext);

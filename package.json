@@ -23,6 +23,8 @@
     "prepublishOnly": "npm run build",
     "updateReadme": "node scripts/dev/updateReadme.js",
     "test": "vitest run",
+    "test:e2e:proxy-scaffold": "node scripts/e2e/test-proxy-scaffold.js",
+    "test:e2e:proxy-runtime": "vitest run tests/e2e/proxy-runtime.test.ts --environment node",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"
   },

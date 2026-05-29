@@ -1,6 +1,5 @@
 import React from 'react';
 import {converter} from "./converter";
-import {getConfig} from "../Config";
 import { RecordProps } from '../providers/data/DataProvider';
 
 export const decodeJWT = (token: string): any => {
@@ -101,15 +100,6 @@ export const dirname = (path: string): string => {
 
 export async function sleep(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-export function proxy(url: string, format: string = 'json'): string {
-    const config = getConfig();
-    return (
-        config?.proxyURI
-            ? config.proxyURI + encodeURIComponent(url) + "&f=" + format
-            : url
-    );
 }
 
 export function generateUniqueId(name = null) {

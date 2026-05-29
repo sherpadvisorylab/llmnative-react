@@ -1,4 +1,4 @@
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useMemo } from 'react';
 import type { DataProviderAdapter } from './DataProvider';
 
 type DataProviderContextValue = {
@@ -12,11 +12,10 @@ export const DataProvider = ({
     registry,
     defaultKey,
     children,
-}: DataProviderContextValue & { children: React.ReactNode }) => (
-    <DataProviderContext.Provider value={{ registry, defaultKey }}>
-        {children}
-    </DataProviderContext.Provider>
-);
+}: DataProviderContextValue & { children: React.ReactNode }) => {
+    const value = useMemo(() => ({ registry, defaultKey }), [registry, defaultKey]);
+    return <DataProviderContext.Provider value={value}>{children}</DataProviderContext.Provider>;
+};
 
 export const useDataProvider = (name?: string): DataProviderAdapter => {
     const ctx = useContext(DataProviderContext);

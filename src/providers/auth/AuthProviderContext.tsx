@@ -1,4 +1,4 @@
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useMemo } from 'react';
 import type { AuthProviderAdapter } from './AuthProvider';
 
 type AuthProviderContextValue = {
@@ -12,11 +12,10 @@ export const AuthProvider = ({
     registry,
     defaultKey,
     children,
-}: AuthProviderContextValue & { children: React.ReactNode }) => (
-    <AuthProviderContext.Provider value={{ registry, defaultKey }}>
-        {children}
-    </AuthProviderContext.Provider>
-);
+}: AuthProviderContextValue & { children: React.ReactNode }) => {
+    const value = useMemo(() => ({ registry, defaultKey }), [registry, defaultKey]);
+    return <AuthProviderContext.Provider value={value}>{children}</AuthProviderContext.Provider>;
+};
 
 export const useAuthProvider = (name?: string): AuthProviderAdapter => {
     const ctx = useContext(AuthProviderContext);

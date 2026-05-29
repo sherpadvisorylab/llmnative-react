@@ -1,11 +1,13 @@
 import React, { useEffect, useId, useState } from 'react';
 import { useTheme } from "../../Theme";
 import { Prompt as PromptConf, PromptVariables, PROMPT_CLEANUP, PROMPT_NO_REFERENCE } from '../../conf/Prompt';
-import { type AIProviderCapabilities, type AIProviderAdapter, parseAIModelRef, formatAIModelRef } from '../../providers/ai/AIProvider';
+import { type AIProviderCapabilities, type AIProviderAdapter, type AIRequestOptions, parseAIModelRef, formatAIModelRef } from '../../providers/ai/AIProvider';
 import { useAIProvider, useAIProviderRegistry } from '../../providers/ai/AIProviderContext';
-import { type AIRequestOptions } from '../../providers/ai';
+import { getAIModelCatalog } from '../../providers/ai/shared';
 import { RecordProps } from '../../providers/data/DataProvider';
+import { getProviderConfigurationState } from '../../providers/ProviderConfiguration';
 import { Dropdown, DropdownItem } from '../blocks/Dropdown';
+import Alert from '../ui/Alert';
 import { LoadingButton } from '../ui/Buttons';
 import { Wrapper } from '../ui/GridSystem';
 import { Label, Range, Switch, TextArea } from '../ui/fields/Input';
@@ -13,8 +15,10 @@ import { Select } from '../ui/fields/Select';
 import { FormFieldProps, useFormContext } from './Form';
 
 export enum PromptMode {
-    EDITOR = "editor",
-    LIVE = "live"
+    EDIT = "edit",
+    RUN = "run",
+    EDITOR = "edit",
+    LIVE = "run"
 }
 
 type PromptOptions = AIRequestOptions & {
@@ -23,32 +27,61 @@ type PromptOptions = AIRequestOptions & {
 
 type OnRunPrompt = (prompt: string, options: AIRequestOptions, data?: PromptVariables) => Promise<string>;
 
-export interface PromptProps extends FormFieldProps {
-    mode?: PromptMode;
-    onRunPrompt?: OnRunPrompt;
-    renderPromptDisabled?: (props: Omit<FormFieldProps, "defaultValue">) => React.ReactNode;
+type PromptDefaultValue = {
+    value?: string;
+    enabled?: boolean;
+    role?: string;
+    language?: string;
+    voice?: string;
+    style?: string;
+    model?: string;
+    temperature?: number;
+};
+
+type RenderPlainFallback = (props: Omit<FormFieldProps, "defaultValue">) => React.ReactNode;
+
+type RenderAIUnavailable = (props: {
+    mode: PromptMode;
+    providerId?: string | null;
+    reason?: string;
+    configured: boolean;
+}) => React.ReactNode;
+
+type PromptSharedProps = FormFieldProps & {
     rows?: number;
-    defaultValue?: {
-        value?: string;
-        enabled?: boolean;
-        role?: string;
-        language?: string;
-        voice?: string;
-        style?: string;
-        model?: string;
-        temperature?: number;
-    };
-}
+    defaultValue?: PromptDefaultValue;
+    renderAIUnavailable?: RenderAIUnavailable;
+};
 
-interface PromptEditorProps extends Omit<PromptProps, "mode" | "onRunPrompt" | "renderPromptDisabled"> {
+type PromptEditProps = PromptSharedProps & {
+    mode?: PromptMode.EDIT | PromptMode.EDITOR;
+};
+
+type PromptRunProps = PromptSharedProps & {
+    mode: PromptMode.RUN | PromptMode.LIVE;
+    onRunPrompt?: OnRunPrompt;
+    renderPlainFallback?: RenderPlainFallback;
+    renderPromptDisabled?: RenderPlainFallback;
+};
+
+export type PromptProps = PromptEditProps | PromptRunProps;
+
+interface PromptEditorProps extends Omit<PromptEditProps, "mode"> {
     value?: RecordProps;
 }
 
-interface PromptLiveProps extends Omit<PromptProps, "mode" | "renderPromptDisabled"> {
+interface PromptRunBranchProps extends Omit<PromptRunProps, "mode" | "renderPromptDisabled"> {
     value?: RecordProps;
 }
 
-interface PromptDisabledProps extends Omit<PromptProps, "mode" | "onRunPrompt"> {
+interface PromptPlainFallbackProps extends Omit<PromptRunProps, "mode" | "onRunPrompt"> {
+}
+
+type PromptAvailabilityState = {
+    provider: AIProviderAdapter | null;
+    providerId: string | null;
+    configured: boolean;
+    reason?: string;
 }
 
 type PromptCapabilitiesState = {
@@ -61,8 +94,17 @@ const promptBodyClass = "space-y-2";
 const promptHeaderClass = "flex items-center justify-between gap-3";
 const promptTitleClass = "mb-0 min-w-0 text-sm font-medium leading-5 text-foreground";
 const promptActionClass = "ml-auto shrink-0";
-
 const getFallbackModelOptions = (): Array<{ label: string; value: string }> => [];
+const getPromptRunErrorMessage = (error: unknown) => {
+    if (error instanceof Error && error.message) return error.message;
+    if (typeof error === 'string') return error;
+    if (error && typeof error === 'object') {
+        if ('reason' in error && typeof error.reason === 'string') return error.reason;
+        if ('error' in error && typeof error.error === 'string') return error.error;
+        if ('message' in error && typeof error.message === 'string') return error.message;
+    }
+    return "Prompt execution failed.";
+};
 
 const PromptFieldHeader = ({
     htmlFor,
@@ -107,22 +149,11 @@ function usePromptCapabilities() {
                 return;
             }
 
-            const entries = await Promise.all(
-                Object.entries(aiRegistry.registry).map(async ([providerId, provider]) => [
-                    providerId,
-                    await provider.getCapabilities(),
-                ] as const)
-            );
+            const catalog = await getAIModelCatalog(aiRegistry.registry);
 
             if (cancelled) return;
 
-            const capabilitiesByProvider = entries.reduce<Record<string, AIProviderCapabilities>>((acc, [providerId, capabilities]) => {
-                acc[providerId] = capabilities;
-                return acc;
-            }, {});
-
-            const modelOptions = entries
-                .flatMap(([, capabilities]) => capabilities.models)
+            const modelOptions = catalog.models
                 .map((model) => ({
                     label: model.label,
                     value: model.id,
@@ -130,7 +161,7 @@ function usePromptCapabilities() {
 
             setState({
                 modelOptions: modelOptions.length > 0 ? modelOptions : getFallbackModelOptions(),
-                capabilitiesByProvider,
+                capabilitiesByProvider: catalog.capabilitiesByProvider,
             });
         };
 
@@ -144,20 +175,91 @@ function usePromptCapabilities() {
     return state;
 }
 
+function usePromptAvailability(selectedModelRef?: string, customExecutorAvailable = false): PromptAvailabilityState {
+    const ai = useAIProvider();
+    const aiRegistry = useAIProviderRegistry();
+    const parsedModelRef = parseAIModelRef(selectedModelRef);
+    const registryKeys = Object.keys(aiRegistry?.registry ?? {});
+    const requestedProviderId = parsedModelRef?.provider ?? ai?.id ?? ((aiRegistry?.defaultKey && registryKeys.includes(aiRegistry.defaultKey)) ? aiRegistry.defaultKey : null);
+    const provider = requestedProviderId
+        ? (aiRegistry?.registry[requestedProviderId] ?? (ai?.id === requestedProviderId ? ai : null))
+        : (ai ?? null);
+
+    if (customExecutorAvailable) {
+        return {
+            provider,
+            providerId: requestedProviderId,
+            configured: true,
+        };
+    }
+
+    if (registryKeys.length === 0 && !provider) {
+        return {
+            provider: null,
+            providerId: null,
+            configured: false,
+            reason: "No AI providers are registered.",
+        };
+    }
+
+    const state = getProviderConfigurationState(
+        provider,
+        requestedProviderId ? `AI provider "${requestedProviderId}"` : "AI provider"
+    );
+
+    return {
+        provider,
+        providerId: requestedProviderId,
+        configured: state.configured,
+        reason: state.reason,
+    };
+}
+
+const PromptAvailabilityNotice = ({
+    mode,
+    availability,
+    renderAIUnavailable,
+}: {
+    mode: PromptMode;
+    availability: PromptAvailabilityState;
+    renderAIUnavailable?: RenderAIUnavailable;
+}) => {
+    if (availability.configured) return null;
+
+    const customNotice = renderAIUnavailable?.({
+        mode,
+        providerId: availability.providerId,
+        reason: availability.reason,
+        configured: availability.configured,
+    });
+
+    if (customNotice !== undefined && customNotice !== null) return <>{customNotice}</>;
+
+    return (
+        <Alert
+            type="warning"
+            icon="warning"
+            className="text-xs leading-5"
+        >
+            {mode === PromptMode.EDIT
+                ? (availability.reason || "AI is not configured. You can still edit and save this prompt.")
+                : (availability.reason || "AI is not configured. Prompt execution is unavailable.")}
+        </Alert>
+    );
+};
+
 export const Prompt = ({
-    mode = PromptMode.EDITOR,
-    onRunPrompt,
-    renderPromptDisabled,
+    mode = PromptMode.EDIT,
     ...props
 }: PromptProps) => {
     const { value } = useFormContext({ name: props.name });
     const promptEnabled = isPromptEnabled(value?.prompt?.enabled, props.defaultValue?.enabled, value?.prompt);
 
-    return mode === PromptMode.EDITOR
+    return mode === PromptMode.EDIT
         ? <PromptEditor {...props} value={value} />
         : promptEnabled
-            ? <PromptLive {...props} value={value} onRunPrompt={onRunPrompt} />
-            : <PromptDisabled {...props} renderPromptDisabled={renderPromptDisabled} />;
+            ? <PromptRun {...props} value={value} />
+            : <PromptPlainFallback {...props} />;
 };
 
 const isPromptEnabled = (value: unknown, fallback?: boolean, promptState?: RecordProps) => {
@@ -169,8 +271,8 @@ const isPromptEnabled = (value: unknown, fallback?: boolean, promptState?: Recor
 };
 
 const getPromptToggleTitle = (enabled: boolean) => enabled
-    ? "Prompt ON. In PromptLive, this textarea is treated as the prompt template and can be executed against the current record. Turn OFF to skip the prompt system and use the plain fallback text instead."
-    : "Prompt OFF. In PromptLive, the prompt system is skipped and the plain fallback text is used directly. Turn ON to use this textarea as the prompt template.";
+    ? "Prompt ON. In PromptRun, this textarea is treated as the prompt template and can be executed against the current record. Turn OFF to skip the prompt system and use the plain fallback text instead."
+    : "Prompt OFF. In PromptRun, the prompt system is skipped and the plain fallback text is used directly. Turn ON to use this textarea as the prompt template.";
 
 const PromptEditor = ({
     name,
@@ -183,7 +285,8 @@ const PromptEditor = ({
     pre = undefined,
     post = undefined,
     wrapClass = undefined,
-    className = undefined
+    className = undefined,
+    renderAIUnavailable = undefined
 }: PromptEditorProps) => {
     const { handleChange } = useFormContext({ name });
     const theme = useTheme("prompt");
@@ -191,6 +294,8 @@ const PromptEditor = ({
     const promptEnabled = isPromptEnabled(value?.prompt?.enabled, defaultValue?.enabled, value?.prompt);
     const switchTitle = getPromptToggleTitle(promptEnabled);
     const editorId = useId();
+    const selectedModelRef = value?.prompt?.model?.toString() || defaultValue?.model;
+    const availability = usePromptAvailability(selectedModelRef);
 
     return (
         <Wrapper className={wrapClass || theme.Prompt.wrapClass}>
@@ -230,6 +335,11 @@ const PromptEditor = ({
                         wrapClass=""
                         maxRows={rows}
                     />
+                    <PromptAvailabilityNotice
+                        mode={PromptMode.EDIT}
+                        availability={availability}
+                        renderAIUnavailable={renderAIUnavailable}
+                    />
                 </div>
                 {post && <div className="shrink-0">{post}</div>}
             </div>
@@ -239,7 +349,7 @@ const PromptEditor = ({
 
 const promptTextareaClass = "border-0 shadow-none rounded-none focus-visible:ring-0";
 
-const PromptLive = ({
+const PromptRun = ({
     name,
     label,
     value,
@@ -251,8 +361,9 @@ const PromptLive = ({
     post,
     wrapClass,
     className,
-    onRunPrompt
-}: PromptLiveProps) => {
+    onRunPrompt,
+    renderAIUnavailable
+}: PromptRunBranchProps) => {
     const { handleChange, record } = useFormContext({ name });
     const theme = useTheme("prompt");
     const caption = label || name;
@@ -269,6 +380,12 @@ const PromptLive = ({
     const selectedCapabilities = selectedProvider ? capabilitiesByProvider[selectedProvider] : undefined;
     const supportsTemperature = selectedCapabilities?.supportsTemperature ?? true;
     const fieldId = useId();
+    const availability = usePromptAvailability(selectedModelRef, Boolean(onRunPrompt));
+    const runDisabled = !availability.configured;
+    const runTitle = runDisabled
+        ? (availability.reason || "AI is not configured. Prompt execution is unavailable.")
+        : undefined;
+    const [runError, setRunError] = useState<string | null>(null);
 
     return (
         <Wrapper className={wrapClass || theme.Prompt.wrapClass}>
@@ -321,7 +438,7 @@ const PromptLive = ({
                         </span>
                         <div className="flex-1" />
                         {editing && (
-                            <Dropdown position="end" toggleButton={{ icon: "settings" }} buttonClass="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground" menuClass="bottom-full top-auto mb-1 mt-0">
+                            <Dropdown position="end" placement="auto" toggleButton={{ icon: "settings" }} buttonClass="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
                                 <DropdownItem>
                                     <Select
                                         name={name + ".prompt.role"}
@@ -396,23 +513,47 @@ const PromptLive = ({
                             <LoadingButton
                                 icon="stars"
                                 label="Run"
+                                loadingLabel="Running..."
+                                disabled={runDisabled}
+                                title={runTitle}
                                 onClick={async () => {
                                     const modelRef = value?.prompt?.model?.toString() || defaultModelRef;
                                     const parsed = parseAIModelRef(modelRef);
                                     const resolvedProvider = parsed
                                         ? (aiRegistry?.registry[parsed.provider] ?? ai ?? undefined)
                                         : (ai ?? undefined);
-                                    handleChange?.({
-                                        target: {
-                                            name: name + ".value",
-                                            value: await runPrompt(value?.prompt, record, onRunPrompt, resolvedProvider),
-                                        },
-                                    });
+
+                                    try {
+                                        const result = await runPrompt(value?.prompt, record, onRunPrompt, resolvedProvider);
+                                        setRunError(null);
+                                        handleChange?.({
+                                            target: {
+                                                name: name + ".value",
+                                                value: result,
+                                            },
+                                        });
+                                    } catch (error) {
+                                        setRunError(getPromptRunErrorMessage(error));
+                                    }
                                 }}
                             />
                         )}
                     </div>
                 </div>
+                <PromptAvailabilityNotice
+                    mode={PromptMode.RUN}
+                    availability={availability}
+                    renderAIUnavailable={renderAIUnavailable}
+                />
+                {runError && (
+                    <Alert
+                        type="danger"
+                        icon="warning"
+                        className="text-xs leading-5"
+                    >
+                        {runError}
+                    </Alert>
+                )}
                 </div>
                 {post && <div className="shrink-0">{post}</div>}
             </div>
@@ -420,7 +561,7 @@ const PromptLive = ({
     );
 };
 
-const PromptDisabled = ({
+const PromptPlainFallback = ({
     name,
     label,
     required,
@@ -430,17 +571,19 @@ const PromptDisabled = ({
     post,
     wrapClass,
     className,
+    renderPlainFallback,
     renderPromptDisabled
-}: PromptDisabledProps) => {
+}: PromptPlainFallbackProps) => {
     const theme = useTheme("prompt");
     const disabledId = useId();
+    const renderFallback = renderPlainFallback ?? renderPromptDisabled;
 
     return (
         <Wrapper className={wrapClass || theme.Prompt.wrapClass}>
             <div className="flex items-center gap-2">
                 {pre && <div className="shrink-0">{pre}</div>}
                 <div className="min-w-0 flex-1">
-                    {renderPromptDisabled?.({ name, label, required, onChange }) ?? (
+                    {renderFallback?.({ name, label, required, onChange }) ?? (
                         <div className={promptBodyClass}>
                             {label && (
                                 <PromptFieldHeader
@@ -480,7 +623,10 @@ export const runPrompt = async (
         return onRunPrompt(promptText, { ...requestOptions, model: modelRef }, data);
     }
 
-    if (!provider || !promptText) return '';
+    if (!promptText) return '';
+    if (!provider) {
+        throw new Error("No AI provider is available for this prompt.");
+    }
 
     const parsed = parseAIModelRef(modelRef);
     const model = parsed?.model || modelRef || provider.defaultModel;
@@ -492,7 +638,11 @@ export const runPrompt = async (
         data,
     });
 
-    return typeof response === 'string' ? response : '';
+    if (typeof response !== 'string' || !response.trim()) {
+        throw new Error("The AI provider returned no response.");
+    }
+
+    return response;
 };
 
 export default Prompt;

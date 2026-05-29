@@ -545,8 +545,8 @@ In corso sul branch `modernize`. Vedi `docs/CHANGE_REQUESTS.md` per i dettagli.
 > Aggiornato automaticamente alla fine di ogni sessione AI.
 > Il piano completo vive in `docs/COMPETITIVENESS_CHECKLIST.md`.
 
-**Ultimo task completato:** Naming finale: `@llmnative/react` (LLM Native).
-**Prossimo task:** npm publish (2FA bypass token needed).
+**Ultimo task completato:** AI provider reso symmetric nel manifest loop (2026-05-29).
+**Prossimo task:** Fase 1 naming canonico (`Grid.layout` → `Grid.view`).
 **Branch:** `main`
 **Repo:** `github.com/sherpadvisorylab/llmnative-react.git`
 
@@ -554,7 +554,7 @@ In corso sul branch `modernize`. Vedi `docs/CHANGE_REQUESTS.md` per i dettagli.
 
 | Area | Completamento |
 |------|--------------|
-| P0 — Bloccanti | 0/5 sezioni |
+| P0 — Bloccanti | 0.5/5 sezioni (P0.0 AI provider e proxy cleanup, resto 0%) |
 | P1 — Differenziatori | 0/6 sezioni |
 | P2 — Feature parity | 0/4 sezioni |
 | P3 — Qualità e trust | 0/5 sezioni |
