@@ -1,4 +1,4 @@
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useMemo } from 'react';
 import type { AIProviderAdapter } from './AIProvider';
 
 type AIProviderContextValue = {
@@ -12,11 +12,14 @@ export const AIProvider = ({
     registry,
     defaultKey,
     children,
-}: AIProviderContextValue & { children: React.ReactNode }) => (
-    <AIProviderContext.Provider value={{ registry, defaultKey }}>
-        {children}
-    </AIProviderContext.Provider>
-);
+}: AIProviderContextValue & { children: React.ReactNode }) => {
+    const value = useMemo(() => ({ registry, defaultKey }), [registry, defaultKey]);
+    return (
+        <AIProviderContext.Provider value={value}>
+            {children}
+        </AIProviderContext.Provider>
+    );
+};
 
 export const useAIProvider = (name?: string): AIProviderAdapter | null => {
     const ctx = useContext(AIProviderContext);
