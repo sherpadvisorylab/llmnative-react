@@ -4,7 +4,6 @@ import { UIProps } from '../..';
 import { useTheme } from '../../Theme';
 import { cn } from '../../libs/cn';
 import { copyToClipboard } from '../../libs/utils';
-import Prism from 'prismjs';
 import Icon from './Icon';
 import { Wrapper } from './GridSystem';
 
@@ -148,6 +147,22 @@ const Code = ({
     let cancelled = false;
 
     const loadAndHighlight = async () => {
+      // Load core first — language packs need Prism in scope to extend it.
+      // Set manual=true before the first import so Prism skips its auto-highlightAll().
+      if (!(window as any).Prism?.highlightElement) {
+        (window as any).Prism = { ...((window as any).Prism ?? {}), manual: true };
+      }
+      let Prism: any;
+      try {
+        const mod = await import('prismjs');
+        Prism = mod.default;
+        // Language component scripts look for Prism on the global object
+        (window as any).Prism = Prism;
+      } catch (err) {
+        console.warn('Errore nel caricare Prism core', err);
+        return;
+      }
+
       try {
         await loadPrismLanguage(resolvedLanguage);
       } catch (err) {

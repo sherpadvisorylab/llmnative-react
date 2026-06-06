@@ -75,6 +75,8 @@ root.render(
                 auth: 'googleAuth',
             },
         }}
+        errorReportUrl={env.VITE_ERROR_REPORT_URL || undefined}
+        debug={env.VITE_ERROR_DEBUG === 'true' || undefined}
         iconProvider="lucide"
         themeProvider={{
             theme: 'default',

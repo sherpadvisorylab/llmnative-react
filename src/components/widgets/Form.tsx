@@ -1,4 +1,5 @@
     import React, { createContext, useContext, useEffect, useState, forwardRef, useImperativeHandle, useRef, useCallback, useMemo } from 'react';
+
     import { useLocation } from "react-router-dom";
     import { Wrapper } from "../ui/GridSystem";
     import { trimSlash, cleanRecord } from "../../libs/utils";
@@ -115,12 +116,49 @@
     }
 
     const FormContext = createContext<FormProviderProps | null>(null);
-    
+
+    // ── Validation context ─────────────────────────────────────────────────────
+
+    interface FieldValidationConstraints {
+        required?: boolean;
+        label?: string;
+        validator?: (value: any) => string | undefined;
+    }
+
+    interface FormValidationContextValue {
+        registerField: (name: string, ref: React.MutableRefObject<FieldValidationConstraints>) => void;
+        unregisterField: (name: string) => void;
+        clearFieldError: (name: string) => void;
+        errors: Record<string, string>;
+    }
+
+    export const FormValidationContext = createContext<FormValidationContextValue | null>(null);
+
+    /**
+     * Hook for field components to register themselves for validation and receive
+     * their error message. Call it in every field that supports `required`.
+     */
+    export const useFieldValidation = (name: string, constraints: FieldValidationConstraints): string | undefined => {
+        const ctx = useContext(FormValidationContext);
+        const constraintsRef = useRef<FieldValidationConstraints>(constraints);
+        constraintsRef.current = constraints; // always up to date without re-triggering registration
+
+        useEffect(() => {
+            if (!ctx) return;
+            ctx.registerField(name, constraintsRef);
+            return () => ctx.unregisterField(name);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [name]);
+
+        return ctx?.errors[name];
+    };
 
 export const useFormContext = ({name, onChange, wrapClass, inputType = "text", defaultValue, inheritFormWrapClass = true}: FormContextProps): FormContextResult => {
     const ctx = useContext(FormContext);
     if (!ctx) throw new Error("useFormContext must be used within a FormContext.Provider");
     if (!name) throw new Error("useFormContext: name is required");
+
+    const validationCtx = useContext(FormValidationContext);
 
     const formChange = (event: ChangeHandler, sourceRecord?: RecordProps) => {
         const nextRecord = applyChangeToRecord(sourceRecord ?? ctx.record, event, inputType);
@@ -149,10 +187,11 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
             return currentValue ?? '';
         }, [name, ctx.record, defaultValue]);
 
-        
+
         return {
             value,
             handleChange: (event) => {
+                validationCtx?.clearFieldError(event.target.name);
                 let nextRecord = ctx.record;
                 ctx.setRecord((prev) => {
                     nextRecord = formChange(event, prev);
@@ -170,7 +209,7 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
             },
             formWrapClass: [wrapClass, inheritFormWrapClass ? ctx.wrapClass : undefined].filter(Boolean).join(" "),
             record: ctx.record ?? {},
-        };  
+        };
     };
 
     type UseHandleDropProps = {
@@ -451,16 +490,73 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
             }
         }, [showNotice]);
 
+        const [errors, setErrors] = useState<Record<string, string>>({});
+        const fieldRefs = useRef<Record<string, React.MutableRefObject<FieldValidationConstraints>>>({});
+
+        const registerField = useCallback((name: string, ref: React.MutableRefObject<FieldValidationConstraints>) => {
+            fieldRefs.current[name] = ref;
+        }, []);
+
+        const unregisterField = useCallback((name: string) => {
+            delete fieldRefs.current[name];
+        }, []);
+
+        const clearFieldError = useCallback((name: string) => {
+            setErrors(prev => {
+                if (!prev[name]) return prev;
+                const { [name]: _, ...rest } = prev;
+                return rest;
+            });
+        }, []);
+
+        const validateFields = useCallback((): boolean => {
+            const newErrors: Record<string, string> = {};
+            for (const [fieldName, constraintsRef] of Object.entries(fieldRefs.current)) {
+                const { required, label, validator } = constraintsRef.current;
+                const value = fieldName
+                    .split('.')
+                    .reduce((acc: any, key) => acc?.[key], recordRef.current);
+                if (required) {
+                    const empty =
+                        value === null ||
+                        value === undefined ||
+                        (typeof value === 'string' && value.trim() === '');
+                    if (empty) {
+                        newErrors[fieldName] = label ? `${label} is required` : 'Required field';
+                        continue;
+                    }
+                }
+                if (validator) {
+                    const msg = validator(value);
+                    if (msg) newErrors[fieldName] = msg;
+                }
+            }
+            setErrors(newErrors);
+            if (Object.keys(newErrors).length > 0) {
+                const firstName = Object.keys(newErrors)[0];
+                requestAnimationFrame(() => {
+                    const inputs = document.querySelectorAll<HTMLElement>('[name]');
+                    for (const input of Array.from(inputs)) {
+                        if (input.getAttribute('name') === firstName) {
+                            input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            input.focus?.();
+                            break;
+                        }
+                    }
+                });
+            }
+            return Object.keys(newErrors).length === 0;
+        }, []);
+
         
 
         const handleSave = useCallback(async (e: React.MouseEvent<HTMLButtonElement>): Promise<boolean> => {
             e.preventDefault();
                     
             showNotice && setNotification(undefined);
-            const emptyRequiredFields = document.querySelectorAll('[required]:not([value]), [required][value=""]');
-            if (emptyRequiredFields.length > 0) {
+            if (!validateFields()) {
                 showNotice && setNotification({ message: theme.Form.i18n.noticeRequiredFields, type: "warning" });
-                //return false;
+                return false;
             }
             const action = isNewRecord ? "create" : "update";
             /*const recordStoragePath = onSave 
@@ -489,7 +585,7 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
 
             recordStoragePath && await db.set(recordStoragePath, cleanRecord(recordRef.current));
             return await handleFinally(action);
-        }, [dataStoragePath, onSave, onFinally, showNotice, savePath]);
+        }, [dataStoragePath, onSave, onFinally, showNotice, savePath, validateFields]);
 
         const handleDelete = useCallback(async (e: React.MouseEvent<HTMLButtonElement>) => {
             e.preventDefault();
@@ -520,9 +616,20 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
             getFooter: handlers?.getFooter ?? (() => footer),
         }), [handleSave, handleDelete, handlers]);
 
-        const components = <FormContext.Provider value={{ record, setRecord, wrapClass: "mb-3" }}>
-                                {typeof children === 'function' ? children({record}) : children}
-                            </FormContext.Provider>;
+        const validationContextValue = useMemo(() => ({
+            registerField,
+            unregisterField,
+            clearFieldError,
+            errors,
+        }), [registerField, unregisterField, clearFieldError, errors]);
+
+        const components = (
+            <FormContext.Provider value={{ record, setRecord, wrapClass: "mb-3" }}>
+                <FormValidationContext.Provider value={validationContextValue}>
+                    {typeof children === 'function' ? children({record}) : children}
+                </FormValidationContext.Provider>
+            </FormContext.Provider>
+        );
 
 
         const displayComponent = useMemo(() => {

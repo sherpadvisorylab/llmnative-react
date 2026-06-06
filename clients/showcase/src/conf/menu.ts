@@ -59,11 +59,13 @@ const AutocompletePage = lazyPage(() => import('../pages/components/Autocomplete
 const ChecklistPage = lazyPage(() => import('../pages/components/ChecklistPage'));
 const UploadPage = lazyPage(() => import('../pages/components/UploadPage'));
 const FormPage = lazyPage(() => import('../pages/components/FormPage'));
+const FormValidationPage = lazyPage(() => import('../pages/components/FormValidationPage'));
 const GridPage = lazyPage(() => import('../pages/components/GridPage'));
 const GridArrayPage = lazyPage(() => import('../pages/components/GridArrayPage'));
 const GridDbPage = lazyPage(() => import('../pages/components/GridDbPage'));
 const GridPreviewPage = lazyPage(() => import('../pages/components/GridPreviewPage'));
 const MarkdownReaderPage = lazyPage(() => import('../pages/components/MarkdownReaderPage'));
+const ImageEditorPage = lazyPage(() => import('../pages/components/ImageEditorPage'));
 
 const s = (title: string, description: string): React.ComponentType =>
     () => React.createElement(Stub, { title, description });
@@ -160,7 +162,15 @@ export const menu = {
         },
         { path: '/components/upload', title: 'Upload', page: UploadPage, group: 'Form fields' },
         { path: '/components/assistant-ai', title: 'AssistantAI', page: AssistantAIPage, group: 'Widgets' },
-        { path: '/components/form', title: 'Form', page: FormPage, group: 'Widgets' },
+        {
+            path: '/components/form',
+            title: 'Form',
+            page: FormPage,
+            group: 'Widgets',
+            children: [
+                { path: '/components/form/validation', title: 'Validation', page: FormValidationPage },
+            ],
+        },
         {
             path: '/components/grid',
             title: 'Grid',
@@ -172,6 +182,7 @@ export const menu = {
             ],
         },
         { path: '/components/layout-builder', title: 'LayoutBuilder', page: LayoutBuilderPage, group: 'Widgets' },
+        { path: '/components/image-editor', title: 'ImageEditor', page: ImageEditorPage, group: 'Widgets' },
         { path: '/components/markdown-reader', title: 'MarkdownReader', page: MarkdownReaderPage, group: 'Widgets' },
         { path: '/components/repeat', title: 'Repeat', page: RepeatPage, group: 'Widgets' },
     ],

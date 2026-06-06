@@ -2,7 +2,7 @@
 
 > Ogni CR rappresenta un'unità di lavoro autonoma con motivazione, scope e checklist.  
 > Stato: `⬜ todo` · `🔄 in progress` · `✅ done` · `🚫 cancelled`  
-> Ultima revisione: 2026-05-27
+> Ultima revisione: 2026-06-05
 
 ---
 
@@ -43,12 +43,13 @@
 | [CR-030](#cr-030--self-contained-typed-themes) | Self-contained typed themes | Alta | CR-017, CR-027 | ✅ |
 | [CR-031](#cr-031--sidebar-block-del-framework) | Sidebar block del framework | Media | CR-007, CR-017 | ⬜ |
 | [CR-032](#cr-032--firebaseauthprovider) | FirebaseAuthProvider (email/password + anonymous) | Alta | CR-002b, CR-023 | ⬜ |
-| [CR-033](#cr-033--firestoredataprovider) | FirestoreDataProvider (Cloud Firestore) | Alta | CR-002, CR-023 | ⬜ |
+| [CR-033](#cr-033--firestoredataprovider) | FirestoreDataProvider (Cloud Firestore) | Alta | CR-002, CR-023, CR-039 | ⬜ |
 | [CR-034](#cr-034--supabasedataprovider-completo) | SupabaseDataProvider completo (SDK + real-time) | Alta | CR-002, CR-023 | ⬜ |
 | [CR-035](#cr-035--supabasestorageprovider-completo) | SupabaseStorageProvider completo (SDK) | Media | CR-002, CR-023 | ⬜ |
 | [CR-036](#cr-036--supabaseauthprovider) | SupabaseAuthProvider (email/password + OAuth) | Alta | CR-002b, CR-023 | ⬜ |
 | [CR-037](#cr-037--component-builder-system) | Component Builder System — useX() hooks per export HTML/JSON | Media | CR-007 | ⬜ |
 | [CR-038](#cr-038--ai-first-naming-normalization) | AI-first naming normalization | Alta | CR-014, CR-037 | ⬜ |
+| [CR-039](#cr-039--firebase-sdk-compat--modular-v9) | Firebase SDK compat → modular v9+ | Alta | CR-002, CR-023 | ✅ |
 
 ---
 
@@ -3517,3 +3518,106 @@ Confermati:
 - [ ] Aggiornare test
 - [ ] Aggiornare `CHANGELOG.md`
 - [ ] `npm run build` e `cd clients/showcase && npm run build` passano
+
+---
+
+## CR-039 — Firebase SDK compat → modular v9+
+
+**Stato:** ✅ done  
+**Branch:** `main`  
+**Priorità:** Alta  
+**Dipende da:** CR-002, CR-023  
+**Prerequisito di:** CR-033 (Firestore non ha API compat), CR-034, CR-036  
+**Stima:** 2–3 giorni  
+**Breaking change:** No (API pubblica invariata, cambia solo l'implementazione interna)
+
+### Motivazione
+
+Il framework usa `firebase/compat` — il wrapper di compatibilità che emula l'API di Firebase v8. Google lo ha introdotto come ponte di migrazione temporaneo, non come API definitiva. Ha due problemi concreti:
+
+1. **Bundle size**: `firebase/compat` non è tree-shakeable. Importare `firebase/compat/database` carica l'intero sottomodulo, anche le parti non usate. Il modular SDK v9+ è progettato per il tree-shaking: il bundler include solo le funzioni effettivamente importate. Riduzione attesa: 40–60% del peso Firebase nel bundle.
+
+2. **Blocco architetturale**: FirestoreDataProvider (CR-033) usa solo l'SDK modular — non esiste un compat layer per Firestore. Finché `firebase-init.ts` usa `firebase/compat`, integrare Firestore richiede di gestire due SDK paralleli nello stesso progetto, con due `firebase.app()` concorrenti.
+
+3. **Accoppiamento strutturale**: il listener `onConfigChange` è attualmente a livello di modulo in `firebase.ts` (data) e `firebase.ts` (storage). Questo significa che entrambi i moduli si attivano non appena vengono importati — anche se nessun provider Firebase è configurato come servizio. La migrazione al modular SDK è l'occasione giusta per spostare il listener a livello di istanza (costruttore della classe), eliminando il side effect all'import.
+
+### Scope
+
+**Incluso:**
+
+- Rimuovere `firebase/compat` da tutti i file Firebase del framework.
+- Riscrivere `src/providers/firebase-init.ts` con l'SDK modular (`initializeApp`, `getApp`, `deleteApp` da `firebase/app`).
+- Riscrivere `src/providers/data/firebase.ts` con l'SDK modular (`getDatabase`, `ref`, `get`, `set`, `update`, `remove`, `onValue`, `query`, `orderByChild`, `equalTo` da `firebase/database`).
+- Riscrivere `src/providers/storage/firebase.ts` con l'SDK modular (`getStorage`, `ref`, `uploadString`, `getDownloadURL`, `deleteObject` da `firebase/storage`).
+- Spostare il listener `onConfigChange` dal livello di modulo al costruttore della classe (`FirebaseDataProvider`, `FirebaseStorageProvider`) con guard statico per evitare registrazioni duplicate.
+- Aggiornare `GoogleAuthProvider` / `firebase-init.ts` per usare `getAuth` modular dove necessario (già parzialmente fatto).
+- Verificare che il bundle finale sia più leggero con `vite-bundle-visualizer` o `rollup-plugin-visualizer`.
+
+**Escluso:**
+
+- FirestoreDataProvider (CR-033) — CR separata che dipende da questa.
+- Migrazione del Firebase SDK nel consumer (showcase, template) — usano la libreria come black box.
+- Firebase Admin SDK (usato solo lato server in GmailEmailProvider, non tocca il bundle client).
+
+### Mapping API — compat → modular
+
+| Compat | Modular |
+|--------|---------|
+| `import firebase from 'firebase/compat/app'` | `import { initializeApp, getApp, deleteApp } from 'firebase/app'` |
+| `import 'firebase/compat/database'` | `import { getDatabase, ref, ... } from 'firebase/database'` |
+| `import 'firebase/compat/storage'` | `import { getStorage, ref, ... } from 'firebase/storage'` |
+| `firebase.initializeApp(config)` | `initializeApp(config)` |
+| `firebase.apps.length` | `getApps().length` |
+| `firebase.app()` | `getApp()` |
+| `firebase.app().delete()` | `deleteApp(getApp())` |
+| `firebase.app().database()` | `getDatabase()` |
+| `db.ref('/path')` | `ref(db, '/path')` |
+| `dbRef.once('value')` | `get(dbRef)` |
+| `dbRef.set(data)` | `set(dbRef, data)` |
+| `dbRef.update(data)` | `update(dbRef, data)` |
+| `dbRef.remove()` | `remove(dbRef)` |
+| `dbRef.on('value', cb)` | `onValue(dbRef, cb)` → ritorna unsubscribe |
+| `firebase.app().storage()` | `getStorage()` |
+| `storage.ref('/path')` | `storageRef(storage, '/path')` |
+| `ref.putString(data, 'data_url')` | `uploadString(ref, data, 'data_url')` |
+| `ref.getDownloadURL()` | `getDownloadURL(ref)` |
+| `ref.delete()` | `deleteObject(ref)` |
+
+### Fix accoppiamento modulo (da fare in questa CR)
+
+```ts
+// PRIMA — listener a livello di modulo (si attiva all'import)
+let databaseInstance: Database;
+if (typeof onConfigChange === 'function') {
+    onConfigChange((newConfig: Config) => {
+        if (newConfig.firebase) init(newConfig.firebase);
+    });
+}
+
+// DOPO — listener a livello di istanza (si attiva solo quando il provider è creato)
+export class FirebaseDataProvider implements DataProviderAdapter {
+    private static listenerRegistered = false;
+
+    constructor() {
+        if (!FirebaseDataProvider.listenerRegistered) {
+            FirebaseDataProvider.listenerRegistered = true;
+            onConfigChange((newConfig: Config) => {
+                if (newConfig.firebase) init(newConfig.firebase);
+            });
+        }
+    }
+}
+```
+
+### Criteri di accettazione
+
+- [x] Nessun import `firebase/compat` rimasto nei file del framework.
+- [x] `FirebaseDataProvider` funziona: read, set, update, remove, useListener, count, setChunks.
+- [x] `FirebaseStorageProvider` funziona: upload, getURL, download, delete.
+- [x] `firebase-init.ts` usa solo API modular (`initializeApp`, `getApp`, `deleteApp`, `getApps`).
+- [x] Il listener `onConfigChange` è nel costruttore della classe, non a livello di modulo.
+- [x] Nessun errore Firebase a console in app senza auth configurato.
+- [x] Bundle JS del framework ridotto (verificato con visualizer) — Firebase nel bundle showcase: 770 KB con modular (era ~1.300-1.500 KB con compat). tui-image-editor (1.985 KB) e lucide-react (943 KB) sono i prossimi candidati a ottimizzazione (P3.3).
+- [x] TypeScript strict: nessun errore `tsc --noEmit`.
+- [x] `npm run test` passa (198 test pass, 0 regressioni).
+- [x] `npm run build` passa.

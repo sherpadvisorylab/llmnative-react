@@ -545,17 +545,21 @@ In corso sul branch `modernize`. Vedi `docs/CHANGE_REQUESTS.md` per i dettagli.
 > Aggiornato automaticamente alla fine di ogni sessione AI.
 > Il piano completo vive in `docs/COMPETITIVENESS_CHECKLIST.md`.
 
-**Ultimo task completato:** AI provider reso symmetric nel manifest loop (2026-05-29).
-**Prossimo task:** Fase 1 naming canonico (`Grid.layout` → `Grid.view`).
+**Ultimo task completato:** CR-033 FirestoreDataProvider con onSnapshot realtime (2026-06-06).
+**Prossimo task:** P0.2 Form validation fix (required non blocca submit).
 **Branch:** `main`
 **Repo:** `github.com/sherpadvisorylab/llmnative-react.git`
+
+### Session summary (2026-06-06)
+- ImageEditor refactor: Bootstrap border-end → Tailwind border-r, modal header unificato (no doppio border), fix canvas bianco (loadImage dentro initEditor), SVG data URL → PNG canvas per showcase
+- CR-033: FirestoreDataProvider — onSnapshot realtime, where multi-field, orderBy, set/update/remove/count; registrato come `firestoreDb` nel manifest Firebase; `getFirestoreConfigurationState` in firebase-init (non richiede databaseURL)
 
 ### Progresso checklist
 
 | Area | Completamento |
 |------|--------------|
-| P0 — Bloccanti | 0.5/5 sezioni (P0.0 AI provider e proxy cleanup, resto 0%) |
+| P0 — Bloccanti | 0.6/5 sezioni (P0.0 AI provider + proxy cleanup ✅, resto 0%) |
 | P1 — Differenziatori | 0/6 sezioni |
 | P2 — Feature parity | 0/4 sezioni |
-| P3 — Qualità e trust | 0/5 sezioni |
+| P3 — Qualità e trust | 1/5 sezioni (P3.3 lazy imports ✅) |
 | P4 — Ecosistema | 0/3 sezioni |

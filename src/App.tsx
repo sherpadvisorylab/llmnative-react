@@ -12,6 +12,7 @@ import { AppThemeProviderConfig, ThemeProvider } from "./Theme";
 import Users from "./pages/Users";
 import NotFound from './pages/NotFound';
 import Alert from "./components/ui/Alert";
+import ErrorBoundary from "./components/ErrorBoundary";
 import {
     AIConfig,
     DropboxConfig,
@@ -94,6 +95,10 @@ export type AppProps = {
     /** Theme registry config. String shorthand selects the active theme id. */
     themeProvider?: AppThemeProviderConfig;
     children?: React.ReactNode;
+    /** POST endpoint for error reports. When set, a "Send report" button appears in the error boundary. */
+    errorReportUrl?: string;
+    /** Force debug mode in error boundaries (shows stack trace, component tree, browser context). Auto-enabled in DEV builds. */
+    debug?: boolean;
 };
 function addCustomProviders<T>(registry: Record<string, T>, custom?: Record<string, T> | T): void {
     if (!custom) return;
@@ -175,6 +180,8 @@ function App({
     iconProvider,
     themeProvider,
     children,
+    errorReportUrl,
+    debug,
 }: AppProps) {
     const registriesRef = useRef<ReturnType<typeof resolveProviderRegistries>>();
     if (!registriesRef.current) registriesRef.current = resolveProviderRegistries(providers);
@@ -219,9 +226,11 @@ function App({
                 path={item.path}
                 element={
                     <LayoutComponent>
-                        <Suspense fallback={<div>Loading...</div>}>
-                            <PageComponent />
-                        </Suspense>
+                        <ErrorBoundary key={item.path} reportUrl={errorReportUrl} debug={debug}>
+                            <Suspense fallback={<div>Loading...</div>}>
+                                <PageComponent />
+                            </Suspense>
+                        </ErrorBoundary>
                     </LayoutComponent>
                 }
             />
@@ -237,6 +246,7 @@ function App({
         );
 
     return (
+        <ErrorBoundary fullPage reportUrl={errorReportUrl} debug={debug}>
         <BrowserRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
             <RuntimeProvider defaultConfig={{
                 title: appName,
@@ -288,6 +298,7 @@ function App({
                 </AuthProvider>
             </RuntimeProvider>
         </BrowserRouter>
+        </ErrorBoundary>
     );
 }
 

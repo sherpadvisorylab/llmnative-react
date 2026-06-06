@@ -1,8 +1,7 @@
-import firebase from "firebase/compat/app";
-import 'firebase/compat/database';
-import { getAdditionalUserInfo, getAuth, signInWithCredential, onAuthStateChanged, Auth, User } from "firebase/auth";
+import { initializeApp, getApp, getApps, deleteApp, type FirebaseApp } from 'firebase/app';
+import { getAuth, getAdditionalUserInfo, signInWithCredential, onAuthStateChanged, type Auth, type User } from "firebase/auth";
 import { getGoogleCredential } from "./auth/google/auth";
-import {FirebaseConfig} from "../Config";
+import { FirebaseConfig } from "../Config";
 import {
     createConfigurationState,
     getMissingKeys,
@@ -35,6 +34,17 @@ export const getFirebaseConfigurationState = (): ProviderConfigurationState => c
     ], 'firebase.')
 );
 
+// Firestore does not require databaseURL — only core Firebase keys are needed.
+export const getFirestoreConfigurationState = (): ProviderConfigurationState => createConfigurationState(
+    'FirestoreProvider',
+    getMissingKeys(currentFirebaseConfig as unknown as Record<string, unknown> | undefined, [
+        'apiKey',
+        'authDomain',
+        'projectId',
+        'appId',
+    ], 'firebase.')
+);
+
 export const getSafeAuth = (): Auth | null => {
     try {
         return getAuth();
@@ -42,7 +52,7 @@ export const getSafeAuth = (): Auth | null => {
         console.error('FirebaseAuthorization', error?.message || 'Error: check Configuration');
         return null;
     }
-}
+};
 
 const getUser = (auth: Auth): Promise<User | null> => {
     return new Promise((resolve, reject) => {
@@ -54,20 +64,17 @@ const getUser = (auth: Auth): Promise<User | null> => {
 };
 
 const requestLogin = async (): Promise<boolean> => {
-    console.log("Requesting user login.");
     const googleCredential = getGoogleCredential();
     if (!googleCredential) {
         console.error("Firebase: Google credential not found.");
         return false;
     }
-
     try {
         const userCredential = await signInWithCredential(getAuth(), googleCredential);
         const additionalUserInfo = getAdditionalUserInfo(userCredential);
         if (additionalUserInfo?.isNewUser) {
-            // you can do something here with the new user
+            // handle new user if needed
         }
-        console.log("Firebase: User logged in successfully.");
         return true;
     } catch (error) {
         console.error("Firebase getAuthorization: ", error);
@@ -83,9 +90,7 @@ function getTokenInfo(user: User): TokenInfo {
             expirationTime?: number;
         };
     };
-
     const expirationTime = stsTokenManager?.expirationTime ?? 0;
-
     return {
         accessToken: stsTokenManager?.accessToken,
         refreshToken: stsTokenManager?.refreshToken,
@@ -94,15 +99,14 @@ function getTokenInfo(user: User): TokenInfo {
     };
 }
 
-const getFirebaseAuthorization = async (): Promise<boolean> => {
+export const getFirebaseAuthorization = async (): Promise<boolean> => {
     const auth = getSafeAuth();
     if (!auth) return false;
 
     const user = await getUser(auth);
-    if(!user) return requestLogin();
+    if (!user) return requestLogin();
 
     const tokenInfo = getTokenInfo(user);
-
     if (!tokenInfo.accessToken) {
         console.error("Firebase access token not found");
         return requestLogin();
@@ -111,7 +115,6 @@ const getFirebaseAuthorization = async (): Promise<boolean> => {
     if (tokenInfo.isExpired) {
         try {
             await user.getIdToken(true);
-            console.log("Token refreshed successfully.");
             return true;
         } catch (error) {
             console.error("Firebase token refresh error: ", error);
@@ -119,26 +122,23 @@ const getFirebaseAuthorization = async (): Promise<boolean> => {
         }
     }
 
-    console.log("Using valid Firebase access token.");
     return true;
 };
 
-const init = async (config: FirebaseConfig): Promise<firebase.app.App> => {
+const init = async (config: FirebaseConfig): Promise<FirebaseApp> => {
     setFirebaseConfigState(config);
-    const firebaseApp = firebase.apps.length ? firebase.app() : undefined;
+    const apps = getApps();
+    const firebaseApp = apps.length ? getApp() : undefined;
 
     if (firebaseApp) {
         if ((firebaseApp.options as Partial<FirebaseConfig>)?.appId === config.appId) {
             console.log("[firebase] Already initialized with same appId, skipping re-init");
             return firebaseApp;
         }
-        await firebaseApp.delete();
+        await deleteApp(firebaseApp);
     }
 
-    firebase.initializeApp(config);
-    await getFirebaseAuthorization();
-
-    return firebase.app();
+    return initializeApp(config);
 };
 
 export default init;

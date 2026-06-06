@@ -1,5 +1,23 @@
-import firebase from "firebase/compat/app";
-import 'firebase/compat/database';
+import {
+    getDatabase as getFirebaseDatabase,
+    ref,
+    get,
+    set as fbSet,
+    update as fbUpdate,
+    remove as fbRemove,
+    onValue,
+    query,
+    orderByKey,
+    orderByValue,
+    orderByChild,
+    equalTo,
+    startAt,
+    endAt,
+    type Database,
+    type Query,
+    type DatabaseReference,
+    type DataSnapshot,
+} from 'firebase/database';
 import { onAuthStateChanged } from "firebase/auth";
 import { converter } from "../../libs/converter";
 import { consoleLog } from "../../constant";
@@ -25,7 +43,7 @@ type RecordObject = Record<string, Record<string, any>>;
 type WhereEntry = [string, Condition | OperatorValue];
 type OrderEntry = [string, "asc" | "desc"];
 type QueryPlan = {
-    dbRef: firebase.database.Query;
+    dbRef: Query;
     clientWhere?: WhereClause;
 };
 
@@ -34,19 +52,7 @@ export const SYSTEM_FIELDS = {
     value: "@value",
 };
 
-let databaseInstance: firebase.database.Database;
-if (typeof onConfigChange === 'function') {
-    onConfigChange((newConfig: Config) => {
-        if (newConfig.firebase) init(newConfig.firebase);
-    });
-}
-
-const getDatabase = (): firebase.database.Database => {
-    if (!databaseInstance && firebase.apps.length) {
-        databaseInstance = firebase.app().database();
-    }
-    return databaseInstance;
-};
+const getDb = (): Database => getFirebaseDatabase();
 
 const handleError = (action: string, error: any, exception: boolean) => {
     const message = `Error during ${action}: ${error}`;
@@ -76,48 +82,48 @@ const normalizeCondition = (raw: Condition | OperatorValue): { condition: Condit
     return { condition, clientCondition };
 };
 
-const getOrderedRef = (ref: firebase.database.Reference, field: string): firebase.database.Query => {
+const getOrderedRef = (dbRef: DatabaseReference, field: string): Query => {
     switch (field) {
-        case SYSTEM_FIELDS.key: return ref.orderByKey();
-        case SYSTEM_FIELDS.value: return ref.orderByValue();
-        default: return ref.orderByChild(field);
+        case SYSTEM_FIELDS.key:   return query(dbRef, orderByKey());
+        case SYSTEM_FIELDS.value: return query(dbRef, orderByValue());
+        default:                   return query(dbRef, orderByChild(field));
     }
 };
 
-const buildQueryPlan = (ref: firebase.database.Reference, order?: OrderClause, where?: WhereClause): QueryPlan => {
+const buildQueryPlan = (dbRef: DatabaseReference, order?: OrderClause, where?: WhereClause): QueryPlan => {
     const [firstOrder] = Object.entries(order || {}) as OrderEntry[];
-    if (!firstOrder) return { dbRef: ref, clientWhere: where };
+    if (!firstOrder) return { dbRef, clientWhere: where };
 
     const [field] = firstOrder;
-    let dbRef = getOrderedRef(ref, field);
+    let qRef: Query = getOrderedRef(dbRef, field);
     const raw = where?.[field];
-    if (raw == null) return { dbRef, clientWhere: where };
+    if (raw == null) return { dbRef: qRef, clientWhere: where };
 
     const { condition, clientCondition } = normalizeCondition(raw);
 
     switch (true) {
         case condition.eq !== undefined:
-            return { dbRef: dbRef.equalTo(condition.eq as any), clientWhere: omitWhereEntry(where, field) };
+            return { dbRef: query(qRef, equalTo(condition.eq as any)), clientWhere: omitWhereEntry(where, field) };
         case condition.gte !== undefined && condition.lte !== undefined:
-            dbRef = dbRef.startAt(condition.gte as any).endAt(condition.lte as any); break;
+            qRef = query(qRef, startAt(condition.gte as any), endAt(condition.lte as any)); break;
         case condition.gte !== undefined && condition.lt !== undefined:
-            dbRef = dbRef.startAt(condition.gte as any).endAt(condition.lt as any); break;
+            qRef = query(qRef, startAt(condition.gte as any), endAt(condition.lt as any)); break;
         case condition.gt !== undefined && condition.lte !== undefined:
-            dbRef = dbRef.startAt(condition.gt as any).endAt(condition.lte as any); break;
+            qRef = query(qRef, startAt(condition.gt as any), endAt(condition.lte as any)); break;
         case condition.gt !== undefined && condition.lt !== undefined:
-            dbRef = dbRef.startAt(condition.gt as any).endAt(condition.lt as any); break;
+            qRef = query(qRef, startAt(condition.gt as any), endAt(condition.lt as any)); break;
         case condition.gte !== undefined:
-            dbRef = dbRef.startAt(condition.gte as any); break;
+            qRef = query(qRef, startAt(condition.gte as any)); break;
         case condition.gt !== undefined:
-            dbRef = dbRef.startAt(condition.gt as any); break;
+            qRef = query(qRef, startAt(condition.gt as any)); break;
         case condition.lte !== undefined:
-            dbRef = dbRef.endAt(condition.lte as any); break;
+            qRef = query(qRef, endAt(condition.lte as any)); break;
         case condition.lt !== undefined:
-            dbRef = dbRef.endAt(condition.lt as any); break;
+            qRef = query(qRef, endAt(condition.lt as any)); break;
     }
 
     return {
-        dbRef,
+        dbRef: qRef,
         clientWhere: clientCondition
             ? { ...(omitWhereEntry(where, field) || {}), [field]: clientCondition }
             : omitWhereEntry(where, field)
@@ -148,12 +154,12 @@ const matchWhere = (value: any, raw: Condition | OperatorValue): boolean => {
     const condition = typeof raw === "object" && raw !== null && !Array.isArray(raw) ? raw as Condition : { eq: raw };
     for (const [op, target] of Object.entries(condition as Record<string, OperatorValue>)) {
         switch (op) {
-            case "eq": if (value !== target) return false; break;
-            case "gt": if (!(value > (target as any))) return false; break;
+            case "eq":  if (value !== target) return false; break;
+            case "gt":  if (!(value > (target as any))) return false; break;
             case "gte": if (!(value >= (target as any))) return false; break;
-            case "lt": if (!(value < (target as any))) return false; break;
+            case "lt":  if (!(value < (target as any))) return false; break;
             case "lte": if (!(value <= (target as any))) return false; break;
-            case "in": if (!Array.isArray(target) || !(target as any[]).includes(value)) return false; break;
+            case "in":  if (!Array.isArray(target) || !(target as any[]).includes(value)) return false; break;
             case "nin": if (Array.isArray(target) && (target as any[]).includes(value)) return false; break;
             default: return false;
         }
@@ -186,14 +192,27 @@ const processRecordObject = (val: RecordObject, where?: WhereClause, order?: Ord
     return Object.fromEntries(filtered);
 };
 
-const buildShallowURL = (path: string, auth?: string): string => {
-    const u = new URL(`${path}.json`, getDatabase().ref().toString());
+const buildShallowURL = async (path: string): Promise<string> => {
+    const auth = getSafeAuth();
+    const token = await auth?.currentUser?.getIdToken().catch(() => undefined);
+    const u = new URL(`${path}.json`, ref(getDb()).toString());
     u.searchParams.set("shallow", "true");
-    if (auth) u.searchParams.set("auth", auth);
+    if (token) u.searchParams.set("auth", token);
     return u.toString();
 };
 
 export class FirebaseDataProvider implements DataProviderAdapter {
+    private static listenerRegistered = false;
+
+    constructor() {
+        if (!FirebaseDataProvider.listenerRegistered && typeof onConfigChange === 'function') {
+            FirebaseDataProvider.listenerRegistered = true;
+            onConfigChange((newConfig: Config) => {
+                if (newConfig.firebase) init(newConfig.firebase);
+            });
+        }
+    }
+
     getConfigurationState(): ProviderConfigurationState {
         return getFirebaseConfigurationState();
     }
@@ -204,10 +223,7 @@ export class FirebaseDataProvider implements DataProviderAdapter {
 
     readShallow = async (path: string, exception = false): Promise<string[]> => {
         try {
-            const auth = getSafeAuth();
-            if (!auth) return [];
-            const token = await auth.currentUser?.getIdToken().catch(() => undefined);
-            const url = buildShallowURL(path, token);
+            const url = await buildShallowURL(path);
             const res = await fetch(url);
             if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
             const json = await res.json();
@@ -219,9 +235,9 @@ export class FirebaseDataProvider implements DataProviderAdapter {
     };
 
     read = async (path: string, { where, order, toArray = false, exception = false }: ReadOptions = {}): Promise<any> => {
-        const { dbRef, clientWhere } = buildQueryPlan(getDatabase().ref(path), order, where);
+        const { dbRef, clientWhere } = buildQueryPlan(ref(getDb(), path), order, where);
         try {
-            const snapshot = await dbRef.get();
+            const snapshot = await get(dbRef);
             if (snapshot.exists()) {
                 consoleLog(`Info: Data found in Firebase for path ${path}`);
                 const processed = processRecordObject(snapshot.val(), clientWhere, order);
@@ -236,7 +252,7 @@ export class FirebaseDataProvider implements DataProviderAdapter {
 
     update = async (path: string, data: any, exception = false): Promise<void> => {
         try {
-            await getDatabase().ref(path).update(data);
+            await fbUpdate(ref(getDb(), path), data);
             consoleLog(`Data successfully merged in Firebase for ${path}`);
         } catch (error) {
             handleError(`updating data in Firebase for ${path}`, error, exception);
@@ -245,7 +261,7 @@ export class FirebaseDataProvider implements DataProviderAdapter {
 
     set = async (path: string, data: any, exception = false): Promise<void> => {
         try {
-            await getDatabase().ref(path).set(data);
+            await fbSet(ref(getDb(), path), data);
             consoleLog(`Data successfully updated in Firebase for ${path}`);
         } catch (error) {
             handleError(`updating data in Firebase for ${path}`, error, exception);
@@ -257,17 +273,18 @@ export class FirebaseDataProvider implements DataProviderAdapter {
         data: any,
         { chunkSize = 1000, purge = false, onProgress }: SetChunksOptions = {}
     ): Promise<void> => {
-        const dbRef = getDatabase().ref(path);
+        const db = getDb();
+        const dbRef = ref(db, path);
         try {
             if (purge) {
-                await dbRef.remove();
+                await fbRemove(dbRef);
                 onProgress?.(0, 0, `Purging existing data at ${path}`);
             }
             const entries = Object.entries(cleanRecord(data));
             const totalChunks = Math.ceil(entries.length / chunkSize);
             for (let i = 0; i < entries.length; i += chunkSize) {
                 const chunk = Object.fromEntries(entries.slice(i, i + chunkSize));
-                await dbRef.update(chunk);
+                await fbUpdate(dbRef, chunk);
                 const done = Math.floor(i / chunkSize) + 1;
                 onProgress?.(done, totalChunks, `Saving chunk ${done}/${totalChunks}`);
             }
@@ -278,7 +295,7 @@ export class FirebaseDataProvider implements DataProviderAdapter {
 
     remove = async (path: string, exception = false): Promise<void> => {
         try {
-            await getDatabase().ref(path).remove();
+            await fbRemove(ref(getDb(), path));
             consoleLog(`Data successfully removed from Firebase for ${path}`);
         } catch (error) {
             handleError(`removing data from Firebase for ${path}`, error, exception);
@@ -298,10 +315,10 @@ export class FirebaseDataProvider implements DataProviderAdapter {
         const auth = getSafeAuth();
         if (!auth || !path) return () => undefined;
 
-        const fetchData = () => {
-            const { dbRef, clientWhere } = buildQueryPlan(getDatabase().ref(path), order, where);
+        const fetchData = (): (() => void) => {
+            const { dbRef, clientWhere } = buildQueryPlan(ref(getDb(), path), order, where);
 
-            const onValueChange = (snapshot: firebase.database.DataSnapshot) => {
+            const onValueChange = (snapshot: DataSnapshot) => {
                 const val: RecordObject = snapshot.val();
                 if (!val) { setRecords([]); return; }
 
@@ -340,8 +357,7 @@ export class FirebaseDataProvider implements DataProviderAdapter {
                 setRecords(records);
             };
 
-            dbRef.on("value", onValueChange);
-            return () => { dbRef.off("value", onValueChange); };
+            return onValue(dbRef, onValueChange);
         };
 
         let unsubscribeData: (() => void) | undefined;
@@ -362,4 +378,6 @@ export class FirebaseDataProvider implements DataProviderAdapter {
     };
 }
 
+// Legacy default export — kept for backward compatibility with direct imports.
+// Prefer using the manifest registry via <App providers={{ services: { data: 'dbRealtime' } }} />.
 export default new FirebaseDataProvider();

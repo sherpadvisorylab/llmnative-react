@@ -1,5 +1,5 @@
-import React from 'react';
-import { Badge, Code } from '@llmnative/react';
+import React, { useState } from 'react';
+import { Code } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
@@ -102,6 +102,7 @@ const PLAYGROUND: PlaygroundConfig = {
 
 export default function CodePage() {
     usePlayground(PLAYGROUND, 'Code');
+    const [activeTheme, setActiveTheme] = useState<string>('tomorrow');
 
     return (
         <PageLayout
@@ -144,20 +145,30 @@ export default function CodePage() {
 
             <Section
                 title="Themes and copy"
-                description="showCopy controls the clipboard button. theme selects the Prism CSS theme to load."
+                description="Click a theme to preview it. showCopy controls the clipboard button."
                 preview={
-                    <div className="space-y-4">
+                    <div className="space-y-4 w-full">
                         <div className="flex flex-wrap gap-2">
                             {THEMES.map((theme) => (
-                                <Badge key={theme} type="secondary">{theme}</Badge>
+                                <button
+                                    key={theme}
+                                    onClick={() => setActiveTheme(theme)}
+                                    className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+                                        activeTheme === theme
+                                            ? 'bg-primary text-primary-foreground border-primary'
+                                            : 'bg-background text-muted-foreground border-border hover:bg-accent hover:text-foreground'
+                                    }`}
+                                >
+                                    {theme}
+                                </button>
                             ))}
                         </div>
-                        <Code language="typescript" theme="okaidia" showCopy={false} className="rounded-md border border-border p-4 text-sm">
+                        <Code language="typescript" theme={activeTheme as any} showCopy={false} className="rounded-md border border-border p-4 text-sm">
                             {`type Status = 'idle' | 'loading' | 'ready';`}
                         </Code>
                     </div>
                 }
-                code={`<Code language="typescript" theme="okaidia" showCopy={false}>
+                code={`<Code language="typescript" theme="${activeTheme}" showCopy={false}>
   {source}
 </Code>`}
             />

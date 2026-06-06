@@ -1,6 +1,7 @@
 import React, { useEffect, useId, useMemo, useState } from 'react';
 import {
     Label,
+    FieldError,
     fieldAddonClass,
     fieldControlBaseClass,
     fieldFeedbackClass,
@@ -12,7 +13,7 @@ import { DEFAULT_ORDER, Order, type OrderConfig } from "../../../libs/order";
 import { arraysEqual, arrayUnique, isEmpty, sanitizeKey } from "../../../libs/utils";
 import { DatabaseOptions, DBConfig, RecordProps } from "../../../providers/data/DataProvider";
 import { useDataProvider } from "../../../providers/data/DataProviderContext";
-import { FormFieldProps, useFormContext } from '../../widgets/Form';
+import { FormFieldProps, useFormContext, useFieldValidation } from '../../widgets/Form';
 import { cn } from '../../../libs/cn';
 
 interface Option extends RecordProps {
@@ -32,6 +33,7 @@ interface BaseProps extends FormFieldProps {
     options?: Option[] | string[] | number[];
     db?: DBConfig;
     order?: OptionOrderConfig;
+    validator?: (value: any) => string | undefined;
 }
 
 export interface SelectProps extends BaseProps {
@@ -160,8 +162,10 @@ export const Select = ({
     inheritFormWrapClass = true,
     wrapClass = undefined,
     className = undefined,
+    validator = undefined,
 }: SelectProps) => {
     const { value, handleChange, formWrapClass } = useFormContext({ name, onChange, wrapClass, defaultValue, inheritFormWrapClass });
+    const error = useFieldValidation(name, { required, label, validator });
     const theme = useTheme("select");
 
     const dbOptions = useMemo(() => getOptionsDB(db), [db?.fieldMap, db?.where, db?.order, db?.onLoad]);
@@ -199,6 +203,7 @@ export const Select = ({
                         "appearance-none pr-8",
                         pre && "!rounded-l-none",
                         post && "!rounded-r-none",
+                        error && 'border-destructive focus-visible:ring-destructive/20',
                         className || theme.Select.className
                     )}
                     value={value ?? ''}
@@ -212,7 +217,10 @@ export const Select = ({
                 </select>
                 {post && <SelectAddon side="post">{post}</SelectAddon>}
             </Wrapper>
-            {feedback && <div className={fieldFeedbackClass}>{feedback}</div>}
+            {error
+                ? <FieldError message={error} />
+                : feedback && <div className={fieldFeedbackClass}>{feedback}</div>
+            }
         </Wrapper>
     );
 };

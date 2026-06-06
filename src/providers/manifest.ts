@@ -1,4 +1,5 @@
 import { FirebaseDataProvider } from './data/firebase';
+import { FirestoreDataProvider } from './data/firestore';
 import { FirebaseStorageProvider } from './storage/firebase';
 import { GoogleAuthProvider } from './auth/google/GoogleAuthProvider';
 import { DropboxAuthProvider } from './auth/dropbox/DropboxAuthProvider';
@@ -60,6 +61,7 @@ export type MockProviderConfig = {
 
 export const FIREBASE_MANIFEST: DriverManifest<FirebaseConfig> = {
     dbRealtime:  { service: 'data',    create: () => new FirebaseDataProvider() },
+    firestoreDb: { service: 'data',    create: () => new FirestoreDataProvider() },
     firestorage: { service: 'storage', create: () => new FirebaseStorageProvider() },
 };
 
@@ -117,7 +119,7 @@ export const PROVIDER_MANIFESTS: Record<string, DriverManifest<any>> = {
 
 // ── Driver name unions (type-safe services config) ────────────────────────────
 
-export type DataDriverName    = 'dbRealtime' | 'supabaseDb' | 'mock';
+export type DataDriverName    = 'dbRealtime' | 'firestoreDb' | 'supabaseDb' | 'mock';
 export type StorageDriverName = 'firestorage' | 'supabaseStorage';
 export type AuthDriverName    = 'googleAuth' | 'dropboxAuth';
 export type EmailDriverName   = 'gmail';

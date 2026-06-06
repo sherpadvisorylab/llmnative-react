@@ -2,7 +2,7 @@ import React, { useEffect, useId, useState } from 'react';
 import { isEmpty, isInteractiveElement } from "../../../libs/utils";
 import { Wrapper } from "../GridSystem";
 import { ActionButton, Icon, UIProps } from '../../..';
-import { FormFieldProps, InputType, useFormContext, useHandleDrop } from '../../widgets/Form';
+import { FormFieldProps, InputType, useFormContext, useHandleDrop, useFieldValidation } from '../../widgets/Form';
 import { cn } from '../../../libs/cn';
 
 interface BaseInputProps extends FormFieldProps {
@@ -16,6 +16,7 @@ interface BaseInputProps extends FormFieldProps {
     step?: number;
     inputId?: string;
     labelClassName?: string;
+    validator?: (value: any) => string | undefined;
 }
 
 interface LabelProps {
@@ -43,6 +44,7 @@ export interface TextAreaProps extends FormFieldProps {
     useRef?: React.RefObject<HTMLTextAreaElement | null> | ((el: HTMLTextAreaElement | null) => void) | undefined;
     inputId?: string;
     labelClassName?: string;
+    validator?: (value: any) => string | undefined;
 }
 
 export interface ListGroupProps extends UIProps {
@@ -86,6 +88,17 @@ const FieldAddon = ({
     >
         {children}
     </span>
+);
+
+export const FieldError = ({ message }: { message: string }) => (
+    <div
+        className="mt-1 flex items-center gap-1 text-xs text-destructive"
+        role="alert"
+        aria-live="polite"
+    >
+        <Icon name="warning-circle" size={12} className="shrink-0" />
+        <span>{message}</span>
+    </div>
 );
 
 const useCheckboxField = ({
@@ -157,9 +170,11 @@ export const Input = ({
     labelClassName = undefined,
     inheritFormWrapClass = true,
     wrapClass = undefined,
-    className = undefined
+    className = undefined,
+    validator = undefined,
 }: BaseInputProps) => {
     const { value, handleChange, formWrapClass } = useFormContext({ name, onChange, wrapClass, inputType: type, defaultValue, inheritFormWrapClass });
+    const error = useFieldValidation(name, { required, label, validator });
     const generatedId = useId();
     const id = inputId || generatedId;
     const handleDrop = useHandleDrop({ name, value, handleChange });
@@ -173,7 +188,7 @@ export const Input = ({
                     id={id}
                     type={type}
                     name={name}
-                    className={withFieldEdges(cn(fieldControlBaseClass, className), { pre, post })}
+                    className={withFieldEdges(cn(fieldControlBaseClass, error && 'border-destructive focus-visible:ring-destructive/20', className), { pre, post })}
                     placeholder={placeholder}
                     required={required}
                     disabled={disabled || (!updatable && !isEmpty(value))}
@@ -187,7 +202,10 @@ export const Input = ({
                 />
                 {post && <FieldAddon side="post">{post}</FieldAddon>}
             </Wrapper>
-            {feedback && <div className={fieldFeedbackClass}>{feedback}</div>}
+            {error
+                ? <FieldError message={error} />
+                : feedback && <div className={fieldFeedbackClass}>{feedback}</div>
+            }
         </Wrapper>
     );
 };
@@ -275,28 +293,32 @@ export const Checkbox = ({
         valueChecked,
         inheritFormWrapClass,
     });
+    const error = useFieldValidation(name, { required, label });
 
     return (
-        <Wrapper className={cn("flex items-center gap-2", formWrapClass)}>
-            {pre}
-            <input
-                type="checkbox"
-                id={id}
-                name={name}
-                title={title}
-                aria-label={ariaLabel}
-                className={cn(
-                    "h-4 w-4 shrink-0 rounded-sm border border-input bg-background text-primary shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
-                    className
-                )}
-                checked={checked}
-                onChange={handleCheckboxChange}
-            />
-            {label && <label className="text-sm font-medium leading-none text-foreground" htmlFor={id}>
-                {label}
-                {required && <span className="text-danger">&nbsp;*</span>}
-            </label>}
-            {post}
+        <Wrapper className={formWrapClass}>
+            <div className="flex items-center gap-2">
+                {pre}
+                <input
+                    type="checkbox"
+                    id={id}
+                    name={name}
+                    title={title}
+                    aria-label={ariaLabel}
+                    className={cn(
+                        "h-4 w-4 shrink-0 rounded-sm border border-input bg-background text-primary shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
+                        className
+                    )}
+                    checked={checked}
+                    onChange={handleCheckboxChange}
+                />
+                {label && <label className="text-sm font-medium leading-none text-foreground" htmlFor={id}>
+                    {label}
+                    {required && <span className="text-danger">&nbsp;*</span>}
+                </label>}
+                {post}
+            </div>
+            {error && <FieldError message={error} />}
         </Wrapper>
     );
 };
@@ -324,44 +346,48 @@ export const Switch = ({
         valueChecked,
         inheritFormWrapClass,
     });
+    const error = useFieldValidation(name, { required, label });
 
     return (
-        <Wrapper className={cn("flex items-center gap-2", formWrapClass)}>
-            {pre}
-            <label htmlFor={id} className="inline-flex cursor-pointer items-center gap-2 select-none">
-                <input
-                    id={id}
-                    name={name}
-                    type="checkbox"
-                    title={title}
-                    aria-label={ariaLabel}
-                    checked={checked}
-                    onChange={handleCheckboxChange}
-                    className="sr-only"
-                />
-                <span
-                    aria-hidden="true"
-                    className={cn(
-                        "relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors duration-200 ease-out",
-                        checked ? "bg-primary" : "bg-muted-foreground/35",
-                        className
-                    )}
-                >
-                    <span
-                        className={cn(
-                            "pointer-events-none absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-background shadow-sm transition-transform duration-200 ease-out",
-                            checked && "translate-x-4"
-                        )}
+        <Wrapper className={formWrapClass}>
+            <div className="flex items-center gap-2">
+                {pre}
+                <label htmlFor={id} className="inline-flex cursor-pointer items-center gap-2 select-none">
+                    <input
+                        id={id}
+                        name={name}
+                        type="checkbox"
+                        title={title}
+                        aria-label={ariaLabel}
+                        checked={checked}
+                        onChange={handleCheckboxChange}
+                        className="sr-only"
                     />
-                </span>
-                {label && (
-                    <span className="text-sm font-medium leading-none text-foreground">
-                        {label}
-                        {required && <span className="text-danger">&nbsp;*</span>}
+                    <span
+                        aria-hidden="true"
+                        className={cn(
+                            "relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors duration-200 ease-out",
+                            checked ? "bg-primary" : "bg-muted-foreground/35",
+                            className
+                        )}
+                    >
+                        <span
+                            className={cn(
+                                "pointer-events-none absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-background shadow-sm transition-transform duration-200 ease-out",
+                                checked && "translate-x-4"
+                            )}
+                        />
                     </span>
-                )}
-            </label>
-            {post}
+                    {label && (
+                        <span className="text-sm font-medium leading-none text-foreground">
+                            {label}
+                            {required && <span className="text-danger">&nbsp;*</span>}
+                        </span>
+                    )}
+                </label>
+                {post}
+            </div>
+            {error && <FieldError message={error} />}
         </Wrapper>
     );
 };
@@ -398,9 +424,11 @@ export const TextArea = ({
     labelClassName = undefined,
     inheritFormWrapClass = true,
     className = undefined,
-    wrapClass = undefined
+    wrapClass = undefined,
+    validator = undefined,
 }: TextAreaProps) => {
     const { value, handleChange, formWrapClass } = useFormContext({ name, onChange, wrapClass, defaultValue, inheritFormWrapClass });
+    const error = useFieldValidation(name, { required, label, validator });
 
     const generatedId = useId();
     const id = inputId || generatedId;
@@ -463,7 +491,7 @@ export const TextArea = ({
                 <textarea
                     id={id}
                     name={name}
-                    className={withFieldEdges(cn(fieldTextAreaBaseClass, maxRows && "resize-none", className), { pre, post })}
+                    className={withFieldEdges(cn(fieldTextAreaBaseClass, maxRows && "resize-none", error && 'border-destructive focus-visible:ring-destructive/20', className), { pre, post })}
                     ref={assignRef}
                     rows={rows}
                     placeholder={placeholder}
@@ -476,7 +504,10 @@ export const TextArea = ({
                 />
                 {post && <FieldAddon side="post">{post}</FieldAddon>}
             </Wrapper>
-            {feedback && <div className={fieldFeedbackClass}>{feedback}</div>}
+            {error
+                ? <FieldError message={error} />
+                : feedback && <div className={fieldFeedbackClass}>{feedback}</div>
+            }
         </Wrapper>
     );
 };
