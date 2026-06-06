@@ -16,11 +16,12 @@ For an app developer, the important idea is simple: configure the services once 
 
 | Area | What it does | Built-in support | Learn more |
 |---|---|---|---|
-| Data | Records, CRUD, realtime lists | Mock, Firebase Realtime Database, Supabase partial | [DataProvider](/providers/data) |
-| Storage | File upload, file URL, download, delete | Firebase Storage, Supabase Storage partial | [StorageProvider](/providers/storage) |
-| Auth | Current user, auth changes, access tokens | Google OAuth, Dropbox OAuth2 | [AuthProvider](/providers/auth) |
+| Data | Records, CRUD, realtime lists | Mock, Firebase Realtime DB, Cloud Firestore, Supabase | [DataProvider](/providers/data) |
+| Storage | File upload, file URL, download, delete | Firebase Storage, Supabase Storage | [StorageProvider](/providers/storage) |
+| Auth | Current user, auth changes, access tokens | Google OAuth, Firebase Auth, Supabase Auth, Dropbox OAuth2 | [AuthProvider](/providers/auth) |
 | Email | Outbound email | Gmail | [EmailProvider](/providers/email) |
 | AI | Model execution, prompt orchestration, provider/model discovery | OpenAI, OpenRouter, OpenCode, DeepSeek, Gemini, Anthropic, Mistral | [AIProvider](/providers/ai) |
+| Credentials | App-level service account tokens for Google APIs | Google Service Account (Web Crypto JWT) | [CredentialsProvider](/providers/credentials) |
 | Proxy | Same-origin relay for browser-safe external requests | Vite dev proxy, Express proxy | [ProxyProvider](/providers/proxy) |
 | Utilities | Specialized helpers outside the service slots | Dropbox utilities | [Utility integrations](/providers/integrations) |
 
@@ -76,13 +77,14 @@ if (state && !state.configured) {
 Hooks are useful for custom screens, dashboards, workflow buttons and integration glue.
 
 ```tsx
-import { useDataProvider, useStorageProvider, useAuthProvider, useEmailProvider } from '@llmnative/react';
+import { useDataProvider, useStorageProvider, useAuthProvider, useEmailProvider, useCredentialsProvider } from '@llmnative/react';
 
 function WorkspaceSummary() {
   const data = useDataProvider();
   const storage = useStorageProvider();
   const auth = useAuthProvider();
   const email = useEmailProvider();
+  const creds = useCredentialsProvider(); // null if not configured
 
   // build custom app logic here
 }
@@ -119,8 +121,9 @@ If the built-in services are not enough, each service area can receive a custom 
 - custom data backend;
 - custom storage backend;
 - custom auth system;
-- custom email service.
-- custom AI gateway or model router.
+- custom email service;
+- custom AI gateway or model router;
+- custom credentials provider;
 - custom proxy runtime.
 
 Each provider page ends with a custom implementation example.

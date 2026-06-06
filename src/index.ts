@@ -127,7 +127,12 @@ export { useStorageProvider, StorageProvider } from './providers/storage/Storage
 export type { AuthProviderAdapter, AuthIntent, AuthSignInOptions, UserProfile } from './providers/auth/AuthProvider';
 export { useAuthProvider, AuthProvider } from './providers/auth/AuthProviderContext';
 export { GoogleAuthProvider } from './providers/auth/google/GoogleAuthProvider';
+export { FirebaseAuthProvider } from './providers/auth/firebase/FirebaseAuthProvider';
+export { SupabaseAuthProvider } from './providers/auth/supabase/SupabaseAuthProvider';
 export { DropboxAuthProvider } from './providers/auth/dropbox/DropboxAuthProvider';
+export type { CredentialsAdapter } from './providers/credentials/CredentialsProvider';
+export { useCredentialsProvider } from './providers/credentials/CredentialsProviderContext';
+export { GoogleServiceAccountProvider } from './providers/credentials/google/GoogleServiceAccountProvider';
 export type { EmailProviderAdapter, EmailSendParams } from './providers/email/EmailProvider';
 export type { IconProviderAdapter, IconComponentProps } from './providers/icon/IconProvider';
 export { LucideIconProvider } from './providers/icon/LucideIconProvider';

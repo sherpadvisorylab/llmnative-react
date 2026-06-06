@@ -71,11 +71,21 @@ export type ProxyConfig = {
     route?: string;
 };
 
+export type SupabaseConfig = {
+    url: string;
+    anonKey: string;
+    /** Default storage bucket name. Falls back to "public" if omitted. */
+    bucket?: string;
+    /** Primary-key column name in Supabase tables. Default: "id". */
+    primaryKey?: string;
+};
+
 export type Config = {
     title: string;
     firebase?: FirebaseConfig;
     google?: GoogleConfig;
     dropbox?: DropboxConfig;
+    supabase?: SupabaseConfig;
     ai?: AIConfig;
     scrape?: ScrapeConfig;
     proxy?: ProxyConfig;

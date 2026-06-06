@@ -2,17 +2,21 @@ import { FirebaseDataProvider } from './data/firebase';
 import { FirestoreDataProvider } from './data/firestore';
 import { FirebaseStorageProvider } from './storage/firebase';
 import { GoogleAuthProvider } from './auth/google/GoogleAuthProvider';
+import { FirebaseAuthProvider } from './auth/firebase/FirebaseAuthProvider';
+import { GoogleServiceAccountProvider } from './credentials/google/GoogleServiceAccountProvider';
+import type { CredentialsAdapter } from './credentials/CredentialsProvider';
 import { DropboxAuthProvider } from './auth/dropbox/DropboxAuthProvider';
 import { GmailEmailProvider } from './email/google/GmailEmailProvider';
 import { SupabaseDataProvider } from './data/supabase';
 import { SupabaseStorageProvider } from './storage/supabase';
+import { SupabaseAuthProvider } from './auth/supabase/SupabaseAuthProvider';
 import { MockDataProvider } from './data/mock';
 import type { AIProviderAdapter } from './ai/AIProvider';
 import type { DataProviderAdapter } from './data/DataProvider';
 import type { StorageProviderAdapter } from './storage/StorageProvider';
 import type { AuthProviderAdapter } from './auth/AuthProvider';
 import type { EmailProviderAdapter } from './email/EmailProvider';
-import type { AIConfig, DropboxConfig, FirebaseConfig, GoogleOAuth2, GoogleServiceAccount } from '../Config';
+import type { AIConfig, DropboxConfig, FirebaseConfig, GoogleOAuth2, GoogleServiceAccount, SupabaseConfig } from '../Config';
 import { RuntimeAIProvider } from './ai/shared';
 import { ANTHROPIC_PROVIDER_DEFINITION } from './ai/anthropic';
 import { DEEPSEEK_PROVIDER_DEFINITION } from './ai/deepseek';
@@ -24,18 +28,20 @@ import { OPENROUTER_PROVIDER_DEFINITION } from './ai/openrouter';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-export type ServiceCategory = 'data' | 'storage' | 'auth' | 'email' | 'ai';
+export type ServiceCategory = 'data' | 'storage' | 'auth' | 'email' | 'ai' | 'credentials';
 
 type AnyAdapter =
     | DataProviderAdapter
     | StorageProviderAdapter
     | AuthProviderAdapter
     | EmailProviderAdapter
-    | AIProviderAdapter;
+    | AIProviderAdapter
+    | CredentialsAdapter;
 
 export interface DriverDescriptor<TConfig = unknown> {
     service: ServiceCategory;
     create: (config: TConfig) => AnyAdapter;
+    when?: (config: TConfig) => boolean;
 }
 
 export type DriverManifest<TConfig> = Record<string, DriverDescriptor<TConfig>>;
@@ -47,11 +53,7 @@ export type GoogleProviderConfig = GoogleOAuth2 & {
     developerToken?: string;
 };
 
-export type SupabaseProviderConfig = {
-    url: string;
-    anonKey: string;
-    bucket?: string;
-};
+export type SupabaseProviderConfig = SupabaseConfig;
 
 export type MockProviderConfig = {
     data?: ConstructorParameters<typeof MockDataProvider>[0];
@@ -60,16 +62,18 @@ export type MockProviderConfig = {
 // ── Firebase manifest ────────────────────────────────────────────────────────
 
 export const FIREBASE_MANIFEST: DriverManifest<FirebaseConfig> = {
-    dbRealtime:  { service: 'data',    create: () => new FirebaseDataProvider() },
-    firestoreDb: { service: 'data',    create: () => new FirestoreDataProvider() },
-    firestorage: { service: 'storage', create: () => new FirebaseStorageProvider() },
+    dbRealtime:   { service: 'data',    create: () => new FirebaseDataProvider() },
+    firestoreDb:  { service: 'data',    create: () => new FirestoreDataProvider() },
+    firestorage:  { service: 'storage', create: () => new FirebaseStorageProvider() },
+    firebaseAuth: { service: 'auth',    create: () => new FirebaseAuthProvider() },
 };
 
 // ── Google manifest ──────────────────────────────────────────────────────────
 
 export const GOOGLE_MANIFEST: DriverManifest<GoogleProviderConfig> = {
-    googleAuth: { service: 'auth',  create: () => new GoogleAuthProvider() },
-    gmail:      { service: 'email', create: () => new GmailEmailProvider() },
+    googleAuth:           { service: 'auth',        create: () => new GoogleAuthProvider() },
+    gmail:                { service: 'email',       create: () => new GmailEmailProvider() },
+    googleServiceAccount: { service: 'credentials', create: (cfg) => new GoogleServiceAccountProvider(cfg.serviceAccount!), when: (cfg) => !!cfg.serviceAccount },
 };
 
 export const DROPBOX_MANIFEST: DriverManifest<DropboxConfig> = {
@@ -81,6 +85,7 @@ export const DROPBOX_MANIFEST: DriverManifest<DropboxConfig> = {
 export const SUPABASE_MANIFEST: DriverManifest<SupabaseProviderConfig> = {
     supabaseDb:      { service: 'data',    create: (cfg) => new SupabaseDataProvider(cfg) },
     supabaseStorage: { service: 'storage', create: (cfg) => new SupabaseStorageProvider(cfg) },
+    supabaseAuth:    { service: 'auth',    create: (cfg) => new SupabaseAuthProvider(cfg) },
 };
 
 // ── Mock manifest ────────────────────────────────────────────────────────────
@@ -121,14 +126,16 @@ export const PROVIDER_MANIFESTS: Record<string, DriverManifest<any>> = {
 
 export type DataDriverName    = 'dbRealtime' | 'firestoreDb' | 'supabaseDb' | 'mock';
 export type StorageDriverName = 'firestorage' | 'supabaseStorage';
-export type AuthDriverName    = 'googleAuth' | 'dropboxAuth';
-export type EmailDriverName   = 'gmail';
-export type AIDriverName      = 'openai' | 'openrouter' | 'opencode' | 'openai-compatible' | 'deepseek' | 'gemini' | 'anthropic' | 'mistral';
+export type AuthDriverName        = 'googleAuth' | 'firebaseAuth' | 'dropboxAuth' | 'supabaseAuth';
+export type EmailDriverName       = 'gmail';
+export type AIDriverName          = 'openai' | 'openrouter' | 'opencode' | 'openai-compatible' | 'deepseek' | 'gemini' | 'anthropic' | 'mistral';
+export type CredentialsDriverName = 'googleServiceAccount';
 
 export type ServicesConfig = {
-    data?:    DataDriverName | string;
-    storage?: StorageDriverName | string;
-    auth?:    AuthDriverName | string;
-    email?:   EmailDriverName | string;
-    ai?:      AIDriverName | string;
+    data?:        DataDriverName | string;
+    storage?:     StorageDriverName | string;
+    auth?:        AuthDriverName | string;
+    email?:       EmailDriverName | string;
+    ai?:          AIDriverName | string;
+    credentials?: CredentialsDriverName | string;
 };

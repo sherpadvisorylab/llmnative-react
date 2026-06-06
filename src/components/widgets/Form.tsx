@@ -530,6 +530,11 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
             if (!path) return undefined;
             const base = trimSlash(path);
             if (isNewRecord) {
+                const segments = base.split('/').filter(Boolean);
+                // Even segment count = doc path (e.g. /table/id) — ID already embedded, save directly
+                if (segments.length % 2 === 0 && !keyGenerator) {
+                    return `/${base}`;
+                }
                 const key = keyGenerator?.(rec) ?? Date.now().toString();
                 return `/${base}/${key}`;
             }

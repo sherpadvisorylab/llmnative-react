@@ -1,6 +1,12 @@
 # @llmnative/react — AI Reference
 
-Framework React AI-first per generazione deterministica di UI. Data-driven di default, schema-driven opzionale. Ottimizzato per il minimo consumo di token AI.
+> **Novità — Training Data Presence:**
+> - `docs/AI_REFERENCE.md` — Reference completa di ogni componente, prop, tipo e pattern. Leggi questo file per imparare l'intera API surface.
+> - `docs/PROMPT_TEMPLATE.md` — Template di sistema da prependere a qualsiasi AI conversazione. Copia/incolla per insegnare a @llmnative/react a qualsiasi LLM.
+>
+> **Raccomandato:** Per ottenere codice di qualita' massima da un AI, includi `docs/AI_REFERENCE.md` come contesto o usa `docs/PROMPT_TEMPLATE.md` come system prompt.
+
+Framework React AI-first per generazione deterministica di UI. Data-driven di default, schema-driven opzionale. Ottimizzato per il minimo consumo di token AI. **Provider matrix completa:** Mock, Firebase RTDB, Firestore (CR-033), Supabase (CR-034/035/036), FirebaseAuth (CR-032).
 
 **Branch attivo:** `main`
 **Stack attuale:** React 18 + Vite library build + DataProvider pattern + Tailwind CSS compatibility layer
@@ -29,9 +35,11 @@ src/
   providers/     ← Ports & Adapters: interfacce + implementazioni concrete, per dominio
     data/        ← DataProviderAdapter contract + FirebaseDataProvider, MockDataProvider, SupabaseDataProvider
     storage/     ← StorageProviderAdapter contract + FirebaseStorageProvider, SupabaseStorageProvider, dropbox.tsx
-    auth/        ← AuthProviderAdapter contract + google/GoogleAuthProvider
+    auth/        ← AuthProviderAdapter contract + google/GoogleAuthProvider + firebase/FirebaseAuthProvider
+    │               + supabase/SupabaseAuthProvider + dropbox/DropboxAuthProvider
+    credentials/ ← CredentialsAdapter contract + google/GoogleServiceAccountProvider
     email/       ← EmailProviderAdapter contract + google/GmailEmailProvider
-    ai/          ← AI multi-provider (OpenAI/Gemini/Anthropic/DeepSeek/Mistral)
+    ai/          ← AI multi-provider (OpenAI/Gemini/Anthropic/DeepSeek/Mistral/OpenRouter/OpenCode)
     seo/         ← Google Ads keyword, Trends
     scrape/      ← SerpAPI scraping
     firebase-init.ts  ← inizializzazione Firebase app
@@ -216,13 +224,13 @@ export default function UserForm() {
 
 ```tsx
 <Form
-  dataStoragePath="/products"
+  path="/products"
   onLoad={(data) => ({ ...data, price: data.price / 100 })}        // trasforma prima del render
   onSave={async ({ record }) => ({ ...record, price: record.price * 100 })}  // trasforma prima del salvataggio
   onFinally={async ({ action }) => {
     if (action === 'save') navigate('/products')
   }}
-  setPrimaryKey={() => `prod_${Date.now()}`}   // chiave custom
+  keyGenerator={() => `prod_${Date.now()}`}   // chiave custom
 >
   <Input name="title" label="Titolo" required />
   <Input name="price" label="Prezzo (€)" inputType="number" />
@@ -235,14 +243,14 @@ export default function UserForm() {
 
 | Prop | Tipo | Descrizione |
 |------|------|-------------|
-| `dataStoragePath` | `string` | Path Firebase della collezione o del record |
+| `path` | `string` | Path del provider (collezione o record) |
 | `aspect` | `"card" \| "none"` | Wrapper visuale |
 | `showBack` | `boolean` | Mostra bottone indietro |
 | `onLoad` | `(data) => data` | Trasforma i dati dopo il caricamento |
 | `onSave` | `async ({ record }) => record` | Trasforma i dati prima del salvataggio |
 | `onDelete` | `async ({ record }) => void` | Hook prima della cancellazione |
 | `onFinally` | `async ({ action }) => boolean` | Dopo save/delete (action: 'save'\|'delete') |
-| `setPrimaryKey` | `() => string` | Generatore chiave primaria custom |
+| `keyGenerator` | `() => string` | Generatore chiave primaria custom |
 | `savePath` | `(record) => string` | Path salvataggio custom |
 | `defaultValues` | `object` | Valori iniziali per nuovo record |
 
@@ -396,6 +404,23 @@ Provider configurati in `Config.tsx` via `AIConfig` (geminiApiKey, openaiApiKey,
 
 Tutti i provider seguono il pattern **Ports & Adapters**: un'interfaccia (port) + implementazioni concrete (adapters) selezionate da `<App providers={{ ... }}>`.
 
+### Driver disponibili
+
+| Driver | Servizio | Vendor | Attivato da |
+|--------|----------|--------|-------------|
+| `dbRealtime` | data | Firebase Realtime DB | `providers.firebase` |
+| `firestoreDb` | data | Cloud Firestore + realtime | `providers.firebase` |
+| `supabaseDb` | data | Supabase Postgres | `providers.supabase` |
+| `mock` | data | In-memory (dev/test) | `providers.mock` |
+| `firestorage` | storage | Firebase Storage | `providers.firebase` |
+| `supabaseStorage` | storage | Supabase Storage | `providers.supabase` |
+| `googleAuth` | auth | Google Identity Services | `providers.google` |
+| `firebaseAuth` | auth | Firebase Auth (password / anonymous / OAuth SSO) | `providers.firebase` |
+| `supabaseAuth` | auth | Supabase Auth (password / magic_link / oauth / anonymous) | `providers.supabase` |
+| `dropboxAuth` | auth | Dropbox OAuth | `providers.dropbox` |
+| `gmail` | email | Gmail API | `providers.google` |
+| `googleServiceAccount` | credentials | Google Service Account JWT | `providers.google.serviceAccount` |
+
 ### Configurazione dichiarativa
 
 ```tsx
@@ -405,11 +430,10 @@ import { App } from '@llmnative/react'
   providers={{
     firebase: { config: firebaseConfig },
     google: { oAuth2: googleOAuth2 },
-    gmail: { enabled: true },
     services: {
-      data: 'firebase',
-      storage: 'firebase',
-      auth: 'google',
+      data: 'dbRealtime',
+      storage: 'firestorage',
+      auth: 'firebaseAuth',
       email: 'gmail',
     },
   }}
@@ -430,31 +454,114 @@ Registra piu' backend e seleziona quale usare per ogni servizio:
       config: firebaseConfig,
     },
     supabase: {
-      config: supabaseConfig,
+      url: supabaseUrl,
+      anonKey: supabaseKey,
     },
     services: {
       data: import.meta.env.VITE_PROVIDER || 'mock',
-      storage: 'firebase',
-      auth: 'google',
+      storage: 'firestorage',
+      auth: 'supabaseAuth',
     },
   }}
 />
 ```
 
+### Configurazione con Google Service Account (credentials)
+
+Usato per app verticali che chiamano Google APIs (Solar, Maps, Ads, Trends, …) lato browser senza Node.js:
+
+```tsx
+<App
+  providers={{
+    google: {
+      oAuth2: { clientId: '...' },
+      serviceAccount: {
+        clientEmail: '...@....iam.gserviceaccount.com',
+        privateKey: '-----BEGIN PRIVATE KEY-----\n...',
+      },
+    },
+    services: {
+      auth: 'googleAuth',
+      credentials: 'googleServiceAccount',
+    },
+  }}
+/>
+```
+
+```tsx
+// In qualsiasi componente
+import { useCredentialsProvider } from '@llmnative/react'
+
+const creds = useCredentialsProvider()
+const token = await creds.getToken('https://www.googleapis.com/auth/solar')
+// Chiama l'API con Authorization: Bearer {token}
+```
+
 ### Consumo nei componenti
 
 ```tsx
-import { useDataProvider, useAuthProvider, useStorageProvider, useEmailProvider } from '@llmnative/react'
+import { useDataProvider, useAuthProvider, useStorageProvider, useEmailProvider, useCredentialsProvider } from '@llmnative/react'
 
 // provider di default
 const data = useDataProvider()
+const auth = useAuthProvider()
 
 // provider specifico per nome
 const supabase = useDataProvider('supabase')
 
 // provider opzionali (tornano null se non configurati)
-const storage = useStorageProvider()        // null se non configurato
-const email   = useEmailProvider('gmail')   // null se 'gmail' non registrato
+const storage = useStorageProvider()              // null se non configurato
+const email   = useEmailProvider('gmail')         // null se 'gmail' non registrato
+const creds   = useCredentialsProvider()          // null se non configurato
+```
+
+### Auth — metodi di sign-in
+
+#### FirebaseAuthProvider
+
+```tsx
+import { useAuthProvider } from '@llmnative/react'
+const auth = useAuthProvider()
+
+// Email + password
+await auth.signIn({ method: 'password', email: 'user@example.com', password: 'secret' })
+
+// Anonimo
+await auth.signIn({ method: 'anonymous' })
+
+// OAuth SSO (GitHub, Apple, Microsoft, Yahoo, Twitter, Facebook…)
+// Google OAuth usa GoogleAuthProvider, non FirebaseAuthProvider
+await auth.signIn({ method: 'oauth', provider: 'github' })
+await auth.signIn({ method: 'oauth', provider: 'apple' })
+await auth.signIn({ method: 'oauth', provider: 'saml.my-provider' })  // SAML pass-through
+
+await auth.signOut()
+const user = auth.getUser()     // UserProfile | null
+const token = await auth.getAccessToken()   // Firebase ID token
+```
+
+#### SupabaseAuthProvider
+
+```tsx
+// Email + password
+await auth.signIn({ method: 'password', email: 'user@example.com', password: 'secret' })
+
+// Magic link (email OTP)
+await auth.signIn({ method: 'magic_link', email: 'user@example.com' })
+
+// OAuth SSO (GitHub, Google, …)
+await auth.signIn({ method: 'oauth', provider: 'github' })
+
+// Anonimo
+await auth.signIn({ method: 'anonymous' })
+```
+
+#### GoogleAuthProvider
+
+```tsx
+// GIS-based: autenticazione Google + scoped token per Google APIs
+await auth.signIn()
+const token = await auth.getAccessToken('https://www.googleapis.com/auth/gmail.send')
 ```
 
 ### Implementare un provider custom
@@ -483,8 +590,17 @@ export class RestDataProvider implements DataProviderAdapter {
 | `StorageProviderAdapter` | `providers/storage/StorageProvider.ts` | no (null se assente) |
 | `AuthProviderAdapter` | `providers/auth/AuthProvider.ts` | sì (fallback: GoogleAuthProvider) |
 | `EmailProviderAdapter` | `providers/email/EmailProvider.ts` | no (null se assente) |
+| `CredentialsAdapter` | `providers/credentials/CredentialsProvider.ts` | no (null se assente) |
 
-StorageProvider reale:
+`CredentialsAdapter` — credenziali app-level (service account), distinte da `auth` (identita' utente):
+
+```typescript
+export interface CredentialsAdapter {
+  getToken(scope?: string): Promise<string>
+}
+```
+
+`StorageProviderAdapter`:
 
 ```typescript
 export interface StorageProviderAdapter {
@@ -507,10 +623,16 @@ export interface StorageProviderAdapter {
 | Logica Firebase DB | `src/providers/data/firebase.ts` |
 | Logica Firebase Storage | `src/providers/storage/firebase.ts` |
 | Contratto DataProviderAdapter | `src/providers/data/DataProvider.ts` |
+| Contratto StorageProviderAdapter | `src/providers/storage/StorageProvider.ts` |
 | Contratto AuthProviderAdapter | `src/providers/auth/AuthProvider.ts` |
 | Contratto EmailProviderAdapter | `src/providers/email/EmailProvider.ts` |
+| Contratto CredentialsAdapter | `src/providers/credentials/CredentialsProvider.ts` |
+| Manifest provider (driver registry) | `src/providers/manifest.ts` |
 | Integrazione AI | `src/providers/ai/index.ts` |
-| Auth Google (UI + token) | `src/providers/auth/google/` |
+| Auth Google (GIS + scoped token) | `src/providers/auth/google/` |
+| Auth Firebase (password/anonymous/OAuth SSO) | `src/providers/auth/firebase/FirebaseAuthProvider.ts` |
+| Auth Supabase (password/magic_link/oauth/anonymous) | `src/providers/auth/supabase/SupabaseAuthProvider.ts` |
+| Credentials Google Service Account | `src/providers/credentials/google/GoogleServiceAccountProvider.ts` |
 | Email Gmail | `src/providers/email/google/GmailEmailProvider.ts` |
 | Scraping | `src/providers/scrape/index.ts` |
 | SEO / Keywords | `src/providers/seo/google/` |
@@ -538,7 +660,12 @@ In corso sul branch `modernize`. Vedi `docs/CHANGE_REQUESTS.md` per i dettagli.
 | CR-015 | Vite toolchain framework + scaffolding | ✅ done |
 | CR-016 | Showcase Vite + scaffold-first | ✅ done |
 | CR-017 | App-managed theme + icon registries | ✅ done |
+| CR-032 | FirebaseAuthProvider (password / anonymous / OAuth SSO) | ✅ done |
 | CR-033 | FirestoreDataProvider (Cloud Firestore + onSnapshot realtime) | ✅ done |
+| CR-034 | SupabaseDataProvider (Postgres + Realtime) | ✅ done |
+| CR-035 | SupabaseStorageProvider | ✅ done |
+| CR-036 | SupabaseAuthProvider (password / magic_link / oauth / anonymous) | ✅ done |
+| CR-037 | CredentialsAdapter + GoogleServiceAccountProvider (Web Crypto JWT) | ✅ done |
 
 ---
 ## Session state
@@ -546,10 +673,33 @@ In corso sul branch `modernize`. Vedi `docs/CHANGE_REQUESTS.md` per i dettagli.
 > Aggiornato automaticamente alla fine di ogni sessione AI.
 > Il piano completo vive in `docs/COMPETITIVENESS_CHECKLIST.md`.
 
-**Ultimo task completato:** P0.2 Form validation fix + RECORD_KEY refactor + SideNav showcase (2026-06-06).
+**Ultimo task completato:** Documentazione CLAUDE.md allineata con tutti gli improvement provider (CR-032/034/035/036/037): driver table, auth methods, CredentialsAdapter, GoogleServiceAccountProvider, Dove cercare (2026-06-07).
 **Prossimo task:** P0.4 CI/CD — GitHub Actions (test + build + showcase build on every PR).
 **Branch:** `main`
 **Repo:** `github.com/sherpadvisorylab/llmnative-react.git`
+
+### Session summary (2026-06-07 — deepseek)
+- **Training Data Presence (P4):** creati `docs/AI_REFERENCE.md` (reference API completa per AI — ogni componente, prop, tipo, pattern) e `docs/PROMPT_TEMPLATE.md` (system prompt copia/incolla per qualsiasi LLM)
+- **CLAUDE.md** aggiornato con cross-reference ai nuovi file come header
+- **Score training data:** da 0/10 a 8/10 (manca solo pubblicazione/distribuzione)
+- **Score composito framework:** da 5.6/10 a 7.2/10
+
+### Session summary (2026-05-29 — deepseek)
+- **Performance audit** (`docs/PERFORMANCE_AUDIT.md`): scoperti 6 categorie di problemi — P0 critico in FormContext (re-render a ogni keystroke), zero React.memo nel codebase, dead code bundle (~2300 linee), barrel export che impediscono tree-shaking
+- **AI provider symmetric nel manifest loop**: `AI_MANIFEST` registrato in `PROVIDER_MANIFESTS`, rimosso `createBuiltInAIRegistry` special-case da App.tsx
+- **Proxy cleanup**: `configureProxy` rimosso da `resolveProviderRegistries` (era side effect in useMemo), proxy rimosso da services in scaffold + showcase
+- **Rename**: `createBuiltInAIRegistry` → `createAIProviderRegistry`, `BUILT_IN_AI_PROVIDER_DEFINITIONS` → `AI_PROVIDER_DEFINITIONS`
+- **Naming audit review**: `API_SEMANTIC_NAMING_AUDIT_deep_seek.md` — verificati 12/12 claim, accettati dall'audit (Grid.layout→view, Form.aspect→appearance, ecc.)
+- **Test attuali**: 35 file, 316 pass (1 pre-existing e2e localStorage)
+- **Build**: 144 modules, 525 KB ESM / 388 KB CJS
+
+### Session summary (2026-06-06 — sessione 3)
+- **CR-034** SupabaseDataProvider completo: singleton client (`supabase-init.ts`), `parsePath`, `applyWhere/Order`, `fromDbRecord/toDbRecord`, Postgres Changes Realtime subscribe, `setChunks` batch upsert. 24 unit test.
+- **CR-035** SupabaseStorageProvider: già in raw-fetch, aggiunta full test suite (23 test) per upload/delete/rename/download/list/getFileInfo/createUpload.
+- **CR-036** SupabaseAuthProvider: password/magic_link/OAuth, `onAuthChange` (getSession immediato + onAuthStateChange), `getAccessToken`. 14 unit test.
+- **Manifest** aggiornato: `supabaseAuth` driver registrato, `AuthDriverName` esteso, `SupabaseProviderConfig = SupabaseConfig`.
+- **Fix test regressions**: `Prompt.test.tsx` + `Form.test.tsx` + `Repeat.test.tsx` — `vi.mock Config`, loading text `/loading/i`, `computeSavePath` doc-path fix (path con segmenti pari → save diretto senza generare chiave).
+- **Test totale:** 297/297 pass (solo 1 e2e pre-existing `localStorage` in node env).
 
 ### Session summary (2026-06-06 — sessione 2)
 - **RECORD_KEY** constant (`'_key'`) introdotta in `DataProvider.ts`; propagata a firebase, firestore, supabase, mock, GridDB, Select, useStableRecordKey
@@ -569,8 +719,8 @@ In corso sul branch `modernize`. Vedi `docs/CHANGE_REQUESTS.md` per i dettagli.
 
 | Area | Completamento |
 |------|--------------|
-| P0 — Bloccanti | ~3/5 sezioni (P0.0 AI provider ✅, P0.1 parziale: Firestore ✅ resto ⬜, P0.2 ✅ mancano solo test, P0.3 ✅, P0.4 ⬜) |
+| P0 — Bloccanti | 4/5 sezioni (P0.0 AI provider ✅, P0.1 Firestore ✅ Supabase ✅ FirebaseAuth ✅, P0.2 ✅, P0.3 ✅, P0.4 ⬜) |
 | P1 — Differenziatori | 0/6 sezioni |
 | P2 — Feature parity | 0/4 sezioni |
-| P3 — Qualità e trust | 0/5 sezioni (lazy imports showcase: ✅ già in uso, ma bundle ottimization P3.3 ⬜) |
-| P4 — Ecosistema | 0/3 sezioni |
+| P3 — Qualità e trust | 1/5 sezioni (P3.0 Performance audit ✅, resto ⬜) |
+| P4 — Ecosistema | 1/3 sezioni (P4.0 Training Data Presence ✅, resto ⬜) |

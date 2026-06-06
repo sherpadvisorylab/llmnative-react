@@ -33,6 +33,8 @@ import { AuthProvider } from "./providers/auth/AuthProviderContext";
 import { GoogleAuthProvider } from "./providers/auth/google/GoogleAuthProvider";
 import type { EmailProviderAdapter } from "./providers/email/EmailProvider";
 import { EmailProvider } from "./providers/email/EmailProviderContext";
+import type { CredentialsAdapter } from "./providers/credentials/CredentialsProvider";
+import { CredentialsProvider } from "./providers/credentials/CredentialsProviderContext";
 import { IconProvider, type AppIconProviderConfig } from "./providers/icon/IconProviderContext";
 import { HeadProvider } from "./Head";
 import {
@@ -74,11 +76,12 @@ export type AppProvidersConfig = {
     ai?: AIConfig;
     proxy?: ProxyConfig;
     custom?: {
-        data?: Record<string, DataProviderAdapter> | DataProviderAdapter;
-        storage?: Record<string, StorageProviderAdapter> | StorageProviderAdapter;
-        auth?: Record<string, AuthProviderAdapter> | AuthProviderAdapter;
-        email?: Record<string, EmailProviderAdapter> | EmailProviderAdapter;
-        ai?: Record<string, AIProviderAdapter> | AIProviderAdapter;
+        data?:        Record<string, DataProviderAdapter>    | DataProviderAdapter;
+        storage?:     Record<string, StorageProviderAdapter> | StorageProviderAdapter;
+        auth?:        Record<string, AuthProviderAdapter>    | AuthProviderAdapter;
+        email?:       Record<string, EmailProviderAdapter>   | EmailProviderAdapter;
+        ai?:          Record<string, AIProviderAdapter>      | AIProviderAdapter;
+        credentials?: Record<string, CredentialsAdapter>     | CredentialsAdapter;
     };
     services?: ServicesConfig;
 };
@@ -125,8 +128,9 @@ function resolveProviderRegistries(providers: AppProvidersConfig = {}) {
     const auth: Record<string, AuthProviderAdapter> = {};
     const email: Record<string, EmailProviderAdapter> = {};
     const ai: Record<string, AIProviderAdapter> = {};
+    const credentials: Record<string, CredentialsAdapter> = {};
 
-    const registries = { data, storage, auth, email, ai } as Record<string, Record<string, any>>;
+    const registries = { data, storage, auth, email, ai, credentials } as Record<string, Record<string, any>>;
 
     // Manifest-driven: one loop for all providers — adding a new provider
     // only requires a new entry in PROVIDER_MANIFESTS, not a change here.
@@ -134,15 +138,17 @@ function resolveProviderRegistries(providers: AppProvidersConfig = {}) {
         const cfg = (providers as Record<string, unknown>)[providerKey];
         if (cfg === undefined) continue;
         for (const [driverName, descriptor] of Object.entries(manifest)) {
+            if (descriptor.when && !descriptor.when(cfg)) continue;
             registries[descriptor.service][driverName] = descriptor.create(cfg);
         }
     }
 
-    addCustomProviders(data, providers.custom?.data);
-    addCustomProviders(storage, providers.custom?.storage);
-    addCustomProviders(auth, providers.custom?.auth);
-    addCustomProviders(email, providers.custom?.email);
-    addCustomProviders(ai, providers.custom?.ai);
+    addCustomProviders(data,        providers.custom?.data);
+    addCustomProviders(storage,     providers.custom?.storage);
+    addCustomProviders(auth,        providers.custom?.auth);
+    addCustomProviders(email,       providers.custom?.email);
+    addCustomProviders(ai,          providers.custom?.ai);
+    addCustomProviders(credentials, providers.custom?.credentials);
 
     if (Object.keys(data).length === 0) data.mock = new MockDataProvider();
     if (Object.keys(auth).length === 0) auth.googleAuth = new GoogleAuthProvider();
@@ -150,11 +156,12 @@ function resolveProviderRegistries(providers: AppProvidersConfig = {}) {
     const svc = providers.services;
 
     return {
-        data: { registry: data, defaultKey: selectDefaultKey(data, svc?.data) },
-        storage: { registry: storage, defaultKey: selectDefaultKey(storage, svc?.storage) },
-        auth: { registry: auth, defaultKey: selectDefaultKey(auth, svc?.auth) },
-        email: { registry: email, defaultKey: selectDefaultKey(email, svc?.email) },
-        ai: { registry: ai, defaultKey: selectDefaultKey(ai, svc?.ai) },
+        data:        { registry: data,        defaultKey: selectDefaultKey(data,        svc?.data) },
+        storage:     { registry: storage,     defaultKey: selectDefaultKey(storage,     svc?.storage) },
+        auth:        { registry: auth,        defaultKey: selectDefaultKey(auth,        svc?.auth) },
+        email:       { registry: email,       defaultKey: selectDefaultKey(email,       svc?.email) },
+        ai:          { registry: ai,          defaultKey: selectDefaultKey(ai,          svc?.ai) },
+        credentials: { registry: credentials, defaultKey: selectDefaultKey(credentials, svc?.credentials) },
     };
 }
 
@@ -264,6 +271,7 @@ function App({
                 proxy: providers.proxy,
             }} tenantsURI={tenantsURI}>
                 <AuthProvider {...registries.auth}>
+                    <CredentialsProvider {...registries.credentials}>
                     <DataProvider {...registries.data}>
                         <StorageProvider {...registries.storage}>
                             <EmailProvider {...registries.email}>
@@ -295,6 +303,7 @@ function App({
                             </EmailProvider>
                         </StorageProvider>
                     </DataProvider>
+                    </CredentialsProvider>
                 </AuthProvider>
             </RuntimeProvider>
         </BrowserRouter>

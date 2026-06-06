@@ -77,7 +77,7 @@ describe('Form — defaultValues', () => {
 
     it('renders Save button', () => {
         renderWithProviders(
-            <Form defaultValues={{}} dataStoragePath="/items" setPrimaryKey={() => 'new'}>
+            <Form defaultValues={{}} path="/items" keyGenerator={() => 'new'}>
                 <Input name="x" />
             </Form>
         );
@@ -85,7 +85,7 @@ describe('Form — defaultValues', () => {
     });
 });
 
-// ── dataStoragePath — existing record (FormDatabase path) ─────────────────────
+// ── path — existing record (FormDatabase path) ─────────────────────
 
 describe('Form — loading from DataProvider', () => {
     it('shows loading state then renders record fields', async () => {
@@ -93,7 +93,7 @@ describe('Form — loading from DataProvider', () => {
             '/users': { u1: { name: 'Alice', role: 'admin' } },
         });
         renderWithProviders(
-            <Form dataStoragePath="/users/u1">
+            <Form path="/users/u1">
                 <Input name="name" label="Name" />
                 <Input name="role" label="Role" />
             </Form>,
@@ -101,7 +101,7 @@ describe('Form — loading from DataProvider', () => {
         );
 
         // Loading spinner shown initially
-        expect(screen.getByText(/caricamento/i)).toBeInTheDocument();
+        expect(screen.getByText(/loading/i)).toBeInTheDocument();
 
         // After read resolves, fields are pre-filled
         await waitFor(() => {
@@ -119,7 +119,7 @@ describe('Form — save', () => {
 
         renderWithProviders(
             <Form
-                dataStoragePath="/products/new_id"
+                path="/products/new_id"
                 defaultValues={{ title: 'Widget' }}
             >
                 <Input name="title" label="Title" />
@@ -142,8 +142,8 @@ describe('Form — save', () => {
 
         renderWithProviders(
             <Form
-                dataStoragePath="/items/item_1"
-                defaultValues={{ name: 'Test' }}
+                path="/items/item_1"
+                defaultValues={{ _key: 'item_1', name: 'Test' }}
                 onFinally={onFinally}
             >
                 <Input name="name" />
@@ -167,7 +167,7 @@ describe('Form — required validation', () => {
     it('blocks submit and shows error when a required Input is empty', async () => {
         const provider = new MockDataProvider();
         renderWithProviders(
-            <Form dataStoragePath="/items/x" defaultValues={{}}>
+            <Form path="/items/x" defaultValues={{}}>
                 <Input name="title" label="Title" required />
             </Form>,
             { provider }
@@ -188,7 +188,7 @@ describe('Form — required validation', () => {
     it('allows submit when required Input has a value', async () => {
         const provider = new MockDataProvider();
         renderWithProviders(
-            <Form dataStoragePath="/items/y" defaultValues={{ title: 'Hello' }}>
+            <Form path="/items/y" defaultValues={{ title: 'Hello' }}>
                 <Input name="title" label="Title" required />
             </Form>,
             { provider }
@@ -205,7 +205,7 @@ describe('Form — required validation', () => {
     it('blocks submit and shows error for multiple required fields', async () => {
         const provider = new MockDataProvider();
         renderWithProviders(
-            <Form dataStoragePath="/items/z" defaultValues={{}}>
+            <Form path="/items/z" defaultValues={{}}>
                 <Input name="name"  label="Name"  required />
                 <Input name="email" label="Email" required />
             </Form>,
@@ -222,7 +222,7 @@ describe('Form — required validation', () => {
 
     it('clears the error when the user fills the field after a failed submit', async () => {
         renderWithProviders(
-            <Form dataStoragePath="/items/clr" defaultValues={{}}>
+            <Form path="/items/clr" defaultValues={{}}>
                 <Input name="title" label="Title" required />
             </Form>
         );
@@ -247,7 +247,7 @@ describe('Form — required validation', () => {
             /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? undefined : 'Invalid email address';
 
         renderWithProviders(
-            <Form dataStoragePath="/items/v" defaultValues={{ email: 'not-an-email' }}>
+            <Form path="/items/v" defaultValues={{ email: 'not-an-email' }}>
                 <Input name="email" label="Email" validator={validateEmail} />
             </Form>,
             { provider }
@@ -282,7 +282,7 @@ describe('Form — nested dot notation', () => {
         const provider = new MockDataProvider();
         renderWithProviders(
             <Form
-                dataStoragePath="/orders/ord_1"
+                path="/orders/ord_1"
                 defaultValues={{ shipping: { country: 'IT' } }}
             >
                 <Input name="shipping.country" label="Country" />

@@ -2,6 +2,12 @@ import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 
+vi.mock('../../../src/Config', () => ({
+    getConfig: vi.fn(() => ({})),
+    onConfigChange: vi.fn(),
+    default: {},
+}));
+
 import Form from '../../../src/components/widgets/Form';
 import { Input } from '../../../src/components/ui/fields/Input';
 import Prompt, { PromptMode, runPrompt } from '../../../src/components/widgets/Prompt';

@@ -42,11 +42,11 @@
 | [CR-029](#cr-029--internationalization-i18n-del-framework) | Internationalization i18n del framework | Alta | CR-017, CR-019 | ⬜ |
 | [CR-030](#cr-030--self-contained-typed-themes) | Self-contained typed themes | Alta | CR-017, CR-027 | ✅ |
 | [CR-031](#cr-031--sidebar-block-del-framework) | Sidebar block del framework | Media | CR-007, CR-017 | ⬜ |
-| [CR-032](#cr-032--firebaseauthprovider) | FirebaseAuthProvider (email/password + anonymous) | Alta | CR-002b, CR-023 | ⬜ |
+| [CR-032](#cr-032--firebaseauthprovider) | FirebaseAuthProvider (email/password + anonymous) | Alta | CR-002b, CR-023 | ✅ |
 | [CR-033](#cr-033--firestoredataprovider) | FirestoreDataProvider (Cloud Firestore) | Alta | CR-002, CR-023, CR-039 | ✅ |
-| [CR-034](#cr-034--supabasedataprovider-completo) | SupabaseDataProvider completo (SDK + real-time) | Alta | CR-002, CR-023 | ⬜ |
-| [CR-035](#cr-035--supabasestorageprovider-completo) | SupabaseStorageProvider completo (SDK) | Media | CR-002, CR-023 | ⬜ |
-| [CR-036](#cr-036--supabaseauthprovider) | SupabaseAuthProvider (email/password + OAuth) | Alta | CR-002b, CR-023 | ⬜ |
+| [CR-034](#cr-034--supabasedataprovider-completo) | SupabaseDataProvider completo (SDK + real-time) | Alta | CR-002, CR-023 | ✅ |
+| [CR-035](#cr-035--supabasestorageprovider-completo) | SupabaseStorageProvider completo (SDK) | Media | CR-002, CR-023 | ✅ |
+| [CR-036](#cr-036--supabaseauthprovider) | SupabaseAuthProvider (email/password + OAuth) | Alta | CR-002b, CR-023 | ✅ |
 | [CR-037](#cr-037--component-builder-system) | Component Builder System — useX() hooks per export HTML/JSON | Media | CR-007 | ⬜ |
 | [CR-038](#cr-038--ai-first-naming-normalization) | AI-first naming normalization | Alta | CR-014, CR-037 | ⬜ |
 | [CR-039](#cr-039--firebase-sdk-compat--modular-v9) | Firebase SDK compat → modular v9+ | Alta | CR-002, CR-023 | ✅ |
@@ -566,7 +566,7 @@ type SidebarProps = {
 
 ## CR-032 — FirebaseAuthProvider
 
-**Stato:** ⬜ todo  
+**Stato:** ✅ done  
 **Branch:** `modernize`  
 **Priorità:** Alta  
 **Dipende da:** CR-002b, CR-023  
@@ -786,7 +786,7 @@ export type DataDriverName = 'dbRealtime' | 'firestore' | 'supabaseDb' | 'mock';
 
 ## CR-034 — SupabaseDataProvider completo
 
-**Stato:** ⬜ todo  
+**Stato:** ✅ done  
 **Branch:** `modernize`  
 **Priorità:** Alta  
 **Dipende da:** CR-002, CR-023  
@@ -868,7 +868,7 @@ Il driver name `supabaseDb` nel manifest resta invariato.
 
 ## CR-035 — SupabaseStorageProvider completo
 
-**Stato:** ⬜ todo  
+**Stato:** ✅ done  
 **Branch:** `modernize`  
 **Priorità:** Media  
 **Dipende da:** CR-002, CR-023  
@@ -933,7 +933,7 @@ Note implementative:
 
 ## CR-036 — SupabaseAuthProvider
 
-**Stato:** ⬜ todo  
+**Stato:** ✅ done  
 **Branch:** `modernize`  
 **Priorità:** Alta  
 **Dipende da:** CR-002b, CR-023  

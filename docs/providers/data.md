@@ -16,7 +16,8 @@ description: Use records from mock data, Firebase, Supabase or your own backend 
 |---|---|---|
 | `mock` | In-memory data | local demos, tests, scaffolded apps |
 | `dbRealtime` | Firebase Realtime Database | realtime CRUD apps |
-| `supabaseDb` | Supabase REST | Supabase-backed apps |
+| `firestoreDb` | Cloud Firestore | Firestore collections with onSnapshot realtime |
+| `supabaseDb` | Supabase Postgres | Supabase-backed apps with Postgres Realtime |
 | custom | Your adapter | REST, GraphQL, internal APIs |
 
 For complete provider configuration options, see [AppProvidersConfig](/docs/app-configuration#appprovidersconfig).
@@ -26,7 +27,7 @@ For complete provider configuration options, see [AppProvidersConfig](/docs/app-
 Built-in data providers expose whether their required configuration is present:
 
 - `mock` is always configured.
-- `dbRealtime` checks the Firebase config keys.
+- `dbRealtime` and `firestoreDb` check the Firebase config keys.
 - `supabaseDb` checks `supabase.url` and `supabase.anonKey`.
 
 Custom data providers can implement `isConfigured()` or `getConfigurationState()` when their endpoint or API key is optional at runtime.
@@ -77,7 +78,7 @@ import { Form, Input, Select } from '@llmnative/react';
 
 function CustomerForm({ id }: { id: string }) {
   return (
-    <Form dataStoragePath={`/customers/${id}`}>
+    <Form path={`/customers/${id}`}>
       <Input name="name" label="Name" required />
       <Input name="email" label="Email" type="email" required />
       <Select

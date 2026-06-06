@@ -39,18 +39,18 @@ The framework defines itself as "AI-first". Today the AI provider is **completel
 
 ### P0.1 — Incomplete providers
 
-- [ ] **FirebaseAuthProvider** (CR-032): email/password, anonymous, magic link
+- [x] **FirebaseAuthProvider** (CR-032): email/password + anonymous — done 2026-06-07
 - [x] **FirestoreDataProvider** (CR-033): Cloud Firestore with queries/filters/real-time — done 2026-06-06
-- [ ] **Complete SupabaseDataProvider** (CR-034): rewrite with `@supabase/supabase-js` v2, no more raw fetch
-- [ ] **Complete SupabaseStorageProvider** (CR-035): same, official SDK with signed URL
-- [ ] **SupabaseAuthProvider** (CR-036): email/password, magic link, OAuth, anonymous
+- [x] **Complete SupabaseDataProvider** (CR-034): SDK v2, singleton client, Realtime subscribe, setChunks — done 2026-06-06
+- [x] **Complete SupabaseStorageProvider** (CR-035): raw-fetch API, createUpload/delete/rename/list/getFileInfo — done 2026-06-06
+- [x] **SupabaseAuthProvider** (CR-036): password, magic_link, OAuth, onAuthChange, getAccessToken — done 2026-06-06
 
 ### P0.2 — Broken form validation
 
 - [x] **Fix required field validation in Form.tsx**: replaced `document.querySelectorAll` with `fieldRefs` registry + `useFieldValidation()` hook — done 2026-06-06
 - [x] **Remove `//return false`**: now active `return false` correctly blocks submit on validation failure — done 2026-06-06
 - [x] **Fix Autocomplete + Checklist**: both now call `useFieldValidation()` so required constraint is enforced — done 2026-06-06
-- [ ] **Add tests**: form with required → submit without values → error; with values → success
+- [x] **Add tests**: Form validation suite (required, custom validator, error clear, multiple fields) — done 2026-06-06
 
 ### P0.3 — Error boundary
 
@@ -249,9 +249,9 @@ The entire `src/providers/ai/index.ts` was rewritten (~300 lines, down from 584)
 
 | Provider | Data | Storage | Auth | Stato |
 |----------|------|---------|------|-------|
-| Firebase (RTDB) | ✅ | ✅ | ❌ | Manca auth email/password |
+| Firebase (RTDB) | ✅ | ✅ | ✅ | email/password + anonymous — `firebaseAuth` driver |
 | Firebase (Firestore) | ✅ | ❌ | ❌ | Data: onSnapshot realtime, where/orderBy — Storage e Auth mancano |
-| Supabase | ❌ stub | ❌ stub | ❌ | Tutti loggano "not fully implemented yet" |
+| Supabase | ✅ SDK v2 + Realtime | ✅ raw-fetch + full API | ✅ password/magic_link/OAuth | Completo — 61 test |
 | Mock | ✅ | N/A | N/A | Funzionante |
 | Google | N/A | N/A | ✅ | Solo OAuth |
 | Dropbox | N/A | ✅ export | ✅ | Parziale |
@@ -274,11 +274,11 @@ PHASE 0 — HONESTY (1 week)
 
 PHASE 1 — FOUNDATIONS (2-3 weeks)
 ├── P0.1: Incomplete providers
-│   ├── FirebaseAuthProvider (email/password, anonymous)  ← ⬜ todo
+│   ├── FirebaseAuthProvider (email/password, anonymous)  ← ✅ DONE (2026-06-07)
 │   ├── FirestoreDataProvider — ✅ DONE (2026-06-06)
-│   ├── Complete SupabaseDataProvider  ← ⬜ todo
-│   ├── Complete SupabaseStorageProvider  ← ⬜ todo
-│   └── SupabaseAuthProvider  ← ⬜ todo
+│   ├── Complete SupabaseDataProvider  ← ✅ DONE (2026-06-06)
+│   ├── Complete SupabaseStorageProvider  ← ✅ DONE (2026-06-06)
+│   └── SupabaseAuthProvider  ← ✅ DONE (2026-06-06)
 └── P3.4: Firebase SDK compat → modular (bundle -50%)
 
 PHASE 2 — QUALITY (3-4 weeks)

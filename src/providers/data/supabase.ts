@@ -1,120 +1,364 @@
-import { DataProviderAdapter, DatabaseOptions, ReadOptions, RecordArray, RecordProps, RECORD_KEY } from "./DataProvider";
+import type { SupabaseClient, RealtimeChannel } from '@supabase/supabase-js';
 import {
-    createConfigurationState,
-    getMissingKeys,
-    type ProviderConfigurationState,
-} from "../ProviderConfiguration";
+    DataProviderAdapter,
+    DatabaseOptions,
+    ReadOptions,
+    SetChunksOptions,
+    RecordProps,
+    RecordArray,
+    WhereClause,
+    OrderClause,
+    Condition,
+    RECORD_KEY,
+} from './DataProvider';
+import { getSupabaseClient, getSupabaseConfigurationState } from '../supabase-init';
+import type { ProviderConfigurationState } from '../ProviderConfiguration';
 
-interface SupabaseConfig {
+// ── Config ────────────────────────────────────────────────────────────────────
+
+export interface SupabaseDataConfig {
     url: string;
     anonKey: string;
+    /**
+     * Name of the primary-key column in every Supabase table.
+     * Default: 'id'. Must be a text/uuid column.
+     */
+    primaryKey?: string;
 }
 
-const warn = (method: string) =>
-    console.warn(`SupabaseDataProvider.${method}: not fully implemented yet.`);
+// ── Path helpers ──────────────────────────────────────────────────────────────
+
+const normalizePath = (p: string) => p.replace(/^\/+|\/+$/g, '');
+
+function parsePath(path: string): { table: string; id: string | null } {
+    const segments = normalizePath(path).split('/').filter(Boolean);
+    return {
+        table: segments[0] ?? '',
+        id:    segments.length >= 2 ? segments.slice(1).join('/') : null,
+    };
+}
+
+// ── Error helper ──────────────────────────────────────────────────────────────
+
+function handleError(action: string, error: any, exception: boolean): void {
+    const message = `SupabaseDataProvider.${action}: ${error?.message ?? error}`;
+    if (exception) throw new Error(message);
+    console.error(message);
+}
+
+// ── Operator mapping ──────────────────────────────────────────────────────────
+
+type SupabaseFilterOp = 'eq' | 'neq' | 'lt' | 'lte' | 'gt' | 'gte' | 'in' | 'not.in';
+
+const OP_MAP: Record<string, SupabaseFilterOp> = {
+    eq:  'eq',
+    lt:  'lt',
+    lte: 'lte',
+    gt:  'gt',
+    gte: 'gte',
+    in:  'in',
+    nin: 'not.in',
+};
+
+// ── Query builders ────────────────────────────────────────────────────────────
+
+function applyWhere(query: any, where: WhereClause): any {
+    for (const [field, condition] of Object.entries(where)) {
+        if (condition === null || condition === undefined) {
+            query = query.is(field, null);
+        } else if (typeof condition !== 'object' || Array.isArray(condition)) {
+            query = query.eq(field, condition);
+        } else {
+            const cond = condition as Condition;
+            if (cond.eq  !== undefined) query = query.eq(field, cond.eq);
+            if (cond.lt  !== undefined) query = query.lt(field, cond.lt);
+            if (cond.lte !== undefined) query = query.lte(field, cond.lte);
+            if (cond.gt  !== undefined) query = query.gt(field, cond.gt);
+            if (cond.gte !== undefined) query = query.gte(field, cond.gte);
+            if (cond.in)  query = query.in(field, cond.in);
+            if (cond.nin) query = query.not(field, 'in', cond.nin);
+        }
+    }
+    return query;
+}
+
+function applyOrder(query: any, order: OrderClause): any {
+    for (const [field, direction] of Object.entries(order)) {
+        query = query.order(field, { ascending: direction === 'asc' });
+    }
+    return query;
+}
+
+// ── Record mapping ────────────────────────────────────────────────────────────
+
+/**
+ * Strips framework-internal fields before writing to Supabase,
+ * and maps `_key` → primaryKey column.
+ */
+function toDbRecord(
+    data: object,
+    id: string | null,
+    pk: string
+): Record<string, any> {
+    const { _key, _index, ...rest } = data as any;
+    if (id) rest[pk] = id;
+    return rest;
+}
+
+/**
+ * Adds `_key` and `_index` to a row read from Supabase.
+ */
+function fromDbRecord(row: Record<string, any>, pk: string, index = 0): RecordProps {
+    return { ...row, [RECORD_KEY]: String(row[pk] ?? index), _index: index };
+}
+
+// ── Provider ──────────────────────────────────────────────────────────────────
 
 export class SupabaseDataProvider implements DataProviderAdapter {
-    private config: SupabaseConfig;
+    private config: SupabaseDataConfig;
+    private get pk(): string { return this.config.primaryKey ?? 'id'; }
+    private get client(): SupabaseClient { return getSupabaseClient(this.config.url, this.config.anonKey); }
 
-    constructor(config: SupabaseConfig) {
+    constructor(config: SupabaseDataConfig) {
         this.config = config;
     }
 
     getConfigurationState(): ProviderConfigurationState {
-        return createConfigurationState(
-            'SupabaseDataProvider',
-            getMissingKeys(this.config as unknown as Record<string, unknown>, ['url', 'anonKey'], 'supabase.')
-        );
+        return getSupabaseConfigurationState(this.config);
     }
 
     isConfigured(): boolean {
         return this.getConfigurationState().configured;
     }
 
-    read = async (path: string, _options?: ReadOptions): Promise<any> => {
-        warn("read");
-        // path format: "/table/id" or "/table"
-        const [, table, id] = path.split("/");
-        const url = `${this.config.url}/rest/v1/${table}${id ? `?id=eq.${id}` : ""}`;
-        const res = await fetch(url, {
-            headers: {
-                apikey: this.config.anonKey,
-                Authorization: `Bearer ${this.config.anonKey}`,
-            },
-        });
-        const data = await res.json();
-        if (id) return data[0] ?? null;
-        return Object.fromEntries((data as any[]).map((r: any) => [r.id, r]));
+    // ── read ─────────────────────────────────────────────────────────────────
+
+    read = async (path: string, options: ReadOptions = {}): Promise<any> => {
+        const { table, id } = parsePath(path);
+        if (!table) return undefined;
+
+        try {
+            if (id) {
+                // Single document
+                const { data, error } = await this.client
+                    .from(table)
+                    .select('*')
+                    .eq(this.pk, id)
+                    .maybeSingle();
+
+                if (error) throw error;
+                if (!data) return undefined;
+                return fromDbRecord(data, this.pk);
+            }
+
+            // Collection
+            let query = this.client.from(table).select('*');
+            if (options.where) query = applyWhere(query, options.where);
+            if (options.order) query = applyOrder(query, options.order);
+
+            const { data, error } = await query;
+            if (error) throw error;
+            if (!data || data.length === 0) return options.toArray ? [] : {};
+
+            const rows = data.map((row, i) => fromDbRecord(row, this.pk, i));
+
+            if (options.toArray) return rows;
+
+            // Return object keyed by primary key (framework standard)
+            return Object.fromEntries(rows.map((r) => [String(r[this.pk] ?? r[RECORD_KEY]), r]));
+        } catch (err) {
+            handleError('read', err, options.exception ?? false);
+            return options.toArray ? [] : undefined;
+        }
     };
 
-    set = async (path: string, data: object): Promise<void> => {
-        warn("set");
-        const [, table, id] = path.split("/");
-        const url = `${this.config.url}/rest/v1/${table}`;
-        await fetch(url, {
-            method: id ? "PUT" : "POST",
-            headers: {
-                apikey: this.config.anonKey,
-                Authorization: `Bearer ${this.config.anonKey}`,
-                "Content-Type": "application/json",
-                Prefer: "return=minimal",
-            },
-            body: JSON.stringify(id ? { ...data, id } : data),
-        });
+    // ── set ──────────────────────────────────────────────────────────────────
+
+    set = async (path: string, data: object, exception = false): Promise<void> => {
+        const { table, id } = parsePath(path);
+        if (!table) { handleError('set', 'path must include a table name', exception); return; }
+
+        try {
+            const record = toDbRecord(data, id, this.pk);
+            const { error } = await this.client
+                .from(table)
+                .upsert(record, { onConflict: this.pk });
+            if (error) throw error;
+        } catch (err) {
+            handleError('set', err, exception);
+        }
     };
 
-    update = async (path: string, data: object): Promise<void> => {
-        warn("update");
-        await this.set(path, data);
+    // ── update ───────────────────────────────────────────────────────────────
+
+    update = async (path: string, data: object, exception = false): Promise<void> => {
+        const { table, id } = parsePath(path);
+        if (!table) { handleError('update', 'path must include a table name', exception); return; }
+
+        try {
+            const { _key, _index, ...rest } = data as any;
+
+            if (id) {
+                // Merge existing record with partial update
+                const { data: existing } = await this.client
+                    .from(table)
+                    .select('*')
+                    .eq(this.pk, id)
+                    .maybeSingle();
+
+                const merged = { ...(existing ?? {}), ...rest, [this.pk]: id };
+                const { error } = await this.client
+                    .from(table)
+                    .upsert(merged, { onConflict: this.pk });
+                if (error) throw error;
+            } else {
+                // No id in path — insert as new record
+                const { error } = await this.client.from(table).insert(rest);
+                if (error) throw error;
+            }
+        } catch (err) {
+            handleError('update', err, exception);
+        }
     };
 
-    remove = async (path: string): Promise<void> => {
-        warn("remove");
-        const [, table, id] = path.split("/");
-        if (!id) { console.error("SupabaseDataProvider.remove: id required"); return; }
-        await fetch(`${this.config.url}/rest/v1/${table}?id=eq.${id}`, {
-            method: "DELETE",
-            headers: {
-                apikey: this.config.anonKey,
-                Authorization: `Bearer ${this.config.anonKey}`,
-            },
-        });
+    // ── remove ───────────────────────────────────────────────────────────────
+
+    remove = async (path: string, exception = false): Promise<void> => {
+        const { table, id } = parsePath(path);
+        if (!table || !id) {
+            handleError('remove', 'path must include both table and id', exception);
+            return;
+        }
+
+        try {
+            const { error } = await this.client
+                .from(table)
+                .delete()
+                .eq(this.pk, id);
+            if (error) throw error;
+        } catch (err) {
+            handleError('remove', err, exception);
+        }
     };
 
+    // ── subscribe ─────────────────────────────────────────────────────────────
+
+    /**
+     * Real-time subscription via Supabase Postgres Changes.
+     * Requires the table to have Realtime enabled in the Supabase dashboard.
+     * Falls back gracefully if the channel cannot be created.
+     */
     subscribe = (
         path: string | undefined,
         setRecords: (records: RecordArray) => void,
-        _options?: DatabaseOptions
+        options: DatabaseOptions = {}
     ): (() => void) => {
         if (!path) return () => undefined;
-        warn("subscribe — polling every 5s (no real-time)");
-        const [, table] = path.split("/");
-        const poll = async () => {
-            const res = await fetch(`${this.config.url}/rest/v1/${table}`, {
-                headers: {
-                    apikey: this.config.anonKey,
-                    Authorization: `Bearer ${this.config.anonKey}`,
-                },
-            });
-            const data: any[] = await res.json();
-            setRecords(data.map((r, i) => ({ ...r, [RECORD_KEY]: String(r.id ?? i), _index: i })));
+        const { table } = parsePath(path);
+        if (!table) return () => undefined;
+
+        let channel: RealtimeChannel | null = null;
+        let active = true;
+
+        const load = async () => {
+            if (!active) return;
+            try {
+                let query = this.client.from(table).select('*');
+                if (options.where) query = applyWhere(query, options.where);
+                if (options.order) query = applyOrder(query, options.order);
+                const { data } = await query;
+                if (!active) return;
+                const rows = (data ?? []).map((row, i) => fromDbRecord(row, this.pk, i));
+                setRecords(rows);
+            } catch {
+                setRecords([]);
+            }
         };
-        void poll();
-        const interval = setInterval(poll, 5000);
-        return () => clearInterval(interval);
+
+        void load();
+
+        try {
+            channel = this.client
+                .channel(`llmnative:${table}`)
+                .on(
+                    'postgres_changes',
+                    { event: '*', schema: 'public', table },
+                    () => void load()
+                )
+                .subscribe();
+        } catch {
+            // Realtime not available — subscription works with initial fetch only
+        }
+
+        return () => {
+            active = false;
+            if (channel) {
+                this.client.removeChannel(channel).catch(() => {});
+                channel = null;
+            }
+        };
     };
 
+    // ── count ─────────────────────────────────────────────────────────────────
+
     count = async (path: string): Promise<number> => {
-        warn("count");
-        const [, table] = path.split("/");
-        const res = await fetch(`${this.config.url}/rest/v1/${table}?select=id`, {
-            headers: {
-                apikey: this.config.anonKey,
-                Authorization: `Bearer ${this.config.anonKey}`,
-                Prefer: "count=exact",
-            },
-        });
-        const count = res.headers.get("content-range")?.split("/")[1];
-        return count ? parseInt(count, 10) : 0;
+        const { table } = parsePath(path);
+        if (!table) return 0;
+
+        try {
+            const { count, error } = await this.client
+                .from(table)
+                .select('*', { count: 'exact', head: true });
+            if (error) throw error;
+            return count ?? 0;
+        } catch (err) {
+            console.error('SupabaseDataProvider.count:', err);
+            return 0;
+        }
+    };
+
+    // ── setChunks ─────────────────────────────────────────────────────────────
+
+    /**
+     * Writes a large dataset in batches.
+     * If opts.purge = true, deletes all existing rows before writing.
+     */
+    setChunks = async (
+        path: string,
+        data: object,
+        opts: SetChunksOptions = {}
+    ): Promise<void> => {
+        const { table } = parsePath(path);
+        if (!table) return;
+
+        const { chunkSize = 500, purge = false, onProgress } = opts;
+        const entries = Object.entries(data as Record<string, object>);
+
+        try {
+            if (purge) {
+                // Delete all existing rows — use neq trick since Supabase requires a filter
+                await this.client.from(table).delete().neq(this.pk, '__purge_all__');
+            }
+
+            for (let i = 0; i < entries.length; i += chunkSize) {
+                const chunk = entries
+                    .slice(i, i + chunkSize)
+                    .map(([id, record]) => toDbRecord(record, id, this.pk));
+
+                const { error } = await this.client
+                    .from(table)
+                    .upsert(chunk, { onConflict: this.pk });
+                if (error) throw error;
+
+                onProgress?.(
+                    Math.min(i + chunkSize, entries.length),
+                    entries.length,
+                    `Wrote ${Math.min(i + chunkSize, entries.length)}/${entries.length}`
+                );
+            }
+        } catch (err) {
+            console.error('SupabaseDataProvider.setChunks:', err);
+            throw err;
+        }
     };
 }

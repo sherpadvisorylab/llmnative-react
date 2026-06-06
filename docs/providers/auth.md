@@ -12,10 +12,12 @@ description: Use the active auth service for current user, sign-out and access t
 
 ## Supported auth services
 
-| Driver | Backend | Best for |
+| Driver | Backend | Sign-in methods |
 |---|---|---|
-| `googleAuth` | Google OAuth | Google sign-in and Google API access |
-| `dropboxAuth` | Dropbox OAuth2 | connecting Dropbox file APIs |
+| `googleAuth` | Google Identity Services | Google OAuth popup |
+| `firebaseAuth` | Firebase Auth | `password`, `anonymous`, `oauth` (GitHub, Apple, Microsoft…) |
+| `supabaseAuth` | Supabase Auth | `password`, `magic_link`, `oauth`, `anonymous` |
+| `dropboxAuth` | Dropbox OAuth2 | Dropbox OAuth popup |
 | custom | Your adapter | JWT sessions, enterprise SSO, internal auth |
 
 For full OAuth configuration, see [GoogleOAuth2 sign-in config](/docs/app-configuration#googleoauth2--sign-in-config).
@@ -132,7 +134,52 @@ async function loadDropboxToken() {
 
 For the component API and live examples, see [Auth component](/components/auth).
 
+## Sign-in methods
+
+### FirebaseAuthProvider
+
+```tsx
+const auth = useAuthProvider(); // configured with services.auth: 'firebaseAuth'
+
+// Email + password (default)
+await auth.signIn({ method: 'password', email: 'user@example.com', password: 'secret' });
+
+// Anonymous session
+await auth.signIn({ method: 'anonymous' });
+
+// OAuth SSO — GitHub, Apple, Microsoft, Yahoo, Twitter, Facebook
+// Note: for Google OAuth use googleAuth, not firebaseAuth
+await auth.signIn({ method: 'oauth', provider: 'github' });
+await auth.signIn({ method: 'oauth', provider: 'apple' });
+await auth.signIn({ method: 'oauth', provider: 'saml.my-provider' }); // SAML pass-through
+
+const token = await auth.getAccessToken(); // Firebase ID token
+```
+
+### SupabaseAuthProvider
+
+```tsx
+const auth = useAuthProvider(); // configured with services.auth: 'supabaseAuth'
+
+await auth.signIn({ method: 'password', email: 'user@example.com', password: 'secret' });
+await auth.signIn({ method: 'magic_link', email: 'user@example.com' });
+await auth.signIn({ method: 'oauth', provider: 'github' });
+await auth.signIn({ method: 'anonymous' });
+```
+
+### GoogleAuthProvider
+
+```tsx
+const auth = useAuthProvider(); // configured with services.auth: 'googleAuth'
+
+await auth.signIn(); // GIS popup
+// Scoped token for Google APIs (Gmail, Drive, etc.)
+const token = await auth.getAccessToken('https://www.googleapis.com/auth/gmail.send');
+```
+
 ## Minimal configuration
+
+### Google Auth
 
 ```tsx
 <App
@@ -142,6 +189,31 @@ For the component API and live examples, see [Auth component](/components/auth).
       scope: 'email profile',
     },
     services: { auth: 'googleAuth' },
+  }}
+/>
+```
+
+### Firebase Auth
+
+```tsx
+<App
+  providers={{
+    firebase: { config: firebaseConfig },
+    services: { auth: 'firebaseAuth' },
+  }}
+/>
+```
+
+### Supabase Auth
+
+```tsx
+<App
+  providers={{
+    supabase: {
+      url: import.meta.env.VITE_SUPABASE_URL,
+      anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+    },
+    services: { auth: 'supabaseAuth' },
   }}
 />
 ```

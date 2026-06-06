@@ -93,7 +93,7 @@ describe('Repeat', () => {
 
         renderWithProviders(
             <Form
-                dataStoragePath="/projects/p1"
+                path="/projects/p1"
                 defaultValues={{ tasks: [{ title: 'Plan' }] }}
             >
                 <Repeat name="tasks">
