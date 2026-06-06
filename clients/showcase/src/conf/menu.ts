@@ -38,6 +38,8 @@ const LayoutBuilderPage = lazyPage(() => import('../pages/components/LayoutBuild
 const ListGroupPage = lazyPage(() => import('../pages/components/ListGroupPage'));
 const MenuPage = lazyPage(() => import('../pages/components/MenuPage'));
 const ModalPage = lazyPage(() => import('../pages/components/ModalPage'));
+const ModalYesNoPage = lazyPage(() => import('../pages/components/ModalYesNoPage'));
+const ModalOkPage = lazyPage(() => import('../pages/components/ModalOkPage'));
 const MotionPage = lazyPage(() => import('../pages/components/MotionPage'));
 const NotificationsPage = lazyPage(() => import('../pages/components/NotificationsPage'));
 const PaginationPage = lazyPage(() => import('../pages/components/PaginationPage'));
@@ -105,6 +107,10 @@ export const menu = {
     docs: docsRoutes,
 
     components: [
+        // ── Foundation ──────────────────────────────────────────────────────────
+        { path: '/components/motion', title: 'Motion', page: MotionPage, group: 'Foundation' },
+
+        // ── UI Primitives (alphabetical) ─────────────────────────────────────
         { path: '/components/alert', title: 'Alert', page: AlertPage, group: 'UI Primitives' },
         { path: '/components/badge', title: 'Badge', page: BadgePage, group: 'UI Primitives' },
         {
@@ -127,28 +133,27 @@ export const menu = {
         { path: '/components/image', title: 'Image', page: ImagePage, group: 'UI Primitives' },
         { path: '/components/image-avatar', title: 'ImageAvatar', page: ImageAvatarPage, group: 'UI Primitives' },
         { path: '/components/loader', title: 'Loader', page: LoaderPage, group: 'UI Primitives' },
-        { path: '/components/modal', title: 'Modal', page: ModalPage, group: 'UI Primitives' },
-        { path: '/components/motion', title: 'Motion', page: MotionPage, group: 'Foundation' },
+        {
+            path: '/components/modal',
+            title: 'Modal',
+            page: ModalPage,
+            group: 'UI Primitives',
+            children: [
+                { path: '/components/modal/yesno', title: 'ModalYesNo', page: ModalYesNoPage },
+                { path: '/components/modal/ok', title: 'ModalOk', page: ModalOkPage },
+            ],
+        },
         { path: '/components/pagination', title: 'Pagination', page: PaginationPage, group: 'UI Primitives' },
         { path: '/components/percentage', title: 'Percentage', page: PercentagePage, group: 'UI Primitives' },
         { path: '/components/tab', title: 'Tab', page: TabPage, group: 'UI Primitives' },
-        { path: '/components/tab-dynamic', title: 'TabDynamic', page: TabDynamicPage, group: 'Widgets' },
         { path: '/components/table', title: 'Table', page: TablePage, group: 'UI Primitives' },
+
+        // ── Widgets (alphabetical, Grid penultimate, Form last) ───────────────
+        { path: '/components/assistant-ai', title: 'AssistantAI', page: AssistantAIPage, group: 'Widgets' },
         { path: '/components/auth', title: 'Auth', page: AuthPage, group: 'Widgets' },
-        { path: '/components/brand', title: 'Brand', page: BrandPage, group: 'Blocks' },
-        { path: '/components/breadcrumbs', title: 'Breadcrumbs', page: BreadcrumbsPage, group: 'Blocks' },
-        { path: '/components/menu', title: 'Menu', page: MenuPage, group: 'Blocks' },
-        { path: '/components/notifications', title: 'Notifications', page: NotificationsPage, group: 'Blocks' },
-        { path: '/components/search', title: 'Search', page: SearchPage, group: 'Blocks' },
-        { path: '/components/input', title: 'Input', page: InputPage, group: 'Form fields' },
-        { path: '/components/textarea', title: 'TextArea', page: TextAreaPage, group: 'Form fields' },
-        { path: '/components/checkbox', title: 'Checkbox', page: CheckboxPage, group: 'Form fields' },
-        { path: '/components/switch', title: 'Switch', page: SwitchPage, group: 'Form fields' },
-        { path: '/components/select', title: 'Select', page: SelectPage, group: 'Form fields' },
-        { path: '/components/autocomplete', title: 'Autocomplete', page: AutocompletePage, group: 'Form fields' },
-        { path: '/components/checklist', title: 'Checklist', page: ChecklistPage, group: 'Form fields' },
-        { path: '/components/image-url', title: 'ImageUrl', page: ImageUrlPage, group: 'Form fields' },
-        { path: '/components/list-group', title: 'ListGroup', page: ListGroupPage, group: 'Form fields' },
+        { path: '/components/image-editor', title: 'ImageEditor', page: ImageEditorPage, group: 'Widgets' },
+        { path: '/components/layout-builder', title: 'LayoutBuilder', page: LayoutBuilderPage, group: 'Widgets' },
+        { path: '/components/markdown-reader', title: 'MarkdownReader', page: MarkdownReaderPage, group: 'Widgets' },
         {
             path: '/components/prompt',
             title: 'Prompt',
@@ -160,17 +165,8 @@ export const menu = {
                 { path: '/components/prompt/plain', title: 'PromptPlain', page: PromptPlainPage },
             ],
         },
-        { path: '/components/upload', title: 'Upload', page: UploadPage, group: 'Form fields' },
-        { path: '/components/assistant-ai', title: 'AssistantAI', page: AssistantAIPage, group: 'Widgets' },
-        {
-            path: '/components/form',
-            title: 'Form',
-            page: FormPage,
-            group: 'Widgets',
-            children: [
-                { path: '/components/form/validation', title: 'Validation', page: FormValidationPage },
-            ],
-        },
+        { path: '/components/repeat', title: 'Repeat', page: RepeatPage, group: 'Widgets' },
+        { path: '/components/tab-dynamic', title: 'TabDynamic', page: TabDynamicPage, group: 'Widgets' },
         {
             path: '/components/grid',
             title: 'Grid',
@@ -181,10 +177,34 @@ export const menu = {
                 { path: '/components/grid/db', title: 'GridDB', page: GridDbPage },
             ],
         },
-        { path: '/components/layout-builder', title: 'LayoutBuilder', page: LayoutBuilderPage, group: 'Widgets' },
-        { path: '/components/image-editor', title: 'ImageEditor', page: ImageEditorPage, group: 'Widgets' },
-        { path: '/components/markdown-reader', title: 'MarkdownReader', page: MarkdownReaderPage, group: 'Widgets' },
-        { path: '/components/repeat', title: 'Repeat', page: RepeatPage, group: 'Widgets' },
+        {
+            path: '/components/form',
+            title: 'Form',
+            page: FormPage,
+            group: 'Widgets',
+            children: [
+                { path: '/components/form/validation', title: 'Validation', page: FormValidationPage },
+            ],
+        },
+
+        // ── Form fields (alphabetical) ────────────────────────────────────────
+        { path: '/components/autocomplete', title: 'Autocomplete', page: AutocompletePage, group: 'Form fields' },
+        { path: '/components/checkbox', title: 'Checkbox', page: CheckboxPage, group: 'Form fields' },
+        { path: '/components/checklist', title: 'Checklist', page: ChecklistPage, group: 'Form fields' },
+        { path: '/components/image-url', title: 'ImageUrl', page: ImageUrlPage, group: 'Form fields' },
+        { path: '/components/input', title: 'Input', page: InputPage, group: 'Form fields' },
+        { path: '/components/list-group', title: 'ListGroup', page: ListGroupPage, group: 'Form fields' },
+        { path: '/components/select', title: 'Select', page: SelectPage, group: 'Form fields' },
+        { path: '/components/switch', title: 'Switch', page: SwitchPage, group: 'Form fields' },
+        { path: '/components/textarea', title: 'TextArea', page: TextAreaPage, group: 'Form fields' },
+        { path: '/components/upload', title: 'Upload', page: UploadPage, group: 'Form fields' },
+
+        // ── Blocks (alphabetical) ─────────────────────────────────────────────
+        { path: '/components/brand', title: 'Brand', page: BrandPage, group: 'Blocks' },
+        { path: '/components/breadcrumbs', title: 'Breadcrumbs', page: BreadcrumbsPage, group: 'Blocks' },
+        { path: '/components/menu', title: 'Menu', page: MenuPage, group: 'Blocks' },
+        { path: '/components/notifications', title: 'Notifications', page: NotificationsPage, group: 'Blocks' },
+        { path: '/components/search', title: 'Search', page: SearchPage, group: 'Blocks' },
     ],
 
     providers: [

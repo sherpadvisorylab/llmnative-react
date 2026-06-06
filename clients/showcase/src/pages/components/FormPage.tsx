@@ -39,15 +39,16 @@ function WithMock({ children }: { children: React.ReactNode }) {
 }
 
 const FORM_PROPS: PropDef[] = [
-    { name: 'dataStoragePath', type: 'string', description: 'Collection or record path. Collection path â†’ new record. Record path â†’ edit existing.', control: 'text' },
-    { name: 'defaultValues', type: 'object', description: 'Initial field values for a new record' },
+    { name: 'path', type: 'string', description: 'Collection path (e.g. /users). Appended with record._key on save.', control: 'text' },
+    { name: 'defaultValues', type: 'object', description: 'Initial field values. Include _key to signal edit mode (isNewRecord = false → Save + Delete shown).' },
     { name: 'aspect', type: '"card" | "none"', default: '"none"', description: 'Visual wrapper style', control: 'select', options: ['none', 'card'] },
     { name: 'showBack', type: 'boolean', default: 'false', description: 'Show a back navigation button', control: 'boolean' },
+    { name: 'keyGenerator', type: '(record) => string', description: 'Custom primary key generator for new records. Presence forces create mode (no DB read).' },
     { name: 'onLoad', type: '(data: object) => object', description: 'Transform record data after loading (e.g. unit conversions)' },
     {
         name: 'onSave',
         type: 'FormSaveHandler',
-        description: 'Transform record before saving.',
+        description: 'Transform record before saving or override the write path.',
         shape: `type FormSaveHandler = (
   args: FormSaveArgs
 ) => Promise<string | undefined>
@@ -84,8 +85,6 @@ type FormFinallyArgs = {
   action: "create" | "update" | "delete";
 }`,
     },
-    { name: 'setPrimaryKey', type: '() => string', description: 'Custom primary key generator for new records' },
-    { name: 'savePath', type: '(record) => string', description: 'Custom save path (overrides dataStoragePath)' },
 ];
 
 const PLAYGROUND_SEED = { '/users': USERS_SEED };
@@ -94,7 +93,7 @@ const PLAYGROUND: PlaygroundConfig = {
     size: 'lg',
     props: FORM_PROPS,
     defaultProps: {
-        dataStoragePath: '/users/user_1',
+        path: '/users/user_1',
         aspect: 'card',
         showBack: false,
     },
@@ -102,7 +101,7 @@ const PLAYGROUND: PlaygroundConfig = {
     render: (p) => (
         <div className="w-full max-w-lg">
             <Form
-                dataStoragePath={p.dataStoragePath || '/users/user_1'}
+                path={p.path || '/users/user_1'}
                 aspect={p.aspect}
                 showBack={p.showBack}
                 onFinally={async () => false}
@@ -123,20 +122,20 @@ export default function FormPage() {
     return (
         <PageLayout
             title="Form widget"
-            description="Full CRUD form: loads a record from the DataProvider, validates, saves and optionally deletes. Wrap fields as children â€” the Form wires everything automatically via React context."
+            description="Full CRUD form: loads a record from the DataProvider, validates, saves and optionally deletes. Wrap fields as children — the Form wires everything automatically via React context."
         >
-            {/* â”€â”€ New record â”€â”€ */}
+            {/* ── New record ── */}
             <Section
-                title="New record (defaultValues)"
-                description="When no dataStoragePath is given the form starts empty (or with defaultValues). Save calls set() on the DataProvider with a generated key."
+                title="New record (keyGenerator)"
+                description="Pass path (collection) + keyGenerator to create a new record. No DB read is performed. Save calls set() at path/generatedKey."
                 preview={
                     <WithMock>
                         <div className="w-full max-w-lg">
                             <Form
-                                dataStoragePath="/users"
+                                path="/users"
                                 defaultValues={{ role: 'viewer', status: 'active' }}
                                 aspect="card"
-                                setPrimaryKey={() => `user_${Date.now()}`}
+                                keyGenerator={() => `user_${Date.now()}`}
                                 onFinally={async () => { alert('Saved!'); return false; }}
                             >
                                 <Input name="name"  label="Full name" required />
@@ -154,10 +153,10 @@ const mockProvider = new MockDataProvider();
 
 <DataProvider registry={{ default: mockProvider }} defaultKey="default">
     <Form
-        dataStoragePath="/users"
+        path="/users"
         defaultValues={{ role: 'viewer', status: 'active' }}
         aspect="card"
-        setPrimaryKey={() => \`user_\${Date.now()}\`}
+        keyGenerator={() => \`user_\${Date.now()}\`}
     >
         <Input   name="name"   label="Full name" required />
         <Input   name="email"  label="Email" type="email" required />
@@ -168,15 +167,15 @@ const mockProvider = new MockDataProvider();
 </DataProvider>`}
             />
 
-            {/* â”€â”€ Edit existing record â”€â”€ */}
+            {/* ── Edit existing record ── */}
             <Section
                 title="Edit existing record"
-                description="Pass a full path including the record key. The Form reads the record on mount and pre-fills the fields."
+                description="Pass path (full record path including key) with no defaultValues. The Form reads the record on mount, pre-fills the fields, and saves back to the same path."
                 preview={
                     <WithMock>
                         <div className="w-full max-w-lg">
                             <Form
-                                dataStoragePath="/users/user_1"
+                                path="/users/user_1"
                                 aspect="card"
                                 onFinally={async () => { alert('Saved!'); return false; }}
                             >
@@ -189,8 +188,8 @@ const mockProvider = new MockDataProvider();
                         </div>
                     </WithMock>
                 }
-                code={`// dataStoragePath="/users/user_1" â†’ reads /users/user_1, saves back to same path
-<Form dataStoragePath="/users/user_1" aspect="card">
+                code={`// path="/users/user_1" → reads /users/user_1, saves back to same path
+<Form path="/users/user_1" aspect="card">
     <Input  name="name"   label="Full name" required />
     <Input  name="email"  label="Email" type="email" />
     <Select name="role"   label="Role"   options={ROLES}  />
@@ -198,17 +197,17 @@ const mockProvider = new MockDataProvider();
 </Form>`}
             />
 
-            {/* â”€â”€ Lifecycle hooks â”€â”€ */}
+            {/* ── Lifecycle hooks ── */}
             <Section
                 title="Lifecycle hooks"
                 description="onLoad transforms data after reading. onSave transforms before writing. onFinally runs after every action."
                 preview={
                     <div className="text-sm text-muted-foreground italic p-4">
-                        Code example â€” hooks are not visually distinct from a standard form.
+                        Code example — hooks are not visually distinct from a standard form.
                     </div>
                 }
                 code={`<Form
-    dataStoragePath="/products/prod_1"
+    path="/products/prod_1"
     // prices stored as cents in DB, displayed as euros
     onLoad={(data) => ({ ...data, price: data.price / 100 })}
     onSave={async ({ record }) => ({ ...record, price: record.price * 100 })}
@@ -218,11 +217,11 @@ const mockProvider = new MockDataProvider();
     }}
 >
     <Input name="title" label="Title" required />
-    <Input name="price" label="Price (â‚¬)" type="number" />
+    <Input name="price" label="Price (€)" type="number" />
 </Form>`}
             />
 
-            {/* â”€â”€ Nested fields â”€â”€ */}
+            {/* ── Nested fields ── */}
             <Section
                 title="Nested objects and arrays"
                 description="Dot notation maps to nested object keys. Array index notation maps to array elements."
@@ -240,7 +239,7 @@ const mockProvider = new MockDataProvider();
                         </div>
                     </WithMock>
                 }
-                code={`// dot notation â†’ stored as { address: { city, zip, country } }
+                code={`// dot notation → stored as { address: { city, zip, country } }
 <Form>
     <Input name="address.city"    label="City"    />
     <Input name="address.zip"     label="ZIP"     />

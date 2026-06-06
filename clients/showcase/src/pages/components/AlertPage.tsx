@@ -11,8 +11,9 @@ const TYPES = ['info', 'success', 'warning', 'danger', 'primary', 'secondary', '
 const PROPS_CONFIG: PropDef[] = [
     { name: 'children', type: 'string | ReactNode', required: true, description: 'Alert message content', control: 'text' },
     { name: 'type', type: '"info" | "success" | "warning" | "danger" | "primary" | "secondary" | "light" | "dark"', default: '"info"', description: 'Color variant', control: 'select', options: ['info', 'success', 'warning', 'danger', 'primary', 'secondary', 'light', 'dark'] },
+    { name: 'appearance', type: '"default" | "text"', default: '"default"', description: 'default = full box with background and border · text = borderless, no background, width fits content', control: 'select', options: ['default', 'text'] },
     { name: 'icon', type: 'string | boolean', default: 'true', description: 'true = auto icon per type, false = none, or any icon name from the provider', control: 'icon' },
-    { name: 'isFixed', type: '"top" | "bottom"', description: 'Pin to top or bottom of viewport via portal (renders outside preview)', control: 'select', options: ['', 'top', 'bottom'] },
+    { name: 'placement', type: '"inline" | "fixed"', default: '"inline"', description: 'inline = renders in place (default) · fixed = viewport-pinned via portal above all content', control: 'select', options: ['inline', 'fixed'] },
     { name: 'timeout', type: 'number', description: 'Auto-dismiss after N milliseconds', control: 'number', min: 0, step: 500 },
     { name: 'onClose', type: '() => void', description: 'Callback when alert is closed' },
     { name: 'className', type: 'string', description: 'Additional CSS classes', control: 'text' },
@@ -26,9 +27,10 @@ const PLAYGROUND: PlaygroundConfig = {
     props: PROPS_CONFIG,
     defaultProps: {
         type: 'info',
+        appearance: 'default',
         icon: true,
         children: 'This is an alert message.',
-        isFixed: '',
+        placement: 'inline',
         timeout: 0,
         className: '',
         wrapClass: '',
@@ -38,8 +40,9 @@ const PLAYGROUND: PlaygroundConfig = {
     render: (p) => (
         <Alert
             type={p.type || 'info'}
+            appearance={p.appearance === 'text' ? 'text' : undefined}
             icon={p.icon}
-            isFixed={p.isFixed || undefined}
+            placement={p.placement === 'inline' ? undefined : p.placement}
             timeout={p.timeout || undefined}
             className={p.className || undefined}
             wrapClass={p.wrapClass || undefined}
@@ -81,6 +84,29 @@ export default function AlertPage() {
             />
 
             <Section
+                title="Appearance"
+                description="appearance=&quot;text&quot; renders a compact inline indicator — no background, no border, width fits content. Ideal for status feedback next to buttons."
+                preview={
+                    <div className="flex flex-col gap-3 w-full">
+                        <div className="flex flex-col gap-2">
+                            {(['success', 'danger', 'warning', 'info'] as const).map(t => (
+                                <Alert key={t} type={t} appearance="text">{t.charAt(0).toUpperCase() + t.slice(1)} — text appearance</Alert>
+                            ))}
+                        </div>
+                        <div className="flex items-center gap-3 mt-2">
+                            <Alert type="success" appearance="text">Saved</Alert>
+                            <button className="btn btn-primary">Save</button>
+                        </div>
+                    </div>
+                }
+                code={`// Compact inline status — next to a save button
+<Alert type="success" appearance="text" timeout={3000} onClose={() => setVisible(false)}>
+    Saved
+</Alert>
+<button className="btn btn-primary">Save</button>`}
+            />
+
+            <Section
                 title="Without icon"
                 preview={<Alert type="info" icon={false}>Alert without icon</Alert>}
                 code={`<Alert type="info" icon={false}>Alert without icon</Alert>`}
@@ -112,17 +138,24 @@ export default function AlertPage() {
             />
 
             <Section
-                title="Fixed positioning"
-                description="Use isFixed to pin the alert to the top or bottom of the viewport via a React portal."
+                title="Placement modes"
+                description="placement controls where the alert renders: inline (default, in normal document flow) or fixed (viewport-pinned via portal above all content)."
                 preview={
-                    <Alert type="warning" icon={false}>
-                        <code className="font-mono">isFixed="top"</code> or{' '}
-                        <code className="font-mono">isFixed="bottom"</code> renders into{' '}
-                        <code className="font-mono">document.body</code> via a portal.
-                    </Alert>
+                    <div className="space-y-3">
+                        <Alert type="info" icon={false}>
+                            <code className="font-mono">placement="inline"</code> — renders where declared (default)
+                        </Alert>
+                        <Alert type="warning" icon={false}>
+                            <code className="font-mono">placement="fixed"</code> — portal to body, try it from the playground above
+                        </Alert>
+                    </div>
                 }
-                code={`<Alert type="warning" isFixed="top">
-    This appears pinned at the top of the viewport
+                code={`// Renders in document flow (default)
+<Alert type="info">Inline alert</Alert>
+
+// Viewport-pinned above everything — ideal for global toasts
+<Alert type="success" placement="fixed" onClose={() => setVisible(false)}>
+    Saved successfully
 </Alert>`}
             />
 

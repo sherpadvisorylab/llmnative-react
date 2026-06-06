@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal } from '@llmnative/react';
+import { Modal, ActionButton } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
@@ -82,16 +82,14 @@ const PLAYGROUND: PlaygroundConfig = {
         bodyClass: '',
         footerClass: '',
     },
-    render: (p) => {
-        return <ModalPlaygroundDemo props={p} />;
-    },
+    render: (p) => <ModalPlaygroundDemo props={p} />,
 };
 
 function ModalPlaygroundDemo({ props: p }: { props: Record<string, any> }) {
     const [open, setOpen] = useState(false);
     return (
         <>
-            <button className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90" onClick={() => setOpen(true)}>Open modal</button>
+            <ActionButton label="Open modal" onClick={() => setOpen(true)} />
             {open && (
                 <Modal
                     title={p.title || undefined}
@@ -129,13 +127,12 @@ export default function ModalPage() {
                 preview={
                     <div className="flex flex-wrap gap-2">
                         {POSITIONS.map((pos) => (
-                            <button
+                            <ActionButton
                                 key={pos}
-                                className="inline-flex items-center justify-center rounded-md border border-primary bg-transparent px-4 py-2 text-sm font-medium text-primary hover:bg-primary hover:text-primary-foreground"
+                                label={pos}
+                                className="btn-outline-secondary"
                                 onClick={() => setOpen(pos)}
-                            >
-                                {pos}
-                            </button>
+                            />
                         ))}
                         {open && <DemoModal position={open} onClose={() => setOpen(null)} />}
                     </div>
@@ -161,48 +158,7 @@ const [open, setOpen] = useState(false);
 )}`}
             />
 
-            <Section
-                title="ModalYesNo - destructive confirmation"
-                description="Use ModalYesNo for irreversible actions such as delete or reset."
-                preview={
-                    <div className="alert alert-warning text-sm">
-                        <strong>Pattern:</strong> Always confirm destructive actions with ModalYesNo before
-                        calling delete on the DataProvider.
-                    </div>
-                }
-                code={`import { ModalYesNo } from '@llmnative/react';
-
-{open && (
-    <ModalYesNo
-        title="Confirm deletion"
-        onYes={async () => { await deleteRecord(id); return true; }}
-        onNo={async () => true}
-        onClose={() => setOpen(false)}
-    >
-        Are you sure you want to delete this record? This action cannot be undone.
-    </ModalYesNo>
-)}`}
-            />
-
-            <Section
-                title="ModalOk - informational"
-                description="Simple one-button acknowledgement dialog."
-                preview={
-                    <div className="alert alert-info text-sm">
-                        Use <code className="font-mono">ModalOk</code> for read-only info dialogs that only need an OK button.
-                    </div>
-                }
-                code={`import { ModalOk } from '@llmnative/react';
-
-{open && (
-    <ModalOk title="Import complete" onClose={() => setOpen(false)}>
-        42 records were imported successfully.
-    </ModalOk>
-)}`}
-            />
-
             <PropDocsTable props={PROPS_CONFIG} />
-
         </PageLayout>
     );
 }
