@@ -2,7 +2,7 @@
 
 > Ogni CR rappresenta un'unità di lavoro autonoma con motivazione, scope e checklist.  
 > Stato: `⬜ todo` · `🔄 in progress` · `✅ done` · `🚫 cancelled`  
-> Ultima revisione: 2026-06-05
+> Ultima revisione: 2026-06-06
 
 ---
 
@@ -43,7 +43,7 @@
 | [CR-030](#cr-030--self-contained-typed-themes) | Self-contained typed themes | Alta | CR-017, CR-027 | ✅ |
 | [CR-031](#cr-031--sidebar-block-del-framework) | Sidebar block del framework | Media | CR-007, CR-017 | ⬜ |
 | [CR-032](#cr-032--firebaseauthprovider) | FirebaseAuthProvider (email/password + anonymous) | Alta | CR-002b, CR-023 | ⬜ |
-| [CR-033](#cr-033--firestoredataprovider) | FirestoreDataProvider (Cloud Firestore) | Alta | CR-002, CR-023, CR-039 | ⬜ |
+| [CR-033](#cr-033--firestoredataprovider) | FirestoreDataProvider (Cloud Firestore) | Alta | CR-002, CR-023, CR-039 | ✅ |
 | [CR-034](#cr-034--supabasedataprovider-completo) | SupabaseDataProvider completo (SDK + real-time) | Alta | CR-002, CR-023 | ⬜ |
 | [CR-035](#cr-035--supabasestorageprovider-completo) | SupabaseStorageProvider completo (SDK) | Media | CR-002, CR-023 | ⬜ |
 | [CR-036](#cr-036--supabaseauthprovider) | SupabaseAuthProvider (email/password + OAuth) | Alta | CR-002b, CR-023 | ⬜ |
@@ -673,11 +673,10 @@ export type AuthDriverName = 'googleAuth' | 'dropboxAuth' | 'firebaseAuth';
 
 ## CR-033 — FirestoreDataProvider
 
-**Stato:** ⬜ todo  
-**Branch:** `modernize`  
+**Stato:** ✅ done — 2026-06-06  
+**Branch:** `main`  
 **Priorità:** Alta  
 **Dipende da:** CR-002, CR-023  
-**Stima:** 3-4 giorni  
 **Breaking change:** No
 
 ### Motivazione
@@ -768,19 +767,19 @@ export type DataDriverName = 'dbRealtime' | 'firestore' | 'supabaseDb' | 'mock';
 
 ### Criteri di accettazione
 
-- [ ] `FirestoreDataProvider` implementa `DataProviderAdapter` senza errori TypeScript strict.
-- [ ] `read('/col')` ritorna tutti i documenti come `RecordArray` con `_key`.
-- [ ] `read('/col/id')` ritorna il singolo documento o `null`.
-- [ ] `read('/col', { where: { status: 'active' } })` filtra correttamente.
-- [ ] `read('/col', { order: { createdAt: 'desc' } })` ordina correttamente.
-- [ ] `set('/col/id', data)` crea/sovrascrive il documento.
-- [ ] `update('/col/id', data)` fa merge parziale (`updateDoc`).
-- [ ] `remove('/col/id')` cancella il documento.
-- [ ] `useListener('/col', cb, { where, order })` invoca cb immediatamente e ad ogni modifica; cleanup su unmount.
-- [ ] `count('/col')` ritorna il numero di documenti (tramite `getCountFromServer`).
-- [ ] `setChunks` scrive in batch di dimensione configurabile.
-- [ ] `getConfigurationState()` ritorna `configured: false` se Firebase non è inizializzato.
-- [ ] Driver `firestore` registrato in `FIREBASE_MANIFEST` e `DataDriverName`.
+- [x] `FirestoreDataProvider` implementa `DataProviderAdapter` senza errori TypeScript strict.
+- [x] `read('/col')` ritorna tutti i documenti come `RecordArray` con `_key`.
+- [x] `read('/col/id')` ritorna il singolo documento o `null`.
+- [x] `read('/col', { where: { status: 'active' } })` filtra correttamente.
+- [x] `read('/col', { order: { createdAt: 'desc' } })` ordina correttamente.
+- [x] `set('/col/id', data)` crea/sovrascrive il documento.
+- [x] `update('/col/id', data)` fa merge parziale (`updateDoc`).
+- [x] `remove('/col/id')` cancella il documento.
+- [x] `useListener('/col', cb, { where, order })` invoca cb immediatamente e ad ogni modifica; cleanup su unmount.
+- [x] `count('/col')` ritorna il numero di documenti (tramite `getCountFromServer`).
+- [x] `setChunks` scrive in batch di dimensione configurabile.
+- [x] `getConfigurationState()` ritorna `configured: false` se Firebase non è inizializzato.
+- [x] Driver `firestoreDb` registrato in `FIREBASE_MANIFEST` e `DataDriverName`.
 - [ ] Test unitari con Firestore emulatore o mock SDK passano.
 
 ---

@@ -3,7 +3,7 @@
 > Operational roadmap for bringing @llmnative/react to the level of React Admin, Refine and Contember.
 > Each item is an atomic verifiable task: ✅ done, ⬜ to do.
 >
-> Last reviewed: 2026-05-29
+> Last reviewed: 2026-06-06
 > Based on `main` codebase analysis (v0.1.1 → target v1.0.0)
 
 ---
@@ -40,22 +40,23 @@ The framework defines itself as "AI-first". Today the AI provider is **completel
 ### P0.1 — Incomplete providers
 
 - [ ] **FirebaseAuthProvider** (CR-032): email/password, anonymous, magic link
-- [ ] **FirestoreDataProvider** (CR-033): Cloud Firestore with queries/filters/real-time
+- [x] **FirestoreDataProvider** (CR-033): Cloud Firestore with queries/filters/real-time — done 2026-06-06
 - [ ] **Complete SupabaseDataProvider** (CR-034): rewrite with `@supabase/supabase-js` v2, no more raw fetch
 - [ ] **Complete SupabaseStorageProvider** (CR-035): same, official SDK with signed URL
 - [ ] **SupabaseAuthProvider** (CR-036): email/password, magic link, OAuth, anonymous
 
 ### P0.2 — Broken form validation
 
-- [ ] **Fix required field validation in Form.tsx**: replace `document.querySelectorAll` with React-state-based validation
-- [ ] **Remove `//return false`** that neutralises the blocked submit
+- [x] **Fix required field validation in Form.tsx**: replaced `document.querySelectorAll` with `fieldRefs` registry + `useFieldValidation()` hook — done 2026-06-06
+- [x] **Remove `//return false`**: now active `return false` correctly blocks submit on validation failure — done 2026-06-06
+- [x] **Fix Autocomplete + Checklist**: both now call `useFieldValidation()` so required constraint is enforced — done 2026-06-06
 - [ ] **Add tests**: form with required → submit without values → error; with values → success
 
 ### P0.3 — Error boundary
 
-- [ ] **ErrorBoundary for `<App>`**: if App crashes, show fallback, not white screen
-- [ ] **ErrorBoundary for provider**: if a provider crashes, it does not bring down the whole app
-- [ ] **ErrorBoundary for route**: a crashing page does not bring down navigation
+- [x] **ErrorBoundary for `<App>`**: `<ErrorBoundary fullPage>` wraps the entire app in `App.tsx:249` — done
+- [x] **ErrorBoundary for provider**: covered by the same fullPage wrapper (providers are children of App) — done
+- [x] **ErrorBoundary for route**: `<ErrorBoundary key={item.path}>` wraps each route in `App.tsx:229` — done
 
 ### P0.4 — CI/CD
 
@@ -214,14 +215,15 @@ The entire `src/providers/ai/index.ts` was rewritten (~300 lines, down from 584)
 - DeepSeek not implemented
 - No direct tests for AI provider
 
-### A.2 Form
+### A.2 Form — updated 2026-06-06
 
-| File | Line | Bug |
-|------|------|-----|
-| `src/components/widgets/Form.tsx` | 416 | `useEffect` with `JSON.stringify(defaultValues)` → loop on deep objects |
-| `src/components/widgets/Form.tsx` | 458 | Required validation via `document.querySelectorAll` → does not work on dynamic fields |
-| `src/components/widgets/Form.tsx` | 441 | `//return false` → required validation does not block submit |
-| `src/components/widgets/Form.tsx` | 127-136 | Commented-out block of 10 lines |
+| File | Bug | Status |
+|------|-----|--------|
+| `src/components/widgets/Form.tsx` | `useEffect` with `JSON.stringify(defaultValues)` → loop on deep objects | ⬜ open |
+| `src/components/widgets/Form.tsx` | Required validation via `document.querySelectorAll` → does not work on dynamic fields | ✅ fixed — replaced by `fieldRefs` + `useFieldValidation()` |
+| `src/components/widgets/Form.tsx` | `//return false` → required validation does not block submit | ✅ fixed — now active `return false` after `validateFields()` |
+| `src/components/widgets/Form.tsx` | Commented-out block of 10 lines | ✅ fixed — removed |
+| `src/components/ui/fields/Select.tsx` | Autocomplete/Checklist ignore `required` constraint | ✅ fixed — both now call `useFieldValidation()` |
 
 ### A.3 Firebase
 
@@ -243,12 +245,12 @@ The entire `src/providers/ai/index.ts` was rewritten (~300 lines, down from 584)
 
 ---
 
-## Appendix B — Real provider matrix (2026-05-29)
+## Appendix B — Real provider matrix (updated 2026-06-06)
 
 | Provider | Data | Storage | Auth | Stato |
 |----------|------|---------|------|-------|
 | Firebase (RTDB) | ✅ | ✅ | ❌ | Manca auth email/password |
-| Firebase (Firestore) | ❌ | ❌ | ❌ | Mai iniziato |
+| Firebase (Firestore) | ✅ | ❌ | ❌ | Data: onSnapshot realtime, where/orderBy — Storage e Auth mancano |
 | Supabase | ❌ stub | ❌ stub | ❌ | Tutti loggano "not fully implemented yet" |
 | Mock | ✅ | N/A | N/A | Funzionante |
 | Google | N/A | N/A | ✅ | Solo OAuth |
@@ -262,20 +264,21 @@ The entire `src/providers/ai/index.ts` was rewritten (~300 lines, down from 584)
 PHASE 0 — HONESTY (1 week)
 ├── P0.0: AI provider — ✅ DONE (Adapter rewrite 2026-05-29)
 │   └── Remaining: DeepSeek, types, tests
-├── P0.4: CI/CD — GitHub Actions (test + build on every PR)
-├── P0.3: ErrorBoundary — 3 levels (App, provider, route)
-├── A.4: Remove dead code
+├── P0.2: Form validation — ✅ DONE (2026-06-06)
+│   └── Remaining: tests
+├── P0.3: ErrorBoundary — ✅ DONE (3 levels: fullPage + per-route in App.tsx)
+├── P0.4: CI/CD — ⬜ GitHub Actions (test + build on every PR)  ← NEXT
+├── A.4: Remove dead code (Component.tsx, Template.tsx, Helper.tsx, Command.tsx)
 ├── [DOC] Add KNOWN_ISSUES.md, make README honest
 └── Phase 1 canonical naming: Grid.layout → Grid.view + backward-compat alias
 
 PHASE 1 — FOUNDATIONS (2-3 weeks)
 ├── P0.1: Incomplete providers
-│   ├── FirebaseAuthProvider (email/password, anonymous)
-│   ├── FirestoreDataProvider
-│   ├── Complete SupabaseDataProvider
-│   ├── Complete SupabaseStorageProvider
-│   └── SupabaseAuthProvider
-├── P0.2: Form validation — fix required fields
+│   ├── FirebaseAuthProvider (email/password, anonymous)  ← ⬜ todo
+│   ├── FirestoreDataProvider — ✅ DONE (2026-06-06)
+│   ├── Complete SupabaseDataProvider  ← ⬜ todo
+│   ├── Complete SupabaseStorageProvider  ← ⬜ todo
+│   └── SupabaseAuthProvider  ← ⬜ todo
 └── P3.4: Firebase SDK compat → modular (bundle -50%)
 
 PHASE 2 — QUALITY (3-4 weeks)

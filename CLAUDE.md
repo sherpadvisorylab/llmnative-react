@@ -538,6 +538,7 @@ In corso sul branch `modernize`. Vedi `docs/CHANGE_REQUESTS.md` per i dettagli.
 | CR-015 | Vite toolchain framework + scaffolding | ✅ done |
 | CR-016 | Showcase Vite + scaffold-first | ✅ done |
 | CR-017 | App-managed theme + icon registries | ✅ done |
+| CR-033 | FirestoreDataProvider (Cloud Firestore + onSnapshot realtime) | ✅ done |
 
 ---
 ## Session state
@@ -545,21 +546,31 @@ In corso sul branch `modernize`. Vedi `docs/CHANGE_REQUESTS.md` per i dettagli.
 > Aggiornato automaticamente alla fine di ogni sessione AI.
 > Il piano completo vive in `docs/COMPETITIVENESS_CHECKLIST.md`.
 
-**Ultimo task completato:** CR-033 FirestoreDataProvider con onSnapshot realtime (2026-06-06).
-**Prossimo task:** P0.2 Form validation fix (required non blocca submit).
+**Ultimo task completato:** P0.2 Form validation fix + RECORD_KEY refactor + SideNav showcase (2026-06-06).
+**Prossimo task:** P0.4 CI/CD — GitHub Actions (test + build + showcase build on every PR).
 **Branch:** `main`
 **Repo:** `github.com/sherpadvisorylab/llmnative-react.git`
 
-### Session summary (2026-06-06)
-- ImageEditor refactor: Bootstrap border-end → Tailwind border-r, modal header unificato (no doppio border), fix canvas bianco (loadImage dentro initEditor), SVG data URL → PNG canvas per showcase
-- CR-033: FirestoreDataProvider — onSnapshot realtime, where multi-field, orderBy, set/update/remove/count; registrato come `firestoreDb` nel manifest Firebase; `getFirestoreConfigurationState` in firebase-init (non richiede databaseURL)
+### Session summary (2026-06-06 — sessione 2)
+- **RECORD_KEY** constant (`'_key'`) introdotta in `DataProvider.ts`; propagata a firebase, firestore, supabase, mock, GridDB, Select, useStableRecordKey
+- **Form.tsx** refactor: `dataStoragePath` → `path`, `setPrimaryKey` → `keyGenerator`, `isNewRecord` derivato dall'assenza di `_key`
+- **P0.2 validation fix**: `document.querySelectorAll` + `//return false` rimossi; `fieldRefs` + `validateFields()` sostituiscono; `Autocomplete` e `Checklist` ora chiamano `useFieldValidation()` → required blocca submit
+- **P0.3 ErrorBoundary**: verificato già completo — `<ErrorBoundary fullPage>` (App.tsx:249) + per-route `key={item.path}` (App.tsx:229)
+- **useGridActions**: fix cancel-deselect; routing salvataggi tramite `computeSavePath`
+- **Showcase SideNav** (nuovo componente): collassabile a icone, hover-to-expand overlay, sub-menu animati, auto-apre parent attivo
+- **Modal sub-pages**: ModalYesNoPage + ModalOkPage con playground dedicato
+- **Menu sidebar**: Foundation → UI Primitives (alfa) → Widgets (Grid penultimo, Form ultimo) → Form fields (alfa) → Blocks (alfa)
+
+### Session summary (2026-06-06 — sessione 1)
+- ImageEditor refactor: Bootstrap border-end → Tailwind border-r, modal header unificato, fix canvas bianco, SVG data URL → PNG canvas per showcase
+- CR-033: FirestoreDataProvider — onSnapshot realtime, where multi-field, orderBy, set/update/remove/count; registrato come `firestoreDb` nel manifest Firebase; `getFirestoreConfigurationState` in firebase-init
 
 ### Progresso checklist
 
 | Area | Completamento |
 |------|--------------|
-| P0 — Bloccanti | 0.6/5 sezioni (P0.0 AI provider + proxy cleanup ✅, resto 0%) |
+| P0 — Bloccanti | ~3/5 sezioni (P0.0 AI provider ✅, P0.1 parziale: Firestore ✅ resto ⬜, P0.2 ✅ mancano solo test, P0.3 ✅, P0.4 ⬜) |
 | P1 — Differenziatori | 0/6 sezioni |
 | P2 — Feature parity | 0/4 sezioni |
-| P3 — Qualità e trust | 1/5 sezioni (P3.3 lazy imports ✅) |
+| P3 — Qualità e trust | 0/5 sezioni (lazy imports showcase: ✅ già in uso, ma bundle ottimization P3.3 ⬜) |
 | P4 — Ecosistema | 0/3 sezioni |
