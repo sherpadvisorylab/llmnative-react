@@ -126,11 +126,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, State> {
     }
 
     reset = () => {
-        this.setState({
-            error: null, errorInfo: null,
-            detailsOpen: false, debugOpen: false,
-            copied: false, reportState: 'idle',
-        });
+        window.location.reload();
     };
 
     copy = () => {

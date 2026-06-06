@@ -90,27 +90,24 @@ describe('ErrorBoundary — default fallback', () => {
     });
 });
 
-// ── 3. Reset (Try again) ──────────────────────────────────────────────────────
+// ── 3. Try again — reloads the page ──────────────────────────────────────────
 
-describe('ErrorBoundary — reset', () => {
-    it('resets the boundary when Try again is clicked and children no longer throw', () => {
-        const { rerender } = render(
+describe('ErrorBoundary — Try again', () => {
+    it('calls window.location.reload() when Try again is clicked', () => {
+        const reload = vi.fn();
+        const original = window.location;
+        Object.defineProperty(window, 'location', { value: { ...original, reload }, writable: true });
+
+        render(
             <ErrorBoundary>
                 <Bomb shouldThrow />
             </ErrorBoundary>
         );
 
-        expect(screen.getByText('This page ran into a problem')).toBeInTheDocument();
-
-        // Re-render with a non-throwing child BEFORE clicking reset
-        rerender(
-            <ErrorBoundary>
-                <Bomb shouldThrow={false} />
-            </ErrorBoundary>
-        );
-
         fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
-        expect(screen.getByText('All good')).toBeInTheDocument();
+        expect(reload).toHaveBeenCalledOnce();
+
+        Object.defineProperty(window, 'location', { value: original, writable: true });
     });
 });
 
