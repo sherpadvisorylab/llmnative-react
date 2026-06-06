@@ -520,7 +520,8 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
                     const empty =
                         value === null ||
                         value === undefined ||
-                        (typeof value === 'string' && value.trim() === '');
+                        (typeof value === 'string' && value.trim() === '') ||
+                        (Array.isArray(value) && value.length === 0);
                     if (empty) {
                         newErrors[fieldName] = label ? `${label} is required` : 'Required field';
                         continue;

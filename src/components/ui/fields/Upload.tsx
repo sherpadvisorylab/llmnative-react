@@ -10,7 +10,8 @@ import { Wrapper } from "../GridSystem";
 import { base64ToUrl, render2Base64 } from "../../../libs/utils";
 import { PLACEHOLDER_IMAGE } from "../../../Theme";
 import Icon from "../Icon";
-import { FormFieldProps, FieldOnChange, useFormContext } from "../../widgets/Form";
+import { FormFieldProps, FieldOnChange, useFormContext, useFieldValidation } from "../../widgets/Form";
+import { FieldError } from "./Input";
 
 export interface FileProps {
     key: string;
@@ -282,6 +283,7 @@ export const UploadDocument = ({
     className   = undefined,
 }: UploadDocumentProps) => {
     const { files, currentFile, fileInputRef, formWrapClass, handleUploadChange, handleUpload, handleRemove, handleSave, handleEdit, handleClose } = useFileUpload<FileProps>(name, onChange, wrapClass);
+    const error = useFieldValidation(name, { required, label });
 
     return (
         <Wrapper className={formWrapClass}>
@@ -312,8 +314,8 @@ export const UploadDocument = ({
                         ...file,
                         name: file.progress === 100 ? <a href={getFileUrl(file)} target="_blank" rel="noopener noreferrer">{file.fileName}</a> : file.fileName,
                         kilobyte: (
-                            file.progress === 100 
-                            ? (file.size / 1024).toFixed(2) + ' KB' 
+                            file.progress === 100
+                            ? (file.size / 1024).toFixed(2) + ' KB'
                             : <Percentage max={100} min={0} val={file.progress} shape="bar" />
                         ),
                         actions: (
@@ -323,6 +325,7 @@ export const UploadDocument = ({
                         )
                     }))}
                 />}
+                {error && <FieldError message={error} />}
             </div>
             {editable && currentFile && (
                 <FileEditor
@@ -356,6 +359,7 @@ export const UploadImage = ({
     className       = undefined,
 }: UploadImageProps) => {
     const { files, currentFile, fileInputRef, formWrapClass, handleUploadChange, handleUpload, handleRemove, handleSave, handleEdit, handleClose } = useFileUpload<FileProps>(name, onChange, wrapClass);
+    const error = useFieldValidation(name, { required, label });
 
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
@@ -411,7 +415,7 @@ export const UploadImage = ({
                     {isUploadable(files, max, multiple) && <FileInput
                         name={name}
                         fileInputRef={fileInputRef}
-                        accept={accept} 
+                        accept={accept}
                         onUpload={handleUpload}
                         onChange={handleUploadChange}
                         icon={"upload"}
@@ -422,6 +426,7 @@ export const UploadImage = ({
                         iconClass="fs-1"
                     />}
                 </div>
+                {error && <FieldError message={error} />}
             </Wrapper>
 
             {editable && currentFile && (

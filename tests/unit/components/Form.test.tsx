@@ -161,6 +161,109 @@ describe('Form — save', () => {
     });
 });
 
+// ── validation — required fields block submit ─────────────────────────────────
+
+describe('Form — required validation', () => {
+    it('blocks submit and shows error when a required Input is empty', async () => {
+        const provider = new MockDataProvider();
+        renderWithProviders(
+            <Form dataStoragePath="/items/x" defaultValues={{}}>
+                <Input name="title" label="Title" required />
+            </Form>,
+            { provider }
+        );
+
+        fireEvent.click(screen.getByRole('button', { name: /save|salva/i }));
+
+        // Error message appears
+        await waitFor(() => {
+            expect(screen.getByText(/title is required/i)).toBeInTheDocument();
+        });
+
+        // Nothing was written to the provider
+        const saved = await provider.read('/items/x');
+        expect(saved).toBeUndefined();
+    });
+
+    it('allows submit when required Input has a value', async () => {
+        const provider = new MockDataProvider();
+        renderWithProviders(
+            <Form dataStoragePath="/items/y" defaultValues={{ title: 'Hello' }}>
+                <Input name="title" label="Title" required />
+            </Form>,
+            { provider }
+        );
+
+        fireEvent.click(screen.getByRole('button', { name: /save|salva/i }));
+
+        await waitFor(async () => {
+            const saved = await provider.read('/items/y');
+            expect(saved).toMatchObject({ title: 'Hello' });
+        });
+    });
+
+    it('blocks submit and shows error for multiple required fields', async () => {
+        const provider = new MockDataProvider();
+        renderWithProviders(
+            <Form dataStoragePath="/items/z" defaultValues={{}}>
+                <Input name="name"  label="Name"  required />
+                <Input name="email" label="Email" required />
+            </Form>,
+            { provider }
+        );
+
+        fireEvent.click(screen.getByRole('button', { name: /save|salva/i }));
+
+        await waitFor(() => {
+            expect(screen.getByText(/name is required/i)).toBeInTheDocument();
+            expect(screen.getByText(/email is required/i)).toBeInTheDocument();
+        });
+    });
+
+    it('clears the error when the user fills the field after a failed submit', async () => {
+        renderWithProviders(
+            <Form dataStoragePath="/items/clr" defaultValues={{}}>
+                <Input name="title" label="Title" required />
+            </Form>
+        );
+
+        fireEvent.click(screen.getByRole('button', { name: /save|salva/i }));
+
+        await waitFor(() => {
+            expect(screen.getByText(/title is required/i)).toBeInTheDocument();
+        });
+
+        const input = screen.getByRole('textbox') as HTMLInputElement;
+        fireEvent.change(input, { target: { name: 'title', value: 'New value' } });
+
+        await waitFor(() => {
+            expect(screen.queryByText(/title is required/i)).not.toBeInTheDocument();
+        });
+    });
+
+    it('runs custom validator and blocks submit when it returns an error', async () => {
+        const provider = new MockDataProvider();
+        const validateEmail = (v: string) =>
+            /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? undefined : 'Invalid email address';
+
+        renderWithProviders(
+            <Form dataStoragePath="/items/v" defaultValues={{ email: 'not-an-email' }}>
+                <Input name="email" label="Email" validator={validateEmail} />
+            </Form>,
+            { provider }
+        );
+
+        fireEvent.click(screen.getByRole('button', { name: /save|salva/i }));
+
+        await waitFor(() => {
+            expect(screen.getByText('Invalid email address')).toBeInTheDocument();
+        });
+
+        const saved = await provider.read('/items/v');
+        expect(saved).toBeUndefined();
+    });
+});
+
 // ── nested dot notation ───────────────────────────────────────────────────────
 
 describe('Form — nested dot notation', () => {
