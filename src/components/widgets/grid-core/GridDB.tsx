@@ -1,6 +1,6 @@
 import React from "react";
 import { useLocation } from "react-router-dom";
-import { type RecordProps } from "../../../providers/data/DataProvider";
+import { type RecordProps, RECORD_KEY } from "../../../providers/data/DataProvider";
 import GridCore from "./GridCore";
 import { type GridDBProps } from "./types";
 import useGridDBRecords from "./useGridDBRecords";
@@ -12,7 +12,7 @@ function GridDB<TRecord extends RecordProps = RecordProps>({
     where,
     order,
     fieldMap,
-    recordId = "_key" as keyof TRecord,
+    recordId = RECORD_KEY as keyof TRecord,
     ...rest
 }: GridDBProps<TRecord>) {
     const location = useLocation();

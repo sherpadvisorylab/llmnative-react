@@ -1,6 +1,9 @@
 // Shared types — provider-agnostic, used by Form, Grid, and all components
 import type { ProviderConfigurable } from '../ProviderConfiguration';
 
+/** Canonical primary-key field name used by all data providers and the Form widget. */
+export const RECORD_KEY = '_key' as const;
+
 type FieldMap = Record<string, any>;
 type RecordObject = Record<string, FieldMap>;
 export type RecordProps = FieldMap & { _key?: string; _index?: number };

@@ -9,6 +9,7 @@ import {
     RecordArray,
     WhereClause,
     OrderClause,
+    RECORD_KEY,
 } from './DataProvider';
 
 type CollectionStore = Record<string, Record<string, any>>;
@@ -23,7 +24,7 @@ const SYSTEM_FIELDS = {
 
 function toRecordArray(col: Record<string, any>): RecordArray {
     return Object.entries(col).map(([key, value], index) => ({
-        _key: key,
+        [RECORD_KEY]: key,
         _index: index,
         ...(typeof value === 'object' && value !== null ? value : {}),
     }));
@@ -99,8 +100,8 @@ function mapRecordObjectToArray(
     if (!fieldMap) {
         return entries.map(([key, value], index) => (
             typeof value === 'object' && value !== null
-                ? { _index: index, _key: key, ...value }
-                : { _index: index, _key: key, [SYSTEM_FIELDS.value]: value }
+                ? { _index: index, [RECORD_KEY]: key, ...value }
+                : { _index: index, [RECORD_KEY]: key, [SYSTEM_FIELDS.value]: value }
         ));
     }
 
@@ -118,7 +119,7 @@ function mapRecordObjectToArray(
                 : field === SYSTEM_FIELDS.value ? value
                 : source[field];
         }
-        return { _key: key, _index: index, ...mapped };
+        return { [RECORD_KEY]: key, _index: index, ...mapped };
     });
 }
 

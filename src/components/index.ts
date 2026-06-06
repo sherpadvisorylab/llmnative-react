@@ -42,7 +42,7 @@ export { default as AssistantAI } from './ui/fields/AssistantAI';
 export { default as Menu } from './blocks/Menu';
 
 export { default as Form } from './widgets/Form';
-export type { FormDeleteArgs, FormDeleteHandler, FormFinallyArgs, FormFinallyHandler, FormSaveArgs, FormSaveHandler, SavePathProps } from './widgets/Form';
+export type { FormDeleteArgs, FormDeleteHandler, FormFinallyArgs, FormFinallyHandler, FormRef, FormSaveArgs, FormSaveHandler } from './widgets/Form';
 export { default as Grid } from './widgets/Grid';
 export { GridArray, GridCore, GridDB, GridGalleryView, GridTableView } from './widgets/grid-core';
 export type {

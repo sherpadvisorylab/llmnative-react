@@ -11,7 +11,7 @@ import { Wrapper } from "../GridSystem";
 import { useTheme } from "../../../Theme";
 import { DEFAULT_ORDER, Order, type OrderConfig } from "../../../libs/order";
 import { arraysEqual, arrayUnique, isEmpty, sanitizeKey } from "../../../libs/utils";
-import { DatabaseOptions, DBConfig, RecordProps } from "../../../providers/data/DataProvider";
+import { DatabaseOptions, DBConfig, RecordProps, RECORD_KEY } from "../../../providers/data/DataProvider";
 import { useDataProvider } from "../../../providers/data/DataProviderContext";
 import { FormFieldProps, useFormContext, useFieldValidation } from '../../widgets/Form';
 import { cn } from '../../../libs/cn';
@@ -80,8 +80,8 @@ const normalizeOption = (
 
 const normalizeLookup = (records: RecordProps[]): Option[] =>
     records.map((record) => normalizeOption({
-        label: record.label ?? record.name ?? record.title ?? record._key ?? '',
-        value: record.value ?? record._key ?? record.label ?? record.name ?? '',
+        label: record.label ?? record.name ?? record.title ?? record[RECORD_KEY] ?? '',
+        value: record.value ?? record[RECORD_KEY] ?? record.label ?? record.name ?? '',
     }));
 
 function getOptionsDB(
@@ -250,6 +250,7 @@ export const Autocomplete = ({
     onCreate = undefined,
 }: AutocompleteProps) => {
     const { value, handleChange, formWrapClass } = useFormContext({ name, onChange, wrapClass, defaultValue, inheritFormWrapClass });
+    const error = useFieldValidation(name, { required, label });
     const theme = useTheme("select");
 
     const valueArray = useMemo(() => valueToArray(value), [value]);
@@ -361,7 +362,9 @@ export const Autocomplete = ({
                 </datalist>
                 {post && <SelectAddon side="post">{post}</SelectAddon>}
             </Wrapper>
-            {feedback && <div className={fieldFeedbackClass}>{feedback}</div>}
+            {error
+                ? <FieldError message={error} />
+                : feedback && <div className={fieldFeedbackClass}>{feedback}</div>}
         </Wrapper>
     );
 };
@@ -387,6 +390,7 @@ export const Checklist = ({
     checkClass = undefined,
 }: ChecklistProps) => {
     const { value, handleChange, formWrapClass } = useFormContext({ name, onChange, wrapClass, defaultValue, inheritFormWrapClass });
+    const error = useFieldValidation(name, { required, label });
 
     const valueArray = useMemo(() => valueToArray(value), [value]);
     const [selectedItems, setSelectedItems] = useState(() => valueArray);
@@ -484,7 +488,9 @@ export const Checklist = ({
                     {post && <SelectAddon side="post">{post}</SelectAddon>}
                 </Wrapper>
             ) : checklist}
-            {feedback && <div className={fieldFeedbackClass}>{feedback}</div>}
+            {error
+                ? <FieldError message={error} />
+                : feedback && <div className={fieldFeedbackClass}>{feedback}</div>}
         </Wrapper>
     );
 };

@@ -100,6 +100,7 @@ export const LoadingButton = ({
 
     const button = (
         <button
+            type="button"
             title={title}
             className={cn(
                 buttonBaseClass,
@@ -157,6 +158,7 @@ export const ActionButton = ({
     const motion = usePressMotion(disabled, style, motionConfig ?? theme.ActionButton.motion?.press ?? 'press');
     const button = (
         <button
+            type="button"
             title={title}
             className={cn(
                 buttonBaseClass,

@@ -194,11 +194,11 @@ class Template {
 export function FormTemplate({
                                  htmlString,
                                  components,
-                                 dataStoragePath
+                                 path
                              }: {
     htmlString: string;
     components: FormFieldsMap;
-    dataStoragePath: string;
+    path: string;
 }) {
     const Compiled = useMemo(() => {
         const template = new Template(htmlString).setFields(components, "default");
@@ -210,7 +210,7 @@ export function FormTemplate({
     }, [htmlString, components]);
 
     return (
-        <FormDatabase dataStoragePath={dataStoragePath} defaultValues={Compiled.defaultValues}>
+        <FormDatabase path={path} defaultValues={Compiled.defaultValues}>
             {Compiled.RenderComponent}
         </FormDatabase>
     );
@@ -249,15 +249,15 @@ export function FormTemplate2({
     }, [template]);
 
     if (!form) {
-        return <p className={"p-4"}><span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />Caricamento in corso...</p>;
+        return <p className={"p-4"}><span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />Loading…</p>;
     }
 
     if (!dataSource) {
-        return <p className={"p-4"}><span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />Caricamento in corso...</p>;
+        return <p className={"p-4"}><span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />Loading…</p>;
     }
 
     return (
-        <FormDatabase dataStoragePath={dataSource} defaultValues={form.defaultValues}>
+        <FormDatabase path={dataSource} defaultValues={form.defaultValues}>
             {form.children}
         </FormDatabase>
     );

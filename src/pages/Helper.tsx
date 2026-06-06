@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+﻿import React, { useState, useRef, useEffect } from 'react'
 import Grid from "../components/widgets/Grid";
 import { Select } from "../components/ui/fields/Select";
 import { Wrapper, Container, Row, Col } from "../components/ui/GridSystem";
@@ -92,7 +92,7 @@ function Helper() {
                 <Row className='pb-3'>
                   <Col lg={5}>
                     <h2 id='input'>Input</h2>
-                    <Form dataStoragePath='' header="Input">
+                    <Form path='' header="Input">
                       {/* String */}
                       <String name='text' label='String' placeholder='Lorem ipsum.' />
                       {/* Number */}
@@ -109,7 +109,7 @@ function Helper() {
                   </Col>
                   <Col lg={7}>
                     <Code language='jsx' className='h-100 d-flex flex-grow-1 m-0'>
-                      {`<Form dataStoragePath='' header="Input">
+                      {`<Form path='' header="Input">
 
                         {/* String */}
                         <String name='text' label='String' placeholder='Lorem ipsum.' />
@@ -136,7 +136,7 @@ function Helper() {
                 <Row className='pb-3'>
                   <Col lg={5}>
                     {/* Date */}
-                    <Form dataStoragePath='' header="Date Input">
+                    <Form path='' header="Date Input">
                       {/* Date */}
                       <Date name='date' label='Date' />
                       {/* Time */}
@@ -153,7 +153,7 @@ function Helper() {
                   </Col>
                   <Col lg={7}>
                     <Code language='jsx' className='h-100 d-flex flex-grow-1 m-0'>
-                      {`<Form dataStoragePath='' header="Date Input">
+                      {`<Form path='' header="Date Input">
 
                         {/* Date */}
                         <Date name='date' label='Date'/>
@@ -181,7 +181,7 @@ function Helper() {
                 <Row>
                   <Col lg={5}>
                     {/* Boolean */}
-                    <Form dataStoragePath='' header="Boolean Input">
+                    <Form path='' header="Boolean Input">
                       {/* Checkbox */}
                       <Label label='Checkboxes' />
                       <Checkbox name='checkbox1' label='Checkbox1' />
@@ -193,7 +193,7 @@ function Helper() {
                     </Form>
 
                     {/* List -> Select? */}
-                    <Form dataStoragePath='' header="List Group">
+                    <Form path='' header="List Group">
                       <ListGroup actives={[0]} disables={[1]} itemClass='p-1'>
                         <span className='text-danger'>Element1</span>
                         <span className='text-success'>Element2</span>
@@ -209,7 +209,7 @@ function Helper() {
                   <Col lg={7} className='mb-5'>
                     <Code language='jsx' className='h-100 d-flex flex-grow-1 m-0'>
                       {`{/* Boolean */}
-                      <Form dataStoragePath='' header="Boolean Input">
+                      <Form path='' header="Boolean Input">
                         
                         {/* Checkbox */}
                         <Label label='Checkboxes' />
@@ -224,7 +224,7 @@ function Helper() {
 
 
                       {/* List */}
-                      <Form dataStoragePath='' header="List Group">
+                      <Form path='' header="List Group">
                         
                         <ListGroup actives={[0]} disables={[1]} className='mb-3' itemClass='p-1'>
                           <span className='text-danger'>Element1</span>
@@ -246,7 +246,7 @@ function Helper() {
                   <Col lg={5} className='mb-5'>
                     <h2 id='selectors'>Selectors</h2>
                     <Card className='mb-3'>
-                      <Form dataStoragePath='' header='Selectors'>
+                      <Form path='' header='Selectors'>
                         {/* Select  */}
                         <Select name='select' label='Select' value={'Option1'} options={['Option1', 'Option2', 'Option3']} />
                         {/* Autocomplete */}
@@ -259,7 +259,7 @@ function Helper() {
                   </Col>
                   <Col lg={7} className='mb-5'>
                     <Code language='jsx' className='h-100 d-flex flex-grow-1 m-0'>
-                      {`<Form dataStoragePath='' className='Selectors'>
+                      {`<Form path='' className='Selectors'>
 
                         {/* Select  */}
                         <Select name='select' label='Select' value={'Option1'} options={['Option1', 'Option2', 'Option3']} />
@@ -279,14 +279,14 @@ function Helper() {
                   <Col lg={5} className='mb-5'>
                     <h2 id='upload'>Upload</h2>
                     {/* Documenti */}
-                    <Form dataStoragePath='' header="Documents Upload">
+                    <Form path='' header="Documents Upload">
                       <UploadDocument name='uploadDocument' label="Upload Multiple Documents" editable multiple />
 
                       <UploadDocument name='uploadDocument' label="Upload Document not Editable" />
                     </Form>
 
                     {/* Images */}
-                    <Form dataStoragePath='' header="Images Upload">
+                    <Form path='' header="Images Upload">
                       <UploadImage name='uploadImage' label='Upload Multiple Images' previewWidth={150} previewHeight={150} multiple editable />
 
                       <UploadImage name='uploadImage' label='Upload Single Image' editable />
@@ -296,7 +296,7 @@ function Helper() {
                   </Col>
                   <Col lg={7} className='mb-5'>
                     <Code language='jsx' className='h-100 d-flex flex-grow-1 m-0'>
-                      {`<Form dataStoragePath='' header="Documents Upload">
+                      {`<Form path='' header="Documents Upload">
                           
                           {/* Multiple Documents */}
                           <UploadDocument name='uploadDocument' label="Upload Multiple Documents" editable multiple />
@@ -306,7 +306,7 @@ function Helper() {
 
                         </Form>
 
-                        <Form dataStoragePath='' header="Images Upload">
+                        <Form path='' header="Images Upload">
                           
                           {/* Multiple Editable Images */}
                           <UploadImage name='uploadImage' label='Upload Multiple Images' previewWidth={150} previewHeight={150} multiple editable />
@@ -335,7 +335,7 @@ function Helper() {
                       <Alert type="dark" children="Dark" />
 
                       <ActionButton onClick={() => setShowAlert(true)} label='click alert fixed' />
-                      {showAlert && <Alert isFixed='top' onClose={() => setShowAlert(false)}>Prova Alert fixedTop con timeout 5s</Alert>}
+                      {showAlert && <Alert placement="fixed" onClose={() => setShowAlert(false)}>Prova Alert fixedTop con timeout 5s</Alert>}
                     </Card>
                   </Col>
                   <Col lg={7} className='mb-5'>
@@ -352,7 +352,7 @@ function Helper() {
                         <Alert type="dark" children="Dark" />
 
                         <ActionButton onClick={() => setShowAlert(true)} label='click alert fixed' />
-                        {showAlert && <Alert isFixed='top' onClose={() => setShowAlert(false)}>Prova Alert fixedTop con timeout 5s</Alert>}
+                        {showAlert && <Alert placement="fixed" onClose={() => setShowAlert(false)}>Prova Alert fixedTop con timeout 5s</Alert>}
                       </Card>
                       `}
                     </Code>
@@ -938,7 +938,7 @@ function Helper() {
                   <Col lg={5} className='mb-5'>
                     <h2 id='repeat'>Repeat</h2>
                     <Card className='mb-3' title=''>
-                      <Form dataStoragePath='' header="Repeat Demo">
+                      <Form path='' header="Repeat Demo">
                         <Repeat name='repeatGroup'>
                           <String name='repeat1' label='Repeat 1' className='mb-3' placeholder='Lorem ipsum.' />
                           <String name='repeat2' label='Repeat 2' className='mb-3' placeholder='Lorem ipsum.' />
@@ -949,7 +949,7 @@ function Helper() {
                   </Col>
                   <Col lg={7} className='mb-5'>
                     <Code language='jsx' className='h-100 d-flex flex-grow-1 m-0'>
-                      {`<Form dataStoragePath='' header="Repeat Demo">
+                      {`<Form path='' header="Repeat Demo">
                       
                         <Repeat name='repeatGroup'>
                           <String name='repeat1' label='Repeat 1' className='mb-3' placeholder='Lorem ipsum.' />
@@ -974,7 +974,7 @@ function Helper() {
                           <p>Lorem ipsum. Content 3 or Component Nested 3</p>
                         </TabItem>
                         <TabItem label='Tab 2'>
-                          <Form dataStoragePath=''>
+                          <Form path=''>
                             <String name='example1' label='Example Tab 2' />
                             <TextArea name='example2' label='Example Tab 2' />
                           </Form>
@@ -989,7 +989,7 @@ function Helper() {
                           >
                             <p>Main content.</p>
                             <hr />
-                            <Form dataStoragePath=''>
+                            <Form path=''>
                               <TextArea name='example' label='Example Tab 3' />
                             </Form>
                           </Card>
@@ -1050,7 +1050,7 @@ function Helper() {
                     </Card>
                     <Card className='mb-3' title='Dynamic Tabs (TabDynamic)'>
                       <h3>Default</h3>
-                      <Form dataStoragePath='' header="TabDynamic Demo">
+                      <Form path='' header="TabDynamic Demo">
                         <TabDynamic name='tabDynamic' min={1} label='Tab'>
                           <String name='example' label='Example Tab 1' />
                         </TabDynamic>
@@ -1090,7 +1090,7 @@ function Helper() {
                         </TabItem>
 
                         <TabItem label='Tab 2'>
-                          <Form dataStoragePath=''>
+                          <Form path=''>
                             <String name='example1' label='Example Tab 2' />
                             <TextArea name='example2' label='Example Tab 2' />
                           </Form>
@@ -1106,7 +1106,7 @@ function Helper() {
                           >
                             <p>Main content.</p>
                             <hr />
-                            <Form dataStoragePath=''>
+                            <Form path=''>
                               <TextArea name='example' label='Example Tab 3' />
                             </Form>
                           </Card>
@@ -1187,7 +1187,7 @@ function Helper() {
                     /* Dynamic Tabs */
                     <Card className='mb-3' title='Dynamic Tabs (TabDynamic)'>
                       /* Default */
-                      <Form dataStoragePath='' header="TabDynamic Demo">
+                      <Form path='' header="TabDynamic Demo">
 
                         <TabDynamic name='tabDynamic' min={1} label='Tab'>
                           <String name='example' label='Example Tab 1' />
@@ -1447,7 +1447,7 @@ function Helper() {
                       <p className="text-muted">
                         A simple form manually composed using standard field components. Suitable when you need full control over layout and fields.
                       </p>
-                      <Form dataStoragePath="/demo/form/manual">
+                      <Form path="/demo/form/manual">
                         <String name="name" label="Name" />
                         <Email name="email" label="Email" />
                         <TextArea name="notes" label="Notes" />
@@ -1465,7 +1465,7 @@ function Helper() {
                     <Code language='jsx' className='h-100 d-flex flex-grow-1 m-0'>
                       {`<Card className="mb-3" title="Basic Form with Manual Fields">
 
-                          <Form dataStoragePath="/demo/form/manual">
+                          <Form path="/demo/form/manual">
                             <String name="name" label="Name" />
                             <Email name="email" label="Email" />
                             <TextArea name="notes" label="Notes" />

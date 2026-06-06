@@ -65,17 +65,17 @@ export abstract class ComponentBlock {
         }
     }
 
-    static default(this: new () => ComponentBlock, options?: { dataStoragePath?: string }): React.FC {
+    static default(this: new () => ComponentBlock, options?: { path?: string }): React.FC {
         const instance = new this();
         instance.verifyRequiredMethods();
         return () => {
             const [fields, defaults] = React.useMemo(() => {
                 return buildFormFields(instance.model);
             }, [instance.model]);
-            
-            
+
+
             return (
-                <Form defaultValues={defaults} dataStoragePath={options?.dataStoragePath}>
+                <Form defaultValues={defaults} path={options?.path}>
                     {instance.form(fields)}
                 </Form>
             );

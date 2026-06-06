@@ -1,4 +1,5 @@
     import React, { createContext, useContext, useEffect, useState, forwardRef, useImperativeHandle, useRef, useCallback, useMemo } from 'react';
+    import { flushSync } from 'react-dom';
 
     import { useLocation } from "react-router-dom";
     import { Wrapper } from "../ui/GridSystem";
@@ -9,7 +10,7 @@
     import setLog from "../../libs/log";
     import { useTheme } from "../../Theme";
     import Alert from "../ui/Alert";
-    import { RecordProps } from "../../providers/data/DataProvider";
+    import { RecordProps, RECORD_KEY } from "../../providers/data/DataProvider";
     import {FormTree, ModelProps, buildFormFields} from "../Component";
     import Breadcrumbs from "../blocks/Breadcrumbs";
     import { UIProps } from '../';
@@ -24,7 +25,7 @@
     }
     export type FieldOnChange = (params: {event: ChangeHandler, name: string, value: any, record: RecordProps, onChange: FormHandleChange}) => void;
     export type InputType = "text" | "number" | "email" | "password" | "color" | "date" | "time" | "datetime-local" | "week" | "month" | "range" | "checkbox" | "radio" | "url" ;
-    
+
     interface FormContextProps {
         name: string;
         onChange?: FieldOnChange;
@@ -164,26 +165,12 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
         const nextRecord = applyChangeToRecord(sourceRecord ?? ctx.record, event, inputType);
         return nextRecord;
     }
-/*
-        const currentValue = name.split(".").reduce((acc, key) => acc?.[key], ctx.record);
-        if (!initialized.current && currentValue === undefined && defaultValue !== undefined) {
-            console.log("FORM defaultValue!!!!!!!!!!!!", name, defaultValue);
-            formChange({ target: { name, value: defaultValue } });
-            initialized.current = true;
-        }
-
-        const value = currentValue ?? defaultValue;
-*/
 
         const value = useMemo(() => {
             const currentValue = name.split(".").reduce((acc, key) => (acc === undefined ? undefined : acc[key]), ctx.record);
-            //if (!initialized.current) {
-               // initialized.current = true;
                 if (currentValue === undefined && defaultValue !== undefined) {
-                    //formChange({ target: { name, value: defaultValue } });
                     return defaultValue ?? '';
                 }
-            //}
             return currentValue ?? '';
         }, [name, ctx.record, defaultValue]);
 
@@ -222,13 +209,13 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
         return React.useCallback(
           (e: React.DragEvent<HTMLTextAreaElement | HTMLInputElement>) => {
             e.preventDefault();
-      
+
             const target = e.target as HTMLTextAreaElement | HTMLInputElement;
             const raw = e.dataTransfer.getData("text/plain");
             const text = `${raw}`;
-      
+
             target.focus();
-      
+
             // Calcola posizione caret
             const caretPosition = (() => {
               const position =
@@ -238,22 +225,22 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
                 ? position.offset
                 : target.value.length;
             })();
-      
+
             // Crea nuovo valore
             const newValue =
               (value ?? "").slice(0, caretPosition) +
               text +
               (value ?? "").slice(caretPosition);
-      
+
             // Notifica onChange
-      
+
             handleChange?.({
               target: {
                 value: newValue.trim(),
                 name,
               },
             });
-      
+
             // Posiziona il cursore dopo il testo inserito
             requestAnimationFrame(() => {
               const newPosition = caretPosition + text.length;
@@ -277,7 +264,7 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
 
         return `${parentName}.${name.slice(lastDot + 1)}`;
     }
-    
+
     export const setFormFieldsName = ({children, parentName, parentKey, wrapClass}: SetFormFieldsNameProps): React.ReactNode => {
         return React.Children.map(children, (child) => {
             if (!parentName || !React.isValidElement(child)) return child;
@@ -306,19 +293,14 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
             }
             if (childChildren) {
                 newProps.children   = setFormFieldsName({
-                    children: childChildren, 
-                    parentName, 
+                    children: childChildren,
+                    parentName,
                     parentKey,
                 });
             }
 
             return React.cloneElement(child as any, newProps);
         });
-    }
-
-    export type SavePathProps = {
-        record: RecordProps;
-        storagePath?: string;
     }
 
     export type FormSaveArgs = {
@@ -345,10 +327,9 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
         aspect?: "card" | "empty";
         header?: React.ReactNode;
         footer?: React.ReactNode;
-        dataStoragePath?: string;
+        path?: string;
         handlers?: FormHandlers;
-        setPrimaryKey?: (record: RecordProps) => string;
-        savePath?: (props: SavePathProps) => string | undefined;
+        keyGenerator?: (record: RecordProps) => string;
         onLoad?: (record: RecordProps) => void;
         onChange?: (record: RecordProps) => void;
         onSave?: FormSaveHandler;
@@ -368,7 +349,7 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
     }
 
     interface FormDatabaseProps extends FormDefaultProps {
-        dataStoragePath: string;
+        path: string;
     }
     interface FormModelProps extends BaseFormProps {
         model: ModelProps;
@@ -393,46 +374,43 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
 
     function Form(props: FormProps, ref?: React.Ref<FormRef>) {
         const location = useLocation();
-        const { dataStoragePath, setPrimaryKey, handlers, defaultValues, children, ...rest } = props;
+        const { path, keyGenerator, handlers, defaultValues, children, ...rest } = props;
 
-        const genStoragePath = (record: RecordProps) => {
-            return `${dataStoragePath ?? trimSlash(location.pathname)}/${setPrimaryKey?.(record) ?? Date.now()}`;
-        };
-        const getStoragePath = (dataStoragePath: string | undefined) => (
-            dataStoragePath ?? (location.hash 
-                ? `${trimSlash(location.pathname)}/${location.hash.slice(1)}` 
+        const getDbPath = (p: string | undefined) => (
+            p ?? (location.hash
+                ? `${trimSlash(location.pathname)}/${location.hash.slice(1)}`
                 : undefined)
         );
 
-        const dbStoragePath = getStoragePath(dataStoragePath);
-        const savePath = ({record, storagePath}: SavePathProps) => storagePath ?? genStoragePath(record);
+        const dbPath = getDbPath(path);
 
-        return defaultValues || !dbStoragePath || (handlers && !dataStoragePath)
-            ? <FormData children={children} defaultValues={defaultValues} handlers={handlers} savePath={savePath} dataStoragePath={dbStoragePath} {...rest} ref={ref} />
-            : <FormDatabase children={children} defaultValues={defaultValues} handlers={handlers} savePath={savePath} dataStoragePath={dbStoragePath} {...rest} ref={ref} />;
+        // keyGenerator → always FormData (create mode, no DB read).
+        return defaultValues || !dbPath || keyGenerator || (handlers && !path)
+            ? <FormData children={children} defaultValues={defaultValues} handlers={handlers} path={path} keyGenerator={keyGenerator} {...rest} ref={ref} />
+            : <FormDatabase children={children} defaultValues={defaultValues} handlers={handlers} path={dbPath} keyGenerator={keyGenerator} {...rest} ref={ref} />;
     }
 
     export const FormDatabase = forwardRef<FormRef, FormDatabaseProps>((props, ref) => {
-        const { dataStoragePath, defaultValues, ...rest } = props;
+        const { path, defaultValues, ...rest } = props;
         const db = useDataProvider();
 
         const [record, setRecord] = useState<RecordProps | undefined>(undefined);
 
         useEffect(() => {
-            db.read(dataStoragePath).then(data => {
+            db.read(path).then(data => {
                 setRecord({ ...defaultValues, ...data});
             }).catch(error => {
                 console.error(error);
                 setRecord({});
             });
-        }, [dataStoragePath]);
-        
+        }, [path]);
+
 
         if (!record) {
-            return <p className={"p-4"}><span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />Caricamento in corso...</p>;
+            return <p className={"p-4"}><span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />Loading…</p>;
         }
 
-        return <FormData {...rest} defaultValues={record} dataStoragePath={dataStoragePath} ref={ref} />;
+        return <FormData {...rest} defaultValues={record} path={path} ref={ref} />;
     });
 
     type NoticeProps = {
@@ -445,10 +423,10 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
         aspect = undefined,
         header = undefined,
         footer = undefined,
-        dataStoragePath = undefined,
+        path = undefined,
         handlers = undefined,
         defaultValues = undefined,
-        savePath = undefined,
+        keyGenerator = undefined,
         onLoad = undefined,
         onChange = undefined,
         onSave = undefined,
@@ -466,7 +444,7 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
         const db = useDataProvider();
 
         const [record, setRecord] = useState<RecordProps | undefined>(defaultValues);
-        const isNewRecord = !dataStoragePath;
+        const isNewRecord = !defaultValues?.[RECORD_KEY];
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
         useEffect(()=>{
@@ -475,13 +453,13 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
                 onLoad?.({...defaultValues});
             }
         }, [JSON.stringify(defaultValues)]);
-        
+
         const recordRef = useRef(record);
         useEffect(() => {
             recordRef.current = record;
             if (record !== undefined) onChange?.(record);
         }, [record]);
-        
+
 
         const [notification, setNotification] = useState<NoticeProps | undefined>(undefined);
         const notice = useCallback(({ message, type = "danger" }: NoticeProps) => {
@@ -492,6 +470,7 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
 
         const [errors, setErrors] = useState<Record<string, string>>({});
         const fieldRefs = useRef<Record<string, React.MutableRefObject<FieldValidationConstraints>>>({});
+        const containerRef = useRef<HTMLFormElement>(null);
 
         const registerField = useCallback((name: string, ref: React.MutableRefObject<FieldValidationConstraints>) => {
             fieldRefs.current[name] = ref;
@@ -536,78 +515,80 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
             if (Object.keys(newErrors).length > 0) {
                 const firstName = Object.keys(newErrors)[0];
                 requestAnimationFrame(() => {
-                    const inputs = document.querySelectorAll<HTMLElement>('[name]');
-                    for (const input of Array.from(inputs)) {
-                        if (input.getAttribute('name') === firstName) {
-                            input.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                            input.focus?.();
-                            break;
-                        }
-                    }
+                    containerRef.current
+                        ?.querySelector<HTMLElement>(`[name="${CSS.escape(firstName)}"]`)
+                        ?.focus();
                 });
             }
             return Object.keys(newErrors).length === 0;
         }, []);
 
-        
+        // Builds the DB write path from the collection path and record key.
+        // For existing records: strips trailing record-ID segment if already in path,
+        // then appends the key — handles both /users and /users/user_001 as input.
+        const computeSavePath = useCallback((rec: RecordProps): string | undefined => {
+            if (!path) return undefined;
+            const base = trimSlash(path);
+            if (isNewRecord) {
+                const key = keyGenerator?.(rec) ?? Date.now().toString();
+                return `/${base}/${key}`;
+            }
+            const key = rec[RECORD_KEY];
+            if (!key) return path;
+            const segments = base.split('/').filter(Boolean);
+            const parent = segments[segments.length - 1] === key
+                ? segments.slice(0, -1).join('/')
+                : base;
+            return `/${parent}/${key}`;
+        }, [path, keyGenerator, isNewRecord]);
+
 
         const handleSave = useCallback(async (e: React.MouseEvent<HTMLButtonElement>): Promise<boolean> => {
             e.preventDefault();
-                    
-            showNotice && setNotification(undefined);
+
+            flushSync(() => {
+                setErrors({});
+                showNotice && setNotification(undefined);
+            });
             if (!validateFields()) {
                 showNotice && setNotification({ message: theme.Form.i18n.noticeRequiredFields, type: "warning" });
                 return false;
             }
             const action = isNewRecord ? "create" : "update";
-            /*const recordStoragePath = onSave 
-                ? await onSave({
-                    record: recordRef.current, 
-                    prevRecord: defaultValues,
-                    action: action, 
-                    storagePath: dataStoragePath
-                }) ?? dataStoragePath
-                : savePath 
-                    ? savePath?.({record: recordRef.current ?? {}, storagePath: dataStoragePath})
-                    : dataStoragePath;
-*/
+
             const recordStoragePath =
                 (onSave && await onSave({
                     record: recordRef.current,
                     prevRecord: defaultValues,
                     action,
-                    storagePath: dataStoragePath,
+                    storagePath: path,
                 }))
-                ?? savePath?.({
-                    record: recordRef.current ?? {},
-                    storagePath: dataStoragePath,
-                })
-                ?? dataStoragePath;
+                ?? computeSavePath(recordRef.current ?? {});
 
             recordStoragePath && await db.set(recordStoragePath, cleanRecord(recordRef.current));
             return await handleFinally(action);
-        }, [dataStoragePath, onSave, onFinally, showNotice, savePath, validateFields]);
+        }, [path, onSave, onFinally, showNotice, computeSavePath, validateFields]);
 
         const handleDelete = useCallback(async (e: React.MouseEvent<HTMLButtonElement>) => {
             e.preventDefault();
-            
+
             showNotice && setNotification(undefined);
 
-            const recordStoragePath = onDelete 
-                ? await onDelete({record: recordRef.current})
-                : savePath?.({record: recordRef.current ?? {}, storagePath: dataStoragePath}) ?? dataStoragePath;
+            const recordStoragePath =
+                (onDelete && await onDelete({ record: recordRef.current }))
+                ?? computeSavePath(recordRef.current ?? {});
 
             recordStoragePath && await db.remove(recordStoragePath);
             return await handleFinally("delete");
-        }, [dataStoragePath, onDelete, onFinally, showNotice, savePath]);
+        }, [path, onDelete, onFinally, showNotice, computeSavePath]);
 
         const handleFinally = useCallback(async (action: 'create' | 'update' | 'delete') => {
-            log && dataStoragePath && setLog(dataStoragePath, action, recordRef.current);
+            log && path && setLog(path, action, recordRef.current);
 
-            notice({ message: `Record ${action}ed successfully`, type: "success" });
+            notice({ message: `Record ${action}d successfully`, type: "success" });
 
             return (await onFinally?.({record: recordRef.current, action})) ?? true;
-        }, [log, dataStoragePath, onFinally, notice]);
+        }, [log, path, onFinally, notice]);
 
         useImperativeHandle(ref, () => ({
             handleSave: handlers?.handleSave ?? handleSave,
@@ -633,19 +614,31 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
         );
 
 
+        const notificationEl = notification && (
+            <Alert
+                type={notification.type}
+                appearance="text"
+                timeout={notification.type === 'success' ? 3000 : undefined}
+                onClose={notification.type === 'success' ? () => setNotification(undefined) : undefined}
+            >
+                {notification.message}
+            </Alert>
+        );
+
         const displayComponent = useMemo(() => {
-            if(!aspect && ref) return components;
+            if(!aspect && ref) return <>{components}{notificationEl}</>;
 
             switch (aspect) {
                 case "empty":
-                    return components;
+                    return <>{components}{notificationEl}</>;
                 case "card":
                 default:
                     return <Card
-                        header={header || <Breadcrumbs rootItem={(isNewRecord ? theme.Form.i18n.headerAdd : theme.Form.i18n.headerEdit)} trail={dataStoragePath || undefined} />}
-                        footer={(footer || !isNewRecord || onSave || onDelete || showBack) && <>
+                        header={header || <Breadcrumbs rootItem={(isNewRecord ? theme.Form.i18n.headerAdd : theme.Form.i18n.headerEdit)} trail={path || undefined} />}
+                        footer={(footer || !isNewRecord || onSave || onDelete || showBack || !!path) && <>
                             {footer}
-                            {(onSave || !isNewRecord) && <LoadingButton
+                            {notificationEl}
+                            {(onSave || !!path || !isNewRecord) && <LoadingButton
                                 className={theme.Form.buttonSaveClass}
                                 label={theme.Form.i18n.buttonSave}
                                 onClick={e => handleSave(e)}
@@ -667,20 +660,17 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
                         {components}
                     </Card>;
             }
-        }, [aspect, header, footer, onSave, onDelete, showBack, record, components, ref]);
+        }, [aspect, header, footer, onSave, onDelete, showBack, record, components, ref, notificationEl]);
 
         return (
             <Wrapper className={wrapClass || theme.Form.wrapClass}>
-                {notification && (
-                    <Alert type={notification.type} onClose={()=>setNotification(undefined)}>
-                        {notification.message}
-                    </Alert>
-                )}
-                {displayComponent}
+                <form ref={containerRef} noValidate onSubmit={e => e.preventDefault()}>
+                    {displayComponent}
+                </form>
             </Wrapper>
         )
     });
-    
+
     export function FormModel({
                                 model,
                                 children,
@@ -693,18 +683,18 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
         }, [model]);
 
         const location = useLocation();
-        const getStoragePath = (dataStoragePath: string | undefined) => (
-            dataStoragePath ?? (location.hash 
-                ? `${trimSlash(location.pathname)}/${location.hash.slice(1)}` 
+        const getDbPath = (p: string | undefined) => (
+            p ?? (location.hash
+                ? `${trimSlash(location.pathname)}/${location.hash.slice(1)}`
                 : undefined)
         );
 
         console.log("formnodel nodes", children && children(fields));
-        const dataStoragePath = getStoragePath(formProps.dataStoragePath);
-        if (!dataStoragePath) return null;
+        const dbPath = getDbPath(formProps.path);
+        if (!dbPath) return null;
 
         return (
-            <FormDatabase dataStoragePath={dataStoragePath} defaultValues={defaults} {...formProps}>
+            <FormDatabase path={dbPath} defaultValues={defaults} {...formProps}>
                 {children && children(fields)}
             </FormDatabase>
 

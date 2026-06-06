@@ -36,6 +36,7 @@ import {
     OrderClause,
     Condition,
     OperatorValue,
+    RECORD_KEY,
 } from "./DataProvider";
 import type { ProviderConfigurationState } from "../ProviderConfiguration";
 
@@ -331,8 +332,8 @@ export class FirebaseDataProvider implements DataProviderAdapter {
                 if (!fieldMap) {
                     const records = entries.map(([key, value], index) => (
                         typeof value === "object" && value !== null
-                            ? { _index: index, _key: key, ...value }
-                            : { _index: index, _key: key, [SYSTEM_FIELDS.value]: value }
+                            ? { _index: index, [RECORD_KEY]: key, ...value }
+                            : { _index: index, [RECORD_KEY]: key, [SYSTEM_FIELDS.value]: value }
                     )) as T[];
                     setRecords(records);
                     return;
@@ -352,7 +353,7 @@ export class FirebaseDataProvider implements DataProviderAdapter {
                             : field === SYSTEM_FIELDS.value ? value
                             : source[field];
                     }
-                    return { _key: key, _index: index, ...mapped } as T;
+                    return { [RECORD_KEY]: key, _index: index, ...mapped } as T;
                 });
                 setRecords(records);
             };

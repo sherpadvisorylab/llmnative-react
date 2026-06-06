@@ -177,9 +177,9 @@ export const components: Theme = {
             },
         },
         i18n: {
-            headerAdd: 'Aggiungi',
-            headerEdit: 'Modifica',
-            buttonAdd: 'Aggiungi',
+            headerAdd: 'Add',
+            headerEdit: 'Edit',
+            buttonAdd: 'Add',
         },
     },
     Table: {
@@ -332,16 +332,16 @@ export const components: Theme = {
         Card: {
             headerClass: '',
             bodyClass: '',
-            footerClass: 'text-right',
+            footerClass: 'flex items-center justify-end gap-3',
         },
         i18n: {
-            headerAdd: 'Aggiungi',
-            headerEdit: 'Modifica',
-            headerNewRecord: 'Nuovo Record',
-            buttonSave: 'Salva',
-            buttonDelete: 'Elimina',
-            buttonBack: 'Indietro',
-            noticeRequiredFields: 'Per favore, compila tutti i campi obbligatori',
+            headerAdd: 'Add',
+            headerEdit: 'Edit',
+            headerNewRecord: 'New Record',
+            buttonSave: 'Save',
+            buttonDelete: 'Delete',
+            buttonBack: 'Back',
+            noticeRequiredFields: 'Please fill in all required fields',
         },
     },
     Menu: {

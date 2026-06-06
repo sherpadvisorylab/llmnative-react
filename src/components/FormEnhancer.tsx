@@ -7,14 +7,14 @@ type FormProps = {
     name?: string;
     value?: any;
     onChange?: (event: ChangeHandler) => void;
-    dataStoragePath?: string;
+    path?: string;
 };
 
 interface EnhancerProps {
     record?: RecordProps;
     handleChange?: (event: ChangeHandler) => void;
     parentName?: string;
-    dataStoragePath?: string;
+    path?: string;
     formRef?: React.Ref<FormRef>;
     wrapClass?: string;
 }
@@ -56,7 +56,7 @@ const applyOnChangeRecursive = ({
                                     record,
                                     handleChange,
                                     parentName = undefined,
-                                    dataStoragePath = undefined,
+                                    path = undefined,
                                     formRef = undefined,
                                     wrapClass = undefined
                                 }: ApplyOnChangeProps): React.ReactNode => {
@@ -80,7 +80,7 @@ const applyOnChangeRecursive = ({
                 wrapClass: `${wrapClass}${props.wrapClass ? ' ' + props.wrapClass : ''}`,
                 name: parentName ? `${parentName}.${name}` : name,
                 value: record?.[name] ?? record ?? props.value ?? undefined,
-                dataStoragePath: props.dataStoragePath ?? dataStoragePath ?? undefined,
+                path: props.path ?? path ?? undefined,
                 onChange,
                 ...(checkForwardRef(type) ? {ref: formRef} : {}),
             });
@@ -93,7 +93,7 @@ const applyOnChangeRecursive = ({
                     record,
                     handleChange,
                     parentName,
-                    dataStoragePath,
+                    path,
                     formRef,
                     wrapClass
                 }),
@@ -125,7 +125,7 @@ const FormEnhancer = ({
                                record,
                                handleChange,
                                parentName = undefined,
-                               dataStoragePath = undefined,
+                               path = undefined,
                                formRef = undefined,
                                wrapClass = 'mb-3'
 }: FormEnhancerProps ) => {
@@ -133,7 +133,7 @@ const FormEnhancer = ({
 
     return (
         <>
-            {applyOnChangeRecursive({children, record, handleChange, parentName, dataStoragePath, formRef, wrapClass})}
+            {applyOnChangeRecursive({children, record, handleChange, parentName, path, formRef, wrapClass})}
         </>
     );
 }

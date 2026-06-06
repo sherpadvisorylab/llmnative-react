@@ -117,7 +117,7 @@ const ModalDefault = ({
             titleClass: cn("text-lg font-semibold leading-none", titleClass || theme.Modal.titleClass),
             subTitleClass: cn("mt-1 text-sm text-muted-foreground", subTitleClass || theme.Modal.subTitleClass),
             bodyClass: cn("min-h-0 flex-1 overflow-auto p-4", bodyClass || theme.Modal.bodyClass),
-            footerClass: cn("flex items-center justify-end gap-2 border-t px-4 py-3", footerClass || theme.Modal.footerClass),
+            footerClass: cn("flex items-center justify-end gap-3 border-t px-4 py-3", footerClass || theme.Modal.footerClass),
         },
         top: {
             coverClass: "fixed inset-0 z-50",
@@ -127,7 +127,7 @@ const ModalDefault = ({
             titleClass: cn("text-lg font-semibold leading-none", titleClass || theme.Modal.titleClass),
             subTitleClass: cn("mt-1 text-sm text-muted-foreground", subTitleClass || theme.Modal.subTitleClass),
             bodyClass: cn("min-h-0 flex-1 overflow-auto p-4", bodyClass || theme.Modal.bodyClass),
-            footerClass: cn("flex items-center justify-end gap-2 border-t px-4 py-3", footerClass || theme.Modal.footerClass),
+            footerClass: cn("flex items-center justify-end gap-3 border-t px-4 py-3", footerClass || theme.Modal.footerClass),
         },
         left: {
             coverClass: "fixed inset-0 z-50",
@@ -137,7 +137,7 @@ const ModalDefault = ({
             titleClass: cn("text-lg font-semibold leading-none", titleClass || theme.Modal.titleClass),
             subTitleClass: cn("mt-1 text-sm text-muted-foreground", subTitleClass || theme.Modal.subTitleClass),
             bodyClass: cn("min-h-0 flex-1 overflow-auto p-4", bodyClass || theme.Modal.bodyClass),
-            footerClass: cn("flex items-center justify-end gap-2 border-t px-4 py-3", footerClass || theme.Modal.footerClass),
+            footerClass: cn("flex items-center justify-end gap-3 border-t px-4 py-3", footerClass || theme.Modal.footerClass),
         },
         right: {
             coverClass: "fixed inset-0 z-50",
@@ -147,7 +147,7 @@ const ModalDefault = ({
             titleClass: cn("text-lg font-semibold leading-none", titleClass || theme.Modal.titleClass),
             subTitleClass: cn("mt-1 text-sm text-muted-foreground", subTitleClass || theme.Modal.subTitleClass),
             bodyClass: cn("min-h-0 flex-1 overflow-auto p-4", bodyClass || theme.Modal.bodyClass),
-            footerClass: cn("flex items-center justify-end gap-2 border-t px-4 py-3", footerClass || theme.Modal.footerClass),
+            footerClass: cn("flex items-center justify-end gap-3 border-t px-4 py-3", footerClass || theme.Modal.footerClass),
         },
         bottom: {
             coverClass: "fixed inset-0 z-50",
@@ -157,7 +157,7 @@ const ModalDefault = ({
             titleClass: cn("text-lg font-semibold leading-none", titleClass || theme.Modal.titleClass),
             subTitleClass: cn("mt-1 text-sm text-muted-foreground", subTitleClass || theme.Modal.subTitleClass),
             bodyClass: cn("min-h-0 flex-1 overflow-auto p-4", bodyClass || theme.Modal.bodyClass),
-            footerClass: cn("flex items-center justify-end gap-2 border-t px-4 py-3", footerClass || theme.Modal.footerClass),
+            footerClass: cn("flex items-center justify-end gap-3 border-t px-4 py-3", footerClass || theme.Modal.footerClass),
         }
     }
 

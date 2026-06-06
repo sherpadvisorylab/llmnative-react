@@ -1,4 +1,5 @@
 import { useCallback, useRef } from 'react';
+import { RECORD_KEY } from '../../providers/data/DataProvider';
 
 type RecordWithOptionalKey = {
     _key?: string;
@@ -9,7 +10,7 @@ export function useStableRecordKey<TRecord extends RecordWithOptionalKey>(prefix
     const keyCounter = useRef(0);
 
     return useCallback((record: TRecord, _index?: number) => {
-        if (record._key) return record._key;
+        if (record[RECORD_KEY]) return record[RECORD_KEY];
 
         const cacheKey = record as object;
         const existingKey = generatedKeys.current.get(cacheKey);

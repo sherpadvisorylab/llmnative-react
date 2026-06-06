@@ -252,12 +252,7 @@ function useGridActions<TRecord extends RecordProps>({
                         if (success) close();
                         return success;
                     }}
-                    savePath={({ record }) => {
-                        if (!sourcePath) return undefined;
-                        const recordToSave = record as TRecord;
-                        const nextKey = getRecordKey(recordToSave) || `${Date.now()}`;
-                        return `${sourcePath}/${nextKey}`;
-                    }}
+                    path={sourcePath}
                     ref={(ref) => { formRef.current = ref ?? undefined; }}
                 >
                     {formNode}
@@ -279,7 +274,7 @@ function useGridActions<TRecord extends RecordProps>({
         activeAction,
         activeActionConfig,
         activeActionBody,
-        activeKey: activeAction?.actionKey === "edit" && activeAction.record ? getRecordKey(activeAction.record) : undefined,
+        activeKey: activeAction?.actionKey === "edit" && activeAction.record ? getRecordKey(activeAction.record) : null,
         runAction,
         runModalAction,
         close,

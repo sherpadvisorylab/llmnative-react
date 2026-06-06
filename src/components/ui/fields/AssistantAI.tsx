@@ -71,10 +71,10 @@ const getResponseContent = (response: ResponseItem, viewMode: 'list' | 'carousel
         } else if ('Description' in response) {
             return response.Description;
         }
-        return '[Nessun valore]';
+        return '[No value]';
     } else {
         const firstValue = Object.values(response).find(value => typeof value === 'string');
-        return (firstValue as string) ?? '[Nessun valore]';
+        return (firstValue as string) ?? '[No value]';
     }
 }
 

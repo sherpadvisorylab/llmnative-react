@@ -229,7 +229,7 @@ function Table({
     }, [draggedKey, dropIndicator?.position, getRecordKey, onReorder, sortedBody]);
 
     if (sortedBody.length === 0) {
-        return <p className={"p-4"}>Nessun dato trovato</p>;
+        return <p className={"p-4"}>No data found</p>;
     }
 
     const headers: TableHeaderProp[] = header || Object.keys(sortedBody[0]).map((key) => ({ key, label: key, sort: sortingEnabled }));

@@ -35,6 +35,7 @@ import {
     OrderClause,
     Condition,
     OperatorValue,
+    RECORD_KEY,
 } from './DataProvider';
 import type { ProviderConfigurationState } from '../ProviderConfiguration';
 import { converter } from '../../libs/converter';
@@ -120,7 +121,7 @@ const snapshotToRecordArray = (
 ): RecordArray => {
     if (!fieldMap) {
         return snap.docs.map((d, i) => ({
-            _key:   d.id,
+            [RECORD_KEY]: d.id,
             _index: i,
             ...d.data(),
         }));
@@ -138,12 +139,12 @@ const snapshotToRecordArray = (
                     ? d.id
                     : source[field];
         }
-        return { _key: d.id, _index: i, ...mapped };
+        return { [RECORD_KEY]: d.id, _index: i, ...mapped };
     });
 };
 
 const recordArrayToObject = (records: RecordArray): RecordObject =>
-    Object.fromEntries(records.map(r => [r._key!, r]));
+    Object.fromEntries(records.map(r => [r[RECORD_KEY]!, r]));
 
 // ── Provider class ────────────────────────────────────────────────────────────
 
@@ -183,7 +184,7 @@ export class FirestoreDataProvider implements DataProviderAdapter {
                     return undefined;
                 }
                 consoleLog(`Info: Document found in Firestore at ${path}`);
-                return { _key: snap.id, ...snap.data() };
+                return { [RECORD_KEY]: snap.id, ...snap.data() };
             }
 
             const constraints = buildConstraints(where, order);
@@ -295,7 +296,7 @@ export class FirestoreDataProvider implements DataProviderAdapter {
                 // Single-document listener
                 return onSnapshot(doc(db, np), (snap) => {
                     if (!snap.exists()) { setRecords([]); return; }
-                    setRecords([{ _key: snap.id, _index: 0, ...snap.data() } as T]);
+                    setRecords([{ [RECORD_KEY]: snap.id, _index: 0, ...snap.data() } as T]);
                 }, (err) => console.error('Firestore onSnapshot error:', err));
             }
 
@@ -312,7 +313,7 @@ export class FirestoreDataProvider implements DataProviderAdapter {
                     const asObject = recordArrayToObject(records);
                     const transformed = onLoad(asObject);
                     const out = Object.entries(transformed).map(([key, val], i) => ({
-                        _key: key,
+                        [RECORD_KEY]: key,
                         _index: i,
                         ...(typeof val === 'object' && val !== null ? val : {}),
                     })) as T[];

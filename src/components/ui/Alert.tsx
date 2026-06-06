@@ -9,17 +9,38 @@ import Icon from './Icon';
 type AlertProps = {
     children: string | React.ReactNode;
     type?: "info" | "success" | "warning" | "danger" | "primary" | "secondary" | "light" | "dark";
-    isFixed?: "top" | "bottom";
+    /** Visual shell:
+     *  - `"default"` — full alert box with background and border (default)
+     *  - `"text"` — no background, no border, width fits content; ideal for inline status indicators
+     */
+    appearance?: "default" | "text";
+    /** Rendering mode:
+     *  - `"inline"` (default) — renders where declared, normal document flow
+     *  - `"fixed"` — portal to document.body, viewport-fixed above all other content
+     */
+    placement?: "inline" | "fixed";
     timeout?: number;
     onClose?: () => void;
     icon?: string | boolean;
     className?: string;
 } & UIProps;
 
+const TEXT_COLORS: Record<string, string> = {
+    info:      'text-blue-600',
+    success:   'text-green-600',
+    warning:   'text-yellow-600',
+    danger:    'text-red-600',
+    primary:   'text-primary',
+    secondary: 'text-secondary',
+    light:     'text-gray-400',
+    dark:      'text-gray-800',
+};
+
 const Alert = ({
     children,
     type = "info",
-    isFixed = undefined,
+    appearance = "default",
+    placement = "inline",
     timeout = undefined,
     onClose = undefined,
     icon = true,
@@ -51,31 +72,62 @@ const Alert = ({
             const timer = setTimeout(() => {
                 onClose();
             }, duration);
-
             return () => clearTimeout(timer);
         }
     }, [onClose, timeout]);
 
-    const renderAlert = () => (
+    if (appearance === 'text') {
+        return (
+            <span
+                role="status"
+                className={cn(
+                    "inline-flex items-center gap-1 text-sm font-medium",
+                    TEXT_COLORS[type] ?? 'text-foreground',
+                    className
+                )}
+            >
+                {iconName && <Icon name={iconName} size={14} className="shrink-0" />}
+                {children}
+            </span>
+        );
+    }
+
+    const alertEl = (
+        <div
+            role="alert"
+            className={cn(
+                "alert alert-" + type,
+                className || theme.Alert.className,
+                placement === 'fixed' && "w-full rounded-none border-x-0 shadow-md"
+            )}
+        >
+            {iconName && <Icon name={iconName} size={16} className="shrink-0" />}
+            {children}
+        </div>
+    );
+
+    if (placement === 'fixed') {
+        const container = (() => {
+            const id = '__alert-portal-fixed__';
+            let el = document.getElementById(id);
+            if (!el) {
+                el = document.createElement('div');
+                el.id = id;
+                el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;width:100%';
+                document.body.appendChild(el);
+            }
+            return el;
+        })();
+        return createPortal(alertEl, container);
+    }
+
+    return (
         <Wrapper className={wrapClass}>
             {pre}
-            <div
-                role="alert"
-                className={cn(
-                    "alert alert-" + type,
-                    className || theme.Alert.className,
-                    isFixed && "fixed left-1/2 z-[1100] w-[calc(100%-2rem)] max-w-3xl -translate-x-1/2 shadow-lg"
-                )}
-                style={isFixed ? { [isFixed]: 50 } : undefined}
-            >
-                {iconName && <Icon name={iconName} size={16} className="shrink-0" />}
-                {children}
-            </div>
+            {alertEl}
             {post}
         </Wrapper>
     );
-
-    return isFixed ? createPortal(renderAlert(), document.body) : renderAlert();
 }
 
 export default Alert;

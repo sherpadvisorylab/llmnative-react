@@ -1,4 +1,4 @@
-import { DataProviderAdapter, DatabaseOptions, ReadOptions, RecordArray, RecordProps } from "./DataProvider";
+import { DataProviderAdapter, DatabaseOptions, ReadOptions, RecordArray, RecordProps, RECORD_KEY } from "./DataProvider";
 import {
     createConfigurationState,
     getMissingKeys,
@@ -97,7 +97,7 @@ export class SupabaseDataProvider implements DataProviderAdapter {
                 },
             });
             const data: any[] = await res.json();
-            setRecords(data.map((r, i) => ({ ...r, _key: String(r.id ?? i), _index: i })));
+            setRecords(data.map((r, i) => ({ ...r, [RECORD_KEY]: String(r.id ?? i), _index: i })));
         };
         void poll();
         const interval = setInterval(poll, 5000);
