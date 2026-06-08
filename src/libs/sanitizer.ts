@@ -37,8 +37,8 @@ export const NORMALIZE_MAP: Record<string, string> = {
   "﹢": "+",
   "－": "-",
   "﹣": "-",
-  "–": "-",
-  "—": "-",
+  "\u2013": "-",
+  "\u2014": "-",
 
   // Symbols
   "＠": "@",

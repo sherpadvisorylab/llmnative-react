@@ -53,10 +53,10 @@ const BREADCRUMBS_PROPS: PropDef[] = [
         name: 'trail',
         type: 'string | BreadcrumbItem[]',
         description: 'The breadcrumb trail. Pass a URL string to auto-parse into segments, or a BreadcrumbItem[] for explicit control. Falls back to the current route when omitted.',
-        shape: `// URL string — segments become links, last segment is current page
+        shape: `// URL string - segments become links, last segment is current page
 string
 
-// Explicit list — full control over labels and links
+// Explicit list - full control over labels and links
 { label: string; href?: string }[]`,
         example: `// URL string
 trail="/products/shoes/sneakers"
@@ -172,7 +172,7 @@ export default function BreadcrumbsPage() {
         >
             <Section
                 title="URL string trail"
-                description="Pass a URL string — segments become links, the last segment is the current page."
+                description="Pass a URL string - segments become links, the last segment is the current page."
                 preview={<Breadcrumbs trail="/components/forms/checklist" rootItem={{ label: 'Home', href: '/' }} />}
                 code={`import { Breadcrumbs } from '@llmnative/react';
 
@@ -214,7 +214,7 @@ export default function BreadcrumbsPage() {
 
             <Section
                 title="JSON-LD structured data"
-                description="Enable jsonLd to inject a schema.org BreadcrumbList script tag. baseUrl is used only for the schema — visual links are unaffected."
+                description="Enable jsonLd to inject a schema.org BreadcrumbList script tag. baseUrl is used only for the schema - visual links are unaffected."
                 preview={
                     <div className="space-y-4">
                         <Breadcrumbs trail="/products/shoes" rootItem={{ label: 'Home', href: '/' }} jsonLd baseUrl="https://example.com" />
@@ -241,8 +241,8 @@ export default function BreadcrumbsPage() {
             />
 
             <Section
-                title="buildBreadcrumbSchema — standalone usage"
-                description="Use the exported utility to generate schema.org data independently — for SSR, sitemaps, or custom head injection. stringify: true returns a string ready for dangerouslySetInnerHTML."
+                title="buildBreadcrumbSchema - standalone usage"
+                description="Use the exported utility to generate schema.org data independently - for SSR, sitemaps, or custom head injection. stringify: true returns a string ready for dangerouslySetInnerHTML."
                 code={`import { buildBreadcrumbSchema } from '@llmnative/react';
 import type { BreadcrumbItem } from '@llmnative/react';
 
@@ -252,7 +252,7 @@ const items: BreadcrumbItem[] = [
     { label: 'Sneakers' },
 ];
 
-// Returns JSON string — inject directly without JSON.stringify
+// Returns JSON string - inject directly without JSON.stringify
 const schemaString = buildBreadcrumbSchema({
     items,
     rootItem:  { label: 'Home', href: '/' },
@@ -298,7 +298,7 @@ const schemaString = buildBreadcrumbSchema({
                         name: 'stringify',
                         type: 'boolean',
                         default: 'false',
-                        description: 'When true, returns a JSON string instead of a plain object — ready for dangerouslySetInnerHTML without calling JSON.stringify.',
+                        description: 'When true, returns a JSON string instead of a plain object - ready for dangerouslySetInnerHTML without calling JSON.stringify.',
                     },
                 ]}
             />

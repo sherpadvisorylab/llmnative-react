@@ -90,7 +90,7 @@ const VALIDATOR_PROPS: PropDef[] = [
         name: 'required',
         type: 'boolean',
         default: 'false',
-        description: 'Marks the field as mandatory. The form collects all empty required fields before showing errors — submit is blocked until every required field has a value.',
+        description: 'Marks the field as mandatory. The form collects all empty required fields before showing errors - submit is blocked until every required field has a value.',
     },
     {
         name: 'validator',
@@ -120,13 +120,13 @@ export default function FormValidationPage() {
 
     return (
         <PageLayout
-            title="Form — Validation"
+            title="Form - Validation"
             description="The Form widget collects all invalid fields in a single pass before blocking submit. Required fields and custom validators are both supported. Errors appear inline under each field; they clear as soon as the user starts typing. Clicking Save always clears the previous state immediately before re-validating."
         >
-            {/* ── 1. Create mode — required + validators + notification ─── */}
+            {/* ── 1. Create mode - required + validators + notification ─── */}
             <Section
-                title="Create mode — required fields & validators"
-                description="Click Save without filling anything: all required fields highlight simultaneously. The footer shows a warning notification next to the Save button — it persists until you fix the errors and submit again. Once all fields are valid the notification switches to a success confirmation that auto-dismisses."
+                title="Create mode - required fields & validators"
+                description="Click Save without filling anything: all required fields highlight simultaneously. The footer shows a warning notification next to the Save button - it persists until you fix the errors and submit again. Once all fields are valid the notification switches to a success confirmation that auto-dismisses."
                 preview={
                     <WithMock>
                         <div className="w-full max-w-lg">
@@ -176,9 +176,9 @@ const validatePassword = (v: any) => {
 </Form>`}
             />
 
-            {/* ── 2. Edit mode — save + delete ─────────────────────────── */}
+            {/* ── 2. Edit mode - save + delete ─────────────────────────── */}
             <Section
-                title="Edit mode — save & delete"
+                title="Edit mode - save & delete"
                 description="Pass defaultValues that include a _key field to signal edit mode. The Form sees _key in defaultValues and sets isNewRecord = false, rendering both Save and Delete buttons. path is the collection; the record's _key is appended for writes."
                 preview={
                     <WithMock>
@@ -222,10 +222,10 @@ const validatePassword = (v: any) => {
 </Form>`}
             />
 
-            {/* ── 3. Long form — scroll to first error ─────────────────── */}
+            {/* ── 3. Long form - scroll to first error ─────────────────── */}
             <Section
-                title="Long form — scroll to first error"
-                description="When a form is taller than the viewport, the form automatically scrolls to the first invalid field and focuses it after a failed submit. Scroll to the bottom of this form and click Save — the page jumps back to the first missing field."
+                title="Long form - scroll to first error"
+                description="When a form is taller than the viewport, the form automatically scrolls to the first invalid field and focuses it after a failed submit. Scroll to the bottom of this form and click Save - the page jumps back to the first missing field."
                 preview={
                     <div className="w-full max-w-lg">
                         <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 mb-4">
@@ -293,7 +293,7 @@ const validatePassword = (v: any) => {
 </Form>`}
             />
 
-            {/* ── 4. Form inside modal — all positions ─────────────────── */}
+            {/* ── 4. Form inside modal - all positions ─────────────────── */}
             <Section
                 title="Form inside modal"
                 description="A validated form can live inside a Modal at any position. The modal's Save button delegates to the form's internal handleSave: validation runs, errors appear inline, and the modal closes only when all fields are valid."
@@ -312,7 +312,7 @@ const validatePassword = (v: any) => {
                         {openPosition && (
                             <Modal
                                 key={openPosition}
-                                title={`Contact form — ${openPosition}`}
+                                title={`Contact form - ${openPosition}`}
                                 position={openPosition}
                                 size="md"
                                 closeOnBackdrop

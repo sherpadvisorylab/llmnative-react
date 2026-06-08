@@ -282,7 +282,7 @@ export default function ThemePanel({ open, onClose }: ThemePanelProps) {
                                         <button
                                             key={s.hex}
                                             onClick={() => setTokens({ [key]: s.value, [fgKey]: s.fgValue })}
-                                            title={`${label} — ${s.hex}`}
+                                            title={`${label} - ${s.hex}`}
                                             className={`w-6 h-6 rounded-full border-2 transition-transform hover:scale-110
                                                 ${colors?.[key] === s.value ? 'border-foreground scale-110' : 'border-transparent'}`}
                                             style={{ backgroundColor: s.hex }}
@@ -347,7 +347,7 @@ export default function ThemePanel({ open, onClose }: ThemePanelProps) {
                         ))}
                     </div>
 
-                    {/* Weight picker — only when Phosphor is active */}
+                    {/* Weight picker - only when Phosphor is active */}
                     {iconLibraryId === 'phosphor' && (
                         <div className="mt-3">
                             <p className="text-xs text-muted-foreground mb-2">Weight</p>

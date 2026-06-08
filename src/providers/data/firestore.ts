@@ -275,7 +275,7 @@ export class FirestoreDataProvider implements DataProviderAdapter {
      * - Collection path (/users): subscribes to all matching documents.
      * - Document path (/users/uid): subscribes to a single document.
      *
-     * Returns an unsubscribe function — always call it on component unmount.
+     * Returns an unsubscribe function - always call it on component unmount.
      *
      * Firestore inequality filters on a field require the first orderBy() to be
      * on that same field. Pass `order` accordingly to avoid SDK errors.
@@ -345,7 +345,7 @@ export class FirestoreDataProvider implements DataProviderAdapter {
 
     /**
      * Returns the list of document IDs in a collection without loading document
-     * data — the Firestore equivalent of RTDB's ?shallow=true REST endpoint.
+     * data - the Firestore equivalent of RTDB's ?shallow=true REST endpoint.
      * On a document path, returns the document's field names.
      */
     readShallow = async (path: string, exception = false): Promise<string[]> => {
@@ -379,7 +379,7 @@ export class FirestoreDataProvider implements DataProviderAdapter {
     ): Promise<void> => {
         const db = getDb();
         const np = normalizePath(path);
-        // Firestore writeBatch cap — never exceed 500 ops per commit
+        // Firestore writeBatch cap - never exceed 500 ops per commit
         const batchSize = Math.min(chunkSize, 500);
 
         const commitBatch = async (ops: Array<() => void>) => {

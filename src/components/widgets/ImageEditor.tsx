@@ -71,7 +71,7 @@ const ImageEditor = ({
         const initEditor = async () => {
             const [{ default: TuiImageEditor }] = await Promise.all([
                 import('tui-image-editor'),
-                // @ts-expect-error — CSS module not in TS declarations, loaded as side-effect
+                // @ts-expect-error - CSS module not in TS declarations, loaded as side-effect
                 import('tui-image-editor/dist/tui-image-editor.css'),
             ]);
 
@@ -288,7 +288,7 @@ const ImageEditor = ({
         </>
     );
 
-    // Modal header: title + tools + save in one unified row — Modal provides the border-b
+    // Modal header: title + tools + save in one unified row - Modal provides the border-b
     const ModalHeader = (
         <div className="flex flex-1 min-w-0 items-center gap-0.5 overflow-x-auto">
             <span className="shrink-0 text-sm font-semibold text-foreground pr-2 mr-1">

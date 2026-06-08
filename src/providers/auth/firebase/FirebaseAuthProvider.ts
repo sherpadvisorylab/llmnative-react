@@ -18,7 +18,7 @@ import { getFirebaseConfigurationState, getSafeAuth } from '../../firebase-init'
  *
  * method: 'password' (default) | 'anonymous' | 'oauth'
  * email + password: required when method = 'password'
- * provider: required when method = 'oauth' — e.g. 'github', 'apple', 'microsoft'
+ * provider: required when method = 'oauth' - e.g. 'github', 'apple', 'microsoft'
  *           Note: for Google OAuth use GoogleAuthProvider, not FirebaseAuthProvider.
  */
 export interface FirebaseSignInOptions extends AuthSignInOptions {

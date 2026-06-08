@@ -215,7 +215,7 @@ export class SupabaseDataProvider implements DataProviderAdapter {
                     .upsert(merged, { onConflict: this.pk });
                 if (error) throw error;
             } else {
-                // No id in path — insert as new record
+                // No id in path - insert as new record
                 const { error } = await this.client.from(table).insert(rest);
                 if (error) throw error;
             }
@@ -290,7 +290,7 @@ export class SupabaseDataProvider implements DataProviderAdapter {
                 )
                 .subscribe();
         } catch {
-            // Realtime not available — subscription works with initial fetch only
+            // Realtime not available - subscription works with initial fetch only
         }
 
         return () => {
@@ -339,7 +339,7 @@ export class SupabaseDataProvider implements DataProviderAdapter {
 
         try {
             if (purge) {
-                // Delete all existing rows — use neq trick since Supabase requires a filter
+                // Delete all existing rows - use neq trick since Supabase requires a filter
                 await this.client.from(table).delete().neq(this.pk, '__purge_all__');
             }
 

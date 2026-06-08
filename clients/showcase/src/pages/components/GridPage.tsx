@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import {
     ActionButton,
     Badge,
@@ -913,7 +913,7 @@ const GRID_PROP_DOCS = definePropDocs<GridDocSurface>()([
         name: 'onLoad',
         type: '(records: TRecord[]) => TRecord[] | Promise<TRecord[]>',
         shape: `(records: TRecord[]) => TRecord[] | Promise<TRecord[]>`,
-        description: 'Normalize or enrich records before display. Runs after the provider converts raw data into the typed record array. Supports async â€” Grid shows a spinner while the Promise resolves. Available on both GridDB and GridArray.',
+        description: 'Normalize or enrich records before display. Runs after the provider converts raw data into the typed record array. Supports async — Grid shows a spinner while the Promise resolves. Available on both GridDB and GridArray.',
         category: 'Data',
     },
     {
@@ -1104,10 +1104,10 @@ actions={{
     {
         name: 'selection',
         type: 'false | "single" | "multiple" | GridSelectionConfig<TRecord>',
-        shape: `// string shorthand â€” Grid manages state, no callback
+        shape: `// string shorthand — Grid manages state, no callback
 "single" | "multiple"
 
-// object form â€” initial keys and/or callback
+// object form — initial keys and/or callback
 {
   mode: "single" | "multiple"
   defaultKeys?: string[]
@@ -1435,7 +1435,7 @@ const PLAYGROUND: PlaygroundConfig = {
         [GRID_SOURCE_PATH]: USERS,
     },
     props: [
-        // â”€â”€ Data source â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── Data source ──────────────────────────────────────────────────────
         { name: 'source', type: '"db" | "array"', default: '"db"', description: 'Switch between GridDB (provider-backed, supports where/order) and GridArray (caller-owned records).', control: 'select', options: ['db', 'array'] },
         { name: 'path', type: 'string', description: 'GridDB: DataProvider collection path (fixed to mock in playground).', readOnly: true, hidden: (props) => props.source === 'array' },
         { name: 'fromUrl', type: 'boolean', default: 'false', description: 'GridDB: derive the path from the current route instead.', control: 'boolean', hidden: (props) => props.source === 'array' },
@@ -1503,7 +1503,7 @@ const PLAYGROUND: PlaygroundConfig = {
             hidden: (props) => props.source === 'array',
         },
         { name: 'onLoad', type: '(data) => data', description: 'Provider-side normalization hook for GridDB responses before records are built (GridDB only).', readOnly: true, hidden: (props) => props.source === 'array' },
-        // â”€â”€ Display â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── Display ──────────────────────────────────────────────────────────
         {
             name: 'columns',
             type: 'GridColumn<TRecord>[]',
@@ -1598,7 +1598,7 @@ const PLAYGROUND: PlaygroundConfig = {
             control: 'textarea',
             rows: 2,
         },
-        // â”€â”€ Layout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── Layout ───────────────────────────────────────────────────────────
         { name: 'title', type: 'ReactNode', default: '"Team members"', description: 'Card header title.', control: 'text' },
         {
             name: 'header',
@@ -1630,7 +1630,7 @@ const PLAYGROUND: PlaygroundConfig = {
                 { label: 'text', value: '4 records loaded', help: 'Static text footer example.' },
             ],
         },
-        // â”€â”€ Actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── Actions ──────────────────────────────────────────────────────────
         {
             name: 'actions',
             type: '("add" | "edit" | "delete")[] | Record<string, GridAction>',
@@ -1654,12 +1654,12 @@ const PLAYGROUND: PlaygroundConfig = {
             ],
         },
         { name: 'form', type: 'ReactElement | ((ctx) => ReactNode)', description: 'Add/edit form. Grid wraps it in Form automatically for add and edit actions.', readOnly: true },
-        // â”€â”€ Behavior â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── Behavior ─────────────────────────────────────────────────────────
         {
             name: 'selection',
             type: 'false | "single" | "multiple" | GridSelectionConfig<TRecord>',
             default: false,
-            description: 'Selection mode. The playground wires onChange automatically â€” the payload is shown below the grid when active.',
+            description: 'Selection mode. The playground wires onChange automatically — the payload is shown below the grid when active.',
             help: 'Use false to disable, "single"/"multiple" for string shorthand, or an object for defaultKeys. onChange is always wired internally.',
             control: 'json',
             rows: 3,
@@ -1674,7 +1674,7 @@ const PLAYGROUND: PlaygroundConfig = {
         { name: 'onClickRow', type: '(record) => void', default: 'false', description: 'Called with the full record on row or card click. Enable to see the payload below.', control: 'boolean' },
         { name: 'onReorder', type: 'GridReorderHandler<TRecord>', description: 'Receives the reordered record array and drag metadata. Handled internally by the playground when reorderable is true.', readOnly: true, hidden: (props) => !resolvePlaygroundBoolean(props.reorderable) },
         { name: 'editDeepLink', type: 'boolean', default: 'false', description: 'Sync edit modal to URL hash. Opening a row edit appends #edit/{key} so the modal survives reload and is bookmarkable.', control: 'boolean', hidden: (props) => !hasPlaygroundAction(props.actions, 'edit') || props.layout === 'gallery' || props.source === 'array' },
-        // â”€â”€ Data lifecycle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── Data lifecycle ────────────────────────────────────────────────────
         { name: 'onLoad', type: '(records) => records | Promise<records>', description: 'Normalize or enrich records before display. In the playground this automatically adds gallery thumbnails when layout is gallery.', readOnly: true },
         { name: 'onSave', type: 'GridMutationSaveHandler<TRecord>', description: 'Override save target path or implement custom persistence for create/update. Handled automatically by the playground.', readOnly: true },
         { name: 'onDelete', type: 'GridMutationDeleteHandler<TRecord>', description: 'Override delete target path before the provider removes the record. Handled automatically by the playground.', readOnly: true },

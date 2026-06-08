@@ -105,7 +105,7 @@ Per ottenere un developerToken segui questi passaggi:
 
     if (!res.ok) {
         const err = await res.text();
-        throw new Error(`Keyword planner error: ${res.status} – ${err}`);
+        throw new Error(`Keyword planner error: ${res.status} - ${err}`);
     }
 
     const data = await res.json() as { results?: KeywordPlannerItem[] };

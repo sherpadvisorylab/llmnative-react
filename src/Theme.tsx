@@ -472,7 +472,7 @@ function applyThemeVars({
         lightVars[key.startsWith('--') ? key : `--${key}`] = value;
     }
 
-    // Inject/update a single <style> tag — appended to <head> so it wins over the CSS file
+    // Inject/update a single <style> tag - appended to <head> so it wins over the CSS file
     let el = document.getElementById('rf-theme-vars') as HTMLStyleElement | null;
     if (!el) {
         el = document.createElement('style');

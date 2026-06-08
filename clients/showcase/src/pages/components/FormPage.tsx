@@ -122,7 +122,7 @@ export default function FormPage() {
     return (
         <PageLayout
             title="Form widget"
-            description="Full CRUD form: loads a record from the DataProvider, validates, saves and optionally deletes. Wrap fields as children — the Form wires everything automatically via React context."
+            description="Full CRUD form: loads a record from the DataProvider, validates, saves and optionally deletes. Wrap fields as children - the Form wires everything automatically via React context."
         >
             {/* ── New record ── */}
             <Section
@@ -203,7 +203,7 @@ const mockProvider = new MockDataProvider();
                 description="onLoad transforms data after reading. onSave transforms before writing. onFinally runs after every action."
                 preview={
                     <div className="text-sm text-muted-foreground italic p-4">
-                        Code example — hooks are not visually distinct from a standard form.
+                        Code example - hooks are not visually distinct from a standard form.
                     </div>
                 }
                 code={`<Form

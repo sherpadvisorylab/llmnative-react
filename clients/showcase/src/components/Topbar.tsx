@@ -46,7 +46,7 @@ export default function Topbar({ onOpenThemePanel }: TopbarProps) {
 
             {/* Right actions */}
             <div className="flex items-center gap-2 shrink-0">
-                {/* Playground button — only shown on component pages */}
+                {/* Playground button - only shown on component pages */}
                 {config && (
                     <button
                         onClick={openPlayground}

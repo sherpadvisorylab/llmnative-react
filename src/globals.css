@@ -772,7 +772,7 @@
     font-style: italic;
 }
 
-/* Badge color overrides — outside @layer so they beat Tailwind's @layer utilities */
+/* Badge color overrides - outside @layer so they beat Tailwind's @layer utilities */
 .badge.badge-primary   { background-color: hsl(var(--rf-primary)     / 0.12) !important; color: hsl(var(--rf-primary));            outline: 1px solid hsl(var(--rf-primary)     / 0.30); }
 .badge.badge-info      { background-color: hsl(var(--rf-info)         / 0.12) !important; color: hsl(var(--rf-info));               outline: 1px solid hsl(var(--rf-info)         / 0.30); }
 .badge.badge-success   { background-color: hsl(var(--rf-success)      / 0.12) !important; color: hsl(var(--rf-success));            outline: 1px solid hsl(var(--rf-success)      / 0.30); }
@@ -782,7 +782,7 @@
 .badge.badge-light     { background-color: hsl(var(--rf-muted))       !important;         color: hsl(var(--rf-muted-foreground)); }
 .badge.badge-dark      { background-color: hsl(var(--rf-foreground)   / 0.12) !important; color: hsl(var(--rf-foreground)); }
 
-/* Overlay badges — solid background, white text, no outline */
+/* Overlay badges - solid background, white text, no outline */
 .badge.badge-overlay.badge-primary   { background-color: hsl(var(--rf-primary))     !important; color: hsl(var(--rf-primary-foreground));   outline: none; }
 .badge.badge-overlay.badge-info      { background-color: hsl(var(--rf-info))         !important; color: #fff;                                outline: none; }
 .badge.badge-overlay.badge-success   { background-color: hsl(var(--rf-success))      !important; color: #fff;                                outline: none; }

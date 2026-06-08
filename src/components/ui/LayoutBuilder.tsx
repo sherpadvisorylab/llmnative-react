@@ -228,7 +228,7 @@ export const LayoutBuilder = forwardRef<LayoutBuilderHandle, Props>(
       const rowRect = rowEl.getBoundingClientRect();
       const dropCol = clientXToCol(e.clientX, rowRect);
 
-      // Leggo label dall’oggetto trascinato
+      // Leggo label dall'oggetto trascinato
       const raw = e.dataTransfer.getData("text/plain") || e.dataTransfer.getData("label") || "";
       const fieldName = extractFieldName(raw) || "unknown";
 
@@ -280,7 +280,7 @@ export const LayoutBuilder = forwardRef<LayoutBuilderHandle, Props>(
       e.dataTransfer.effectAllowed = "move";
     };
 
-    // DRAG INTERNO: durante il drag sopra la row, aggiorno la posizione a “snap”
+    // DRAG INTERNO: durante il drag sopra la row, aggiorno la posizione a "snap"
     const handleRowDragOver = (e: React.DragEvent) => {
       e.preventDefault();
       if (!draggingId) return;

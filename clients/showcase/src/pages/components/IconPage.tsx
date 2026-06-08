@@ -36,10 +36,10 @@ const PHOSPHOR_WEIGHTS: PhosphorWeight[] = ['thin', 'light', 'regular', 'bold', 
 const ICON_PROPS: PropDef[] = [
     { name: 'name',      type: 'string',              required: true,  description: 'Icon name resolved by the active icon provider', control: 'icon' },
     { name: 'size',      type: 'number',              default: '16',   description: 'Rendered size in pixels', control: 'number', min: 8, max: 64 },
-    { name: 'className', type: 'string',              default: '-',    description: 'Tailwind / CSS classes — use text-* for color', control: 'text' },
+    { name: 'className', type: 'string',              default: '-',    description: 'Tailwind / CSS classes - use text-* for color', control: 'text' },
     { name: 'style',     type: 'React.CSSProperties', default: '-',    description: 'Inline style object' },
     { name: 'provider',  type: 'IconProviderAdapter', default: '-',    description: 'Override the global provider for this instance only' },
-    { name: 'label',     type: 'string',              default: '-',    description: 'Accessible label — sets aria-label; omit for decorative icons (aria-hidden)' },
+    { name: 'label',     type: 'string',              default: '-',    description: 'Accessible label - sets aria-label; omit for decorative icons (aria-hidden)' },
 ];
 
 const PLAYGROUND: PlaygroundConfig = {
@@ -363,10 +363,10 @@ setProvider('phosphor');`}
                         </div>
                     </div>
                 }
-                code={`// Decorative — aria-hidden="true" (default)
+                code={`// Decorative - aria-hidden="true" (default)
 <button><Icon name="trash" size={18} /> Delete</button>
 
-// Meaningful standalone — aria-label set
+// Meaningful standalone - aria-label set
 <button aria-label="Delete"><Icon name="trash" size={18} label="Delete" /></button>`}
             />
 
@@ -376,7 +376,7 @@ setProvider('phosphor');`}
                 description="Implement IconProviderAdapter to integrate any icon library."
                 preview={
                     <div className="rounded-md border border-dashed px-4 py-3 text-sm text-muted-foreground">
-                        Provide your own class — see code snippet.
+                        Provide your own class - see code snippet.
                     </div>
                 }
                 code={`import type { IconProviderAdapter, IconComponentProps } from '@llmnative/react';

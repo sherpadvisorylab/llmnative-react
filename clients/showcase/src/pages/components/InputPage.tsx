@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Form, Input, TextArea, Checkbox } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
@@ -29,7 +29,7 @@ function LiveForm({ children, title, description, code }: {
 }
 
 const PROPS_CONFIG: PropDef[] = [
-    { name: 'name', type: 'string', required: true, description: 'Field name â€” used as form key and dot-notation path', control: 'text' },
+    { name: 'name', type: 'string', required: true, description: 'Field name — used as form key and dot-notation path', control: 'text' },
     { name: 'label', type: 'string', description: 'Label displayed above the input', control: 'text' },
     { name: 'type', type: '"text" | "number" | "email" | "password" | "url" | "color" | "date" | "datetime-local" | "time" | "week" | "month" | "range"', default: '"text"', description: 'HTML input type', control: 'select', options: ['text', 'number', 'email', 'password', 'url', 'color', 'date', 'datetime-local', 'time', 'week', 'month', 'range'] },
     { name: 'placeholder', type: 'string', description: 'Placeholder text', control: 'text' },
@@ -53,7 +53,7 @@ const PLAYGROUND: PlaygroundConfig = {
         name: 'demo',
         label: 'Field label',
         type: 'text',
-        placeholder: 'Type somethingâ€¦',
+        placeholder: 'Type something…',
         required: false,
         disabled: false,
         updatable: false,
@@ -89,7 +89,7 @@ export default function InputPage() {
     return (
         <PageLayout
             title="Input"
-            description="Text, number, email, password, color, date, datetime, week, month and textarea variants. All inputs are form-context-aware â€” wrap them in a Form to get two-way binding automatically."
+            description="Text, number, email, password, color, date, datetime, week, month and textarea variants. All inputs are form-context-aware — wrap them in a Form to get two-way binding automatically."
         >
             <LiveForm
                 title="Text variants"
@@ -100,22 +100,22 @@ export default function InputPage() {
     <Input name="firstName" label="First name" required />
     <Input name="email"    label="Email"    type="email" />
     <Input name="password" label="Password" type="password" />
-    <Input name="website"  label="Website"  type="url" placeholder="https://â€¦" />
+    <Input name="website"  label="Website"  type="url" placeholder="https://…" />
 </Form>`}
             >
                 <Input name="firstName" label="First name" required />
                 <Input name="email"    label="Email"    type="email" />
                 <Input name="password" label="Password" type="password" />
-                <Input name="website"  label="Website"  type="url" placeholder="https://â€¦" />
+                <Input name="website"  label="Website"  type="url" placeholder="https://…" />
             </LiveForm>
 
             <LiveForm
                 title="Number and range"
                 code={`<Input name="age"   label="Age"           type="number" min={0} max={120} />
-<Input name="score" label="Score (0â€“100)" type="range"  min={0} max={100} />`}
+<Input name="score" label="Score (0–100)" type="range"  min={0} max={100} />`}
             >
                 <Input name="age"   label="Age"           type="number" min={0} max={120} />
-                <Input name="score" label="Score (0â€“100)" type="range"  min={0} max={100} />
+                <Input name="score" label="Score (0–100)" type="range"  min={0} max={100} />
             </LiveForm>
 
             <LiveForm
@@ -145,9 +145,9 @@ export default function InputPage() {
                 description="Multi-line text with configurable rows."
                 code={`import { TextArea } from '@llmnative/react';
 
-<TextArea name="bio" label="Bio" rows={4} placeholder="Tell us about yourselfâ€¦" />`}
+<TextArea name="bio" label="Bio" rows={4} placeholder="Tell us about yourself…" />`}
             >
-                <TextArea name="bio" label="Bio" rows={4} placeholder="Tell us about yourselfâ€¦" />
+                <TextArea name="bio" label="Bio" rows={4} placeholder="Tell us about yourself…" />
             </LiveForm>
 
             <LiveForm

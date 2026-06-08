@@ -17,8 +17,8 @@ export interface SupabaseAuthConfig {
  * method:   'password' (default) | 'magic_link' | 'oauth' | 'anonymous'
  * email:    required for 'password' and 'magic_link'
  * password: required for 'password'
- * provider: required for 'oauth' — e.g. 'github', 'google', 'apple', 'twitter'
- * redirectTo: optional — overrides the redirect URL after OAuth / magic link
+ * provider: required for 'oauth' - e.g. 'github', 'google', 'apple', 'twitter'
+ * redirectTo: optional - overrides the redirect URL after OAuth / magic link
  */
 export interface SupabaseSignInOptions extends AuthSignInOptions {
     method?: 'password' | 'magic_link' | 'oauth' | 'anonymous';
@@ -70,7 +70,7 @@ export class SupabaseAuthProvider implements AuthProviderAdapter {
      * Returns null if no active session.
      */
     getUser(): UserProfile | null {
-        // `getSession()` is async — use the cached session from the client internals.
+        // `getSession()` is async - use the cached session from the client internals.
         // This is synchronous and safe to call from render-path code.
         const session = (this.client as any).auth?._session ?? null;
         return mapUser(session?.user ?? null);
@@ -86,8 +86,8 @@ export class SupabaseAuthProvider implements AuthProviderAdapter {
      * Authenticate with Supabase.
      *
      * options.method = 'password'   (default): email + password sign-in
-     * options.method = 'magic_link': OTP email — returns null (email sent, no user yet)
-     * options.method = 'oauth':      redirect flow — returns null (user arrives after redirect)
+     * options.method = 'magic_link': OTP email - returns null (email sent, no user yet)
+     * options.method = 'oauth':      redirect flow - returns null (user arrives after redirect)
      * options.method = 'anonymous':  anonymous session
      */
     async signIn(options: SupabaseSignInOptions = {}): Promise<UserProfile | null> {
@@ -108,7 +108,7 @@ export class SupabaseAuthProvider implements AuthProviderAdapter {
                 options: { emailRedirectTo: options.redirectTo },
             });
             if (error) throw error;
-            return null; // email dispatched — user arrives after clicking the link
+            return null; // email dispatched - user arrives after clicking the link
         }
 
         if (method === 'oauth') {
@@ -120,7 +120,7 @@ export class SupabaseAuthProvider implements AuthProviderAdapter {
                 options: { redirectTo: options.redirectTo },
             });
             if (error) throw error;
-            return null; // redirect initiated — user arrives after OAuth callback
+            return null; // redirect initiated - user arrives after OAuth callback
         }
 
         // Default: email + password

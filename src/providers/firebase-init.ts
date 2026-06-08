@@ -34,7 +34,7 @@ export const getFirebaseConfigurationState = (): ProviderConfigurationState => c
     ], 'firebase.')
 );
 
-// Firestore does not require databaseURL — only core Firebase keys are needed.
+// Firestore does not require databaseURL - only core Firebase keys are needed.
 export const getFirestoreConfigurationState = (): ProviderConfigurationState => createConfigurationState(
     'FirestoreProvider',
     getMissingKeys(currentFirebaseConfig as unknown as Record<string, unknown> | undefined, [

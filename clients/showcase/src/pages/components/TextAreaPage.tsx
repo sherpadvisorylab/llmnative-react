@@ -106,7 +106,7 @@ export default function TextAreaPage() {
                         <TextArea
                             name="bio"
                             label="Bio"
-                            placeholder="Start typing — the textarea will grow as you add lines..."
+                            placeholder="Start typing - the textarea will grow as you add lines..."
                             rows={2}
                             maxRows={6}
                         />

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
@@ -31,7 +31,7 @@ function DemoPagination({ perPage }: { perPage: number }) {
                         <button className="page-link" onClick={() => go(1)}>Â«</button>
                     </li>
                     <li className={`page-item ${page === 1 ? 'disabled' : ''}`}>
-                        <button className="page-link" onClick={() => go(page - 1)}>â€¹</button>
+                        <button className="page-link" onClick={() => go(page - 1)}>‹</button>
                     </li>
                     {pageNumbers.map((p) => (
                         <li key={p} className={`page-item ${p === page ? 'active' : ''}`}>
@@ -39,7 +39,7 @@ function DemoPagination({ perPage }: { perPage: number }) {
                         </li>
                     ))}
                     <li className={`page-item ${page === total ? 'disabled' : ''}`}>
-                        <button className="page-link" onClick={() => go(page + 1)}>â€º</button>
+                        <button className="page-link" onClick={() => go(page + 1)}>›</button>
                     </li>
                     <li className={`page-item ${page === total ? 'disabled' : ''}`}>
                         <button className="page-link" onClick={() => go(total)}>Â»</button>
@@ -80,7 +80,7 @@ export default function PaginationPage() {
             description="Page navigation with first/prev/next/last controls and a configurable page window. Used automatically by Grid."
         >
             <Section
-                title="Interactive pagination â€” 50 records, 8 per page"
+                title="Interactive pagination — 50 records, 8 per page"
                 description="Click the page controls to navigate through the dataset."
                 preview={<DemoPagination perPage={8} />}
                 code={`import { Pagination } from '@llmnative/react';

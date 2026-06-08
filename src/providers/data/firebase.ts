@@ -379,6 +379,6 @@ export class FirebaseDataProvider implements DataProviderAdapter {
     };
 }
 
-// Legacy default export — kept for backward compatibility with direct imports.
+// Legacy default export - kept for backward compatibility with direct imports.
 // Prefer using the manifest registry via <App providers={{ services: { data: 'dbRealtime' } }} />.
 export default new FirebaseDataProvider();

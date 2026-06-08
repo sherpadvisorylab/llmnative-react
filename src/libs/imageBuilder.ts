@@ -1,12 +1,12 @@
 /**
- * imageBuilder — pure utility for generating SEO/performance-optimised <img> tags
+ * imageBuilder - pure utility for generating SEO/performance-optimised <img> tags
  * with srcset support. Does NOT resize images; assumes variant files already exist.
  *
  * Two srcset modes:
- *   density — fixed-size images (logos, avatars): 1x / 2x / 3x descriptors
+ *   density - fixed-size images (logos, avatars): 1x / 2x / 3x descriptors
  *             naming: image.jpg → image@2x.jpg, image@3x.jpg
- *   width   — responsive/fluid images (hero, content): width descriptors + sizes
- *             naming: image.jpg → image-400w.jpg, image-800w.jpg …
+ *   width   - responsive/fluid images (hero, content): width descriptors + sizes
+ *             naming: image.jpg → image-400w.jpg, image-800w.jpg ...
  */
 
 export type ImgFit = 'cover' | 'contain' | 'fill' | 'scale-down' | 'none';
@@ -14,7 +14,7 @@ export type ImgFit = 'cover' | 'contain' | 'fill' | 'scale-down' | 'none';
 export interface ImageBuilderConfig {
     /** URL, relative path, or data URI of the source image (used as src and as the 1x/base variant in srcset). */
     src: string;
-    /** Alt text — required for SEO and accessibility. */
+    /** Alt text - required for SEO and accessibility. */
     alt: string;
     title?: string;
     /** Intrinsic display width in px. Prevents CLS (Core Web Vitals). */
@@ -25,7 +25,7 @@ export interface ImageBuilderConfig {
     position?: string;
     /**
      * loading="lazy" for below-the-fold images.
-     * Do NOT use on LCP images — use priority=true instead.
+     * Do NOT use on LCP images - use priority=true instead.
      * Default: 'lazy'.
      */
     loading?: 'lazy' | 'eager';
@@ -34,7 +34,7 @@ export interface ImageBuilderConfig {
      * Sets fetchpriority="high" and loading="eager". Overrides `loading`.
      */
     priority?: boolean;
-    /** Default: 'async' — frees the main thread from image decoding. */
+    /** Default: 'async' - frees the main thread from image decoding. */
     decoding?: 'async' | 'sync' | 'auto';
     className?: string;
     crossorigin?: 'anonymous' | 'use-credentials';
@@ -65,7 +65,7 @@ export interface SrcsetWidthConfig {
      */
     suffix?: (width: number) => string;
     /**
-     * CSS sizes attribute — tells the browser how wide the image renders at each breakpoint.
+     * CSS sizes attribute - tells the browser how wide the image renders at each breakpoint.
      * Required for width-mode srcset to work correctly.
      * Example: '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw'
      */
@@ -192,7 +192,7 @@ function imageParamsToTag(params: ImageParams): string {
 export interface UseImageResult {
     /** Generates the <img> HTML string with all SEO/performance attributes. */
     toHtml: (srcset?: SrcsetConfig) => string;
-    /** Generates a JSON string of all img attributes — for CMS, SSR or metadata. */
+    /** Generates a JSON string of all img attributes - for CMS, SSR or metadata. */
     toJson: (srcset?: SrcsetConfig) => string;
     /** Returns the raw ImageParams object for custom serialisation. */
     params: (srcset?: SrcsetConfig) => ImageParams;
@@ -200,7 +200,7 @@ export interface UseImageResult {
 
 /**
  * Returns toHtml / toJson / params helpers bound to the given image config.
- * Does NOT resize images — assumes variant files already exist on the server.
+ * Does NOT resize images - assumes variant files already exist on the server.
  *
  * @example
  * const img = useImage({ src: 'hero.jpg', alt: 'Hero', width: 800, height: 450, priority: true })

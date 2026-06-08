@@ -93,7 +93,7 @@ export class GoogleServiceAccountProvider implements CredentialsAdapter {
 
         if (!response.ok) {
             const error = await response.text();
-            throw new Error(`GoogleServiceAccountProvider: token request failed — ${error}`);
+            throw new Error(`GoogleServiceAccountProvider: token request failed - ${error}`);
         }
 
         const data = await response.json();

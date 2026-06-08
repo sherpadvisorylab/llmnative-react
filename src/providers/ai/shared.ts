@@ -39,7 +39,7 @@ const MODEL_CACHE_TTL_MS = 1000 * 60 * 60 * 24;
 
 export const createBrowserTransportError = (label: string) => {
     const proxyHint = isProxyEnabled()
-        ? 'The proxy is enabled but the request still failed — check that the proxy route is reachable.'
+        ? 'The proxy is enabled but the request still failed - check that the proxy route is reachable.'
         : 'No proxy is enabled. Cross-origin AI requests are blocked by CORS in the browser. Set VITE_PROXY_ENABLED=true and VITE_PROXY_PROVIDER=viteDevProxy to route requests server-side.';
     return new Error(`${label} request failed (CORS). ${proxyHint}`);
 };

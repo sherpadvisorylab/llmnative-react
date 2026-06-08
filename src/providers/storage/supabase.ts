@@ -101,7 +101,7 @@ export class SupabaseStorageProvider implements StorageProviderAdapter {
 
     /**
      * Supabase upload with cancel support via AbortController.
-     * pause() and resume() are no-ops — Supabase fetch has no native pause/resume.
+     * pause() and resume() are no-ops - Supabase fetch has no native pause/resume.
      */
     createUpload = (
         file: string | File | Blob,
@@ -252,7 +252,7 @@ export class SupabaseStorageProvider implements StorageProviderAdapter {
 
     /**
      * Delete a single file or all files under a folder prefix.
-     * Uses Supabase's bulk-delete API — single request even for N files.
+     * Uses Supabase's bulk-delete API - single request even for N files.
      * Returns the number of files deleted.
      */
     delete = async (path: string, opts: DeleteOptions = {}): Promise<number> => {

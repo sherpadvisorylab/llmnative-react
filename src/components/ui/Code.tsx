@@ -147,7 +147,7 @@ const Code = ({
     let cancelled = false;
 
     const loadAndHighlight = async () => {
-      // Load core first — language packs need Prism in scope to extend it.
+      // Load core first - language packs need Prism in scope to extend it.
       // Set manual=true before the first import so Prism skips its auto-highlightAll().
       if (!(window as any).Prism?.highlightElement) {
         (window as any).Prism = { ...((window as any).Prism ?? {}), manual: true };

@@ -286,7 +286,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, State> {
                         >
                             <IconSend />
                             {reportState === 'idle' && 'Send report'}
-                            {reportState === 'sending' && 'Sending…'}
+                            {reportState === 'sending' && 'Sending...'}
                             {reportState === 'sent' && 'Report sent ✓'}
                             {reportState === 'failed' && 'Failed - retry'}
                         </button>

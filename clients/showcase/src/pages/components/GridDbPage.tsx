@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import {
     Badge,
     DataProvider,
@@ -15,7 +15,7 @@ import { usePlayground } from '../../docs-kit/playground';
 import { definePropDocs } from '../../docs-kit/docs';
 import type { PlaygroundConfig, PropDef } from '../../docs-kit/playground';
 
-// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Types ───────────────────────────────────────────────────────────────────
 
 type UserRecord = {
     _key?: string;
@@ -28,7 +28,7 @@ type UserRecord = {
     city: string;
 };
 
-// â”€â”€â”€ Seed data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Seed data ────────────────────────────────────────────────────────────────
 
 const GRID_SOURCE_PATH = '/showcase/grid/users';
 
@@ -42,7 +42,7 @@ const USERS: Record<string, Omit<UserRecord, '_key' | 'id'>> = {
     u6: { name: 'Noah White', email: 'noah@example.com', role: 'viewer', status: 'active', team: 'Support', city: 'Paris' },
 };
 
-// Dataset loaded by fromUrl (resolves to /components/grid/db â€” the current page URL)
+// Dataset loaded by fromUrl (resolves to /components/grid/db — the current page URL)
 const FROM_URL_PATH = '/components/grid/db';
 const FROM_URL_USERS: Record<string, Omit<UserRecord, '_key' | 'id'>> = {
     f1: { name: 'Carlos Diaz', email: 'carlos@demo.com', role: 'admin', status: 'active', team: 'Dev', city: 'Barcelona' },
@@ -51,7 +51,7 @@ const FROM_URL_USERS: Record<string, Omit<UserRecord, '_key' | 'id'>> = {
     f4: { name: 'Lena Schulz', email: 'lena@demo.com', role: 'editor', status: 'inactive', team: 'Support', city: 'Berlin' },
 };
 
-// â”€â”€â”€ Column sets â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Column sets ──────────────────────────────────────────────────────────────
 
 const statusClass = (status: string) =>
     status === 'active' ? 'bg-success' : status === 'review' ? 'bg-warning' : 'bg-secondary';
@@ -85,7 +85,7 @@ const displayColumns = [
     { key: 'team', label: 'Team', sortable: true },
 ];
 
-// â”€â”€â”€ Playground helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Playground helpers ───────────────────────────────────────────────────────
 
 const compilePlaygroundArrowFunction = <TArg, TResult>(value: string) => {
     const match = value.trim().match(/^\(?\s*([A-Za-z_$][\w$]*)\s*\)?\s*=>\s*([\s\S]+)$/);
@@ -129,7 +129,7 @@ const resolvePlaygroundNode = <TCtx,>(value: unknown) => {
     return undefined;
 };
 
-// â”€â”€â”€ Form used inside modal CRUD actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Form used inside modal CRUD actions ──────────────────────────────────────
 
 function GridUserForm() {
     return (
@@ -162,7 +162,7 @@ function GridUserForm() {
     );
 }
 
-// â”€â”€â”€ Mock wrapper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Mock wrapper ─────────────────────────────────────────────────────────────
 
 function WithMock({ children, provider }: { children: React.ReactNode; provider?: MockDataProvider }) {
     const scopedProvider = React.useMemo(
@@ -179,7 +179,7 @@ function WithMock({ children, provider }: { children: React.ReactNode; provider?
     );
 }
 
-// â”€â”€â”€ Prop docs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Prop docs ────────────────────────────────────────────────────────────────
 
 type GridDbDocSurface = {
     path: unknown;
@@ -214,7 +214,7 @@ type GridDbDocSurface = {
 };
 
 const GRID_DB_PROP_DOCS = definePropDocs<GridDbDocSurface>()([
-    // â”€â”€ GridDB-specific â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── GridDB-specific ───────────────────────────────────────────────────────
     {
         name: 'path',
         type: 'string',
@@ -276,7 +276,7 @@ const GRID_DB_PROP_DOCS = definePropDocs<GridDbDocSurface>()([
         example: `// Map provider field "name" â†’ UI field "fullName"
 fieldMap={{ fullName: "name" }}`,
     },
-    // â”€â”€ Shared â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Shared ────────────────────────────────────────────────────────────────
     {
         name: 'columns',
         type: 'GridColumn<TRecord>[]',
@@ -507,7 +507,7 @@ Record<string, false | {
     },
 ]);
 
-// â”€â”€â”€ Playground prop definitions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Playground prop definitions ──────────────────────────────────────────────
 
 const GRID_DB_SPECIFIC_PROPS: PropDef[] = [
     {
@@ -679,7 +679,7 @@ const SHARED_PROPS: PropDef[] = [
     { group: 'Shared', name: 'audit', type: 'boolean', default: 'false', description: 'Enable form-level audit logging during modal saves.', control: 'boolean' },
 ];
 
-// â”€â”€â”€ Playground preview component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Playground preview component ────────────────────────────────────────────
 
 function GridDbPlaygroundPreview({ p }: { p: Record<string, any> }) {
     const [selectionKeys, setSelectionKeys] = React.useState<string[]>([]);
@@ -824,7 +824,7 @@ function GridDbPlaygroundPreview({ p }: { p: Record<string, any> }) {
     );
 }
 
-// â”€â”€â”€ Playground config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Playground config ────────────────────────────────────────────────────────
 
 const PLAYGROUND: PlaygroundConfig = {
     size: 'fullscreen',
@@ -871,7 +871,7 @@ const PLAYGROUND: PlaygroundConfig = {
     ),
 };
 
-// â”€â”€â”€ Section previews â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Section previews ─────────────────────────────────────────────────────────
 
 function BasicUsagePreview() {
     const provider = React.useMemo(() => new MockDataProvider({ [GRID_SOURCE_PATH]: Object.fromEntries(Object.entries(USERS).map(([k, v]) => [k, { ...v }])) }), []);
@@ -947,7 +947,7 @@ function GroupingPreview() {
     );
 }
 
-// â”€â”€â”€ Page export â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Page export ──────────────────────────────────────────────────────────────
 
 export default function GridDbPage() {
     usePlayground(PLAYGROUND, 'GridDB');
@@ -979,7 +979,7 @@ export default function GridDbPage() {
             {/* Provider-side filter */}
             <Section
                 title="Provider-side filter"
-                description="where filters records at the provider level before they reach the component â€” no over-fetch. The example below shows only active teammates."
+                description="where filters records at the provider level before they reach the component — no over-fetch. The example below shows only active teammates."
                 preview={<FilterPreview />}
                 code={`<GridDB
   path="/showcase/grid/users"
@@ -1004,7 +1004,7 @@ export default function GridDbPage() {
 
             {/* fromUrl */}
             <Section
-                title="fromUrl â€” route-driven path"
+                title="fromUrl — route-driven path"
                 description={`fromUrl tells GridDB to resolve the collection path from the current route pathname instead of a hardcoded path. fromUrl always wins: path is ignored when fromUrl is set. This preview reads from "${FROM_URL_PATH}" (the current page URL).`}
                 preview={<FromUrlPreview />}
                 code={`// Route: /products/catalog

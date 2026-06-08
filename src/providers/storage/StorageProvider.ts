@@ -7,7 +7,7 @@ export interface UploadOptions {
     bucket?: string;
     /** MIME type hint (e.g. 'image/png'). Provider may infer it from the file when omitted. */
     contentType?: string;
-    /** Called during upload with the completion percentage (0–100). */
+    /** Called during upload with the completion percentage (0-100). */
     onProgress?: (percent: number) => void;
 }
 
@@ -20,7 +20,7 @@ export interface DeleteOptions extends StorageOptions {
     /**
      * When true, deletes all files under the given path prefix (folder delete).
      * Returns the total number of files deleted.
-     * Default: false — deletes a single file and returns 0 (not found) or 1 (deleted).
+     * Default: false - deletes a single file and returns 0 (not found) or 1 (deleted).
      */
     recursive?: boolean;
 }
@@ -34,7 +34,7 @@ export interface MoveOptions extends StorageOptions {
     /**
      * When true, treats `from` as a folder prefix and moves every file under it
      * to the corresponding path under `to`. Returns the number of files moved.
-     * Default: false — moves a single file.
+     * Default: false - moves a single file.
      */
     recursive?: boolean;
 }
@@ -87,7 +87,7 @@ export interface StorageFileInfo {
 }
 
 /**
- * Handle returned by createUpload — allows pause, resume and cancel mid-flight.
+ * Handle returned by createUpload - allows pause, resume and cancel mid-flight.
  * pause() and resume() are no-ops on providers that do not support them (e.g. Supabase via fetch).
  */
 export interface UploadHandle {
@@ -127,7 +127,7 @@ export interface StorageProviderAdapter extends ProviderConfigurable {
     /**
      * Rename a file or folder in place (same parent directory, new name).
      * For folder rename, set opts.recursive = true.
-     * Semantically equivalent to move() — use rename() when only the name changes,
+     * Semantically equivalent to move() - use rename() when only the name changes,
      * move() when relocating across directories or buckets.
      * Returns true if at least one file was successfully renamed.
      */
@@ -165,12 +165,12 @@ export interface StorageProviderAdapter extends ProviderConfigurable {
      * List files (and optionally folders) under a path prefix.
      *
      * Key options:
-     *   recursive       — traverse sub-folders (default: false, direct children only)
-     *   includeFiles    — include file entries (default: true)
-     *   includeFolders  — include folder entries with isFolder: true (default: false)
-     *   filterByExtension — case-insensitive extension filter: 'jpg' or ['jpg','png']
-     *   limit           — cap the number of results after all other filters
-     *   metadata        — fetch size/contentType/updatedAt (N+1 cost on Firebase)
+     *   recursive       - traverse sub-folders (default: false, direct children only)
+     *   includeFiles    - include file entries (default: true)
+     *   includeFolders  - include folder entries with isFolder: true (default: false)
+     *   filterByExtension - case-insensitive extension filter: 'jpg' or ['jpg','png']
+     *   limit           - cap the number of results after all other filters
+     *   metadata        - fetch size/contentType/updatedAt (N+1 cost on Firebase)
      */
     list(path: string, opts?: ListOptions): Promise<StorageFileInfo[]>;
 }

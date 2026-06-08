@@ -1,5 +1,5 @@
 /**
- * SideNav — modern collapsible sidebar with icon support.
+ * SideNav - modern collapsible sidebar with icon support.
  *
  * Features:
  * - Collapse to icon-only mode (toggle button at bottom)
@@ -132,7 +132,7 @@ function NavItem({ item, expanded, open, onToggle }: NavItemProps) {
                             {item.title}
                         </span>
                     </NavLink>
-                    {/* Chevron toggle — only visible when expanded */}
+                    {/* Chevron toggle - only visible when expanded */}
                     {expanded && (
                         <button
                             onClick={() => onToggle(item.path)}

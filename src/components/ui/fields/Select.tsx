@@ -178,7 +178,7 @@ export const Select = ({
 
         return arrayUnique(
             value && !combinedOptions.length
-                ? [...combinedOptions, { label: `âŒ ${value.toString()}`, value: value.toString() }]
+                ? [...combinedOptions, { label: `× ${value.toString()}`, value: value.toString() }]
                 : combinedOptions
         );
     }, [options, lookup, order, db?.order, dbOptions.fieldMap, value]);
@@ -337,7 +337,7 @@ export const Autocomplete = ({
                     {(selectedItems as string[]).map(item => (
                         <span className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary" key={item}>
                             {item}
-                            <button type="button" className="ml-0.5 opacity-60 transition-opacity hover:opacity-100" onClick={() => removeItem(item)}>Ã—</button>
+                            <button type="button" className="ml-0.5 opacity-60 transition-opacity hover:opacity-100" onClick={() => removeItem(item)}>×</button>
                         </span>
                     ))}
                     {(!max || selectedItems.length < max) && (
@@ -347,7 +347,7 @@ export const Autocomplete = ({
                             className={cn("min-w-[120px] flex-1 border-none bg-transparent text-sm outline-none placeholder:text-muted-foreground", className || theme.Autocomplete.className)}
                             required={required && selectedItems.length < (min || 0)}
                             disabled={disabled || (!updatable && !isEmpty(value))}
-                            placeholder={creatable ? (placeholder ?? 'Type or press Enter to createâ€¦') : placeholder}
+                            placeholder={creatable ? (placeholder ?? 'Type or press Enter to create...') : placeholder}
                             title={title}
                             list={listId}
                             onChange={handleAutocompleteChange}

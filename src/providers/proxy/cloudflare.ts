@@ -1,5 +1,5 @@
 /**
- * LLMNative proxy — Cloudflare Worker.
+ * LLMNative proxy - Cloudflare Worker.
  *
  * Deploy as a Worker or use as a Pages Function at:
  *   functions/api/proxy.ts

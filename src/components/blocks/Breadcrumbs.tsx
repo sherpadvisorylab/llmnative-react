@@ -15,7 +15,7 @@ export type BreadcrumbItem = {
 export type BreadcrumbsProps = {
     /**
      * The breadcrumb trail to render.
-     * - Pass a URL string to auto-parse into segments (e.g. "/products/shoes") — falls back to the current route when omitted.
+     * - Pass a URL string to auto-parse into segments (e.g. "/products/shoes") - falls back to the current route when omitted.
      * - Pass a BreadcrumbItem[] for explicit control over labels and links.
      */
     trail?: string | BreadcrumbItem[];
@@ -37,11 +37,11 @@ export type BreadcrumbsProps = {
 export type BreadcrumbSchemaOptions = {
     /** The breadcrumb item list. Items with `href` get an absolute URL in the schema; items without `href` (current page) do not. */
     items: BreadcrumbItem[];
-    /** Optional anchor item prepended before the list (same shape as BreadcrumbItem — e.g. { label: "Home", href: "/" }). */
+    /** Optional anchor item prepended before the list (same shape as BreadcrumbItem - e.g. { label: "Home", href: "/" }). */
     rootItem?: BreadcrumbItem;
     /** Base URL prepended to all hrefs to produce the absolute URLs required by schema.org (e.g. "https://example.com"). */
     baseUrl: string;
-    /** When true, returns a JSON string ready for `dangerouslySetInnerHTML` — no manual JSON.stringify needed. Default: false */
+    /** When true, returns a JSON string ready for `dangerouslySetInnerHTML` - no manual JSON.stringify needed. Default: false */
     stringify?: boolean;
 };
 

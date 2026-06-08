@@ -11,7 +11,7 @@ const _clients = new Map<string, SupabaseClient>();
 
 /**
  * Returns a shared SupabaseClient for the given project.
- * One client per URL — subsequent calls with the same URL return the same instance.
+ * One client per URL - subsequent calls with the same URL return the same instance.
  */
 export function getSupabaseClient(url: string, anonKey: string): SupabaseClient {
     if (!_clients.has(url)) {
@@ -29,7 +29,7 @@ export function getSupabaseConfigurationState(
     );
 }
 
-/** Clears all cached clients — useful for tests. */
+/** Clears all cached clients - useful for tests. */
 export function _resetSupabaseClients(): void {
     _clients.clear();
 }

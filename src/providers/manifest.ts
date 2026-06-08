@@ -111,7 +111,7 @@ export const AI_MANIFEST: DriverManifest<AIConfig> = {
     mistral:    toAIDriver(MISTRAL_PROVIDER_DEFINITION, 'mistralApiKey'),
 };
 
-// ── Central registry — adding a provider = one new entry here ────────────────
+// ── Central registry - adding a provider = one new entry here ────────────────
 
 export const PROVIDER_MANIFESTS: Record<string, DriverManifest<any>> = {
     firebase: FIREBASE_MANIFEST,

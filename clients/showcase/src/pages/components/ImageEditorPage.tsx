@@ -37,7 +37,7 @@ function makeSamplePng(): string {
     ctx.fillText('Sample', 40, 90);
     ctx.font = '18px Arial, sans-serif';
     ctx.fillStyle = 'rgba(255,255,255,0.8)';
-    ctx.fillText('Sample — edit this image', 40, 130);
+    ctx.fillText('Sample - edit this image', 40, 130);
     return c.toDataURL('image/png');
 }
 

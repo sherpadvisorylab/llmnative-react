@@ -1,5 +1,5 @@
 /**
- * LLMNative proxy — Next.js App Router.
+ * LLMNative proxy - Next.js App Router.
  *
  * Place this file at:
  *   app/api/proxy/route.ts

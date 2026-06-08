@@ -383,7 +383,7 @@ const Gallery = ({
         const groupMap = new Map<string, Array<{ item: GalleryRecord; index: number }>>();
 
         sourceBody.forEach((item, index) => {
-            const groupKey = groupFields.map((field) => String(item[field] ?? "")).join(" · ") || "—";
+            const groupKey = groupFields.map((field) => String(item[field] ?? "")).join(" · ") || "-";
             if (!groupMap.has(groupKey)) groupMap.set(groupKey, []);
             groupMap.get(groupKey)!.push({ item, index });
         });
@@ -406,7 +406,7 @@ const Gallery = ({
     }, [body, groupBy, sortableOrder]);
 
     if (renderedBody === undefined) {
-        return <p className={"p-4"}><span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />Loading…</p>;
+        return <p className={"p-4"}><span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />Loading...</p>;
     } else if (renderedBody.length === 0) {
         return <p className={"p-4"}>No data found</p>;
     }

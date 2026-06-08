@@ -55,7 +55,7 @@ export default function ModalOkPage() {
         >
             <Section
                 title="Status acknowledgement"
-                description="ModalOk is the lightest modal variant — one button, no branching. Use it after background jobs, imports, or any operation the user should be aware of."
+                description="ModalOk is the lightest modal variant - one button, no branching. Use it after background jobs, imports, or any operation the user should be aware of."
                 preview={
                     <div className="flex flex-col items-start gap-3">
                         <ActionButton

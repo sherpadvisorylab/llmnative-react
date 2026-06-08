@@ -176,7 +176,7 @@ export class FirebaseStorageProvider implements StorageProviderAdapter {
 
     /**
      * Rename a file or folder. Semantically: change the name in place.
-     * Internally identical to move() — Firebase has no native rename/move API.
+     * Internally identical to move() - Firebase has no native rename/move API.
      */
     rename = async (from: string, to: string, opts: MoveOptions = {}): Promise<boolean> => {
         const count = await this.move(from, to, opts);
@@ -325,7 +325,7 @@ export class FirebaseStorageProvider implements StorageProviderAdapter {
     /**
      * List files (and optionally folders) under a path prefix.
      *
-     * Firebase note: the SDK's listAll() means "list all pages without pagination" —
+     * Firebase note: the SDK's listAll() means "list all pages without pagination" -
      * it is NOT recursive. Recursion over sub-folders is performed manually here.
      *
      * opts.metadata = true fetches size/contentType/updatedAt (one extra call per file).

@@ -24,13 +24,13 @@ export const PROXY_SCAFFOLD_MAP: Record<ProxyProviderName, ProxyScaffoldDescript
         label: 'Next.js App Router',
         templateFile: 'nextjs-app.ts',
         outputPath: 'app/api/proxy/route.ts',
-        hint: 'File placed at app/api/proxy/route.ts — no extra setup needed',
+        hint: 'File placed at app/api/proxy/route.ts - no extra setup needed',
     },
     'nextjs-pages': {
         label: 'Next.js Pages Router',
         templateFile: 'nextjs-pages.ts',
         outputPath: 'pages/api/proxy.ts',
-        hint: 'File placed at pages/api/proxy.ts — no extra setup needed',
+        hint: 'File placed at pages/api/proxy.ts - no extra setup needed',
     },
     cloudflare: {
         label: 'Cloudflare Worker / Pages Function',

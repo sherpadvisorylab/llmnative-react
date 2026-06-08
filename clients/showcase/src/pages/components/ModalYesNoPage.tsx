@@ -62,7 +62,7 @@ export default function ModalYesNoPage() {
         >
             <Section
                 title="Destructive confirmation"
-                description="Use ModalYesNo before any irreversible action — delete, reset, publish. The Yes handler runs the action; No cancels. Both close the modal when their async handler resolves."
+                description="Use ModalYesNo before any irreversible action - delete, reset, publish. The Yes handler runs the action; No cancels. Both close the modal when their async handler resolves."
                 preview={
                     <div className="flex flex-col items-start gap-3">
                         <ActionButton
@@ -74,8 +74,8 @@ export default function ModalYesNoPage() {
                         {open && (
                             <ModalYesNo
                                 title="Confirm deletion"
-                                onYes={async () => { setResult('Confirmed — record deleted.'); setOpen(false); return true; }}
-                                onNo={async () => { setResult('Cancelled — nothing was deleted.'); setOpen(false); return true; }}
+                                onYes={async () => { setResult('Confirmed - record deleted.'); setOpen(false); return true; }}
+                                onNo={async () => { setResult('Cancelled - nothing was deleted.'); setOpen(false); return true; }}
                                 onClose={() => setOpen(false)}
                             >
                                 <p className="text-sm">

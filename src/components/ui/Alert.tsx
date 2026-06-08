@@ -10,13 +10,13 @@ type AlertProps = {
     children: string | React.ReactNode;
     type?: "info" | "success" | "warning" | "danger" | "primary" | "secondary" | "light" | "dark";
     /** Visual shell:
-     *  - `"default"` — full alert box with background and border (default)
-     *  - `"text"` — no background, no border, width fits content; ideal for inline status indicators
+     *  - `"default"` - full alert box with background and border (default)
+     *  - `"text"` - no background, no border, width fits content; ideal for inline status indicators
      */
     appearance?: "default" | "text";
     /** Rendering mode:
-     *  - `"inline"` (default) — renders where declared, normal document flow
-     *  - `"fixed"` — portal to document.body, viewport-fixed above all other content
+     *  - `"inline"` (default) - renders where declared, normal document flow
+     *  - `"fixed"` - portal to document.body, viewport-fixed above all other content
      */
     placement?: "inline" | "fixed";
     timeout?: number;

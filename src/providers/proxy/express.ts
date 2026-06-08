@@ -1,4 +1,4 @@
-// @ts-nocheck — scaffold template, copied to user project by CLI
+// @ts-nocheck - scaffold template, copied to user project by CLI
 import type { IncomingMessage, ServerResponse } from 'node:http';
 
 const PROXY_CALLER_HEADER = 'x-llmnative-proxy';

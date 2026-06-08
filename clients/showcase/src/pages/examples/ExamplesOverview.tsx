@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Link } from 'react-router-dom';
 import PageLayout from '../../showcase/page';
 
@@ -12,7 +12,7 @@ const EXAMPLES = [
     {
         title: 'Dashboard',
         path: '/examples/dashboard',
-        desc: 'Metric cards, charts and a recent-activity table â€” all from a single DataProvider.',
+        desc: 'Metric cards, charts and a recent-activity table — all from a single DataProvider.',
         tags: ['Card', 'Grid', 'Badge'],
     },
     {

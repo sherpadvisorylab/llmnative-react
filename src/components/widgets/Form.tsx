@@ -417,7 +417,7 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
 
 
         if (!record) {
-            return <p className={"p-4"}><span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />Loading…</p>;
+            return <p className={"p-4"}><span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />Loading...</p>;
         }
 
         return <FormData {...rest} defaultValues={record} path={path} ref={ref} />;
@@ -543,13 +543,13 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
 
         // Builds the DB write path from the collection path and record key.
         // For existing records: strips trailing record-ID segment if already in path,
-        // then appends the key — handles both /users and /users/user_001 as input.
+        // then appends the key - handles both /users and /users/user_001 as input.
         const computeSavePath = useCallback((rec: RecordProps): string | undefined => {
             if (!path) return undefined;
             const base = trimSlash(path);
             if (isNewRecord) {
                 const segments = base.split('/').filter(Boolean);
-                // Even segment count = doc path (e.g. /table/id) — ID already embedded, save directly
+                // Even segment count = doc path (e.g. /table/id) - ID already embedded, save directly
                 if (segments.length % 2 === 0 && !keyGenerator) {
                     return `/${base}`;
                 }

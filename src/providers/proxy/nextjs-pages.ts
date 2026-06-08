@@ -1,8 +1,8 @@
-// @ts-nocheck — scaffold template, copied to user project by CLI
+// @ts-nocheck - scaffold template, copied to user project by CLI
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 /**
- * LLMNative proxy — Next.js Pages Router.
+ * LLMNative proxy - Next.js Pages Router.
  *
  * Place this file at:
  *   pages/api/proxy.ts

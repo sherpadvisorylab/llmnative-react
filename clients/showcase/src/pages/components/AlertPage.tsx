@@ -85,12 +85,12 @@ export default function AlertPage() {
 
             <Section
                 title="Appearance"
-                description="appearance=&quot;text&quot; renders a compact inline indicator — no background, no border, width fits content. Ideal for status feedback next to buttons."
+                description="appearance=&quot;text&quot; renders a compact inline indicator - no background, no border, width fits content. Ideal for status feedback next to buttons."
                 preview={
                     <div className="flex flex-col gap-3 w-full">
                         <div className="flex flex-col gap-2">
                             {(['success', 'danger', 'warning', 'info'] as const).map(t => (
-                                <Alert key={t} type={t} appearance="text">{t.charAt(0).toUpperCase() + t.slice(1)} — text appearance</Alert>
+                                <Alert key={t} type={t} appearance="text">{t.charAt(0).toUpperCase() + t.slice(1)} - text appearance</Alert>
                             ))}
                         </div>
                         <div className="flex items-center gap-3 mt-2">
@@ -99,7 +99,7 @@ export default function AlertPage() {
                         </div>
                     </div>
                 }
-                code={`// Compact inline status — next to a save button
+                code={`// Compact inline status - next to a save button
 <Alert type="success" appearance="text" timeout={3000} onClose={() => setVisible(false)}>
     Saved
 </Alert>
@@ -143,17 +143,17 @@ export default function AlertPage() {
                 preview={
                     <div className="space-y-3">
                         <Alert type="info" icon={false}>
-                            <code className="font-mono">placement="inline"</code> — renders where declared (default)
+                            <code className="font-mono">placement="inline"</code> - renders where declared (default)
                         </Alert>
                         <Alert type="warning" icon={false}>
-                            <code className="font-mono">placement="fixed"</code> — portal to body, try it from the playground above
+                            <code className="font-mono">placement="fixed"</code> - portal to body, try it from the playground above
                         </Alert>
                     </div>
                 }
                 code={`// Renders in document flow (default)
 <Alert type="info">Inline alert</Alert>
 
-// Viewport-pinned above everything — ideal for global toasts
+// Viewport-pinned above everything - ideal for global toasts
 <Alert type="success" placement="fixed" onClose={() => setVisible(false)}>
     Saved successfully
 </Alert>`}
