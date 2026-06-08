@@ -44,7 +44,7 @@ const PROPS: PropDef[] = [
 ];
 
 const PLAYGROUND: PlaygroundConfig = {
-    size: 'sm',
+    size: 'lg',
     props: PROPS,
     defaultProps: { label: 'Save', icon: 'save', badge: { content: '3', type: 'danger' }, title: 'Save changes', disabled: false, showLoader: false, loadingLabel: '', className: BUTTON_CLASSES[0] },
     render: (p) => (

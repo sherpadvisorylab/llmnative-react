@@ -23,7 +23,7 @@ const PROPS_CONFIG: PropDef[] = [
 ];
 
 const PLAYGROUND: PlaygroundConfig = {
-    size: 'sm',
+    size: 'lg',
     props: PROPS_CONFIG,
     defaultProps: {
         type: 'info',

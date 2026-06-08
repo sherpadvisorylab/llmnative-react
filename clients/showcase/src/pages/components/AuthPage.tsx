@@ -54,7 +54,7 @@ const AUTH_BUTTON_PLAYGROUND_PROPS: PropDef[] = [
 
 const PLAYGROUND: PlaygroundConfig = {
     props: AUTH_BUTTON_PLAYGROUND_PROPS,
-    size: 'md',
+    size: 'lg',
     defaultProps: {
         provider: 'dropboxAuth',
         intent: 'connect',

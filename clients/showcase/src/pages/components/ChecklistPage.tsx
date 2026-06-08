@@ -70,7 +70,7 @@ const CHECKLIST_PROPS: PropDef[] = [
 ];
 
 const PLAYGROUND: PlaygroundConfig = {
-    size: 'md',
+    size: 'lg',
     showFormRecord: true,
     props: CHECKLIST_PROPS,
     mockSeed: {

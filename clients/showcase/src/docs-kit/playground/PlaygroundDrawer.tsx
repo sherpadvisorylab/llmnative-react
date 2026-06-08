@@ -94,7 +94,7 @@ export default function PlaygroundDrawer({ title, config, open, onClose }: Playg
     };
 
     return (
-        <Modal header={header} size={config.size ?? 'md'} onClose={onClose}>
+        <Modal header={header} size={config.size ?? 'lg'} onClose={onClose}>
             <div className={splitLayout ? 'grid h-full min-h-0 lg:grid-cols-[minmax(20rem,26rem)_1fr]' : 'flex h-full flex-col'}>
                 <div className={splitLayout ? 'min-h-0 overflow-y-auto border-b px-4 pb-3 pt-4 lg:border-b-0 lg:border-r' : 'min-h-0 flex-1 overflow-y-auto border-b px-4 pb-3 pt-4'}>
                     <PlaygroundControls props={props} definitions={config.props} onUpdateProp={updateProp} />
