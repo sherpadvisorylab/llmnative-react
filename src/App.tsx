@@ -13,6 +13,12 @@ import Users from "./pages/Users";
 import NotFound from './pages/NotFound';
 import Alert from "./components/ui/Alert";
 import ErrorBoundary from "./components/ErrorBoundary";
+
+const PageLoader = () => (
+    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-muted border-t-primary" />
+    </div>
+);
 import {
     AIConfig,
     DropboxConfig,
@@ -135,7 +141,7 @@ function resolveProviderRegistries(providers: AppProvidersConfig = {}) {
 
     const registries = { data, storage, auth, email, ai, credentials } as Record<string, Record<string, any>>;
 
-    // Manifest-driven: one loop for all providers — adding a new provider
+    // Manifest-driven: one loop for all providers - adding a new provider
     // only requires a new entry in PROVIDER_MANIFESTS, not a change here.
     for (const [providerKey, manifest] of Object.entries(PROVIDER_MANIFESTS)) {
         const cfg = (providers as Record<string, unknown>)[providerKey];
@@ -237,7 +243,7 @@ function App({
                 element={
                     <LayoutComponent>
                         <ErrorBoundary key={item.path} reportUrl={errorReportUrl} debug={debug}>
-                            <Suspense fallback={<div>Loading...</div>}>
+                            <Suspense fallback={<PageLoader />}>
                                 <PageComponent />
                             </Suspense>
                         </ErrorBoundary>
