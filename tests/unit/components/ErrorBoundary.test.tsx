@@ -282,14 +282,16 @@ describe('ErrorBoundary — fullPage', () => {
         expect(wrapper.className).toMatch(/min-h-screen/);
     });
 
-    it('applies my-4 wrapper class when fullPage is not set', () => {
+    it('centers content in the content area when fullPage is not set', () => {
         const { container } = render(
             <ErrorBoundary>
                 <Bomb shouldThrow />
             </ErrorBoundary>
         );
         const wrapper = container.firstChild as HTMLElement;
-        expect(wrapper.className).toMatch(/my-4/);
+        expect(wrapper.className).toMatch(/flex/);
+        expect(wrapper.className).toMatch(/items-center/);
+        expect(wrapper.className).toMatch(/justify-center/);
     });
 });
 
