@@ -3,19 +3,21 @@
 
     import { useLocation } from "react-router-dom";
     import { Wrapper } from "../ui/GridSystem";
-    import { trimSlash, cleanRecord } from "../../libs/utils";
+    import { trimSlash, cleanRecord, normalizeKey } from "../../libs/utils";
     import { useDataProvider } from "../../providers/data/DataProviderContext";
     import Card from "../ui/Card";
     import { BackLink, LoadingButton } from "../ui/Buttons";
-    import setLog from "../../libs/log";
+    import { getGlobalVars } from "../../Global";
     import { useTheme } from "../../Theme";
     import Alert from "../ui/Alert";
-    import { RecordProps, RECORD_KEY } from "../../providers/data/DataProvider";
+    import { FieldValue, RecordProps, RECORD_KEY } from "../../providers/data/DataProvider";
     import {FormTree, ModelProps, buildFormFields} from "../Component";
     import Breadcrumbs from "../blocks/Breadcrumbs";
     import { UIProps } from '../';
 
-    export type ChangeHandler = React.ChangeEvent<any> | { target: { name: string; value?: any } };
+    export type ChangeHandler =
+        | React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+        | { target: { name: string; value?: FieldValue } };
 
     type FormHandleChange = (event: ChangeHandler) => void;
     interface FormProviderProps {
@@ -23,7 +25,7 @@
         setRecord: React.Dispatch<React.SetStateAction<RecordProps | undefined>>;
         wrapClass?: string;
     }
-    export type FieldOnChange = (params: {event: ChangeHandler, name: string, value: any, record: RecordProps, onChange: FormHandleChange}) => void;
+    export type FieldOnChange = (params: {event: ChangeHandler, name: string, value: FieldValue, record: RecordProps, onChange: FormHandleChange}) => void;
     export type InputType = "text" | "number" | "email" | "password" | "color" | "date" | "time" | "datetime-local" | "week" | "month" | "range" | "checkbox" | "radio" | "url" ;
 
     interface FormContextProps {
@@ -31,27 +33,27 @@
         onChange?: FieldOnChange;
         wrapClass?: string;
         inputType?: InputType;
-        defaultValue?: any;
+        defaultValue?: FieldValue;
         inheritFormWrapClass?: boolean;
     }
     interface FormContextResult {
-        value: any;
+        value: FieldValue;
         handleChange: FormHandleChange;
         formWrapClass?: string;
         record: RecordProps;
     }
 
-    const cloneContainer = (value: any) => (
+    const cloneContainer = (value: unknown): Record<string, unknown> | unknown[] => (
         Array.isArray(value)
             ? [...value]
             : (value && typeof value === "object")
-                ? { ...value }
+                ? { ...(value as Record<string, unknown>) }
                 : {}
     );
 
     const isArrayIndex = (value: string) => !Number.isNaN(Number(value));
 
-    const normalizeInputValue = (rawValue: string, inputType: InputType) => {
+    const normalizeInputValue = (rawValue: FieldValue, inputType: InputType) => {
         if (!["number", "range"].includes(inputType)) return rawValue;
         return rawValue === "" || rawValue == null ? "" : Number(rawValue);
     };
@@ -69,7 +71,7 @@
         const nextValue = normalizeInputValue(event.target.value, inputType);
 
         const root = cloneContainer(source ?? {}) as RecordProps;
-        let cursor: any = root;
+        let cursor: Record<string, unknown> = root as Record<string, unknown>;
         // Dynamic path traversal across nested objects/arrays.
 
         for (let i = 0; i < path.length - 1; i++) {
@@ -82,13 +84,13 @@
                     ? cloneContainer(currentValue)
                     : createContainer(nextKey);
 
-            cursor = cursor[key];
+            cursor = cursor[key] as Record<string, unknown>;
         }
 
         const finalKey = path[path.length - 1];
         if (nextValue == null || nextValue === "") {
             if (Array.isArray(cursor) && isArrayIndex(finalKey)) {
-                cursor.splice(Number(finalKey), 1);
+                (cursor as unknown[]).splice(Number(finalKey), 1);
             } else {
                 delete cursor[finalKey];
             }
@@ -102,10 +104,10 @@
     export interface FormFieldProps extends UIProps {
         name: string;
         label?: string;
-        value?: any;
+        value?: FieldValue;
         required?: boolean;
         onChange?: FieldOnChange;
-        defaultValue?: any; //todo: da propagare per le select, checkbox e vrificare la copertura ovunque
+        defaultValue?: FieldValue;
         inheritFormWrapClass?: boolean;
     }
 
@@ -123,7 +125,7 @@
     interface FieldValidationConstraints {
         required?: boolean;
         label?: string;
-        validator?: (value: any) => string | undefined;
+        validator?: (value: FieldValue) => string | undefined;
     }
 
     interface FormValidationContextValue {
@@ -161,39 +163,46 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
 
     const validationCtx = useContext(FormValidationContext);
 
-    const formChange = (event: ChangeHandler, sourceRecord?: RecordProps) => {
-        const nextRecord = applyChangeToRecord(sourceRecord ?? ctx.record, event, inputType);
-        return nextRecord;
-    }
-
         const value = useMemo(() => {
-            const currentValue = name.split(".").reduce((acc, key) => (acc === undefined ? undefined : acc[key]), ctx.record);
+            const currentValue = name.split(".").reduce<FieldValue | undefined>(
+                (acc, key) => {
+                    if (acc === null || acc === undefined) return undefined;
+                    if (Array.isArray(acc)) {
+                        const idx = Number(key);
+                        return isNaN(idx) ? undefined : acc[idx] as FieldValue | undefined;
+                    }
+                    if (typeof acc !== 'object') return undefined;
+                    return (acc as RecordProps)[key];
+                },
+                ctx.record
+            );
                 if (currentValue === undefined && defaultValue !== undefined) {
                     return defaultValue ?? '';
                 }
             return currentValue ?? '';
         }, [name, ctx.record, defaultValue]);
 
+        const handleChange = useCallback((event: ChangeHandler) => {
+            validationCtx?.clearFieldError(event.target.name);
+            let nextRecord: RecordProps | undefined;
+            ctx.setRecord((prev) => {
+                nextRecord = applyChangeToRecord(prev, event, inputType);
+                return nextRecord;
+            });
+            onChange?.({
+                event,
+                name,
+                value: event.target.value,
+                record: nextRecord ?? {},
+                onChange: (nextEvent) => {
+                    ctx.setRecord((prev) => applyChangeToRecord(prev, nextEvent, inputType));
+                }
+            });
+        }, [validationCtx, ctx.setRecord, onChange, name, inputType]);
 
         return {
             value,
-            handleChange: (event) => {
-                validationCtx?.clearFieldError(event.target.name);
-                let nextRecord = ctx.record;
-                ctx.setRecord((prev) => {
-                    nextRecord = formChange(event, prev);
-                    return nextRecord;
-                });
-                onChange?.({
-                    event,
-                    name,
-                    value: event.target.value,
-                    record: nextRecord ?? {},
-                    onChange: (nextEvent) => {
-                        ctx.setRecord((prev) => formChange(nextEvent, prev));
-                    }
-                });
-            },
+            handleChange,
             formWrapClass: [wrapClass, inheritFormWrapClass ? ctx.wrapClass : undefined].filter(Boolean).join(" "),
             record: ctx.record ?? {},
         };
@@ -201,7 +210,7 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
 
     type UseHandleDropProps = {
         name: string;
-        value: string;
+        value: FieldValue;
         handleChange?: FormHandleChange;
       };
 
@@ -220,17 +229,18 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
             const caretPosition = (() => {
               const position =
                 document.caretPositionFromPoint?.(e.clientX, e.clientY) ??
-                (document as any).caretRangeFromPoint?.(e.clientX, e.clientY);
+                (document as unknown as { caretRangeFromPoint?: (x: number, y: number) => { offset?: number } }).caretRangeFromPoint?.(e.clientX, e.clientY);
               return position && "offset" in position
-                ? position.offset
+                ? (position.offset ?? target.value.length)
                 : target.value.length;
             })();
 
+            const valueStr = String(value ?? "");
             // Crea nuovo valore
             const newValue =
-              (value ?? "").slice(0, caretPosition) +
+              valueStr.slice(0, caretPosition) +
               text +
-              (value ?? "").slice(caretPosition);
+              valueStr.slice(caretPosition);
 
             // Notifica onChange
 
@@ -270,7 +280,7 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
             if (!parentName || !React.isValidElement(child)) return child;
 
             const {name, children: childChildren} = child.props;
-            const newProps: Record<string, any> = {};
+            const newProps: Record<string, unknown> = {};
             if (name) {
                 newProps.name       = setParentName(name, parentName);
                 newProps.key        = parentKey ?? newProps.name;
@@ -299,7 +309,7 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
                 });
             }
 
-            return React.cloneElement(child as any, newProps);
+            return React.cloneElement(child as React.ReactElement, newProps as Record<string, unknown>);
         });
     }
 
@@ -362,8 +372,8 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
     }
 
     export interface FormRef {
-        handleSave: (e: React.MouseEvent<HTMLButtonElement>) => Promise<boolean>;
-        handleDelete: (e: React.MouseEvent<HTMLButtonElement>) => Promise<boolean>;
+        handleSave: (e: React.MouseEvent<HTMLElement>) => Promise<boolean>;
+        handleDelete: (e: React.MouseEvent<HTMLElement>) => Promise<boolean>;
         getHeader: () => React.ReactNode;
         getRecord: () => {record: RecordProps, isNewRecord: boolean};
         getFooter: () => React.ReactNode;
@@ -494,7 +504,15 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
                 const { required, label, validator } = constraintsRef.current;
                 const value = fieldName
                     .split('.')
-                    .reduce((acc: any, key) => acc?.[key], recordRef.current);
+                    .reduce<FieldValue | undefined>(
+                        (acc, key) => {
+                            if (acc === null || acc === undefined) return undefined;
+                            if (Array.isArray(acc)) return acc[Number(key)] as FieldValue | undefined;
+                            if (typeof acc !== 'object') return undefined;
+                            return (acc as RecordProps)[key];
+                        },
+                        recordRef.current
+                    );
                 if (required) {
                     const empty =
                         value === null ||
@@ -548,7 +566,7 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
         }, [path, keyGenerator, isNewRecord]);
 
 
-        const handleSave = useCallback(async (e: React.MouseEvent<HTMLButtonElement>): Promise<boolean> => {
+        const handleSave = useCallback(async (e: React.MouseEvent<HTMLElement>): Promise<boolean> => {
             e.preventDefault();
 
             flushSync(() => {
@@ -574,7 +592,7 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
             return await handleFinally(action);
         }, [path, onSave, onFinally, showNotice, computeSavePath, validateFields]);
 
-        const handleDelete = useCallback(async (e: React.MouseEvent<HTMLButtonElement>) => {
+        const handleDelete = useCallback(async (e: React.MouseEvent<HTMLElement>) => {
             e.preventDefault();
 
             showNotice && setNotification(undefined);
@@ -588,7 +606,16 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
         }, [path, onDelete, onFinally, showNotice, computeSavePath]);
 
         const handleFinally = useCallback(async (action: 'create' | 'update' | 'delete') => {
-            log && path && setLog(path, action, recordRef.current);
+            if (log && path && db) {
+                const when = new Date().toISOString();
+                const user = getGlobalVars("user");
+                db.set(`/log/${path}/${normalizeKey(when)}`, {
+                    user: user?.email ?? 'unknown',
+                    when,
+                    action,
+                    record: recordRef.current,
+                });
+            }
 
             notice({ message: `Record ${action}d successfully`, type: "success" });
 
@@ -610,16 +637,17 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
             errors,
         }), [registerField, unregisterField, clearFieldError, errors]);
 
-        const components = (
-            <FormContext.Provider value={{ record, setRecord, wrapClass: "mb-3" }}>
+        const formCtx = useMemo(() => ({ record, setRecord, wrapClass: "mb-3" as const }), [record, setRecord]);
+
+        const components = useMemo(() => (
+            <FormContext.Provider value={formCtx}>
                 <FormValidationContext.Provider value={validationContextValue}>
-                    {typeof children === 'function' ? children({record}) : children}
+                    {typeof children === 'function' ? children({record} as unknown as FormTree & { record?: RecordProps | undefined }) : children}
                 </FormValidationContext.Provider>
             </FormContext.Provider>
-        );
+        ), [formCtx, validationContextValue, children, record]);
 
-
-        const notificationEl = notification && (
+        const notificationEl = useMemo(() => notification ? (
             <Alert
                 type={notification.type}
                 appearance="text"
@@ -628,7 +656,7 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
             >
                 {notification.message}
             </Alert>
-        );
+        ) : null, [notification]);
 
         const displayComponent = useMemo(() => {
             if(!aspect && ref) return <>{components}{notificationEl}</>;
@@ -665,7 +693,7 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
                         {components}
                     </Card>;
             }
-        }, [aspect, header, footer, onSave, onDelete, showBack, record, components, ref, notificationEl]);
+        }, [aspect, header, footer, onSave, onDelete, showBack, components, ref, notificationEl]);
 
         return (
             <Wrapper className={wrapClass || theme.Form.wrapClass}>
@@ -699,7 +727,7 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
         if (!dbPath) return null;
 
         return (
-            <FormDatabase path={dbPath} defaultValues={defaults} {...formProps}>
+            <FormDatabase path={dbPath} defaultValues={defaults as RecordProps} {...formProps}>
                 {children && children(fields)}
             </FormDatabase>
 

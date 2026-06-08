@@ -2,13 +2,14 @@ import React, { useMemo } from 'react';
 import { ActionButton } from './Buttons';
 import { FieldOnChange, setFormFieldsName, useFormContext } from '../widgets/Form';
 import { Col, Row } from './GridSystem';
+import { RecordProps } from '../../providers/data/DataProvider';
 
 interface RepeatProps {
     name: string;
-    children: React.ReactNode | ((record: any) => React.ReactNode);
-    value?: any[];
+    children: React.ReactNode | ((record: RecordProps) => React.ReactNode);
+    value?: RecordProps[];
     onChange?: FieldOnChange;
-    onAdd?: (value: any[]) => void;
+    onAdd?: (value: RecordProps[]) => void;
     onRemove?: (index: number) => void;
     className?: string;
     layout?: 'vertical' | 'horizontal' | 'inline';
@@ -33,11 +34,12 @@ const Repeat = ({
     readOnly = false,
 }: RepeatProps) => {
     const { value, handleChange } = useFormContext({ name, onChange });
+    const records = Array.isArray(value) ? value as RecordProps[] : [];
 
     const renderChildren = (index: number, wrapClass?: string) => {
         return setFormFieldsName({
             children: typeof children === 'function'
-                ? children({ record: value?.[index], records: value, index: index })
+                ? children({ record: records[index], records, index: index })
                 : children,
             parentName: `${name}.${index}`,
             wrapClass
@@ -79,7 +81,7 @@ const Repeat = ({
     }
 
 
-    const components = (Array.isArray(value) ? value : Array.from({ length: min || 0 }, () => ({})))?.map((_, index) => {
+    const components = (records.length > 0 ? records : Array.from({ length: min || 0 }, () => ({}) as RecordProps))?.map((_, index) => {
         const canRemove = !readOnly && index >= (min || 0);
 
         return (
@@ -90,8 +92,8 @@ const Repeat = ({
     });
 
     const handleAdd = () => {
-        const next = Array.isArray(value)
-            ? [...value, {}]
+        const next: RecordProps[] = records.length > 0
+            ? [...records, {}]
             : Array.from({ length: components.length + 1 }, () => ({}));
         onAdd?.(next);
         handleChange({ target: { name: `${name}.${next.length - 1}`, value: {} } });

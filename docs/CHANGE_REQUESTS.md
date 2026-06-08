@@ -50,6 +50,7 @@
 | [CR-037](#cr-037--component-builder-system) | Component Builder System — useX() hooks per export HTML/JSON | Media | CR-007 | ⬜ |
 | [CR-038](#cr-038--ai-first-naming-normalization) | AI-first naming normalization | Alta | CR-014, CR-037 | ⬜ |
 | [CR-039](#cr-039--firebase-sdk-compat--modular-v9) | Firebase SDK compat → modular v9+ | Alta | CR-002, CR-023 | ✅ |
+| [CR-042](#cr-042--typescript-no-any-eliminazione-di-tutti-gli-usi-di-any) | TypeScript no-any: eliminazione di tutti gli usi di `any` | Alta | CR-003 | ✅ done |
 
 ---
 
@@ -3620,3 +3621,436 @@ export class FirebaseDataProvider implements DataProviderAdapter {
 - [x] TypeScript strict: nessun errore `tsc --noEmit`.
 - [x] `npm run test` passa (198 test pass, 0 regressioni).
 - [x] `npm run build` passa.
+
+---
+
+## CR-039 — WorkflowAI: orchestrazione pipeline di prompt
+
+**Stato:** ⬜ todo
+**Priorità:** P1 — differenziatore chiave vs competitor
+**Dipendenze:** Prompt.tsx (usa `runPrompt`), FormContext, `useAIProvider`
+
+### Motivazione
+
+`AssistantAI` (rimosso in questa CR) era un prototipo accoppiato al workflow blog con tipi hardcoded (`{ Title } | { Description } | { outline }`), `FormEnhancer` legacy e `console.log` in produzione. Il concetto sottostante — orchestrare N prompt in sequenza dove l'output di uno alimenta il successivo — è genuinamente utile e mancante nel framework.
+
+`Prompt` (il componente attuale) è un field AI-native per singola esecuzione. Non copre pipeline multi-step né la UX "genera N varianti → utente sceglie una".
+
+### Obiettivo
+
+`WorkflowAI` è un componente che dichiara una pipeline di step, ognuno dei quali è un prompt eseguibile. L'output di ogni step può alimentare i successivi. L'utente può selezionare tra varianti generate o accettarle automaticamente.
+
+### API proposta
+
+```tsx
+<WorkflowAI
+    steps={[
+        {
+            id: "title",
+            label: "Genera titolo",
+            prompt: "Scrivi 3 titoli per un articolo su: {topic}",
+            variants: 3,         // genera N varianti da mostrare
+            pick: "one",         // utente sceglie tra le varianti
+            output: "string",
+        },
+        {
+            id: "outline",
+            label: "Genera struttura",
+            prompt: "Crea un outline per l'articolo: {title}",
+            pick: "auto",        // accetta automaticamente la prima risposta
+            output: "array",     // schema: array di { headline, subheadings }
+        },
+        {
+            id: "section",
+            label: "Scrivi sezione",
+            prompt: "Scrivi la sezione '{outline[0].headline}' in tono {voice}",
+            pick: "one",
+            output: "string",
+        }
+    ]}
+    variables={{ topic: record.topic, voice: "professionale" }}
+    model="anthropic/claude-sonnet-4-6"
+    onComplete={(results) => {
+        // results: { title: string, outline: array, section: string }
+        handleChange({ target: { name, value: results } });
+    }}
+/>
+```
+
+### Prop
+
+| Prop | Tipo | Descrizione |
+|------|------|-------------|
+| `steps` | `WorkflowStep[]` | Definizione pipeline in ordine |
+| `variables` | `Record<string, any>` | Variabili di interpolazione disponibili in tutti i prompt |
+| `model` | `string` | Model ref opzionale (default: provider default) |
+| `temperature` | `number` | Default 0.7 |
+| `onComplete` | `(results: Record<string, any>) => void` | Callback finale con tutti gli output |
+| `onStepComplete` | `(id: string, value: any) => void` | Callback per ogni step completato |
+| `autoRun` | `boolean` | Avvia automaticamente il primo step |
+
+### WorkflowStep
+
+```ts
+interface WorkflowStep {
+    id: string;
+    label: string;
+    prompt: string;               // template con {variabile} e {stepId} per output precedenti
+    pick: "one" | "auto";         // "one" = UX selezione; "auto" = accetta prima risposta
+    variants?: number;            // numero di varianti da generare (default 1, max 5)
+    output: "string" | "array" | "object";
+    schema?: Record<string, any>; // JSON schema opzionale per validare l'output AI
+}
+```
+
+### Comportamento
+
+- I `{placeholder}` nel prompt vengono interpolati con `variables` + output degli step precedenti (referenziati per `id`)
+- `pick: "one"` mostra le varianti come lista selezionabile; scelto un elemento si passa allo step successivo
+- `pick: "auto"` esegue e passa allo step successivo senza interazione utente
+- Ogni step ha un pulsante "Rigenera" per ri-eseguire senza perdere il progresso degli step successivi
+- Lo stato dell'intera pipeline (`{ stepId: value }`) è serializzabile e può essere salvato su Form
+- Usa `runPrompt` da `Prompt.tsx` — nessuna logica AI duplicata
+- Integrazione con `FormContext` tramite `useFormContext`, non `FormEnhancer`
+- Nessun tipo hardcoded: output generico validato da schema opzionale
+
+### File da creare
+
+- `src/components/widgets/WorkflowAI.tsx` — componente principale
+- `src/components/widgets/workflow-ai/WorkflowStep.tsx` — singolo step con varianti
+- `src/components/widgets/workflow-ai/types.ts` — tipi pubblici
+- `clients/showcase/src/pages/components/WorkflowAIPage.tsx` — pagina showcase
+- `tests/unit/components/WorkflowAI.test.tsx` — test unitari
+
+### Criteri di accettazione
+
+- [ ] Pipeline di 3+ step funzionante end-to-end con provider reale
+- [ ] Interpolazione `{variabile}` e `{stepId}` funzionante
+- [ ] `pick: "one"` mostra varianti selezionabili
+- [ ] `pick: "auto"` esegue senza interazione
+- [ ] Pulsante "Rigenera" per ogni step
+- [ ] `onComplete` riceve tutti gli output tipizzati
+- [ ] Integrazione con `Form` (salvataggio stato pipeline)
+- [ ] Nessun uso di `FormEnhancer` o `cloneElement` ricorsivo
+- [ ] TypeScript strict: nessun errore `tsc --noEmit`
+- [ ] Test unitari: step rendering, interpolazione, pick modes
+- [ ] Showcase page con esempio blog (title → outline → section)
+
+---
+
+## CR-041 — SeoEnhancer: filtro SEO tecnica su HTML generato (proposta)
+
+**Stato:** ⬜ proposta
+**Priorità:** P2 — feature parity / differenziatore AI-assisted
+**Dipendenze:** `Head.tsx` (meta tags), `providers/ai/` (analisi opzionale), `MarkdownReader` (report)
+
+### Motivazione
+
+Il framework genera pagine dinamicamente ma non ha un layer che ottimizzi l'HTML prodotto dal punto di vista della SEO tecnica. Oggi le funzioni `getKeywordIdeas` e `getGoogleTrendsData` esistono in `providers/seo/google/` ma non sono collegate a nessun componente che agisca sull'output HTML. `seo.ts` era il wrapper — rimosso come dead code — ma l'idea di avere un punto di applicazione SEO rimane valida e va realizzata correttamente.
+
+### Idea
+
+`SeoEnhancer` è un filtro/componente che prende HTML generato per una pagina, applica automaticamente le ottimizzazioni SEO tecniche che può fare da solo, e restituisce:
+1. **HTML migliorato** — con le correzioni già applicate inline
+2. **Report strutturato** — cosa ha applicato automaticamente + lista di suggerimenti che richiedono intervento umano o dati esterni
+
+### Utilizzo previsto
+
+```tsx
+import { SeoEnhancer } from '@llmnative/react'
+
+// Wrapper su una pagina esistente
+<SeoEnhancer
+  html={generatedHtml}
+  meta={{ title: "Titolo pagina", description: "...", keywords: ["react", "framework"] }}
+  onReport={(report) => console.log(report)}  // riceve il report strutturato
+>
+  {/* oppure children come alternativa a html prop */}
+  <MyPageContent />
+</SeoEnhancer>
+
+// Uso imperativo (per SSR o pipeline AI)
+const { html, report } = await SeoEnhancer.process(rawHtml, meta)
+```
+
+### Ottimizzazioni automatiche (applicate dal tool)
+
+| Categoria | Cosa fa |
+|-----------|---------|
+| **Meta tags** | Aggiunge/completa `<title>`, `<meta description>`, `<meta robots>`, `canonical` |
+| **Open Graph** | Genera `og:title`, `og:description`, `og:image` se assenti |
+| **Heading structure** | Verifica che esista un `<h1>` unico, warn se mancante |
+| **Alt text** | Segnala `<img>` senza `alt` (non può inferire il testo, ma lo marca) |
+| **Schema.org JSON-LD** | Inietta `WebPage` / `Article` structured data di base |
+| **Semantic HTML** | Verifica presenza di `<main>`, `<nav>`, `<footer>` |
+| **Lang attribute** | Aggiunge `lang` se assente, basato sul locale corrente |
+
+### Report strutturato
+
+```ts
+interface SeoReport {
+  applied: SeoAction[]      // ottimizzazioni applicate automaticamente
+  suggestions: SeoSuggestion[]  // richiedono dati esterni o intervento umano
+  score: number             // 0-100 stima del punteggio SEO
+}
+
+interface SeoAction {
+  type: string              // es. "meta:description", "schema:webpage"
+  description: string       // cosa è stato fatto
+  before?: string           // valore originale (se modificato)
+  after: string             // valore applicato
+}
+
+interface SeoSuggestion {
+  priority: 'high' | 'medium' | 'low'
+  category: string          // es. "content", "backlinks", "performance"
+  message: string           // descrizione del problema
+  howToFix?: string         // istruzione per risolverlo
+}
+```
+
+### Esempio di report
+
+```json
+{
+  "applied": [
+    { "type": "meta:description", "description": "Meta description aggiunta", "after": "Framework React AI-first..." },
+    { "type": "schema:webpage", "description": "JSON-LD WebPage iniettato" },
+    { "type": "lang", "description": "Attributo lang='it' aggiunto a <html>" }
+  ],
+  "suggestions": [
+    { "priority": "high", "category": "content", "message": "Nessun <h1> trovato nella pagina", "howToFix": "Aggiungi un titolo principale univoco" },
+    { "priority": "medium", "category": "content", "message": "3 immagini senza alt text", "howToFix": "Descrivi ogni immagine con testo alternativo significativo" },
+    { "priority": "low", "category": "backlinks", "message": "Nessun link interno verso questa pagina rilevato" }
+  ],
+  "score": 72
+}
+```
+
+### Integrazione con AI (opzionale)
+
+Se il provider AI è configurato, `SeoEnhancer` può arricchire il report con:
+- Suggerimenti di keyword basati sul contenuto della pagina
+- Proposta di meta description generata da AI se assente
+- Analisi della leggibilità del testo
+
+### File da creare
+
+- `src/components/widgets/SeoEnhancer.tsx` — componente React + logica di processing
+- `src/types/Seo.ts` — tipi `SeoReport`, `SeoAction`, `SeoSuggestion`
+- `src/libs/seoAnalyzer.ts` — funzioni pure di analisi HTML (zero React, usabili anche lato SSR)
+- `src/components/index.ts` — esportare `SeoEnhancer`
+- `clients/showcase/src/pages/components/SeoEnhancerPage.tsx` — playground con report visibile
+
+### Criteri di accettazione
+
+- [ ] `SeoEnhancer` accetta `html` prop o `children` e restituisce HTML migliorato
+- [ ] Tutte le ottimizzazioni automatiche della tabella sopra sono implementate
+- [ ] `onReport` callback riceve un `SeoReport` strutturato dopo ogni processing
+- [ ] `SeoEnhancer.process(html, meta)` funziona in contesto non-React (SSR/pipeline)
+- [ ] Il report distingue chiaramente "applicato" da "da fare manualmente"
+- [ ] Score 0-100 calcolato con pesi documentati
+- [ ] Integrazione AI opzionale: meta description generata se assente e provider configurato
+- [ ] TypeScript strict: nessun errore `tsc --noEmit`
+- [ ] Test unitari: ogni ottimizzazione automatica verificata con HTML di input/output
+- [ ] Showcase page con playground: incolla HTML → vedi HTML migliorato + report
+
+---
+
+## CR-040 — SchemaForm: form generation da schema JSON / factory
+
+**Stato:** ⬜ todo
+**Priorità:** P1 — differenziatore AI-first
+**Dipendenze:** `Component.tsx` (factory registry), `Form.tsx` (FormContext), `Grid.tsx` (inferColumns)
+
+### Motivazione
+
+Il codebase ha già un registry di factory funzionante (`Component.input.*`, `Component.layout.*`) ma non esposto come feature first-class. Un LLM o un backend possono descrivere un form come schema JSON e il framework dovrebbe materializzarlo senza JSX.
+
+Oggi il pattern esiste ma è nascosto, non documentato, non integrato con DataProvider, e non supporta round-trip JSON → Form → JSON.
+
+### Obiettivo
+
+`SchemaForm` è un componente che accetta uno schema JSON e genera un Form completo usando il registry factory esistente. Supporta sia la definizione imperativa (via `Component.input.*`) sia la definizione dichiarativa (JSON puro).
+
+### API proposta
+
+**Imperativa (già funzionante, da esporre):**
+```tsx
+import { Component, SchemaForm } from '@llmnative/react';
+
+const schema = {
+    name:  Component.input.string({ label: "Nome", required: true }),
+    email: Component.input.email({ label: "Email" }),
+    role:  Component.input.select({
+        label: "Ruolo",
+        options: [{ label: "Admin", value: "admin" }, { label: "User", value: "user" }],
+    }),
+    address: {
+        city: Component.input.string({ label: "Città" }),
+        zip:  Component.input.string({ label: "CAP" }),
+    },
+};
+
+<SchemaForm
+    schema={schema}
+    path="/users"
+    aspect="card"
+    onFinally={async ({ action }) => { if (action === 'save') navigate('/users'); }}
+/>
+```
+
+**Dichiarativa (JSON puro — per AI e backend):**
+```tsx
+const jsonSchema = {
+    name:  { type: "string",  label: "Nome", required: true },
+    email: { type: "email",   label: "Email" },
+    role:  { type: "select",  label: "Ruolo", options: [...] },
+    photo: { type: "uploadImage", label: "Foto" },
+};
+
+<SchemaForm
+    schema={jsonSchema}
+    path="/users"
+/>
+```
+
+### Tipi supportati nello schema JSON
+
+Tutti i tipi del registry `Component.input.*`:
+`string`, `number`, `email`, `password`, `color`, `date`, `time`, `datetime`, `week`, `month`, `textarea`, `checkbox`, `switch`, `select`, `autocomplete`, `checklist`, `uploadImage`, `uploadDocument`, `prompt`, `imageUrl`
+
+### Integrazione Grid
+
+Grid già usa `inferColumns` per derivare colonne da un Form JSX. Con SchemaForm, Grid può derivare colonne direttamente dallo schema:
+
+```tsx
+<Grid
+    path="/users"
+    schema={jsonSchema}   // → genera sia le colonne che il form modale CRUD
+/>
+```
+
+### Integrazione AI
+
+Un LLM può generare uno schema JSON descrivendo i campi:
+```ts
+const schema = await AI.json(
+    "Genera uno schema form per registrare un prodotto e-commerce con nome, prezzo, categoria e immagine"
+);
+// → { name: { type: "string" }, price: { type: "number" }, ... }
+
+<SchemaForm schema={schema} path="/products" />
+```
+
+### File da creare / modificare
+
+- `src/components/widgets/SchemaForm.tsx` — componente principale
+- `src/types/Schema.ts` — tipo `JsonFieldSchema` e `SchemaModel`
+- `src/components/Component.tsx` — aggiungere `Component.fromJson(schema)` per convertire JSON → ModelProps
+- `src/components/index.ts` — esportare `SchemaForm`
+- `src/components/widgets/Grid.tsx` — aggiungere prop `schema` come alternativa a `columns` + `form`
+- `clients/showcase/src/pages/components/SchemaFormPage.tsx` — pagina showcase
+- `tests/unit/components/SchemaForm.test.tsx` — test unitari
+
+### Criteri di accettazione
+
+- [ ] `SchemaForm` con schema imperativo (`Component.input.*`) genera un Form funzionante
+- [ ] `SchemaForm` con schema JSON puro (`{ type: "string" }`) genera un Form funzionante
+- [ ] Campi annidati (oggetti) supportati
+- [ ] Integrazione con `path` DataProvider (load + save)
+- [ ] `Grid` con `schema` prop genera colonne + form CRUD automaticamente
+- [ ] `Component.fromJson(schema)` converte JSON → ModelProps
+- [ ] TypeScript strict: nessun errore `tsc --noEmit`
+- [ ] Test unitari: rendering per ogni tipo, nested fields, round-trip JSON
+- [ ] Showcase page con esempio generato da AI
+
+---
+
+## CR-042 — TypeScript no-any: eliminazione di tutti gli usi di `any`
+
+**Stato:** 🔄 in progress (fase 1 ✅ + fase 2 ✅, fase 3 residua)
+**Priorità:** Alta
+**Dipende da:** CR-003 (TypeScript strict ✅)
+**Motivazione:** `any` disabilita completamente il type checker per la variabile in cui è usato, annullando il valore di TypeScript strict. Un codebase AI-first deve essere completamente tipizzato: i tool di generazione del codice (LLM) leggono i tipi per capire le API. Un `any` è segnale che il contratto non è definito.
+
+### Stato audit aggiornato (2026-06-08)
+
+| Fase | Count iniziale | Count residuo | Stato |
+|------|---------------|---------------|-------|
+| **Fase 1** — fix facili (type guard, catch, cast) | ~25 | 0 | ✅ |
+| **Fase 2** — refactor strutturale (FieldValue, propagazioni) | ~80 | ~10 cast giustificati | ✅ |
+| **Fase 3** — breaking change o limiti librerie esterne | ~109 | ~91 | 🔄 (vedi sotto) |
+| **Totale** | **214** | **101** | — |
+
+### Fase 1 — Completata (2026-06-07)
+
+Fix applicati senza rischio di regressione:
+
+| File | Fix |
+|------|-----|
+| `libs/utils.ts` | `isEmpty(data: any)` → `unknown`; `arraysEqual(a: any[], b: any[])` → `unknown[]`; `smartTypeCast(value: any)` → `unknown` |
+| `components/Component.tsx` | `isFieldAdapter`, `isComponentBlock`, `isNestedModel` type guards: `(obj: any)` → `(obj: unknown)` con body adeguato |
+| `components/blocks/Dropdown.tsx` | `isDropdownToggler(button: any)` → `(button: unknown)` |
+| `components/ErrorBoundary.tsx` | `(import.meta as any).env` → cast tipizzato `{ env?: { DEV?: boolean } }` |
+| `providers/data/firebase.ts` | `handleError(error: any)` → `error: unknown` + `String(error)` |
+| `providers/data/firestore.ts` | `handleError(error: any)` → `error: unknown` + `String(error)` |
+| `providers/data/supabase.ts` | `handleError(error: any)` → `error: unknown` + `instanceof Error ? .message : String()` |
+| `providers/firebase-init.ts` | `catch (error: any)` → `unknown` + `instanceof Error` check |
+| `providers/storage/firebase.ts` | 3× `catch (error: any)` → `unknown` + duck-type code check `(error as { code?: string }).code` |
+
+### Fase 2 — Completata (2026-06-08)
+
+**Root change:** `FieldValue` type introdotta e esportata da `DataProvider.ts`:
+```ts
+export type FieldValue = string | number | boolean | null | undefined | Record<string, unknown> | unknown[];
+type FieldMap = Record<string, FieldValue>;   // era Record<string, any>
+export type RecordProps = FieldMap & { _key?: string; _index?: number };
+```
+
+`FieldValue` esportata anche da `src/index.ts` come parte dell'API pubblica.
+
+Propagazioni risolte nei 9 file che emettevano errori `tsc`:
+
+| File | Fix |
+|------|-----|
+| `components/ui/fields/Select.tsx` | `getOptionsDB` semplificato: rimossa chiamata ridondante `normalizeOption(db.fieldMap)` (era no-op che causava type error); `interface Option extends RecordProps` mantenuta |
+| `components/ui/fields/Upload.tsx` | Import `RecordProps` aggiunto; display rows con JSX → `as unknown as RecordProps[]`; onClick → `as unknown as FileProps` |
+| `components/ui/Table.tsx` | `rawVal = item[key]` narrowato a `Record<string, unknown>` prima di accedere `.prompt`/`.value`; return → `as React.ReactNode` |
+| `components/widgets/Form.tsx` | `import FieldValue` aggiunto; reduce tipizzato `<FieldValue \| undefined>` con gestione separata array index (fix bug latente su path `tasks.1.title`); children arg → `as unknown as FormTree` |
+| `components/widgets/grid-core/utils.ts` | `displayRecord: RecordProps` → `Record<string, unknown>` (display records portano ReactNode, non FieldValue) |
+| `components/widgets/Prompt.tsx` | `PromptConfig = Partial<PromptOptions> & { enabled?: boolean }` definita; `value?` in entrambe le interface → `RecordProps & { prompt?: PromptConfig }`; `isPromptEnabled` terzo param `RecordProps` → `unknown`; `runPrompt` call → `as PromptOptions` |
+| `libs/utils.ts` | `cleanRecord` in loop array e branch object → cast `as RecordProps` |
+| `pages/Users.tsx` | `record.email.replace(...)` → template literal `` `${record.email ?? ''}` `` (evita conflitto con componente `String` importato) |
+
+**Risultato:** `tsc --noEmit` 0 errori · `vitest run` 377/377 · nessuna regressione.
+
+### Fase 3 — Residua (breaking change o limiti librerie esterne)
+
+I 101 `any` residui rientrano in queste categorie. **Non fixare senza una CR dedicata.**
+
+| Categoria | Esempi | Motivo del blocco |
+|-----------|--------|------------------|
+| Contratti pubblici API | `DataProviderAdapter.read(): Promise<any>` | Breaking change per tutti i consumer |
+| Form event types | `ChangeHandler = React.ChangeEvent<any>` | Il tipo del change event dipende dall'elemento HTML |
+| Prop polimorfiche | `defaultValue?: any`, `value?: any` in FormFieldProps | Valori di campo sono polimorfici per design — richiederebbe generics |
+| Firebase RTDB query builder | `as any` (10×) | SDK Firebase v9 non espone tipi intermedi dei query builder |
+| Supabase query builder | `applyWhere/applyOrder(query: any)` | Fluent builder non è tipizzato in modo componibile |
+| Dropbox API | `[key: string]: any` in interfacce risposta | Schema aperto da API esterna |
+| Comparison utils | `getEntryValue`, `compareValues`, `matchWhere` | Operano su valori arbitrari — `unknown` richiederebbe narrowing ovunque |
+| Callback generici | `validator?: (value: any)`, `onClick?: (e: any)` | Richiederebbe generics sull'intera catena di componenti |
+| Librerie di terze parti senza tipi | ImageEditor fabric, PrismJS | Tipi non disponibili a compile time |
+
+### Regola per il futuro
+
+Vedi sezione "Regola no-any" in `CLAUDE.md`. **Da applicare da subito a tutto il codice nuovo.**
+
+### Criteri di accettazione
+
+- [x] `FieldValue` type introdotta in `DataProvider.ts`
+- [x] `FieldMap = Record<string, FieldValue>` (era `Record<string, any>`)
+- [x] `FieldValue` esportata da `src/index.ts`
+- [x] Tutte le propagazioni risolte — `tsc --noEmit` zero errori
+- [x] `vitest run` — 377/377 test pass, zero regressioni
+- [x] Occorrenze `any` ridotte: 214 → 101
+- [ ] Fase 3: ridurre ulteriormente con CR dedicata (generics, API breaking change)

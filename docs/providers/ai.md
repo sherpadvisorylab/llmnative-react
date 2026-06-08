@@ -8,7 +8,7 @@ description: Use the active AI service through one stable orchestration layer, r
 
 # AIProvider
 
-`AIProvider` is the fifth framework service slot. It powers AI-first components such as `Prompt`, `AssistantAI` and any custom workflow that calls `AI.fetch(...)`.
+`AIProvider` is the fifth framework service slot. It powers AI-first components such as `Prompt`, `WorkflowAI` and any custom workflow that calls `AI.fetch(...)`.
 
 The goal is the same as for `data`, `storage`, `auth` and `email`: keep the external interface stable while allowing the underlying provider and model to change.
 
@@ -197,19 +197,6 @@ This keeps the public API unchanged while making the provider layer easier to ex
 
 `openrouter` is implemented as a dedicated preset on top of the shared `openaiCompatible.ts` base adapter. `opencode` uses the official Zen model catalog, then filters to the `chat/completions`-compatible subset so the prompt UI only offers models that match the current transport.
 
-## Use AI in AssistantAI
-
-```tsx
-import { AssistantAI } from '@llmnative/react';
-
-<AssistantAI
-  name="copilot"
-  label="Copilot"
-  model="openai/gpt-5-mini"
-  temperature={0.2}
-/>
-```
-
 ## Use AI directly in custom workflows
 
 ```tsx
@@ -336,7 +323,7 @@ Register it:
 
 ## Relationship with API keys
 
-The framework keeps API keys centralized at the `<App>` boundary through `aiConfig`. Components such as `Prompt` and `AssistantAI` never receive raw API keys.
+The framework keeps API keys centralized at the `<App>` boundary through `aiConfig`. Components such as `Prompt` and `WorkflowAI` never receive raw API keys.
 
 That means:
 

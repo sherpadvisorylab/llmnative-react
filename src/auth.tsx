@@ -19,6 +19,8 @@ interface IAuthResponse {
     refresh_token: string;
     account_id: string;
     uid: string;
+    server?: string;
+    client_id?: string;
 }
 
 interface AuthChallenge {
@@ -163,16 +165,16 @@ const refreshAccessToken = (authServer: string, clientID: string, refresh_token:
 };
 
 export const useAccessToken = (clientID: string, renew = true): boolean => {
-    const [auths] = useGlobalVars(_AUTHS);
-    const auth = auths?.[clientID] || {};
+    const [auths] = useGlobalVars<Record<string, IAuthResponse>>(_AUTHS);
+    const auth = auths?.[clientID] || {} as IAuthResponse;
 
-    const isExpired = Math.floor(Date.now() / 1000) >= (auth?.iat + auth?.expires_in);
-    return !!(auth && auth?.access_token && (!isExpired || (renew && isExpired && auth.refresh_token && (refreshAccessToken(auth.server, auth.client_id, auth.refresh_token) || true))));
+    const isExpired = Math.floor(Date.now() / 1000) >= ((auth?.iat ?? 0) + (auth?.expires_in ?? 0));
+    return !!(auth && auth?.access_token && (!isExpired || (renew && isExpired && auth.refresh_token && (refreshAccessToken(auth.server ?? '', auth.client_id ?? '', auth.refresh_token) || true))));
 };
 
-export const getAuthSession = (clientID: string) => {
+export const getAuthSession = (clientID: string): IAuthResponse | undefined => {
     const auths = getGlobalVars(_AUTHS);
-    return auths?.[clientID];
+    return auths?.[clientID] as IAuthResponse | undefined;
 };
 
 export const clearAccessToken = (clientID: string): void => {
@@ -185,13 +187,13 @@ export const clearAccessToken = (clientID: string): void => {
 
 export const getAccessToken = (clientID: string): Promise<string | null> => {
     const auth = getAuthSession(clientID);
-    const isExpired = Math.floor(Date.now() / 1000) > auth?.iat + auth?.expires_in;
+    const isExpired = Math.floor(Date.now() / 1000) > (auth?.iat ?? 0) + (auth?.expires_in ?? 0);
 
     if (!isExpired && auth?.access_token) {
         return Promise.resolve(auth.access_token);
     }
     if (isExpired && auth?.refresh_token) {
-        return refreshAccessToken(auth.server, auth.client_id, auth.refresh_token);
+        return refreshAccessToken(auth.server ?? '', auth.client_id ?? '', auth.refresh_token);
     }
 
     return Promise.resolve(null);

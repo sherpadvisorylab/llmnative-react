@@ -25,6 +25,8 @@ type PromptOptions = AIRequestOptions & {
     value: string;
 };
 
+type PromptConfig = Partial<PromptOptions> & { enabled?: boolean };
+
 type OnRunPrompt = (prompt: string, options: AIRequestOptions, data?: PromptVariables) => Promise<string>;
 
 type PromptDefaultValue = {
@@ -67,11 +69,11 @@ type PromptRunProps = PromptSharedProps & {
 export type PromptProps = PromptEditProps | PromptRunProps;
 
 interface PromptEditorProps extends Omit<PromptEditProps, "mode"> {
-    value?: RecordProps;
+    value?: RecordProps & { prompt?: PromptConfig };
 }
 
 interface PromptRunBranchProps extends Omit<PromptRunProps, "mode" | "renderPromptDisabled"> {
-    value?: RecordProps;
+    value?: RecordProps & { prompt?: PromptConfig };
 }
 
 interface PromptPlainFallbackProps extends Omit<PromptRunProps, "mode" | "onRunPrompt"> {
@@ -253,16 +255,19 @@ export const Prompt = ({
     ...props
 }: PromptProps) => {
     const { value } = useFormContext({ name: props.name });
-    const promptEnabled = isPromptEnabled(value?.prompt?.enabled, props.defaultValue?.enabled, value?.prompt);
+    const rec = (value != null && typeof value === 'object' && !Array.isArray(value))
+        ? value as RecordProps & { prompt?: PromptConfig }
+        : undefined;
+    const promptEnabled = isPromptEnabled(rec?.prompt?.enabled, props.defaultValue?.enabled, rec?.prompt);
 
     return mode === PromptMode.EDIT
-        ? <PromptEditor {...props} value={value} />
+        ? <PromptEditor {...props} value={rec} />
         : promptEnabled
-            ? <PromptRun {...props} value={value} />
+            ? <PromptRun {...props} value={rec} />
             : <PromptPlainFallback {...props} />;
 };
 
-const isPromptEnabled = (value: unknown, fallback?: boolean, promptState?: RecordProps) => {
+const isPromptEnabled = (value: unknown, fallback?: boolean, promptState?: unknown) => {
     if (typeof value === "string") return value === "on" || value === "true";
     if (typeof value === "boolean") return value;
     if (typeof value === "number") return value !== 0;
@@ -524,7 +529,7 @@ const PromptRun = ({
                                         : (ai ?? undefined);
 
                                     try {
-                                        const result = await runPrompt(value?.prompt, record, onRunPrompt, resolvedProvider);
+                                        const result = await runPrompt(value?.prompt as PromptOptions, record, onRunPrompt, resolvedProvider);
                                         setRunError(null);
                                         handleChange?.({
                                             target: {

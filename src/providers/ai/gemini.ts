@@ -26,7 +26,7 @@ export const GEMINI_PROVIDER_DEFINITION: AIProviderDefinition = {
             method: 'POST',
             body: {
                 contents: [{ parts: [{ text: request.prompt }] }],
-                ...(request.role ? { systemInstruction: { parts: [{ text: Prompt.parseRole(request.role, request) }] } } : {}),
+                ...(request.role ? { systemInstruction: { parts: [{ text: Prompt.parseRole(request.role, request as unknown as import("../../conf/Prompt").PromptVariables) }] } } : {}),
                 generationConfig: typeof request.temperature === 'number'
                     ? { temperature: request.temperature }
                     : undefined,

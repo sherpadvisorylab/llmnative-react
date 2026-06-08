@@ -127,7 +127,7 @@ export const Dropdown = ({
         setResolvedPlacement(spaceBelow < menuHeight + 8 ? 'top' : 'bottom');
     }, [open, placement]);
 
-    function isDropdownToggler(button: any): button is DropdownTogglerProps {
+    function isDropdownToggler(button: unknown): button is DropdownTogglerProps {
         return (
             typeof button === "object" &&
             button !== null &&

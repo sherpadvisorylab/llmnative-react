@@ -7,8 +7,8 @@ import { useMotionEffect, useMotionState } from '../../motion';
 import Icon from './Icon';
 import { cn } from '../../libs/cn';
 
-export type ModalSaveHandler = (e: React.MouseEvent<HTMLButtonElement>) => Promise<boolean>;
-export type ModalDeleteHandler = (e: React.MouseEvent<HTMLButtonElement>) => Promise<boolean>;
+export type ModalSaveHandler = (e: React.MouseEvent<HTMLElement>) => Promise<boolean>;
+export type ModalDeleteHandler = (e: React.MouseEvent<HTMLElement>) => Promise<boolean>;
 
 interface ModalProps extends MotionUIProps {
     children: React.ReactNode;
@@ -34,8 +34,8 @@ interface ModalProps extends MotionUIProps {
 interface ModalYesNoProps {
     title?: React.ReactNode;
     children: React.ReactNode;
-    onYes?: (e: React.MouseEvent<HTMLButtonElement>) => Promise<boolean>;
-    onNo?: (e: React.MouseEvent<HTMLButtonElement>) => Promise<boolean>;
+    onYes?: (e: React.MouseEvent<HTMLElement>) => Promise<boolean>;
+    onNo?: (e: React.MouseEvent<HTMLElement>) => Promise<boolean>;
     onClose?: () => void;
 }
 

@@ -82,8 +82,8 @@ export const UploadCSV: React.FC<UploadCSVProps> = ({
           file: file
         });
       },
-      error: (err: any) => {
-        setError(err.message);
+      error: (err: unknown) => {
+        setError(err instanceof Error ? err.message : String(err));
       },
     });
   };

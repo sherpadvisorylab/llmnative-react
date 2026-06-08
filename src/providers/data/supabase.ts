@@ -40,8 +40,8 @@ function parsePath(path: string): { table: string; id: string | null } {
 
 // ── Error helper ──────────────────────────────────────────────────────────────
 
-function handleError(action: string, error: any, exception: boolean): void {
-    const message = `SupabaseDataProvider.${action}: ${error?.message ?? error}`;
+function handleError(action: string, error: unknown, exception: boolean): void {
+    const message = `SupabaseDataProvider.${action}: ${error instanceof Error ? error.message : String(error)}`;
     if (exception) throw new Error(message);
     console.error(message);
 }
@@ -62,6 +62,8 @@ const OP_MAP: Record<string, SupabaseFilterOp> = {
 
 // ── Query builders ────────────────────────────────────────────────────────────
 
+// CR-042: Supabase fluent query builder has no intermediate typed form; query chain returns opaque builder
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function applyWhere(query: any, where: WhereClause): any {
     for (const [field, condition] of Object.entries(where)) {
         if (condition === null || condition === undefined) {
@@ -82,6 +84,7 @@ function applyWhere(query: any, where: WhereClause): any {
     return query;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function applyOrder(query: any, order: OrderClause): any {
     for (const [field, direction] of Object.entries(order)) {
         query = query.order(field, { ascending: direction === 'asc' });

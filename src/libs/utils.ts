@@ -2,7 +2,7 @@ import React from 'react';
 import {converter} from "./converter";
 import { RecordProps } from '../providers/data/DataProvider';
 
-export const decodeJWT = (token: string): any => {
+export const decodeJWT = (token: string): unknown => {
     try {
         // Divide il token nelle sue parti: header, payload, firma
         const payloadEncoded = token.split('.');
@@ -198,7 +198,7 @@ export const ucfirst = (str?: string): string => {
     return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-export const loadScripts = (scriptData: Array<{ src: string; [key: string]: any }>): void => {
+export const loadScripts = (scriptData: Array<{ src: string; [key: string]: unknown }>): void => {
     if (!scriptData.length) return;
 
     const scriptFragment = document.createDocumentFragment();
@@ -207,9 +207,9 @@ export const loadScripts = (scriptData: Array<{ src: string; [key: string]: any 
         if (!src) return;
 
         const scriptElement = document.createElement('script');
-        scriptElement.setAttribute('src', src);
+        scriptElement.setAttribute('src', String(src));
         Object.entries(attrs).forEach(([key, value]) => {
-            scriptElement.setAttribute(key, value);
+            scriptElement.setAttribute(key, String(value));
         });
 
         if (clean) {
@@ -223,10 +223,10 @@ export const loadScripts = (scriptData: Array<{ src: string; [key: string]: any 
 }
 
 export const intersectObjects = (
-    obj1: { [key: string]: any },
-    obj2: { [key: string]: any }
-): { [key: string]: any } => {
-    const result: { [key: string]: any } = {};
+    obj1: { [key: string]: unknown },
+    obj2: { [key: string]: unknown }
+): { [key: string]: unknown } => {
+    const result: { [key: string]: unknown } = {};
 
     for (const key in obj1) {
         if (obj1.hasOwnProperty(key) && key in obj2) {
@@ -278,8 +278,8 @@ export const arrayUnique = <T>(array: T[], key?: keyof T): T[] => {
     }
 };
 
-export const isEmpty = (data: any): boolean => {
-    return data === undefined || data === null || data === '' || data === false || data === '0' || data === 0 || (typeof data === 'object' && Object.keys(data).length === 0);
+export const isEmpty = (data: unknown): boolean => {
+    return data === undefined || data === null || data === '' || data === false || data === '0' || data === 0 || (typeof data === 'object' && data !== null && Object.keys(data).length === 0);
 };
 
 function cloneFallback<T>(value: T, seen: WeakMap<object, unknown> = new WeakMap()): T {
@@ -373,7 +373,7 @@ export function base64Encode(input: string | Buffer | ArrayBuffer): string {
         .replace(/=+$/, '');
 }
 
-export function arraysEqual(a: any[], b: any[]): boolean {
+export function arraysEqual(a: unknown[], b: unknown[]): boolean {
     if (a === b) return true;
     if (a.length !== b.length) return false;
     for (let i = 0; i < a.length; i++) {
@@ -430,10 +430,14 @@ export const base64ToUrl = (base64: string, type: string): string | undefined =>
     return blob ? URL.createObjectURL(blob) : undefined;
 };
 
-export const getRecordValue = (record?: RecordProps, name?: string): any => {
+export const getRecordValue = (record?: RecordProps, name?: string): unknown => {
     if (!record || !name) return undefined;
-  
-    return name.split('.').reduce((acc: any, part: string) => acc?.[part], record);
+
+    return name.split('.').reduce<unknown>((acc, part) => {
+        if (acc === null || acc === undefined) return undefined;
+        if (typeof acc !== 'object' || Array.isArray(acc)) return undefined;
+        return (acc as Record<string, unknown>)[part];
+    }, record);
 };
 
 export const cleanRecord = (record: RecordProps | undefined): RecordProps => {
@@ -451,10 +455,10 @@ export const cleanRecord = (record: RecordProps | undefined): RecordProps => {
         
         if (Array.isArray(v)) {
             cleaned[k] = v
-            .map(item => typeof item === 'object' ? cleanRecord(item) : item)
+            .map(item => typeof item === 'object' ? cleanRecord(item as RecordProps) : item)
             .filter(item => item !== undefined);
         } else if(v && typeof v === 'object') {
-            cleaned[k] = cleanRecord(v);
+            cleaned[k] = cleanRecord(v as RecordProps);
         } else if (v !== undefined) {
             cleaned[k] = v;
         }
@@ -462,8 +466,8 @@ export const cleanRecord = (record: RecordProps | undefined): RecordProps => {
     return cleaned;
 }
 
-export const smartTypeCast = (value: any): string | number | boolean | null | undefined => {
-    if (value === null || value === undefined || value === "" || typeof value !== "string") return value;
+export const smartTypeCast = (value: unknown): string | number | boolean | null | undefined => {
+    if (value === null || value === undefined || value === "" || typeof value !== "string") return value as string | number | boolean | null | undefined;
     if (/^(true|false)$/i.test(value)) return value.toLowerCase() === "true";
     if (/^0\d+$/.test(value)) return value;
     if (/^-?\d+(\.\d+)?$/.test(value)) return Number(value);

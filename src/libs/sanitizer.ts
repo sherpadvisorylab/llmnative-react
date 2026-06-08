@@ -134,17 +134,17 @@ export class Sanitizer {
   /* ----------------------------------------------
    * 🧮 Apply a specific rule directly
    * ---------------------------------------------- */
-  apply(ruleName: keyof SanitizerConfig, value: any, autoCast: boolean = false): any {
+  apply(ruleName: keyof SanitizerConfig, value: unknown, autoCast: boolean = false): unknown {
     const rule = this.config[ruleName];
     if (!rule) {
       //console.warn(`Rule "${String(ruleName)}" not found`);
       return autoCast ? smartTypeCast(value) : value;
     }
 
-    let result = value;
+    let result: unknown = value;
 
     // 🔹 1. visual normalization always first
-    result = normalizeVisualChars(result);
+    result = normalizeVisualChars(String(result ?? ''));
 
     // 🔹 2. exclusions check
     const exclusions = rule.exclusions;

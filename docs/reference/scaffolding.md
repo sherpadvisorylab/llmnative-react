@@ -198,7 +198,7 @@ So the scaffold creates the relay implementation in the project itself, not insi
 1. Fill `.env` with real provider credentials.
 2. Decide whether proxy should stay disabled or be enabled.
 3. Keep all provider selection centralized in `src/conf/app.ts`.
-4. Build pages with `Grid`, `Form`, `Prompt`, `AssistantAI` and provider hooks.
+4. Build pages with `Grid`, `Form`, `Prompt`, `WorkflowAI` and provider hooks.
 
 ---
 

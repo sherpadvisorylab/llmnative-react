@@ -26,6 +26,9 @@ export const ImageUrl = ({
     defaultValue,
     onChange,
   });
+  const imageRecord = (imageValue != null && typeof imageValue === 'object' && !Array.isArray(imageValue))
+    ? imageValue as Record<string, unknown>
+    : {} as Record<string, unknown>;
 
   return (
     <Wrapper className={wrapClass}>
@@ -47,7 +50,7 @@ export const ImageUrl = ({
             label="Alt text"
             mode={mode}
             required={required}
-            defaultValue={defaultValue}
+            defaultValue={defaultValue ?? undefined}
             rows={2}
           />
 
@@ -74,10 +77,10 @@ export const ImageUrl = ({
         <Col xs={4}>
           <Image
             className="img-thumbnail w-full h-full"
-            src={imageValue?.url}
-            label={imageValue?.alt}
-            width={imageValue?.width}
-            height={imageValue?.height}
+            src={imageRecord.url as string}
+            label={imageRecord.alt as string}
+            width={imageRecord.width as number}
+            height={imageRecord.height as number}
           />
         </Col>
       </Row>

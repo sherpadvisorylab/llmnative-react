@@ -1,5 +1,5 @@
 import React from "react";
-import { FieldFactory } from "../components/Component";
+import { FieldFactory, FieldRenderProps } from "../components/Component";
 import {
     InputProps,
     Checkbox,
@@ -49,109 +49,109 @@ const componentFormFields: ComponentFormFieldsMap = {
     string: (props = {}) => ({
         __props: props,
         getDefaults: (name) => ({[name]: props.defaultValue}),
-        render: ({name, label, ...rest} = {}) => <String key={name ?? props.name} name={name ?? props.name} label={label ?? props.label ?? name} {...props} {...rest} />
+        render: ({name, label, ...rest} = {} as FieldRenderProps) => <String key={name ?? props.name} name={(name ?? props.name) as string} label={label ?? props.label ?? name} {...props} {...rest} />
     }),
     number: (props = {}) => ({
         __props: props,
         getDefaults: (name) => ({[name]: props.defaultValue}),
-        render: ({name, label, ...rest} = {}) => <Number key={name ?? props.name} name={name ?? props.name} label={label ?? props.label ?? name} {...props} {...rest} />
+        render: ({name, label, ...rest} = {} as FieldRenderProps) => <Number key={name ?? props.name} name={(name ?? props.name) as string} label={label ?? props.label ?? name} {...props} {...rest} />
     }),
     email: (props = {}) => ({
         __props: props,
         getDefaults: (name) => ({[name]: props.defaultValue}),
-        render: ({name, label, ...rest} = {}) => <Email key={name ?? props.name} name={name ?? props.name} label={label ?? props.label ?? name} {...props} {...rest} />
+        render: ({name, label, ...rest} = {} as FieldRenderProps) => <Email key={name ?? props.name} name={(name ?? props.name) as string} label={label ?? props.label ?? name} {...props} {...rest} />
     }),
     password: (props = {}) => ({
         __props: props,
         getDefaults: (name) => ({[name]: props.defaultValue}),
-        render: ({name, label, ...rest} = {}) => <Password key={name ?? props.name} name={name ?? props.name} label={label ?? props.label ?? name} {...props} {...rest} />
+        render: ({name, label, ...rest} = {} as FieldRenderProps) => <Password key={name ?? props.name} name={(name ?? props.name) as string} label={label ?? props.label ?? name} {...props} {...rest} />
     }),
     color: (props = {}) => ({
         __props: props,
         getDefaults: (name) => ({[name]: props.defaultValue}),
-        render: ({name, label, ...rest} = {}) => <Color key={name ?? props.name} name={name ?? props.name} label={label ?? props.label ?? name} {...props} {...rest} />
+        render: ({name, label, ...rest} = {} as FieldRenderProps) => <Color key={name ?? props.name} name={(name ?? props.name) as string} label={label ?? props.label ?? name} {...props} {...rest} />
     }),
     date: (props = {}) => ({
         __props: props,
         getDefaults: (name) => ({[name]: props.defaultValue}),
-        render: ({name, label, ...rest} = {}) => <Date key={name ?? props.name} name={name ?? props.name} label={label ?? props.label ?? name} {...props} {...rest} />
+        render: ({name, label, ...rest} = {} as FieldRenderProps) => <Date key={name ?? props.name} name={(name ?? props.name) as string} label={label ?? props.label ?? name} {...props} {...rest} />
     }),
     time: (props = {}) => ({
         __props: props,
         getDefaults: (name) => ({[name]: props.defaultValue}),
-        render: ({name, label, ...rest} = {}) => <Time key={name ?? props.name} name={name ?? props.name} label={label ?? props.label ?? name} {...props} {...rest} />
+        render: ({name, label, ...rest} = {} as FieldRenderProps) => <Time key={name ?? props.name} name={(name ?? props.name) as string} label={label ?? props.label ?? name} {...props} {...rest} />
     }),
     datetime: (props = {}) => ({
         __props: props,
         getDefaults: (name) => ({ [name]: props.defaultValue }),
-        render: ({name, label, ...rest} = {}) => <DateTime key={name ?? props.name} name={name ?? props.name} label={label ?? props.label ?? name} {...props} {...rest} />
+        render: ({name, label, ...rest} = {} as FieldRenderProps) => <DateTime key={name ?? props.name} name={(name ?? props.name) as string} label={label ?? props.label ?? name} {...props} {...rest} />
     }),
     week: (props = {}) => ({
         __props: props,
         getDefaults: (name) => ({ [name]: props.defaultValue }),
-        render: ({name, label, ...rest} = {}) => <Week key={name ?? props.name} name={name ?? props.name} label={label ?? props.label ?? name} {...props} {...rest} />
+        render: ({name, label, ...rest} = {} as FieldRenderProps) => <Week key={name ?? props.name} name={(name ?? props.name) as string} label={label ?? props.label ?? name} {...props} {...rest} />
     }),
     month: (props = {}) => ({
         __props: props,
         getDefaults: (name) => ({ [name]: props.defaultValue }),
-        render: ({name, label, ...rest} = {}) => <Month key={name ?? props.name} name={name ?? props.name} label={label ?? props.label ?? name} {...props} {...rest} />
+        render: ({name, label, ...rest} = {} as FieldRenderProps) => <Month key={name ?? props.name} name={(name ?? props.name) as string} label={label ?? props.label ?? name} {...props} {...rest} />
     }),
     textarea: (props = {}) => ({
         __props: props,
         getDefaults: (name) => ({[name]: props.defaultValue}),
-        render: ({name, label, ...rest} = {}) => <TextArea key={name ?? props.name} name={name ?? props.name} label={label ?? props.label ?? name} {...props} {...rest} />
+        render: ({name, label, ...rest} = {} as FieldRenderProps) => <TextArea key={name ?? props.name} name={(name ?? props.name) as string} label={label ?? props.label ?? name} {...props} {...rest} />
     }),
     checkbox: (props = {}) => ({
         __props: props,
         getDefaults: (name) => ({[name]: props.defaultValue}),
-        render: ({name, label, ...rest} = {}) => <Checkbox key={name ?? props.name} name={name ?? props.name} label={label ?? props.label ?? name} {...props} {...rest} />
+        render: ({name, label, ...rest} = {} as FieldRenderProps) => <Checkbox key={name ?? props.name} name={(name ?? props.name) as string} label={label ?? props.label ?? name} {...props} {...rest} />
     }),
     switch: (props = {}) => ({
         __props: props,
         getDefaults: (name) => ({[name]: props.defaultValue}),
-        render: ({name, label, ...rest} = {}) => <Switch key={name ?? props.name} name={name ?? props.name} label={label ?? props.label ?? name} {...props} {...rest} />
+        render: ({name, label, ...rest} = {} as FieldRenderProps) => <Switch key={name ?? props.name} name={(name ?? props.name) as string} label={label ?? props.label ?? name} {...props} {...rest} />
     }),
     select: (props = {}) => ({
         __props: props,
         getDefaults: (name) => ({[name]: props.defaultValue}),
-        render: ({name, label, ...rest} = {}) => <Select key={name ?? props.name} name={name ?? props.name} label={label ?? props.label ?? name} {...props} {...rest} />
+        render: ({name, label, ...rest} = {} as FieldRenderProps) => <Select key={name ?? props.name} name={(name ?? props.name) as string} label={label ?? props.label ?? name} {...props} {...rest} />
     }),
     autocomplete: (props = {}) => ({
         __props: props,
         getDefaults: (name) => ({[name]: props.defaultValue}),
-        render: ({name, label, ...rest} = {}) => <Autocomplete key={name ?? props.name} name={name ?? props.name} label={label ?? props.label ?? name} {...props} {...rest} />
+        render: ({name, label, ...rest} = {} as FieldRenderProps) => <Autocomplete key={name ?? props.name} name={(name ?? props.name) as string} label={label ?? props.label ?? name} {...props} {...rest} />
     }),
     checklist: (props = {}) => ({
         __props: props,
         getDefaults: (name) => ({[name]: props.defaultValue}),
-        render: ({name, label, ...rest} = {}) => <Checklist key={name ?? props.name} name={name ?? props.name} label={label ?? props.label ?? name} {...props} {...rest} />
+        render: ({name, label, ...rest} = {} as FieldRenderProps) => <Checklist key={name ?? props.name} name={(name ?? props.name) as string} label={label ?? props.label ?? name} {...props} {...rest} />
     }),
     uploadImage: (props = {}) => ({
         __props: props,
         getDefaults: (name) => ({[name]: props.defaultValue}),
-        render: ({name, label, ...rest} = {}) => <UploadImage key={name ?? props.name} name={name ?? props.name} label={label ?? props.label ?? name} {...props} {...rest} />
+        render: ({name, label, ...rest} = {} as FieldRenderProps) => <UploadImage key={name ?? props.name} name={(name ?? props.name) as string} label={label ?? props.label ?? name} {...props} {...rest} />
     }),
     uploadDocument: (props = {}) => ({
         __props: props,
         getDefaults: (name) => ({[name]: props.defaultValue}),
-        render: ({name, label, ...rest} = {}) => <UploadDocument key={name ?? props.name} name={name ?? props.name} label={label ?? props.label ?? name} {...props} {...rest} />
+        render: ({name, label, ...rest} = {} as FieldRenderProps) => <UploadDocument key={name ?? props.name} name={(name ?? props.name) as string} label={label ?? props.label ?? name} {...props} {...rest} />
     }),
     prompt: (props = {}) => ({
         __props: props,
         getDefaults: (name) => ({[name]: props.defaultValue}),
-        render: ({name, label, ...rest} = {}) => <Prompt key={name ?? props.name} name={name ?? props.name} label={label ?? props.label ?? name} {...props} {...rest} />
+        render: ({name, label, ...rest} = {} as FieldRenderProps) => <Prompt key={name ?? props.name} name={(name ?? props.name) as string} label={label ?? props.label ?? name} {...props} {...rest} />
     }),
     imageUrl: (props = {}) => {
         return {
             __props: props,
             getDefaults: (name) => ({[name]: props.defaultValue}),
-            render: ({name, label, ...rest} = {}) => <ImageUrl name={name} label={label ?? name} {...props} {...rest} />
+            render: ({name, label, ...rest} = {} as FieldRenderProps) => <ImageUrl name={(name ?? props.name) as string} label={label ?? name} {...props} {...rest} />
         }
     },
     menu: (props = {}) => ({
         __props: props,
         getDefaults: (name) => ({[name]: props.defaultValue}),
-        render: ({name, label, ...rest} = {}) => <Select key={name} name={name} label={label ?? name} {...props} {...rest} />
+        render: ({name, label, ...rest} = {} as FieldRenderProps) => <Select key={name} name={name as string} label={label ?? name} {...props} {...rest} />
     })
 };
 

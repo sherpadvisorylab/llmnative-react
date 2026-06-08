@@ -11,7 +11,7 @@ import { Wrapper } from "../GridSystem";
 import { useTheme } from "../../../Theme";
 import { DEFAULT_ORDER, Order, type OrderConfig } from "../../../libs/order";
 import { arraysEqual, arrayUnique, isEmpty, sanitizeKey } from "../../../libs/utils";
-import { DatabaseOptions, DBConfig, RecordProps, RECORD_KEY } from "../../../providers/data/DataProvider";
+import { DatabaseOptions, DBConfig, FieldValue, RecordProps, RECORD_KEY } from "../../../providers/data/DataProvider";
 import { useDataProvider } from "../../../providers/data/DataProviderContext";
 import { FormFieldProps, useFormContext, useFieldValidation } from '../../widgets/Form';
 import { cn } from '../../../libs/cn';
@@ -33,7 +33,7 @@ interface BaseProps extends FormFieldProps {
     options?: Option[] | string[] | number[];
     db?: DBConfig;
     order?: OptionOrderConfig;
-    validator?: (value: any) => string | undefined;
+    validator?: (value: FieldValue) => string | undefined;
 }
 
 export interface SelectProps extends BaseProps {
@@ -53,10 +53,10 @@ export interface ChecklistProps extends BaseProps {
     checkClass?: string;
 }
 
-const valueToArray = (value: string | number | any[] | undefined): any[] => {
-    if (!value) return [];
-
-    return typeof value === 'string' || typeof value === "number"
+const valueToArray = (value: FieldValue): unknown[] => {
+    if (value == null || typeof value === 'boolean') return [];
+    if (typeof value === 'object' && !Array.isArray(value)) return [];
+    return typeof value === 'string' || typeof value === 'number'
         ? value.toString().split(',')
         : value;
 };
@@ -88,9 +88,7 @@ function getOptionsDB(
     db?: DBConfig
 ): DatabaseOptions {
     return {
-        fieldMap: db?.fieldMap
-            ? normalizeOption(db.fieldMap)
-            : undefined,
+        fieldMap: db?.fieldMap,
         where: db?.where,
         order: db?.order,
         onLoad: db?.onLoad,
@@ -206,7 +204,7 @@ export const Select = ({
                         error && 'border-destructive focus-visible:ring-destructive/20',
                         className || theme.Select.className
                     )}
-                    value={value ?? ''}
+                    value={(value as string | number | undefined) ?? ''}
                     required={required}
                     disabled={disabled || (!updatable && !isEmpty(value))}
                     onChange={handleChange}
@@ -336,7 +334,7 @@ export const Autocomplete = ({
                     pre && "rounded-l-none",
                     post && "rounded-r-none"
                 )}>
-                    {selectedItems.map(item => (
+                    {(selectedItems as string[]).map(item => (
                         <span className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary" key={item}>
                             {item}
                             <button type="button" className="ml-0.5 opacity-60 transition-opacity hover:opacity-100" onClick={() => removeItem(item)}>Ã—</button>

@@ -25,10 +25,14 @@ export const LANGS = {
 
 
 export const currentCountry = (code: boolean = false) => {
-    const country = localStorage.getItem("user.country") || navigator.language.split("-")[1] || "US"
-    return code ? country : COUNTRIES[country as keyof typeof COUNTRIES]
+    const stored = typeof localStorage !== 'undefined' ? localStorage.getItem("user.country") : null;
+    const fromNav = typeof navigator !== 'undefined' ? navigator.language.split("-")[1] : null;
+    const country = stored || fromNav || "US";
+    return code ? country : COUNTRIES[country as keyof typeof COUNTRIES];
 }
 export const currentLang = (code: boolean = false) => {
-    const lang = localStorage.getItem("user.lang") || navigator.language.split("-")[0] || "en"
-    return code ? lang : LANGS[lang as keyof typeof LANGS]
+    const stored = typeof localStorage !== 'undefined' ? localStorage.getItem("user.lang") : null;
+    const fromNav = typeof navigator !== 'undefined' ? navigator.language.split("-")[0] : null;
+    const lang = stored || fromNav || "en";
+    return code ? lang : LANGS[lang as keyof typeof LANGS];
 }

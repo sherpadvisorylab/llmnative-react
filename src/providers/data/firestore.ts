@@ -52,8 +52,8 @@ const getDb = (): FirestoreDb => getFirestore();
 
 // ── Error helper ─────────────────────────────────────────────────────────────
 
-const handleError = (action: string, error: any, exception: boolean) => {
-    const message = `Error during ${action}: ${error}`;
+const handleError = (action: string, error: unknown, exception: boolean) => {
+    const message = `Error during ${action}: ${String(error)}`;
     if (exception) throw new Error(message);
     console.error(message);
 };

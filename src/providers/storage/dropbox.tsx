@@ -12,16 +12,16 @@ const DROPBPX_URL = "https://www.dropbox.com/home";
 
 interface AsyncJobResponse {
     async_job_id?: string;
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 interface CheckResponse {
-    [key: string]: any;
-    entries?: any[];
+    [key: string]: unknown;
+    entries?: unknown[];
 }
 
 type DropboxListFolderResponse = {
-    entries: any[];
+    entries: unknown[];
     cursor: string;
     has_more: boolean;
 };
@@ -37,17 +37,17 @@ type PathEntry = {
 };
 
 type CopyJobStatus = {
-    [key: string]: any;
+    [key: string]: unknown;
     '.tag': 'in_progress' | 'complete' | 'failed' | 'async_job_id';
     async_job_id?: string;
-    entries?: any[];
-    failure?: any;
+    entries?: unknown[];
+    failure?: unknown;
 };
 
 
 type ThumbnailEntry = {
     path: string;
-    [key: string]: any;
+    [key: string]: unknown;
 };
 
 type ThumbnailRequestOptions = {
@@ -64,7 +64,7 @@ type ThumbnailResult = {
         mimetype: string;
         width: number;
         height: number;
-        [key: string]: any;
+        [key: string]: unknown;
     };
 };
 
@@ -108,9 +108,9 @@ const fetchDropboxBlob = async (
 
 const fetchDropbox = async (
     url: string,
-    body: any,
+    body: unknown,
     headers: Record<string, string> = {}
-): Promise<any> => {
+): Promise<Record<string, unknown> | undefined> => {
     if (!config) {
         console.error('DropBox: Config not found');
         return;
@@ -210,9 +210,9 @@ const createFolders = async (paths: string[], basePath = ""): Promise<any> => {
     return response ? onCompleted(response, apiPath) : undefined;
 }
 
-const deleteBulk = async (paths: string[], basePath = ""): Promise<any> => {
+const deleteBulk = async (paths: string[], basePath = ""): Promise<unknown[] | undefined> => {
     const apiPath = "files/create_folder_batch";
-    const response = fetchDropbox(`https://api.dropboxapi.com/2/${apiPath}`, {
+    const response = await fetchDropbox(`https://api.dropboxapi.com/2/${apiPath}`, {
         entries: paths.map(path => ({ path: resolvePath(basePath + path) })),
     });
 
@@ -255,10 +255,10 @@ export const listFolders = async ({ path = "", recursive = false }: ListFoldersP
                 "include_non_downloadable_files": true,
                 "path": resolvePath(path),
                 "recursive": recursive
-            })
+            }) as unknown as DropboxListFolderResponse | undefined
             : await fetchDropbox("https://api.dropboxapi.com/2/files/list_folder/continue", {
                 "cursor": cursor
-            })
+            }) as unknown as DropboxListFolderResponse | undefined
         );
     }
 
@@ -294,16 +294,16 @@ const copy_ = async (paths: PathEntry[]): Promise<void> => {
 const copy = async (paths: PathEntry[]): Promise<any[]> => {
     const STEP = 900;
 
-    const startCopy = async (entries: { from_path: string; to_path: string }[]) => {
+    const startCopy = async (entries: { from_path: string; to_path: string }[]): Promise<CopyJobStatus | undefined> => {
         return await fetchDropbox("https://api.dropboxapi.com/2/files/copy_batch_v2", {
             entries: entries,
             autorename: false
-        });
+        }) as unknown as CopyJobStatus | undefined;
     };
     const checkJobStatus = async (asyncJobId: string): Promise<CopyJobStatus | undefined> => {
         return await fetchDropbox("https://api.dropboxapi.com/2/files/copy_batch/check_v2", {
             async_job_id: asyncJobId
-        });
+        }) as unknown as CopyJobStatus | undefined;
     };
 
     const results = [];
@@ -315,27 +315,28 @@ const copy = async (paths: PathEntry[]): Promise<any[]> => {
         }));
 
         const copyResponse = await startCopy(entries);
-        if (copyResponse.error) {
-            throw new Error(`Error starting copy: ${copyResponse.error}`);
+        if (!copyResponse) continue;
+        if (copyResponse['error']) {
+            throw new Error(`Error starting copy: ${copyResponse['error']}`);
         }
 
-        let jobStatus = copyResponse;
+        let jobStatus: CopyJobStatus | undefined = copyResponse;
         while (jobStatus?.['.tag'] === 'async_job_id' || jobStatus?.['.tag'] === 'in_progress') {
             await sleep(DROPBOX_CHECK_DELAY);
 
-            jobStatus = await checkJobStatus(copyResponse.async_job_id);
+            jobStatus = await checkJobStatus(copyResponse.async_job_id ?? '');
         }
 
         if (jobStatus?.['.tag'] === 'failed') {
             throw new Error(`Copy operation failed: ${jobStatus['.tag']}`);
         }
 
-        if (jobStatus?.['.tag'] === 'complete') {
+        if (jobStatus?.['.tag'] === 'complete' && jobStatus.entries) {
             results.push(...jobStatus.entries);
         }
     }
 
-    return results
+    return (results as Record<string, unknown>[])
         .filter(entry => entry[".tag"] === "failure")
         .map(entry => entry.failure);
 };
@@ -386,13 +387,15 @@ const getThumbnails = async (
             .then((thumbnails) => {
                 if(!thumbnails) return;
 
-                const entries = thumbnails.entries.reduce((acc: ThumbnailResult, entry: any, index: number) => {
+                const thumbEntries = (thumbnails as { entries: unknown[] }).entries;
+                const entries = thumbEntries.reduce((acc: ThumbnailResult, entry: unknown, index: number) => {
                     const path = batch[index].path;
                     const [w, h] = size.replace("w", "").split("h").map(Number);
 
+                    const e = entry as Record<string, unknown>;
                     acc[path] = {
                         ...batch[index],
-                        thumbnail: entry?.[".tag"] === "success" ? entry.thumbnail : PLACEHOLDER_THUMBNAIL,
+                        thumbnail: e?.[".tag"] === "success" ? e.thumbnail as string : PLACEHOLDER_THUMBNAIL,
                         mimetype: "data:image/jpeg;base64,",
                         width: w,
                         height: h,

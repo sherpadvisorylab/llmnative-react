@@ -16,6 +16,9 @@ import {
     type ProviderConfigurationState,
 } from '../../ProviderConfiguration';
 
+type GoogleUserProfile = { email?: string; name?: string; picture?: string; sub?: string };
+type UserStore = { uid?: string; email?: string; displayName?: string; photoURL?: string; profile?: GoogleUserProfile };
+
 const loadGoogleIdentityScript = async (): Promise<void> => {
     if ((window as any).google?.accounts?.id) return;
     loadScripts([
@@ -38,7 +41,7 @@ export class GoogleAuthProvider implements AuthProviderAdapter {
 
     getUser(): UserProfile | null {
         if (!this.isConfigured()) return null;
-        const stored = getGlobalVars("user");
+        const stored = getGlobalVars("user") as UserStore | null;
         if (!stored) return null;
         const profile = stored.profile ?? {};
         return {
@@ -105,7 +108,7 @@ export class GoogleAuthProvider implements AuthProviderAdapter {
     }
 
     async signOut(): Promise<void> {
-        const stored = getGlobalVars("user");
+        const stored = getGlobalVars("user") as UserStore | null;
         if (stored?.profile?.sub) {
             (window as any).google?.accounts?.id?.revoke(stored.profile.sub);
         }
@@ -129,7 +132,7 @@ export class GoogleAuthProvider implements AuthProviderAdapter {
                 callback(storedUser);
                 return;
             }
-            const stored = getGlobalVars("user");
+            const stored = getGlobalVars("user") as UserStore | null;
             const profile = stored?.profile ?? {};
             callback({
                 ...profile,

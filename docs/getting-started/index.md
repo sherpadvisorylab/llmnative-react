@@ -72,7 +72,7 @@ Pages
 Widgets
   -> Form, Grid, MarkdownReader
 Fields
-  -> Input, Select, Upload, Prompt, AssistantAI
+  -> Input, Select, Upload, Prompt, WorkflowAI
 UI primitives
   -> Button, Card, Modal, Table
 Providers

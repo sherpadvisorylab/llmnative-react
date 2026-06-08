@@ -21,8 +21,8 @@ export const getGoogleCredential = () => {
         console.error("Google credential token not found");
         return null;
     }
-    const decodedToken = decodeJWT(googleCredentialToken);
-    if (decodedToken.exp < Date.now() / 1000) {
+    const decodedToken = decodeJWT(googleCredentialToken) as { exp?: number } | null;
+    if ((decodedToken?.exp ?? 0) < Date.now() / 1000) {
         console.error("Google credential token expired");
         return null;
     }

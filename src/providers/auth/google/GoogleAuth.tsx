@@ -13,9 +13,9 @@ declare global {
         google: {
             accounts: {
                 id: {
-                    initialize: (options: any) => void;
+                    initialize: (options: Record<string, unknown>) => void;
                     prompt: (callback?: () => void) => void;
-                    renderButton: (element: HTMLElement, options: any) => void;
+                    renderButton: (element: HTMLElement, options: Record<string, unknown>) => void;
                     disableAutoSelect: () => void;
                     revoke: (hint: string, callback?: () => void) => void;
                 };

@@ -379,7 +379,7 @@ export const setPrompt = (
 
 
 export interface PromptVariables {
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 const PROMPT_ROLE_DEFAULT = "default";

@@ -1,12 +1,12 @@
 import React, { useMemo } from "react";
 import { type RecordProps } from "../../../providers/data/DataProvider";
 import { inferColumns } from "./utils";
-import { type GridColumn } from "./types";
+import { type GridColumn, type GridFormContext } from "./types";
 
 type UseGridColumnsArgs<TRecord extends RecordProps> = {
     columns?: GridColumn<TRecord>[];
     records: TRecord[];
-    form?: React.ReactElement | ((ctx: any) => React.ReactNode);
+    form?: React.ReactElement | ((ctx: GridFormContext<TRecord>) => React.ReactNode);
 };
 
 function useGridColumns<TRecord extends RecordProps>({

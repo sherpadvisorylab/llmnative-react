@@ -113,27 +113,27 @@ interface ConverterCore {
 }
 
 interface Converter extends ConverterCore {
-    parse: (values: Record<string, any>, pattern: string, target?: {key: string, value: any, hideEmpty: boolean}) => string;
+    parse: (values: Record<string, unknown>, pattern: string, target?: {key: string, value: Record<string, unknown>, hideEmpty: boolean}) => string;
     truncate: (str: string, length?: number) => string;
     splitLast: (str: string, seps: string | string[], regException?: RegExp) => [string, string];
     splitFirst: (str: string, seps: string | string[], regException?: RegExp) => [string, string];
     padLeft: (str: string, length: number, char?: string, regex?: RegExp) => string;
     padRight: (str: string, length: number, char?: string, regex?: RegExp) => string;
     toQueryString: (params: Record<string, string>, startWith?: string, fill?: string) => string;
-    fillObject: <T>(obj: Record<string, T>, value?: any) => Record<string, any>;
-    [key: string]: ConverterCore[keyof ConverterCore] | any;
+    fillObject: (obj: Record<string, unknown>, value?: unknown) => Record<string, unknown>;
+    [key: string]: unknown;
 }
 
 type GetPathValueTarget = {
     key?: string;
-    value: Record<string, any>;
+    value: Record<string, unknown>;
     hideEmpty: boolean;
 }
 
-type SanitizerCallback = (value: any) => any;
+type SanitizerCallback = (value: unknown) => unknown;
 
 type GetPathValue = (
-    obj: Record<string, any>,
+    obj: Record<string, unknown>,
     path: string,
     target?: GetPathValueTarget,
     sanitizerCallback?: SanitizerCallback
@@ -141,58 +141,58 @@ type GetPathValue = (
 
 const getPathValue: GetPathValue = (obj, path, target, sanitizerCallback) => {
     if (!obj || !path) return '';
-  
+
     const parts = path.split(".");
-    let acc: any = obj;
-  
+    let acc: unknown = obj;
+
     for (let i = 0; i < parts.length; i++) {
       const part = parts[i];
-  
+
       if (acc == null) return '';
-  
-      // 🔹 Caso con [] → esplodo l’array e ricorro
+
+      // 🔹 Caso con [] → esplodo l'array e ricorro
       if (part.endsWith("[]")) {
         const key = part.slice(0, -2);
-        const arr = acc?.[key];
+        const arr = (acc as Record<string, unknown>)[key];
         if (!Array.isArray(arr)) return '';
-  
+
         const rest = parts.slice(i + 1).join(".");
         if (!rest) {
             if(target) {
-                target.key && (target.value[target.key] = arr) || (target.value = arr);
+                target.key && (target.value[target.key] = arr) || (target.value = arr as unknown as Record<string, unknown>);
                 return '';
             }
-            return arr;
+            return arr as unknown as string;
         }
 
-        const resultValue = target?.value ?? {};
+        const resultValue: Record<string, unknown> = target?.value ?? {};
         for(const index in arr) {
             const value = (() => {
-                const v = getPathValue(arr[index], rest);
+                const v = getPathValue(arr[index] as Record<string, unknown>, rest);
                 return sanitizerCallback?.(v) ?? v;
             })();
-            
+
             if (target) {
-                if(!target.hideEmpty || value !== '') {    
+                if(!target.hideEmpty || value !== '') {
                     resultValue[index] = target.key
-                    ? { ...(resultValue?.[index] ?? {}), [target.key]: value }
+                    ? { ...(resultValue[index] as Record<string, unknown> ?? {}), [target.key]: value }
                     : value;
                 }
             }
         }
-        return target ? '' : resultValue;
+        return target ? '' : resultValue as unknown as string;
       }
 
-      acc = acc[part];
+      acc = (acc as Record<string, unknown>)[part];
     }
 
     acc = sanitizerCallback?.(acc) ?? acc;
     if (target && (!target.hideEmpty || acc !== '')) {
-        target.key && (target.value[target.key] = acc) || (target.value = acc);
+        target.key && (target.value[target.key] = acc) || (target.value = acc as Record<string, unknown>);
         return '';
     }
-    
-    return acc;
+
+    return acc as string;
 }
 
 export const converter: Converter = {
@@ -207,7 +207,7 @@ export const converter: Converter = {
                 return value || '';
             }
 
-            return pre + converter[func](value, format) + post;
+            return pre + (converter[func] as (v: unknown, f: unknown) => string)(value, format) + post;
         });
 
         return splitter(replacer(parse));
@@ -303,8 +303,8 @@ export const converter: Converter = {
                 : fill)}`;
         }).join('&');
     },
-    fillObject: (obj, value = null) => {
-        const result: Record<string, any> = {};
+    fillObject: (obj, value = undefined) => {
+        const result: Record<string, unknown> = {};
         for (const key in obj) {
             result[key] = value;
         }

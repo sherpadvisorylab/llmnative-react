@@ -41,7 +41,7 @@ export async function getGoogleTrendsData(
     const widgetText = await widgetRes.text();
     const widgetData = JSON.parse(widgetText.replace(")]}',", ''));
 
-    const timelineWidget = widgetData.widgets.find((w: any) => w.id === 'TIMESERIES');
+    const timelineWidget = widgetData.widgets.find((w: Record<string, unknown>) => w.id === 'TIMESERIES');
     if (!timelineWidget) throw new Error('Timeline widget not found');
 
     const token = timelineWidget.token;
@@ -55,9 +55,9 @@ export async function getGoogleTrendsData(
     const timelineText = await timelineRes.text();
     const timelineData = JSON.parse(timelineText.replace(")]}',", ''));
 
-    const timeline: TrendPoint[] = timelineData.default.timelineData.map((d: any) => ({
+    const timeline: TrendPoint[] = timelineData.default.timelineData.map((d: Record<string, unknown>) => ({
         date: d.formattedTime,
-        value: d.value[0],
+        value: (d.value as unknown[])?.[0],
     }));
 
     return {
@@ -86,7 +86,7 @@ export async function getGoogleTrendsRelated(
     const widgetText = await widgetRes.text();
     const widgetData = JSON.parse(widgetText.replace(")]}',", ''));
 
-    const relatedWidget = widgetData.widgets.find((w: any) => w.id === 'RELATED_QUERIES');
+    const relatedWidget = (widgetData.widgets as Record<string, unknown>[]).find((w) => w.id === 'RELATED_QUERIES');
     if (!relatedWidget) throw new Error('Related queries widget not found');
 
     const relatedUrl = `https://trends.google.com/trends/api/widgetdata/relatedsearches?hl=en-US&tz=0&req=${encodeURIComponent(
@@ -97,12 +97,12 @@ export async function getGoogleTrendsRelated(
     const relatedText = await relatedRes.text();
     const relatedData = JSON.parse(relatedText.replace(")]}',", ''));
 
-    const top = relatedData.default.rankedList?.[0]?.rankedKeyword?.map((item: any) => ({
+    const top = relatedData.default.rankedList?.[0]?.rankedKeyword?.map((item: Record<string, unknown>) => ({
         query: item.query,
         value: item.value,
     })) || [];
 
-    const rising = relatedData.default.rankedList?.[1]?.rankedKeyword?.map((item: any) => ({
+    const rising = relatedData.default.rankedList?.[1]?.rankedKeyword?.map((item: Record<string, unknown>) => ({
         query: item.query,
         value: item.value,
     })) || [];

@@ -48,8 +48,8 @@ export const getFirestoreConfigurationState = (): ProviderConfigurationState => 
 export const getSafeAuth = (): Auth | null => {
     try {
         return getAuth();
-    } catch (error: any) {
-        console.error('FirebaseAuthorization', error?.message || 'Error: check Configuration');
+    } catch (error: unknown) {
+        console.error('FirebaseAuthorization', error instanceof Error ? error.message : 'Error: check Configuration');
         return null;
     }
 };

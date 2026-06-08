@@ -13,7 +13,6 @@ const Home = lazyPage(() => import('../pages/Home'));
 const ExamplesOverview = lazyPage(() => import('../pages/examples/ExamplesOverview'));
 
 const AlertPage = lazyPage(() => import('../pages/components/AlertPage'));
-const AssistantAIPage = lazyPage(() => import('../pages/components/AssistantAIPage'));
 const AuthPage = lazyPage(() => import('../pages/components/AuthPage'));
 const BadgePage = lazyPage(() => import('../pages/components/BadgePage'));
 const BrandPage = lazyPage(() => import('../pages/components/BrandPage'));
@@ -149,7 +148,6 @@ export const menu = {
         { path: '/components/table', title: 'Table', page: TablePage, group: 'UI Primitives' },
 
         // ── Widgets (alphabetical, Grid penultimate, Form last) ───────────────
-        { path: '/components/assistant-ai', title: 'AssistantAI', page: AssistantAIPage, group: 'Widgets' },
         { path: '/components/auth', title: 'Auth', page: AuthPage, group: 'Widgets' },
         { path: '/components/image-editor', title: 'ImageEditor', page: ImageEditorPage, group: 'Widgets' },
         { path: '/components/layout-builder', title: 'LayoutBuilder', page: LayoutBuilderPage, group: 'Widgets' },

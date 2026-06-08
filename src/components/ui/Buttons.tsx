@@ -10,7 +10,7 @@ import { usePressMotion } from '../../motion';
 import Icon from './Icon';
 
 export interface IButton extends MotionUIProps {
-    onClick?: (e: any) => any;
+    onClick?: (e: React.MouseEvent<HTMLElement>) => unknown;
     icon?: string;
     label?: string | React.ReactNode;
     badge?: BadgeProps;
@@ -25,7 +25,7 @@ export interface IButton extends MotionUIProps {
 export type SetMessagePayload = { message: string; chunkDone?: number; totalChunks?: number };
 
 export interface LoadingButtonProps extends Omit<IButton, "onClick"> {
-    onClick?: (e: any, setMessage?: (payload: SetMessagePayload) => any) => Promise<any>;
+    onClick?: (e: React.MouseEvent<HTMLElement>, setMessage?: (payload: SetMessagePayload) => void) => Promise<unknown>;
     loadingLabel?: string | React.ReactNode;
 }
 

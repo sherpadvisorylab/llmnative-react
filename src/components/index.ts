@@ -38,7 +38,6 @@ export * from './ui/fields/Crop';
 export * from './ui/fields/UploadCSV';
 export * from './ui/fields/ImageUrl';
 
-export { default as AssistantAI } from './ui/fields/AssistantAI';
 export { default as Menu } from './blocks/Menu';
 
 export { default as Form } from './widgets/Form';
@@ -81,6 +80,5 @@ export * from './widgets/Prompt';
 export { default as TabDynamic } from './widgets/TabDynamic';
 export { default as Component } from './Component';
 export { ComponentBlock } from './Component';
-export * from './Template';
 export type { ModalDeleteHandler, ModalSaveHandler } from './ui/Modal';
 

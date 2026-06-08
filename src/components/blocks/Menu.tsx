@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useMenu } from '../../App';
+import { useMenu, type UseMenuItem } from '../../App';
 import { useTheme } from '../../Theme';
 import { Link } from 'react-router-dom';
 import { Wrapper } from '../ui/GridSystem';
@@ -45,15 +45,15 @@ const Menu = ({
   const menu = useMenu(context);
   const theme = useTheme('menu');
 
-  const MenuItem = ({ item, index }: { item: any; index: number }) => {
+  const MenuItem = ({ item, index }: { item: UseMenuItem; index: number }) => {
     const [isOpen, setIsOpen] = useState<boolean>(item.active);
 
     useEffect(() => {
       setIsOpen(item.active);
     }, [item]);
 
-    const hasChildren = item.children?.length > 0;
-    const key = item.title.toLowerCase();
+    const hasChildren = (item.children?.length ?? 0) > 0;
+    const key = (item.title ?? '').toLowerCase();
     const MenuIcon = () => (
       <span className={iconClass ?? theme.Menu.iconClass}>
         <Icon name={item.icon} />
@@ -98,7 +98,7 @@ const Menu = ({
         {hasChildren && (
           <div className={`collapse ${isOpen ? 'show' : ''}`}>
             <Type className={submenuClass ?? theme.Menu.submenuClass}>
-              {item.children.map((child: any, idx: number) => (
+              {(item.children as UseMenuItem[]).map((child, idx: number) => (
                 <MenuItem key={idx} item={child} index={idx} />
               ))}
             </Type>

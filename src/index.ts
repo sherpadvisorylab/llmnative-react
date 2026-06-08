@@ -76,7 +76,7 @@ export { AuthButton, useAccessToken, getAccessToken } from './auth';
 export { useGlobalVars, getGlobalVars, setGlobalVars, removeGlobalVars} from './Global';
 
 // Providers
-export type { DataProviderAdapter, RecordProps, RecordArray, DatabaseOptions, DBConfig, ReadOptions, WhereClause, OrderClause, Condition } from './providers/data/DataProvider';
+export type { DataProviderAdapter, FieldValue, RecordProps, RecordArray, DatabaseOptions, DBConfig, ReadOptions, WhereClause, OrderClause, Condition } from './providers/data/DataProvider';
 export type { OrderConfig, OrderDirection } from './libs/order';
 export { Order } from './libs/order';
 export type { TableHeaderProp, TableReorderHandler, TableReorderMeta, TableSelectionChangeHandler, TableSelectionState } from './components/ui/Table';
@@ -153,8 +153,6 @@ export { sendEmail } from './providers/email/google/email';
 export { getKeywordIdeas } from './providers/seo/google/keyword';
 export { getGoogleTrendsData, getGoogleTrendsRelated } from './providers/seo/google/trend';
 
-export { default as db } from './providers/data/firebase';
-export { default as storage } from './providers/storage/firebase';
 export { dropBox, useDropBoxConnect, DropBoxConnectButton } from './providers/storage/dropbox';
 export { default as scrape } from './providers/scrape';
 export * from './components';

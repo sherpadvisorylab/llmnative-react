@@ -28,7 +28,7 @@ function renderMessage(content: EmailContent, recipient: Recipient): string {
     const variables = { name: recipient.name };
 
     return raw.replaceAll(/\{(\w+(?:\.\w+)*)}/g, (_, key) => {
-        const value = key.split('.').reduce((acc: any, part: string) => acc?.[part], variables);
+        const value = key.split('.').reduce((acc: unknown, part: string) => (acc as Record<string, unknown>)?.[part], variables as unknown);
         return value !== undefined ? String(value) : '';
     });
 }

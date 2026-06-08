@@ -3,14 +3,15 @@ import { ActionButton } from "../ui/Buttons";
 import {converter} from "../../libs/converter";
 import { TabLayouts, TabPosition } from '../ui/Tab';
 import { FieldOnChange, setFormFieldsName, useFormContext } from './Form';
+import { RecordProps } from '../../providers/data/DataProvider';
 
 interface TabDynamicProps {
-    children: React.ReactNode | ((record: any) => React.ReactNode);
+    children: React.ReactNode | ((record: RecordProps) => React.ReactNode);
     name: string;
     onChange?: FieldOnChange;
-    onAdd?: (value: any[]) => void;
+    onAdd?: (value: RecordProps[]) => void;
     onRemove?: (index: number) => void;
-    value?: any[];
+    value?: RecordProps[];
     label?: string;
     min?: number;
     max?: number;
@@ -36,33 +37,34 @@ const TabDynamic = ({
                  tabPosition    = "default"
 }: TabDynamicProps) => {
     const { value, handleChange } = useFormContext({name, onChange});
-    
+    const records = Array.isArray(value) ? value as RecordProps[] : [];
+
     const [active, setActive] = useState(activeIndex);
     const [release, setRelease] = useState(0);
 
 
     const tabs = useMemo(() => {
-        return (Array.isArray(value) ? value : Array.from({ length: min }, () => ({})))?.map((_, index) => label.includes("{")
-        ? converter.parse(value?.[index], label)
+        return (records.length > 0 ? records : Array.from({ length: min }, () => ({}) as RecordProps))?.map((_, index) => label.includes("{")
+        ? converter.parse(records[index] ?? {}, label)
         : label + " " + (index + 1))
-    }, [value, label, min, release]);
+    }, [records, label, min, release]);
 
     const components = typeof children === 'function'
-    ? children({record: value?.[active], records: value, currentIndex: active})
+    ? children({record: records[active] ?? {}, records, currentIndex: active})
     : children;
 
     const component = useMemo(() => {
         return setFormFieldsName({
-            children: components, 
-            parentName: `${name}.${active}`, 
+            children: components,
+            parentName: `${name}.${active}`,
             parentKey: `${name}-${active}-${release}`
         });
     }, [active, components, name, release]);
 
-      
+
     const handleAdd = () => {
-        const next = Array.isArray(value) 
-            ? [...value, {}] 
+        const next: RecordProps[] = records.length > 0
+            ? [...records, {}]
             : Array.from({ length: tabs.length + 1 }, () => ({}));
         onAdd?.(next);
         handleChange({ target: { name: `${name}.${next.length - 1}`, value: {} } });

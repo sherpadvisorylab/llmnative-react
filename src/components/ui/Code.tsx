@@ -152,7 +152,7 @@ const Code = ({
       if (!(window as any).Prism?.highlightElement) {
         (window as any).Prism = { ...((window as any).Prism ?? {}), manual: true };
       }
-      let Prism: any;
+      let Prism: any; // CR-042: prismjs has no bundled TS types; dynamic import returns untyped default
       try {
         const mod = await import('prismjs');
         Prism = mod.default;

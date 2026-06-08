@@ -3,6 +3,7 @@ import { isEmpty, isInteractiveElement } from "../../../libs/utils";
 import { Wrapper } from "../GridSystem";
 import { ActionButton, Icon, UIProps } from '../../..';
 import { FormFieldProps, InputType, useFormContext, useHandleDrop, useFieldValidation } from '../../widgets/Form';
+import type { FieldValue } from '../../../providers/data/DataProvider';
 import { cn } from '../../../libs/cn';
 
 interface BaseInputProps extends FormFieldProps {
@@ -16,7 +17,7 @@ interface BaseInputProps extends FormFieldProps {
     step?: number;
     inputId?: string;
     labelClassName?: string;
-    validator?: (value: any) => string | undefined;
+    validator?: (value: FieldValue) => string | undefined;
 }
 
 interface LabelProps {
@@ -44,7 +45,7 @@ export interface TextAreaProps extends FormFieldProps {
     useRef?: React.RefObject<HTMLTextAreaElement | null> | ((el: HTMLTextAreaElement | null) => void) | undefined;
     inputId?: string;
     labelClassName?: string;
-    validator?: (value: any) => string | undefined;
+    validator?: (value: FieldValue) => string | undefined;
 }
 
 export interface ListGroupProps extends UIProps {
@@ -112,11 +113,11 @@ const useCheckboxField = ({
     name: string;
     onChange?: CheckboxProps["onChange"];
     wrapClass?: string;
-    defaultValue?: any;
+    defaultValue?: FieldValue;
     valueChecked: string | number;
     inheritFormWrapClass?: boolean;
 }) => {
-    const toValueString = (v: any): string => (v == null ? "" : `${v}`);
+    const toValueString = (v: FieldValue): string => (v == null ? "" : `${v}`);
 
     const { value, handleChange, formWrapClass } = useFormContext({
         name,
@@ -125,7 +126,7 @@ const useCheckboxField = ({
         inputType: typeof valueChecked === "number" ? "number" : "text",
         defaultValue:
             defaultValue !== undefined
-                ? (toValueString(defaultValue as any) === toValueString(valueChecked) ? toValueString(valueChecked) : "")
+                ? (toValueString(defaultValue) === toValueString(valueChecked) ? toValueString(valueChecked) : "")
                 : undefined,
         inheritFormWrapClass,
     });
@@ -192,7 +193,7 @@ export const Input = ({
                     placeholder={placeholder}
                     required={required}
                     disabled={disabled || (!updatable && !isEmpty(value))}
-                    value={value}
+                    value={(value as string | number | undefined) ?? ''}
                     onChange={handleChange}
                     min={min}
                     max={max}
@@ -497,7 +498,7 @@ export const TextArea = ({
                     placeholder={placeholder}
                     required={required}
                     disabled={disabled || (!updatable && !isEmpty(value))}
-                    value={value}
+                    value={(value as string | number | undefined) ?? ''}
                     onChange={handleChange}
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={handleDrop}

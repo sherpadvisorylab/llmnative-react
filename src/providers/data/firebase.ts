@@ -55,8 +55,8 @@ export const SYSTEM_FIELDS = {
 
 const getDb = (): Database => getFirebaseDatabase();
 
-const handleError = (action: string, error: any, exception: boolean) => {
-    const message = `Error during ${action}: ${error}`;
+const handleError = (action: string, error: unknown, exception: boolean) => {
+    const message = `Error during ${action}: ${String(error)}`;
     if (exception) throw new Error(message);
     console.error(message);
 };
@@ -131,18 +131,18 @@ const buildQueryPlan = (dbRef: DatabaseReference, order?: OrderClause, where?: W
     };
 };
 
-const getEntryValue = (value: any, field: string) => {
+const getEntryValue = (value: unknown, field: string): unknown => {
     if (!field) return value;
     const parts = field.split(".");
-    let current = value;
+    let current: unknown = value;
     for (const part of parts) {
         if (current == null) return undefined;
-        current = current[part];
+        current = (current as Record<string, unknown>)[part];
     }
     return current;
 };
 
-const compareValues = (left: any, right: any): number => {
+const compareValues = (left: unknown, right: unknown): number => {
     if (left === right) return 0;
     if (left == null) return -1;
     if (right == null) return 1;
@@ -151,17 +151,17 @@ const compareValues = (left: any, right: any): number => {
     return globalThis.String(left).localeCompare(globalThis.String(right), undefined, { numeric: true, sensitivity: "base" });
 };
 
-const matchWhere = (value: any, raw: Condition | OperatorValue): boolean => {
+const matchWhere = (value: unknown, raw: Condition | OperatorValue): boolean => {
     const condition = typeof raw === "object" && raw !== null && !Array.isArray(raw) ? raw as Condition : { eq: raw };
     for (const [op, target] of Object.entries(condition as Record<string, OperatorValue>)) {
         switch (op) {
             case "eq":  if (value !== target) return false; break;
-            case "gt":  if (!(value > (target as any))) return false; break;
-            case "gte": if (!(value >= (target as any))) return false; break;
-            case "lt":  if (!(value < (target as any))) return false; break;
-            case "lte": if (!(value <= (target as any))) return false; break;
-            case "in":  if (!Array.isArray(target) || !(target as any[]).includes(value)) return false; break;
-            case "nin": if (Array.isArray(target) && (target as any[]).includes(value)) return false; break;
+            case "gt":  if (!((value as string | number) > (target as string | number))) return false; break;
+            case "gte": if (!((value as string | number) >= (target as string | number))) return false; break;
+            case "lt":  if (!((value as string | number) < (target as string | number))) return false; break;
+            case "lte": if (!((value as string | number) <= (target as string | number))) return false; break;
+            case "in":  if (!Array.isArray(target) || !(target as unknown[]).includes(value)) return false; break;
+            case "nin": if (Array.isArray(target) && (target as unknown[]).includes(value)) return false; break;
             default: return false;
         }
     }
@@ -251,7 +251,7 @@ export class FirebaseDataProvider implements DataProviderAdapter {
         }
     };
 
-    update = async (path: string, data: any, exception = false): Promise<void> => {
+    update = async (path: string, data: object, exception = false): Promise<void> => {
         try {
             await fbUpdate(ref(getDb(), path), data);
             consoleLog(`Data successfully merged in Firebase for ${path}`);
@@ -260,7 +260,7 @@ export class FirebaseDataProvider implements DataProviderAdapter {
         }
     };
 
-    set = async (path: string, data: any, exception = false): Promise<void> => {
+    set = async (path: string, data: object, exception = false): Promise<void> => {
         try {
             await fbSet(ref(getDb(), path), data);
             consoleLog(`Data successfully updated in Firebase for ${path}`);
@@ -271,7 +271,7 @@ export class FirebaseDataProvider implements DataProviderAdapter {
 
     setChunks = async (
         path: string,
-        data: any,
+        data: object,
         { chunkSize = 1000, purge = false, onProgress }: SetChunksOptions = {}
     ): Promise<void> => {
         const db = getDb();
@@ -281,7 +281,7 @@ export class FirebaseDataProvider implements DataProviderAdapter {
                 await fbRemove(dbRef);
                 onProgress?.(0, 0, `Purging existing data at ${path}`);
             }
-            const entries = Object.entries(cleanRecord(data));
+            const entries = Object.entries(cleanRecord(data as RecordProps));
             const totalChunks = Math.ceil(entries.length / chunkSize);
             for (let i = 0; i < entries.length; i += chunkSize) {
                 const chunk = Object.fromEntries(entries.slice(i, i + chunkSize));

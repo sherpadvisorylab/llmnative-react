@@ -11,6 +11,7 @@ import { base64ToUrl, render2Base64 } from "../../../libs/utils";
 import { PLACEHOLDER_IMAGE } from "../../../Theme";
 import Icon from "../Icon";
 import { FormFieldProps, FieldOnChange, useFormContext, useFieldValidation } from "../../widgets/Form";
+import type { RecordProps } from "../../../providers/data/DataProvider";
 import { FieldError } from "./Input";
 
 export interface FileProps {
@@ -31,7 +32,7 @@ const useFileUpload = <T extends FileProps>(
     wrapClass?: string
 ) => {
     const { value, handleChange, formWrapClass } = useFormContext({name, onChange, wrapClass});
-    const [files, setFiles] = useState<T[]>(value || []);
+    const [files, setFiles] = useState<T[]>(Array.isArray(value) ? value as unknown as T[] : []);
     const [currentFile, setCurrentFile] = useState<T | null>(null);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     
@@ -304,7 +305,7 @@ export const UploadDocument = ({
                     />}
                 </div>
                 {files.length > 0 && <Table
-                    onClick={(record) => editable && handleEdit(record as FileProps)}
+                    onClick={(record) => editable && handleEdit(record as unknown as FileProps)}
                     header={[
                         { label: 'Name', key: 'name' },
                         { label: 'Kilobyte', key: 'kilobyte' },
@@ -323,7 +324,7 @@ export const UploadDocument = ({
                                 {<ActionButton onClick={() => handleRemove(file.key)} icon='x' className="p-1" />}
                             </>
                         )
-                    }))}
+                    })) as unknown as RecordProps[]}
                 />}
                 {error && <FieldError message={error} />}
             </div>

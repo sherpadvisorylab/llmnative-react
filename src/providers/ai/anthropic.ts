@@ -35,7 +35,7 @@ export const ANTHROPIC_PROVIDER_DEFINITION: AIProviderDefinition = {
             body: {
                 model: request.model,
                 max_tokens: 4096,
-                ...(request.role ? { system: Prompt.parseRole(request.role, request) } : {}),
+                ...(request.role ? { system: Prompt.parseRole(request.role, request as unknown as import("../../conf/Prompt").PromptVariables) } : {}),
                 messages: [{ role: 'user', content: request.prompt }],
                 ...(typeof request.temperature === 'number' ? { temperature: request.temperature } : {}),
             },

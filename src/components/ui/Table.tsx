@@ -177,8 +177,12 @@ function Table({
 
     const getFieldComponent = (item: RecordProps, key: string, absoluteIndex: number): React.ReactNode => {
         if (renderCell) return renderCell(item, key, absoluteIndex);
-        const v = (item[key]?.prompt && item[key]?.value) || item[key];
-        if (React.isValidElement(v) || v == null || typeof v !== 'object') return v;
+        const rawVal = item[key];
+        const asObj = (rawVal !== null && rawVal !== undefined && typeof rawVal === 'object' && !Array.isArray(rawVal))
+            ? rawVal as Record<string, unknown>
+            : null;
+        const v = (asObj?.prompt && asObj?.value) || rawVal;
+        if (React.isValidElement(v) || v == null || typeof v !== 'object') return v as React.ReactNode;
         return Array.isArray(v) && !v.some((entry) => typeof entry === 'object' && entry)
             ? v.join(", ")
             : "";

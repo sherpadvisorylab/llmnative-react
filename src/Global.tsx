@@ -1,12 +1,12 @@
 import React, {createContext, useContext, useState, useEffect, ReactNode} from 'react';
 
 type GlobalVars = {
-    [key: string]: any;
+    [key: string]: unknown;
 };
 
 interface GlobalContextType {
     globalVars: GlobalVars;
-    setGlobalVars: (value: any, namespace: string) => void;
+    setGlobalVars: (value: unknown, namespace: string) => void;
     removeGlobalVars: (namespace: string) => void;
 }
 
@@ -38,7 +38,7 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
         setGlobalVarsState(updatedVars);
     };
 
-    const setGlobalVars = (value: any, namespace: string): void => {
+    const setGlobalVars = (value: unknown, namespace: string): void => {
         const updatedVars = { ...globalVars, [namespace]: value };
         updateLocalStorage(updatedVars);
     };
@@ -68,7 +68,7 @@ export const useGlobalVars = <T = any>(namespace: string): [
     const { globalVars, setGlobalVars, removeGlobalVars } = context;
 
     return [
-        globalVars[namespace] ?? null,
+        (globalVars[namespace] as T | undefined) ?? null,
         (newVars: T) => setGlobalVars(newVars, namespace),
         () => removeGlobalVars(namespace),
     ];
@@ -81,7 +81,7 @@ export const getGlobalVars = (namespace: string | null = null): GlobalVars => {
 };
 
 // Funzione per impostare variabili globali nel localStorage senza usare il context
-export const setGlobalVars = (value: any, namespace: string): void => {
+export const setGlobalVars = (value: unknown, namespace: string): void => {
     const updatedVars = { ...getStoredGlobalVars(), [namespace]: value };
     localStorage.setItem(_GLOBAL_VARS, JSON.stringify(updatedVars));
 };

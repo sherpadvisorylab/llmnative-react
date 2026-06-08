@@ -26,7 +26,7 @@ src/
   components/
     ui/          ← primitivi: Alert, Badge, Button, Card, Icon, Image, Loader, Modal,
     │               Pagination, Table, Gallery, Tab, Repeat, GridSystem
-    ui/fields/   ← form fields: Input, Select, Upload, Prompt, AssistantAI, UploadCSV
+    ui/fields/   ← form fields: Input, Select, Upload, Prompt, UploadCSV
     blocks/      ← composizioni: Menu, Brand, Breadcrumbs, Notifications, Search, Carousel
     widgets/     ← smart components: Form, Grid, MarkdownReader, ImageEditor
     Component.tsx   ← FieldAdapter pattern per schema-driven forms
@@ -122,6 +122,35 @@ Non usare sinonimi intercambiabili se descrivono concetti diversi.
 
 Il framework preferisce rename espliciti e puliti rispetto a alias o layer di compatibilita'.  
 Se un nome pubblico e' ambiguo, si corregge direttamente nella CR dedicata.
+
+### Regola no-any (obbligatoria)
+
+**Non usare mai `any` come tipo TypeScript.** Questa regola vale per tutto il codice nuovo e per ogni modifica a codice esistente.
+
+Motivazione: `any` disabilita il type checker sulla variabile, annullando il valore di TypeScript strict. Un codebase AI-first deve essere completamente tipizzato: i LLM leggono i tipi per capire le API. Un `any` segnala che il contratto non e' definito.
+
+**Alternative corrette da usare sempre:**
+
+| Situazione | Tipo corretto |
+|------------|---------------|
+| Valore di origine sconosciuta | `unknown` — richiede narrowing esplicito prima dell'uso |
+| Parametro di type guard | `unknown` — e' la firma corretta per `(x: unknown): x is T` |
+| Errore in catch | `unknown` — usare `instanceof Error` o `String(error)` |
+| Oggetto con campi dinamici ma noti | `Record<string, string>` o il tipo specifico |
+| Oggetto con campi arbitrari | `Record<string, unknown>` |
+| Array di elementi eterogenei | `unknown[]` |
+| Callback o funzione generica | `(...args: unknown[]) => unknown` |
+| Risposta JSON da API esterna | Definire un'interfaccia anche parziale; usare `unknown` come fallback |
+| Cast forzato per interoperabilita' libreria | `as { nomeProprieta: tipo }` — cast esplicito al tipo minimo necessario |
+| `window.qualcosa` non tipizzato | `(window as { qualcosa?: tipo }).qualcosa` |
+
+**Eccezioni accettate (documentare con `// CR-042` inline):**
+
+- Contratti di interfaccia pubblica gia' esistenti il cui cambiamento sarebbe breaking (`DataProviderAdapter.read(): Promise<any>`)
+- Parametri di query builder di librerie terze senza tipi intermedi (Firebase RTDB query chain, Supabase fluent builder)
+- Index signatures di risposte API esterne con schema aperto (`[key: string]: unknown` e' preferibile ad `any` anche qui)
+
+**Strumenti di verifica:** `npx tsc --noEmit` deve passare senza errori. Per fare un count degli `any` residui: `grep -rn ': any' src/ | wc -l`.
 
 ---
 
@@ -666,6 +695,7 @@ In corso sul branch `modernize`. Vedi `docs/CHANGE_REQUESTS.md` per i dettagli.
 | CR-035 | SupabaseStorageProvider | ✅ done |
 | CR-036 | SupabaseAuthProvider (password / magic_link / oauth / anonymous) | ✅ done |
 | CR-037 | CredentialsAdapter + GoogleServiceAccountProvider (Web Crypto JWT) | ✅ done |
+| CR-042 | TypeScript no-any: eliminati tutti gli `any` non giustificati (101 → 6 annotati) | ✅ done |
 
 ---
 ## Session state
@@ -673,10 +703,49 @@ In corso sul branch `modernize`. Vedi `docs/CHANGE_REQUESTS.md` per i dettagli.
 > Aggiornato automaticamente alla fine di ogni sessione AI.
 > Il piano completo vive in `docs/COMPETITIVENESS_CHECKLIST.md`.
 
-**Ultimo task completato:** Documentazione CLAUDE.md allineata con tutti gli improvement provider (CR-032/034/035/036/037): driver table, auth methods, CredentialsAdapter, GoogleServiceAccountProvider, Dove cercare (2026-06-07).
-**Prossimo task:** P0.4 CI/CD — GitHub Actions (test + build + showcase build on every PR).
+**Ultimo task completato:** CR-006 gap coperti — `AIProviderDefinitions.test.ts` (32 test: parseTextResponse, Anthropic, OpenAI-compatible, Gemini) + `DropboxStorageProvider.test.ts` (16 test: resolvePath, listFolders, search, getThumbnails, copy). Suite totale: 41 file / 425 test, tutti green. `tsc --noEmit` 0 errori.
+**Prossimo task:** P1 — Differenziatori (SchemaForm CR-040, WorkflowAI CR-039).
 **Branch:** `main`
 **Repo:** `github.com/sherpadvisorylab/llmnative-react.git`
+
+### Session summary (2026-06-08 — claude-sonnet-4-6 — sessione 2)
+- **CR-042 fase 3 completata:** `any` count 101 → 6 (tutti annotati CR-042 — eccezioni giustificate)
+- **Fixes cascade:** `Modal.tsx` + `Form.tsx` `ModalSaveHandler`/`handleSave`/`handleDelete` da `HTMLButtonElement` a `HTMLElement`; AI providers `parseRole(request, ...)` cast `as unknown as PromptVariables`; `keyword.ts` tipo `KeywordPlannerItem` per API response; `trend.ts` cast `(d.value as unknown[])?.[0]` + `(widgetData.widgets as Record<string,unknown>[])` ; `dropbox.tsx` `fetchDropbox` da `Promise<unknown>` a `Promise<Record<string,unknown>|undefined>` con casts a `CopyJobStatus|undefined`, `DropboxListFolderResponse|undefined`, fix `await` mancante in `deleteBulk`, guard `continue` per `copyResponse` undefined, cast `results as Record<string,unknown>[]`
+- **Eccezioni CR-042 residue (6):** `Code.tsx` prismjs; `ImageEditor.tsx` tui-image-editor; `MarkdownReader.tsx` react-markdown ExtraProps; `supabase.ts` `applyWhere`/`applyOrder` Supabase fluent builder (×2); un commento JSDoc in `SupabaseAuthProvider.ts`
+- **Verifica finale:** `tsc --noEmit` 0 errori, `npx vitest run` 377/377
+
+### Session summary (2026-06-08 — claude-sonnet-4-6 — sessione 1)
+- **CR-042 fase 2 completata:** `FieldValue` type esportata pubblicamente da DataProvider.ts e da src/index.ts; `FieldMap = Record<string, FieldValue>` (da `Record<string, any>`)
+- **Propagazioni risolte (9 file):**
+  - `Select.tsx`: `getOptionsDB` semplificato (rimossa chiamata inutile a `normalizeOption` su fieldMap che era già `Record<string, string>`); `interface Option extends RecordProps` mantenuta corretta
+  - `Upload.tsx`: import `RecordProps` aggiunto; cast `as unknown as RecordProps[]` per display rows con JSX; cast `as unknown as FileProps` per onClick
+  - `Table.tsx`: narrowing `rawVal` a `Record<string, unknown>` prima di accedere `.prompt`/`.value`; cast `as React.ReactNode` sul return
+  - `Form.tsx`: reduce tipizzato `<FieldValue | undefined>` con gestione array index (bug fix: `tasks.1.title` traversal funzionava prima ma sarebbe stato rotto senza array branch); cast `as unknown as FormTree` per children argument; import `FieldValue` aggiunto
+  - `grid-core/utils.ts`: `displayRecord: RecordProps` → `Record<string, unknown>` (display records contengono ReactNode, non FieldValue)
+  - `Prompt.tsx`: `PromptConfig = Partial<PromptOptions> & { enabled?: boolean }` definita; `value?` in `PromptEditorProps`/`PromptRunBranchProps` cambiato a `RecordProps & { prompt?: PromptConfig }`; `isPromptEnabled` terzo param da `RecordProps` a `unknown`; cast `as PromptOptions` per `runPrompt`
+  - `utils.ts`: cast `as RecordProps` per `cleanRecord` in loop array e in branch object
+  - `Users.tsx`: template literal `\`${record.email ?? ''}\`` per evitare conflitto con componente `String` importato
+- **`any` residui:** 214 → 101 (fase 3 documentata in CR-042)
+- **Verifica finale:** `tsc --noEmit` 0 errori, `npx vitest run` 377/377
+
+### Session summary (2026-06-07 — claude-sonnet-4-6 — sessione 2)
+- **Component.tsx cleanup:** rimossi `ComponentBlockSave`, `ComponentBlockSave2`, `ComponentTemplate` (~255 linee di codice sperimentale morto); rimossi import `db` e `renderToStaticMarkup`; file ridotto da ~423 a ~153 linee
+- **CR-040 SchemaForm:** scritta in `docs/CHANGE_REQUESTS.md` — form generation da schema JSON/factory, API imperativa (`Component.input.*`) + dichiarativa (JSON puro), integrazione Grid/DataProvider/AI
+- **Dead code eliminato:** `Helper.tsx` (1696 righe, Bootstrap ScrollSpy), `Blog.tsx` (import rotto su BlogPost già cancellato), `Template.tsx` (HTML-string-from-DB, pattern sbagliato per SPA)
+- **Barrel export pulito:** rimosso `export * from './Template'` da `src/components/index.ts`
+- **STATUS.md aggiornato:** rimossi Component.tsx, Template.tsx, Helper.tsx dalla sezione "remaining legacy dependencies"
+- **Test:** 330/330 pass, 36/36 file (invariati)
+
+### Session summary (2026-06-07 — claude-sonnet-4-6 — sessione 1)
+- **P0.1/P0.2/P0.3 Form performance:** `formCtx` + `components` + `notificationEl` memoizzati; `handleChange` wrappato in `useCallback` con deps corrette (ctx.record rimosso)
+- **locale.ts SSR fix:** guardia `typeof localStorage !== 'undefined'` — funziona in Node/SSR
+- **scrape/index.ts lazy locale:** `buildEngineParams()` calcola country/lang a call-time invece che all'import del modulo (bug: locale congelato all'avvio)
+- **Dead code rimosso:** `AssistantAI.tsx`, `FormEnhancer.tsx`, `BlogPost.tsx` eliminati; `extractComponentProps` spostata inline in `grid-core/utils.ts` come `extractFormFieldNames`
+- **Barrel exports puliti:** `src/components/index.ts` (AssistantAI), `src/pages/index.ts` (PageBlog, PageHelper)
+- **Showcase aggiornato:** rimossa `AssistantAIPage` e voce menu
+- **CR-039 WorkflowAI:** scritta in `docs/CHANGE_REQUESTS.md` — pipeline dichiarativa multi-step con `pick: "one"|"auto"`, interpolazione `{stepId}`, `runPrompt` riusato da Prompt.tsx
+- **Docs aggiornate:** AI_REFERENCE, PROMPT_TEMPLATE, ai.md, app-configuration, quick-start, index, architecture, scaffolding, STATUS
+- **Test:** 330/330 pass, 36/36 file (zero fallimenti, incluso e2e proxy ora verde)
 
 ### Session summary (2026-06-07 — deepseek)
 - **Training Data Presence (P4):** creati `docs/AI_REFERENCE.md` (reference API completa per AI — ogni componente, prop, tipo, pattern) e `docs/PROMPT_TEMPLATE.md` (system prompt copia/incolla per qualsiasi LLM)
@@ -719,7 +788,7 @@ In corso sul branch `modernize`. Vedi `docs/CHANGE_REQUESTS.md` per i dettagli.
 
 | Area | Completamento |
 |------|--------------|
-| P0 — Bloccanti | 4/5 sezioni (P0.0 AI provider ✅, P0.1 Firestore ✅ Supabase ✅ FirebaseAuth ✅, P0.2 ✅, P0.3 ✅, P0.4 ⬜) |
+| P0 — Bloccanti | 5/5 sezioni ✅ (P0.0 AI provider ✅, P0.1 Firestore ✅ Supabase ✅ FirebaseAuth ✅, P0.2 ✅, P0.3 ✅, P0.4 CI/CD ✅) |
 | P1 — Differenziatori | 0/6 sezioni |
 | P2 — Feature parity | 0/4 sezioni |
 | P3 — Qualità e trust | 1/5 sezioni (P3.0 Performance audit ✅, resto ⬜) |

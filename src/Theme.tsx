@@ -149,7 +149,7 @@ export interface ThemeConfig {
         showControls?: boolean;
         showCaption?: boolean;
         layoutDark?: boolean;
-        autoPlay?: any;
+        autoPlay?: boolean | { interval: number; pause: "hover" | "false" | "true"; wrap: boolean };
     };
     Card?: CardTheme;
     Loader?: {
@@ -283,7 +283,7 @@ export interface ThemeConfig {
 }
 
 type DeepRequired<T> = {
-    [K in keyof T]-?: NonNullable<T[K]> extends (...args: any[]) => any
+    [K in keyof T]-?: NonNullable<T[K]> extends (...args: unknown[]) => unknown
         ? NonNullable<T[K]>
         : NonNullable<T[K]> extends object
             ? DeepRequired<NonNullable<T[K]>>
@@ -361,23 +361,25 @@ export const BUILT_IN_THEMES: Record<BuiltInThemeId, ThemeDefinition> = {
 };
 
 // Funzione per unire profondamente due oggetti
-const deepMerge = (target: any, source: any) => {
-    for (const key in source) {
-        if (source.hasOwnProperty(key)) {
-            if (typeof source[key] === 'object' && source[key] !== null) {
-                if (!target[key]) {
-                    target[key] = {};
+const deepMerge = <T extends object>(target: T, source: Partial<T>): T => {
+    const t = target as Record<string, unknown>;
+    const s = source as Record<string, unknown>;
+    for (const key in s) {
+        if (Object.prototype.hasOwnProperty.call(s, key)) {
+            if (typeof s[key] === 'object' && s[key] !== null) {
+                if (!t[key]) {
+                    t[key] = {};
                 }
-                deepMerge(target[key], source[key]);
-            } else if(source[key] !== null) {
-                target[key] = source[key];
+                deepMerge(t[key] as object, s[key] as object);
+            } else if (s[key] !== null) {
+                t[key] = s[key];
             }
         }
     }
     return target;
 };
 
-const cloneTheme = (theme: Theme): Theme => deepMerge({}, theme);
+const cloneTheme = (theme: Theme): Theme => deepMerge({} as Theme, theme);
 
 function isThemeDefinition(config: unknown): config is ThemeDefinition {
     return typeof config === 'object'
@@ -525,7 +527,7 @@ export const ThemeProvider = ({
     useEffect(() => {
         const currentDefinition = themeRegistry[activeTheme] ?? themeRegistry.default;
         const nextTheme = cloneTheme(currentDefinition.components);
-        deepMerge(nextTheme, normalized.themeOverride ?? {});
+        deepMerge(nextTheme, (normalized.themeOverride ?? {}) as Partial<Theme>);
         setTheme(nextTheme);
         setMotionRegistry(currentDefinition.motion);
     }, [activeTheme, normalized.themeOverride, themeRegistry]);

@@ -252,8 +252,8 @@ export class FirebaseStorageProvider implements StorageProviderAdapter {
                 contentType: meta.contentType,
                 updatedAt:   meta.updated,
             };
-        } catch (error: any) {
-            if (error?.code === 'storage/object-not-found') return undefined;
+        } catch (error: unknown) {
+            if ((error as { code?: string }).code === 'storage/object-not-found') return undefined;
             console.error(`[FirebaseStorage] getFileInfo error for ${path}:`, error);
             return undefined;
         }
@@ -286,8 +286,8 @@ export class FirebaseStorageProvider implements StorageProviderAdapter {
         try {
             await deleteObject(storageRef(getStorage(opts.bucket), path));
             return 1;
-        } catch (error: any) {
-            if (error?.code === 'storage/object-not-found') return 0;
+        } catch (error: unknown) {
+            if ((error as { code?: string }).code === 'storage/object-not-found') return 0;
             console.error(`[FirebaseStorage] delete error for ${path}:`, error);
             return 0;
         }
@@ -303,8 +303,8 @@ export class FirebaseStorageProvider implements StorageProviderAdapter {
                 try {
                     await deleteObject(item);
                     count++;
-                } catch (error: any) {
-                    if (error?.code !== 'storage/object-not-found') {
+                } catch (error: unknown) {
+                    if ((error as { code?: string }).code !== 'storage/object-not-found') {
                         console.error(`[FirebaseStorage] delete failed for ${item.fullPath}:`, error);
                     }
                 }

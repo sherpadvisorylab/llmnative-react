@@ -122,7 +122,7 @@ const createDefaultComponents = (
     pre: ({ children }) => (
         <MarkdownCodeBlock code={getText(children).replace(/\n$/, '')} language={getCodeLanguage(children)} />
     ),
-    code: ({ className, children, ...props }: any) => {
+    code: ({ className, children, ...props }: any) => { // CR-042: react-markdown ExtraProps lacks TS index signature; props shape is correct at runtime
         const isBlock = typeof className === 'string' && className.startsWith('language-');
         if (isBlock) return <code className={className} {...props}>{children}</code>;
         return (

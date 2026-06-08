@@ -158,7 +158,7 @@ export const LayoutBuilder = forwardRef<LayoutBuilderHandle, Props>(
     const rowRef = useRef<HTMLDivElement | null>(null);
 
     const { value, handleChange } = useFormContext({ name, defaultValue: [] });
-    const items: RowItem[] = Array.isArray(value) ? value : [];
+    const items: RowItem[] = Array.isArray(value) ? value as unknown as RowItem[] : [];
 
     const setItems = (updater: RowItem[] | ((prev: RowItem[]) => RowItem[])) => {
       const prev = items;

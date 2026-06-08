@@ -157,8 +157,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, State> {
         if (!error) return this.props.children;
 
         const { fallback, reportUrl, fullPage } = this.props;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const isDebug = this.props.debug ?? (import.meta as any).env?.DEV ?? false;
+        const isDebug = this.props.debug ?? (import.meta as { env?: { DEV?: boolean } }).env?.DEV ?? false;
 
         if (typeof fallback === 'function') {
             return (fallback as (e: Error, r: () => void) => React.ReactNode)(error, this.reset);

@@ -65,7 +65,7 @@ const ImageEditor = ({
     useEffect(() => {
         if (!rootEl.current) return;
 
-        let editor: any;
+        let editor: any; // CR-042: tui-image-editor has no TS types; dynamic import returns untyped class instance
         let cancelled = false;
 
         const initEditor = async () => {
@@ -104,12 +104,13 @@ const ImageEditor = ({
                     });
             }
 
-            editor.on('objectAdded', (obj: any) => {
+            editor.on('objectAdded', (obj: unknown) => {
                 console.log('objectAdded', obj);
                 editor.stopDrawingMode();
             });
 
-            editor.on('addText', (pos: any) => {
+            editor.on('addText', (pos: unknown) => {
+                const p = pos as { originPosition?: { x?: number; y?: number } };
                 editor.stopDrawingMode();
                 editor.addText('init text', {
                     styles: {
@@ -118,8 +119,8 @@ const ImageEditor = ({
                         fontWeight: 'bold',
                     },
                     position: {
-                        x: pos.originPosition.x,
-                        y: pos.originPosition.y,
+                        x: p.originPosition?.x,
+                        y: p.originPosition?.y,
                     },
                 });
             });

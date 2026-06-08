@@ -40,7 +40,7 @@ src/
     │   Pagination, Table, Gallery, Tab, Repeat, GridSystem
     │
     ui/fields/        ← Controlled form fields
-    │   Input, Select, Upload, UploadCSV, Prompt, AssistantAI, ImageUrl
+    │   Input, Select, Upload, UploadCSV, Prompt, WorkflowAI, ImageUrl
     │
     blocks/           ← Layout compositions (use hooks, read from context)
     │   Menu, Brand, Breadcrumbs, Notifications, Search, Carousel, Dropdown

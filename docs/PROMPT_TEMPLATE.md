@@ -89,7 +89,7 @@ const storage = useStorageProvider()   // StorageProviderAdapter | null
 - Input (text/number/email/password/date/color/time), Input.TextArea, Input.Checkbox
 - Select, Select.Autocomplete, Select.Checklist
 - Upload, Upload.Image, Upload.Document, UploadCSV
-- Prompt, AssistantAI
+- Prompt, WorkflowAI (CR-039)
 
 ## Pattern: nested/array data
 ```tsx

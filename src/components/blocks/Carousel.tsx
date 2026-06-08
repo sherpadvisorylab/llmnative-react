@@ -36,7 +36,8 @@ const Carousel = ({
     showControls = showControls || theme.Carousel.showControls;
     showCaption = showCaption || theme.Carousel.showCaption;
     layoutDark = layoutDark || theme.Carousel.layoutDark;
-    autoPlay = autoPlay || theme.Carousel.autoPlay;
+    const themeAutoPlay = theme.Carousel.autoPlay;
+    autoPlay = autoPlay || (typeof themeAutoPlay === 'object' ? themeAutoPlay : undefined);
 
 
     const [isHover, setIsHover] = React.useState(false);

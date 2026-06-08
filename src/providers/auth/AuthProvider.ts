@@ -5,7 +5,7 @@ export interface UserProfile {
     email?: string;
     displayName?: string;
     photoURL?: string;
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 export type AuthIntent = 'signIn' | 'connect' | 'signOut' | 'disconnect' | 'reauthorize';
@@ -13,7 +13,7 @@ export type AuthIntent = 'signIn' | 'connect' | 'signOut' | 'disconnect' | 'reau
 export interface AuthSignInOptions {
     scopes?: string[];
     intent?: AuthIntent;
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 export interface AuthProviderAdapter extends ProviderConfigurable {

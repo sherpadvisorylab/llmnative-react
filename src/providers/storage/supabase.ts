@@ -320,7 +320,8 @@ export class SupabaseStorageProvider implements StorageProviderAdapter {
                 return [];
             }
 
-            const items: any[] = await res.json();
+            type StorageItem = { id: string | null; name?: string; metadata?: { size?: number; mimetype?: string }; updated_at?: string };
+            const items = (await res.json()) as StorageItem[];
 
             // Files: have an id. Folders: id === null (virtual directories in Supabase).
             const fileItems   = items.filter((item) => item.id !== null && item.name && !item.name.endsWith('/'));
@@ -328,8 +329,8 @@ export class SupabaseStorageProvider implements StorageProviderAdapter {
 
             const fileResults: StorageFileInfo[] = showFiles
                 ? fileItems.map((item) => ({
-                    name:        item.name,
-                    path:        path ? `${path}/${item.name}` : item.name,
+                    name:        item.name ?? '',
+                    path:        path ? `${path}/${item.name}` : item.name ?? '',
                     size:        item.metadata?.size,
                     contentType: item.metadata?.mimetype,
                     updatedAt:   item.updated_at,
@@ -337,9 +338,9 @@ export class SupabaseStorageProvider implements StorageProviderAdapter {
                 : [];
 
             const folderResults: StorageFileInfo[] = showFolders
-                ? folderItems.map((item: any) => ({
-                    name:     item.name,
-                    path:     path ? `${path}/${item.name}` : item.name,
+                ? folderItems.map((item) => ({
+                    name:     item.name ?? '',
+                    path:     path ? `${path}/${item.name}` : item.name ?? '',
                     isFolder: true,
                 } satisfies StorageFileInfo))
                 : [];
@@ -349,8 +350,8 @@ export class SupabaseStorageProvider implements StorageProviderAdapter {
             if (!opts.recursive || folderItems.length === 0) return combined;
 
             const subResults = await Promise.all(
-                folderItems.map((folder: any) =>
-                    this._listLevel(path ? `${path}/${folder.name}` : folder.name, opts)
+                folderItems.map((folder) =>
+                    this._listLevel(path ? `${path}/${folder.name}` : folder.name ?? '', opts)
                 )
             );
 

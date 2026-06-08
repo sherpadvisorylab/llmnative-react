@@ -3,13 +3,13 @@ import { converter } from "../../../libs/converter";
 import { getRecordValue } from "../../../libs/utils";
 import { type OrderConfig } from "../../../libs/order";
 import { type RecordProps } from "../../../providers/data/DataProvider";
-import { extractComponentProps } from "../../FormEnhancer";
 import {
     type GridAction,
     type GridActions,
     type GridCellContext,
     type GridColumn,
     type GridFormat,
+    type GridFormContext,
     type GridRecordKey,
 } from "./types";
 
@@ -54,7 +54,7 @@ export const buildDisplayRecords = <TRecord extends RecordProps>(
     runAction: (actionKey: string, record?: TRecord) => void
 ) => {
     return records.map((record, rowIndex) => {
-        const displayRecord: RecordProps = { ...record, _index: rowIndex };
+        const displayRecord: Record<string, unknown> = { ...record, _index: rowIndex };
 
         for (const column of columns) {
             const columnKey = String(column.key);
@@ -79,14 +79,34 @@ const defaultHeader = <TRecord extends RecordProps>(key: string): GridColumn<TRe
     sortable: true,
 });
 
+const extractFormFieldNames = <T>(
+    components: React.ReactNode | React.ReactNode[],
+    onField: (props: Record<string, unknown>) => T
+): T[] => {
+    const result: T[] = [];
+    const walk = (nodes: React.ReactNode) => {
+        React.Children.forEach(nodes, (child) => {
+            if (!React.isValidElement(child)) return;
+            const { props } = child as React.ReactElement<Record<string, unknown>>;
+            if (props.name) {
+                result.push(onField(props));
+            } else if (props.children) {
+                walk(props.children as React.ReactNode);
+            }
+        });
+    };
+    walk(Array.isArray(components) ? components : [components]);
+    return result;
+};
+
 export const inferColumns = <TRecord extends RecordProps>(
     columns: GridColumn<TRecord>[] | undefined,
     records: TRecord[],
-    form: React.ReactElement | ((ctx: any) => React.ReactNode) | undefined
+    form: React.ReactElement | ((ctx: GridFormContext<TRecord>) => React.ReactNode) | undefined
 ) => {
     if (columns?.length) return columns;
     if (React.isValidElement(form)) {
-        const formCols = extractComponentProps(form, (props) => defaultHeader<TRecord>(props.name));
+        const formCols = extractFormFieldNames(form, (props) => defaultHeader<TRecord>(props.name as string));
         if (formCols.length > 0) return formCols;
     }
     const firstRecord = records[0];
@@ -142,7 +162,7 @@ export const isActionDisabled = <TRecord extends RecordProps>(action: GridAction
     return typeof action.disabled === "function" ? action.disabled(record) : action.disabled;
 };
 
-export const getActionLabel = (actionKey: string, action: GridAction<any> | undefined) => {
+export const getActionLabel = (actionKey: string, action: { label?: string } | undefined) => {
     if (action?.label) return action.label;
     if (actionKey === "add") return "Add";
     if (actionKey === "edit") return "Edit";

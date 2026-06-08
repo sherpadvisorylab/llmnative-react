@@ -280,8 +280,9 @@ export const CropImage = forwardRef(({img, title} : { img: ImageProps, title?: s
                             label={scale}
                             value={selectedScales.includes(scale)}
                             onChange={({event}) => {
+                                const checked = (event.target as HTMLInputElement).checked;
                                 setSelectedScales(prev =>
-                                    event.target.checked
+                                    checked
                                         ? [...prev, scale]
                                         : prev.filter(a => a !== scale)
                                 );
@@ -421,7 +422,7 @@ export const FileNameEditor = ({
     const inputValue = stripFileName(value || "");
 
     const handleChange: FieldOnChange = ({value}) => {
-        const baseName = value.trim();
+        const baseName = `${value ?? ''}`.trim();
         onChange(`${baseName}${scaleSuffix ?? ''}.${ext}`);
     };
 

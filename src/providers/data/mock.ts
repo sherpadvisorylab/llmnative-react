@@ -30,18 +30,18 @@ function toRecordArray(col: Record<string, any>): RecordArray {
     }));
 }
 
-function getEntryValue(value: any, field: string) {
+function getEntryValue(value: unknown, field: string): unknown {
     if (!field) return value;
     const parts = field.split('.');
-    let current = value;
+    let current: unknown = value;
     for (const part of parts) {
         if (current == null) return undefined;
-        current = current[part];
+        current = (current as Record<string, unknown>)[part];
     }
     return current;
 }
 
-function compareValues(left: any, right: any): number {
+function compareValues(left: unknown, right: unknown): number {
     if (left === right) return 0;
     if (left == null) return -1;
     if (right == null) return 1;
@@ -50,17 +50,17 @@ function compareValues(left: any, right: any): number {
     return globalThis.String(left).localeCompare(globalThis.String(right), undefined, { numeric: true, sensitivity: 'base' });
 }
 
-function matchWhere(value: any, raw: Condition | OperatorValue): boolean {
+function matchWhere(value: unknown, raw: Condition | OperatorValue): boolean {
     const condition = typeof raw === 'object' && raw !== null && !Array.isArray(raw) ? raw as Condition : { eq: raw };
     for (const [op, target] of Object.entries(condition as Record<string, OperatorValue>)) {
         switch (op) {
             case 'eq': if (value !== target) return false; break;
-            case 'gt': if (!(value > (target as any))) return false; break;
-            case 'gte': if (!(value >= (target as any))) return false; break;
-            case 'lt': if (!(value < (target as any))) return false; break;
-            case 'lte': if (!(value <= (target as any))) return false; break;
-            case 'in': if (!Array.isArray(target) || !(target as any[]).includes(value)) return false; break;
-            case 'nin': if (Array.isArray(target) && (target as any[]).includes(value)) return false; break;
+            case 'gt': if (!((value as string | number) > (target as string | number))) return false; break;
+            case 'gte': if (!((value as string | number) >= (target as string | number))) return false; break;
+            case 'lt': if (!((value as string | number) < (target as string | number))) return false; break;
+            case 'lte': if (!((value as string | number) <= (target as string | number))) return false; break;
+            case 'in': if (!Array.isArray(target) || !(target as unknown[]).includes(value)) return false; break;
+            case 'nin': if (Array.isArray(target) && (target as unknown[]).includes(value)) return false; break;
             default: return false;
         }
     }

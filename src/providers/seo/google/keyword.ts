@@ -8,6 +8,15 @@ if (typeof onConfigChange === 'function') {
     });
 }
 
+type KeywordPlannerItem = {
+    text?: string;
+    keywordIdeaMetrics?: {
+        avgMonthlySearches?: number;
+        competition?: string;
+        averageCpc?: { micros?: number };
+    };
+};
+
 export const DEFAULT_GEO_TARGET = 'geoTargetConstants/2380';
 export const DEFAULT_LANGUAGE = 'languageConstants/1000';
 
@@ -99,14 +108,14 @@ Per ottenere un developerToken segui questi passaggi:
         throw new Error(`Keyword planner error: ${res.status} – ${err}`);
     }
 
-    const data = await res.json();
+    const data = await res.json() as { results?: KeywordPlannerItem[] };
 
-    return data.results?.map((item: any) => ({
+    return data.results?.map((item) => ({
         keyword: item.text,
-        avgMonthlySearches: item.keywordIdeaMetrics?.avgMonthlySearches || 0,
-        competition: item.keywordIdeaMetrics?.competition || 'UNSPECIFIED',
+        avgMonthlySearches: item.keywordIdeaMetrics?.avgMonthlySearches ?? 0,
+        competition: item.keywordIdeaMetrics?.competition ?? 'UNSPECIFIED',
         cpc: item.keywordIdeaMetrics?.averageCpc?.micros
             ? item.keywordIdeaMetrics.averageCpc.micros / 1_000_000
             : null,
-    })) || [];
+    })) ?? [];
 }

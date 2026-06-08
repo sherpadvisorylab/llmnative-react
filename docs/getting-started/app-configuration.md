@@ -68,7 +68,7 @@ interface AppProps {
 | `storage` | Upload, download, delete, file URL | `Upload`, `useStorageProvider` | `firestorage`, `supabaseStorage` |
 | `auth` | Current user, sign-in/out, access token | `AuthButton`, `useAuthProvider` | `googleAuth`, `dropboxAuth` |
 | `email` | Outbound email | `useEmailProvider` | `gmail` |
-| `ai` | Prompt execution and model orchestration | `Prompt`, `AssistantAI`, `AI.fetch(...)`, `useAIProvider` | `openai`, `openrouter`, `opencode`, `openai-compatible`, `deepseek`, `gemini`, `anthropic`, `mistral` |
+| `ai` | Prompt execution and model orchestration | `Prompt`, `WorkflowAI`, `AI.fetch(...)`, `useAIProvider` | `openai`, `openrouter`, `opencode`, `openai-compatible`, `deepseek`, `gemini`, `anthropic`, `mistral` |
 | `proxy` | Same-origin relay for browser-safe external requests | `proxyFetch(...)`, `useProxyProvider` | `viteDevProxy`, `expressProxy` |
 
 The point is provider-agnostic UI:

@@ -90,7 +90,7 @@ If you choose an AI provider during scaffolding, the generator will:
 - add `VITE_AI_PROVIDER` to `.env`
 - add the relevant API key variable (`VITE_OPENAI_API_KEY`, `VITE_GEMINI_API_KEY`, etc.)
 - generate `aiConfig` in `src/conf/app.ts`
-- set `providers.services.ai` so `Prompt`, `AssistantAI`, and `AI.fetch(...)` all use the same orchestrator
+- set `providers.services.ai` so `Prompt`, `WorkflowAI`, and `AI.fetch(...)` all use the same orchestrator
 
 The public API stays stable. Switching from `openai` to `gemini` should be a config change in `src/conf/app.ts`, not a component rewrite.
 

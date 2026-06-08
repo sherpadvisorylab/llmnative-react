@@ -359,8 +359,8 @@ Campo AI-potenziato con editor e modalità live.
 | `renderPlainFallback` | `(props) => ReactNode` | — |
 | `renderAIUnavailable` | `(props) => ReactNode` | — |
 
-#### AssistantAI
-`<AssistantAI view="chat" />` — chat AI integrata con streaming e contesto.
+#### WorkflowAI _(CR-039, coming soon)_
+`<WorkflowAI steps={[...]} />` — pipeline di prompt multi-step con selezione varianti e output concatenato tra step.
 
 ---
 

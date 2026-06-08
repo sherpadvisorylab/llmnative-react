@@ -52,10 +52,13 @@ interface MenuItem {
     title?: string;
     icon?: string;
     children?: MenuItem[];
-    [key: string]: any;
+    page?: React.ComponentType;
+    layout?: React.ComponentType;
+    component?: string;
+    [key: string]: unknown;
 }
 
-interface UseMenuItem extends MenuItem {
+export interface UseMenuItem extends MenuItem {
     active: boolean;
     onClick?: () => void;
 }

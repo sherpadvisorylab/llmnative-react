@@ -60,7 +60,7 @@ export const createOpenAICompatibleProviderDefinition = ({
                 body: {
                     model: request.model,
                     messages: [
-                        ...(request.role ? [{ role: 'system', content: Prompt.parseRole(request.role, request) }] : []),
+                        ...(request.role ? [{ role: 'system', content: Prompt.parseRole(request.role, request as unknown as import("../../conf/Prompt").PromptVariables) }] : []),
                         { role: 'user', content: request.prompt },
                     ],
                     ...(typeof request.temperature === 'number' ? { temperature: request.temperature } : {}),
