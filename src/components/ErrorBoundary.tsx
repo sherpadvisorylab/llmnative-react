@@ -1,6 +1,6 @@
 import React from 'react';
 
-// ── Icons (inline SVG — class component cannot use hooks) ─────────────────────
+// ── Icons (inline SVG - class component cannot use hooks) ─────────────────────
 
 const IconAlert = ({ size = 28 }: { size?: number }) => (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24"
@@ -176,7 +176,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, State> {
 
         const wrapClass = fullPage
             ? 'flex min-h-screen flex-col items-center justify-center bg-background p-8'
-            : 'my-4';
+            : 'flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center p-8';
 
         return (
             <div className={wrapClass}>
@@ -235,11 +235,11 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, State> {
                                     <p className="text-[10px] font-semibold uppercase tracking-wide text-amber-700/70 dark:text-amber-400/70">Context</p>
                                     <dl className="grid grid-cols-[5rem_1fr] gap-x-2 gap-y-0.5 text-[11px] font-mono">
                                         <dt className="text-muted-foreground">URL</dt>
-                                        <dd className="truncate text-foreground">{typeof window !== 'undefined' ? window.location.href : '–'}</dd>
+                                        <dd className="truncate text-foreground">{typeof window !== 'undefined' ? window.location.href : '-'}</dd>
                                         <dt className="text-muted-foreground">Time</dt>
                                         <dd className="text-foreground">{new Date().toISOString()}</dd>
                                         <dt className="text-muted-foreground">Agent</dt>
-                                        <dd className="truncate text-foreground opacity-70">{typeof navigator !== 'undefined' ? navigator.userAgent : '–'}</dd>
+                                        <dd className="truncate text-foreground opacity-70">{typeof navigator !== 'undefined' ? navigator.userAgent : '-'}</dd>
                                     </dl>
                                 </div>
                                 {/* Component stack */}
@@ -288,7 +288,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, State> {
                             {reportState === 'idle' && 'Send report'}
                             {reportState === 'sending' && 'Sending…'}
                             {reportState === 'sent' && 'Report sent ✓'}
-                            {reportState === 'failed' && 'Failed — retry'}
+                            {reportState === 'failed' && 'Failed - retry'}
                         </button>
                     )}
                 </div>
