@@ -13,7 +13,7 @@ interface DropdownTogglerProps {
     icon?: string;
     text?: string;
 }
-interface DropdownProps extends Pick<MotionUIProps, 'motion'> {
+interface DropdownProps extends MotionUIProps {
     children: React.ReactNode;
     toggleButton?: string | React.ReactNode | DropdownTogglerProps;
     badge?: BadgeProps;
@@ -25,8 +25,6 @@ interface DropdownProps extends Pick<MotionUIProps, 'motion'> {
     alwaysOpen?: boolean;
     position?: "start" | "end";
     placement?: "auto" | "top" | "bottom";
-    wrapClass?: string;
-    className?: string;
     buttonClass?: string;
     badgeClass?: string;
     menuClass?: string;
@@ -74,6 +72,8 @@ export const Dropdown = ({
                              placement          = "bottom",
                              wrapClass          = undefined,
                              className          = undefined,
+                             pre                = undefined,
+                             post               = undefined,
                              buttonClass        = undefined,
                              menuClass          = undefined,
                              badgeClass         = undefined,
@@ -147,8 +147,11 @@ export const Dropdown = ({
     </DropdownButton> : null;
 
 
+    const resolvedWrapClass = wrapClass ?? theme.Dropdown.wrapClass ?? ((pre || post) ? 'flex items-center gap-2' : undefined);
+
     return (
-        <Wrapper className={wrapClass || theme.Dropdown.wrapClass}>
+        <Wrapper className={resolvedWrapClass}>
+            {pre}
             <div ref={rootRef} className={cn(alwaysOpen ? "inline-block text-left" : "relative inline-block text-left", className || theme.Dropdown.className)}>
                 {Button}
                 <div
@@ -190,6 +193,7 @@ export const Dropdown = ({
                     </div>}
                 </div>
             </div>
+            {post}
         </Wrapper>
     );
 };

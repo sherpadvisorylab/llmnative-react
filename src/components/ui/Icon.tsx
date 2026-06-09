@@ -11,17 +11,19 @@ interface IconProps {
     /** Override the global icon provider for this instance only */
     provider?: IconProviderAdapter;
     label?: string;
+    /** Provider-specific variant — e.g. PhosphorWeight: 'thin'|'light'|'regular'|'bold'|'fill'|'duotone'. Ignored by providers that don't support it. */
+    weight?: string;
 }
 
 const defaultProvider = new LucideIconProvider();
 
-const Icon = ({ name, size = 16, className, style, provider: overrideProvider, label }: IconProps) => {
+const Icon = ({ name, size = 16, className, style, provider: overrideProvider, label, weight }: IconProps) => {
     const contextProvider = useIconProvider();
     const provider = overrideProvider ?? contextProvider ?? defaultProvider;
     if (!provider || typeof name !== 'string' || !name.trim()) return null;
     const Component = provider.resolve(name);
     if (!Component) return null;
-    return <Component size={size} className={className} style={style} aria-label={label} aria-hidden={label ? undefined : true} />;
+    return <Component size={size} className={className} style={style} weight={weight} aria-label={label} aria-hidden={label ? undefined : true} />;
 };
 
 export default Icon;

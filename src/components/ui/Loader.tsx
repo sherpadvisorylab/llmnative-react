@@ -2,6 +2,7 @@ import React from 'react';
 import {useTheme} from "../../Theme";
 import { UIProps } from '../..';
 import { Wrapper } from "./GridSystem";
+import Icon from "./Icon";
 
 interface LoaderProps extends UIProps {
     show?: boolean;
@@ -33,10 +34,10 @@ function Loader({
                 <div className="absolute top-0 bottom-0 left-0 right-0"
                     style={{zIndex:10, backdropFilter: "blur(2px)", background:"rgba(255, 255, 255, 0.5)"}}>
                     {pre}
-                    {(icon || title || description) && <div className="p-4 text-center position-sticky top-50">
-                        {icon && <div className={icon}></div>}
-                        {title && <h2 className="my-3 f-w-400">{title}</h2>}
-                        {description && <p className="mb-0">{description}</p>}
+                    {(icon || title || description) && <div className="flex flex-col items-center justify-center gap-2 p-4 text-center">
+                        {icon && <Icon name={icon} size={32} className="animate-spin text-primary" />}
+                        {title && <p className="text-sm font-semibold text-foreground">{title}</p>}
+                        {description && <p className="text-xs text-muted-foreground">{description}</p>}
                     </div>}
                     {post}
                 </div>

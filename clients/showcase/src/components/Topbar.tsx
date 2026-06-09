@@ -13,6 +13,7 @@ const TOP_NAV = [
     { label: 'Components', path: '/components' },
     { label: 'Providers / Integrations',  path: '/providers' },
     { label: 'Examples',   path: '/examples' },
+    { label: 'Benchmark',  path: '/benchmark' },
 ];
 
 const activeLinkClass = ({ isActive }: { isActive: boolean }) =>

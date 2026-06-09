@@ -1,0 +1,644 @@
+import React from 'react';
+import PageLayout from '../showcase/page';
+
+// Token estimation: 1 token ≈ 4 characters (standard GPT approximation).
+// Used as a relative indicator — not an exact model-specific count.
+function tok(code: string): number {
+    return Math.ceil(code.trim().length / 4);
+}
+
+// ─── Code snippets ────────────────────────────────────────────────────────────
+
+const CRUD_FRAMEWORK = `\
+import { Grid } from '@llmnative/react'
+
+export default function UserList() {
+  return (
+    <Grid
+      path="/users"
+      columns={[
+        { key: 'name',  label: 'Name',  sortable: true },
+        { key: 'email', label: 'Email' },
+        { key: 'role',  label: 'Role',  render: 'badge' },
+      ]}
+      actions={['add', 'edit', 'delete']}
+      pagination={{ limit: 20 }}
+    />
+  )
+}`;
+
+const CRUD_VANILLA = `\
+import React, { useState, useEffect, useCallback } from 'react'
+import {
+  getDatabase, ref, onValue,
+  push, update, remove,
+} from 'firebase/database'
+
+interface User { id: string; name: string; email: string; role: string }
+type FormState = Omit<User, 'id'>
+
+const PAGE_SIZE = 20
+
+export default function UserList() {
+  const [users, setUsers]           = useState<User[]>([])
+  const [loading, setLoading]       = useState(true)
+  const [page, setPage]             = useState(0)
+  const [modal, setModal]           = useState(false)
+  const [editTarget, setEditTarget] = useState<User | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<User | null>(null)
+  const [form, setForm] = useState<FormState>({ name:'', email:'', role:'' })
+  const db = getDatabase()
+
+  useEffect(() => {
+    return onValue(ref(db, '/users'), (snap) => {
+      const data = snap.val() ?? {}
+      setUsers(
+        Object.entries(data).map(([id, v]) => ({
+          id, ...(v as Omit<User,'id'>),
+        }))
+      )
+      setLoading(false)
+    })
+  }, [db])
+
+  const openAdd = () => {
+    setForm({ name:'', email:'', role:'' })
+    setEditTarget(null)
+    setModal(true)
+  }
+  const openEdit = (u: User) => {
+    setForm({ name: u.name, email: u.email, role: u.role })
+    setEditTarget(u)
+    setModal(true)
+  }
+
+  const handleSave = useCallback(async () => {
+    if (editTarget)
+      await update(ref(db, \`/users/\${editTarget.id}\`), form)
+    else
+      await push(ref(db, '/users'), form)
+    setModal(false)
+  }, [db, editTarget, form])
+
+  const handleDelete = useCallback(async () => {
+    if (!deleteTarget) return
+    await remove(ref(db, \`/users/\${deleteTarget.id}\`))
+    setDeleteTarget(null)
+  }, [db, deleteTarget])
+
+  const sorted = [...users].sort((a, b) => a.name.localeCompare(b.name))
+  const paged  = sorted.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
+  const pages  = Math.ceil(sorted.length / PAGE_SIZE)
+
+  if (loading) return <div>Loading…</div>
+
+  return (
+    <div>
+      <div style={{ display:'flex', justifyContent:'space-between', marginBottom:8 }}>
+        <h2>Users</h2>
+        <button onClick={openAdd}>+ Add</button>
+      </div>
+
+      <table style={{ width:'100%', borderCollapse:'collapse' }}>
+        <thead>
+          <tr><th>Name</th><th>Email</th><th>Role</th><th /></tr>
+        </thead>
+        <tbody>
+          {paged.map(u => (
+            <tr key={u.id}>
+              <td>{u.name}</td>
+              <td>{u.email}</td>
+              <td><span className="badge">{u.role}</span></td>
+              <td>
+                <button onClick={() => openEdit(u)}>Edit</button>
+                <button onClick={() => setDeleteTarget(u)}>Delete</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <div style={{ display:'flex', gap:4, marginTop:8 }}>
+        {Array.from({ length: pages }, (_, i) => (
+          <button key={i} onClick={() => setPage(i)}
+            style={{ fontWeight: i === page ? 'bold' : 'normal' }}>
+            {i + 1}
+          </button>
+        ))}
+      </div>
+
+      {modal && (
+        <div className="modal-backdrop">
+          <div className="modal-dialog">
+            <h3>{editTarget ? 'Edit' : 'Add'} User</h3>
+            <input placeholder="Name"
+              value={form.name}
+              onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+            <input placeholder="Email"
+              value={form.email}
+              onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
+            <input placeholder="Role"
+              value={form.role}
+              onChange={e => setForm(f => ({ ...f, role: e.target.value }))} />
+            <button onClick={handleSave}>Save</button>
+            <button onClick={() => setModal(false)}>Cancel</button>
+          </div>
+        </div>
+      )}
+
+      {deleteTarget && (
+        <div className="modal-backdrop">
+          <div className="modal-dialog">
+            <p>Delete {deleteTarget.name}?</p>
+            <button onClick={handleDelete}>Confirm</button>
+            <button onClick={() => setDeleteTarget(null)}>Cancel</button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}`;
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+const FORM_FRAMEWORK = `\
+import { Form, Input, Select } from '@llmnative/react'
+
+export default function UserForm() {
+  return (
+    <Form path="/users" aspect="card" showBack>
+      <Input  name="name"  label="Full name" required />
+      <Input  name="email" label="Email" inputType="email" required />
+      <Select
+        name="role"
+        label="Role"
+        options={[
+          { label: 'Admin',  value: 'admin'  },
+          { label: 'Editor', value: 'editor' },
+          { label: 'Viewer', value: 'viewer' },
+        ]}
+      />
+    </Form>
+  )
+}`;
+
+const FORM_VANILLA = `\
+import React, { useState, useEffect } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { getDatabase, ref, get, set, push } from 'firebase/database'
+
+interface FormData { name: string; email: string; role: string }
+interface Errors   { name?: string; email?: string }
+
+export default function UserForm() {
+  const { id }   = useParams<{ id?: string }>()
+  const navigate = useNavigate()
+  const db       = getDatabase()
+
+  const [data, setData]       = useState<FormData>({ name:'', email:'', role:'' })
+  const [errors, setErrors]   = useState<Errors>({})
+  const [saving, setSaving]   = useState(false)
+  const [loading, setLoading] = useState(!!id)
+
+  useEffect(() => {
+    if (!id) return
+    get(ref(db, \`/users/\${id}\`)).then(snap => {
+      if (snap.exists()) setData(snap.val() as FormData)
+      setLoading(false)
+    })
+  }, [id, db])
+
+  const validate = (): boolean => {
+    const e: Errors = {}
+    if (!data.name.trim())  e.name  = 'Required'
+    if (!data.email.trim()) e.email = 'Required'
+    else if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(data.email))
+      e.email = 'Invalid email'
+    setErrors(e)
+    return !Object.keys(e).length
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!validate()) return
+    setSaving(true)
+    try {
+      if (id) await set(ref(db, \`/users/\${id}\`), data)
+      else    await push(ref(db, '/users'), data)
+      navigate(-1)
+    } finally { setSaving(false) }
+  }
+
+  if (loading) return <div>Loading…</div>
+
+  return (
+    <div className="card p-4">
+      <button onClick={() => navigate(-1)}>← Back</button>
+      <form onSubmit={handleSubmit} noValidate>
+        <div>
+          <label>Full name</label>
+          <input
+            value={data.name}
+            onChange={e => setData(d => ({ ...d, name: e.target.value }))}
+          />
+          {errors.name && <span style={{ color:'red' }}>{errors.name}</span>}
+        </div>
+        <div>
+          <label>Email</label>
+          <input
+            type="email"
+            value={data.email}
+            onChange={e => setData(d => ({ ...d, email: e.target.value }))}
+          />
+          {errors.email && <span style={{ color:'red' }}>{errors.email}</span>}
+        </div>
+        <div>
+          <label>Role</label>
+          <select
+            value={data.role}
+            onChange={e => setData(d => ({ ...d, role: e.target.value }))}>
+            <option value="">Select…</option>
+            <option value="admin">Admin</option>
+            <option value="editor">Editor</option>
+            <option value="viewer">Viewer</option>
+          </select>
+        </div>
+        <button type="submit" disabled={saving}>
+          {saving ? 'Saving…' : 'Save'}
+        </button>
+      </form>
+    </div>
+  )
+}`;
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+const PROVIDER_FRAMEWORK = `\
+// One line change in providers config — no component code touched.
+
+// mock (local in-memory, zero network)
+services: { data: 'mock' }
+
+// Firebase Realtime DB
+services: { data: 'dbRealtime' }
+
+// Cloud Firestore (with onSnapshot realtime)
+services: { data: 'firestoreDb' }
+
+// Supabase Postgres (with Realtime)
+services: { data: 'supabaseDb' }
+
+// Every Grid, Form and Select.db in your app
+// automatically uses the new backend.
+// Zero component changes required.`;
+
+const PROVIDER_VANILLA = `\
+// No abstraction layer: every component reads Firebase directly.
+// Migrating to Supabase means touching every data-fetching site.
+
+// ── Before (Firebase Realtime DB) ───────────────────────────────
+useEffect(() => {
+  return onValue(ref(db, '/users'), (snap) => {
+    setUsers(
+      Object.entries(snap.val() ?? {}).map(([id, v]) => ({
+        id, ...(v as Record<string, unknown>),
+      }))
+    )
+  })
+}, [db])
+
+// ── After (Supabase) ────────────────────────────────────────────
+useEffect(() => {
+  supabase.from('users').select('*')
+    .then(({ data }) => setUsers(data ?? []))
+
+  const ch = supabase.channel('users')
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'users' },
+      () => supabase.from('users').select('*')
+             .then(({ data }) => setUsers(data ?? []))
+    )
+    .subscribe()
+  return () => { supabase.removeChannel(ch) }
+}, [])
+
+// Repeat the migration for UserForm, Dashboard, CategoryList,
+// ProductGrid, OrderTable, Settings … every component that
+// reads or writes data. No shared adapter to update centrally.`;
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+const AUTH_FRAMEWORK = `\
+// 1. Declare the provider once in <App> config:
+providers={{
+  google: { clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID },
+  services: { auth: 'googleAuth' },
+}}
+
+// 2. Wrap any page in <Auth> to require sign-in:
+import { Auth } from '@llmnative/react'
+
+export default function Dashboard() {
+  return (
+    <Auth>
+      <h1>Welcome!</h1>
+    </Auth>
+  )
+}
+
+// 3. Access the signed-in user anywhere:
+import { useAuthProvider } from '@llmnative/react'
+
+const auth = useAuthProvider()
+const user = auth.getUser() // { name, email, picture } | null`;
+
+const AUTH_VANILLA = `\
+import React, {
+  createContext, useContext,
+  useState, useEffect, useRef,
+} from 'react'
+
+interface User { name: string; email: string; picture: string }
+interface AuthCtx { user: User | null; signOut: () => void; loading: boolean }
+
+const Ctx = createContext<AuthCtx>({
+  user: null, signOut: () => undefined, loading: true,
+})
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser]       = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const saved = localStorage.getItem('gUser')
+    if (saved) { setUser(JSON.parse(saved) as User); setLoading(false); return }
+
+    const script = document.createElement('script')
+    script.src = 'https://accounts.google.com/gsi/client'
+    script.onload = () => {
+      type GIS = {
+        google?: {
+          accounts: {
+            id: {
+              initialize: (o: unknown) => void
+              prompt: () => void
+            }
+          }
+        }
+      }
+      ;(window as unknown as GIS).google?.accounts.id.initialize({
+        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+        callback: (r: { credential: string }) => {
+          const p = JSON.parse(
+            atob(r.credential.split('.')[1])
+          ) as User
+          setUser(p)
+          localStorage.setItem('gUser', JSON.stringify(p))
+          setLoading(false)
+        },
+      })
+      ;(window as unknown as GIS).google?.accounts.id.prompt()
+    }
+    document.head.appendChild(script)
+    return () => { document.head.removeChild(script) }
+  }, [])
+
+  const signOut = () => {
+    setUser(null); localStorage.removeItem('gUser')
+  }
+  return <Ctx.Provider value={{ user, signOut, loading }}>{children}</Ctx.Provider>
+}
+
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useContext(Ctx)
+  const btnRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!user && !loading && btnRef.current) {
+      type GIS = { google?: { accounts: { id: { renderButton: (el: HTMLElement, o: object) => void } } } }
+      ;(window as unknown as GIS).google?.accounts.id
+        .renderButton(btnRef.current, { theme: 'outline', size: 'large' })
+    }
+  }, [user, loading])
+  if (loading) return <div>Loading…</div>
+  if (!user)   return <div ref={btnRef} />
+  return <>{children}</>
+}
+
+// Wrap your entire app in <AuthProvider>.
+// Wrap every protected page in <ProtectedRoute>.
+export default function Dashboard() {
+  const { user, signOut } = useContext(Ctx)
+  return (
+    <ProtectedRoute>
+      <div>
+        <img src={user?.picture} alt={user?.name} width={32} height={32} />
+        <span>{user?.name}</span>
+        <button onClick={signOut}>Sign out</button>
+        <h1>Welcome!</h1>
+      </div>
+    </ProtectedRoute>
+  )
+}`;
+
+// ─── Types & data ─────────────────────────────────────────────────────────────
+
+interface Scenario {
+    title: string;
+    description: string;
+    tags: string[];
+    fwLabel: string;
+    vnLabel: string;
+    framework: string;
+    vanilla: string;
+}
+
+const SCENARIOS: Scenario[] = [
+    {
+        title: 'CRUD Grid with realtime + pagination',
+        description:
+            'Full create/read/update/delete table backed by Firebase Realtime DB, ' +
+            'with live updates, sorting, pagination and modal dialogs.',
+        tags: ['Grid', 'Form', 'Modal', 'Firebase'],
+        fwLabel: '@llmnative/react',
+        vnLabel: 'React + Firebase',
+        framework: CRUD_FRAMEWORK,
+        vanilla: CRUD_VANILLA,
+    },
+    {
+        title: 'Form with validation + load/save',
+        description:
+            'Edit or create a record: loads existing data from the provider, ' +
+            'validates required fields and email format, saves back.',
+        tags: ['Form', 'Input', 'Select', 'Validation'],
+        fwLabel: '@llmnative/react',
+        vnLabel: 'React + Firebase',
+        framework: FORM_FRAMEWORK,
+        vanilla: FORM_VANILLA,
+    },
+    {
+        title: 'Switch data backend',
+        description:
+            'Change the data source for the entire app — mock, Firebase RTDB, ' +
+            'Firestore or Supabase — without touching a single component.',
+        tags: ['DataProvider', 'Ports & Adapters'],
+        fwLabel: 'Config change (1 line)',
+        vnLabel: 'Per-component migration',
+        framework: PROVIDER_FRAMEWORK,
+        vanilla: PROVIDER_VANILLA,
+    },
+    {
+        title: 'Google Auth + protected route',
+        description:
+            'Require Google sign-in on any page, access the user profile ' +
+            'anywhere, handle loading and sign-out states.',
+        tags: ['Auth', 'Google', 'Protected route'],
+        fwLabel: '@llmnative/react',
+        vnLabel: 'React + GIS',
+        framework: AUTH_FRAMEWORK,
+        vanilla: AUTH_VANILLA,
+    },
+];
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+function TokenPill({ count }: { count: number }) {
+    return (
+        <span className="inline-flex items-center text-xs font-mono font-medium bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
+            ~{count.toLocaleString()} tokens
+        </span>
+    );
+}
+
+function SavingsPill({ pct }: { pct: number }) {
+    return (
+        <span className="inline-flex items-center gap-1 text-xs font-semibold bg-success/15 text-success px-2.5 py-1 rounded-full">
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                <path d="M2 6L5 3L8 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            {pct}% fewer tokens
+        </span>
+    );
+}
+
+function ScenarioCard({ s }: { s: Scenario }) {
+    const fw  = tok(s.framework);
+    const vn  = tok(s.vanilla);
+    const pct = Math.round((1 - fw / vn) * 100);
+
+    return (
+        <div className="rounded-xl border bg-card overflow-hidden shadow-sm">
+            {/* Header */}
+            <div className="px-5 py-4 border-b bg-card flex items-start justify-between gap-4 flex-wrap">
+                <div className="min-w-0">
+                    <h3 className="font-semibold text-foreground">{s.title}</h3>
+                    <p className="text-sm text-muted-foreground mt-0.5 leading-relaxed">{s.description}</p>
+                    <div className="flex gap-1.5 mt-2.5 flex-wrap">
+                        {s.tags.map(t => (
+                            <span key={t} className="badge bg-secondary text-xs">{t}</span>
+                        ))}
+                    </div>
+                </div>
+                <SavingsPill pct={pct} />
+            </div>
+
+            {/* Code columns */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 divide-y divide-border lg:divide-y-0 lg:divide-x">
+                {/* Framework */}
+                <div className="p-4 flex flex-col gap-2">
+                    <div className="flex items-center justify-between">
+                        <span className="text-xs font-semibold text-success">{s.fwLabel}</span>
+                        <TokenPill count={fw} />
+                    </div>
+                    <pre className="text-xs font-mono bg-muted/40 rounded-lg p-3 overflow-auto max-h-72 leading-relaxed whitespace-pre flex-1">{s.framework}</pre>
+                </div>
+
+                {/* Vanilla */}
+                <div className="p-4 flex flex-col gap-2">
+                    <div className="flex items-center justify-between">
+                        <span className="text-xs font-semibold text-muted-foreground">{s.vnLabel}</span>
+                        <TokenPill count={vn} />
+                    </div>
+                    <pre className="text-xs font-mono bg-muted/40 rounded-lg p-3 overflow-auto max-h-72 leading-relaxed whitespace-pre flex-1">{s.vanilla}</pre>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
+export default function BenchmarkPage() {
+    const totalFw  = SCENARIOS.reduce((n, s) => n + tok(s.framework), 0);
+    const totalVn  = SCENARIOS.reduce((n, s) => n + tok(s.vanilla), 0);
+    const totalPct = Math.round((1 - totalFw / totalVn) * 100);
+    const saved    = totalVn - totalFw;
+
+    return (
+        <PageLayout
+            title="Token Benchmark"
+            description="How much less code — and how many fewer tokens — an AI needs to describe the same UI using @llmnative/react vs plain React."
+        >
+            {/* ── Methodology note ── */}
+            <div className="text-sm text-muted-foreground bg-muted/40 rounded-lg px-4 py-3 mb-8 leading-relaxed">
+                Token counts are estimated as{' '}
+                <code className="font-mono text-xs bg-muted px-1 py-0.5 rounded">⌈chars / 4⌉</code>
+                {' '}— the standard GPT approximation (1 token ≈ 4 characters).
+                {' '}Actual token counts vary by model and tokenizer;
+                {' '}the relative difference between the two columns is what matters.
+            </div>
+
+            {/* ── Aggregate summary ── */}
+            <div className="rounded-xl border bg-card px-6 py-5 mb-8 flex flex-col sm:flex-row items-start sm:items-center gap-6">
+                <div className="flex-1">
+                    <p className="text-sm text-muted-foreground">Across all 4 scenarios</p>
+                    <p className="text-3xl font-bold text-foreground mt-1">
+                        {totalPct}%
+                        <span className="text-base font-normal text-muted-foreground ml-2">fewer tokens</span>
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                        ~{totalFw.toLocaleString()} tokens with @llmnative/react
+                        {' '}vs ~{totalVn.toLocaleString()} tokens with plain React
+                        {' '}— a saving of ~{saved.toLocaleString()} tokens
+                    </p>
+                </div>
+                <div className="grid grid-cols-2 gap-4 shrink-0">
+                    <div className="text-center">
+                        <p className="text-2xl font-bold text-success">~{totalFw.toLocaleString()}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">@llmnative/react</p>
+                    </div>
+                    <div className="text-center">
+                        <p className="text-2xl font-bold text-muted-foreground">~{totalVn.toLocaleString()}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">Plain React</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* ── Scenarios ── */}
+            <div className="space-y-6">
+                {SCENARIOS.map(s => (
+                    <ScenarioCard key={s.title} s={s} />
+                ))}
+            </div>
+
+            {/* ── Why it matters ── */}
+            <div className="mt-10 rounded-xl border bg-card px-6 py-5">
+                <h2 className="font-semibold text-foreground mb-3">Why fewer tokens matter</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-muted-foreground">
+                    <div>
+                        <p className="font-medium text-foreground mb-1">Faster generation</p>
+                        <p>An AI agent that writes 80% less code per feature completes tasks proportionally faster and stays within context limits longer.</p>
+                    </div>
+                    <div>
+                        <p className="font-medium text-foreground mb-1">Lower cost</p>
+                        <p>Every AI API call is billed per token. Fewer output tokens per feature means lower cost per feature — at scale the difference is significant.</p>
+                    </div>
+                    <div>
+                        <p className="font-medium text-foreground mb-1">Higher reliability</p>
+                        <p>Less code means less surface area for hallucinations, import errors and state bugs. The framework owns the boilerplate; the AI owns the intent.</p>
+                    </div>
+                </div>
+            </div>
+        </PageLayout>
+    );
+}

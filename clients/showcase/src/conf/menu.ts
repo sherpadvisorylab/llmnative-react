@@ -65,6 +65,7 @@ const GridPage = lazyPage(() => import('../pages/components/GridPage'));
 const GridArrayPage = lazyPage(() => import('../pages/components/GridArrayPage'));
 const GridDbPage = lazyPage(() => import('../pages/components/GridDbPage'));
 const GridPreviewPage = lazyPage(() => import('../pages/components/GridPreviewPage'));
+const BenchmarkPage = lazyPage(() => import('../pages/BenchmarkPage'));
 const MarkdownReaderPage = lazyPage(() => import('../pages/components/MarkdownReaderPage'));
 const ImageEditorPage = lazyPage(() => import('../pages/components/ImageEditorPage'));
 
@@ -90,6 +91,10 @@ const providerRoutes = providerMarkdownDocs.map((doc) => ({
 export const menu = {
     default: [
         { path: '/', page: Home },
+    ],
+
+    benchmark: [
+        { path: '/benchmark', page: BenchmarkPage },
     ],
 
     _nav: [

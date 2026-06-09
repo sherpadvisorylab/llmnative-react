@@ -26,6 +26,8 @@ const DROPDOWN_PROPS: PropDef[] = [
     { name: 'defaultOpen', type: 'boolean', default: 'false', description: 'Starts the uncontrolled dropdown open on first render', control: 'boolean' },
     { name: 'alwaysOpen', type: 'boolean', default: 'false', description: 'Renders the menu as a static always-visible panel without the toggle button', control: 'boolean' },
     { name: 'position', type: '"start" | "end"', default: 'none', description: 'Menu alignment. Empty means no forced horizontal alignment.', control: 'select', options: ['', 'start', 'end'] },
+    { name: 'pre', type: 'ReactNode', description: 'Content rendered to the left of the dropdown', control: 'text' },
+    { name: 'post', type: 'ReactNode', description: 'Content rendered to the right of the dropdown', control: 'text' },
     { name: 'wrapClass', type: 'string', description: 'CSS classes on wrapper', control: 'text' },
     { name: 'className', type: 'string', description: 'CSS classes on dropdown root', control: 'text' },
     { name: 'buttonClass', type: 'string', description: 'CSS classes on toggle button', control: 'text' },
@@ -106,6 +108,8 @@ const PLAYGROUND: PlaygroundConfig = {
         itemsPath: '/dropdown-items',
         toggleButton: 'Actions',
         badge: { content: '3', type: 'danger' },
+        pre: '',
+        post: '',
         header: 'Menu',
         footer: 'Footer',
         defaultOpen: false,
@@ -129,6 +133,8 @@ const PLAYGROUND: PlaygroundConfig = {
             defaultOpen={p.defaultOpen}
             alwaysOpen={p.alwaysOpen}
             position={p.position || undefined}
+            pre={p.pre || undefined}
+            post={p.post || undefined}
             wrapClass={p.wrapClass || undefined}
             className={p.className || undefined}
             buttonClass={p.buttonClass || undefined}

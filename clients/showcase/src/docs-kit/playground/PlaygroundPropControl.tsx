@@ -99,13 +99,21 @@ export default function PlaygroundPropControl({
                     </label>
                 )}
                 {def.control === 'text' && (
-                    <input
-                        type="text"
-                        className={inputClass}
-                        value={value ?? ''}
-                        readOnly={def.readOnly}
-                        onChange={(e) => onChange(e.target.value)}
-                    />
+                    <>
+                        {def.suggestions && (
+                            <datalist id={`dl-${def.name}`}>
+                                {def.suggestions.map((s) => <option key={s} value={s} />)}
+                            </datalist>
+                        )}
+                        <input
+                            type="text"
+                            className={inputClass}
+                            value={value ?? ''}
+                            readOnly={def.readOnly}
+                            list={def.suggestions ? `dl-${def.name}` : undefined}
+                            onChange={(e) => onChange(e.target.value)}
+                        />
+                    </>
                 )}
                 {def.control === 'number' && (
                     <input

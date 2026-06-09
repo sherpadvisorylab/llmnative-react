@@ -15,6 +15,8 @@ interface CardProps extends UIProps {
     footerClass?: string;
     showLoader?: boolean;
     showArrow?: boolean;
+    pre?: React.ReactNode;
+    post?: React.ReactNode;
 }
 
 const Card = ({
@@ -28,12 +30,17 @@ const Card = ({
     className     = undefined,
     headerClass   = undefined,
     bodyClass     = undefined,
-    footerClass   = undefined
+    footerClass   = undefined,
+    pre           = undefined,
+    post          = undefined,
 }: CardProps) => {
   const theme = useTheme("card");
 
+  const resolvedWrapClass = wrapClass ?? theme.Card.wrapClass ?? ((pre || post) ? 'flex items-center gap-2' : undefined);
+
   return (
-    <Wrapper className={wrapClass || theme.Card.wrapClass}>
+    <Wrapper className={resolvedWrapClass}>
+        {pre}
         <div className={cn("card", className || theme.Card.className)}>
           {(header || title) &&
             <div className={cn("card-header", headerClass || theme.Card.headerClass)}>
@@ -57,6 +64,7 @@ const Card = ({
             </div>
           }
         </div>
+        {post}
     </Wrapper>
   );
 };

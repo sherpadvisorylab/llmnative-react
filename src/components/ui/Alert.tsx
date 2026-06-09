@@ -121,8 +121,10 @@ const Alert = ({
         return createPortal(alertEl, container);
     }
 
+    const resolvedWrapClass = wrapClass ?? ((pre || post) ? 'flex items-center gap-2' : undefined);
+
     return (
-        <Wrapper className={wrapClass}>
+        <Wrapper className={resolvedWrapClass}>
             {pre}
             {alertEl}
             {post}

@@ -6,15 +6,12 @@ import { Wrapper } from '../ui/GridSystem';
 import Badge, { BadgeType } from '../ui/Badge';
 import { isInteractiveElement } from '../../libs/utils';
 import Icon from '../ui/Icon';
+import type { UIProps } from '../types';
 
-interface MenuProps {
+interface MenuProps extends UIProps {
   context: string;
   Type?: 'ul' | 'ol';
   badges?: Record<string, { type?: BadgeType, children: string }>;
-  pre?: React.ReactNode;
-  post?: React.ReactNode;
-  wrapClass?: string;
-  className?: string;
   headerClass?: string;
   itemClass?: string;
   linkClass?: string;

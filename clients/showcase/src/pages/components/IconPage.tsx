@@ -1,5 +1,6 @@
 import React from 'react';
-import { Icon, PhosphorIconProvider, useIconController } from '@llmnative/react';
+import { Icon, LucideIconProvider, PhosphorIconProvider, useIconController } from '@llmnative/react';
+import type { IconProviderAdapter } from '@llmnative/react';
 import type { PhosphorWeight } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
@@ -31,27 +32,59 @@ const COLORS: { label: string; className: string }[] = [
 
 const PHOSPHOR_WEIGHTS: PhosphorWeight[] = ['thin', 'light', 'regular', 'bold', 'fill', 'duotone'];
 
+// ─── provider resolution ──────────────────────────────────────────────────────
+
+const PROVIDER_REGISTRY: Record<string, IconProviderAdapter> = {
+    lucide:   new LucideIconProvider(),
+    phosphor: new PhosphorIconProvider(),
+};
+
+function resolveProvider(name: string | undefined): IconProviderAdapter | undefined {
+    if (!name) return undefined;
+    return PROVIDER_REGISTRY[name.trim().toLowerCase()];
+}
+
 // ─── playground ───────────────────────────────────────────────────────────────
 
 const ICON_PROPS: PropDef[] = [
-    { name: 'name',      type: 'string',              required: true,  description: 'Icon name resolved by the active icon provider', control: 'icon' },
+    { name: 'name',      type: 'string',              required: true,  description: 'Icon name resolved by the active icon provider', control: 'select', options: COMMON_ICONS },
     { name: 'size',      type: 'number',              default: '16',   description: 'Rendered size in pixels', control: 'number', min: 8, max: 64 },
-    { name: 'className', type: 'string',              default: '-',    description: 'Tailwind / CSS classes - use text-* for color', control: 'text' },
+    { name: 'className', type: 'string',              default: '-',    description: 'Tailwind / CSS classes - use text-* for color', control: 'text', suggestions: [
+        'text-foreground', 'text-primary', 'text-success', 'text-warning', 'text-danger', 'text-muted-foreground',
+        'text-primary text-2xl', 'text-success text-2xl', 'text-danger text-2xl',
+        'animate-spin', 'animate-pulse',
+        'opacity-50', 'opacity-75',
+    ]},
     { name: 'style',     type: 'React.CSSProperties', default: '-',    description: 'Inline style object' },
-    { name: 'provider',  type: 'IconProviderAdapter', default: '-',    description: 'Override the global provider for this instance only' },
+    { name: 'provider',  type: 'string',              default: '-',    description: 'Override the global provider for this instance only', control: 'text', suggestions: ['lucide', 'phosphor'], placeholder: 'lucide / phosphor' },
+    { name: 'weight',    type: 'PhosphorWeight',      default: '-',    description: 'Provider-specific variant (Phosphor only). Overrides the provider default.', control: 'select', options: ['', 'thin', 'light', 'regular', 'bold', 'fill', 'duotone'] },
     { name: 'label',     type: 'string',              default: '-',    description: 'Accessible label - sets aria-label; omit for decorative icons (aria-hidden)' },
 ];
 
 const PLAYGROUND: PlaygroundConfig = {
     size: 'lg',
     props: ICON_PROPS,
-    defaultProps: { name: 'search', size: 24, className: 'text-primary' },
-    render: (p) => (
-        <div className="flex flex-col items-start gap-3">
-            <Icon name={p.name || 'search'} size={p.size} className={p.className || undefined} label={p.label || undefined} />
-            <span className="font-mono text-xs text-muted-foreground">{p.name || 'search'}</span>
-        </div>
-    ),
+    defaultProps: { name: 'search', size: 24, className: 'text-primary', provider: '', weight: '' },
+    render: (p) => {
+        const provider = resolveProvider(p.provider);
+        const providerMissing = p.provider && !provider;
+        return (
+            <div className="flex flex-col items-start gap-3">
+                <Icon
+                    name={p.name || 'search'}
+                    size={p.size}
+                    className={p.className || undefined}
+                    label={p.label || undefined}
+                    provider={provider}
+                    weight={p.weight || undefined}
+                />
+                <span className="font-mono text-xs text-muted-foreground">{p.name || 'search'}</span>
+                {providerMissing && (
+                    <span className="text-xs text-danger">provider "{p.provider}" not found → renders nothing</span>
+                )}
+            </div>
+        );
+    },
 };
 
 // ─── provider switcher used inside sections ───────────────────────────────────
@@ -229,7 +262,7 @@ const ph = new PhosphorIconProvider();
             {/* ── Phosphor weights ── */}
             <Section
                 title="Phosphor weight variants"
-                description="PhosphorIconProvider accepts a weight argument: thin, light, regular (default), bold, fill, duotone."
+                description="Pass weight directly on Icon — no need to re-instantiate the provider. Supported values: thin, light, regular (default), bold, fill, duotone."
                 preview={
                     <div className="w-full">
                         <div className="mb-4 flex flex-wrap gap-1">
@@ -243,31 +276,33 @@ const ph = new PhosphorIconProvider();
                                 </button>
                             ))}
                         </div>
-                        <div className="flex flex-wrap gap-5 text-foreground">
-                            {['search', 'star', 'bell', 'heart', 'warning', 'settings', 'user', 'trash'].map((name) => {
-                                const ph = new PhosphorIconProvider(phosphorWeight);
-                                return (
-                                    <div key={name} className="flex flex-col items-center gap-1.5">
-                                        <Icon name={name} size={24} provider={ph} />
-                                        <span className="font-mono text-[10px] text-muted-foreground">{name}</span>
-                                    </div>
-                                );
-                            })}
-                        </div>
+                        {(() => {
+                            const ph = new PhosphorIconProvider();
+                            return (
+                                <div className="flex flex-wrap gap-5 text-foreground">
+                                    {['search', 'star', 'bell', 'heart', 'warning', 'settings', 'user', 'trash'].map((name) => (
+                                        <div key={name} className="flex flex-col items-center gap-1.5">
+                                            <Icon name={name} size={24} provider={ph} weight={phosphorWeight} />
+                                            <span className="font-mono text-[10px] text-muted-foreground">{name}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            );
+                        })()}
                     </div>
                 }
                 code={`import { PhosphorIconProvider } from '@llmnative/react';
-import type { PhosphorWeight } from '@llmnative/react';
 
-// App-level with weight
+// weight as prop — no re-instantiation needed
+const ph = new PhosphorIconProvider();
+<Icon name="star" provider={ph} weight="bold" />
+<Icon name="star" provider={ph} weight="fill" />
+<Icon name="star" provider={ph} />              {/* uses provider default: regular */}
+
+// App-level default weight
 <App iconProvider={{ provider: new PhosphorIconProvider('bold') }} />
 
-// Instance-level with weight
-const ph = new PhosphorIconProvider('fill');
-<Icon name="star" provider={ph} />
-
-// Available weights:
-// 'thin' | 'light' | 'regular' | 'bold' | 'fill' | 'duotone'`}
+// Available weights: 'thin' | 'light' | 'regular' | 'bold' | 'fill' | 'duotone'`}
                 bare
             />
 

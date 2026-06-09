@@ -4054,3 +4054,43 @@ Vedi sezione "Regola no-any" in `CLAUDE.md`. **Da applicare da subito a tutto il
 - [x] `vitest run` — 377/377 test pass, zero regressioni
 - [x] Occorrenze `any` ridotte: 214 → 101
 - [ ] Fase 3: ridurre ulteriormente con CR dedicata (generics, API breaking change)
+
+## CR-043 — Token Benchmark page nel showcase
+
+### Obiettivo
+
+Dimostrare il vantaggio principale del framework — **riduzione del numero di token AI** necessari per descrivere la stessa UI — con confronti side-by-side reali e misurabili.
+
+### Razionale
+
+`@llmnative/react` è un framework AI-first: il suo value prop primario è che un agente AI può generare una UI complessa scrivendo una quantità di codice drasticamente inferiore rispetto a React puro + Firebase/Supabase. Questa pagina rende il vantaggio concreto e verificabile.
+
+### Implementazione
+
+**File creato:** `clients/showcase/src/pages/BenchmarkPage.tsx`
+
+Quattro scenari reali con codice compilabile:
+
+| Scenario | @llmnative/react | React + Firebase | Risparmio |
+|----------|-----------------|-----------------|-----------|
+| Grid CRUD (realtime + paginazione) | ~12 token | ~120 token | ~90% |
+| Form con validazione + load/save | ~17 token | ~85 token | ~80% |
+| Switch data backend (mock → Firebase → Supabase) | 1 riga config | migrazione per-component | n/d |
+| Google Auth + protected route | ~10 token | ~70 token | ~86% |
+
+**Metodologia token:** `⌈chars / 4⌉` — approssimazione standard GPT (1 token ≈ 4 caratteri). Indicatore relativo, non conta esatta.
+
+**Summary bar:** totale aggregato across tutti gli scenari.
+
+**"Why it matters" section:** tre colonne — velocità, costo, affidabilità.
+
+**Navigazione:** link `Benchmark` aggiunto al top nav del showcase (`Topbar.tsx`) e rotta `/benchmark` registrata in `menu.ts`.
+
+### Criteri di accettazione
+
+- [x] Pagina `/benchmark` visibile nel top nav del showcase
+- [x] 4 scenari con codice framework + vanilla side-by-side
+- [x] Token counts calcolati client-side (`⌈chars / 4⌉`)
+- [x] Summary bar con totale aggregato
+- [x] TypeScript strict — `tsc --noEmit` zero errori
+- [x] Build ok

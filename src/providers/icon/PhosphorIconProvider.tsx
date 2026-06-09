@@ -45,7 +45,7 @@ export class PhosphorIconProvider implements IconProviderAdapter {
     readonly id = 'phosphor' as const;
     private readonly _cache = new Map<string, React.ComponentType<IconComponentProps>>();
 
-    constructor(private readonly weight: PhosphorWeight = 'regular') {}
+    constructor(public weight: PhosphorWeight = 'regular') {}
 
     resolve(name: string): React.ComponentType<IconComponentProps> | null {
         const cached = this._cache.get(name);
@@ -55,11 +55,11 @@ export class PhosphorIconProvider implements IconProviderAdapter {
         const Base = (PhosphorIcons as unknown as Record<string, React.ComponentType<IconComponentProps & { weight?: PhosphorWeight }>>)[key];
         if (!Base) return null;
 
-        const resolved: React.ComponentType<IconComponentProps> =
-            this.weight === 'regular'
-                ? Base
-                : (props: IconComponentProps) =>
-                    React.createElement(Base, { weight: this.weight, ...props } as IconComponentProps & { weight: PhosphorWeight });
+        // Always wrap so props.weight overrides the provider default at render time.
+        // The cache stores the wrapper per icon name (not per weight).
+        const defaultWeight = this.weight;
+        const resolved: React.ComponentType<IconComponentProps> = (props: IconComponentProps) =>
+            React.createElement(Base, { weight: defaultWeight, ...props } as IconComponentProps & { weight: PhosphorWeight });
 
         this._cache.set(name, resolved);
         return resolved;

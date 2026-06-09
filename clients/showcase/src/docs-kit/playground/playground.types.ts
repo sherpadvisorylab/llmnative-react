@@ -30,6 +30,7 @@ export type PropDef = {
     placeholder?: string;
     validationMessage?: string;
     shortcuts?: PropShortcut[];
+    suggestions?: string[];
     hidden?: (props: Record<string, any>) => boolean;
 };
 

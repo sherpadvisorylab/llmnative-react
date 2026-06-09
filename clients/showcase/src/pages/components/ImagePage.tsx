@@ -251,7 +251,7 @@ export default function ImagePage() {
                             label="Campaign hero"
                             feedback={
                                 <span className="flex items-center gap-1 text-success font-medium">
-                                    âœ“ Approved
+                                    ✓ Approved
                                 </span>
                             }
                             className="rounded-lg border object-cover max-w-xs w-full"
@@ -272,7 +272,7 @@ export default function ImagePage() {
 <Image
     src={campaignUrl}
     label="Campaign hero"
-    feedback={<span className="text-success font-medium">âœ“ Approved</span>}
+    feedback={<span className="text-success font-medium">✓ Approved</span>}
     className="rounded-lg border max-w-xs w-full"
 />`}
             />

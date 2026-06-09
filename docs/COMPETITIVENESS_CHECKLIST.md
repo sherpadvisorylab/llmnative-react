@@ -60,9 +60,9 @@ The framework defines itself as "AI-first". Today the AI provider is **completel
 
 ### P0.4 — CI/CD
 
-- [ ] **GitHub Actions**: `npm run test` + `npm run build` on every PR
+- [x] **GitHub Actions**: `npm run test` + `npm run build` on every PR — `.github/workflows/ci.yml` (done)
 - [ ] **GitHub Actions**: `npm run test:coverage` with a minimum threshold (e.g. 40% initial, target 60%)
-- [ ] **GitHub Actions**: `cd clients/showcase && npm run build` on every PR
+- [x] **GitHub Actions**: `cd clients/showcase && npm run build` on every PR — `showcase` job in ci.yml (done)
 - [ ] **README badge**: build passing, test count
 
 ---
@@ -74,7 +74,7 @@ This is where the competitive advantage lies. React Admin and Refine **do not ha
 ### P1.1 — Enhanced AI (after P0.0 fix)
 
 - [ ] **AI-form generation**: `<AIForm prompt="Create form for products" />` → generates schema + fields
-- [ ] **Zero-config Grid**: if no `columns` specified, auto-detect from the first record
+- [x] **Zero-config Grid**: if no `columns` specified, auto-detect from the first record — `inferColumns` in `grid-core/utils.ts:102` (done)
 - [ ] **AI-assisted form filling**: "Fill with AI" button on form → description → fields populated
 - [ ] **Auto-caption for Upload.Image**: AI generates description from the image
 - [ ] **AI-Grid filtering**: NLP input → `"late orders"` → filters applied
@@ -82,10 +82,11 @@ This is where the competitive advantage lies. React Admin and Refine **do not ha
 
 ### P1.2 — Extreme schema-driven CRUD
 
-- [ ] **Zero-config Grid** (if no `columns`, auto-detect from the first record)
+- [x] **Zero-config Grid** (if no `columns`, auto-detect from the first record) — `inferColumns` in `grid-core/utils.ts:102` (done)
 - [ ] **Auto-join FK**: field ending in `Id` → Select populated from the referenced collection
 - [ ] **Inline edit on Grid**: click on cell → edit without modal
-- [ ] **Bulk actions**: select rows → batch action (delete, export, update)
+- [x] **Row selection**: `selection="single"|"multiple"` prop, `GridSelectionState` (keys, records, hasSelection, clear) exposed to header/footer — done
+- [ ] **Bulk actions on selection**: batch delete / export / update on selected rows (selection exists, batch ops do not)
 - [ ] **Native CSV/Excel export** from Grid
 - [ ] **Undo delete**: soft-delete + "Undo" notification
 
@@ -100,7 +101,7 @@ This is where the competitive advantage lies. React Admin and Refine **do not ha
 ### P1.5 — Provider Configuration Dashboard
 
 - [ ] **`<ProviderStatus />` component**: shows state of all providers, missing keys, diagnostics
-- [ ] **Extend `isConfigured()` to all providers**
+- [x] **`isConfigured()` on all providers**: already implemented on Firebase, Firestore, Supabase (data/storage/auth), Dropbox, Google, FirebaseAuth, Gmail, Mock, all AI providers — done
 
 ---
 
@@ -267,7 +268,8 @@ PHASE 0 — HONESTY (1 week)
 ├── P0.2: Form validation — ✅ DONE (2026-06-06)
 │   └── Remaining: tests
 ├── P0.3: ErrorBoundary — ✅ DONE (3 levels: fullPage + per-route in App.tsx)
-├── P0.4: CI/CD — ⬜ GitHub Actions (test + build on every PR)  ← NEXT
+├── P0.4: CI/CD — ✅ DONE (test + build + showcase jobs in .github/workflows/ci.yml)
+│   └── Remaining: coverage threshold, README badge
 ├── A.4: Remove dead code (Component.tsx, Template.tsx, Helper.tsx, Command.tsx)
 ├── [DOC] Add KNOWN_ISSUES.md, make README honest
 └── Phase 1 canonical naming: Grid.layout → Grid.view + backward-compat alias
