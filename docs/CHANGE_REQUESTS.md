@@ -51,6 +51,8 @@
 | [CR-038](#cr-038--ai-first-naming-normalization) | AI-first naming normalization | Alta | CR-014, CR-037 | ⬜ |
 | [CR-039](#cr-039--firebase-sdk-compat--modular-v9) | Firebase SDK compat → modular v9+ | Alta | CR-002, CR-023 | ✅ |
 | [CR-042](#cr-042--typescript-no-any-eliminazione-di-tutti-gli-usi-di-any) | TypeScript no-any: eliminazione di tutti gli usi di `any` | Alta | CR-003 | ✅ done |
+| [CR-043](#cr-043--token-benchmark-page-nel-showcase) | Token Benchmark page nel showcase | Media | CR-016 | ✅ done |
+| [CR-044](#cr-044--showcase-pagine-mancanti-label-uploadcsv-crop-command) | Showcase pagine mancanti (Label, UploadCSV, Crop, Command) | Bassa | CR-007 | ⬜ |
 
 ---
 
@@ -4094,3 +4096,166 @@ Quattro scenari reali con codice compilabile:
 - [x] Summary bar con totale aggregato
 - [x] TypeScript strict — `tsc --noEmit` zero errori
 - [x] Build ok
+
+---
+
+## CR-044 — Showcase pagine mancanti (Label, UploadCSV, Crop, Command)
+
+**Stato:** ⬜ todo
+**Priorità:** Bassa
+**Dipende da:** CR-007
+**Stima:** 2-3 giorni
+**Breaking change:** No
+
+### Motivazione
+
+L'audit completo dello showcase (`docs/SHOWCASE_AUDIT.md`) ha rivelato 4 componenti source che non hanno alcuna pagina showcase:
+
+| Source | Componenti esportati |
+|--------|---------------------|
+| `src/components/ui/fields/Input.tsx` (linea 396) | **Label** — componente label standalone già usato internamente |
+| `src/components/ui/fields/UploadCSV.tsx` | **UploadCSV** — componente per parsing/import CSV via Upload |
+| `src/components/ui/fields/Crop.tsx` | **CropImage**, **FileNameEditor** — utility di crop/rename usate internamente da Upload |
+| `src/components/ui/fields/Command.tsx` | **Command** — slash-command textarea con trigger, context e suggestion menu |
+
+Senza showcase page:
+- I componenti sono invisibili agli utenti del framework
+- L'AI non ha documentazione interattiva su cui basarsi
+- Eventuali regressioni non sono verificabili visivamente
+
+### Scope
+
+Per ogni componente mancante:
+
+1. **Label** (`src/components/ui/fields/Input.tsx:396`)
+   - Creare `clients/showcase/src/pages/components/LabelPage.tsx`
+   - PropDocsTable: `children`, `className`, `wrapClass`, `required`
+   - 1-2 sezioni dimostrative (label base, required indicator)
+
+2. **UploadCSV** (`src/components/ui/fields/UploadCSV.tsx`)
+   - Creare `clients/showcase/src/pages/components/UploadCSVPage.tsx`
+   - PropDocsTable: `name`, `label`, `required`, `normalizeKeys`, `removeEmptyFields`, `onDataLoaded`, `onParseField`, `feedback`, UIProps
+   - 1-2 sezioni (base CSV import, normalize keys)
+
+3. **Crop** (`src/components/ui/fields/Crop.tsx`)
+   - Creare `clients/showcase/src/pages/components/CropPage.tsx`
+   - Documentare `CropImage` e `FileNameEditor`
+   - PropDocsTable per ogni variante
+   - 1-2 sezioni
+
+4. **Command** (`src/components/ui/fields/Command.tsx`)
+   - Creare `clients/showcase/src/pages/components/CommandPage.tsx`
+   - PropDocsTable: `name`, `label`, `commands`, `trigger`, `onTrigger`, `placeholder`, UIProps
+   - 1-2 sezioni (base command, custom commands)
+
+5. **Menu + routing**
+   - Aggiungere voci al menu dello showcase (`src/conf/menu.ts` o equivalente)
+   - Registrare route in `App.tsx`
+
+### Escluso
+
+- Refactor dei componenti source stessi (CR separata)
+- Modifiche al comportamento runtime di Label/UploadCSV/Crop/Command
+
+### Checklist
+
+- [ ] Creare `LabelPage.tsx`
+- [ ] Creare `UploadCSVPage.tsx`
+- [ ] Creare `CropPage.tsx` (CropImage + FileNameEditor)
+- [ ] Creare `CommandPage.tsx`
+- [ ] Registrare menu + route per ogni nuova pagina
+- [ ] Verificare navigazione funzionante nello showcase
+- [ ] `tsc --noEmit` zero errori
+- [ ] build ok
+
+## CR-044 — Showcase: refactor componenti nativi → framework (decisioni aperte)
+
+### Contesto
+
+Audit completato il 2026-06-10: tutti i `<span className="badge ...">` e gli SVG icon inline sono già stati sostituiti con `<Badge>` e `<Icon>` (commit incluso in CR-043).
+
+Restano quattro aree dove la sostituzione richiede una decisione prima di procedere.
+
+---
+
+### Decisione 1 — Buttons nella Topbar
+
+**File:** `clients/showcase/src/components/Topbar.tsx`
+
+**Situazione attuale:** I quattro pulsanti della toolbar (toggle dark mode, palette, GitHub, playground) usano `<button>` native styled manualmente con Tailwind (`w-8 h-8 hover:bg-accent transition-colors`). Il playground button aggiunge testo + icona inline.
+
+**Opzione A — Sostituire con `<ActionButton>`**
+I button userebbero il tema attivo. Look leggermente diverso (padding, focus ring, ecc. dal tema). Vantaggio: coerenza automatica con i temi custom.
+
+**Opzione B — Tenere native**
+Nessun rischio visivo. Il Topbar è infrastruttura del showcase, non un componente dimostrativo del framework.
+
+**Domanda:** vale la coerenza tematica o il controllo manuale è preferibile per l'infrastruttura?
+
+---
+
+### Decisione 2 — Form controls in `PlaygroundPropControl.tsx`
+
+**File:** `clients/showcase/src/docs-kit/playground/PlaygroundPropControl.tsx`
+
+**Situazione attuale:** I controlli del playground (input text, select, checkbox, textarea) sono native HTML con una classe `BASE_INPUT` condivisa. Funzionano fuori da `<Form>` context.
+
+**Vincolo tecnico:** `Input`, `Select`, `TextArea`, `Checkbox` del framework chiamano `useFormContext` internamente. Non funzionano standalone senza `<Form>`.
+
+**Opzione A — Lasciare native** (stato attuale)
+Zero lavoro. Il playground è infrastruttura interna, non documentazione pubblica del framework.
+
+**Opzione B — Creare varianti "standalone"** (es. `Input.Bare`, `Select.Bare`)
+Versioni leggere senza form context, solo styling + onChange callback. Riutilizzabili anche fuori dal showcase. Costo: ~1 giornata per estendere i field components.
+
+**Opzione C — Wrappare in `<Form>` headless**
+Avvolgere il PlaygroundControls in un Form senza visuale. Più facile ma introduce dipendenze non ovvie.
+
+**Domanda:** ha senso esporre varianti standalone come parte dell'API pubblica del framework, o rimane infrastruttura interna?
+
+---
+
+### Decisione 3 — `<Table>` in `PropDocsTable.tsx`
+
+**File:** `clients/showcase/src/docs-kit/docs/PropDocsTable.tsx`
+
+**Situazione attuale:** La tabella usa HTML nativo con:
+- `<colgroup>` con width fissi per 5 colonne
+- Group header rows con `colSpan={5}`
+- Righe espandibili via `onClick` con animazione `rotate-90`
+- Alternate-row tinting calcolato a mano
+
+**Vincolo tecnico:** Il componente `<Table>` del framework è ottimizzato per Grid (lista di record con colonne configurabili). Non supporta nativamente expandable rows né group headers con colSpan.
+
+**Opzione A — Lasciare native** (stato attuale)
+PropDocsTable è infrastruttura del showcase, non un caso d'uso pubblico.
+
+**Opzione B — Estendere `<Table>` con `expandableRow` e `groupHeader`**
+Aumenta la potenza di Table per casi d'uso avanzati. Costo: ~2 giorni. Diventa una CR separata (es. CR-045).
+
+**Domanda:** vale estendere Table per supportare questo pattern, o rimane infrastruttura interna?
+
+---
+
+### Decisione 4 — Code block in `Section.tsx`
+
+**File:** `clients/showcase/src/docs-kit/page/Section.tsx`
+
+**Situazione attuale:** Il code block usa `<pre><code>` plain, senza syntax highlighting. Ha un copy button custom inline.
+
+**Opzione A — Sostituire con `<Code>`**
+Aggiunge syntax highlighting Prism, copy button integrato. Il copy button custom può essere rimosso. Aspetto più ricco.
+
+**Opzione B — Lasciare native**
+`<pre><code>` è leggero e non aggiunge Prism bundle a ogni pagina. Il code block della Section è solo per snippet di esempio, non per codice complesso.
+
+**Domanda:** vuoi syntax highlighting nei code block delle pagine componente del showcase?
+
+---
+
+### Criteri di accettazione (da definire dopo le decisioni)
+
+- [ ] Decisione 1 presa e implementata
+- [ ] Decisione 2 presa e implementata
+- [ ] Decisione 3 presa e implementata
+- [ ] Decisione 4 presa e implementata

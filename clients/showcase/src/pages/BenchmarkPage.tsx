@@ -1,4 +1,5 @@
 import React from 'react';
+import { Badge } from '@llmnative/react';
 import PageLayout from '../showcase/page';
 
 // Token estimation: 1 token ≈ 4 characters (standard GPT approximation).
@@ -535,7 +536,7 @@ function ScenarioCard({ s }: { s: Scenario }) {
                     <p className="text-sm text-muted-foreground mt-0.5 leading-relaxed">{s.description}</p>
                     <div className="flex gap-1.5 mt-2.5 flex-wrap">
                         {s.tags.map(t => (
-                            <span key={t} className="badge bg-secondary text-xs">{t}</span>
+                            <Badge key={t}>{t}</Badge>
                         ))}
                     </div>
                 </div>

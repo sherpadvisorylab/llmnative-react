@@ -1,4 +1,5 @@
 import React from 'react';
+import { Badge, Icon } from '@llmnative/react';
 import type { PropDocsInput } from './propDocs.types';
 
 interface PropDocsTableProps {
@@ -92,12 +93,10 @@ export default function PropDocsTable({
                                         <div className="flex items-start gap-2">
                                             {expandable ? (
                                                 <span
-                                                    className={`mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center text-muted-foreground transition-transform ${isOpen ? 'rotate-90' : ''}`}
+                                                    className={`mt-0.5 shrink-0 text-muted-foreground transition-transform ${isOpen ? 'rotate-90' : ''}`}
                                                     aria-hidden="true"
                                                 >
-                                                    <svg viewBox="0 0 16 16" className="h-3.5 w-3.5 fill-current">
-                                                        <path d="M5.5 3.5 10.5 8l-5 4.5z" />
-                                                    </svg>
+                                                    <Icon name="chevron-right" size={14} />
                                                 </span>
                                             ) : null}
                                             <span>{prop.name}</span>
@@ -111,9 +110,7 @@ export default function PropDocsTable({
                                     </td>
                                     <td className="align-top px-5 py-3">
                                         {prop.required ? (
-                                            <span className="inline-flex items-center rounded bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive">
-                                                yes
-                                            </span>
+                                            <Badge type="danger">yes</Badge>
                                         ) : (
                                             <span className="text-xs text-muted-foreground">no</span>
                                         )}

@@ -1,5 +1,6 @@
 ﻿import React from 'react';
 import { Link } from 'react-router-dom';
+import { Badge } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 
 const EXAMPLES = [
@@ -59,7 +60,7 @@ export default function ExamplesOverview() {
                         </div>
                         <div className="flex gap-1.5 mt-3 flex-wrap">
                             {ex.tags.map((tag) => (
-                                <span key={tag} className="badge bg-secondary">{tag}</span>
+                                <Badge key={tag}>{tag}</Badge>
                             ))}
                         </div>
                     </Link>
