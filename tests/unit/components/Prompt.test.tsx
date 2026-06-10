@@ -127,7 +127,7 @@ describe('Prompt', () => {
         expect(screen.queryByRole('button', { name: /Run/i })).not.toBeInTheDocument();
     });
 
-    it('uses renderPlainFallback to replace the default plain textarea UI', () => {
+    it('uses renderFallback to replace the default plain textarea UI', () => {
         renderWithProviders(
             <Form aspect="empty">
                 <Prompt
@@ -135,7 +135,7 @@ describe('Prompt', () => {
                     label="Summary"
                     mode={PromptMode.RUN}
                     defaultValue={{ value: 'Human-written summary.', enabled: false }}
-                    renderPlainFallback={() => <div>Custom plain fallback</div>}
+                    renderFallback={() => <div>Custom plain fallback</div>}
                 />
             </Form>
         );

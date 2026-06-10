@@ -68,7 +68,7 @@ export default function ImageEditorPage() {
                 preview={
                     <div className="w-full">
                         <ImageEditor
-                            imageUrl={sampleImage}
+                            src={sampleImage}
                             width={700}
                             height={400}
                             onSave={(dataUrl) => setSavedDataUrl(dataUrl)}
@@ -89,7 +89,7 @@ export default function ImageEditorPage() {
                 code={`import { ImageEditor } from '@llmnative/react';
 
 <ImageEditor
-  imageUrl={imageUrl}
+  src={imageUrl}
   width={700}
   height={400}
   onSave={(dataUrl) => uploadToStorage(dataUrl)}
@@ -109,7 +109,7 @@ export default function ImageEditorPage() {
                         </button>
                         {modalOpen && (
                             <ImageEditor
-                                imageUrl={sampleImage}
+                                src={sampleImage}
                                 title="Edit photo"
                                 modal
                                 width={700}
@@ -142,7 +142,7 @@ const [open, setOpen] = useState(false);
 
 {open && (
   <ImageEditor
-    imageUrl={imageUrl}
+    src={imageUrl}
     title="Edit photo"
     modal
     width={700}

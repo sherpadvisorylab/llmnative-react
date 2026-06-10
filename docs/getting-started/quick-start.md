@@ -116,7 +116,7 @@ export default function UsersPage() {
       title="Users"
       sortable={{ field: 'name', dir: 'asc' }}
       form={<UserFormFields />}
-      layout="table"
+      view="table"
       pagination={{ limit: 20, align: 'end' }}
     />
   );

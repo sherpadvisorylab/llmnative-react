@@ -9,10 +9,12 @@ export { default as Notifications } from './blocks/Notifications';
 export { default as Search } from './blocks/Search';
 
 export { default as Alert } from './ui/Alert';
+export type { AlertProps } from './ui/Alert';
 export { default as Badge } from './ui/Badge';
 export * from './ui/Badge';
 export * from './ui/Buttons';
 export { default as Card } from './ui/Card';
+export type { CardProps } from './ui/Card';
 export { default as Code } from './ui/Code';
 export { default as Gallery} from './ui/Gallery';
 export * from './ui/Gallery';
@@ -28,7 +30,7 @@ export { default as Repeat } from './ui/Repeat';
 export { default as Tab } from './ui/Tab';
 export * from './ui/Tab';
 export { default as Table } from './ui/Table';
-export type { TableHeaderProp, TableReorderHandler, TableReorderMeta, TableSelectionChangeHandler, TableSelectionState } from './ui/Table';
+export type { TableProps, TableHeaderProp, TableReorderHandler, TableReorderMeta, TableSelectionChangeHandler, TableSelectionState } from './ui/Table';
 export { default as Icon } from './ui/Icon';
 export { LayoutBuilder } from './ui/LayoutBuilder';
 export * from './ui/fields/Input';
@@ -41,7 +43,7 @@ export * from './ui/fields/ImageUrl';
 export { default as Menu } from './blocks/Menu';
 
 export { default as Form } from './widgets/Form';
-export type { FormDeleteArgs, FormDeleteHandler, FormFinallyArgs, FormFinallyHandler, FormRef, FormSaveArgs, FormSaveHandler } from './widgets/Form';
+export type { FormProps, FormDeleteArgs, FormDeleteHandler, FormFinallyArgs, FormFinallyHandler, FormRef, FormSaveArgs, FormSaveHandler } from './widgets/Form';
 export { default as Grid } from './widgets/Grid';
 export { GridArray, GridCore, GridDB, GridGalleryView, GridTableView } from './widgets/grid-core';
 export type {

@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import {useTheme} from "../../Theme";
 import { UIProps } from '../..';
 import { Wrapper } from "./GridSystem";
@@ -18,9 +18,9 @@ function Loader({
                     icon            = undefined,
                     title           = undefined,
                     description     = undefined,
-                    pre            = undefined,
-                    post           = undefined,
-                    wrapClass      = undefined,
+                    before            = undefined,
+                    after           = undefined,
+                    wrapperClassName      = undefined,
                     className      = undefined
 }: LoaderProps) {
     const theme = useTheme("loader");
@@ -29,17 +29,17 @@ function Loader({
     description = description || theme.Loader.description;
 
     return show ? (
-        <Wrapper className={wrapClass || theme.Loader.wrapClass}>
+        <Wrapper className={wrapperClassName || theme.Loader.wrapperClassName}>
             <div className={"relative " + (className || theme.Loader.className)} style={{minHeight: "200px"}}>
                 <div className="absolute top-0 bottom-0 left-0 right-0"
                     style={{zIndex:10, backdropFilter: "blur(2px)", background:"rgba(255, 255, 255, 0.5)"}}>
-                    {pre}
+                    {before}
                     {(icon || title || description) && <div className="flex flex-col items-center justify-center gap-2 p-4 text-center">
                         {icon && <Icon name={icon} size={32} className="animate-spin text-primary" />}
                         {title && <p className="text-sm font-semibold text-foreground">{title}</p>}
                         {description && <p className="text-xs text-muted-foreground">{description}</p>}
                     </div>}
-                    {post}
+                    {after}
                 </div>
                 {children}
             </div>

@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+﻿import React, { useMemo } from "react";
 import Gallery from "../../ui/Gallery";
 import { type RecordProps } from "../../../providers/data/DataProvider";
 import { type GridGalleryViewProps, type GridSelectionState } from "./types";
@@ -12,11 +12,11 @@ function GridGalleryView<TRecord extends RecordProps>({
     selection = false,
     selectedKeys,
     onSelectionChange,
-    onClickRow,
+    onRowClick,
     groupBy,
-    wrapClass,
-    pre,
-    post,
+    wrapperClassName,
+    before,
+    after,
 }: GridGalleryViewProps<TRecord>) {
     const getRecordKey = useMemo(() => getRecordKeyResolver(recordId), [recordId]);
     const sourceByKey = useMemo(() => {
@@ -28,7 +28,7 @@ function GridGalleryView<TRecord extends RecordProps>({
 
     return (
         <Gallery
-            body={records}
+            records={records}
             sortable={sortable}
             pagination={pagination}
             selectedKeys={selection ? selectedKeys : undefined}
@@ -55,13 +55,14 @@ function GridGalleryView<TRecord extends RecordProps>({
                 };
                 onSelectionChange?.(payload);
             } : undefined}
-            onClick={onClickRow ? (record) => onClickRow(record as TRecord) : undefined}
+            onRowClick={onRowClick ? (record) => onRowClick(record as TRecord) : undefined}
             groupBy={groupBy as string | string[] | undefined}
-            wrapClass={wrapClass}
-            pre={pre}
-            post={post}
+            wrapperClassName={wrapperClassName}
+            before={before}
+            after={after}
         />
     );
 }
 
 export default GridGalleryView;
+

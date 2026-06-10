@@ -78,7 +78,7 @@ const brand: ThemeDefinition = {
   },
   components: {
     ...defaultComponents,
-    Card: { ...defaultComponents.Card, headerClass: 'bg-primary/5 font-semibold' },
+    Card: { ...defaultComponents.Card, headerClassName: 'bg-primary/5 font-semibold' },
     Form: { ...defaultComponents.Form, buttonSaveClass: 'btn-primary' },
   },
 };

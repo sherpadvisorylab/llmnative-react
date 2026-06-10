@@ -74,7 +74,7 @@ export default function MarkdownReaderPage() {
                     <div className="w-full">
                         <MarkdownReader
                             content={SAMPLE_MARKDOWN}
-                            head={{
+                            metadata={{
                                 title: 'MarkdownReader',
                                 description: 'Render Markdown with GFM support and themed components.',
                             }}
@@ -91,7 +91,7 @@ export default function MarkdownReaderPage() {
 
 <MarkdownReader
   content={markdown}
-  head={{
+  metadata={{
     title: 'MarkdownReader',
     description: 'Render Markdown with GFM support and themed components.',
   }}

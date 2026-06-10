@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { type OrderConfig } from "../../../libs/order";
 import { type PaginationParams } from "../../ui/Pagination";
 import { type DatabaseOptions, type RecordProps } from "../../../providers/data/DataProvider";
@@ -29,11 +29,21 @@ export type GridCellContext<TRecord> = {
     runAction: (actionKey: string) => void;
 };
 
+/**
+ * Column definition for `<Grid>` / `<Table>`.
+ * `render` accepts a built-in format string ("date", "badge", …) or a custom
+ * render function that receives the full cell context.
+ */
 export type GridColumn<TRecord> = {
+    /** Record field to read. Accepts dot-notation strings for nested fields. */
     key: keyof TRecord | string;
+    /** Column header label. */
     label: string;
+    /** Enable click-to-sort on this column. */
     sortable?: boolean;
+    /** Extra CSS classes on the `<td>` / cell wrapper. */
     className?: string;
+    /** Built-in format name or custom render function. */
     render?: GridFormat | ((ctx: GridCellContext<TRecord>) => React.ReactNode);
 };
 
@@ -92,7 +102,7 @@ export type GridModalAction<TRecord> = {
     title?: React.ReactNode | ((ctx: GridModalActionContext<TRecord>) => React.ReactNode);
     size?: "sm" | "md" | "lg" | "xl" | "fullscreen";
     position?: "center" | "top" | "left" | "right" | "bottom";
-    buttonFullscreen?: boolean;
+    allowFullscreen?: boolean;
     header?: React.ReactNode | ((ctx: GridModalActionContext<TRecord>) => React.ReactNode);
     body?: React.ReactNode | ((ctx: GridModalActionContext<TRecord>) => React.ReactNode);
     footer?: React.ReactNode | false | ((ctx: GridModalActionContext<TRecord>) => React.ReactNode);
@@ -134,7 +144,7 @@ export type GridDeleteAction<TRecord> = {
     title?: React.ReactNode | ((ctx: GridModalActionContext<TRecord>) => React.ReactNode);
     size?: "sm" | "md" | "lg" | "xl" | "fullscreen";
     position?: "center" | "top" | "left" | "right" | "bottom";
-    buttonFullscreen?: boolean;
+    allowFullscreen?: boolean;
     header?: React.ReactNode | ((ctx: GridModalActionContext<TRecord>) => React.ReactNode);
     body?: React.ReactNode | ((ctx: GridModalActionContext<TRecord>) => React.ReactNode);
     footer?: React.ReactNode | false | ((ctx: GridModalActionContext<TRecord>) => React.ReactNode);
@@ -195,44 +205,76 @@ export type GridAfterActionHandler<TRecord> = (
     args: GridAfterActionArgs<TRecord>
 ) => Promise<boolean>;
 
+/** Visual / layout props for `<Grid>`. */
 export type GridPresentation = {
-    layout?: GridLayout;
+    /** Display mode: `"table"` (default) or `"gallery"` card layout. */
+    view?: GridLayout;
+    /** Stick the header (`"top"`) or footer (`"bottom"`) while scrolling. */
     sticky?: GridSticky;
-    wrapClass?: string;
+    /** CSS classes on the outermost wrapper element. */
+    wrapperClassName?: string;
+    /** Show a loading skeleton instead of rows. */
     loading?: boolean;
+    /** Title rendered in the Grid header area. */
     title?: React.ReactNode;
-    pre?: React.ReactNode;
-    post?: React.ReactNode;
+    /** Content rendered before the Grid. */
+    before?: React.ReactNode;
+    /** Content rendered after the Grid. */
+    after?: React.ReactNode;
 };
 
+/** Interaction / behaviour props for `<Grid>`. */
 export type GridBehavior<TRecord> = {
+    /** Enable global sorting. Pass an `OrderConfig` to set a default sort. */
     sortable?: boolean | OrderConfig;
+    /** Pagination config. `{ limit: 20 }` is the common form. */
     pagination?: PaginationParams;
+    /** Row selection: `false` (off), `"single"`, `"multiple"`, or a full `GridSelectionConfig`. */
     selection?: false | "single" | "multiple" | GridSelectionConfig<TRecord>;
-    onClickRow?: (record: TRecord) => void;
+    /** Called when the user clicks a row (outside an action button). */
+    onRowClick?: (record: TRecord) => void;
+    /** Allow drag-and-drop row reordering. */
     reorderable?: boolean;
+    /** Called after a drag reorder with the new record order and move metadata. */
     onReorder?: GridReorderHandler<TRecord>;
+    /** Group rows by a field or array of fields. */
     groupBy?: keyof TRecord | string | Array<keyof TRecord | string>;
 };
 
+/** Data-mutation hooks for `<Grid>`. */
 export type GridPersistence<TRecord> = {
+    /** Called before saving a record. Return a custom storage path or `undefined`. */
     onSave?: GridMutationSaveHandler<TRecord>;
+    /** Called before deleting a record. Return a path override or `undefined`. */
     onDelete?: GridMutationDeleteHandler<TRecord>;
-    onAfterAction?: GridAfterActionHandler<TRecord>;
+    /** Called after create/update/delete. Return `false` to suppress default navigation. */
+    onComplete?: GridAfterActionHandler<TRecord>;
+    /** Automatically write `createdAt` / `updatedAt` timestamps on every mutation. */
     audit?: boolean;
 };
 
+/**
+ * Full prop surface shared by all `<Grid>` variants.
+ * Combines presentation, behaviour, and persistence with a few top-level hooks.
+ */
 export type GridBaseProps<TRecord> =
     & GridPresentation
     & GridBehavior<TRecord>
     & GridPersistence<TRecord>
     & {
+        /** Transform the record array after loading (filter, sort, enrich). */
         onLoad?: (records: TRecord[]) => TRecord[] | Promise<TRecord[]>;
+        /** Column definitions. Omit to auto-generate from record keys. */
         columns?: GridColumn<TRecord>[];
+        /** Enable built-in `"add"/"edit"/"delete"` shortcuts, or provide custom `GridAction` objects. */
         actions?: GridActions<TRecord>;
+        /** Form element or factory rendered inside the add/edit modal. */
         form?: React.ReactElement | ((ctx: GridFormContext<TRecord>) => React.ReactNode);
+        /** Sync the edit modal state to the URL hash (enables direct links). */
         editDeepLink?: boolean;
+        /** Content rendered in the Grid header bar. Receives selection context. */
         header?: React.ReactNode | ((ctx: GridHeaderContext<TRecord>) => React.ReactNode);
+        /** Content rendered in the Grid footer bar. Receives selection context. */
         footer?: React.ReactNode | ((ctx: GridFooterContext<TRecord>) => React.ReactNode);
     };
 
@@ -282,14 +324,14 @@ export type GridTableViewProps<TRecord extends RecordProps> = {
     selection?: GridSelectionMode;
     selectedKeys?: string[];
     onSelectionChange?: GridSelectionChangeHandler<TRecord>;
-    onClickRow?: (record: TRecord) => void;
+    onRowClick?: (record: TRecord) => void;
     reorderable?: boolean;
     onReorder?: GridReorderHandler<TRecord>;
     activeKey?: string | null;
     groupBy?: keyof TRecord | string | Array<keyof TRecord | string>;
-    wrapClass?: string;
-    pre?: React.ReactNode;
-    post?: React.ReactNode;
+    wrapperClassName?: string;
+    before?: React.ReactNode;
+    after?: React.ReactNode;
 };
 
 export type GridGalleryViewProps<TRecord extends RecordProps> = {
@@ -300,9 +342,10 @@ export type GridGalleryViewProps<TRecord extends RecordProps> = {
     selection?: GridSelectionMode;
     selectedKeys?: string[];
     onSelectionChange?: GridSelectionChangeHandler<TRecord>;
-    onClickRow?: (record: TRecord) => void;
+    onRowClick?: (record: TRecord) => void;
     groupBy?: keyof TRecord | string | Array<keyof TRecord | string>;
-    wrapClass?: string;
-    pre?: React.ReactNode;
-    post?: React.ReactNode;
+    wrapperClassName?: string;
+    before?: React.ReactNode;
+    after?: React.ReactNode;
 };
+

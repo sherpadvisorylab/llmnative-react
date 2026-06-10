@@ -290,7 +290,7 @@ export default function MotionPage() {
                             <Dropdown
                                 motion={openMotion}
                                 position="end"
-                                toggleButton={{ icon: 'settings', text: 'Open menu' }}
+                                trigger={{ icon: 'settings', text: 'Open menu' }}
                                 header="Motion aware"
                                 footer="Local override active"
                             >
@@ -301,7 +301,7 @@ export default function MotionPage() {
                         </div>
                     </div>
                 )}
-                code={`<Dropdown motion="fadeDown" toggleButton={{ icon: 'settings', text: 'Open menu' }}>
+                code={`<Dropdown motion="fadeDown" trigger={{ icon: 'settings', text: 'Open menu' }}>
   <DropdownItem icon="gauge">Motion-aware menu</DropdownItem>
 </Dropdown>`}
             />
@@ -341,7 +341,7 @@ export default function MotionPage() {
                         </div>
 
                         <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-                            <Notifications badge={3}>{NOTIFICATIONS}</Notifications>
+                            <Notifications badge={3} items={NOTIFICATIONS} />
                         </div>
                     </div>
                 )}

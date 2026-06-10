@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { Label, UIProps } from '../..';
 import { useTheme } from "../../Theme";
 import { Wrapper } from "./GridSystem";
@@ -9,23 +9,23 @@ type ShapeType = "bar" | "circle";
 
 interface PercentageBarProps {
   progress: number;
-  type: ColorType;
+  variant: ColorType;
   className: string;
   thickness: number;
   showText: boolean;
-  background: ColorType;
+  trackVariant: ColorType;
   size: number;
   fontSize: number;
 }
 
 
 interface PercentageProps extends UIProps {
-  val?: number;
+  value?: number;
   max?: number;
   min?: number;
-  shape?: ShapeType;
-  type?: ColorType;
-  background?: ColorType;
+  appearance?: ShapeType;
+  variant?: ColorType;
+  trackVariant?: ColorType;
   thickness?: number;
   showText?: boolean;
   size?: number;
@@ -58,19 +58,19 @@ const foregroundToken: Record<ColorType, string> = {
 const hsl = (token: string, alpha?: number) =>
   `hsl(var(--rf-${token})${alpha === undefined ? "" : ` / ${alpha}`})`;
 
-const PercentageBar: React.FC<PercentageBarProps> = ({ 
-  progress, 
-  type,  
+const PercentageBar: React.FC<PercentageBarProps> = ({
+  progress,
+  variant,
   thickness,
   showText,
-  background,
+  trackVariant,
   size,
   fontSize,
   className
 }) => {
-  const trackColor = hsl(colorToken[background], background === "secondary" || background === "light" ? 0.55 : 0.16);
-  const fillColor = hsl(colorToken[type]);
-  const textColor = progress >= 12 ? hsl(foregroundToken[type]) : hsl("foreground");
+  const trackColor = hsl(colorToken[trackVariant], trackVariant === "secondary" || trackVariant === "light" ? 0.55 : 0.16);
+  const fillColor = hsl(colorToken[variant]);
+  const textColor = progress >= 12 ? hsl(foregroundToken[variant]) : hsl("foreground");
 
   return (
     <div 
@@ -102,12 +102,12 @@ const PercentageBar: React.FC<PercentageBarProps> = ({
   );
 };
 
-const PercentageCircle: React.FC<PercentageBarProps> = ({ 
-  progress, 
-  type, 
-  thickness,  
+const PercentageCircle: React.FC<PercentageBarProps> = ({
+  progress,
+  variant,
+  thickness,
   showText,
-  background,
+  trackVariant,
   size,
   fontSize,
   className,
@@ -117,8 +117,8 @@ const PercentageCircle: React.FC<PercentageBarProps> = ({
   const circumference = 2 * Math.PI * normalizedRadius;
   const strokeDashoffset = circumference * ((100 - progress) / 100);
   const startAngle = -90;
-  const trackColor = hsl(colorToken[background], background === "secondary" || background === "light" ? 0.55 : 0.18);
-  const fillColor = hsl(colorToken[type]);
+  const trackColor = hsl(colorToken[trackVariant], trackVariant === "secondary" || trackVariant === "light" ? 0.55 : 0.18);
+  const fillColor = hsl(colorToken[variant]);
   const textColor = hsl("foreground");
 
   return (
@@ -173,54 +173,54 @@ const PercentageCircle: React.FC<PercentageBarProps> = ({
 };
 
 const Percentage = ({
-  val = 0,
+  value = 0,
   max = 100,
   min = 0,
-  shape = "bar",
-  type = "primary",
-  background = "secondary",
+  appearance = "bar",
+  variant = "primary",
+  trackVariant = "secondary",
   thickness = 10,
   showText = true,
   size = 100,
-  fontSize = 16,  
+  fontSize = 16,
   label = undefined,
-  pre = undefined,
-  post = undefined,
-  wrapClass = undefined,
+  before = undefined,
+  after = undefined,
+  wrapperClassName = undefined,
   className = undefined
 }: PercentageProps) => {
   const theme = useTheme("percentage");
   const range = max - min;
-  const progress = range <= 0 ? 0 : Math.round(Math.max(0, Math.min(100, ((val - min) / range) * 100)));
+  const progress = range <= 0 ? 0 : Math.round(Math.max(0, Math.min(100, ((value - min) / range) * 100)));
   const finalClassName = className || theme.Percentage?.className || '';
 
   return (
-    <Wrapper className={wrapClass || theme.Percentage?.wrapClass}>
-      {pre}
+    <Wrapper className={wrapperClassName || theme.Percentage?.wrapperClassName}>
+      {before}
       {label && <Label label={label} />}
-      {shape === "bar" 
+      {appearance === "bar"
       ? <PercentageBar
           progress={progress}
-          type={type}
+          variant={variant}
           thickness={thickness}
           showText={showText}
-          background={background}
+          trackVariant={trackVariant}
           size={size}
           fontSize={fontSize}
           className={finalClassName}
         />
       : <PercentageCircle
           progress={progress}
-          type={type}
+          variant={variant}
           thickness={thickness}
           showText={showText}
-          background={background}
+          trackVariant={trackVariant}
           size={size}
           fontSize={fontSize}
           className={finalClassName}
         />
       }
-      {post}
+      {after}
     </Wrapper>
   );
 };

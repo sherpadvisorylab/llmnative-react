@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Form, Prompt, PromptMode } from '@llmnative/react';
 import PageLayout from '../../../showcase/page';
 import Section from '../../../docs-kit/page/Section';
@@ -15,7 +15,7 @@ const PLAYGROUND = createPromptPlayground(
     'plain',
     (p, onValuesChange) => (
         <Form
-            aspect="empty"
+            appearance="empty"
             defaultValues={createPromptPlaygroundSeed(p.defaultValue)}
             onChange={onValuesChange}
         >
@@ -27,10 +27,10 @@ const PLAYGROUND = createPromptPlayground(
                     required={p.required}
                     defaultValue={p.defaultValue}
                     rows={p.rows}
-                    pre={p.pre || undefined}
-                    post={p.post || undefined}
+                    before={p.pre || undefined}
+                    after={p.post || undefined}
                     className={p.className || undefined}
-                    wrapClass={p.wrapClass || undefined}
+                    wrapperClassName={p.wrapperClassName || undefined}
                 />
             </div>
         </Form>
@@ -51,7 +51,7 @@ export default function PromptPlainPage() {
                 description="When prompt metadata is disabled, run mode should degrade cleanly to a simple textarea instead of exposing execution controls."
                 bare
                 preview={(
-                    <Form aspect="empty" defaultValues={{ summary: { value: 'A short human-written summary.' } }}>
+                    <Form appearance="empty" defaultValues={{ summary: { value: 'A short human-written summary.' } }}>
                         <div className="max-w-3xl">
                             <Prompt
                                 name="summary"
@@ -63,7 +63,7 @@ export default function PromptPlainPage() {
                         </div>
                     </Form>
                 )}
-                code={`<Form aspect="empty">
+                code={`<Form appearance="empty">
   <Prompt
     name="summary"
     label="Summary"

@@ -1,4 +1,4 @@
-import { converter } from "../libs/converter";
+﻿import { converter } from "../libs/converter";
 import { currentCountry, currentLang, COUNTRIES, LANGS } from "../libs/locale";
 
 export const PROMPT_CLEANUP = `Please ignore all previous instructions.`;
@@ -42,7 +42,7 @@ export const PROMPTS = {
         There should be a maximum of 6 keywords in a super category. 
         The second column should be called "keyword" and contain the suggested keyword. 
         The third column will be called "searchIntent" and will show the search intent of the suggested keyword from the following list of intents (commercial, transactional, navigational, informational, local or investigational). 
-        The fourth column will be called "title" and will be catchy and click-bait title to use for an article or blog post about that keyword. 
+        The fourth column will be called "title" and will be catchy and click-bait title to use for an article or blog after about that keyword. 
         The fifth column will be called "description: and will be a catchy meta description with a maximum length of 160 words. 
         The meta description should ideally have a call to action. 
         Do not use markdown, line breaks, single quotes, double quotes or any other enclosing characters in any of the columns you fill in. 
@@ -54,7 +54,7 @@ export const PROMPTS = {
         You are an expert copywriter who writes catchy titles for blog posts. 
         You have a {voice} tone of voice. 
         You have a {style} writing style. 
-        Write {limit} catchy blog post titles with a hook for the topic "{search}". 
+        Write {limit} catchy blog after titles with a hook for the topic "{search}". 
         The titles should be written in the {language} language. 
         The titles should be less than 60 characters. 
         The titles should include the words from the topic "{search}". 
@@ -67,7 +67,7 @@ export const PROMPTS = {
         You are an expert copywriter who writes catchy descriptions for blog posts. 
         You have a {voice} tone of voice. 
         You have a {style} writing style. 
-        Write {limit} catchy blog post descriptions with a hook for the blog post titled "{search}". 
+        Write {limit} catchy blog after descriptions with a hook for the blog after titled "{search}". 
         The descriptions should be written in the {language} language. 
         The descriptions should be less than 160 characters. 
         The descriptions should include the words from the title "{search}". 
@@ -80,11 +80,11 @@ export const PROMPTS = {
         You are an expert copywriter who creates content outlines. 
         You have a {voice} tone of voice. 
         You have a {style} writing style. 
-        Create {limit} alternative long form content outlines in the {language} language for the blog post titled {search}.  
+        Create {limit} alternative long form content outlines in the {language} language for the blog after titled {search}.  
         Each outline should include a minimum of 3-4 headings, and each heading should have 4-5 subheadings. 
         Each outline should be extensive and should cover the entire topic. 
         Create detailed subheadings that are engaging and catchy. 
-        Do not write the blog post, only the outlines. 
+        Do not write the blog after, only the outlines. 
         Write the output as an array of outlines, where each outline is an array of sections.
         The response should have this exact structure:
         [
@@ -107,7 +107,7 @@ export const PROMPTS = {
           }
         ]
         Each outline array should contain 3-4 different sections.
-        Avoid self-reference and the inclusion of explanatory notes, crafting outlines that speak directly to the essence of the blog post.
+        Avoid self-reference and the inclusion of explanatory notes, crafting outlines that speak directly to the essence of the blog after.
         ${PROMPT_NO_REFERENCE}
     `,
 /*   GENERATE_BLOG_POST_OUTLINE_OLD: `
@@ -115,11 +115,11 @@ export const PROMPTS = {
         You are an expert copywriter who creates content outlines. 
         You have a {voice} tone of voice. 
         You have a {style} writing style. 
-        Create {limit} alternative long form content outlines in the {language} language for the blog post titled {search}.  
+        Create {limit} alternative long form content outlines in the {language} language for the blog after titled {search}.  
         Each outline should include a minimum of 3-4 headings, and each heading should have 4-5 subheadings. 
         Each outline should be extensive and should cover the entire topic. 
         Create detailed subheadings that are engaging and catchy. 
-        Do not write the blog post, only the outlines. 
+        Do not write the blog after, only the outlines. 
         Write the output as an array of outlines, where each outline is an array of sections.
         The response should have this exact structure:
         [
@@ -142,7 +142,7 @@ export const PROMPTS = {
           }
         ]
         Each outline array should contain 3-4 different sections.
-        Avoid self-reference and the inclusion of explanatory notes, crafting outlines that speak directly to the essence of the blog post.
+        Avoid self-reference and the inclusion of explanatory notes, crafting outlines that speak directly to the essence of the blog after.
         ${PROMPT_NO_REFERENCE}
     `,
   /*   GENERATE_BLOG_POST_OUTLINE_OLD: `
@@ -150,14 +150,14 @@ export const PROMPTS = {
           You are an expert copywriter who creates content outlines. 
           You have a {voice} tone of voice. 
           You have a {style} writing style. 
-          Create a long form content outline in the {language} language for the blog post titled "{search}".  
+          Create a long form content outline in the {language} language for the blog after titled "{search}".  
           The content outline should include a minimum of 20 headings and subheadings. 
           The outline should be extensive and it should cover the entire topic. 
           Create detailed subheadings that are engaging and catchy. 
-          Do not write the blog post, please only write the outline of the blog post. 
+          Do not write the blog after, please only write the outline of the blog after. 
           Please do not number the headings. 
           Please add a newline space between headings and subheadings. 
-          Avoid self-reference and the inclusion of explanatory notes, crafting an outline that speaks directly to the essence of the blog post.
+          Avoid self-reference and the inclusion of explanatory notes, crafting an outline that speaks directly to the essence of the blog after.
       `, */
   GENERATE_COMPLETE_BLOG_POST_FROM_OUTLINE: `
         ${PROMPT_CLEANUP}
@@ -297,12 +297,12 @@ export const LABELS = {
   LONG_TAIL_KEYWORD_GENERATOR: "What is the main keyword you want long-tail keywords for?",
   KEYWORD_STRATEGY: "What is the main keyword to build your SEO strategy around?",
   GENERATE_BLOG_POST_TITLES: "What is the main topic you want to generate titles about?",
-  GENERATE_BLOG_POST_DESCRIPTIONS: "What is the title of the blog post to generate descriptions for?",
-  GENERATE_BLOG_POST_OUTLINE: "What is the blog post title you want an outline for?",
-  /* GENERATE_BLOG_POST_OUTLINE_OLD: "What is the blog post title you want an outline for?", */
+  GENERATE_BLOG_POST_DESCRIPTIONS: "What is the title of the blog after to generate descriptions for?",
+  GENERATE_BLOG_POST_OUTLINE: "What is the blog after title you want an outline for?",
+  /* GENERATE_BLOG_POST_OUTLINE_OLD: "What is the blog after title you want an outline for?", */
   GENERATE_COMPLETE_BLOG_POST_FROM_OUTLINE: "What is the outline or blog topic to expand into a full article?",
   GENERATE_COMPLETE_BLOG_POST_FROM_TOPIC: "What is the topic for the blog article?",
-  GENERATE_INTRODUCTION_USING_FRAMEWORK: "What is the topic of the blog post you want an introduction for?",
+  GENERATE_INTRODUCTION_USING_FRAMEWORK: "What is the topic of the blog after you want an introduction for?",
   GENERATE_PARAGRAPH_OF_TEXT: "What is the topic you want to write a paragraph about?",
   GENERATE_DICTIONARY: "What items do you want to list in a dictionary format?",
   GENERATE_FREE: "What custom prompt would you like to run?"
@@ -481,8 +481,8 @@ const PROMPT_ROLES: Record<string, string> = {
   seo_content_planner: `You are a market research expert and SEO strategist who develops a full SEO content plan in fluent {language}.`,
 
   // --- Ruoli di content creation specializzati ---
-  blog_title_specialist: `You are an expert copywriter who writes catchy blog post titles in fluent {language}. You have a {voice} tone of voice. You have a {style} writing style.`,
-  blog_description_specialist: `You are an expert copywriter who writes compelling blog post descriptions in fluent {language}. You have a {voice} tone of voice. You have a {style} writing style.`,
+  blog_title_specialist: `You are an expert copywriter who writes catchy blog after titles in fluent {language}. You have a {voice} tone of voice. You have a {style} writing style.`,
+  blog_description_specialist: `You are an expert copywriter who writes compelling blog after descriptions in fluent {language}. You have a {voice} tone of voice. You have a {style} writing style.`,
   blog_outline_specialist: `You are an expert copywriter who creates structured content outlines in fluent {language}. You have a {voice} tone of voice. You have a {style} writing style.`,
   blog_writer_from_outline: `You are an expert copywriter who writes complete blog posts from outlines in fluent {language}. You have a {voice} tone of voice. You have a {style} writing style.`,
   blog_writer_from_topic: `You are an expert copywriter who writes complete blog posts from topics in fluent {language}. You have a {voice} tone of voice. You have a {style} writing style.`,

@@ -1,4 +1,4 @@
-import { normalizeKey } from "./utils";
+﻿import { normalizeKey } from "./utils";
 
 interface DateTimeResult {
     year: string;
@@ -199,15 +199,15 @@ export const converter: Converter = {
     parse: (values, pattern, target = undefined, sanitizerCallback = undefined) => {
         if (typeof pattern !== 'string') return pattern;
         const parse = pattern.replace(/{([^}:]+)(?::([^}:]+))?(?::([^}:]+))?}/g, (_, Key, Func, format) => {
-            const [pre, key] = ((Key || '').indexOf('(') === -1 ? ['', Key] : Key.split('(', 2));
-            const [func, post] = ((Func || '').indexOf(')') === -1 ? [Func, ''] : Func.split(')', 2));
+            const [before, key] = ((Key || '').indexOf('(') === -1 ? ['', Key] : Key.split('(', 2));
+            const [func, after] = ((Func || '').indexOf(')') === -1 ? [Func, ''] : Func.split(')', 2));
 
             const value = getPathValue(values, key, target, sanitizerCallback);
             if (!converter?.[func] || !value) {
                 return value || '';
             }
 
-            return pre + (converter[func] as (v: unknown, f: unknown) => string)(value, format) + post;
+            return before + (converter[func] as (v: unknown, f: unknown) => string)(value, format) + after;
         });
 
         return splitter(replacer(parse));

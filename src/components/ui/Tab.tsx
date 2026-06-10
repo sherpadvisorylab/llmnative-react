@@ -1,4 +1,4 @@
-import React, { useState, Children, ReactElement } from 'react';
+﻿import React, { useState, Children, ReactElement } from 'react';
 import { Wrapper } from "./GridSystem";
 import type { MotionUIProps } from '../types';
 import { useEnterMotion } from '../../motion';
@@ -6,8 +6,11 @@ import { useTheme } from '../../Theme';
 
 export type TabPosition = "default" | "top" | "left" | "right" | "bottom";
 
+/** Props for a single `<TabItem>` inside a `<Tab>`. */
 interface TabItemProps {
+    /** Tab header label (text or ReactNode). */
     label: React.ReactNode;
+    /** Tab panel content. */
     children: React.ReactNode;
 }
 
@@ -16,10 +19,14 @@ interface TabLayoutProps {
     content: React.ReactNode;
 }
 
+/** Props for the `<Tab>` container. */
 interface TabProps extends MotionUIProps {
+    /** `<TabItem>` children that define the tabs. */
     children: React.ReactNode;
-    defaultTab?: number;
-    tabPosition?: TabPosition;
+    /** 0-based index of the initially selected tab. Defaults to `0`. */
+    defaultIndex?: number;
+    /** Spatial layout of the tab bar: `"default"` (underline top), `"top"`, `"left"`, `"right"`, `"bottom"`. */
+    layout?: TabPosition;
 }
 
 export const TabLayouts: Record<TabPosition, (props: TabLayoutProps) => JSX.Element> = {
@@ -77,26 +84,26 @@ const TabPane = ({
 
 const Tab: React.FC<TabProps> = ({
     children,
-    defaultTab = 0,
-    tabPosition = "default",
-    pre = undefined,
-    post = undefined,
-    wrapClass = undefined,
+    defaultIndex = 0,
+    layout = "default",
+    before = undefined,
+    after = undefined,
+    wrapperClassName = undefined,
     className = undefined,
     motion = undefined
 }) => {
-    const [active, setActive] = useState(defaultTab);
-    
+    const [active, setActive] = useState(defaultIndex);
+
     const items = Children.toArray(children)
-        .filter((child): child is ReactElement<TabItemProps> => 
+        .filter((child): child is ReactElement<TabItemProps> =>
             React.isValidElement(child) && child.type === TabItem
         );
 
-    const TabLayout = TabLayouts[tabPosition];
+    const TabLayout = TabLayouts[layout];
 
     return (
-        <Wrapper className={wrapClass}>
-            {pre}
+        <Wrapper className={wrapperClassName}>
+            {before}
             <div className={className}>
                 <TabLayout
                     menu={items.map((item, index) => (
@@ -116,7 +123,7 @@ const Tab: React.FC<TabProps> = ({
                     }
                 />
             </div>
-            {post}
+            {after}
         </Wrapper>
     );
 };

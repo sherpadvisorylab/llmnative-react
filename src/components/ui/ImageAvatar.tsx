@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import path from "../../libs/path";
 import { PLACEHOLDER_USER, useTheme } from "../../Theme";
 import type { UIProps } from '../types';
@@ -30,9 +30,9 @@ const ImageAvatar = ({
     fit        = 'cover',
     badge      = undefined,
     feedback   = undefined,
-    pre        = undefined,
-    post       = undefined,
-    wrapClass  = undefined,
+    before        = undefined,
+    after       = undefined,
+    wrapperClassName  = undefined,
     className  = undefined,
 }: ImageAvatarProps) => {
     const theme = useTheme("image");
@@ -102,8 +102,8 @@ const ImageAvatar = ({
     };
 
     return (
-        <Wrapper className={cn("flex items-center gap-3", wrapClass || theme.ImageAvatar?.wrapClass)}>
-            {pre && <div className="shrink-0 self-center">{pre}</div>}
+        <Wrapper className={cn("flex items-center gap-3", wrapperClassName || theme.ImageAvatar?.wrapperClassName)}>
+            {before && <div className="shrink-0 self-center">{before}</div>}
             <div
                 className={cn("relative shrink-0", hasHover && "overflow-hidden")}
                 style={enterStyle}
@@ -123,7 +123,7 @@ const ImageAvatar = ({
                 {badge && (
                     <span className={cn(
                         "badge badge-overlay absolute top-0 right-0 translate-x-1/4 -translate-y-1/4 z-10",
-                        "badge-" + (badge.type || 'success'),
+                        "badge-" + (badge.variant || 'success'),
                         !badge.content && "!p-0 !min-w-0 w-3 h-3 rounded-full",
                         badge.className,
                     )}>
@@ -132,7 +132,7 @@ const ImageAvatar = ({
                 )}
                 {feedback && <div className="mt-1 text-xs text-center">{feedback}</div>}
             </div>
-            {post && <div className="min-w-0 self-center">{post}</div>}
+            {after && <div className="min-w-0 self-center">{after}</div>}
         </Wrapper>
     );
 };

@@ -1,4 +1,5 @@
-﻿import React, { useState } from 'react';
+import React from 'react';
+import { Pagination } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
@@ -7,57 +8,11 @@ import type { PropDef, PlaygroundConfig } from '../../docs-kit/playground';
 
 const ITEMS = Array.from({ length: 50 }, (_, i) => ({ id: i + 1, label: `Record #${i + 1}` }));
 
-function DemoPagination({ perPage }: { perPage: number }) {
-    const [page, setPage] = useState(1);
-    const total = Math.ceil(ITEMS.length / perPage);
-    const slice = ITEMS.slice((page - 1) * perPage, page * perPage);
-
-    const go = (p: number) => { if (p >= 1 && p <= total) setPage(p); };
-
-    const windowSize = Math.min(5, total);
-    const start = Math.max(1, Math.min(page - Math.floor(windowSize / 2), total - windowSize + 1));
-    const pageNumbers = Array.from({ length: windowSize }, (_, i) => start + i);
-
-    return (
-        <div className="w-full space-y-3">
-            <div className="grid grid-cols-4 gap-2">
-                {slice.map((item) => (
-                    <div key={item.id} className="card p-2 text-xs text-center">{item.label}</div>
-                ))}
-            </div>
-            <nav>
-                <ul className="pagination justify-end">
-                    <li className={`page-item ${page === 1 ? 'disabled' : ''}`}>
-                        <button className="page-link" onClick={() => go(1)}>Â«</button>
-                    </li>
-                    <li className={`page-item ${page === 1 ? 'disabled' : ''}`}>
-                        <button className="page-link" onClick={() => go(page - 1)}>‹</button>
-                    </li>
-                    {pageNumbers.map((p) => (
-                        <li key={p} className={`page-item ${p === page ? 'active' : ''}`}>
-                            <button className="page-link" onClick={() => go(p)}>{p}</button>
-                        </li>
-                    ))}
-                    <li className={`page-item ${page === total ? 'disabled' : ''}`}>
-                        <button className="page-link" onClick={() => go(page + 1)}>›</button>
-                    </li>
-                    <li className={`page-item ${page === total ? 'disabled' : ''}`}>
-                        <button className="page-link" onClick={() => go(total)}>Â»</button>
-                    </li>
-                </ul>
-            </nav>
-            <p className="text-xs text-muted-foreground text-right">
-                Page {page} of {total} Â· {ITEMS.length} total records
-            </p>
-        </div>
-    );
-}
-
 const PROPS_CONFIG: PropDef[] = [
-    { name: 'recordSet', type: 'T[]', required: true, description: 'Full dataset to paginate' },
+    { name: 'records', type: 'T[]', required: true, description: 'Full dataset to paginate' },
     { name: 'children', type: '(records: T[], offset: number) => ReactNode', required: true, description: 'Render function receiving current page records and offset' },
-    { name: 'limit', type: 'number', default: 'recordSet.length', description: 'Number of items per page', control: 'number', min: 1, step: 1 },
-    { name: 'navLimit', type: 'number', default: '5', description: 'Max number of visible page buttons', control: 'number', min: 3, max: 10 },
+    { name: 'limit', type: 'number', default: 'records.length', description: 'Number of items per page', control: 'number', min: 1, step: 1 },
+    { name: 'maxPageButtons', type: 'number', default: '5', description: 'Max number of visible page buttons', control: 'number', min: 3, max: 10 },
     { name: 'sticky', type: 'boolean', default: 'true', description: 'Fix pagination bar at viewport bottom', control: 'boolean' },
     { name: 'align', type: '"start" | "center" | "end"', default: '"end"', description: 'Horizontal alignment of the pagination controls', control: 'select', options: ['start', 'center', 'end'] },
     { name: 'scrollToTopOnChange', type: 'boolean', default: 'false', description: 'Scroll to top of page when page changes', control: 'boolean' },
@@ -67,8 +22,25 @@ const PROPS_CONFIG: PropDef[] = [
 const PLAYGROUND: PlaygroundConfig = {
     size: 'lg',
     props: PROPS_CONFIG,
-    defaultProps: { limit: 8, navLimit: 5, sticky: false, align: 'end', scrollToTopOnChange: false },
-    render: (p) => <DemoPagination perPage={p.limit} />,
+    defaultProps: { limit: 8, maxPageButtons: 5, sticky: false, align: 'end', scrollToTopOnChange: false },
+    render: (p) => (
+        <Pagination
+            records={ITEMS}
+            limit={p.limit}
+            maxPageButtons={p.maxPageButtons}
+            sticky={p.sticky}
+            align={p.align}
+            scrollToTopOnChange={p.scrollToTopOnChange}
+        >
+            {(pageRecords) => (
+                <div className="grid grid-cols-4 gap-2 mb-2">
+                    {(pageRecords as typeof ITEMS).map((item) => (
+                        <div key={item.id} className="card p-2 text-xs text-center">{item.label}</div>
+                    ))}
+                </div>
+            )}
+        </Pagination>
+    ),
 };
 
 export default function PaginationPage() {
@@ -82,10 +54,20 @@ export default function PaginationPage() {
             <Section
                 title="Interactive pagination — 50 records, 8 per page"
                 description="Click the page controls to navigate through the dataset."
-                preview={<DemoPagination perPage={8} />}
+                preview={
+                    <Pagination records={ITEMS} limit={8} align="end">
+                        {(pageRecords) => (
+                            <div className="grid grid-cols-4 gap-2 mb-2">
+                                {(pageRecords as typeof ITEMS).map((item) => (
+                                    <div key={item.id} className="card p-2 text-xs text-center">{item.label}</div>
+                                ))}
+                            </div>
+                        )}
+                    </Pagination>
+                }
                 code={`import { Pagination } from '@llmnative/react';
 
-<Pagination recordSet={items} limit={10}>
+<Pagination records={items} limit={10}>
     {(pageRecords, pageOffset) => (
         <ul>
             {pageRecords.map((item) => (
@@ -108,7 +90,7 @@ export default function PaginationPage() {
                     </div>
                 }
                 code={`<Pagination
-    recordSet={items}
+    records={items}
     limit={20}
     sticky           // fix the nav bar at the bottom of the viewport
     align="end"      // start | center | end

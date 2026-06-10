@@ -1,4 +1,4 @@
-import React, { useState, ChangeEvent, DragEvent } from 'react';
+﻿import React, { useState, ChangeEvent, DragEvent } from 'react';
 import Papa, { ParseResult } from 'papaparse';
 import { Wrapper } from '../GridSystem';
 import { Icon, normalizeKey, UIProps } from '../../..';
@@ -38,9 +38,9 @@ export const UploadCSV: React.FC<UploadCSVProps> = ({
   delimiter     = undefined,
   normalizeKeys = false,
   removeEmptyFields = false,
-  pre           = undefined,
-  post          = undefined,
-  wrapClass     = undefined,
+  before           = undefined,
+  after          = undefined,
+  wrapperClassName     = undefined,
   className     = undefined,
 }) => {
   const [error, setError] = useState<string | null>(null);
@@ -112,8 +112,8 @@ export const UploadCSV: React.FC<UploadCSVProps> = ({
   };
 
   return (
-    <Wrapper className={wrapClass}>
-      {pre}
+    <Wrapper className={wrapperClassName}>
+      {before}
       <div
         data-name={name}
         className={cn("fileinput-button", className)}
@@ -130,7 +130,7 @@ export const UploadCSV: React.FC<UploadCSVProps> = ({
       </div>
 
       {error && <p style={{ color: 'red' }}>Errore: {error}</p>}
-      {post}
+      {after}
     </Wrapper>
   );
 };

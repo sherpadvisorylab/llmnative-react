@@ -37,13 +37,13 @@ const IMAGE_PROPS: PropDef[] = [
     { name: 'fit', type: '"cover" | "contain" | "fill" | "scale-down" | "none"', group: 'Dimensions', description: 'How the image fills its box — maps to CSS object-fit', control: 'select', options: ['cover', 'contain', 'fill', 'scale-down', 'none'] },
     { name: 'position', type: 'string', group: 'Dimensions', description: 'Anchor point of the image inside the box — maps to CSS object-position', control: 'select', options: ['center', 'top', 'bottom', 'left', 'right', 'top left', 'top right', 'bottom left', 'bottom right'] },
     { name: 'feedback', type: 'ReactNode', group: 'Slots', description: 'Caption or feedback text rendered below the image', control: 'text' },
-    { name: 'pre', type: 'ReactNode', group: 'Slots', description: 'Content rendered to the left of the image', control: 'text' },
-    { name: 'post', type: 'ReactNode', group: 'Slots', description: 'Content rendered to the right of the image', control: 'text' },
+    { name: 'before', type: 'ReactNode', group: 'Slots', description: 'Content rendered to the left of the image', control: 'text' },
+    { name: 'after', type: 'ReactNode', group: 'Slots', description: 'Content rendered to the right of the image', control: 'text' },
     { name: 'responsive', type: 'boolean', group: 'Responsive', description: 'Aggiunge srcset all\'export (toHTML / toJSON). Non cambia il preview — il browser userebbe varianti file che in demo non esistono.', control: 'boolean' },
     { name: 'srcsetMode', type: '"width" | "density"', group: 'Responsive', description: 'Strategia srcset. width (-400w/-800w/-1600w): immagini fluid/responsive, il browser sceglie in base a viewport + sizes. density (@2x/@3x): immagini a dimensione fissa (logo, avatar), il browser sceglie in base al devicePixelRatio.', control: 'select', options: ['width', 'density'], help: 'width â†’ usa sizes per dire al browser quanto spazio occupa l\'immagine · density â†’ nessun sizes, scelta basata sul DPR dello schermo', hidden: (p) => !p.responsive },
     { name: 'sizesPreset', type: 'string', group: 'Responsive', description: 'Descrive al browser quanto spazio visivo occupa l\'immagine al variare della viewport.', control: 'select', options: ['Hero — occupa tutta la larghezza', 'Articolo — colonna di testo (max 900px)', 'Card — griglia 2 colonne', 'Card — griglia 3 colonne', 'Thumbnail — elemento piccolo'], help: 'Hero: 100vw · Articolo: (max 900px) 100vw, 900px · Card 2col: (≤640px) 100vw, 50vw · Card 3col: (≤640px) 100vw, (≤1024px) 50vw, 33vw · Thumb: (≤640px) 50vw, 200px', hidden: (p) => !p.responsive || p.srcsetMode === 'density' },
     { name: 'className', type: 'string', group: 'Styling', description: 'CSS classes applied to the <img> element', control: 'text' },
-    { name: 'wrapClass', type: 'string', group: 'Styling', description: 'CSS classes applied to the outer wrapper', control: 'text' },
+    { name: 'wrapperClassName', type: 'string', group: 'Styling', description: 'CSS classes applied to the outer wrapper', control: 'text' },
 ];
 
 // Filename used in export when src is a playground preset (not a real file)
@@ -122,10 +122,10 @@ function ImageExportPanel(p: Record<string, any>) {
                 feedback={p.feedback || undefined}
                 width={PREVIEW_WIDTH}
                 height={previewHeight}
-                pre={p.pre || undefined}
-                post={p.post || undefined}
+                before={p.pre || undefined}
+                after={p.post || undefined}
                 className={p.className || undefined}
-                wrapClass={p.wrapClass || undefined}
+                wrapperClassName={p.wrapperClassName || undefined}
             />
             {p.responsive && (
                 <p className="mt-2 text-center text-xs text-muted-foreground">
@@ -203,7 +203,7 @@ const PLAYGROUND: PlaygroundConfig = {
         srcsetMode: 'width',
         sizesPreset: 'Card — griglia 2 colonne',
         className: 'rounded-lg border',
-        wrapClass: '',
+        wrapperClassName: '',
     },
     render: (p) => <ImageExportPanel {...p} />,
 };
@@ -323,13 +323,13 @@ export default function ImagePage() {
                         <Image
                             src={SAMPLE_LANDSCAPE}
                             label="Hero banner"
-                            pre={
+                            before={
                                 <div className="flex flex-col items-end gap-1 text-right">
                                     <span className="font-semibold text-sm whitespace-nowrap">Hero banner</span>
                                     <span className="badge badge-info">ready</span>
                                 </div>
                             }
-                            post={
+                            after={
                                 <div className="flex flex-col gap-1">
                                     <span className="badge badge-secondary whitespace-nowrap">1280 x 720</span>
                                     <span className="badge badge-light">SVG</span>
@@ -341,8 +341,8 @@ export default function ImagePage() {
                         <Image
                             src={SAMPLE_PORTRAIT}
                             label="Portrait"
-                            pre={<span className="text-xs text-muted-foreground whitespace-nowrap">2 / 8</span>}
-                            post={
+                            before={<span className="text-xs text-muted-foreground whitespace-nowrap">2 / 8</span>}
+                            after={
                                 <div className="flex flex-col gap-1 items-start">
                                     <span className="badge badge-secondary whitespace-nowrap">360 x 480</span>
                                     <span className="badge badge-light">Portrait</span>
@@ -358,13 +358,13 @@ export default function ImagePage() {
 <Image
     src={bannerUrl}
     label="Hero banner"
-    pre={
+    before={
         <div className="flex flex-col items-end gap-1 text-right">
             <span className="font-semibold text-sm">Hero banner</span>
             <span className="badge badge-info">ready</span>
         </div>
     }
-    post={
+    after={
         <div className="flex flex-col gap-1">
             <span className="badge badge-secondary">1280 x 720</span>
             <span className="badge badge-light">SVG</span>
@@ -467,7 +467,7 @@ export default function ImagePage() {
 
             <Section
                 title="Style variants"
-                description="className targets the img element; wrapClass targets the wrapper div. Combine them to control the outer layout separately from the image styling."
+                description="className targets the img element; wrapperClassName targets the wrapper div. Combine them to control the outer layout separately from the image styling."
                 preview={
                     <div className="flex flex-wrap gap-6 items-start">
                         <Image

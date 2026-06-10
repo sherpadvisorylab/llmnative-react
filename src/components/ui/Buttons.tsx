@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+﻿import React, {useEffect, useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import {useTheme} from "../../Theme";
 import { BadgeOverlay } from './Badge';
@@ -16,8 +16,8 @@ export interface IButton extends MotionUIProps {
     badge?: BadgeProps;
     title?: string;
     disabled?: boolean;
-    showLoader?: boolean;
-    iconClass?: string;
+    loading?: boolean;
+    iconClassName?: string;
     style?: React.CSSProperties;
     variant?: "primary" | "secondary" | "danger" | "success" | "warning" | "info" | "light" | "dark" | "outline-primary" | "outline-secondary" | "outline-danger" | "outline-success" | "link";
 }
@@ -70,18 +70,18 @@ export const LoadingButton = ({
     badge           = undefined,
     title           = undefined,
     disabled        = false,
-    showLoader      = false,
-    pre             = undefined,
-    post            = undefined,
-    wrapClass       = undefined,
+    loading      = false,
+    before             = undefined,
+    after            = undefined,
+    wrapperClassName       = undefined,
     className       = undefined,
-    iconClass       = undefined,
+    iconClassName       = undefined,
     style           = undefined,
     loadingLabel    = undefined,
     variant         = undefined,
     motion: motionConfig = undefined
 }: LoadingButtonProps = {}) => {
-    const [loader, setLoader] = useState(showLoader);
+    const [loader, setLoader] = useState(loading);
     const [disable, setDisable] = useState(disabled);
     const [message, setMessageState] = useState("");
 
@@ -94,9 +94,9 @@ export const LoadingButton = ({
     const activeLoadingLabel = loadingLabel ?? (message || (typeof label === 'string' ? `${label}...` : label));
 
     useEffect(() => {
-        setLoader(showLoader);
+        setLoader(loading);
         setDisable(disabled);
-    }, [showLoader, disabled]);
+    }, [loading, disabled]);
 
     const button = (
         <button
@@ -124,16 +124,16 @@ export const LoadingButton = ({
                 <span className={cn(activeLoadingLabel && "mr-1", "inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent")} />
                 {activeLoadingLabel && <span>{activeLoadingLabel}</span>}
             </>}
-            {(icon && !loader) && <Icon name={icon} className={cn(label && "mr-1", iconClass)} />}
+            {(icon && !loader) && <Icon name={icon} className={cn(label && "mr-1", iconClassName)} />}
             {!loader && label}
         </button>
     );
 
     return (
-        <Wrapper className={wrapClass}>
-            {pre}
+        <Wrapper className={wrapperClassName}>
+            {before}
             <BadgeOverlay badge={!loader ? badge : undefined}>{button}</BadgeOverlay>
-            {post}
+            {after}
         </Wrapper>
     );
 };
@@ -145,11 +145,11 @@ export const ActionButton = ({
     badge           = undefined,
     title           = undefined,
     disabled        = false,
-    pre             = undefined,
-    post            = undefined,
-    wrapClass       = undefined,
+    before             = undefined,
+    after            = undefined,
+    wrapperClassName       = undefined,
     className       = undefined,
-    iconClass       = undefined,
+    iconClassName       = undefined,
     style           = undefined,
     variant         = undefined,
     motion: motionConfig = undefined
@@ -174,21 +174,21 @@ export const ActionButton = ({
                 onClick?.(e);
             }}
         >
-            {icon && <Icon name={icon} className={cn(label && "mr-1", iconClass)} />}
+            {icon && <Icon name={icon} className={cn(label && "mr-1", iconClassName)} />}
             {label}
         </button>
     );
 
     return (
-        <Wrapper className={wrapClass}>
-            {pre}
+        <Wrapper className={wrapperClassName}>
+            {before}
             <span
                 title={disabled ? title : undefined}
                 style={disabled ? { cursor: 'not-allowed', display: 'inline-flex' } : undefined}
             >
                 <BadgeOverlay badge={badge}>{button}</BadgeOverlay>
             </span>
-            {post}
+            {after}
         </Wrapper>
     );
 };
@@ -199,16 +199,16 @@ interface BackLinkProps extends UIProps {
 
 export const BackLink = ({
     label           = "<- Back",
-    pre             = undefined,
-    post            = undefined,
-    wrapClass       = undefined,
+    before             = undefined,
+    after            = undefined,
+    wrapperClassName       = undefined,
     className       = undefined
 }: BackLinkProps) => {
     const navigate = useNavigate();
     const theme = useTheme("button");
     return (
-        <Wrapper className={wrapClass}>
-            {pre}
+        <Wrapper className={wrapperClassName}>
+            {before}
             <a href="#"
                className={cn(buttonBaseClass, className || theme.LinkButton.className)}
                onClick={(e) => {
@@ -218,70 +218,70 @@ export const BackLink = ({
             >
                 {label}
             </a>
-            {post}
+            {after}
         </Wrapper>
     );
 };
 
 interface GoSiteProps extends UIProps {
     label: string;
-    url: string;
+    href: string;
 }
 
 export const GoSite = ({
     label,
-    url,
-    pre             = undefined,
-    post            = undefined,
-    wrapClass       = undefined,
+    href,
+    before             = undefined,
+    after            = undefined,
+    wrapperClassName       = undefined,
     className       = undefined
 }: GoSiteProps) => {
     const theme = useTheme("button");
 
     return (
-        <Wrapper className={wrapClass}>
-            {pre}
+        <Wrapper className={wrapperClassName}>
+            {before}
             <h1 className={cn("m-0 text-2xl font-bold", className)}>
                 {label + " "}
-                <a href={url} target="_blank" rel="noopener noreferrer">
+                <a href={href} target="_blank" rel="noopener noreferrer">
                     <Icon name="external-link" />
                 </a>
             </h1>
-            {post}
+            {after}
         </Wrapper>
     );
 };
 
 interface ReferSiteProps extends UIProps {
     title: string;
-    url: string;
-    imageUrl: string;
+    href: string;
+    imageSrc: string;
     width?: number | string;
 }
 
 export const ReferSite = ({
     title,
-    url,
-    imageUrl,
+    href,
+    imageSrc,
     width,
-    pre             = undefined,
-    post            = undefined,
-    wrapClass       = undefined,
+    before             = undefined,
+    after            = undefined,
+    wrapperClassName       = undefined,
     className       = undefined
 }: ReferSiteProps) => {
     return (
-        <Wrapper className={wrapClass}>
-            {pre}
+        <Wrapper className={wrapperClassName}>
+            {before}
             <a
-                href={url}
+                href={href}
                 className={cn("mr-1", className)}
                 target="_blank"
                 title={title}
                 rel="noopener noreferrer"
             >
-                <img src={imageUrl} width={width ? width : "100"} height="30" alt={title} />
+                <img src={imageSrc} width={width ? width : "100"} height="30" alt={title} />
             </a>
-            {post}
+            {after}
         </Wrapper>
     );
 };

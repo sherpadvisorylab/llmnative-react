@@ -19,7 +19,7 @@ describe('Table', () => {
     });
 
     it('sorts records internally and toggles direction from the header', async () => {
-        render(<Table header={header} body={body} sortable />);
+        render(<Table columns={header} records={body} sortable />);
 
         await waitFor(() => {
             const initialCells = screen.getAllByRole('cell').filter((cell) => ['Alice', 'Bob'].includes(cell.textContent || ''));
@@ -42,10 +42,10 @@ describe('Table', () => {
 
         render(
             <Table
-                header={header}
-                body={body}
+                columns={header}
+                records={body}
                 sortable
-                onClick={(record) => clicks.push(record._key || '')}
+                onRowClick={(record) => clicks.push(record._key || '')}
             />
         );
 
@@ -56,11 +56,11 @@ describe('Table', () => {
     it('keeps the clicked row highlighted after sort and toggles it off on second click', async () => {
         render(
             <Table
-                header={header}
-                body={body}
+                columns={header}
+                records={body}
                 sortable
-                selectedClass="is-active"
-                onClick={() => undefined}
+                selectedClassName="is-active"
+                onRowClick={() => undefined}
             />
         );
 
@@ -83,11 +83,11 @@ describe('Table', () => {
     it('supports a controlled active row key', () => {
         const { rerender } = render(
             <Table
-                header={header}
-                body={body}
+                columns={header}
+                records={body}
                 activeKey="u2"
-                selectedClass="is-active"
-                onClick={() => undefined}
+                selectedClassName="is-active"
+                onRowClick={() => undefined}
             />
         );
 
@@ -96,11 +96,11 @@ describe('Table', () => {
 
         rerender(
             <Table
-                header={header}
-                body={body}
+                columns={header}
+                records={body}
                 activeKey={null}
-                selectedClass="is-active"
-                onClick={() => undefined}
+                selectedClassName="is-active"
+                onRowClick={() => undefined}
             />
         );
 
@@ -113,8 +113,8 @@ describe('Table', () => {
 
         render(
             <Table
-                header={header}
-                body={body}
+                columns={header}
+                records={body}
                 onReorder={(records) => reorderedKeys.push(records.map((record) => record._key || ''))}
             />
         );
@@ -141,8 +141,8 @@ describe('Table', () => {
 
         render(
             <Table
-                header={header}
-                body={body}
+                columns={header}
+                records={body}
                 onReorder={(records) => reorderedKeys.push(records.map((record) => record._key || ''))}
             />
         );
@@ -164,8 +164,8 @@ describe('Table', () => {
 
         render(
             <Table
-                header={header}
-                body={body}
+                columns={header}
+                records={body}
                 sortable
                 onReorder={(records) => reorderedKeys.push(records.map((record) => record._key || ''))}
             />
@@ -191,8 +191,8 @@ describe('Table', () => {
 
         render(
             <Table
-                header={header}
-                body={body}
+                columns={header}
+                records={body}
                 sortable={{ field: 'name', dir: 'desc' }}
                 onReorder={() => undefined}
             />
@@ -212,8 +212,8 @@ describe('Table', () => {
 
         render(
             <Table
-                header={header}
-                body={body}
+                columns={header}
+                records={body}
                 onSelectionChange={(selection) => selections.push(selection.keys)}
             />
         );
@@ -230,8 +230,8 @@ describe('Table', () => {
 
         render(
             <Table
-                header={[{ key: 'name', label: 'Name', sort: true }]}
-                body={[
+                columns={[{ key: 'name', label: 'Name', sort: true }]}
+                records={[
                     { name: 'Bob' },
                     { name: 'Alice' },
                 ]}

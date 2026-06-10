@@ -132,9 +132,9 @@ export default function FormValidationPage() {
                         <div className="w-full max-w-lg">
                             <Form
                                 path="/demo"
-                                aspect="card"
+                                appearance="card"
                                 keyGenerator={() => `rec_${Date.now()}`}
-                                onFinally={async () => false}
+                                onComplete={async () => false}
                             >
                                 <Input name="username"  label="Username" required validator={validateUsername} />
                                 <Input name="email"     label="Email"    required validator={validateEmail} />
@@ -167,7 +167,7 @@ const validatePassword = (v: any) => {
 };
 
 // path="/demo" + keyGenerator → create mode (Save button, no Delete)
-<Form path="/demo" aspect="card" keyGenerator={() => \`rec_\${Date.now()}\`}>
+<Form path="/demo" appearance="card" keyGenerator={() => \`rec_\${Date.now()}\`}>
     <Input  name="username" label="Username" required validator={validateUsername} />
     <Input  name="email"    label="Email"    required validator={validateEmail} />
     <Input  name="phone"    label="Phone"             validator={validatePhone} />
@@ -185,7 +185,7 @@ const validatePassword = (v: any) => {
                         <div className="w-full max-w-lg">
                             <Form
                                 path="/users"
-                                aspect="card"
+                                appearance="card"
                                 defaultValues={{
                                     _key:     'user_001',
                                     username: 'alice_dev',
@@ -194,7 +194,7 @@ const validatePassword = (v: any) => {
                                     country:  'it',
                                 }}
                                 onDelete={async () => { alert('Record deleted!'); return undefined; }}
-                                onFinally={async () => false}
+                                onComplete={async () => false}
                             >
                                 <Input  name="username" label="Username" required validator={validateUsername} />
                                 <Input  name="email"    label="Email"    required validator={validateEmail} />
@@ -208,10 +208,10 @@ const validatePassword = (v: any) => {
 // Saves to /users/user_001 (path + _key)
 <Form
     path="/users"
-    aspect="card"
+    appearance="card"
     defaultValues={{ _key: 'user_001', username: 'alice_dev', email: 'alice@example.com', country: 'it' }}
     onDelete={async () => { /* custom delete logic */ return undefined; }}
-    onFinally={async ({ action }) => {
+    onComplete={async ({ action }) => {
         if (action === 'delete') navigate('/users');
         return true;
     }}
@@ -234,9 +234,9 @@ const validatePassword = (v: any) => {
                         <WithMock>
                             <Form
                                 path="/long-demo"
-                                aspect="card"
+                                appearance="card"
                                 keyGenerator={() => `rec_${Date.now()}`}
-                                onFinally={async () => false}
+                                onComplete={async () => false}
                                 defaultValues={{
                                     firstName: 'Alice',
                                     lastName:  'Rossi',
@@ -277,7 +277,7 @@ const validatePassword = (v: any) => {
                 }
                 code={`<Form
     path="/users"
-    aspect="card"
+    appearance="card"
     keyGenerator={() => \`rec_\${Date.now()}\`}
     defaultValues={{ firstName: 'Alice', lastName: 'Rossi', birthDate: '1990-06-15' }}
 >

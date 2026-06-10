@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+﻿import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { ArrowDown, ArrowUp, ArrowUpDown, GripVertical } from 'lucide-react';
 import { useTheme } from "../../Theme";
 import { RecordArray, RecordProps } from "../../providers/data/DataProvider";
@@ -28,58 +28,56 @@ export type TableSelectionMode = 'single' | 'multiple';
 export type TableSelectionChangeHandler = (selection: TableSelectionState) => void;
 export type TableReorderHandler = (reorderedRecords: RecordArray, meta: TableReorderMeta) => void;
 
-interface TableProps extends UIProps {
-    header?: TableHeaderProp[],
-    body?: RecordArray,
-    Footer?: string | React.ReactNode,
-    onClick?: (record: RecordProps) => void;
+export interface TableProps extends UIProps {
+    columns?: TableHeaderProp[],
+    records?: RecordArray,
+    footer?: string | React.ReactNode,
+    onRowClick?: (record: RecordProps) => void;
     onReorder?: TableReorderHandler;
     onSelectionChange?: TableSelectionChangeHandler;
-    selectionMode?: TableSelectionMode;
+    selection?: TableSelectionMode;
     sortable?: boolean | OrderConfig;
     pagination?: PaginationParams;
     activeKey?: string | null;
     selectedKeys?: string[];
-    selectedRowKeys?: string[];
     groupBy?: string | string[];
-    headerClass?: string,
-    bodyClass?: string,
-    footerClass?: string,
-    heightClass?: string,
-    scrollClass?: string,
-    selectedClass?: string,
+    headerClassName?: string,
+    bodyClassName?: string,
+    footerClassName?: string,
+    heightClassName?: string,
+    scrollClassName?: string,
+    selectedClassName?: string,
     renderCell?: (record: RecordProps, key: string, absoluteIndex: number) => React.ReactNode
 };
 
 function Table({
-    header = undefined,
-    body = undefined,
-    Footer = undefined,
-    onClick = undefined,
+    columns = undefined,
+    records = undefined,
+    footer = undefined,
+    onRowClick = undefined,
     onReorder = undefined,
     onSelectionChange = undefined,
-    selectionMode = 'multiple',
+    selection = 'multiple',
     sortable = false,
     pagination = undefined,
     activeKey = undefined,
     selectedKeys = undefined,
-    selectedRowKeys = undefined,
     groupBy = undefined,
-    pre = undefined,
-    post = undefined,
-    wrapClass = undefined,
+    before = undefined,
+    after = undefined,
+    wrapperClassName = undefined,
     className = undefined,
-    headerClass = undefined,
-    bodyClass = undefined,
-    footerClass = undefined,
-    heightClass = undefined,
-    scrollClass = undefined,
-    selectedClass = undefined,
+    headerClassName = undefined,
+    bodyClassName = undefined,
+    footerClassName = undefined,
+    heightClassName = undefined,
+    scrollClassName = undefined,
+    selectedClassName = undefined,
     renderCell = undefined
 }: TableProps) {
     const theme = useTheme("table");
-    const activeClass = selectedClass || theme.Table.selectedClass;
-    const [rows, setRows] = useState<RecordArray>(body || []);
+    const activeClass = selectedClassName || theme.Table.selectedClassName;
+    const [rows, setRows] = useState<RecordArray>(records || []);
     const sortableOrder = useMemo(() => {
         if (!sortable || typeof sortable === 'boolean') return undefined;
         return sortable;
@@ -104,8 +102,8 @@ function Table({
     const effectiveOrder = sortDisabledByReorder ? undefined : sortableOrder;
 
     useEffect(() => {
-        setRows(body || []);
-    }, [body]);
+        setRows(records || []);
+    }, [records]);
 
     useEffect(() => {
         setCurrentOrder(effectiveOrder);
@@ -130,7 +128,7 @@ function Table({
     } = useRecordSelection<RecordProps>({
         records: rows,
         selectedKeys,
-        legacySelectedKeys: selectedRowKeys,
+        legacySelectedKeys: undefined,
         onSelectionChange,
         getRecordKey,
     });
@@ -145,12 +143,12 @@ function Table({
     }, [activeRowKey, getRecordKey, rows]);
 
     useEffect(() => {
-        if (currentOrder || !header?.length || reorderable) return;
-        const firstSortable = header.find((column) => effectiveSortable && column.sort !== false);
+        if (currentOrder || !columns?.length || reorderable) return;
+        const firstSortable = columns.find((column) => effectiveSortable && column.sort !== false);
         if (firstSortable) {
             setCurrentOrder({ field: firstSortable.key, dir: 'asc' });
         }
-    }, [currentOrder, effectiveSortable, header, reorderable]);
+    }, [currentOrder, effectiveSortable, columns, reorderable]);
 
     const sortedBody = useMemo<RecordArray>(() => Order.records(rows, currentOrder) || [], [rows, currentOrder]);
 
@@ -172,7 +170,7 @@ function Table({
             }
         }
 
-        onClick?.(record);
+        onRowClick?.(record);
     };
 
     const getFieldComponent = (item: RecordProps, key: string, absoluteIndex: number): React.ReactNode => {
@@ -236,12 +234,12 @@ function Table({
         return <p className={"p-4"}>No data found</p>;
     }
 
-    const headers: TableHeaderProp[] = header || Object.keys(sortedBody[0]).map((key) => ({ key, label: key, sort: sortingEnabled }));
+    const headers: TableHeaderProp[] = columns || Object.keys(sortedBody[0]).map((key) => ({ key, label: key, sort: sortingEnabled }));
     const viewportClass = [
         "fixed-table-container",
-        theme.Table.scrollClass,
-        heightClass ? `${heightClass} overflow-auto` : "",
-        scrollClass || "",
+        theme.Table.scrollClassName,
+        heightClassName ? `${heightClassName} overflow-auto` : "",
+        scrollClassName || "",
     ].filter(Boolean).join(" ");
     const totalColumns = headers.length + (showSelection ? 1 : 0) + (reorderable ? 1 : 0);
 
@@ -287,15 +285,15 @@ function Table({
 
     return (
         <div className="flex items-stretch gap-3">
-            {pre && <div className="table-pre flex shrink-0 items-center self-stretch">{pre}</div>}
-            <div ref={paginationNavRef} className={"table-responsive min-w-0 flex-1 " + (wrapClass || theme.Table.wrapClass)}>
+            {before && <div className="table-before flex shrink-0 items-center self-stretch">{before}</div>}
+            <div ref={paginationNavRef} className={"table-responsive min-w-0 flex-1 " + (wrapperClassName || theme.Table.wrapperClassName)}>
                 <div className={viewportClass}>
                     <table className={"table " + (className || theme.Table.className)}>
-                    <thead className={headerClass || theme.Table.headerClass}>
+                    <thead className={headerClassName || theme.Table.headerClassName}>
                         <tr>
                             {showSelection && (
                                 <th style={{ width: '1%', whiteSpace: 'nowrap' }}>
-                                    {selectionMode !== 'single' ? (
+                                    {selection !== 'single' ? (
                                         <div className="th-inner py-1">
                                             <input
                                                 type="checkbox"
@@ -386,11 +384,11 @@ function Table({
                             ))}
                         </tr>
                     </thead>
-                    <tbody className={bodyClass || theme.Table.bodyClass}>
+                    <tbody className={bodyClassName || theme.Table.bodyClassName}>
                         <Pagination
-                            recordSet={sortedBody}
+                            records={sortedBody}
                             appendTo={paginationNavEl}
-                            wrapClass="px-3 pt-4 pb-2"
+                            wrapperClassName="px-3 pt-4 pb-2"
                             {...(pagination || {})}
                         >
                             {(pageRecords, pageOffset) => {
@@ -432,11 +430,11 @@ function Table({
                                                     isActiveRow ? activeClass : "",
                                                 ].filter(Boolean).join(" ") || undefined}
                                                 style={{
-                                                    cursor: onClick ? "pointer" : reorderable ? "grab" : "default",
+                                                    cursor: onRowClick ? "pointer" : reorderable ? "grab" : "default",
                                                     opacity: isDragged ? 0.45 : 1,
                                                 }}
                                                 onClick={(e) => {
-                                                    if (onClick) {
+                                                    if (onRowClick) {
                                                         handleClick(e, record, absoluteIndex);
                                                     }
                                                 }}
@@ -481,12 +479,12 @@ function Table({
                                                 {showSelection && (
                                                     <td style={{ width: '1%', whiteSpace: 'nowrap' }}>
                                                         <input
-                                                            type={selectionMode === 'single' ? 'radio' : 'checkbox'}
-                                                            name={selectionMode === 'single' ? singleSelectionGroupName : undefined}
+                                                            type={selection === 'single' ? 'radio' : 'checkbox'}
+                                                            name={selection === 'single' ? singleSelectionGroupName : undefined}
                                                             aria-label={`Select row ${rowKey}`}
                                                             checked={isSelected}
                                                             onChange={() => {
-                                                                if (selectionMode === 'single') {
+                                                                if (selection === 'single') {
                                                                     toggleSingleRowSelection(record, absoluteIndex);
                                                                     return;
                                                                 }
@@ -494,7 +492,7 @@ function Table({
                                                             }}
                                                             onClick={(event) => {
                                                                 event.stopPropagation();
-                                                                if (selectionMode === 'single') {
+                                                                if (selection === 'single') {
                                                                     event.preventDefault();
                                                                     toggleSingleRowSelection(record, absoluteIndex);
                                                                 }
@@ -536,11 +534,11 @@ function Table({
                             }}
                         </Pagination>
                     </tbody>
-                    {Footer && <tfoot className={footerClass || theme.Table.footerClass}>{Footer}</tfoot>}
+                    {footer && <tfoot className={footerClassName || theme.Table.footerClassName}>{footer}</tfoot>}
                     </table>
                 </div>
             </div>
-            {post && <div className="table-post flex shrink-0 items-center self-stretch">{post}</div>}
+            {after && <div className="table-after flex shrink-0 items-center self-stretch">{after}</div>}
         </div>
     );
 }

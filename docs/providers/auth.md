@@ -99,17 +99,17 @@ function GoogleApiButton() {
 
 ## Browser login/logout UI
 
-Use `AuthButton` with `aspect="avatar"` when the app needs a ready-made sign-in/profile/logout surface.
+Use `AuthButton` with `appearance="avatar"` when the app needs a ready-made sign-in/profile/logout surface.
 
 ```tsx
 import { AuthButton } from '@llmnative/react';
 
 function HeaderAuth() {
-  return <AuthButton provider="googleAuth" intent="signIn" aspect="avatar" />;
+  return <AuthButton provider="googleAuth" intent="signIn" appearance="avatar" />;
 }
 ```
 
-Use `AuthButton` with `aspect="button"` when an integration needs a browser OAuth flow and the resulting access token can be reused later with `getAccessToken()`.
+Use `AuthButton` with `appearance="button"` when an integration needs a browser OAuth flow and the resulting access token can be reused later with `getAccessToken()`.
 
 ```tsx
 import { AuthButton, getAccessToken } from '@llmnative/react';
@@ -119,7 +119,7 @@ function DropboxConnect() {
     <AuthButton
       provider="dropboxAuth"
       intent="connect"
-      aspect="button"
+      appearance="button"
       scopes={['files.metadata.read', 'files.content.read']}
       options={{ icon: 'link', label: 'Connect Dropbox' }}
     />

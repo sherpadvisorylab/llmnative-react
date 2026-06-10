@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Form, ImageUrl, PromptMode } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
@@ -18,11 +18,11 @@ const IMAGE_URL_PROPS: PropDef[] = [
         { label: 'empty', value: { url: '', alt: { value: '' }, width: 320, height: 180 }, help: 'Empty starting object.' },
     ] },
     { name: 'mode', type: 'PromptMode', description: 'Prompt mode used for alt text', control: 'select', options: ['editor', 'live'] },
-    { name: 'pre', type: 'ReactNode', description: 'Content before the field group', control: 'text' },
-    { name: 'post', type: 'ReactNode', description: 'Content after the field group', control: 'text' },
+    { name: 'before', type: 'ReactNode', description: 'Content before the field group', control: 'text' },
+    { name: 'after', type: 'ReactNode', description: 'Content after the field group', control: 'text' },
     { name: 'onChange', type: 'FieldOnChange', description: 'Custom change handler called by Form context' },
     { name: 'className', type: 'string', description: 'CSS classes on URL input', control: 'text' },
-    { name: 'wrapClass', type: 'string', description: 'CSS classes on wrapper', control: 'text' },
+    { name: 'wrapperClassName', type: 'string', description: 'CSS classes on wrapper', control: 'text' },
 ];
 
 const PLAYGROUND: PlaygroundConfig = {
@@ -43,20 +43,20 @@ const PLAYGROUND: PlaygroundConfig = {
         pre: '',
         post: '',
         className: '',
-        wrapClass: '',
+        wrapperClassName: '',
     },
     render: (p, onValuesChange) => (
-        <Form aspect="empty" onChange={onValuesChange}>
+        <Form appearance="empty" onChange={onValuesChange}>
             <ImageUrl
                 name={p.name || 'hero'}
                 label={p.label || undefined}
                 required={p.required}
                 defaultValue={p.defaultValue}
                 mode={p.mode}
-                pre={p.pre || undefined}
-                post={p.post || undefined}
+                before={p.pre || undefined}
+                after={p.post || undefined}
                 className={p.className || undefined}
-                wrapClass={p.wrapClass || undefined}
+                wrapperClassName={p.wrapperClassName || undefined}
             />
         </Form>
     ),
@@ -70,7 +70,7 @@ export default function ImageUrlPage() {
             <Section
                 title="Image metadata"
                 preview={
-                    <Form aspect="empty">
+                    <Form appearance="empty">
                         <ImageUrl name="hero" label="Hero image" defaultValue={{ url: SAMPLE_IMAGE, width: 320, height: 180 }} />
                     </Form>
                 }

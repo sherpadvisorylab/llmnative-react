@@ -5,7 +5,7 @@ import { ActionButton } from '../../../src/components/ui/Buttons';
 
 describe('ActionButton', () => {
     it('renders badge through the shared overlay Badge component', () => {
-        render(<ActionButton label="Settings" badge={{ content: '3', type: 'danger' }} />);
+        render(<ActionButton label="Settings" badge={{ content: '3', variant: 'danger' }} />);
 
         const badge = screen.getByText('3');
 

@@ -13,7 +13,7 @@ export default function QuoteForm() {
   return (
     <Form
       dataStoragePath="/quotes"
-      aspect="card"
+      appearance="card"
       showBack
       defaultValues={{
         status: 'draft',
@@ -30,7 +30,7 @@ export default function QuoteForm() {
       <Select
         name="customerId"
         label="Customer"
-        db={{ path: "/customers", labelField: "companyName", valueField: "_key" }}
+        optionsSource={{ path: "/customers", labelField: "companyName", valueField: "_key" }}
         required
       />
 

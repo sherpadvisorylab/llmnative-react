@@ -110,7 +110,7 @@ export default function PropDocsTable({
                                     </td>
                                     <td className="align-top px-5 py-3">
                                         {prop.required ? (
-                                            <Badge type="danger">yes</Badge>
+                                            <Badge variant="danger">yes</Badge>
                                         ) : (
                                             <span className="text-xs text-muted-foreground">no</span>
                                         )}

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { Wrapper } from "./GridSystem";
 import { PLACEHOLDER_IMAGE } from "../../Theme";
 import { UIProps } from '../..';
@@ -39,9 +39,9 @@ const Image = ({
                    height       = undefined,
                    srcset       = undefined,
                    sizes        = undefined,
-                   pre          = undefined,
-                   post         = undefined,
-                   wrapClass    = undefined,
+                   before          = undefined,
+                   after         = undefined,
+                   wrapperClassName    = undefined,
                    className    = undefined
 }: ImageProps) => {
     const theme = useTheme("image");
@@ -55,8 +55,8 @@ const Image = ({
     const hoverStyle = useMotionState(hovered, hoverRef, false);
 
     return (
-        <Wrapper className={cn("flex items-center gap-4", wrapClass || theme.Image.wrapClass)}>
-            {pre && <div className="shrink-0 self-center">{pre}</div>}
+        <Wrapper className={cn("flex items-center gap-4", wrapperClassName || theme.Image.wrapperClassName)}>
+            {before && <div className="shrink-0 self-center">{before}</div>}
             <div
                 className={cn("flex min-w-0 flex-col", hasHover && "overflow-hidden")}
                 style={enterStyle}
@@ -87,7 +87,7 @@ const Image = ({
                 />
                 {feedback && <div className="feedback">{feedback}</div>}
             </div>
-            {post && <div className="shrink-0 self-center">{post}</div>}
+            {after && <div className="shrink-0 self-center">{after}</div>}
         </Wrapper>
     );
 };

@@ -1,8 +1,6 @@
 import React from "react";
 import componentLayout from "../types/Layout";
 import componentFormFields from "../types/FormFields";
-import componentBlock from "../types/Block";
-import componentSection from "../types/Section";
 import Form  from "./widgets/Form";
 import { RecordProps } from "../providers/data/DataProvider";
 
@@ -39,8 +37,8 @@ export type FormTree = {
 export const Component = {
     layout: componentLayout,
     input: componentFormFields,
-    block: componentBlock,
-    section: componentSection
+    block: {},
+    section: {},
 };
 
 

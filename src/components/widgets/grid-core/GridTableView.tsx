@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef } from "react";
+﻿import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import Table from "../../ui/Table";
 import { type RecordProps } from "../../../providers/data/DataProvider";
 import { type GridSelectionState, type GridTableViewProps } from "./types";
@@ -23,14 +23,14 @@ function GridTableView<TRecord extends RecordProps>({
     selection = false,
     selectedKeys,
     onSelectionChange,
-    onClickRow,
+    onRowClick,
     reorderable = false,
     onReorder,
     activeKey,
     groupBy,
-    wrapClass,
-    pre,
-    post,
+    wrapperClassName,
+    before,
+    after,
 }: GridTableViewProps<TRecord>) {
     const getRecordKey = useMemo(() => getRecordKeyResolver(recordId), [recordId]);
     const cellCacheRef = useRef<Map<string, Map<string, CellCacheEntry<TRecord>>>>(new Map());
@@ -98,17 +98,17 @@ function GridTableView<TRecord extends RecordProps>({
 
     return (
         <Table
-            header={columns.map((column) => ({
+            columns={columns.map((column) => ({
                 key: String(column.key),
                 label: column.label,
                 className: column.className,
                 sort: column.sortable,
             }))}
-            body={records}
+            records={records}
             sortable={sortable}
             pagination={pagination}
             renderCell={renderCell}
-            selectionMode={selection === "single" ? "single" : "multiple"}
+            selection={selection === "single" ? "single" : "multiple"}
             selectedKeys={selection ? selectedKeys : undefined}
             onSelectionChange={selection ? (nextSelection) => {
                 const keySet = new Set(nextSelection.keys);
@@ -135,10 +135,10 @@ function GridTableView<TRecord extends RecordProps>({
                 };
                 onSelectionChange?.(payload);
             } : undefined}
-            onClick={onClickRow ? (record) => {
+            onRowClick={onRowClick ? (record) => {
                 const key = getRecordKey(record as TRecord);
                 const sourceRecord = sourceByKey.get(key);
-                if (sourceRecord) onClickRow(sourceRecord);
+                if (sourceRecord) onRowClick(sourceRecord);
             } : undefined}
             onReorder={reorderable && onReorder ? (reorderedDisplayRecords, meta) => {
                 const reorderedRecords = reorderedDisplayRecords
@@ -154,11 +154,12 @@ function GridTableView<TRecord extends RecordProps>({
             } : undefined}
             activeKey={activeKey}
             groupBy={groupBy as string | string[] | undefined}
-            wrapClass={wrapClass}
-            pre={pre}
-            post={post}
+            wrapperClassName={wrapperClassName}
+            before={before}
+            after={after}
         />
     );
 }
 
 export default GridTableView;
+

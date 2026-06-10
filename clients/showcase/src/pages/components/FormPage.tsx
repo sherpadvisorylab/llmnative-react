@@ -41,7 +41,7 @@ function WithMock({ children }: { children: React.ReactNode }) {
 const FORM_PROPS: PropDef[] = [
     { name: 'path', type: 'string', description: 'Collection path (e.g. /users). Appended with record._key on save.', control: 'text' },
     { name: 'defaultValues', type: 'object', description: 'Initial field values. Include _key to signal edit mode (isNewRecord = false → Save + Delete shown).' },
-    { name: 'aspect', type: '"card" | "none"', default: '"none"', description: 'Visual wrapper style', control: 'select', options: ['none', 'card'] },
+    { name: 'appearance', type: '"card" | "none"', default: '"none"', description: 'Visual wrapper style', control: 'select', options: ['none', 'card'] },
     { name: 'showBack', type: 'boolean', default: 'false', description: 'Show a back navigation button', control: 'boolean' },
     { name: 'keyGenerator', type: '(record) => string', description: 'Custom primary key generator for new records. Presence forces create mode (no DB read).' },
     { name: 'onLoad', type: '(data: object) => object', description: 'Transform record data after loading (e.g. unit conversions)' },
@@ -73,14 +73,14 @@ type FormDeleteArgs = {
 }`,
     },
     {
-        name: 'onFinally',
-        type: 'FormFinallyHandler',
+        name: 'onComplete',
+        type: 'FormCompleteHandler',
         description: 'Called after save or delete. Return true to close modal, false to stay.',
-        shape: `type FormFinallyHandler = (
-  args: FormFinallyArgs
+        shape: `type FormCompleteHandler = (
+  args: FormCompleteArgs
 ) => Promise<boolean>
 
-type FormFinallyArgs = {
+type FormCompleteArgs = {
   record?: RecordProps;
   action: "create" | "update" | "delete";
 }`,
@@ -94,7 +94,7 @@ const PLAYGROUND: PlaygroundConfig = {
     props: FORM_PROPS,
     defaultProps: {
         path: '/users/user_1',
-        aspect: 'card',
+        appearance: 'card',
         showBack: false,
     },
     mockSeed: PLAYGROUND_SEED,
@@ -102,9 +102,9 @@ const PLAYGROUND: PlaygroundConfig = {
         <div className="w-full max-w-lg">
             <Form
                 path={p.path || '/users/user_1'}
-                aspect={p.aspect}
+                appearance={p.appearance}
                 showBack={p.showBack}
-                onFinally={async () => false}
+                onComplete={async () => false}
             >
                 <Input name="name"  label="Full name" required />
                 <Input name="email" label="Email" type="email" />
@@ -134,9 +134,9 @@ export default function FormPage() {
                             <Form
                                 path="/users"
                                 defaultValues={{ role: 'viewer', status: 'active' }}
-                                aspect="card"
+                                appearance="card"
                                 keyGenerator={() => `user_${Date.now()}`}
-                                onFinally={async () => { alert('Saved!'); return false; }}
+                                onComplete={async () => { alert('Saved!'); return false; }}
                             >
                                 <Input name="name"  label="Full name" required />
                                 <Input name="email" label="Email" type="email" required />
@@ -155,7 +155,7 @@ const mockProvider = new MockDataProvider();
     <Form
         path="/users"
         defaultValues={{ role: 'viewer', status: 'active' }}
-        aspect="card"
+        appearance="card"
         keyGenerator={() => \`user_\${Date.now()}\`}
     >
         <Input   name="name"   label="Full name" required />
@@ -176,8 +176,8 @@ const mockProvider = new MockDataProvider();
                         <div className="w-full max-w-lg">
                             <Form
                                 path="/users/user_1"
-                                aspect="card"
-                                onFinally={async () => { alert('Saved!'); return false; }}
+                                appearance="card"
+                                onComplete={async () => { alert('Saved!'); return false; }}
                             >
                                 <Input name="name"  label="Full name" required />
                                 <Input name="email" label="Email" type="email" />
@@ -189,7 +189,7 @@ const mockProvider = new MockDataProvider();
                     </WithMock>
                 }
                 code={`// path="/users/user_1" → reads /users/user_1, saves back to same path
-<Form path="/users/user_1" aspect="card">
+<Form path="/users/user_1" appearance="card">
     <Input  name="name"   label="Full name" required />
     <Input  name="email"  label="Email" type="email" />
     <Select name="role"   label="Role"   options={ROLES}  />
@@ -200,7 +200,7 @@ const mockProvider = new MockDataProvider();
             {/* ── Lifecycle hooks ── */}
             <Section
                 title="Lifecycle hooks"
-                description="onLoad transforms data after reading. onSave transforms before writing. onFinally runs after every action."
+                description="onLoad transforms data after reading. onSave transforms before writing. onComplete runs after every action."
                 preview={
                     <div className="text-sm text-muted-foreground italic p-4">
                         Code example - hooks are not visually distinct from a standard form.
@@ -211,7 +211,7 @@ const mockProvider = new MockDataProvider();
     // prices stored as cents in DB, displayed as euros
     onLoad={(data) => ({ ...data, price: data.price / 100 })}
     onSave={async ({ record }) => ({ ...record, price: record.price * 100 })}
-    onFinally={async ({ action }) => {
+    onComplete={async ({ action }) => {
         if (action === 'save') navigate('/products');
         return true; // true = close modal / navigate
     }}
@@ -229,8 +229,8 @@ const mockProvider = new MockDataProvider();
                     <WithMock>
                         <div className="w-full max-w-lg">
                             <Form
-                                aspect="card"
-                                onFinally={async () => { alert('Saved!'); return false; }}
+                                appearance="card"
+                                onComplete={async () => { alert('Saved!'); return false; }}
                             >
                                 <Input name="address.city"   label="City"    />
                                 <Input name="address.zip"    label="ZIP"     />

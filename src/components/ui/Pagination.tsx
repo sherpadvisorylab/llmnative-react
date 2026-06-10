@@ -1,35 +1,46 @@
-import React, { useMemo, useState, useEffect } from 'react';
+﻿import React, { useMemo, useState, useEffect } from 'react';
 import { UIProps, Wrapper } from "../index";
 import { createPortal } from 'react-dom';
 import { useTheme } from '../../Theme';
 
+/**
+ * Pagination configuration shared between `<Pagination>` and `<Grid pagination={...}>`.
+ * All fields are optional — omit `limit` to disable pagination entirely.
+ */
 export type PaginationParams = {
+    /** Initial page (1-based). Defaults to `1`. */
     page?: number;
+    /** Records per page. Omit to show all records unpaginated. */
     limit?: number;
-    navLimit?: number;
+    /** Maximum page-number buttons to render before collapsing to ellipsis. */
+    maxPageButtons?: number;
+    /** Scroll the page back to the top on page change. */
     scrollToTopOnChange?: boolean;
+    /** `scrollIntoView` scroll behavior when `scrollToTopOnChange` is enabled. */
     scrollBehavior?: ScrollBehavior;
+    /** Horizontal alignment of the page-button bar: `"start"`, `"center"`, or `"end"`. */
     align?: "start" | "center" | "end";
+    /** Stick the pagination bar to the bottom of the viewport while scrolling. */
     sticky?: boolean;
 };
 
 interface PaginationProps<T> extends UIProps, PaginationParams {
-    recordSet: T[];
+    records: T[];
     children: (pageRecords: T[], pageOffset: number) => React.ReactNode;
     appendTo?: HTMLElement | null;
 }
 
 const Pagination = <T,>({
-    recordSet,
+    records,
     children,
     limit = undefined,
     page = undefined,
-    navLimit = undefined,
+    maxPageButtons = undefined,
     appendTo = undefined,
-    pre = undefined,
-    post = undefined,
+    before = undefined,
+    after = undefined,
     className = undefined,
-    wrapClass = undefined,
+    wrapperClassName = undefined,
     scrollToTopOnChange = undefined,
     scrollBehavior = undefined,
     align = undefined,
@@ -46,15 +57,15 @@ const Pagination = <T,>({
         }
     }, [page]);*/
 
-    const pageLimit = limit || recordSet.length;
-    const totalPages = Math.ceil(recordSet.length / pageLimit);
+    const pageLimit = limit || records.length;
+    const totalPages = Math.ceil(records.length / pageLimit);
 
     const pageOffset = (currentPage - 1) * pageLimit;
     const end = pageOffset + pageLimit;
 
     const pageRecords = useMemo(
-        () => recordSet.slice(pageOffset, end),
-        [recordSet, pageOffset, end]
+        () => records.slice(pageOffset, end),
+        [records, pageOffset, end]
     );
 
     const go = (p: number) => {
@@ -73,7 +84,7 @@ const Pagination = <T,>({
     }, [currentPage, scrollToTopOnChange, scrollBehavior]);
 
     const range = useMemo(() => {
-        const max = Math.min(navLimit || theme.Pagination.maxItems, totalPages);
+        const max = Math.min(maxPageButtons || theme.Pagination.maxItems, totalPages);
 
         let s = Math.max(1, currentPage - Math.floor(max / 2));
         let e = s + max - 1;
@@ -84,7 +95,7 @@ const Pagination = <T,>({
         }
 
         return Array.from({ length: e - s + 1 }, (_, i) => s + i);
-    }, [currentPage, navLimit, totalPages]);
+    }, [currentPage, maxPageButtons, totalPages]);
 
     const disabledPrev = currentPage === 1 ? 'disabled' : '';
     const disabledNext = currentPage === totalPages ? 'disabled' : '';
@@ -96,12 +107,12 @@ const Pagination = <T,>({
     }[resolvedAlign as "start" | "center" | "end"] || "justify-end";
 
     const nav = (
-        <Wrapper className={(wrapClass || theme.Pagination.wrapClass) + (sticky || theme.Pagination.sticky ? ` ${theme.Pagination.stickyClass}` : '')}
+        <Wrapper className={(wrapperClassName || theme.Pagination.wrapperClassName) + (sticky || theme.Pagination.sticky ? ` ${theme.Pagination.stickyClassName}` : '')}
             style={sticky || theme.Pagination.sticky ? {backdropFilter: "blur(10px)", backgroundColor: "rgba(255, 255, 255, 0.1)"} : {}}
         >
-            {pre}
+            {before}
 
-            {recordSet.length > pageLimit && (
+            {records.length > pageLimit && (
                 <nav aria-label="Page navigation" className={`${className || theme.Pagination.className} flex w-full ${alignmentClass}`}>
                     <ul className="pagination">
 
@@ -156,7 +167,7 @@ const Pagination = <T,>({
                 </nav>
             )}
 
-            {post}
+            {after}
         </Wrapper>
     );
 

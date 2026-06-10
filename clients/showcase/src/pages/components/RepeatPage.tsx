@@ -14,8 +14,8 @@ const REPEAT_PROPS: PropDef[] = [
     { name: 'onRemove', type: '(index: number) => void', description: 'Called after removing an item' },
     { name: 'className', type: 'string', description: 'CSS classes on root wrapper', control: 'text' },
     { name: 'layout', type: '"vertical" | "horizontal" | "inline"', default: '"horizontal"', description: 'Repeat layout variant', control: 'select', options: ['horizontal', 'inline'] },
-    { name: 'min', type: 'number', description: 'Minimum number of items', control: 'number', min: 0, max: 5 },
-    { name: 'max', type: 'number', description: 'Maximum number of items', control: 'number', min: 1, max: 8 },
+    { name: 'minItems', type: 'number', description: 'Minimum number of items', control: 'number', min: 0, max: 5 },
+    { name: 'maxItems', type: 'number', description: 'Maximum number of items', control: 'number', min: 1, max: 8 },
     { name: 'label', type: 'string', description: 'Section label with add action', control: 'text' },
     { name: 'readOnly', type: 'boolean', default: 'false', description: 'Hides add/remove actions', control: 'boolean' },
 ];
@@ -27,14 +27,14 @@ const PLAYGROUND: PlaygroundConfig = {
         name: 'items',
         className: '',
         layout: 'horizontal',
-        min: 1,
-        max: 4,
+        minItems: 1,
+        maxItems: 4,
         label: 'Items',
         readOnly: false,
     },
     render: (p, onValuesChange) => (
         <Form
-            aspect="empty"
+            appearance="empty"
             defaultValues={{ [p.name || 'items']: [{ name: 'First item' }] }}
             onChange={onValuesChange}
         >
@@ -42,8 +42,8 @@ const PLAYGROUND: PlaygroundConfig = {
                 name={p.name || 'items'}
                 className={p.className || undefined}
                 layout={p.layout || 'horizontal'}
-                min={p.min}
-                max={p.max}
+                minItems={p.minItems}
+                maxItems={p.maxItems}
                 label={p.label || undefined}
                 readOnly={p.readOnly}
             >
@@ -61,8 +61,8 @@ export default function RepeatPage() {
             <Section
                 title="Repeated fields"
                 preview={
-                    <Form aspect="empty" defaultValues={{ items: [{ name: 'Design' }, { name: 'Build' }] }}>
-                        <Repeat name="items" label="Tasks" min={1} max={5}>
+                    <Form appearance="empty" defaultValues={{ items: [{ name: 'Design' }, { name: 'Build' }] }}>
+                        <Repeat name="items" label="Tasks" minItems={1} maxItems={5}>
                             <Input name="name" label="Task name" />
                         </Repeat>
                     </Form>
@@ -70,7 +70,7 @@ export default function RepeatPage() {
                 code={`import { Form, Input, Repeat } from '@llmnative/react';
 
 <Form defaultValues={{ items: [{ name: 'Design' }] }}>
-    <Repeat name="items" label="Tasks" min={1} max={5}>
+    <Repeat name="items" label="Tasks" minItems={1} maxItems={5}>
         <Input name="name" label="Task name" />
     </Repeat>
 </Form>`}

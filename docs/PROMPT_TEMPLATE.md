@@ -118,7 +118,7 @@ const arr = await AI.array("5 tags")
 ```
 
 ## Naming rules — CRITICAL
-- DO NOT use: layout for view selection (use `view`), aspect for visual shell (use `appearance`), pre/post (use `pre`/`post` is ok but `before`/`after` preferred)
+- DO NOT use: layout for view selection (use `view`), aspect for visual shell (use `appearance`), pre/post (use `before`/`after`)
 - ALWAYS prefer semantic prop names: variant, view, appearance, mode, position, size
 - NEVER add comments to generated code unless asked
 - NEVER use emojis in generated code

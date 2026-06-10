@@ -11,8 +11,8 @@ export default function LlmnativeModal({ header, size, onClose, children }: Play
             onClose={onClose}
             closeOnBackdrop
             buttonFullscreen={false}
-            headerClass="h-14 !py-0 px-4"
-            bodyClass="min-h-0 flex-1 overflow-hidden p-4"
+            headerClassName="h-14 !py-0 px-4"
+            bodyClassName="min-h-0 flex-1 overflow-hidden p-4"
             footer={false}
             zIndex={31}
         >

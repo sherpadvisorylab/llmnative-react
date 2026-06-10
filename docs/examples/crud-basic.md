@@ -92,7 +92,7 @@ export default function UserEdit() {
     <Form
       dataStoragePath="/users"
       recordId={id}
-      aspect="card"
+      appearance="card"
       showBack
       defaultValues={{ role: 'user', active: true }}
       onSave={async ({ record, isNewRecord }) => ({
@@ -100,7 +100,7 @@ export default function UserEdit() {
         updatedAt: Date.now(),
         ...(isNewRecord && { createdAt: Date.now() }),
       })}
-      onFinally={async ({ action }) => {
+      onComplete={async ({ action }) => {
         navigate('/users')
         return true
       }}

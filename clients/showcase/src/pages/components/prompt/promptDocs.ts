@@ -46,7 +46,7 @@ export const PROMPT_LIVE_PROPS: PropDef[] = [
 
 export const PROMPT_PLAIN_PROPS: PropDef[] = [
     { name: 'mode', type: '"run"', default: '"run"', description: 'Plain fallback still uses run mode, but with `defaultValue.enabled` disabled.', group: 'Specific' },
-    { name: 'renderPlainFallback', type: '(props) => ReactNode', description: 'Custom renderer shown when prompt mode is disabled and the component falls back to a plain textarea.', group: 'Specific' },
+    { name: 'renderFallback', type: '(props) => ReactNode', description: 'Custom renderer shown when prompt mode is disabled and the component falls back to a plain textarea.', group: 'Specific' },
 ];
 
 export const PROMPT_AVAILABILITY_PROPS: PropDef[] = [

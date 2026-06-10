@@ -1,22 +1,22 @@
-import React from 'react';
+﻿import React from 'react';
 import {useTheme} from "../../Theme";
 import {Wrapper} from "./GridSystem";
 import Loader from "./Loader";
 import { UIProps } from '../..';
 import { cn } from '../../libs/cn';
 
-interface CardProps extends UIProps {
+export interface CardProps extends UIProps {
     children: React.ReactNode;
     title?: string;
     header?: string | React.ReactNode;
     footer?: string | React.ReactNode;
-    headerClass?: string;
-    bodyClass?: string;
-    footerClass?: string;
-    showLoader?: boolean;
+    headerClassName?: string;
+    bodyClassName?: string;
+    footerClassName?: string;
+    loading?: boolean;
     showArrow?: boolean;
-    pre?: React.ReactNode;
-    post?: React.ReactNode;
+    before?: React.ReactNode;
+    after?: React.ReactNode;
 }
 
 const Card = ({
@@ -24,37 +24,37 @@ const Card = ({
     title         = undefined,
     header        = undefined,
     footer        = undefined,
-    showLoader    = undefined,
+    loading    = undefined,
     showArrow     = undefined,
-    wrapClass     = undefined,
+    wrapperClassName     = undefined,
     className     = undefined,
-    headerClass   = undefined,
-    bodyClass     = undefined,
-    footerClass   = undefined,
-    pre           = undefined,
-    post          = undefined,
+    headerClassName   = undefined,
+    bodyClassName     = undefined,
+    footerClassName   = undefined,
+    before           = undefined,
+    after          = undefined,
 }: CardProps) => {
   const theme = useTheme("card");
 
-  const resolvedWrapClass = wrapClass ?? theme.Card.wrapClass ?? ((pre || post) ? 'flex items-center gap-2' : undefined);
+  const resolvedWrapClass = wrapperClassName ?? theme.Card.wrapperClassName ?? ((before || after) ? 'flex items-center gap-2' : undefined);
 
   return (
     <Wrapper className={resolvedWrapClass}>
-        {pre}
+        {before}
         <div className={cn("card", className || theme.Card.className)}>
           {(header || title) &&
-            <div className={cn("card-header", headerClass || theme.Card.headerClass)}>
+            <div className={cn("card-header", headerClassName || theme.Card.headerClassName)}>
                 {title ? <h5 className="m-0 text-base font-semibold leading-none whitespace-nowrap">{title}</h5> : ""}
                 {header}
             </div>
           }
 
-          <div className={cn("card-body", bodyClass || theme.Card.bodyClass)}>
-              <Loader show={showLoader || theme.Card.showLoader}>
+          <div className={cn("card-body", bodyClassName || theme.Card.bodyClassName)}>
+              <Loader show={loading || theme.Card.loading}>
                 {children}
               </Loader>
           </div>
-          {footer && <div className={cn("card-footer", footerClass || theme.Card.footerClass)}>{footer}</div>}
+          {footer && <div className={cn("card-footer", footerClassName || theme.Card.footerClassName)}>{footer}</div>}
           {(showArrow || theme.Card.showArrow) &&
             <div className="card-arrow">
               <div className="card-arrow-top-left" />
@@ -64,7 +64,7 @@ const Card = ({
             </div>
           }
         </div>
-        {post}
+        {after}
     </Wrapper>
   );
 };

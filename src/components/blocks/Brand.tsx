@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import {Link} from "react-router-dom";
 import {PLACEHOLDER_BRAND, useTheme} from "../../Theme";
 import Image from "../ui/Image";
@@ -10,10 +10,10 @@ type BrandProps = {
     logo?: string;
     width?: number;
     height?: number;
-    wrapClass ?: string;
+    wrapperClassName ?: string;
     className?: string;
-    logoClass?: string;
-    labelClass?: string;
+    logoClassName?: string;
+    labelClassName?: string;
 };
 
 const Brand = ({
@@ -22,10 +22,10 @@ const Brand = ({
                    logo          = undefined,
                    width        = undefined,
                    height       = 36,
-                   wrapClass    = undefined,
+                   wrapperClassName    = undefined,
                    className    = undefined,
-                   logoClass    = undefined,
-                   labelClass   = undefined
+                   logoClassName    = undefined,
+                   labelClassName   = undefined
 }: BrandProps) => {
     const theme = useTheme("brand");
     const Logo = <>
@@ -33,14 +33,14 @@ const Brand = ({
                width={width}
                height={height}
         />
-        {label && <span className={labelClass || theme.Brand.labelClass}>{label}</span>}
+        {label && <span className={labelClassName || theme.Brand.labelClassName}>{label}</span>}
     </>
 
-    return (<Wrapper className={wrapClass}>
+    return (<Wrapper className={wrapperClassName}>
         <div className={className || theme.Brand.className}>
             {url
-                ? <Link to={url} className={logoClass || theme.Brand.logoClass}>{Logo}</Link>
-                : <span className={logoClass || theme.Brand.logoClass}>{Logo}</span>
+                ? <Link to={url} className={logoClassName || theme.Brand.logoClassName}>{Logo}</Link>
+                : <span className={logoClassName || theme.Brand.logoClassName}>{Logo}</span>
             }
         </div>
     </Wrapper>);

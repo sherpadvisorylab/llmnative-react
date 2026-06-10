@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+﻿import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { type FormRef } from "../Form";
 import Form from "../Form";
@@ -35,7 +35,7 @@ type UseGridActionsArgs<TRecord extends RecordProps> = {
     db: DataProviderAdapter;
     onSave?: (args: { record?: TRecord; action: "create" | "update"; storagePath?: string }) => Promise<string | undefined>;
     onDelete?: (args: { record?: TRecord }) => Promise<string | undefined>;
-    onAfterAction?: (args: { record?: TRecord; action: "create" | "update" | "delete" }) => Promise<boolean>;
+    onComplete?: (args: { record?: TRecord; action: "create" | "update" | "delete" }) => Promise<boolean>;
     audit?: boolean;
 };
 
@@ -55,7 +55,7 @@ function useGridActions<TRecord extends RecordProps>({
     db,
     onSave,
     onDelete,
-    onAfterAction,
+    onComplete,
     audit = false,
 }: UseGridActionsArgs<TRecord>) {
     const location = useLocation();
@@ -86,10 +86,10 @@ function useGridActions<TRecord extends RecordProps>({
                 : undefined;
         if (!storagePath && !onDelete) return false;
         if (storagePath) await db.remove(storagePath);
-        const result = await onAfterAction?.({ record, action: "delete" }) ?? true;
+        const result = await onComplete?.({ record, action: "delete" }) ?? true;
         if (result && closeOnSuccess) close();
         return result;
-    }, [close, db, getRecordKey, onAfterAction, onDelete, sourcePath]);
+    }, [close, db, getRecordKey, onComplete, onDelete, sourcePath]);
 
     const saveCurrentAction = useCallback(async () => (
         formRef.current?.handleSave({ preventDefault: () => undefined } as React.MouseEvent<HTMLButtonElement>) ?? false
@@ -232,7 +232,7 @@ function useGridActions<TRecord extends RecordProps>({
 
             return (
                 <Form
-                    aspect="empty"
+                    appearance="empty"
                     defaultValues={activeAction.record}
                     log={audit}
                     onSave={onSave ? async ({ record, action, storagePath }) => (
@@ -247,8 +247,8 @@ function useGridActions<TRecord extends RecordProps>({
                             record: record as TRecord | undefined,
                         })
                     ) : undefined}
-                    onFinally={async ({ record, action }) => {
-                        const success = await onAfterAction?.({ record: record as TRecord | undefined, action }) ?? true;
+                    onComplete={async ({ record, action }) => {
+                        const success = await onComplete?.({ record: record as TRecord | undefined, action }) ?? true;
                         if (success) close();
                         return success;
                     }}
@@ -267,7 +267,7 @@ function useGridActions<TRecord extends RecordProps>({
         }
 
         return null;
-    }, [activeAction, activeActionConfig, audit, close, form, getActionContext, getModalActionContext, getRecordKey, onAfterAction, onDelete, onSave, sourcePath]);
+    }, [activeAction, activeActionConfig, audit, close, form, getActionContext, getModalActionContext, getRecordKey, onComplete, onDelete, onSave, sourcePath]);
 
     return {
         normalizedActions,

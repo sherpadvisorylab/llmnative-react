@@ -1,4 +1,4 @@
-import React, { useEffect, useId, useState } from 'react';
+﻿import React, { useEffect, useId, useState } from 'react';
 import { isEmpty, isInteractiveElement } from "../../../libs/utils";
 import { Wrapper } from "../GridSystem";
 import { ActionButton, Icon, UIProps } from '../../..';
@@ -9,13 +9,14 @@ import { cn } from '../../../libs/cn';
 interface BaseInputProps extends FormFieldProps {
     placeholder?: string;
     type?: InputType;
-    updatable?: boolean;
+    /** When `true`, the field becomes read-only (disabled) once a value has been set. */
+    readOnlyAfterSet?: boolean;
     disabled?: boolean;
     feedback?: string;
     min?: number;
     max?: number;
     step?: number;
-    inputId?: string;
+    id?: string;
     labelClassName?: string;
     validator?: (value: FieldValue) => string | undefined;
 }
@@ -37,13 +38,14 @@ export interface CheckboxProps extends FormFieldProps {
 
 export interface TextAreaProps extends FormFieldProps {
     placeholder?: string;
-    updatable?: boolean;
+    /** When `true`, the textarea becomes read-only (disabled) once a value has been set. */
+    readOnlyAfterSet?: boolean;
     disabled?: boolean;
     rows?: number;
     maxRows?: number;
     feedback?: string;
-    useRef?: React.RefObject<HTMLTextAreaElement | null> | ((el: HTMLTextAreaElement | null) => void) | undefined;
-    inputId?: string;
+    textareaRef?: React.RefObject<HTMLTextAreaElement | null> | ((el: HTMLTextAreaElement | null) => void) | undefined;
+    id?: string;
     labelClassName?: string;
     validator?: (value: FieldValue) => string | undefined;
 }
@@ -54,10 +56,10 @@ export interface ListGroupProps extends UIProps {
     label?: string;
     draggable?: boolean;
     onDrop?: (text: string) => string;
-    actives?: number[];
-    disables?: number[];
-    loaders?: number[];
-    itemClass?: string;
+    activeIndices?: number[];
+    disabledIndices?: number[];
+    loadingIndices?: number[];
+    itemClassName?: string;
 }
 
 export const fieldLabelClass = "mb-1 block text-sm font-medium leading-5 text-foreground";
@@ -67,11 +69,11 @@ export const fieldTextAreaBaseClass = "flex min-h-[5rem] w-full rounded-md borde
 export const fieldGroupClass = "flex w-full items-stretch";
 export const fieldAddonClass = "inline-flex shrink-0 items-center border border-input bg-muted px-3 py-1 text-sm text-muted-foreground";
 
-const withFieldEdges = (baseClass: string, { pre, post }: { pre?: React.ReactNode; post?: React.ReactNode }) =>
+const withFieldEdges = (baseClass: string, { before, after }: { before?: React.ReactNode; after?: React.ReactNode }) =>
     cn(
         baseClass,
-        pre && "!rounded-l-none",
-        post && "!rounded-r-none"
+        before && "!rounded-l-none",
+        after && "!rounded-r-none"
     );
 
 const FieldAddon = ({
@@ -79,12 +81,12 @@ const FieldAddon = ({
     side,
 }: {
     children: React.ReactNode;
-    side: 'pre' | 'post';
+    side: 'before' | 'after';
 }) => (
     <span
         className={cn(
             fieldAddonClass,
-            side === 'pre' ? "rounded-l-md rounded-r-none border-r-0" : "rounded-l-none rounded-r-md border-l-0"
+            side === 'before' ? "rounded-l-md rounded-r-none border-r-0" : "rounded-l-none rounded-r-md border-l-0"
         )}
     >
         {children}
@@ -105,30 +107,30 @@ export const FieldError = ({ message }: { message: string }) => (
 const useCheckboxField = ({
     name,
     onChange,
-    wrapClass,
+    wrapperClassName,
     defaultValue,
     valueChecked,
-    inheritFormWrapClass,
+    inheritWrapperClassName,
 }: {
     name: string;
     onChange?: CheckboxProps["onChange"];
-    wrapClass?: string;
+    wrapperClassName?: string;
     defaultValue?: FieldValue;
     valueChecked: string | number;
-    inheritFormWrapClass?: boolean;
+    inheritWrapperClassName?: boolean;
 }) => {
     const toValueString = (v: FieldValue): string => (v == null ? "" : `${v}`);
 
     const { value, handleChange, formWrapClass } = useFormContext({
         name,
         onChange,
-        wrapClass,
+        wrapperClassName,
         inputType: typeof valueChecked === "number" ? "number" : "text",
         defaultValue:
             defaultValue !== undefined
                 ? (toValueString(defaultValue) === toValueString(valueChecked) ? toValueString(valueChecked) : "")
                 : undefined,
-        inheritFormWrapClass,
+        inheritWrapperClassName,
     });
 
     const id = useId();
@@ -159,40 +161,40 @@ export const Input = ({
     label = undefined,
     type = "text",
     required = false,
-    updatable = true,
+    readOnlyAfterSet = false,
     disabled = false,
-    pre = undefined,
-    post = undefined,
+    before = undefined,
+    after = undefined,
     feedback = undefined,
     min = undefined,
     max = undefined,
     step = undefined,
-    inputId = undefined,
+    id = undefined,
     labelClassName = undefined,
-    inheritFormWrapClass = true,
-    wrapClass = undefined,
+    inheritWrapperClassName = true,
+    wrapperClassName = undefined,
     className = undefined,
     validator = undefined,
 }: BaseInputProps) => {
-    const { value, handleChange, formWrapClass } = useFormContext({ name, onChange, wrapClass, inputType: type, defaultValue, inheritFormWrapClass });
+    const { value, handleChange, formWrapClass } = useFormContext({ name, onChange, wrapperClassName, inputType: type, defaultValue, inheritWrapperClassName });
     const error = useFieldValidation(name, { required, label, validator });
     const generatedId = useId();
-    const id = inputId || generatedId;
+    const elementId = id ?? generatedId;
     const handleDrop = useHandleDrop({ name, value, handleChange });
 
     return (
         <Wrapper className={formWrapClass}>
-            {label && <Label label={label} required={required} htmlFor={id} className={labelClassName} />}
-            <Wrapper className={pre || post ? fieldGroupClass : ""}>
-                {pre && <FieldAddon side="pre">{pre}</FieldAddon>}
+            {label && <Label label={label} required={required} htmlFor={elementId} className={labelClassName} />}
+            <Wrapper className={before || after ? fieldGroupClass : ""}>
+                {before && <FieldAddon side="before">{before}</FieldAddon>}
                 <input
-                    id={id}
+                    id={elementId}
                     type={type}
                     name={name}
-                    className={withFieldEdges(cn(fieldControlBaseClass, error && 'border-destructive focus-visible:ring-destructive/20', className), { pre, post })}
+                    className={withFieldEdges(cn(fieldControlBaseClass, error && 'border-destructive focus-visible:ring-destructive/20', className), { before, after })}
                     placeholder={placeholder}
                     required={required}
-                    disabled={disabled || (!updatable && !isEmpty(value))}
+                    disabled={disabled || (readOnlyAfterSet && !isEmpty(value))}
                     value={(value as string | number | undefined) ?? ''}
                     onChange={handleChange}
                     min={min}
@@ -201,7 +203,7 @@ export const Input = ({
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={handleDrop}
                 />
-                {post && <FieldAddon side="post">{post}</FieldAddon>}
+                {after && <FieldAddon side="after">{after}</FieldAddon>}
             </Wrapper>
             {error
                 ? <FieldError message={error} />
@@ -226,7 +228,7 @@ export const Email = (props: InputProps) => (
 export const Password = (props: InputProps) => {
     const [visible, setVisible] = useState(false);
 
-    return <Input {...props} type={visible ? "text" : "password"} post={
+    return <Input {...props} type={visible ? "text" : "password"} after={
         <ActionButton
             className="p-0 border-0"
             icon={visible ? "eye" : "eye-slash"}
@@ -280,26 +282,26 @@ export const Checkbox = ({
     ariaLabel = undefined,
     required = false,
     valueChecked = "on",
-    pre = undefined,
-    post = undefined,
-    inheritFormWrapClass = true,
-    wrapClass = undefined,
+    before = undefined,
+    after = undefined,
+    inheritWrapperClassName = true,
+    wrapperClassName = undefined,
     className = undefined
 }: CheckboxProps) => {
     const { id, checked, formWrapClass, handleCheckboxChange } = useCheckboxField({
         name,
         onChange,
-        wrapClass,
+        wrapperClassName,
         defaultValue,
         valueChecked,
-        inheritFormWrapClass,
+        inheritWrapperClassName,
     });
     const error = useFieldValidation(name, { required, label });
 
     return (
         <Wrapper className={formWrapClass}>
             <div className="flex items-center gap-2">
-                {pre}
+                {before}
                 <input
                     type="checkbox"
                     id={id}
@@ -317,7 +319,7 @@ export const Checkbox = ({
                     {label}
                     {required && <span className="text-danger">&nbsp;*</span>}
                 </label>}
-                {post}
+                {after}
             </div>
             {error && <FieldError message={error} />}
         </Wrapper>
@@ -333,26 +335,26 @@ export const Switch = ({
     ariaLabel = undefined,
     required = false,
     valueChecked = "on",
-    pre = undefined,
-    post = undefined,
-    inheritFormWrapClass = true,
-    wrapClass = undefined,
+    before = undefined,
+    after = undefined,
+    inheritWrapperClassName = true,
+    wrapperClassName = undefined,
     className = undefined
 }: CheckboxProps) => {
     const { id, checked, formWrapClass, handleCheckboxChange } = useCheckboxField({
         name,
         onChange,
-        wrapClass,
+        wrapperClassName,
         defaultValue,
         valueChecked,
-        inheritFormWrapClass,
+        inheritWrapperClassName,
     });
     const error = useFieldValidation(name, { required, label });
 
     return (
         <Wrapper className={formWrapClass}>
             <div className="flex items-center gap-2">
-                {pre}
+                {before}
                 <label htmlFor={id} className="inline-flex cursor-pointer items-center gap-2 select-none">
                     <input
                         id={id}
@@ -386,7 +388,7 @@ export const Switch = ({
                         </span>
                     )}
                 </label>
-                {post}
+                {after}
             </div>
             {error && <FieldError message={error} />}
         </Wrapper>
@@ -413,39 +415,39 @@ export const TextArea = ({
     placeholder = undefined,
     label = undefined,
     required = false,
-    updatable = true,
+    readOnlyAfterSet = false,
     disabled = false,
     rows = undefined,
     maxRows = undefined,
-    useRef = undefined,
-    pre = undefined,
-    post = undefined,
+    textareaRef = undefined,
+    before = undefined,
+    after = undefined,
     feedback = undefined,
-    inputId = undefined,
+    id = undefined,
     labelClassName = undefined,
-    inheritFormWrapClass = true,
+    inheritWrapperClassName = true,
     className = undefined,
-    wrapClass = undefined,
+    wrapperClassName = undefined,
     validator = undefined,
 }: TextAreaProps) => {
-    const { value, handleChange, formWrapClass } = useFormContext({ name, onChange, wrapClass, defaultValue, inheritFormWrapClass });
+    const { value, handleChange, formWrapClass } = useFormContext({ name, onChange, wrapperClassName, defaultValue, inheritWrapperClassName });
     const error = useFieldValidation(name, { required, label, validator });
 
     const generatedId = useId();
-    const id = inputId || generatedId;
+    const elementId = id ?? generatedId;
     const handleDrop = useHandleDrop({ name, value, handleChange });
     const internalRef = React.useRef<HTMLTextAreaElement | null>(null);
 
     const assignRef = (el: HTMLTextAreaElement | null) => {
         internalRef.current = el;
 
-        if (typeof useRef === "function") {
-            useRef(el);
+        if (typeof textareaRef === "function") {
+            textareaRef(el);
             return;
         }
 
-        if (useRef && typeof useRef === "object" && "current" in useRef) {
-            (useRef as { current: HTMLTextAreaElement | null }).current = el;
+        if (textareaRef && typeof textareaRef === "object" && "current" in textareaRef) {
+            (textareaRef as { current: HTMLTextAreaElement | null }).current = el;
         }
     };
 
@@ -486,24 +488,24 @@ export const TextArea = ({
 
     return (
         <Wrapper className={formWrapClass}>
-            {label && <Label required={required} label={label} htmlFor={id} className={labelClassName} />}
-            <Wrapper className={pre || post ? fieldGroupClass : ""}>
-                {pre && <FieldAddon side="pre">{pre}</FieldAddon>}
+            {label && <Label required={required} label={label} htmlFor={elementId} className={labelClassName} />}
+            <Wrapper className={before || after ? fieldGroupClass : ""}>
+                {before && <FieldAddon side="before">{before}</FieldAddon>}
                 <textarea
-                    id={id}
+                    id={elementId}
                     name={name}
-                    className={withFieldEdges(cn(fieldTextAreaBaseClass, maxRows && "resize-none", error && 'border-destructive focus-visible:ring-destructive/20', className), { pre, post })}
+                    className={withFieldEdges(cn(fieldTextAreaBaseClass, maxRows && "resize-none", error && 'border-destructive focus-visible:ring-destructive/20', className), { before, after })}
                     ref={assignRef}
                     rows={rows}
                     placeholder={placeholder}
                     required={required}
-                    disabled={disabled || (!updatable && !isEmpty(value))}
+                    disabled={disabled || (readOnlyAfterSet && !isEmpty(value))}
                     value={(value as string | number | undefined) ?? ''}
                     onChange={handleChange}
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={handleDrop}
                 />
-                {post && <FieldAddon side="post">{post}</FieldAddon>}
+                {after && <FieldAddon side="after">{after}</FieldAddon>}
             </Wrapper>
             {error
                 ? <FieldError message={error} />
@@ -517,16 +519,16 @@ export const ListGroup = ({
     children,
     onClick = undefined,
     label = undefined,
-    actives = undefined,
+    activeIndices = undefined,
     draggable = undefined,
     onDrop = undefined,
-    disables = undefined,
-    loaders = undefined,
-    pre = undefined,
-    post = undefined,
-    wrapClass = undefined,
+    disabledIndices = undefined,
+    loadingIndices = undefined,
+    before = undefined,
+    after = undefined,
+    wrapperClassName = undefined,
     className = undefined,
-    itemClass = undefined
+    itemClassName = undefined
 }: ListGroupProps) => {
     const fullClassName = `list-group${className ? ' ' + className : ''}`;
 
@@ -546,15 +548,15 @@ export const ListGroup = ({
         e.dataTransfer.setData('text/plain', onDrop?.(text) ?? text);
     };
 
-    return <Wrapper className={wrapClass}>
-        {pre}
+    return <Wrapper className={wrapperClassName}>
+        {before}
         {label && <div>{label}</div>}
         <div className={fullClassName}>
             {children.map((child, index) => {
-                const isActive = actives?.includes(index);
-                const isDisable = disables?.includes(index);
-                const isLoading = loaders?.includes(index);
-                const fullItemClass = `list-group-item pl-1 ${itemClass ? ' ' + itemClass : ''
+                const isActive = activeIndices?.includes(index);
+                const isDisable = disabledIndices?.includes(index);
+                const isLoading = loadingIndices?.includes(index);
+                const fullItemClass = `list-group-item pl-1 ${itemClassName ? ' ' + itemClassName : ''
                     }${onClick ? ' list-group-item-action' : ''
                     }${isActive ? ' active' : ''
                     }${isDisable ? ' disabled' : ''
@@ -587,6 +589,6 @@ export const ListGroup = ({
                     </span>;
             })}
         </div>
-        {post}
+        {after}
     </Wrapper>;
 };

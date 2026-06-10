@@ -1,4 +1,4 @@
-# @llmnative/react — AI Reference
+﻿# @llmnative/react â€” AI Reference
 
 Framework React AI-first per generazione deterministica di UI. Data-driven di default, schema-driven opzionale.
 
@@ -25,7 +25,7 @@ Importare CSS: `import '@llmnative/react/dist/index.css'`
 
 ---
 
-## App — Entry point
+## App â€” Entry point
 
 ```tsx
 <App
@@ -74,13 +74,13 @@ Importare CSS: `import '@llmnative/react/dist/index.css'`
 
 ---
 
-## Provider System — Complete Matrix
+## Provider System â€” Complete Matrix
 
 | Servizio | Interfaccia | Provider disponibili | Obbligatorio |
 |----------|-------------|---------------------|--------------|
-| **data** | `DataProviderAdapter` | `mock`, `firebase` (RTDB), `firestoreDb` (Firestore), `supabase` | sì (fallback: Mock) |
+| **data** | `DataProviderAdapter` | `mock`, `firebase` (RTDB), `firestoreDb` (Firestore), `supabase` | sÃ¬ (fallback: Mock) |
 | **storage** | `StorageProviderAdapter` | `firebase`, `supabase`, `dropbox` | no (null) |
-| **auth** | `AuthProviderAdapter` | `google`, `dropbox`, `supabase`, `firebase` | sì (fallback: Google) |
+| **auth** | `AuthProviderAdapter` | `google`, `dropbox`, `supabase`, `firebase` | sÃ¬ (fallback: Google) |
 | **email** | `EmailProviderAdapter` | `gmail` | no (null) |
 | **ai** | `AIProviderAdapter` | `openai`, `openrouter`, `opencode`, `deepseek`, `gemini`, `anthropic`, `mistral` | no (null) |
 
@@ -124,9 +124,9 @@ const supabase = useDataProvider('supabase')   // DataProviderAdapter | null
 | `variant` | `"info" \| "success" \| "warning" \| "danger" \| "primary" \| "secondary" \| "light" \| "dark"` | `"info"` |
 | `appearance` | `"default" \| "text"` | `"default"` |
 | `placement` | `"inline" \| "fixed"` | `"inline"` |
-| `timeout` | number | — |
-| `icon` | `string \| boolean` | — |
-| `onClose` | `() => void` | — |
+| `timeout` | number | â€” |
+| `icon` | `string \| boolean` | â€” |
+| `onClose` | `() => void` | â€” |
 
 #### Badge
 ```ts
@@ -137,8 +137,8 @@ const supabase = useDataProvider('supabase')   // DataProviderAdapter | null
 |------|------|---------|
 | `children` | `ReactNode` | required |
 | `variant` | `"info" \| "success" \| "warning" \| "danger" \| "primary" \| "secondary" \| "light" \| "dark"` | `"primary"` |
-| `className` | string | — |
-| `pre`, `post`, `wrapClass` | via UIProps | — |
+| `className` | string | â€” |
+| `before`, `after`, `wrapperClassName` | via UIProps | â€” |
 
 #### Button variants
 | Component | Props | Usage |
@@ -153,12 +153,12 @@ const supabase = useDataProvider('supabase')   // DataProviderAdapter | null
 | Prop | Type | Default |
 |------|------|---------|
 | `variant` | `"primary" \| "secondary" \| "danger" \| "success" \| "warning" \| "info" \| "light" \| "dark" \| "outline-*" \| "link"` | `"primary"` |
-| `label` | `string \| ReactNode` | — |
-| `icon` | string | — |
-| `badge` | `BadgeProps` | — |
-| `disabled` | boolean | — |
-| `showLoader` | boolean | — |
-| `onClick` | `(e) => any` | — |
+| `label` | `string \| ReactNode` | â€” |
+| `icon` | string | â€” |
+| `badge` | `BadgeProps` | â€” |
+| `disabled` | boolean | â€” |
+| `loading` | boolean | â€” |
+| `onClick` | `(e) => any` | â€” |
 
 **LoadingButton extends IButton** with:
 | Prop | Type |
@@ -170,12 +170,12 @@ const supabase = useDataProvider('supabase')   // DataProviderAdapter | null
 | Prop | Type | Default |
 |------|------|---------|
 | `children` | `ReactNode` | required |
-| `title` | string | — |
-| `header` | `string \| ReactNode` | — |
-| `footer` | `string \| ReactNode` | — |
-| `showLoader` | boolean | — |
-| `showArrow` | boolean | — |
-| `pre`, `post`, `wrapClass`, `className` | via UIProps | — |
+| `title` | string | â€” |
+| `header` | `string \| ReactNode` | â€” |
+| `footer` | `string \| ReactNode` | â€” |
+| `loading` | boolean | â€” |
+| `showArrow` | boolean | â€” |
+| `before`, `after`, `wrapperClassName`, `className` | via UIProps | â€” |
 
 #### Image
 | Prop | Type | Default |
@@ -183,44 +183,44 @@ const supabase = useDataProvider('supabase')   // DataProviderAdapter | null
 | `src` | string | required |
 | `fit` | `"cover" \| "contain" \| "fill" \| "scale-down" \| "none"` | `"cover"` |
 | `position` | `"center" \| "top" \| "bottom" \| "left" \| "right" \| "top left" \| ...` | `"center"` |
-| `width`, `height` | number | — |
-| `placeholder` | string | — |
-| `srcset`, `sizes` | string | — |
-| `label`, `title` | string | — |
+| `width`, `height` | number | â€” |
+| `placeholder` | string | â€” |
+| `srcset`, `sizes` | string | â€” |
+| `label`, `title` | string | â€” |
 
 #### Loader
-`<Loader />` — mostra spinner di caricamento.
+`<Loader />` â€” mostra spinner di caricamento.
 
 #### Modal
 | Prop | Type | Default |
 |------|------|---------|
 | `children` | `ReactNode` | required |
-| `title` | `ReactNode` | — |
-| `header` | `ReactNode` | — |
-| `footer` | `ReactNode \| false` | — |
+| `title` | `ReactNode` | â€” |
+| `header` | `ReactNode` | â€” |
+| `footer` | `ReactNode \| false` | â€” |
 | `size` | `"sm" \| "md" \| "lg" \| "xl" \| "2xl" \| "fullscreen"` | `"md"` |
 | `position` | `"center" \| "top" \| "left" \| "right" \| "bottom"` | `"center"` |
-| `onClose` | `() => void` | — |
-| `onSave` | `ModalSaveHandler` | — |
-| `onDelete` | `ModalDeleteHandler` | — |
+| `onClose` | `() => void` | â€” |
+| `onSave` | `ModalSaveHandler` | â€” |
+| `onDelete` | `ModalDeleteHandler` | â€” |
 | `closeOnBackdrop` | boolean | `true` |
-| `zIndex` | number | — |
-| `buttonFullscreen`, `buttonCancel` | boolean | — |
+| `zIndex` | number | â€” |
+| `allowFullscreen`, `showCancel` | boolean | â€” |
 
 **Sub-components:** `Modal.YesNo` (conferma), `Modal.Ok` (notifica).
 
 #### Percentage
 | Prop | Type | Default |
 |------|------|---------|
-| `val` | number | `0` |
+| `value` | number | `0` |
 | `max` | number | `100` |
 | `min` | number | `0` |
 | `appearance` | `"bar" \| "circle"` | `"bar"` |
 | `variant` | `"info" \| "success" \| "warning" \| "danger" \| "primary" \| "secondary" \| "light" \| "dark"` | `"info"` |
-| `thickness` | number | — |
+| `thickness` | number | â€” |
 | `showText` | boolean | `true` |
-| `size` | number | — |
-| `label` | string | — |
+| `size` | number | â€” |
+| `label` | string | â€” |
 
 #### Repeat
 ```tsx
@@ -233,46 +233,47 @@ const supabase = useDataProvider('supabase')   // DataProviderAdapter | null
 | `name` | string | required |
 | `children` | `(index: number, array: any[]) => ReactNode` | required |
 | `defaultLength` | number | `0` |
-| `maxLength` | number | — |
+| `minItems` | number | â€” |
+| `maxItems` | number | â€” |
 
 #### Tab
 | Prop | Type | Default |
 |------|------|---------|
 | `children` | `ReactNode` | required |
-| `defaultTab` | number | `0` |
-| `tabPosition` | `"default" \| "top" \| "left" \| "right" \| "bottom"` | `"default"` |
-| `motion` | via MotionUIProps | — |
+| `defaultIndex` | number | `0` |
+| `layout` | `"default" \| "top" \| "left" \| "right" \| "bottom"` | `"default"` |
+| `motion` | via MotionUIProps | â€” |
 
 **Sub-component:** `<Tab.Item label="Tab 1">Content</Tab.Item>`
 
 #### Table
 | Prop | Type | Default |
 |------|------|---------|
-| `header` | `TableHeaderProp[]` | — |
-| `body` | `RecordArray` | — |
-| `onClick` | `(record) => void` | — |
-| `onReorder` | `TableReorderHandler` | — |
-| `onSelectionChange` | `TableSelectionChangeHandler` | — |
-| `selectionMode` | `"single" \| "multiple"` | — |
-| `sortable` | `boolean \| OrderConfig` | — |
-| `pagination` | `PaginationParams` | — |
-| `groupBy` | `string \| string[]` | — |
-| `renderCell` | `(record, key, index) => ReactNode` | — |
+| `columns` | `TableHeaderProp[]` | â€” |
+| `records` | `RecordArray` | â€” |
+| `onRowClick` | `(record) => void` | â€” |
+| `onReorder` | `TableReorderHandler` | â€” |
+| `onSelectionChange` | `TableSelectionChangeHandler` | â€” |
+| `selection` | `"single" \| "multiple"` | â€” |
+| `sortable` | `boolean \| OrderConfig` | â€” |
+| `pagination` | `PaginationParams` | â€” |
+| `groupBy` | `string \| string[]` | â€” |
+| `renderCell` | `(record, key, index) => ReactNode` | â€” |
 
 **TableHeaderProp:** `{ key: string; label: string; className?: string; sort?: boolean }`
 
 #### Gallery
 | Prop | Type | Default |
 |------|------|---------|
-| `body` | `GalleryRecord[]` | — |
-| `overlays` | `GalleryOverlay[]` | — |
-| `onClick` | `(record) => void` | — |
-| `onSelectionChange` | `GallerySelectionChangeHandler` | — |
-| `sortable` | `boolean \| OrderConfig` | — |
-| `pagination` | `PaginationParams` | — |
-| `gutterSize` | `0 \| 1 \| 2 \| 3 \| 4 \| 5` | — |
-| `rowCols` | `1 \| 2 \| 3 \| 4 \| 6` | — |
-| `groupBy` | `string \| string[]` | — |
+| `records` | `GalleryRecord[]` | â€” |
+| `overlays` | `GalleryOverlay[]` | â€” |
+| `onClickRow` | `(record) => void` | â€” |
+| `onSelectionChange` | `GallerySelectionChangeHandler` | â€” |
+| `sortable` | `boolean \| OrderConfig` | â€” |
+| `pagination` | `PaginationParams` | â€” |
+| `gutterSize` | `0 \| 1 \| 2 \| 3 \| 4 \| 5` | â€” |
+| `columns` | `1 \| 2 \| 3 \| 4 \| 6` | â€” |
+| `groupBy` | `string \| string[]` | â€” |
 
 **GalleryRecord extends RecordProps** con: `img`, `thumbnail`, `mimetype`, `width`, `height`, `name`.
 
@@ -282,21 +283,21 @@ const supabase = useDataProvider('supabase')   // DataProviderAdapter | null
 Row/Col layout component. `<GridSystem.Row><GridSystem.Col xs={12} md={6}>...</GridSystem.Col></GridSystem.Row>`
 
 #### Code
-`<Code language="tsx">code</Code>` — syntax-highlighted code block.
+`<Code language="tsx">code</Code>` â€” syntax-highlighted code block.
 
 #### Icon
 | Prop | Type | Default |
 |------|------|---------|
 | `name` | string | required |
-| `size` | number | — |
+| `size` | number | â€” |
 
 Usa il provider icone configurato (lucide/phosphor/custom).
 
 #### ImageAvatar
-`<ImageAvatar src="..." label="User" size={40} />` — Avatar circolare con fallback iniziali.
+`<ImageAvatar src="..." label="User" size={40} />` â€” Avatar circolare con fallback iniziali.
 
 #### LayoutBuilder
-`<LayoutBuilder layout={[...]} />` — layout declarativo multi-riga.
+`<LayoutBuilder layout={[...]} />` â€” layout declarativo multi-riga.
 
 ---
 
@@ -306,14 +307,14 @@ Usa il provider icone configurato (lucide/phosphor/custom).
 | Prop | Type | Default |
 |------|------|---------|
 | `name` | string | required |
-| `label` | string | — |
-| `required` | boolean | — |
+| `label` | string | â€” |
+| `required` | boolean | â€” |
 | `inputType` | `"text" \| "number" \| "email" \| "password" \| "color" \| "date" \| "time" \| "datetime-local" \| "week" \| "month"` | `"text"` |
-| `placeholder` | string | — |
-| `disabled` | boolean | — |
-| `min`, `max`, `step` | number | — |
-| `defaultValue` | any | — |
-| `validator` | `(value) => string \| undefined` | — |
+| `placeholder` | string | â€” |
+| `disabled` | boolean | â€” |
+| `min`, `max`, `step` | number | â€” |
+| `defaultValue` | any | â€” |
+| `validator` | `(value) => string \| undefined` | â€” |
 
 **Sub-components:** `<Input.TextArea rows={4} />`, `<Input.Checkbox valueChecked="yes" />`, `<Input.ListGroup>`
 
@@ -321,15 +322,15 @@ Usa il provider icone configurato (lucide/phosphor/custom).
 | Prop | Type | Default |
 |------|------|---------|
 | `name` | string | required |
-| `label` | string | — |
-| `options` | `Option[] \| string[] \| number[]` | — |
-| `db` | `DBConfig` (carica da provider) | — |
-| `required` | boolean | — |
-| `order` | `{ field: 'label' \| 'value', dir: 'asc' \| 'desc' }` | — |
+| `label` | string | â€” |
+| `options` | `Option[] \| string[] \| number[]` | â€” |
+| `optionsSource` | `DBConfig` (carica da provider) | â€” |
+| `required` | boolean | â€” |
+| `order` | `{ field: 'label' \| 'value', dir: 'asc' \| 'desc' }` | â€” |
 
 **Sub-components:**
-- `<Select.Autocomplete db={{ path: "/users", labelField: "email" }} />` — autocomplete con ricerca
-- `<Select.Checklist options={[...]} />` — multi-selezione a checkbox
+- `<Select.Autocomplete optionsSource={{ path: "/users", labelField: "email" }} />` â€” autocomplete con ricerca
+- `<Select.Checklist options={[...]} />` â€” multi-selezione a checkbox
 
 **DBConfig:** `{ path: string; labelField: string; valueField?: string }`
 
@@ -337,30 +338,30 @@ Usa il provider icone configurato (lucide/phosphor/custom).
 | Prop | Type | Default |
 |------|------|---------|
 | `name` | string | required |
-| `label` | string | — |
-| `editable` | boolean | — |
-| `multiple` | boolean | — |
-| `accept` | string | — |
-| `max` | number | — |
+| `label` | string | â€” |
+| `editable` | boolean | â€” |
+| `multiple` | boolean | â€” |
+| `accept` | string | â€” |
+| `max` | number | â€” |
 
 **Sub-components:**
-- `<Upload.Image />` — con crop e preview
-- `<Upload.Document />` — file generici
-- `<UploadCSV />` — import CSV con preview tabellare
+- `<Upload.Image />` â€” con crop e preview
+- `<Upload.Document />` â€” file generici
+- `<UploadCSV />` â€” import CSV con preview tabellare
 
 #### Prompt
-Campo AI-potenziato con editor e modalità live.
+Campo AI-potenziato con editor e modalitÃ  live.
 | Prop | Type | Default |
 |------|------|---------|
 | `name` | string | required |
 | `mode` | `"edit" \| "run"` | `"edit"` |
-| `rows` | number | — |
-| `onRunPrompt` | `(prompt, options, data?) => Promise<string>` | — |
-| `renderPlainFallback` | `(props) => ReactNode` | — |
-| `renderAIUnavailable` | `(props) => ReactNode` | — |
+| `rows` | number | â€” |
+| `onRunPrompt` | `(prompt, options, data?) => Promise<string>` | â€” |
+| `renderFallback` | `(props) => ReactNode` | â€” |
+| `renderAIUnavailable` | `(props) => ReactNode` | â€” |
 
 #### WorkflowAI _(CR-039, coming soon)_
-`<WorkflowAI steps={[...]} />` — pipeline di prompt multi-step con selezione varianti e output concatenato tra step.
+`<WorkflowAI steps={[...]} />` â€” pipeline di prompt multi-step con selezione varianti e output concatenato tra step.
 
 ---
 
@@ -377,10 +378,10 @@ Campo AI-potenziato con editor e modalità live.
 #### Breadcrumbs
 | Prop | Type | Default |
 |------|------|---------|
-| `trail` | `string \| BreadcrumbItem[]` | — |
-| `rootItem` | `string \| BreadcrumbItem` | — |
+| `trail` | `string \| BreadcrumbItem[]` | â€” |
+| `rootItem` | `string \| BreadcrumbItem` | â€” |
 | `separator` | `"/" \| ">" \| "chevron" \| string` | `"/"` |
-| `jsonLd` | boolean | — |
+| `jsonLd` | boolean | â€” |
 
 **BreadcrumbItem:** `{ label: string; href?: string }`
 
@@ -389,21 +390,21 @@ Nav tree generato da `menuConfig`. Renderizzato da App.
 
 | Prop | Type |
 |------|------|
-| `context` (path unico per contesto) | string |
-| `Type` | `'ul' \| 'ol'` |
+| `menuKey` (path unico per contesto) | string |
+| `as` | `'ul' \| 'ol'` |
 | `badges` | `Record<string, { type?: BadgeType, children: string }>` |
 
 #### Notifications
 Dropdown notifiche con badge.
 
 #### Search
-`<Search handleSearch={(e) => ...} />` — input ricerca.
+`<Search onQueryChange={(e) => ...} />` â€” input ricerca.
 
 #### Carousel
 Carosello immagini con swipe e navigazione.
 
 #### Dropdown
-`<Dropdown>` — menu a discesa. Esportato via `* from ./blocks/Dropdown` con tutti i suoi sub-components.
+`<Dropdown>` â€” menu a discesa. Esportato via `* from ./blocks/Dropdown` con tutti i suoi sub-components.
 
 ---
 
@@ -428,7 +429,7 @@ Il componente CRUD principale. Supporta data provider e in-memory.
   sortable={{ field: 'name', dir: 'asc' }}
   form={<FormFields />}                  // Form condiviso per CRUD
   onSave={async ({ record, action }) => { /* ... */ }}
-  onAfterAction={async ({ record, action }) => true}
+  onComplete={async ({ record, action }) => true}
   selection={{ mode: 'multiple', onChange: (sel) => {} }}
   header={(ctx) => <div>{ctx.title}</div>}
   footer={(ctx) => <div>{ctx.records.length} records</div>}
@@ -449,10 +450,10 @@ Form CRUD con validazione, nested data, lifecycle hooks.
 ```tsx
 <Form
   path="/products"            // DataProvider-backed
-  // aspect deprecated: use empty wrapper
+  appearance="card"
   onLoad={(data) => ({ ...data, price: data.price / 100 })}
   onSave={async ({ record }) => ({ ...record, price: record.price * 100 })}
-  onFinally={async ({ action }) => { if (action === 'save') navigate('/products') }}
+  onComplete={async ({ action }) => { if (action === 'save') navigate('/products') }}
   keyGenerator={() => `prod_${Date.now()}`}
   defaultValues={{ status: 'draft' }}
   showBack
@@ -464,16 +465,16 @@ Form CRUD con validazione, nested data, lifecycle hooks.
 
 | Prop | Type | Default |
 |------|------|---------|
-| `path` | string | — |
-| `children` | `ReactNode \| ((fields) => ReactNode)` | — |
-| `defaultValues` | `RecordProps` | — |
-| `keyGenerator` | `(record) => string` | — |
-| `onLoad` | `(record) => void` | — |
-| `onChange` | `(record) => void` | — |
-| `onSave` | `FormSaveHandler` | — |
-| `onDelete` | `FormDeleteHandler` | — |
-| `onFinally` | `FormFinallyHandler` | — |
-| `showBack` | boolean | — |
+| `path` | string | â€” |
+| `children` | `ReactNode \| ((fields) => ReactNode)` | â€” |
+| `defaultValues` | `RecordProps` | â€” |
+| `keyGenerator` | `(record) => string` | â€” |
+| `onLoad` | `(record) => void` | â€” |
+| `onRecordChange` | `(record) => void` | â€” |
+| `onSave` | `FormSaveHandler` | â€” |
+| `onDelete` | `FormDeleteHandler` | â€” |
+| `onComplete` | `FormFinallyHandler` | â€” |
+| `showBack` | boolean | â€” |
 
 **Nested/array data:**
 ```tsx
@@ -500,7 +501,7 @@ Render Markdown con frontmatter, syntax highlight, TOC.
 type PaginationParams = {
   page?: number;
   limit?: number;
-  navLimit?: number;
+  maxPageButtons?: number;
   scrollToTopOnChange?: boolean;
   scrollBehavior?: ScrollBehavior;
   align?: "start" | "center" | "end";
@@ -508,7 +509,7 @@ type PaginationParams = {
 };
 ```
 
-`<Pagination recordSet={items}>{(pageRecords, offset) => ...}</Pagination>` — render prop pattern.
+`<Pagination records={items}>{(pageRecords, offset) => ...}</Pagination>` â€” render prop pattern.
 
 ---
 
@@ -645,14 +646,14 @@ import { db, storage, path, log, seo } from '@llmnative/react'
 import { converter, sanitizer, fetch, utils, order } from '@llmnative/react'
 import { cn, useImage } from '@llmnative/react'
 ```
-- `cn` — classname merger (tailwind-merge compatible)
-- `converter` — data converters (date, number, etc.)
-- `sanitizer` — HTML sanitizer
-- `order` — `Order` class for sorting
-- `path` — utility per percorsi dot-notation
-- `db`, `storage` — Firebase RTDB/SRG raw access
-- `seo` — `getKeywordIdeas()`, `getGoogleTrendsData()`
-- `fetch` — HTTP fetch helper
+- `cn` â€” classname merger (tailwind-merge compatible)
+- `converter` â€” data converters (date, number, etc.)
+- `sanitizer` â€” HTML sanitizer
+- `order` â€” `Order` class for sorting
+- `path` â€” utility per percorsi dot-notation
+- `db`, `storage` â€” Firebase RTDB/SRG raw access
+- `seo` â€” `getKeywordIdeas()`, `getGoogleTrendsData()`
+- `fetch` â€” HTTP fetch helper
 
 ---
 
@@ -664,9 +665,9 @@ type RecordArray = RecordProps[]
 type RecordSelectionState<T> = { keys: string[]; records: T[]; hasSelection: boolean; clear: () => void }
 
 interface UIProps {
-  pre?: React.ReactNode
-  post?: React.ReactNode
-  wrapClass?: string
+  before?: React.ReactNode
+  after?: React.ReactNode
+  wrapperClassName?: string
   className?: string
 }
 
@@ -711,3 +712,4 @@ removeGlobalVars(key)                  // rimuovi
 ```
 
 Backend: `localStorage`. Dati condivisi tra pagine senza provider.
+

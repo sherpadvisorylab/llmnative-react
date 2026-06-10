@@ -12,9 +12,9 @@ import {
     RECORD_KEY,
 } from './DataProvider';
 
-type CollectionStore = Record<string, Record<string, any>>;
+type CollectionStore = Record<string, Record<string, any>>; // CR-042: in-memory store holds arbitrary JSON record shapes
 type ListenerSet = Set<() => void>;
-type RecordObject = Record<string, Record<string, any>>;
+type RecordObject = Record<string, Record<string, any>>; // CR-042: same as above
 type WhereEntry = [string, Condition | OperatorValue];
 type OrderEntry = [string, 'asc' | 'desc'];
 const SYSTEM_FIELDS = {
@@ -22,7 +22,7 @@ const SYSTEM_FIELDS = {
     value: '@value',
 };
 
-function toRecordArray(col: Record<string, any>): RecordArray {
+function toRecordArray(col: Record<string, any>): RecordArray { // CR-042: col is CollectionStore entry
     return Object.entries(col).map(([key, value], index) => ({
         [RECORD_KEY]: key,
         _index: index,
@@ -110,7 +110,7 @@ function mapRecordObjectToArray(
         const source = typeof value === 'object' && value !== null
             ? { [SYSTEM_FIELDS.key]: key, ...value }
             : { [SYSTEM_FIELDS.key]: key, [SYSTEM_FIELDS.value]: value };
-        const mapped: Record<string, any> = {};
+        const mapped: Record<string, any> = {}; // CR-042: intermediate map of in-memory store values
         for (const prop of mapKeys) {
             const field = fieldMap[prop];
             mapped[prop] = field.includes('{')
@@ -144,7 +144,7 @@ export class MockDataProvider implements DataProviderAdapter {
         return { configured: true };
     }
 
-    private getCollection(collPath: string): Record<string, any> {
+    private getCollection(collPath: string): Record<string, any> { // CR-042: returns CollectionStore entry
         if (!this.store[collPath]) this.store[collPath] = {};
         return this.store[collPath];
     }
@@ -195,7 +195,7 @@ export class MockDataProvider implements DataProviderAdapter {
         if (id) {
             col[id] = { ...data };
         } else {
-            this.store[collection] = { ...(data as Record<string, any>) };
+            this.store[collection] = { ...(data as Record<string, any>) }; // CR-042: data is RecordProps; cast needed for spread into CollectionStore
         }
         this.notify(collection);
     };

@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Form, Switch } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
@@ -13,11 +13,11 @@ const SWITCH_PROPS: PropDef[] = [
     { name: 'required', type: 'boolean', default: 'false', description: 'Marks field as required', control: 'boolean' },
     { name: 'valueChecked', type: 'string | number', default: '"on"', description: 'Value saved when enabled', control: 'text' },
     { name: 'defaultValue', type: 'string | number', description: 'Initial enabled value', control: 'text' },
-    { name: 'pre', type: 'ReactNode', description: 'Content before the switch', control: 'text' },
-    { name: 'post', type: 'ReactNode', description: 'Content after the switch', control: 'text' },
+    { name: 'before', type: 'ReactNode', description: 'Content before the switch', control: 'text' },
+    { name: 'after', type: 'ReactNode', description: 'Content after the switch', control: 'text' },
     { name: 'onChange', type: 'FieldOnChange', description: 'Custom change handler called by Form context' },
     { name: 'className', type: 'string', description: 'CSS classes on checkbox input', control: 'text' },
-    { name: 'wrapClass', type: 'string', description: 'CSS classes on wrapper', control: 'text' },
+    { name: 'wrapperClassName', type: 'string', description: 'CSS classes on wrapper', control: 'text' },
 ];
 
 const PLAYGROUND: PlaygroundConfig = {
@@ -33,10 +33,10 @@ const PLAYGROUND: PlaygroundConfig = {
         pre: '',
         post: '',
         className: '',
-        wrapClass: '',
+        wrapperClassName: '',
     },
     render: (p, onValuesChange) => (
-        <Form aspect="empty" onChange={onValuesChange}>
+        <Form appearance="empty" onChange={onValuesChange}>
             <Switch name="published" {...p} />
         </Form>
     ),
@@ -50,7 +50,7 @@ export default function SwitchPage() {
             <Section
                 title="Boolean-like toggle"
                 preview={
-                    <Form aspect="empty" defaultValues={{ published: 'yes' }}>
+                    <Form appearance="empty" defaultValues={{ published: 'yes' }}>
                         <Switch name="published" label="Published" valueChecked="yes" />
                     </Form>
                 }

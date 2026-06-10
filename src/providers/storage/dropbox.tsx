@@ -199,7 +199,7 @@ const onCompleted = async (
 };
 
 
-const createFolders = async (paths: string[], basePath = ""): Promise<any> => {
+const createFolders = async (paths: string[], basePath = ""): Promise<any> => { // CR-042: Dropbox batch response shape varies by .tag
     const apiPath = "files/create_folder_batch";
     const response = await fetchDropbox(`https://api.dropboxapi.com/2/${apiPath}`, {
         "autorename": false,
@@ -219,7 +219,7 @@ const deleteBulk = async (paths: string[], basePath = ""): Promise<unknown[] | u
     return response ? onCompleted(response, apiPath) : undefined;
 }
 
-const addTag = async (path: string, tag: string): Promise<any> => {
+const addTag = async (path: string, tag: string): Promise<any> => { // CR-042: Dropbox tags/add returns untyped JSON
     return fetchDropbox("https://api.dropboxapi.com/2/files/tags/add", {
         "path": path,
         "tag_text": tag.toLowerCase().replaceAll(/[^a-z0-9]/g, ""),

@@ -111,7 +111,7 @@ const buildConstraints = (where?: WhereClause, order?: OrderClause): QueryConstr
 
 // ── Snapshot → RecordArray ────────────────────────────────────────────────────
 
-type RecordObject = Record<string, Record<string, any>>;
+type RecordObject = Record<string, Record<string, any>>; // CR-042: Firestore DocumentData is { [field: string]: any }
 
 const SYSTEM_KEY = '@key';
 
@@ -129,8 +129,8 @@ const snapshotToRecordArray = (
 
     const mapKeys = Object.keys(fieldMap);
     return snap.docs.map((d, i) => {
-        const source: Record<string, any> = { [SYSTEM_KEY]: d.id, ...d.data() };
-        const mapped: Record<string, any> = {};
+        const source: Record<string, any> = { [SYSTEM_KEY]: d.id, ...d.data() }; // CR-042: d.data() is DocumentData = { [field: string]: any }
+        const mapped: Record<string, any> = {}; // CR-042: intermediate map of Firestore-typed values
         for (const prop of mapKeys) {
             const field = fieldMap[prop];
             mapped[prop] = field.includes('{')
@@ -405,7 +405,7 @@ export class FirestoreDataProvider implements DataProviderAdapter {
             }
 
             // ── Write ─────────────────────────────────────────────────────
-            const entries = Object.entries(data as Record<string, any>);
+            const entries = Object.entries(data as Record<string, any>); // CR-042: Firestore setDoc bulk data has open schema
             const totalBatches = Math.ceil(entries.length / batchSize);
 
             for (let i = 0; i < entries.length; i += batchSize) {

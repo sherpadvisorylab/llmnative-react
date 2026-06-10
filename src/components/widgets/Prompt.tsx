@@ -1,4 +1,4 @@
-import React, { useEffect, useId, useState } from 'react';
+﻿import React, { useEffect, useId, useState } from 'react';
 import { useTheme } from "../../Theme";
 import { Prompt as PromptConf, PromptVariables, PROMPT_CLEANUP, PROMPT_NO_REFERENCE } from '../../conf/Prompt';
 import { type AIProviderCapabilities, type AIProviderAdapter, type AIRequestOptions, parseAIModelRef, formatAIModelRef } from '../../providers/ai/AIProvider';
@@ -62,8 +62,7 @@ type PromptEditProps = PromptSharedProps & {
 type PromptRunProps = PromptSharedProps & {
     mode: PromptMode.RUN | PromptMode.LIVE;
     onRunPrompt?: OnRunPrompt;
-    renderPlainFallback?: RenderPlainFallback;
-    renderPromptDisabled?: RenderPlainFallback;
+    renderFallback?: RenderPlainFallback;
 };
 
 export type PromptProps = PromptEditProps | PromptRunProps;
@@ -72,12 +71,12 @@ interface PromptEditorProps extends Omit<PromptEditProps, "mode"> {
     value?: RecordProps & { prompt?: PromptConfig };
 }
 
-interface PromptRunBranchProps extends Omit<PromptRunProps, "mode" | "renderPromptDisabled"> {
+interface PromptRunBranchProps extends Omit<PromptRunProps, "mode"> {
     value?: RecordProps & { prompt?: PromptConfig };
 }
 
-interface PromptPlainFallbackProps extends Omit<PromptRunProps, "mode" | "onRunPrompt"> {
-}
+interface PromptPlainFallbackProps extends Omit<PromptRunProps, "mode" | "onRunPrompt"> {}
+
 
 type PromptAvailabilityState = {
     provider: AIProviderAdapter | null;
@@ -239,7 +238,7 @@ const PromptAvailabilityNotice = ({
 
     return (
         <Alert
-            type="warning"
+            variant="warning"
             icon="warning"
             className="text-xs leading-5"
         >
@@ -287,9 +286,9 @@ const PromptEditor = ({
     onChange = undefined,
     defaultValue = undefined,
     rows = 10,
-    pre = undefined,
-    post = undefined,
-    wrapClass = undefined,
+    before = undefined,
+    after = undefined,
+    wrapperClassName = undefined,
     className = undefined,
     renderAIUnavailable = undefined
 }: PromptEditorProps) => {
@@ -303,9 +302,9 @@ const PromptEditor = ({
     const availability = usePromptAvailability(selectedModelRef);
 
     return (
-        <Wrapper className={wrapClass || theme.Prompt.wrapClass}>
+        <Wrapper className={wrapperClassName || theme.Prompt.wrapperClassName}>
             <div className="flex items-center gap-2">
-                {pre && <div className="shrink-0">{pre}</div>}
+                {before && <div className="shrink-0">{before}</div>}
                 <div className={`${promptBodyClass} min-w-0 flex-1`}>
                     <PromptFieldHeader
                         htmlFor={editorId}
@@ -317,7 +316,7 @@ const PromptEditor = ({
                             ariaLabel={switchTitle}
                             title={switchTitle}
                             defaultValue={promptEnabled ? "on" : ""}
-                            inheritFormWrapClass={false}
+                            inheritWrapperClassName={false}
                             onChange={({ event }) => {
                                 handleChange({
                                     target: {
@@ -330,14 +329,14 @@ const PromptEditor = ({
                         }
                     />
                     <TextArea
-                        inputId={editorId}
+                        id={editorId}
                         className={className || theme.Prompt.className}
                         name={name + (promptEnabled ? ".prompt.value" : ".value")}
                         defaultValue={promptEnabled ? defaultValue?.value : undefined}
                         onChange={onChange}
                         required={required}
-                        inheritFormWrapClass={false}
-                        wrapClass=""
+                        inheritWrapperClassName={false}
+                        wrapperClassName=""
                         maxRows={rows}
                     />
                     <PromptAvailabilityNotice
@@ -346,7 +345,7 @@ const PromptEditor = ({
                         renderAIUnavailable={renderAIUnavailable}
                     />
                 </div>
-                {post && <div className="shrink-0">{post}</div>}
+                {after && <div className="shrink-0">{after}</div>}
             </div>
         </Wrapper>
     );
@@ -362,9 +361,9 @@ const PromptRun = ({
     onChange,
     defaultValue,
     rows = 6,
-    pre,
-    post,
-    wrapClass,
+    before,
+    after,
+    wrapperClassName,
     className,
     onRunPrompt,
     renderAIUnavailable
@@ -393,9 +392,9 @@ const PromptRun = ({
     const [runError, setRunError] = useState<string | null>(null);
 
     return (
-        <Wrapper className={wrapClass || theme.Prompt.wrapClass}>
+        <Wrapper className={wrapperClassName || theme.Prompt.wrapperClassName}>
             <div className="flex items-center gap-2">
-                {pre && <div className="shrink-0">{pre}</div>}
+                {before && <div className="shrink-0">{before}</div>}
                 <div className={`${promptBodyClass} min-w-0 flex-1`}>
                 <PromptFieldHeader
                     htmlFor={fieldId}
@@ -406,13 +405,13 @@ const PromptRun = ({
                     <div className="overflow-hidden rounded-t-md">
                         <div className={editing ? '' : 'hidden'}>
                             <TextArea
-                                inputId={fieldId}
+                                id={fieldId}
                                 name={name + ".prompt.value"}
                                 defaultValue={defaultValue?.value}
                                 onChange={onChange}
                                 required={true}
-                                inheritFormWrapClass={false}
-                                wrapClass=""
+                                inheritWrapperClassName={false}
+                                wrapperClassName=""
                                 className={`${className || theme.Prompt.className} ${promptTextareaClass}`}
                                 maxRows={rows}
                             />
@@ -422,8 +421,8 @@ const PromptRun = ({
                                 name={name + ".value"}
                                 onChange={onChange}
                                 required={required}
-                                inheritFormWrapClass={false}
-                                wrapClass=""
+                                inheritWrapperClassName={false}
+                                wrapperClassName=""
                                 className={`${className || theme.Prompt.className} ${promptTextareaClass}`}
                                 maxRows={rows}
                             />
@@ -435,7 +434,7 @@ const PromptRun = ({
                             ariaLabel={editing ? "Mode: editing prompt template" : "Mode: viewing result"}
                             title={editing ? "Switch to result mode" : "Switch to edit prompt template"}
                             defaultValue=""
-                            inheritFormWrapClass={false}
+                            inheritWrapperClassName={false}
                             onChange={({ event }) => setEditing(event.target.value === 'on')}
                         />
                         <span className="select-none text-xs text-muted-foreground">
@@ -443,60 +442,60 @@ const PromptRun = ({
                         </span>
                         <div className="flex-1" />
                         {editing && (
-                            <Dropdown position="end" placement="auto" toggleButton={{ icon: "settings" }} buttonClass="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+                            <Dropdown position="end" placement="auto" trigger={{ icon: "settings" }} triggerClassName="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
                                 <DropdownItem>
                                     <Select
                                         name={name + ".prompt.role"}
-                                        pre="Role"
+                                        before="Role"
                                         defaultValue={defaultValue?.role}
-                                        inheritFormWrapClass={false}
+                                        inheritWrapperClassName={false}
                                         className="text-xs"
                                         options={PromptConf.getRoles()}
-                                        optionEmpty={{ label: "Default (" + promptDefaults.role + ")", value: "" }}
+                                        placeholderOption={{ label: "Default (" + promptDefaults.role + ")", value: "" }}
                                     />
                                 </DropdownItem>
                                 <DropdownItem>
                                     <Select
                                         name={name + ".prompt.language"}
-                                        pre="Language"
+                                        before="Language"
                                         defaultValue={defaultValue?.language}
-                                        inheritFormWrapClass={false}
+                                        inheritWrapperClassName={false}
                                         className="text-xs"
                                         options={PromptConf.getLangs()}
-                                        optionEmpty={{ label: "Default (" + promptDefaults.language + ")", value: "" }}
+                                        placeholderOption={{ label: "Default (" + promptDefaults.language + ")", value: "" }}
                                     />
                                 </DropdownItem>
                                 <DropdownItem>
                                     <Select
                                         name={name + ".prompt.voice"}
-                                        pre="Voice"
+                                        before="Voice"
                                         defaultValue={defaultValue?.voice}
-                                        inheritFormWrapClass={false}
+                                        inheritWrapperClassName={false}
                                         className="text-xs"
                                         options={PromptConf.getVoices()}
-                                        optionEmpty={{ label: "Default (" + promptDefaults.voice + ")", value: "" }}
+                                        placeholderOption={{ label: "Default (" + promptDefaults.voice + ")", value: "" }}
                                     />
                                 </DropdownItem>
                                 <DropdownItem>
                                     <Select
                                         name={name + ".prompt.style"}
-                                        pre="Style"
+                                        before="Style"
                                         defaultValue={defaultValue?.style}
-                                        inheritFormWrapClass={false}
+                                        inheritWrapperClassName={false}
                                         className="text-xs"
                                         options={PromptConf.getStyles()}
-                                        optionEmpty={{ label: "Default (" + promptDefaults.style + ")", value: "" }}
+                                        placeholderOption={{ label: "Default (" + promptDefaults.style + ")", value: "" }}
                                     />
                                 </DropdownItem>
                                 <DropdownItem>
                                     <Select
                                         name={name + ".prompt.model"}
-                                        pre="Model"
+                                        before="Model"
                                         defaultValue={defaultValue?.model}
-                                        inheritFormWrapClass={false}
+                                        inheritWrapperClassName={false}
                                         className="text-xs"
                                         options={modelOptions}
-                                        optionEmpty={{ label: "Default (" + defaultModelRef + ")", value: "" }}
+                                        placeholderOption={{ label: "Default (" + defaultModelRef + ")", value: "" }}
                                     />
                                 </DropdownItem>
                                 {supportsTemperature && (
@@ -505,7 +504,7 @@ const PromptRun = ({
                                             name={name + ".prompt.temperature"}
                                             label="Temperature"
                                             defaultValue={defaultValue?.temperature}
-                                            inheritFormWrapClass={false}
+                                            inheritWrapperClassName={false}
                                             min={0}
                                             max={1}
                                             step={0.1}
@@ -552,7 +551,7 @@ const PromptRun = ({
                 />
                 {runError && (
                     <Alert
-                        type="danger"
+                        variant="danger"
                         icon="warning"
                         className="text-xs leading-5"
                     >
@@ -560,7 +559,7 @@ const PromptRun = ({
                     </Alert>
                 )}
                 </div>
-                {post && <div className="shrink-0">{post}</div>}
+                {after && <div className="shrink-0">{after}</div>}
             </div>
         </Wrapper>
     );
@@ -572,21 +571,19 @@ const PromptPlainFallback = ({
     required,
     onChange,
     rows,
-    pre,
-    post,
-    wrapClass,
+    before,
+    after,
+    wrapperClassName,
     className,
-    renderPlainFallback,
-    renderPromptDisabled
+    renderFallback,
 }: PromptPlainFallbackProps) => {
     const theme = useTheme("prompt");
     const disabledId = useId();
-    const renderFallback = renderPlainFallback ?? renderPromptDisabled;
 
     return (
-        <Wrapper className={wrapClass || theme.Prompt.wrapClass}>
+        <Wrapper className={wrapperClassName || theme.Prompt.wrapperClassName}>
             <div className="flex items-center gap-2">
-                {pre && <div className="shrink-0">{pre}</div>}
+                {before && <div className="shrink-0">{before}</div>}
                 <div className="min-w-0 flex-1">
                     {renderFallback?.({ name, label, required, onChange }) ?? (
                         <div className={promptBodyClass}>
@@ -598,19 +595,19 @@ const PromptPlainFallback = ({
                                 />
                             )}
                             <TextArea
-                                inputId={disabledId}
+                                id={disabledId}
                                 className={className || theme.Prompt.className}
                                 name={name + ".value"}
                                 onChange={onChange}
                                 required={required}
-                                inheritFormWrapClass={false}
-                                wrapClass=""
+                                inheritWrapperClassName={false}
+                                wrapperClassName=""
                                 maxRows={rows}
                             />
                         </div>
                     )}
                 </div>
-                {post && <div className="shrink-0">{post}</div>}
+                {after && <div className="shrink-0">{after}</div>}
             </div>
         </Wrapper>
     );
@@ -651,3 +648,4 @@ export const runPrompt = async (
 };
 
 export default Prompt;
+

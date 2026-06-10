@@ -26,8 +26,8 @@ Pesi: **P0** = bloccante (informazione errata/rotto) · **P1** = maggiore (manca
 |---|-------|------|------|-----------|
 | 1 | `onClose` description inaccurata: "Callback when alert is closed" — l'Alert non ha pulsante chiudi, onClose è solo auto-dismiss | P1 | Riga 18 PROPS_CONFIG | `'Auto-dismiss callback triggered when timeout elapses'` |
 | 2 | Manca sezione dimostrativa per `icon="string"` (icona custom) | P2 | Sezioni | Aggiungere Section con `<Alert type="info" icon="bell">` |
-| 3 | Manca sezione dimostrativa per `pre`/`post` slots | P2 | Sezioni | Aggiungere Section con `<Alert pre={<Badge>}</Alert>` |
-| 4 | Manca sezione dimostrativa per `className`/`wrapClass` | P3 | Sezioni | Aggiungere Section con styling custom |
+| 3 | Manca sezione dimostrativa per `before`/`after` slots | P2 | Sezioni | Aggiungere Section con `<Alert before={<Badge>}</Alert>` |
+| 4 | Manca sezione dimostrativa per `className`/`wrapperClassName` | P3 | Sezioni | Aggiungere Section con styling custom |
 | 5 | Playground: timeout:0 in defaultProps → utente vede 0 ma componente riceve undefined (default 5s) | P3 | Riga 34 PLAYGROUND.defaultProps | Usare `timeout: 5000` come default esplicito o documentare che 0 = 5s |
 
 ### Badge `BadgePage.tsx`
@@ -47,16 +47,16 @@ Pesi: **P0** = bloccante (informazione errata/rotto) · **P1** = maggiore (manca
 
 ### ActionButton `buttons/ActionButtonPage.tsx`
 
-**Attuali IButton props (14 totali):** `onClick`, `icon`, `label`, `badge`, `title`, `disabled`, `iconClass`, `style`, `variant`, `motion`, `pre`, `post`, `wrapClass`, `className`
+**Attuali IButton props (14 totali):** `onClick`, `icon`, `label`, `badge`, `title`, `disabled`, `iconClassName`, `style`, `variant`, `motion`, `before`, `after`, `wrapperClassName`, `className`
 
 | # | Issue | Peso | Dove | Suggerita |
 |---|-------|------|------|-----------|
 | 1 | `onClick` NON documentato (manca da PROPS e playground) | P1 | PROPS | Aggiungere PropDef senza control (callback) |
-| 2 | `iconClass` NON documentato | P2 | PROPS | Aggiungere PropDef con text control |
+| 2 | `iconClassName` NON documentato | P2 | PROPS | Aggiungere PropDef con text control |
 | 3 | `style` NON documentato | P3 | PROPS | Aggiungere PropDef senza control |
 | 4 | `variant` NON documentato | P2 | PROPS | Aggiungere PropDef con select degli 8+4 tipi |
 | 5 | `motion` NON documentato | P2 | PROPS | Aggiungere PropDef — ActionButton supporta motion! |
-| 6 | `pre`, `post`, `wrapClass` (da UIProps) NON documentati | P2 | PROPS | Aggiungere PropDef |
+| 6 | `before`, `after`, `wrapperClassName` (da UIProps) NON documentati | P2 | PROPS | Aggiungere PropDef |
 | 7 | `badge` `typeDetails` dice `BadgeConfig` ma il tipo reale è `BadgeProps` / `BadgeDescriptor` | P3 | Riga 35 | Aggiornare typeDetails per matchare la source |
 | 8 | Nessuna sezione dimostrativa per `disabled`, `title`, custom icon | P2 | Sezioni | Aggiungere Section |
 
@@ -67,11 +67,11 @@ Pesi: **P0** = bloccante (informazione errata/rotto) · **P1** = maggiore (manca
 | # | Issue | Peso | Dove | Suggerita |
 |---|-------|------|------|-----------|
 | 1 | `onClick` (async) NON documentato | P1 | PROPS | Aggiungere PropDef (callback fondamentale) |
-| 2 | `iconClass` NON documentato | P2 | PROPS | Aggiungere PropDef |
+| 2 | `iconClassName` NON documentato | P2 | PROPS | Aggiungere PropDef |
 | 3 | `style` NON documentato | P3 | PROPS | Aggiungere PropDef |
 | 4 | `variant` NON documentato | P2 | PROPS | Aggiungere PropDef con select |
 | 5 | `motion` NON documentato | P2 | PROPS | Aggiungere PropDef |
-| 6 | `pre`, `post`, `wrapClass` NON documentati | P2 | PROPS | Aggiungere PropDef |
+| 6 | `before`, `after`, `wrapperClassName` NON documentati | P2 | PROPS | Aggiungere PropDef |
 | 7 | `badge` typeDetails stesso mismatch di ActionButton | P3 | Riga 35 | Aggiornare |
 
 ### Navigation buttons `buttons/NavigationButtonsPage.tsx`
@@ -79,13 +79,13 @@ Pesi: **P0** = bloccante (informazione errata/rotto) · **P1** = maggiore (manca
 | # | Issue | Peso | Dove | Suggerita |
 |---|-------|------|------|-----------|
 | 1 | PropDocsTable appiattisce 3 componenti in 1 lista — non si capisce quale prop appartiene a quale componente | P1 | PropDocsTable | Suddividere in 3 tabelle separate (BackLink, GoSite, ReferSite) |
-| 2 | `pre`, `post`, `wrapClass` mancanti per tutti e 3 i componenti (BackLink: 2/5, GoSite: 3/6, ReferSite: 5/7) | P2 | PROPS | Aggiungere props UIProps mancanti |
+| 2 | `before`, `after`, `wrapperClassName` mancanti per tutti e 3 i componenti (BackLink: 2/5, GoSite: 3/6, ReferSite: 5/7) | P2 | PROPS | Aggiungere props UIProps mancanti |
 | 3 | Nessun playground registrato | P2 | usePlayground | Aggiungere playground per almeno BackLink |
 | 4 | `BackLink` label default `<- Back` non documentato | P3 | PROPS | Aggiungere `default: '"<- Back"'` |
 
 ### Card `CardPage.tsx`
 
-**CardProps (13 totali):** children, title, header, footer, headerClass, bodyClass, footerClass, showLoader, showArrow + UIProps (pre, post, wrapClass, className)
+**CardProps (13 totali):** children, title, header, footer, headerClassName, bodyClassName, footerClassName, loading, showArrow + UIProps (before, after, wrapperClassName, className)
 
 Documentati: 13/13 ✅ | Playground: 13/13 ✅
 
@@ -93,11 +93,11 @@ Documentati: 13/13 ✅ | Playground: 13/13 ✅
 |---|-------|------|------|-----------|
 | 1 | `title` e `header` possono coesistere (title → h5, header → extra content) — non documentato | P3 | Sezioni | Aggiungere nota nel description di `title` o `header` |
 | 2 | Manca sezione per `showArrow` (decorative card arrows) | P3 | Sezioni | Opzionale — feature di nicchia |
-| 3 | Manca sezione per `pre`/`post` slots | P3 | Sezioni | Opzionale |
+| 3 | Manca sezione per `before`/`after` slots | P3 | Sezioni | Opzionale |
 
 ### Code `CodePage.tsx`
 
-**CodeProps (9 totali):** children, language, showCopy, theme, background + UIProps (pre, post, wrapClass, className)
+**CodeProps (9 totali):** children, language, showCopy, theme, background + UIProps (before, after, wrapperClassName, className)
 
 Documentati: 9/9 ✅ | Playground: 9/9 ✅
 
@@ -109,7 +109,7 @@ Documentati: 9/9 ✅ | Playground: 9/9 ✅
 
 ### Dropdown `DropdownPage.tsx`
 
-**DropdownProps reali (da source):** children, toggleButton, badge, header, footer, defaultOpen, **open**, **onOpenChange**, alwaysOpen, position, **placement**, buttonClass, badgeClass, menuClass, headerClass, footerClass + MotionUIProps (motion, pre, post, wrapClass, className)
+**DropdownProps reali (da source):** children, trigger, badge, header, footer, defaultOpen, **open**, **onOpenChange**, staticOpen, position, **placement**, triggerClassName, badgeClassName, menuClassName, headerClassName, footerClassName + MotionUIProps (motion, before, after, wrapperClassName, className)
 
 | # | Issue | Peso | Dove | Suggerita |
 |---|-------|------|------|-----------|
@@ -122,7 +122,7 @@ Documentati: 9/9 ✅ | Playground: 9/9 ✅
 
 ### Gallery `GalleryPage.tsx`
 
-**GalleryProps reali (23 totali da source):** body, Header, Footer, overlays, onClick, onSelectionChange, sortable, pagination, scrollToTopOnChange, scrollBehavior, gutterSize, rowCols, groupBy, selectedKeys, selectedRowKeys, scrollClass, headerClass, bodyClass, footerClass, selectedClass, className + UIProps (pre, post, wrapClass)
+**GalleryProps reali (23 totali da source):** records, header, footer, overlays, onItemClick, onSelectionChange, sortable, pagination, scrollToTopOnChange, scrollBehavior, gutterSize, columns, groupBy, selectedKeys, scrollClass, headerClassName, bodyClassName, footerClassName, selectedClass, className + UIProps (before, after, wrapperClassName)
 
 Documentati in PROPS: 13/23
 
@@ -130,14 +130,13 @@ Documentati in PROPS: 13/23
 |---|-------|------|------|-----------|
 | 1 | **`scrollToTopOnChange` NON documentato** | P2 | PROPS | Aggiungere PropDef con boolean control |
 | 2 | **`scrollBehavior` NON documentato** | P2 | PROPS | Aggiungere PropDef con select `'auto' \| 'smooth'` |
-| 3 | **`selectedRowKeys` NON documentato** | P2 | PROPS | Aggiungere PropDef |
 | 4 | **`scrollClass` NON documentato** | P3 | PROPS | Aggiungere PropDef con text control |
-| 5 | **`headerClass` NON documentato** | P3 | PROPS | Aggiungere PropDef con text control |
-| 6 | **`bodyClass` NON documentato** | P3 | PROPS | Aggiungere PropDef con text control |
-| 7 | **`footerClass` NON documentato** | P3 | PROPS | Aggiungere PropDef con text control |
-| 8 | **`pre`, `post`, `wrapClass` (UIProps) NON documentati** | P2 | PROPS | Aggiungere PropDef |
+| 5 | **`headerClassName` NON documentato** | P3 | PROPS | Aggiungere PropDef con text control |
+| 6 | **`bodyClassName` NON documentato** | P3 | PROPS | Aggiungere PropDef con text control |
+| 7 | **`footerClassName` NON documentato** | P3 | PROPS | Aggiungere PropDef con text control |
+| 8 | **`before`, `after`, `wrapperClassName` (UIProps) NON documentati** | P2 | PROPS | Aggiungere PropDef |
 | 9 | **`className` NON documentato** | P2 | PROPS | Aggiungere PropDef con text control |
-| 10 | Manca sezione per default/basic gallery (no sort/overlays, solo body) | P2 | Sezioni | Aggiungere Section `<Gallery body={simpleRecords} />` |
+| 10 | Manca sezione per default/basic gallery (no sort/overlays, solo records) | P2 | Sezioni | Aggiungere Section `<Gallery records={simpleRecords} />` |
 | 11 | Manca sezione per `gutterSize` variation demo | P3 | Sezioni | Aggiungere Section con 3 gutterSize values side-by-side |
 
 ### GridSystem `GridSystemPage.tsx`
@@ -166,30 +165,30 @@ Documentati: 7/7 ✅ | Playground: 7/7 ✅
 
 ### Loader `LoaderPage.tsx`
 
-**LoaderProps reali (9 totali da source):** show, children, icon, title, description + UIProps (pre, post, wrapClass, className)
+**LoaderProps reali (9 totali da source):** show, children, icon, title, description + UIProps (before, after, wrapperClassName, className)
 
 Documentati: 7/9
 
 | # | Issue | Peso | Dove | Suggerita |
 |---|-------|------|------|-----------|
-| 1 | **`pre`, `post` (UIProps) NON documentati** | P2 | PROPS | Aggiungere PropDef |
-| 2 | Manca sezione dimostrativa per `pre`/`post` slots | P3 | Sezioni | Aggiungere Section con `<Loader pre={<Icon />}>` |
-| 3 | Nessuna sezione per `className`/`wrapClass` custom styling | P3 | Sezioni | Opzionale |
+| 1 | **`before`, `after` (UIProps) NON documentati** | P2 | PROPS | Aggiungere PropDef |
+| 2 | Manca sezione dimostrativa per `before`/`after` slots | P3 | Sezioni | Aggiungere Section con `<Loader before={<Icon />}>` |
+| 3 | Nessuna sezione per `className`/`wrapperClassName` custom styling | P3 | Sezioni | Opzionale |
 
 ### Modal `ModalPage.tsx`
 
-**ModalProps reali (20 totali da source):** children, title, header, footer, onClose, onSave, onDelete, size, position, buttonFullscreen, **buttonCancel**, headerClass, **titleClass**, **subTitleClass**, bodyClass, footerClass, closeOnBackdrop, **zIndex** + MotionUIProps (motion, pre, post, wrapClass, className)
+**ModalProps reali (20 totali da source):** children, title, header, footer, onClose, onSave, onDelete, size, position, allowFullscreen, **showCancel**, headerClassName, **titleClassName**, **subtitleClassName**, bodyClassName, footerClassName, closeOnBackdrop, **zIndex** + MotionUIProps (motion, before, after, wrapperClassName, className)
 
 Documentati: 13/20
 
 | # | Issue | Peso | Dove | Suggerita |
 |---|-------|------|------|-----------|
-| 1 | **`buttonCancel` (boolean) NON documentato** | P2 | PROPS | Aggiungere PropDef con boolean control |
-| 2 | **`titleClass` (string) NON documentato** | P3 | PROPS | Aggiungere PropDef |
-| 3 | **`subTitleClass` (string) NON documentato** | P3 | PROPS | Aggiungere PropDef |
+| 1 | **`showCancel` (boolean) NON documentato** | P2 | PROPS | Aggiungere PropDef con boolean control |
+| 2 | **`titleClassName` (string) NON documentato** | P3 | PROPS | Aggiungere PropDef |
+| 3 | **`subtitleClassName` (string) NON documentato** | P3 | PROPS | Aggiungere PropDef |
 | 4 | **`zIndex` (number) NON documentato** | P2 | PROPS | Aggiungere PropDef con number control |
 | 5 | **`motion` (MotionUIProps) NON documentato** | P2 | PROPS | Aggiungere PropDef |
-| 6 | **`pre`, `post`, `wrapClass`, `className` (MotionUIProps) NON documentati** | P2 | PROPS | Aggiungere PropDef |
+| 6 | **`before`, `after`, `wrapperClassName`, `className` (MotionUIProps) NON documentati** | P2 | PROPS | Aggiungere PropDef |
 | 7 | `footer` type `ReactNode \| false` — playground non può testare `false` (text control non produce false) | P3 | Playground | Limitazione nota |
 | 8 | `onClose`, `onSave`, `onDelete` senza controllo playground — ok (callback) | P3 | Playground | Intenzionale |
 
@@ -203,7 +202,7 @@ Documentati: 5/5 ✅ e 3/3 ✅
 
 ### Pagination `PaginationPage.tsx`
 
-**PaginationProps reali (14 totali da source):** recordSet, children, page, limit, navLimit, scrollToTopOnChange, scrollBehavior, align, sticky, appendTo + UIProps (pre, post, wrapClass, className)
+**PaginationProps reali (14 totali da source):** recordSet, children, page, limit, navLimit, scrollToTopOnChange, scrollBehavior, align, sticky, appendTo + UIProps (before, after, wrapperClassName, className)
 
 Documentati: 8/14
 
@@ -211,12 +210,12 @@ Documentati: 8/14
 |---|-------|------|------|-----------|
 | 1 | **`page` (controlled current page) NON documentato** | P2 | PROPS | Aggiungere PropDef con number control |
 | 2 | **`scrollBehavior` (ScrollBehavior) NON documentato** | P3 | PROPS | Aggiungere PropDef con select `'auto' \| 'smooth'` |
-| 3 | **`pre`, `post`, `wrapClass`, `className` (UIProps) NON documentati** | P2 | PROPS | Aggiungere PropDef |
+| 3 | **`before`, `after`, `wrapperClassName`, `className` (UIProps) NON documentati** | P2 | PROPS | Aggiungere PropDef |
 | 4 | `default: 'recordSet.length'` per `limit` fuorviante — sembra un valore stringa letterale | P3 | Riga 59 | Usare `default: 'undefined'` con nota che default = tutti i record |
 | 5 | `sticky` default dice `true` ma source usa `undefined` (non sticky) | P3 | Riga 61 | Cambiare default in `false` o `undefined` |
 | 6 | `align` default dice `'"end"'` ma source usa `undefined` (nessun default esplicito) | P3 | Riga 62 | Cambiare default in `undefined` |
 | 7 | Sezione "Interactive pagination" usa DemoPagination manuale invece del componente Pagination — non dimostra l'API Pagination | P2 | Sezione 1 | Sostituire con `<Pagination recordSet={ITEMS}>` |
-| 8 | Encoding: `Â«` (linee 31,45) e `Â·` (linea 50) — doppia codifica UTF-8 | P3 | Righe 31,45,50 | Sostituire con entità HTML o Unicode diretto |
+| 8 | Encoding: `«` (linee 31,45) e `·` (linea 50) — doppia codifica UTF-8 | P3 | Righe 31,45,50 | Sostituire con entità HTML o Unicode diretto |
 
 ### Percentage `PercentagePage.tsx`
 
@@ -225,11 +224,11 @@ Documentati: 15/15 ✅ | Playground: 15/15 ✅
 | # | Issue | Peso | Dove | Suggerita |
 |---|-------|------|------|-----------|
 | 1 | `min` non ha controllo per valori negativi nel playground (min: -50 funziona ma non ovvio) | P3 | Riga 14 | Nota già presente — ok |
-| 2 | Manca sezione dimostrativa per `className`/`wrapClass` styling custom | P3 | Sezioni | Opzionale |
+| 2 | Manca sezione dimostrativa per `className`/`wrapperClassName` styling custom | P3 | Sezioni | Opzionale |
 
 ### Tab `TabPage.tsx`
 
-**TabProps reali (8 totali da source):** children, defaultTab, tabPosition + MotionUIProps (motion, pre, post, wrapClass, className)
+**TabProps reali (8 totali da source):** children, defaultIndex, layout + MotionUIProps (motion, before, after, wrapperClassName, className)
 
 Documentati (Tab): 5/8
 Documentati (TabItem): 2/2 ✅
@@ -237,40 +236,39 @@ Documentati (TabItem): 2/2 ✅
 | # | Issue | Peso | Dove | Suggerita |
 |---|-------|------|------|-----------|
 | 1 | **`motion` (MotionUIProps) NON documentato** | P2 | TAB_PROPS | Aggiungere PropDef |
-| 2 | **`pre`, `post` (MotionUIProps) NON documentati** | P2 | TAB_PROPS | Aggiungere PropDef |
-| 3 | Playground non testa `pre`/`post`/`motion` | P3 | Playground | Opzionale |
+| 2 | **`before`, `after` (MotionUIProps) NON documentati** | P2 | TAB_PROPS | Aggiungere PropDef |
+| 3 | Playground non testa `before`/`after`/`motion` | P3 | Playground | Opzionale |
 
 ### Table `TablePage.tsx`
 
-**TableProps reali (22 totali da source):** header, body, Footer, onClick, onReorder, onSelectionChange, **selectionMode**, sortable, pagination, **activeKey**, selectedKeys, **selectedRowKeys**, groupBy, headerClass, bodyClass, footerClass, heightClass, scrollClass, selectedClass, **renderCell** + UIProps (pre, post, wrapClass, className)
+**TableProps reali (22 totali da source):** columns, records, footer, onRowClick, onReorder, onSelectionChange, **selection**, sortable, pagination, **activeKey**, selectedKeys, groupBy, headerClassName, bodyClassName, footerClassName, heightClass, scrollClass, selectedClass, **renderCell** + UIProps (before, after, wrapperClassName, className)
 
 Documentati: 18/22
 
 | # | Issue | Peso | Dove | Suggerita |
 |---|-------|------|------|-----------|
-| 1 | **`selectionMode` ("single" \| "multiple") NON documentato** | P2 | PROPS | Aggiungere PropDef con select — importante per UX (single vs multi checkbox) |
+| 1 | **`selection` ("single" \| "multiple") NON documentato** | P2 | PROPS | Aggiungere PropDef con select — importante per UX (single vs multi checkbox) |
 | 2 | **`activeKey` (string \| null) NON documentato** | P3 | PROPS | Aggiungere PropDef |
-| 3 | **`selectedRowKeys` (string[]) NON documentato** | P2 | PROPS | Aggiungere PropDef (complementare a selectedKeys) |
 | 4 | **`renderCell` ((record, key, index) => ReactNode) NON documentato** | P2 | PROPS | Aggiungere PropDef con shape |
-| 5 | **`pre`, `post` (UIProps) NON documentati — MA usati nella sezione "Bulk selection" (riga 538, 637)** | P2 | PROPS | Aggiungere PropDef (feature usata in sezione ma non documentata in tabella!) |
-| 6 | `selectionMode` non testabile in playground (multi checkbox sempre enabled) | P3 | Playground | Aggiungere toggle per single/multi mode |
+| 5 | **`before`, `after` (UIProps) NON documentati — MA usati nella sezione "Bulk selection"** | P2 | PROPS | Aggiungere PropDef (feature usata in sezione ma non documentata in tabella!) |
+| 6 | `selection` non testabile in playground (multi checkbox sempre enabled) | P3 | Playground | Aggiungere toggle per single/multi mode |
 
 ### Input `InputPage.tsx`
 
-**InputProps (da source):** BaseInputProps (FormFieldProps + placeholder, type, updatable, disabled, feedback, min, max, step, inputId, labelClassName, validator) — type è Omit da InputProps ma accettato dal componente
+**InputProps (da source):** BaseInputProps (FormFieldProps + placeholder, type, lockAfterSet, disabled, feedback, min, max, step, id, labelClassName, validator) — type è Omit da InputProps ma accettato dal componente
 
-Documentati in PROPS_CONFIG: name, label, type, placeholder, required, disabled, updatable, defaultValue, min, max, step, feedback, className, wrapClass
+Documentati in PROPS_CONFIG: name, label, type, placeholder, required, disabled, lockAfterSet, defaultValue, min, max, step, feedback, className, wrapperClassName
 
 | # | Issue | Peso | Dove | Suggerita |
 |---|-------|------|------|-----------|
 | 1 | `type` è Omit'd da InputProps ma documentato e funzionante — lieve imprecisione type | P3 | PROPS | Nota minore |
-| 2 | `pre`, `post` (UIProps) NON documentati | P2 | PROPS | Aggiungere PropDef |
+| 2 | `before`, `after` (UIProps) NON documentati | P2 | PROPS | Aggiungere PropDef |
 | 3 | 8 sezioni dimostrative eccellenti coprono tutti i tipi di input | ⬜ | Sezioni | ✅ |
 | 4 | `validator` (function) non documentato | P3 | PROPS | Opzionale — feature di nicchia |
 
 ### Menu `MenuPage.tsx`
 
-**MenuProps (da source):** context, Type, badges, headerClass, itemClass, linkClass, iconClass, textClass, badgeClass, arrowClass, submenuClass + UIProps (pre, post, wrapClass, className)
+**MenuProps (da source):** menuKey, as, badges, headerClassName, itemClassName, linkClassName, iconClassName, textClassName, badgeClassName, arrowClassName, submenuClassName + UIProps (before, after, wrapperClassName, className)
 
 Documentati: 15/15 ✅ | Playground: 15/15 ✅
 
@@ -284,7 +282,7 @@ Documentati: 15/15 ✅ | Playground: 15/15 ✅
 
 ### Select `SelectPage.tsx`
 
-**SelectProps (da source):** BaseProps (FormFieldProps + updatable, disabled, title, feedback, options, db, order, validator) + optionEmpty, value. FormFieldProps = UIProps + name, label, value, required, onChange, defaultValue
+**SelectProps (da source):** BaseProps (FormFieldProps + lockAfterSet, disabled, title, feedback, options, optionsSource, order, validator) + placeholderOption, value. FormFieldProps = UIProps + name, label, value, required, onChange, defaultValue
 
 Documentati: 17/18
 
@@ -296,7 +294,7 @@ Documentati: 17/18
 
 ### Autocomplete `AutocompletePage.tsx`
 
-**AutocompleteProps (da source):** BaseProps + min, max, placeholder, creatable, onCreate
+**AutocompleteProps (da source):** BaseProps + minItems, maxItems, placeholder, creatable, onCreate
 
 Documentati: 20/22
 
@@ -308,18 +306,18 @@ Documentati: 20/22
 
 ### Checklist `ChecklistPage.tsx`
 
-**ChecklistProps (da source):** BaseProps + checkClass
+**ChecklistProps (da source):** BaseProps + itemClassName
 
 Documentati: 17/19
 
 | # | Issue | Peso | Dove | Suggerita |
 |---|-------|------|------|-----------|
 | 1 | `validator` (da BaseProps) non documentato | P3 | PROPS | Opzionale |
-| 2 | `checkClass` presente e funzionante in playground | ⬜ | — | ✅ |
+| 2 | `itemClassName` presente e funzionante in playground | ⬜ | — | ✅ |
 
 ### Repeat `RepeatPage.tsx`
 
-**RepeatProps (da source):** name, children, value, onChange, onAdd, onRemove, className, layout, min, max, label, readOnly
+**RepeatProps (da source):** name, children, value, onChange, onAdd, onRemove, className, layout, minItems, maxItems, label, readOnly
 
 Documentati: 11/12
 
@@ -327,11 +325,11 @@ Documentati: 11/12
 |---|-------|------|------|-----------|
 | 1 | `value` (controlled array — prop per gestire l'array da fuori) NON documentato | P2 | PROPS | Aggiungere PropDef (utile per stato controllato esterno) |
 | 2 | `defaultValue` (da FormFieldProps) gestito tramite Form.defaultValues — ok | ⬜ | — | ✅ |
-| 3 | Solo 1 sezione dimostrativa — mancano esempi per layout=inline, readOnly, min/max enforcement | P2 | Sezioni | Aggiungere Section per layout variants |
+| 3 | Solo 1 sezione dimostrativa — mancano esempi per layout=inline, readOnly, minItems/maxItems enforcement | P2 | Sezioni | Aggiungere Section per layout variants |
 
 ### TextArea `TextAreaPage.tsx`
 
-**TextAreaProps (da source):** FormFieldProps + placeholder, updatable, disabled, rows, maxRows, feedback, useRef, inputId, labelClassName, validator
+**TextAreaProps (da source):** FormFieldProps + placeholder, lockAfterSet, disabled, rows, maxRows, feedback, useRef, id, labelClassName, validator
 
 Documentati: 17/20
 
@@ -340,7 +338,7 @@ Documentati: 17/20
 | 1 | `useRef` (ref forwarding) non documentato | P3 | PROPS | Aggiungere PropDef |
 | 2 | `validator` non documentato | P3 | PROPS | Opzionale |
 | 3 | `value` (da FormFieldProps) non documentato come prop direct — già gestito da Form context | P3 | PROPS | Opzionale |
-| 4 | 5 sezioni eccellenti (basic, auto-resize, feedback, pre/post, disabled) | ⬜ | — | ✅ |
+| 4 | 5 sezioni eccellenti (basic, auto-resize, feedback, before/after, disabled) | ⬜ | — | ✅ |
 
 ### Checkbox `CheckboxPage.tsx`
 
@@ -351,7 +349,7 @@ Documentati: 11/12
 | # | Issue | Peso | Dove | Suggerita |
 |---|-------|------|------|-----------|
 | 1 | `ariaLabel` non documentato | P3 | PROPS | Aggiungere PropDef (accessibilità) |
-| 2 | Solo 1 sezione dimostrativa — mancano esempi per required, disabled, pre/post | P3 | Sezioni | Opzionale |
+| 2 | Solo 1 sezione dimostrativa — mancano esempi per required, disabled, before/after | P3 | Sezioni | Opzionale |
 
 ### Switch `SwitchPage.tsx`
 
@@ -378,7 +376,7 @@ Documentati (UploadCSV): 6/8
 |---|-------|------|------|-----------|
 | 1 | **`max` (UploadDocumentProps) NON documentato per UploadImage né UploadDocument** | P2 | UPLOAD_IMAGE_PROPS, UPLOAD_DOCUMENT_PROPS | Aggiungere PropDef con number control |
 | 2 | **`required` (FormFieldProps) NON documentato per UploadImage né UploadDocument** | P2 | PROPS | Aggiungere PropDef con boolean control |
-| 3 | **`pre`, `post`, `wrapClass`, `className` (FormFieldProps/UIProps) NON documentati per Upload/UploadDocument/UploadCSV** | P2 | PROPS | Aggiungere PropDef |
+| 3 | **`before`, `after`, `wrapperClassName`, `className` (FormFieldProps/UIProps) NON documentati per Upload/UploadDocument/UploadCSV** | P2 | PROPS | Aggiungere PropDef |
 | 4 | `storagePath` documentato ma readOnly — nessun controllo playground (dipende da StorageProvider) | P3 | Playground | Limitazione nota |
 | 5 | `onChange` (FormFieldProps) non documentato per UploadImage/Document | P3 | PROPS | Opzionale |
 | 6 | Pagina ben strutturata con 5 sezioni + 3 PropDocsTable separate | ⬜ | — | ✅ |
@@ -391,7 +389,7 @@ Documentati (UploadCSV): 6/8
 
 ### Brand `BrandPage.tsx`
 
-**BrandProps (da source):** url, label, logo, width, height, wrapClass, className, logoClass, labelClass
+**BrandProps (da source):** href, label, logo, width, height, wrapperClassName, className, logoClassName, labelClassName
 
 Documentati: 9/9 ✅ | Playground: 9/9 ✅
 
@@ -421,7 +419,7 @@ Documentati: 9/9 ✅ | Playground: 9/9 ✅
 
 ### Notifications `NotificationsPage.tsx`
 
-**NotificationsProps (da source):** children, badge, wrapClass
+**NotificationsProps (da source):** items, badge, wrapperClassName
 
 Documentati: 3/3 ✅ | Playground: 3/3 ✅
 
@@ -432,7 +430,7 @@ Documentati: 3/3 ✅ | Playground: 3/3 ✅
 
 ### Search `SearchPage.tsx`
 
-**SearchProps (da source):** handleSearch
+**SearchProps (da source):** onQueryChange
 
 Documentati: 1/1 ✅ | Playground: 1/1 ✅
 
@@ -446,7 +444,7 @@ Documentati: 1/1 ✅ | Playground: 1/1 ✅
 
 ### Auth `AuthPage.tsx`
 
-**AuthButtonProps (da source):** extends Omit\<IButton, 'onClick'\> → provider, intent, aspect, scopes, iconLogout, avatarClass, options + label, icon, className, disabled, title (da IButton)
+**AuthButtonProps (da source):** extends Omit\<IButton, 'onClick'\> → provider, intent, appearance, scopes, iconLogout, avatarClass, options + label, icon, className, disabled, title (da IButton)
 
 Documentati: 7/12
 
@@ -479,7 +477,7 @@ Documentati: 10/11
 
 **Gateway unificato GridProps = GridDBProps | GridArrayProps**
 
-Documentati (definePropDocs): 31/31 props ✅ — include pre, post, wrapClass, onLoad, onReorder
+Documentati (definePropDocs): 31/31 props ✅ — include before, after, wrapperClassName, onLoad, onReorder
 
 | # | Issue | Peso | Dove | Suggerita |
 |---|-------|------|------|-----------|
@@ -520,7 +518,7 @@ Documentati: 4/4 ✅ | Playground: 4/4 ✅
 
 ### ListGroup `ListGroupPage.tsx`
 
-**ListGroupProps (da source):** extends UIProps (pre, post, wrapClass, className) + children, onClick, label, draggable, onDrop, actives, disables, loaders, itemClass
+**ListGroupProps (da source):** extends UIProps (before, after, wrapperClassName, className) + children, onClick, label, draggable, onDrop, actives, disables, loaders, itemClassName
 
 Documentati: 13/13 ✅ | Playground: 13/13 ✅
 
@@ -530,18 +528,18 @@ Documentati: 13/13 ✅ | Playground: 13/13 ✅
 
 ### MarkdownReader `MarkdownReaderPage.tsx`
 
-**MarkdownReaderProps (da source):** content, components, className, wrapClass, head, onNavigateInternal
+**MarkdownReaderProps (da source):** content, components, className, wrapperClassName, metadata, onInternalLinkClick
 
 Documentati: 4/6
 
 | # | Issue | Peso | Dove | Suggerita |
 |---|-------|------|------|-----------|
 | 1 | **`components` (custom react-markdown Components override) NON documentato** | P2 | PROPS | Aggiungere PropDef con JSON control |
-| 2 | **`wrapClass` (wrapper CSS class) NON documentato** | P2 | PROPS | Aggiungere PropDef |
+| 2 | **`wrapperClassName` (wrapper CSS class) NON documentato** | P2 | PROPS | Aggiungere PropDef |
 
 ### TabDynamic `TabDynamicPage.tsx`
 
-**TabDynamicProps (da source):** children, name, onChange, onAdd, onRemove, value, label, min, max, activeIndex, title, readOnly, tabPosition
+**TabDynamicProps (da source):** children, name, onChange, onAdd, onRemove, value, label, minItems, maxItems, activeIndex, title, readOnly, layout
 
 Documentati: 12/13
 
@@ -569,7 +567,7 @@ PromptPlainPage: PROMPT_SHARED_PROPS (10) + PROMPT_PLAIN_PROPS (2) + PROMPT_AVAI
 ### Form `FormPage.tsx`
 
 **FormProps (da fonte):** BaseFormProps + FormProps
-- aspect, header, footer, path, handlers, keyGenerator, onLoad, onChange, onSave, onDelete, onFinally, log, showNotice, showBack, wrapClass, headerClass, className, footerClass + children, defaultValues, ref
+- appearance, header, footer, path, handlers, keyGenerator, onLoad, onRecordChange, onSave, onDelete, onComplete, log, showNotice, showBack, wrapperClassName, headerClassName, className, footerClassName + children, defaultValues, ref
 
 Documentati (PropDocsTable): 9
 
@@ -577,12 +575,12 @@ Documentati (PropDocsTable): 9
 |---|-------|------|------|-----------|
 | 1 | **`header` (custom header override) NON documentato** | P2 | PROPS | Aggiungere PropDef |
 | 2 | **`footer` (custom footer override) NON documentato** | P2 | PROPS | Aggiungere PropDef |
-| 3 | **`onChange` (form change listener) NON documentato** | P2 | PROPS | Aggiungere PropDef (callback, senza control) |
-| 4 | **`wrapClass` (wrapper CSS) NON documentato** | P2 | PROPS (UIProps) | Aggiungere PropDef |
+| 3 | **`onRecordChange` (form change listener) NON documentato** | P2 | PROPS | Aggiungere PropDef (callback, senza control) |
+| 4 | **`wrapperClassName` (wrapper CSS) NON documentato** | P2 | PROPS (UIProps) | Aggiungere PropDef |
 | 5 | **`className` (CSS sul form) NON documentato** | P2 | PROPS | Aggiungere PropDef |
 | 6 | `handlers` (FormHandlers) non documentato — caso d'uso raro | P3 | PROPS | Opzionale |
 | 7 | `log` / `showNotice` non documentati — flag interni | P3 | PROPS | Opzionale |
-| 8 | `footerClass` / `headerClass` non documentati | P3 | PROPS | Opzionale |
+| 8 | `footerClassName` / `headerClassName` non documentati | P3 | PROPS | Opzionale |
 | 9 | `ref` (FormRef imperativo) non documentato in PropDocsTable | P3 | PROPS | Opzionale |
 | 10 | 4 sezioni dimostrative eccellenti (new, edit, ref, nested fields + Repeat) | ⬜ | — | ✅ |
 
@@ -668,28 +666,28 @@ Based on the audit of **51 pagine componente** (tutte quelle esistenti nello sho
 7. **MotionPage**: Document 4 public hooks (useMotionEffect, usePressMotion, useEnterMotion, useMotionState)
 
 ### P2 — Systematic Gap (UIProps)
-**UIProps missing from 13+ pages:** Loader, Modal, Pagination, Tab, Table, Gallery, Image, Input, ActionButton, LoadingButton, NavigationButtons, Dropdown, Upload + wrapClass su MarkdownReader
-- Fix: Add `pre`, `post`, `wrapClass` to every component that extends UIProps
+**UIProps missing from 13+ pages:** Loader, Modal, Pagination, Tab, Table, Gallery, Image, Input, ActionButton, LoadingButton, NavigationButtons, Dropdown, Upload + wrapperClassName su MarkdownReader
+- Fix: Add `before`, `after`, `wrapperClassName` to every component that extends UIProps
 
 ### P2 — Other individual gaps
 | Pagina | Gap |
 |--------|-----|
 | ImagePage | `srcset`/`sizes` non documentati |
 | PaginationPage | `page`/`scrollBehavior` non documentati |
-| ModalPage | `buttonCancel`/`zIndex` non documentati |
-| TablePage | `selectionMode`/`selectedRowKeys`/`renderCell` non documentati |
+| ModalPage | `showCancel`/`zIndex` non documentati |
+| TablePage | `selection`/`renderCell` non documentati |
 | GridSystemPage | `defaultSize` non documentato |
 | GridDbPage | `onLoad`, `onReorder` non documentati |
 | GridArrayPage | `onReorder` non documentato |
-| MarkdownReaderPage | `components`, `wrapClass` non documentati |
+| MarkdownReaderPage | `components`, `wrapperClassName` non documentati |
 | TabDynamicPage | `value` (controlled array) non documentato |
 | Prompt (3 pagine) | `renderPromptDisabled` non documentato |
 | AuthPage | label, icon, className, disabled (da IButton) non documentati |
 | RepeatPage | `value` (controlled array) + layout variant sezione |
-| FormPage | header, footer, onChange, wrapClass, className non documentati |
+| FormPage | header, footer, onRecordChange, wrapperClassName, className non documentati |
 
 ### P3 — Cosmetic
-- Encoding: `â†’` (ImagePage), `Â«`/`Â·` (PaginationPage), `âœ“` (ImagePage, ImageAvatarPage)
+- Encoding: `â†’` (ImagePage), `«`/`·` (PaginationPage), `âœ“` (ImagePage, ImageAvatarPage)
 - Defaults: Many pages use `'-'` placeholder instead of `'undefined'`
 - Type inaccuracies (Notifications `badge` type, `MouseEventHandler` vs `() => void`, etc.)
 - `validator` prop mancante su Input, TextArea, Select, Checklist, Autocomplete
@@ -710,7 +708,7 @@ Badge, Card, Code, Icon, ImageAvatar, Percentage, Menu, ModalYesNo, ModalOk, Bra
 
 ### Recommended order
 1. **P1 fixes** (most visible to users)
-2. **P2 UIProps gap** (systematic — add pre/post/wrapClass per file checklist)
+2. **P2 UIProps gap** (systematic — add before/after/wrapperClassName per file checklist)
 3. **P2 other gaps** (Form header/footer/onChange, GridDB/GridArray onReorder, ecc.)
 4. **P3 cosmetic** (encoding, defaults, type inaccuracies)
 5. **Nessuna pagina rimasta da auditare** — tutte le 51 pagine componente sono state analizzate ✅

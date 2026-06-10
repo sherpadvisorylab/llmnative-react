@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from "react";
+﻿import React, { useCallback, useMemo } from "react";
 import { useTheme } from "../../../Theme";
 import { useDataProvider } from "../../../providers/data/DataProviderContext";
 import Card from "../../ui/Card";
@@ -52,23 +52,23 @@ function GridCore<TRecord extends RecordProps>({
     editDeepLink,
     header,
     footer,
-    layout = "table",
+    view = "table",
     sticky,
-    wrapClass,
+    wrapperClassName,
     loading = false,
     title,
-    pre,
-    post,
+    before,
+    after,
     sortable = true,
     pagination,
     selection,
-    onClickRow,
+    onRowClick,
     reorderable = false,
     onReorder,
     groupBy,
     onSave,
     onDelete,
-    onAfterAction,
+    onComplete,
     audit = false,
     onLoad,
 }: GridCoreProps<TRecord>) {
@@ -99,13 +99,13 @@ function GridCore<TRecord extends RecordProps>({
         db,
         onSave,
         onDelete,
-        onAfterAction,
+        onComplete,
         audit,
     });
     const canOpenEditFromRow = !!normalizedActions.edit && !!form;
 
     const handleRowClick = useCallback((record: TRecord) => {
-        onClickRow?.(record);
+        onRowClick?.(record);
 
         if (!canOpenEditFromRow) return;
         const recordKey = getRecordKey(record);
@@ -114,9 +114,9 @@ function GridCore<TRecord extends RecordProps>({
             return;
         }
         runAction("edit", record);
-    }, [activeAction?.actionKey, activeAction?.record, canOpenEditFromRow, close, getRecordKey, onClickRow, runAction]);
+    }, [activeAction?.actionKey, activeAction?.record, canOpenEditFromRow, close, getRecordKey, onRowClick, runAction]);
 
-    const rowClickHandler = onClickRow || canOpenEditFromRow
+    const rowClickHandler = onRowClick || canOpenEditFromRow
         ? handleRowClick
         : undefined;
 
@@ -210,17 +210,17 @@ function GridCore<TRecord extends RecordProps>({
     return (
         <>
             <Card
-                wrapClass={wrapClass}
+                wrapperClassName={wrapperClassName}
                 header={resolvedHeader}
                 footer={resolvedFooter}
                 className={(theme.Grid.Card.className + (sticky ? ` sticky-${sticky}` : "")).trim()}
-                headerClass={theme.Grid.Card.headerClass}
-                bodyClass={theme.Grid.Card.bodyClass}
-                footerClass={theme.Grid.Card.footerClass}
-                showLoader={loading || preparedRecordsLoading}
+                headerClassName={theme.Grid.Card.headerClassName}
+                bodyClassName={theme.Grid.Card.bodyClassName}
+                footerClassName={theme.Grid.Card.footerClassName}
+                loading={loading || preparedRecordsLoading}
                 showArrow={theme.Grid.Card.showArrow}
             >
-                {layout === "gallery" ? (
+                {view === "gallery" ? (
                     <GridGalleryView
                         records={preparedRecords}
                         recordId={recordId}
@@ -229,11 +229,11 @@ function GridCore<TRecord extends RecordProps>({
                         selection={selectionMode}
                         selectedKeys={activeSelectionKeys}
                         onSelectionChange={selectionMode ? handleSelectionChange : undefined}
-                        onClickRow={rowClickHandler}
+                        onRowClick={rowClickHandler}
                         groupBy={groupBy}
-                        wrapClass={theme.Grid.Gallery.wrapClass}
-                        pre={pre}
-                        post={post}
+                        wrapperClassName={theme.Grid.Gallery.wrapperClassName}
+                        before={before}
+                        after={after}
                     />
                 ) : (
                     <GridTableView
@@ -246,14 +246,14 @@ function GridCore<TRecord extends RecordProps>({
                         selection={selectionMode}
                         selectedKeys={activeSelectionKeys}
                         onSelectionChange={selectionMode ? handleSelectionChange : undefined}
-                        onClickRow={rowClickHandler}
+                        onRowClick={rowClickHandler}
                         reorderable={reorderable}
                         onReorder={onReorder}
                         activeKey={activeKey}
                         groupBy={groupBy}
-                        wrapClass={theme.Grid.Table.wrapClass}
-                        pre={pre}
-                        post={post}
+                        wrapperClassName={theme.Grid.Table.wrapperClassName}
+                        before={before}
+                        after={after}
                     />
                 )}
             </Card>
@@ -297,7 +297,7 @@ function GridCore<TRecord extends RecordProps>({
                                         : undefined;
                                 if (!storagePath && !onDelete) return false;
                                 if (storagePath) await db.remove(storagePath);
-                                const success = await onAfterAction?.({ record, action: "delete" }) ?? true;
+                                const success = await onComplete?.({ record, action: "delete" }) ?? true;
                                 if (success) close();
                                 return success;
                             }
@@ -313,22 +313,22 @@ function GridCore<TRecord extends RecordProps>({
                                     : undefined
                     }
                     footer={activeModalFooter}
-                    buttonCancel={
+                    showCancel={
                         activeActionConfig.kind === "modal" || activeActionConfig.kind === "delete"
                             ? activeActionConfig.footer === undefined
                             : true
                     }
-                    buttonFullscreen={
+                    allowFullscreen={
                         activeActionConfig.kind === "modal" || activeActionConfig.kind === "delete"
-                            ? activeActionConfig.buttonFullscreen
+                            ? activeActionConfig.allowFullscreen
                             : true
                     }
-                    wrapClass={theme.Grid.Modal.wrapClass}
+                    wrapperClassName={theme.Grid.Modal.wrapperClassName}
                     className={theme.Grid.Modal.className}
-                    headerClass={theme.Grid.Modal.headerClass}
-                    titleClass={theme.Grid.Modal.titleClass}
-                    bodyClass={theme.Grid.Modal.bodyClass}
-                    footerClass={theme.Grid.Modal.footerClass}
+                    headerClassName={theme.Grid.Modal.headerClassName}
+                    titleClassName={theme.Grid.Modal.titleClassName}
+                    bodyClassName={theme.Grid.Modal.bodyClassName}
+                    footerClassName={theme.Grid.Modal.footerClassName}
                 >
                     {activeActionBody}
                 </Modal>
@@ -338,3 +338,4 @@ function GridCore<TRecord extends RecordProps>({
 }
 
 export default GridCore;
+

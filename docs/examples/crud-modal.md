@@ -60,7 +60,7 @@ export default function ProductCatalog() {
                   <Select
                     name="category"
                     label="Category"
-                    db={{ path: "/categories", labelField: "name", valueField: "_key" }}
+                    optionsSource={{ path: "/categories", labelField: "name", valueField: "_key" }}
                   />
                   <Select
                     name="status"

@@ -1,4 +1,4 @@
-    import React, { createContext, useContext, useEffect, useState, forwardRef, useImperativeHandle, useRef, useCallback, useMemo } from 'react';
+﻿    import React, { createContext, useContext, useEffect, useState, forwardRef, useImperativeHandle, useRef, useCallback, useMemo } from 'react';
     import { flushSync } from 'react-dom';
 
     import { useLocation } from "react-router-dom";
@@ -23,7 +23,7 @@
     interface FormProviderProps {
         record: RecordProps | undefined;
         setRecord: React.Dispatch<React.SetStateAction<RecordProps | undefined>>;
-        wrapClass?: string;
+        wrapperClassName?: string;
     }
     export type FieldOnChange = (params: {event: ChangeHandler, name: string, value: FieldValue, record: RecordProps, onChange: FormHandleChange}) => void;
     export type InputType = "text" | "number" | "email" | "password" | "color" | "date" | "time" | "datetime-local" | "week" | "month" | "range" | "checkbox" | "radio" | "url" ;
@@ -31,10 +31,10 @@
     interface FormContextProps {
         name: string;
         onChange?: FieldOnChange;
-        wrapClass?: string;
+        wrapperClassName?: string;
         inputType?: InputType;
         defaultValue?: FieldValue;
-        inheritFormWrapClass?: boolean;
+        inheritWrapperClassName?: boolean;
     }
     interface FormContextResult {
         value: FieldValue;
@@ -108,14 +108,14 @@
         required?: boolean;
         onChange?: FieldOnChange;
         defaultValue?: FieldValue;
-        inheritFormWrapClass?: boolean;
+        inheritWrapperClassName?: boolean;
     }
 
     interface SetFormFieldsNameProps {
         children: React.ReactNode;
         parentName: string;
         parentKey?: string;
-        wrapClass?: string;
+        wrapperClassName?: string;
     }
 
     const FormContext = createContext<FormProviderProps | null>(null);
@@ -156,7 +156,7 @@
         return ctx?.errors[name];
     };
 
-export const useFormContext = ({name, onChange, wrapClass, inputType = "text", defaultValue, inheritFormWrapClass = true}: FormContextProps): FormContextResult => {
+export const useFormContext = ({name, onChange, wrapperClassName, inputType = "text", defaultValue, inheritWrapperClassName = true}: FormContextProps): FormContextResult => {
     const ctx = useContext(FormContext);
     if (!ctx) throw new Error("useFormContext must be used within a FormContext.Provider");
     if (!name) throw new Error("useFormContext: name is required");
@@ -203,7 +203,7 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
         return {
             value,
             handleChange,
-            formWrapClass: [wrapClass, inheritFormWrapClass ? ctx.wrapClass : undefined].filter(Boolean).join(" "),
+            formWrapClass: [wrapperClassName, inheritWrapperClassName ? ctx.wrapperClassName : undefined].filter(Boolean).join(" "),
             record: ctx.record ?? {},
         };
     };
@@ -275,7 +275,7 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
         return `${parentName}.${name.slice(lastDot + 1)}`;
     }
 
-    export const setFormFieldsName = ({children, parentName, parentKey, wrapClass}: SetFormFieldsNameProps): React.ReactNode => {
+    export const setFormFieldsName = ({children, parentName, parentKey, wrapperClassName}: SetFormFieldsNameProps): React.ReactNode => {
         return React.Children.map(children, (child) => {
             if (!parentName || !React.isValidElement(child)) return child;
 
@@ -284,20 +284,20 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
             if (name) {
                 newProps.name       = setParentName(name, parentName);
                 newProps.key        = parentKey ?? newProps.name;
-                newProps.wrapClass  = child.props.wrapClass ?? wrapClass;
+                newProps.wrapperClassName  = child.props.wrapperClassName ?? wrapperClassName;
 
-                if (child.props.pre && React.isValidElement(child.props.pre) ) {
-                    newProps.pre = setFormFieldsName({
-                        children: child.props.pre,
+                if (child.props.before && React.isValidElement(child.props.before) ) {
+                    newProps.before = setFormFieldsName({
+                        children: child.props.before,
                         parentName,
-                        parentKey: `${newProps.key}.pre` ,
+                        parentKey: `${newProps.key}.before` ,
                     });
                 }
-                if (child.props.post && React.isValidElement(child.props.post) ) {
-                    newProps.post = setFormFieldsName({
-                        children: child.props.post,
+                if (child.props.after && React.isValidElement(child.props.after) ) {
+                    newProps.after = setFormFieldsName({
+                        children: child.props.after,
                         parentName,
-                        parentKey: `${newProps.key}.post` ,
+                        parentKey: `${newProps.key}.after` ,
                     });
                 }
             }
@@ -333,25 +333,44 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
     export type FormDeleteHandler = (args: FormDeleteArgs) => Promise<string | undefined>;
     export type FormFinallyHandler = (args: FormFinallyArgs) => Promise<boolean>;
 
+    /** Core props shared by all Form variants. */
     interface BaseFormProps {
-        aspect?: "card" | "empty";
+        /** Visual wrapper: `"card"` adds a card shell; `"empty"` renders bare. */
+        appearance?: "card" | "empty";
+        /** Custom content rendered in the form header area. */
         header?: React.ReactNode;
+        /** Custom content rendered in the form footer area. */
         footer?: React.ReactNode;
+        /** Provider path for data load and save. Omit for a pure local form. */
         path?: string;
+        /** Expose internal save/delete handles to a parent ref. */
         handlers?: FormHandlers;
+        /** Generate a custom primary key for new records instead of auto-push. */
         keyGenerator?: (record: RecordProps) => string;
+        /** Transform the record after loading from the provider. */
         onLoad?: (record: RecordProps) => void;
-        onChange?: (record: RecordProps) => void;
+        /** Called on every field change with the current record state. */
+        onRecordChange?: (record: RecordProps) => void;
+        /** Transform the record before saving. Return the final record or a custom path. */
         onSave?: FormSaveHandler;
+        /** Called before deletion. Return a path override or `undefined`. */
         onDelete?: FormDeleteHandler;
-        onFinally?: FormFinallyHandler;
+        /** Called after save or delete. Return `false` to suppress default navigation. */
+        onComplete?: FormFinallyHandler;
+        /** Log field-change events to the console (dev helper). */
         log?: boolean;
+        /** Show the inline save/delete notice banner. Defaults to `true`. */
         showNotice?: boolean;
+        /** Render a Back navigation button in the footer. */
         showBack?: boolean;
-        wrapClass?: string;
-        headerClass?: string;
+        /** CSS classes on the outermost wrapper element. */
+        wrapperClassName?: string;
+        /** CSS classes on the header container. */
+        headerClassName?: string;
+        /** CSS classes on the form body element. */
         className?: string;
-        footerClass?: string;
+        /** CSS classes on the footer container. */
+        footerClassName?: string;
     }
     interface FormDefaultProps extends BaseFormProps {
         children: React.ReactNode | ((fields: FormTree) => React.ReactNode) | ((args: { record?: RecordProps}) => React.ReactNode);
@@ -366,8 +385,15 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
         children?: ((fields: FormTree) => React.ReactNode);
     }
 
-    interface FormProps extends BaseFormProps {
+    /**
+     * Public props for `<Form>`.
+     * When `path` points to an existing record the form loads its data automatically.
+     * When `keyGenerator` or `defaultValues` is set the form operates in create-only mode.
+     */
+    export interface FormProps extends BaseFormProps {
+        /** Field elements, a render-prop receiving the field tree, or a record-aware function. */
         children?: React.ReactNode | ((fields: FormTree) => React.ReactNode) | ((args: { record?: RecordProps }) => React.ReactNode);
+        /** Initial field values for a new record. */
         defaultValues?: RecordProps;
     }
 
@@ -430,7 +456,7 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
 
     const FormData = forwardRef<FormRef, FormDefaultProps>(({
         children,
-        aspect = undefined,
+        appearance = undefined,
         header = undefined,
         footer = undefined,
         path = undefined,
@@ -438,17 +464,17 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
         defaultValues = undefined,
         keyGenerator = undefined,
         onLoad = undefined,
-        onChange = undefined,
+        onRecordChange = undefined,
         onSave = undefined,
         onDelete = undefined,
-        onFinally = undefined,
+        onComplete = undefined,
         log = false,
         showNotice = true,
         showBack = false,
-        wrapClass = undefined,
-        headerClass = undefined,
+        wrapperClassName = undefined,
+        headerClassName = undefined,
         className = undefined,
-        footerClass = undefined
+        footerClassName = undefined
     }, ref) => {
         const theme = useTheme("form");
         const db = useDataProvider();
@@ -467,7 +493,7 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
         const recordRef = useRef(record);
         useEffect(() => {
             recordRef.current = record;
-            if (record !== undefined) onChange?.(record);
+            if (record !== undefined) onRecordChange?.(record);
         }, [record]);
 
 
@@ -590,7 +616,7 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
 
             recordStoragePath && await db.set(recordStoragePath, cleanRecord(recordRef.current));
             return await handleFinally(action);
-        }, [path, onSave, onFinally, showNotice, computeSavePath, validateFields]);
+        }, [path, onSave, onComplete, showNotice, computeSavePath, validateFields]);
 
         const handleDelete = useCallback(async (e: React.MouseEvent<HTMLElement>) => {
             e.preventDefault();
@@ -603,7 +629,7 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
 
             recordStoragePath && await db.remove(recordStoragePath);
             return await handleFinally("delete");
-        }, [path, onDelete, onFinally, showNotice, computeSavePath]);
+        }, [path, onDelete, onComplete, showNotice, computeSavePath]);
 
         const handleFinally = useCallback(async (action: 'create' | 'update' | 'delete') => {
             if (log && path && db) {
@@ -619,8 +645,8 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
 
             notice({ message: `Record ${action}d successfully`, type: "success" });
 
-            return (await onFinally?.({record: recordRef.current, action})) ?? true;
-        }, [log, path, onFinally, notice]);
+            return (await onComplete?.({record: recordRef.current, action})) ?? true;
+        }, [log, path, onComplete, notice]);
 
         useImperativeHandle(ref, () => ({
             handleSave: handlers?.handleSave ?? handleSave,
@@ -637,7 +663,7 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
             errors,
         }), [registerField, unregisterField, clearFieldError, errors]);
 
-        const formCtx = useMemo(() => ({ record, setRecord, wrapClass: "mb-3" as const }), [record, setRecord]);
+        const formCtx = useMemo(() => ({ record, setRecord, wrapperClassName: "mb-3" as const }), [record, setRecord]);
 
         const components = useMemo(() => (
             <FormContext.Provider value={formCtx}>
@@ -649,7 +675,7 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
 
         const notificationEl = useMemo(() => notification ? (
             <Alert
-                type={notification.type}
+                variant={notification.type}
                 appearance="text"
                 timeout={notification.type === 'success' ? 3000 : undefined}
                 onClose={notification.type === 'success' ? () => setNotification(undefined) : undefined}
@@ -659,9 +685,9 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
         ) : null, [notification]);
 
         const displayComponent = useMemo(() => {
-            if(!aspect && ref) return <>{components}{notificationEl}</>;
+            if(!appearance && ref) return <>{components}{notificationEl}</>;
 
-            switch (aspect) {
+            switch (appearance) {
                 case "empty":
                     return <>{components}{notificationEl}</>;
                 case "card":
@@ -686,17 +712,17 @@ export const useFormContext = ({name, onChange, wrapClass, inputType = "text", d
                                 label={theme.Form.i18n.buttonBack}
                             />}
                         </>}
-                        headerClass={headerClass || theme.Form.Card.headerClass}
-                        bodyClass={className || theme.Form.Card.bodyClass}
-                        footerClass={footerClass || theme.Form.Card.footerClass}
+                        headerClassName={headerClassName || theme.Form.Card.headerClassName}
+                        bodyClassName={className || theme.Form.Card.bodyClassName}
+                        footerClassName={footerClassName || theme.Form.Card.footerClassName}
                     >
                         {components}
                     </Card>;
             }
-        }, [aspect, header, footer, onSave, onDelete, showBack, components, ref, notificationEl]);
+        }, [appearance, header, footer, onSave, onDelete, showBack, components, ref, notificationEl]);
 
         return (
-            <Wrapper className={wrapClass || theme.Form.wrapClass}>
+            <Wrapper className={wrapperClassName || theme.Form.wrapperClassName}>
                 <form ref={containerRef} noValidate onSubmit={e => e.preventDefault()}>
                     {displayComponent}
                 </form>

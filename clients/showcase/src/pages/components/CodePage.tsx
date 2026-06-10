@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Code } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
@@ -64,9 +64,9 @@ const CODE_PROPS: PropDef[] = [
     { name: 'showCopy', type: 'boolean', default: 'true', description: 'Shows the copy-to-clipboard action', control: 'boolean' },
     { name: 'theme', type: 'PrismTheme', default: '"tomorrow"', description: 'Prism theme stylesheet loaded for the block', control: 'select', options: THEMES },
     { name: 'background', type: 'PrismBackground', default: '"default"', description: 'Optional background utility applied to the pre element', control: 'select', options: BACKGROUNDS },
-    { name: 'pre', type: 'ReactNode', description: 'Content rendered to the left of the code block, vertically centered', control: 'text' },
-    { name: 'post', type: 'ReactNode', description: 'Content rendered to the right of the code block, vertically centered', control: 'text' },
-    { name: 'wrapClass', type: 'string', description: 'CSS classes applied to the wrapper', control: 'text' },
+    { name: 'before', type: 'ReactNode', description: 'Content rendered to the left of the code block, vertically centered', control: 'text' },
+    { name: 'after', type: 'ReactNode', description: 'Content rendered to the right of the code block, vertically centered', control: 'text' },
+    { name: 'wrapperClassName', type: 'string', description: 'CSS classes applied to the wrapper', control: 'text' },
     { name: 'className', type: 'string', description: 'CSS classes applied to the pre element', control: 'text' },
 ];
 
@@ -81,7 +81,7 @@ const PLAYGROUND: PlaygroundConfig = {
         background: 'default',
         pre: '',
         post: '',
-        wrapClass: '',
+        wrapperClassName: '',
         className: '',
     },
     render: (p) => (
@@ -90,9 +90,9 @@ const PLAYGROUND: PlaygroundConfig = {
             showCopy={p.showCopy}
             theme={p.theme}
             background={p.background}
-            pre={p.pre || undefined}
-            post={p.post || undefined}
-            wrapClass={p.wrapClass || undefined}
+            before={p.pre || undefined}
+            after={p.post || undefined}
+            wrapperClassName={p.wrapperClassName || undefined}
             className={p.className || undefined}
         >
             {p.children}
@@ -175,14 +175,14 @@ export default function CodePage() {
 
             <Section
                 title="Slots and wrapper"
-                description="pre and post sit outside the code block as left and right side adornments. wrapClass and className let the block fit inside richer documentation layouts."
+                description="pre and post sit outside the code block as left and right side adornments. wrapperClassName and className let the block fit inside richer documentation layouts."
                 preview={
                     <Code
                         language="tsx"
                         theme="tomorrow"
-                        pre={<span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Example.tsx</span>}
-                        post={<span className="text-xs text-muted-foreground">End</span>}
-                        wrapClass="w-full"
+                        before={<span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Example.tsx</span>}
+                        after={<span className="text-xs text-muted-foreground">End</span>}
+                        wrapperClassName="w-full"
                         className="rounded-md border border-border p-4 text-sm"
                     >
                         {`<Button type="primary">Save</Button>`}
@@ -190,9 +190,9 @@ export default function CodePage() {
                 }
                 code={`<Code
   language="tsx"
-  pre={<span>Example.tsx</span>}
-  post={<span>End</span>}
-  wrapClass="w-full"
+  before={<span>Example.tsx</span>}
+  after={<span>End</span>}
+  wrapperClassName="w-full"
   className="rounded-md border border-border p-4 text-sm"
 >
   {\`<Button type="primary">Save</Button>\`}

@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import ReactMarkdown, { Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeSlug from 'rehype-slug';
@@ -14,9 +14,9 @@ export interface MarkdownReaderProps {
     content: string;
     components?: MarkdownComponents;
     className?: string;
-    wrapClass?: string;
-    head?: PageMetadataState;
-    onNavigateInternal?: (href: string, event: React.MouseEvent<HTMLAnchorElement>) => void;
+    wrapperClassName?: string;
+    metadata?: PageMetadataState;
+    onInternalLinkClick?: (href: string, event: React.MouseEvent<HTMLAnchorElement>) => void;
 }
 
 interface MarkdownCodeBlockProps {
@@ -77,7 +77,7 @@ function MarkdownCodeBlock({ code, language }: MarkdownCodeBlockProps) {
 }
 
 const createDefaultComponents = (
-    onNavigateInternal?: MarkdownReaderProps['onNavigateInternal']
+    onInternalLinkClick?: MarkdownReaderProps['onInternalLinkClick']
 ): MarkdownComponents => ({
     h1: ({ className, ...props }) => <h1 className={cn('mt-8 scroll-m-20 text-3xl font-bold tracking-normal first:mt-0 [&>a]:no-underline [&>a:hover]:opacity-80', className)} {...props} />,
     h2: ({ className, ...props }) => <h2 className={cn('mt-8 scroll-m-20 border-b pb-2 text-2xl font-semibold tracking-normal first:mt-0 [&>a]:no-underline [&>a:hover]:opacity-80', className)} {...props} />,
@@ -111,9 +111,9 @@ const createDefaultComponents = (
             rel={isExternalLink(href) ? 'noreferrer' : undefined}
             onClick={(event) => {
                 onClick?.(event);
-                if (!event.defaultPrevented && onNavigateInternal && isInternalLink(href)) {
+                if (!event.defaultPrevented && onInternalLinkClick && isInternalLink(href)) {
                     event.preventDefault();
-                    onNavigateInternal(href, event);
+                    onInternalLinkClick(href, event);
                 }
             }}
             {...props}
@@ -140,23 +140,23 @@ export default function MarkdownReader({
     content,
     components,
     className,
-    wrapClass,
-    head,
-    onNavigateInternal,
+    wrapperClassName,
+    metadata,
+    onInternalLinkClick,
 }: MarkdownReaderProps) {
     const h1Title = React.useMemo(() => content.match(/^#[ \t]+(.+)/m)?.[1]?.trim(), [content]);
-    const effectiveHead: PageMetadataState | undefined = (head || h1Title)
-        ? { ...(head ?? {}), title: head?.title ?? h1Title }
+    const effectiveHead: PageMetadataState | undefined = (metadata || h1Title)
+        ? { ...(metadata ?? {}), title: metadata?.title ?? h1Title }
         : undefined;
     useHead(effectiveHead);
 
     const defaultComponents = React.useMemo(
-        () => createDefaultComponents(onNavigateInternal),
-        [onNavigateInternal]
+        () => createDefaultComponents(onInternalLinkClick),
+        [onInternalLinkClick]
     );
 
     return (
-        <div className={cn('rf-markdown-reader max-w-none text-sm text-foreground', wrapClass, className)}>
+        <div className={cn('rf-markdown-reader max-w-none text-sm text-foreground', wrapperClassName, className)}>
             <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 rehypePlugins={[

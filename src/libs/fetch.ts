@@ -3,7 +3,7 @@ import {sleep} from "./utils";
 interface FetchOptions {
     method?: "GET" | "POST" | "PUT" | "DELETE" | "HEAD" | "PATCH";
     headers?: Record<string, string>;
-    body?: Record<string, any> | string;
+    body?: Record<string, unknown> | string;
 }
 
 function resolveContentType(options: FetchOptions) {
@@ -29,7 +29,7 @@ export async function fetchRest(
     url: string,
     options: FetchOptions | null = null,
     fetchFn: typeof fetch = globalThis.fetch
-): Promise<any> {
+): Promise<any> { // CR-042: return type is JSON | string | null, shape determined by caller
     const request: RequestInit = {
         redirect: "follow",
         method: options?.method?.toUpperCase() || "GET",
@@ -38,7 +38,7 @@ export async function fetchRest(
 
     if (options?.body) {
         if (["GET", "HEAD"].includes(request.method as string)) {
-            url += (url.includes("?") ? "&" : "?") + new URLSearchParams(options.body);
+            url += (url.includes("?") ? "&" : "?") + new URLSearchParams(options.body as Record<string, string>);
         } else {
             switch (resolveContentType(options)) {
                 case "application/json":
@@ -46,14 +46,14 @@ export async function fetchRest(
                     break;
 
                 case "application/x-www-form-urlencoded":
-                    request.body = new URLSearchParams(options.body);
+                    request.body = new URLSearchParams(options.body as Record<string, string>);
                     break;
 
                 case "multipart/form-data": {
                     const formData = new FormData();
-                    const body = options.body as Record<string, any>;
+                    const body = options.body as Record<string, unknown>;
                     for (const key in body) {
-                        formData.append(key, body[key]);
+                        formData.append(key, body[key] as string | Blob);
                     }
                     request.body = formData;
                     break;
@@ -125,7 +125,7 @@ export async function fetchJson(
     url: string,
     options: FetchOptions | null = null,
     fetchFn: typeof fetch = globalThis.fetch
-): Promise<any> {
+): Promise<any> { // CR-042: delegates to fetchRest, shape caller-determined
     return fetchRest(url, {
         ...options,
         headers: {

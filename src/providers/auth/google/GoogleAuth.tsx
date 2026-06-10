@@ -62,7 +62,7 @@ const loadScript = () => {
 const GoogleAuthFallback = () => (
     <div className="menu-item dropdown dropdown-mobile-full" title="⚠️ Google OAuth2 config missing">
         <Dropdown className="me-lg-3"
-            toggleButton={
+            trigger={
                 <div className="menu-img offline">
                     <img
                         src={PLACEHOLDER_USER}
@@ -187,7 +187,7 @@ const GoogleAuth = ({
             { <div className={className || theme.SignIn.className}>
                 <Dropdown
                     position="end"
-                    toggleButton={<ImageAvatar
+                    trigger={<ImageAvatar
                         src={userProfile.picture}
                         title={userProfile.name}
                         height={36}
@@ -208,7 +208,7 @@ const GoogleAuth = ({
                         <DropdownDivider />
                     </>}
                     <TenantMenu />
-                    <DropdownMenu context={"profile"} />
+                    <DropdownMenu menuKey={"profile"} />
 
                     {user && <>
                         <DropdownDivider />

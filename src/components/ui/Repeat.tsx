@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+﻿import React, { useMemo } from 'react';
 import { ActionButton } from './Buttons';
 import { FieldOnChange, setFormFieldsName, useFormContext } from '../widgets/Form';
 import { Col, Row } from './GridSystem';
@@ -13,8 +13,8 @@ interface RepeatProps {
     onRemove?: (index: number) => void;
     className?: string;
     layout?: 'vertical' | 'horizontal' | 'inline';
-    min?: number;
-    max?: number;
+    minItems?: number;
+    maxItems?: number;
     label?: string;
     readOnly?: boolean;
 }
@@ -28,21 +28,21 @@ const Repeat = ({
     onRemove,
     className,
     layout = 'horizontal',
-    min = undefined,
-    max = undefined,
+    minItems = undefined,
+    maxItems = undefined,
     label = undefined,
     readOnly = false,
 }: RepeatProps) => {
     const { value, handleChange } = useFormContext({ name, onChange });
     const records = Array.isArray(value) ? value as RecordProps[] : [];
 
-    const renderChildren = (index: number, wrapClass?: string) => {
+    const renderChildren = (index: number, wrapperClassName?: string) => {
         return setFormFieldsName({
             children: typeof children === 'function'
                 ? children({ record: records[index], records, index: index })
                 : children,
             parentName: `${name}.${index}`,
-            wrapClass
+            wrapperClassName
         })
     }
     const renderLayout = (index: number, canRemove: boolean) => {
@@ -81,8 +81,8 @@ const Repeat = ({
     }
 
 
-    const components = (records.length > 0 ? records : Array.from({ length: min || 0 }, () => ({}) as RecordProps))?.map((_, index) => {
-        const canRemove = !readOnly && index >= (min || 0);
+    const components = (records.length > 0 ? records : Array.from({ length: minItems || 0 }, () => ({}) as RecordProps))?.map((_, index) => {
+        const canRemove = !readOnly && index >= (minItems || 0);
 
         return (
             <React.Fragment key={`${name}-${index}`}>
@@ -106,11 +106,11 @@ const Repeat = ({
 
     const addButton = useMemo(() => {
         if (readOnly) return null;
-        if (!max || components.length < max) {
-            return <ActionButton wrapClass='text-end' icon='plus' label={label ? undefined : 'Add'} onClick={handleAdd} />
+        if (!maxItems || components.length < maxItems) {
+            return <ActionButton wrapperClassName='text-end' icon='plus' label={label ? undefined : 'Add'} onClick={handleAdd} />
         }
         return null;
-    }, [readOnly, max, components.length]);
+    }, [readOnly, maxItems, components.length]);
 
     return (
         <div className={className}>

@@ -102,7 +102,7 @@ function toDbRecord(
     data: object,
     id: string | null,
     pk: string
-): Record<string, any> {
+): Record<string, any> { // CR-042: Supabase row shape is open; returned as RecordProps by caller
     const { _key, _index, ...rest } = data as any;
     if (id) rest[pk] = id;
     return rest;
@@ -111,7 +111,7 @@ function toDbRecord(
 /**
  * Adds `_key` and `_index` to a row read from Supabase.
  */
-function fromDbRecord(row: Record<string, any>, pk: string, index = 0): RecordProps {
+function fromDbRecord(row: Record<string, any>, pk: string, index = 0): RecordProps { // CR-042: Supabase query row has open schema
     return { ...row, [RECORD_KEY]: String(row[pk] ?? index), _index: index };
 }
 

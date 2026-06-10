@@ -1,10 +1,10 @@
-import React from 'react';
+﻿import React from 'react';
 import {Link} from "react-router-dom";
 import Icon from "../ui/Icon";
 
 
 interface SearchProps {
-    handleSearch?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+    onQueryChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 export const SearchButton = () => {
     return (
@@ -24,13 +24,13 @@ export const SearchButton = () => {
 };
 
 function Search ({
-                     handleSearch = undefined
+                     onQueryChange = undefined
 }: SearchProps) {
     return (
 
         <div>
             <SearchButton />
-            <input className={"hidden"} type="text" placeholder="Search" onChange={handleSearch}/>
+            <input className={"hidden"} type="text" placeholder="Search" onChange={onQueryChange}/>
         </div>
     )
 }

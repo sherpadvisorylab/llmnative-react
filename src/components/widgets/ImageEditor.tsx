@@ -1,14 +1,14 @@
-import React, {useRef, useEffect, useCallback, useState} from 'react';
+﻿import React, {useRef, useEffect, useCallback, useState} from 'react';
 import Modal from "../ui/Modal";
 import {LoadingButton} from "../ui/Buttons";
 import Icon from "../ui/Icon";
 
 type ImageEditorProps = {
-    imageUrl: string;
+    src: string;
     title?: string;
     width?: number;
     height?: number;
-    modal?: boolean;
+    mode?: "modal" | "inline";
     onImageLoad?: () => void;
     onClose?: () => void;
     onSave?: (dataUrl: string) => void;
@@ -42,18 +42,18 @@ type LineDrawingOptions = {
 const Divider = () => <div className="h-5 w-px bg-border shrink-0 mx-0.5" />;
 
 const ImageEditor = ({
-                         imageUrl,
+                         src,
                          title          = undefined,
                          width          = 700,
                          height         = 500,
-                         modal          = false,
+                         mode           = "inline",
                          onImageLoad    = undefined,
                          onClose        = undefined,
                          onSave         = undefined
 }: ImageEditorProps) => {
     const rootEl = useRef<HTMLDivElement | null>(null);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const imageEditorInst = useRef<any>(null);
+    const imageEditorInst = useRef<any>(null); // CR-042: tui-image-editor has no TS types
     const objStyle = {
         width: 10,
         color: 'rgba(255,0,0,0.5)',
@@ -92,8 +92,8 @@ const ImageEditor = ({
             imageEditorInst.current = editor;
 
             // Load initial image now that the editor is ready
-            if (imageUrl) {
-                editor.loadImageFromURL(imageUrl, 'Sample Image')
+            if (src) {
+                editor.loadImageFromURL(src, 'Sample Image')
                     .then(() => {
                         onImageLoad?.();
                         editor.clearUndoStack();
@@ -139,9 +139,9 @@ const ImageEditor = ({
     // Reload when imageUrl changes after the editor is already initialised
     const loadImage = useCallback(() => {
         const editor = imageEditorInst.current;
-        if (!imageUrl || !editor) return;
+        if (!src || !editor) return;
 
-        editor.loadImageFromURL(imageUrl, 'Sample Image')
+        editor.loadImageFromURL(src, 'Sample Image')
             .then(() => {
                 onImageLoad?.();
                 editor.clearUndoStack();
@@ -150,7 +150,7 @@ const ImageEditor = ({
             .catch((err: unknown) => {
                 console.error('Error loading image:', err);
             });
-    }, [imageUrl, onImageLoad]);
+    }, [src, onImageLoad]);
 
     useEffect(() => {
         // Only fires on imageUrl changes after mount; initial load is handled inside initEditor
@@ -220,12 +220,12 @@ const ImageEditor = ({
     };
 
     useEffect(() => {
-        if (!modal) return;
+        if (mode !== "modal") return;
         document.body.style.overflow = 'hidden';
         return () => {
             document.body.style.overflow = '';
         };
-    }, [modal]);
+    }, [mode]);
 
     const handleSave = async () => {
         const editor = imageEditorInst.current;
@@ -332,13 +332,13 @@ const ImageEditor = ({
         />
     );
 
-    if (modal) {
+    if (mode === "modal") {
         return (
             <Modal
                 size="xl"
                 header={ModalHeader}
                 className="bg-secondary"
-                bodyClass="overflow-hidden"
+                bodyClassName="overflow-hidden"
                 onClose={handleClose}
                 footer={false}
             >

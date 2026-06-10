@@ -48,7 +48,7 @@ describe('Select', () => {
         expect(screen.getByRole('option', { name: 'Admin' })).toBeInTheDocument();
     });
 
-    it('loads options from the registered DataProvider using db.path', async () => {
+    it('loads options from the registered DataProvider using optionsSource.path', async () => {
         const provider = new MockDataProvider({
             '/categories': {
                 ops: { label: 'Operations', value: 'ops' },
@@ -58,7 +58,7 @@ describe('Select', () => {
 
         renderWithProviders(
             <Form defaultValues={{ categoryId: 'sales' }}>
-                <Select name="categoryId" label="Category" db={{ path: '/categories' }} />
+                <Select name="categoryId" label="Category" optionsSource={{ path: '/categories' }} />
             </Form>,
             { provider }
         );

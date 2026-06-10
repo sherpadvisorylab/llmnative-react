@@ -25,7 +25,7 @@ const PLAYGROUND: PlaygroundConfig = {
         heightPx: 140,
     },
     render: (p, onValuesChange) => (
-        <Form aspect="empty" onChange={onValuesChange}>
+        <Form appearance="empty" onChange={onValuesChange}>
             <div className="mb-3">
                 <ListGroup draggable label="Drag fields into the row">
                     {FIELD_TOKENS}
@@ -44,7 +44,7 @@ export default function LayoutBuilderPage() {
             <Section
                 title="Drag fields into the row"
                 preview={
-                    <Form aspect="empty">
+                    <Form appearance="empty">
                         <div className="mb-3">
                             <ListGroup draggable label="Fields">{FIELD_TOKENS}</ListGroup>
                         </div>

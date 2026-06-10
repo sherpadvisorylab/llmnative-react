@@ -35,7 +35,7 @@ The three base entry points are:
   form={<UserFormFields />}
   title="Users"
   sortable={{ field: 'name', dir: 'asc' }}
-  layout="table"
+  view="table"
 />;
 ```
 
@@ -49,7 +49,7 @@ const [selectedRecords, setSelectedRecords] = useState<RecordArray>([]);
 
 <Grid
   path="/users"
-  layout="gallery"
+  view="gallery"
   selection="multiple"
   selectedKeys={selectedKeys}
   onSelectionChange={({ keys, records }) => {
@@ -59,7 +59,7 @@ const [selectedRecords, setSelectedRecords] = useState<RecordArray>([]);
 />
 ```
 
-When `layout="table"`, `reorderable` and `onReorder` enable manual row reordering:
+When `view="table"`, `reorderable` and `onReorder` enable manual row reordering:
 
 ```tsx
 const [rows, setRows] = useState<RecordArray>(records);
@@ -67,7 +67,7 @@ const [rows, setRows] = useState<RecordArray>(records);
 <Grid
   records={rows}
   recordId="_key"
-  layout="table"
+  view="table"
   reorderable
   columns={[
     { key: 'name', label: 'Name', sortable: true },

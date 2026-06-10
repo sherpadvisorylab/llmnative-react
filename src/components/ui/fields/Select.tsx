@@ -1,4 +1,4 @@
-import React, { useEffect, useId, useMemo, useState } from 'react';
+﻿import React, { useEffect, useId, useMemo, useState } from 'react';
 import {
     Label,
     FieldError,
@@ -26,31 +26,32 @@ type OptionOrderConfig = OrderConfig & {
 };
 
 interface BaseProps extends FormFieldProps {
-    updatable?: boolean;
+    /** When `true`, the select becomes read-only (disabled) once a value has been set. */
+    readOnlyAfterSet?: boolean;
     disabled?: boolean;
     title?: string;
     feedback?: string;
     options?: Option[] | string[] | number[];
-    db?: DBConfig;
+    optionsSource?: DBConfig;
     order?: OptionOrderConfig;
     validator?: (value: FieldValue) => string | undefined;
 }
 
 export interface SelectProps extends BaseProps {
-    optionEmpty?: Option;
+    placeholderOption?: Option;
     value?: string | number;
 }
 
 export interface AutocompleteProps extends BaseProps {
-    min?: number;
-    max?: number;
+    minItems?: number;
+    maxItems?: number;
     placeholder?: string;
     creatable?: boolean;
     onCreate?: (value: string) => Promise<void> | void;
 }
 
 export interface ChecklistProps extends BaseProps {
-    checkClass?: string;
+    itemClassName?: string;
 }
 
 const valueToArray = (value: FieldValue): unknown[] => {
@@ -62,7 +63,7 @@ const valueToArray = (value: FieldValue): unknown[] => {
 };
 
 const normalizeOption = (
-    fieldMap: Record<string, any> | string | number | undefined
+    fieldMap: Record<string, unknown> | string | number | undefined
 ): Option => {
     if (!fieldMap) {
         return { label: '@value', value: '@value' };
@@ -73,8 +74,8 @@ const normalizeOption = (
     }
 
     return {
-        label: fieldMap?.label?.toString() || '',
-        value: fieldMap?.value?.toString() || ''
+        label: String(fieldMap?.label ?? '') || '',
+        value: String(fieldMap?.value ?? '') || ''
     };
 };
 
@@ -85,13 +86,13 @@ const normalizeLookup = (records: RecordProps[]): Option[] =>
     }));
 
 function getOptionsDB(
-    db?: DBConfig
+    optionsSource?: DBConfig
 ): DatabaseOptions {
     return {
-        fieldMap: db?.fieldMap,
-        where: db?.where,
-        order: db?.order,
-        onLoad: db?.onLoad,
+        fieldMap: optionsSource?.fieldMap,
+        where: optionsSource?.where,
+        order: optionsSource?.order,
+        onLoad: optionsSource?.onLoad,
     };
 }
 
@@ -129,10 +130,10 @@ const getOptions = (
     return Order.records(combined, effectiveOrder) || [];
 };
 
-const SelectAddon = ({ children, side }: { children: React.ReactNode; side: 'pre' | 'post' }) => (
+const SelectAddon = ({ children, side }: { children: React.ReactNode; side: 'before' | 'after' }) => (
     <span className={cn(
         fieldAddonClass,
-        side === 'pre' ? "rounded-l-md rounded-r-none border-r-0" : "rounded-l-none rounded-r-md border-l-0"
+        side === 'before' ? "rounded-l-md rounded-r-none border-r-0" : "rounded-l-none rounded-r-md border-l-0"
     )}>
         {children}
     </span>
@@ -143,77 +144,77 @@ export const Select = ({
     onChange = undefined,
     defaultValue = undefined,
     required = false,
-    updatable = true,
+    readOnlyAfterSet = false,
     disabled = false,
-    optionEmpty = {
+    placeholderOption = {
         label: "Select...",
         value: ""
     },
     label = undefined,
     title = undefined,
-    pre = undefined,
-    post = undefined,
+    before = undefined,
+    after = undefined,
     feedback = undefined,
     options = [],
-    db = undefined,
+    optionsSource = undefined,
     order = undefined,
-    inheritFormWrapClass = true,
-    wrapClass = undefined,
+    inheritWrapperClassName = true,
+    wrapperClassName = undefined,
     className = undefined,
     validator = undefined,
 }: SelectProps) => {
-    const { value, handleChange, formWrapClass } = useFormContext({ name, onChange, wrapClass, defaultValue, inheritFormWrapClass });
+    const { value, handleChange, formWrapClass } = useFormContext({ name, onChange, wrapperClassName, defaultValue, inheritWrapperClassName });
     const error = useFieldValidation(name, { required, label, validator });
     const theme = useTheme("select");
 
-    const dbOptions = useMemo(() => getOptionsDB(db), [db?.fieldMap, db?.where, db?.order, db?.onLoad]);
+    const dbOptions = useMemo(() => getOptionsDB(optionsSource), [optionsSource?.fieldMap, optionsSource?.where, optionsSource?.order, optionsSource?.onLoad]);
     const database = useDataProvider();
     const [lookup, setLookup] = useState<Option[]>([]);
     useEffect(() => {
-        return database.subscribe(db?.path, (records) => setLookup(normalizeLookup(records)), dbOptions);
-    }, [database, db?.path, dbOptions]);
+        return database.subscribe(optionsSource?.path, (records) => setLookup(normalizeLookup(records)), dbOptions);
+    }, [database, optionsSource?.path, dbOptions]);
 
     const opts = useMemo(() => {
-        const combinedOptions = getOptions(options, lookup, order, db?.order, dbOptions.fieldMap);
+        const combinedOptions = getOptions(options, lookup, order, optionsSource?.order, dbOptions.fieldMap);
 
         return arrayUnique(
             value && !combinedOptions.length
                 ? [...combinedOptions, { label: `× ${value.toString()}`, value: value.toString() }]
                 : combinedOptions
         );
-    }, [options, lookup, order, db?.order, dbOptions.fieldMap, value]);
+    }, [options, lookup, order, optionsSource?.order, dbOptions.fieldMap, value]);
 
-    if (!value && !optionEmpty && opts.length > 0) {
+    if (!value && !placeholderOption && opts.length > 0) {
         handleChange?.({ target: { name, value: opts[0].value } });
     }
 
     const id = useId();
     return (
-        <Wrapper className={formWrapClass || theme.Select.wrapClass}>
+        <Wrapper className={formWrapClass || theme.Select.wrapperClassName}>
             {label && <Label label={label} required={required} htmlFor={id} />}
-            <Wrapper className={pre || post ? cn(fieldGroupClass, "flex-nowrap") : ""}>
-                {pre && <SelectAddon side="pre">{pre}</SelectAddon>}
+            <Wrapper className={before || after ? cn(fieldGroupClass, "flex-nowrap") : ""}>
+                {before && <SelectAddon side="before">{before}</SelectAddon>}
                 <select
                     id={id}
                     name={name}
                     className={cn(
                         fieldControlBaseClass,
                         "appearance-none pr-8",
-                        pre && "!rounded-l-none",
-                        post && "!rounded-r-none",
+                        before && "!rounded-l-none",
+                        after && "!rounded-r-none",
                         error && 'border-destructive focus-visible:ring-destructive/20',
                         className || theme.Select.className
                     )}
                     value={(value as string | number | undefined) ?? ''}
                     required={required}
-                    disabled={disabled || (!updatable && !isEmpty(value))}
+                    disabled={disabled || (readOnlyAfterSet && !isEmpty(value))}
                     onChange={handleChange}
                     title={title}
                 >
-                    {optionEmpty && <option key={`${id}-empty`} value={optionEmpty.value}>{optionEmpty.label}</option>}
+                    {placeholderOption && <option key={`${id}-empty`} value={placeholderOption.value}>{placeholderOption.label}</option>}
                     {opts.map((op, index) => <option key={`${id}-${index}`} value={op.value}>{op.label}</option>)}
                 </select>
-                {post && <SelectAddon side="post">{post}</SelectAddon>}
+                {after && <SelectAddon side="after">{after}</SelectAddon>}
             </Wrapper>
             {error
                 ? <FieldError message={error} />
@@ -226,28 +227,28 @@ export const Select = ({
 export const Autocomplete = ({
     name,
     defaultValue = undefined,
-    min = undefined,
-    max = undefined,
+    minItems = undefined,
+    maxItems = undefined,
     onChange = undefined,
     required = false,
-    updatable = true,
+    readOnlyAfterSet = false,
     disabled = false,
     label = undefined,
     title = undefined,
     placeholder = undefined,
-    pre = undefined,
-    post = undefined,
+    before = undefined,
+    after = undefined,
     feedback = undefined,
     options = [],
-    db = undefined,
+    optionsSource = undefined,
     order = undefined,
-    inheritFormWrapClass = true,
-    wrapClass = undefined,
+    inheritWrapperClassName = true,
+    wrapperClassName = undefined,
     className = undefined,
     creatable = false,
     onCreate = undefined,
 }: AutocompleteProps) => {
-    const { value, handleChange, formWrapClass } = useFormContext({ name, onChange, wrapClass, defaultValue, inheritFormWrapClass });
+    const { value, handleChange, formWrapClass } = useFormContext({ name, onChange, wrapperClassName, defaultValue, inheritWrapperClassName });
     const error = useFieldValidation(name, { required, label });
     const theme = useTheme("select");
 
@@ -259,23 +260,23 @@ export const Autocomplete = ({
         }
     }, [valueArray, selectedItems]);
 
-    const dbOptions = useMemo(() => getOptionsDB(db), [db?.fieldMap, db?.where, db?.order, db?.onLoad]);
+    const dbOptions = useMemo(() => getOptionsDB(optionsSource), [optionsSource?.fieldMap, optionsSource?.where, optionsSource?.order, optionsSource?.onLoad]);
     const database = useDataProvider();
     const [lookup, setLookup] = useState<Option[]>([]);
     useEffect(() => {
-        return database.subscribe(db?.path, (records) => setLookup(normalizeLookup(records)), dbOptions);
-    }, [database, db?.path, dbOptions]);
+        return database.subscribe(optionsSource?.path, (records) => setLookup(normalizeLookup(records)), dbOptions);
+    }, [database, optionsSource?.path, dbOptions]);
 
     const [localOpts, setLocalOpts] = useState<Option[]>([]);
 
     const opts = useMemo(() => {
-        const combinedOptions = getOptions([...options, ...localOpts], lookup, order, db?.order, dbOptions.fieldMap);
+        const combinedOptions = getOptions([...options, ...localOpts], lookup, order, optionsSource?.order, dbOptions.fieldMap);
         return arrayUnique(combinedOptions, 'value');
-    }, [options, localOpts, lookup, order, db?.order, dbOptions.fieldMap]);
+    }, [options, localOpts, lookup, order, optionsSource?.order, dbOptions.fieldMap]);
 
     const commitValue = (currentValue: string, inputEl: HTMLInputElement) => {
         if (!currentValue) return;
-        if (selectedItems.includes(currentValue) || (max && selectedItems.length >= max)) {
+        if (selectedItems.includes(currentValue) || (maxItems && selectedItems.length >= maxItems)) {
             inputEl.value = '';
             return;
         }
@@ -324,15 +325,15 @@ export const Autocomplete = ({
     const id = useId();
     const listId = `${id}-options`;
     return (
-        <Wrapper className={formWrapClass || theme.Autocomplete.wrapClass}>
+        <Wrapper className={formWrapClass || theme.Autocomplete.wrapperClassName}>
             {label && <Label label={label} required={required} htmlFor={id} />}
-            <Wrapper className={pre || post ? cn(fieldGroupClass, "flex-nowrap") : ""}>
-                {pre && <SelectAddon side="pre">{pre}</SelectAddon>}
+            <Wrapper className={before || after ? cn(fieldGroupClass, "flex-nowrap") : ""}>
+                {before && <SelectAddon side="before">{before}</SelectAddon>}
                 <div className={cn(
                     fieldControlBaseClass,
                     "h-auto min-h-9 flex-wrap items-center gap-1 py-1.5 px-2",
-                    pre && "rounded-l-none",
-                    post && "rounded-r-none"
+                    before && "rounded-l-none",
+                    after && "rounded-r-none"
                 )}>
                     {(selectedItems as string[]).map(item => (
                         <span className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary" key={item}>
@@ -340,13 +341,13 @@ export const Autocomplete = ({
                             <button type="button" className="ml-0.5 opacity-60 transition-opacity hover:opacity-100" onClick={() => removeItem(item)}>×</button>
                         </span>
                     ))}
-                    {(!max || selectedItems.length < max) && (
+                    {(!maxItems || selectedItems.length < maxItems) && (
                         <input
                             id={id}
                             type="text"
                             className={cn("min-w-[120px] flex-1 border-none bg-transparent text-sm outline-none placeholder:text-muted-foreground", className || theme.Autocomplete.className)}
-                            required={required && selectedItems.length < (min || 0)}
-                            disabled={disabled || (!updatable && !isEmpty(value))}
+                            required={required && selectedItems.length < (minItems || 0)}
+                            disabled={disabled || (readOnlyAfterSet && !isEmpty(value))}
                             placeholder={creatable ? (placeholder ?? 'Type or press Enter to create...') : placeholder}
                             title={title}
                             list={listId}
@@ -358,7 +359,7 @@ export const Autocomplete = ({
                 <datalist id={listId}>
                     {opts.map((op, index) => <option value={op.value} key={`${id}-${index}`}>{op.label}</option>)}
                 </datalist>
-                {post && <SelectAddon side="post">{post}</SelectAddon>}
+                {after && <SelectAddon side="after">{after}</SelectAddon>}
             </Wrapper>
             {error
                 ? <FieldError message={error} />
@@ -372,22 +373,22 @@ export const Checklist = ({
     defaultValue = undefined,
     onChange = undefined,
     required = false,
-    updatable = true,
+    readOnlyAfterSet = false,
     disabled = false,
     label = undefined,
     title = undefined,
-    pre = undefined,
-    post = undefined,
+    before = undefined,
+    after = undefined,
     feedback = undefined,
     options = [],
-    db = undefined,
+    optionsSource = undefined,
     order = undefined,
-    inheritFormWrapClass = true,
-    wrapClass = undefined,
+    inheritWrapperClassName = true,
+    wrapperClassName = undefined,
     className = undefined,
-    checkClass = undefined,
+    itemClassName = undefined,
 }: ChecklistProps) => {
-    const { value, handleChange, formWrapClass } = useFormContext({ name, onChange, wrapClass, defaultValue, inheritFormWrapClass });
+    const { value, handleChange, formWrapClass } = useFormContext({ name, onChange, wrapperClassName, defaultValue, inheritWrapperClassName });
     const error = useFieldValidation(name, { required, label });
 
     const valueArray = useMemo(() => valueToArray(value), [value]);
@@ -398,17 +399,17 @@ export const Checklist = ({
         }
     }, [valueArray, selectedItems]);
 
-    const dbOptions = useMemo(() => getOptionsDB(db), [db?.fieldMap, db?.where, db?.order, db?.onLoad]);
+    const dbOptions = useMemo(() => getOptionsDB(optionsSource), [optionsSource?.fieldMap, optionsSource?.where, optionsSource?.order, optionsSource?.onLoad]);
     const database = useDataProvider();
     const [lookup, setLookup] = useState<Option[]>([]);
     useEffect(() => {
-        return database.subscribe(db?.path, (records) => setLookup(normalizeLookup(records)), dbOptions);
-    }, [database, db?.path, dbOptions]);
+        return database.subscribe(optionsSource?.path, (records) => setLookup(normalizeLookup(records)), dbOptions);
+    }, [database, optionsSource?.path, dbOptions]);
 
     const opts = useMemo(() => {
-        const combinedOptions = getOptions(options, lookup, order, db?.order, dbOptions.fieldMap);
+        const combinedOptions = getOptions(options, lookup, order, optionsSource?.order, dbOptions.fieldMap);
         return arrayUnique(combinedOptions, 'value');
-    }, [options, lookup, order, db?.order, dbOptions.fieldMap]);
+    }, [options, lookup, order, optionsSource?.order, dbOptions.fieldMap]);
 
     const removeItem = (currentValue: string) => {
         setSelectedItems(prevState => {
@@ -448,16 +449,16 @@ export const Checklist = ({
     };
 
     const id = useId();
-    const isDisabled = disabled || (!updatable && selectedItems.length > 0);
+    const isDisabled = disabled || (readOnlyAfterSet && selectedItems.length > 0);
     const checklist = (
         <Wrapper className={cn(
-            pre || post ? cn(fieldControlBaseClass, "h-auto min-h-9 w-full min-w-0 flex-col items-start py-2 px-3") : "",
+            before || after ? cn(fieldControlBaseClass, "h-auto min-h-9 w-full min-w-0 flex-col items-start py-2 px-3") : "",
             "space-y-1"
         )}>
             {opts.map((op) => {
                 const key = sanitizeKey(`cl-${id}-${name}-${op.value}`);
                 return (
-                    <div key={key} className={cn("flex w-full items-center gap-2", checkClass)}>
+                    <div key={key} className={cn("flex w-full items-center gap-2", itemClassName)}>
                         <input
                             className="h-4 w-4 shrink-0 rounded-sm border border-input bg-background text-primary shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                             type={"checkbox"}
@@ -479,11 +480,11 @@ export const Checklist = ({
     return (
         <Wrapper className={cn(formWrapClass, className)}>
             {label && <><Label label={label} required={required} /><hr className={"mt-0"} /></>}
-            {pre || post ? (
+            {before || after ? (
                 <Wrapper className={cn(fieldGroupClass, "flex-nowrap items-stretch")}>
-                    {pre && <SelectAddon side="pre">{pre}</SelectAddon>}
+                    {before && <SelectAddon side="before">{before}</SelectAddon>}
                     {checklist}
-                    {post && <SelectAddon side="post">{post}</SelectAddon>}
+                    {after && <SelectAddon side="after">{after}</SelectAddon>}
                 </Wrapper>
             ) : checklist}
             {error

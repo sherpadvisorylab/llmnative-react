@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Form, Prompt, PromptMode } from '@llmnative/react';
 import PageLayout from '../../../showcase/page';
 import Section from '../../../docs-kit/page/Section';
@@ -10,7 +10,7 @@ const PLAYGROUND = createPromptPlayground(
     'edit',
     (p, onValuesChange) => (
         <Form
-            aspect="empty"
+            appearance="empty"
             defaultValues={createPromptPlaygroundSeed(p.defaultValue)}
             onChange={onValuesChange}
         >
@@ -22,10 +22,10 @@ const PLAYGROUND = createPromptPlayground(
                     required={p.required}
                     defaultValue={p.defaultValue}
                     rows={p.rows}
-                    pre={p.pre || undefined}
-                    post={p.post || undefined}
+                    before={p.pre || undefined}
+                    after={p.post || undefined}
                     className={p.className || undefined}
-                    wrapClass={p.wrapClass || undefined}
+                    wrapperClassName={p.wrapperClassName || undefined}
                 />
             </div>
         </Form>
@@ -47,7 +47,7 @@ export default function PromptEditorPage() {
                 bare
                 preview={(
                     <Form
-                        aspect="empty"
+                        appearance="empty"
                         defaultValues={{
                             summary: {
                                 prompt: {
@@ -68,7 +68,7 @@ export default function PromptEditorPage() {
                         </div>
                     </Form>
                 )}
-                code={`<Form aspect="empty">
+                code={`<Form appearance="empty">
   <Prompt
     name="summary"
     label="Summary prompt"

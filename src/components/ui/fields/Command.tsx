@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useRef, useState } from "react";
+﻿import React, { createContext, useContext, useRef, useState } from "react";
 import { cn } from "../../../libs/cn";
 import { fieldTextAreaBaseClass } from "./Input";
 
@@ -76,7 +76,7 @@ export const Command: React.FC<{ children: React.ReactNode }> & {
       <div className="relative">
         <div
           ref={ref}
-          className={cn(fieldTextAreaBaseClass, "h-auto min-h-10 whitespace-pre-wrap")}
+          className={cn(fieldTextAreaBaseClass, "h-auto min-h-10 whitespace-before-wrap")}
           contentEditable
           suppressContentEditableWarning
           onInput={handleInput}

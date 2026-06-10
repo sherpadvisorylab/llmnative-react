@@ -170,7 +170,7 @@ export default function UserList() {
         { key: 'role', label: 'Ruolo', render: ({ value }) => <Badge>{value}</Badge> },
       ]}
       actions={["add", "edit", "delete"]}
-      layout="table"
+      view="table"
       pagination={{ limit: 20 }}
     />
   )
@@ -189,7 +189,7 @@ export default function UserForm() {
   return (
     <Form
       dataStoragePath="/users"     // path collezione
-      aspect="card"
+      appearance="card"
       showBack
     >
       <Input name="name" label="Nome" required />
@@ -256,7 +256,7 @@ export default function UserForm() {
   path="/products"
   onLoad={(data) => ({ ...data, price: data.price / 100 })}        // trasforma prima del render
   onSave={async ({ record }) => ({ ...record, price: record.price * 100 })}  // trasforma prima del salvataggio
-  onFinally={async ({ action }) => {
+  onComplete={async ({ action }) => {
     if (action === 'save') navigate('/products')
   }}
   keyGenerator={() => `prod_${Date.now()}`}   // chiave custom
@@ -273,12 +273,12 @@ export default function UserForm() {
 | Prop | Tipo | Descrizione |
 |------|------|-------------|
 | `path` | `string` | Path del provider (collezione o record) |
-| `aspect` | `"card" \| "none"` | Wrapper visuale |
+| `appearance` | `"card" \| "none"` | Wrapper visuale |
 | `showBack` | `boolean` | Mostra bottone indietro |
 | `onLoad` | `(data) => data` | Trasforma i dati dopo il caricamento |
 | `onSave` | `async ({ record }) => record` | Trasforma i dati prima del salvataggio |
 | `onDelete` | `async ({ record }) => void` | Hook prima della cancellazione |
-| `onFinally` | `async ({ action }) => boolean` | Dopo save/delete (action: 'save'\|'delete') |
+| `onComplete` | `async ({ action }) => boolean` | Dopo save/delete (action: 'save'\|'delete') |
 | `keyGenerator` | `() => string` | Generatore chiave primaria custom |
 | `savePath` | `(record) => string` | Path salvataggio custom |
 | `defaultValues` | `object` | Valori iniziali per nuovo record |
@@ -293,13 +293,13 @@ export default function UserForm() {
 | `records` | `RecordArray` | Dati in memoria (alternativa al provider) |
 | `columns` | `Column[]` | Definizione colonne con `key`, `label`, `sortable`, `render` |
 | `actions` | `Array<"add"\|"edit"\|"delete"> \| Record<string, GridAction>` | Azioni abilitate o custom |
-| `layout` | `"table"\|"gallery"` | Tipo di visualizzazione |
+| `view` | `"table"\|"gallery"` | Tipo di visualizzazione |
 | `groupBy` | `string \| string[]` | Raggruppa per campo |
 | `pagination` | `{ limit: number }` | Paginazione |
 | `sortable` | `boolean \| OrderConfig` | Sorting globale |
 | `form` | `ReactElement \| ((ctx) => ReactNode)` | Form condiviso per CRUD |
 | `onSave` | `async ({ record, action }) => string` | Hook prima del salvataggio |
-| `onAfterAction` | `async ({ record, action }) => boolean` | Dopo create/update/delete |
+| `onActionComplete` | `async ({ record, action }) => boolean` | Dopo create/update/delete |
 
 ---
 
@@ -327,10 +327,10 @@ export default function UserForm() {
 <Select name="role" options={[{ label: "Admin", value: "admin" }]} />
 
 // Da Firebase
-<Select name="categoryId" db={{ path: "/categories", labelField: "name", valueField: "_key" }} />
+<Select name="categoryId" optionsSource={{ path: "/categories", labelField: "name", valueField: "_key" }} />
 
 // Autocomplete
-<Select.Autocomplete name="userId" db={{ path: "/users", labelField: "email" }} />
+<Select.Autocomplete name="userId" optionsSource={{ path: "/users", labelField: "email" }} />
 
 // Multi-selezione
 <Select.Checklist name="tags" options={[...]} />
@@ -703,8 +703,8 @@ In corso sul branch `modernize`. Vedi `docs/CHANGE_REQUESTS.md` per i dettagli.
 > Aggiornato automaticamente alla fine di ogni sessione AI.
 > Il piano completo vive in `docs/COMPETITIVENESS_CHECKLIST.md`.
 
-**Ultimo task completato:** CR-006 gap coperti — `AIProviderDefinitions.test.ts` (32 test: parseTextResponse, Anthropic, OpenAI-compatible, Gemini) + `DropboxStorageProvider.test.ts` (16 test: resolvePath, listFolders, search, getThumbnails, copy). Suite totale: 41 file / 425 test, tutti green. `tsc --noEmit` 0 errori.
-**Prossimo task:** P1 — Differenziatori (SchemaForm CR-040, WorkflowAI CR-039).
+**Ultimo task completato:** Refactor sistematico nomi prop pubbliche (CR-038 completata) — 96 operazioni su ~60 file (src/, themes/, tests/, clients/showcase/, docs/). Principio: stessa funzione semantica → stesso nome, prevedibile senza docs. Rename principali: `pre/post/wrapClass` → `before/after/wrapperClassName` (globale UIProps), tutti `*Class` → `*ClassName`, `type` → `variant` su Alert/Badge/Percentage, `Grid.layout` → `view`, `Form.aspect` → `appearance`, `Form.onFinally` → `onComplete`, `Form.onChange` → `onRecordChange`, `Table.header/body` → `columns/records`, `Select.db` → `optionsSource`, `Dropdown.toggleButton` → `trigger`, `Menu.context/Type` → `menuKey/as`, `ImageEditor.modal` → `mode: "modal"|"inline"`, e altri. Suite totale: 43 file / 454 test, tutti green. `tsc --noEmit` 0 errori.
+**Prossimo task:** P1 — Differenziatori (WorkflowAI CR-039, SchemaForm CR-040).
 **Branch:** `main`
 **Repo:** `github.com/sherpadvisorylab/llmnative-react.git`
 
@@ -758,7 +758,7 @@ In corso sul branch `modernize`. Vedi `docs/CHANGE_REQUESTS.md` per i dettagli.
 - **AI provider symmetric nel manifest loop**: `AI_MANIFEST` registrato in `PROVIDER_MANIFESTS`, rimosso `createBuiltInAIRegistry` special-case da App.tsx
 - **Proxy cleanup**: `configureProxy` rimosso da `resolveProviderRegistries` (era side effect in useMemo), proxy rimosso da services in scaffold + showcase
 - **Rename**: `createBuiltInAIRegistry` → `createAIProviderRegistry`, `BUILT_IN_AI_PROVIDER_DEFINITIONS` → `AI_PROVIDER_DEFINITIONS`
-- **Naming audit review**: `API_SEMANTIC_NAMING_AUDIT_deep_seek.md` — verificati 12/12 claim, accettati dall'audit (Grid.layout→view, Form.aspect→appearance, ecc.)
+- **Naming audit review**: verificati 12/12 claim (Grid.layout→view, Form.aspect→appearance, ecc.) — tutti accettati
 - **Test attuali**: 35 file, 316 pass (1 pre-existing e2e localStorage)
 - **Build**: 144 modules, 525 KB ESM / 388 KB CJS
 

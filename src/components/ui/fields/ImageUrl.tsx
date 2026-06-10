@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { FormFieldProps, useFormContext } from "../../widgets/Form";
 import { Col, Row, Wrapper } from "../GridSystem";
 import { Prompt, PromptMode } from "./Prompt";
@@ -15,9 +15,9 @@ export const ImageUrl = ({
   required,
   onChange,
   defaultValue,
-  pre,
-  post,
-  wrapClass,
+  before,
+  after,
+  wrapperClassName,
   className,
   mode,
 }: ImageUrlProps) => {
@@ -31,13 +31,13 @@ export const ImageUrl = ({
     : {} as Record<string, unknown>;
 
   return (
-    <Wrapper className={wrapClass}>
-      {pre}
+    <Wrapper className={wrapperClassName}>
+      {before}
       <Row>
         <Url
           name={`${name}.url`}
           label={label}
-          pre="URL"
+          before="URL"
           required={required}
           className={className}
           onChange={onChange}
@@ -58,7 +58,7 @@ export const ImageUrl = ({
             <Col>
               <Number
                 name={`${name}.width`}
-                pre="Width"
+                before="Width"
                 required={required}
                 defaultValue={defaultValue}
               />
@@ -66,7 +66,7 @@ export const ImageUrl = ({
             <Col>
               <Number
                 name={`${name}.height`}
-                pre="Height"
+                before="Height"
                 required={required}
                 defaultValue={defaultValue}
               />
@@ -84,7 +84,7 @@ export const ImageUrl = ({
           />
         </Col>
       </Row>
-      {post}
+      {after}
     </Wrapper>
   );
 };

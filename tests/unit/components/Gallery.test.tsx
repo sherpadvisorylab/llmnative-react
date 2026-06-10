@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+﻿import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import Gallery from '../../../src/components/ui/Gallery';
@@ -22,8 +22,8 @@ describe('Gallery overlays', () => {
     it('renders a badge overlay on every item when no filter is provided', () => {
         render(
             <Gallery
-                body={body}
-                overlays={[{ position: 'topRight', badge: { content: 'new', type: 'primary' } }]}
+                records={body}
+                overlays={[{ position: 'topRight', badge: { content: 'new', variant: 'primary' } }]}
             />
         );
 
@@ -39,7 +39,7 @@ describe('Gallery overlays', () => {
     it('filters overlay rules by record fields', () => {
         render(
             <Gallery
-                body={body}
+                records={body}
                 overlays={[{ position: 'bottomLeft', badge: 'brand', when: { category: 'Brand' } }]}
             />
         );
@@ -49,7 +49,7 @@ describe('Gallery overlays', () => {
     });
 
     it('orders records before rendering when sortable OrderConfig is provided', () => {
-        render(<Gallery body={body} sortable={{ field: 'name', dir: 'desc' }} />);
+        render(<Gallery records={body} sortable={{ field: 'name', dir: 'desc' }} />);
 
         const images = screen.getAllByRole('img');
         expect(images[0]).toHaveAttribute('alt', 'Launch');
@@ -61,8 +61,8 @@ describe('Gallery overlays', () => {
 
         render(
             <Gallery
-                body={body}
-                onClick={(record) => clicks.push(record._key || '')}
+                records={body}
+                onRowClick={(record) => clicks.push(record._key || '')}
             />
         );
 
@@ -75,7 +75,7 @@ describe('Gallery overlays', () => {
 
         render(
             <Gallery
-                body={body}
+                records={body}
                 onSelectionChange={(selection) => selections.push(selection.keys)}
             />
         );
@@ -89,7 +89,7 @@ describe('Gallery overlays', () => {
 
         render(
             <Gallery
-                body={[
+                records={[
                     { name: 'Zulu', img: <img src="zulu.png" alt="Zulu" /> },
                     { name: 'Alpha', img: <img src="alpha.png" alt="Alpha" /> },
                 ]}
@@ -105,7 +105,7 @@ describe('Gallery overlays', () => {
     it('keeps grouped gallery checkboxes checked after selection changes', () => {
         render(
             <Gallery
-                body={[
+                records={[
                     { _key: 'u1', name: 'Alice', role: 'Admin', img: <img src="alice.png" alt="Admin | Alice" /> },
                     { _key: 'u2', name: 'Julia', role: 'Admin', img: <img src="julia.png" alt="Admin | Julia" /> },
                 ]}
@@ -125,7 +125,7 @@ describe('Gallery overlays', () => {
 
         render(
             <Gallery
-                body={[
+                records={[
                     { _key: 'u1', name: 'Alpha', img: <img src="alpha.png" alt="Alpha" /> },
                     { _key: 'u2', name: 'Bravo', img: <img src="bravo.png" alt="Bravo" /> },
                     { _key: 'u3', name: 'Charlie', img: <img src="charlie.png" alt="Charlie" /> },
@@ -159,7 +159,7 @@ describe('Gallery overlays', () => {
 
         render(
             <Gallery
-                body={[
+                records={[
                     { _key: 'u1', name: 'Alpha', img: <img src="alpha.png" alt="Alpha" /> },
                     { _key: 'u2', name: 'Bravo', img: <img src="bravo.png" alt="Bravo" /> },
                     { _key: 'u3', name: 'Charlie', img: <img src="charlie.png" alt="Charlie" /> },
@@ -205,3 +205,4 @@ describe('Gallery overlays', () => {
         expect(badgeSpy).toHaveBeenCalledTimes(4);
     });
 });
+

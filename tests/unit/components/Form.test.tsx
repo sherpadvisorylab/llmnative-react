@@ -136,15 +136,15 @@ describe('Form — save', () => {
         });
     });
 
-    it('calls onFinally after save', async () => {
-        const onFinally = vi.fn(async () => false);
+    it('calls onComplete after save', async () => {
+        const onComplete = vi.fn(async () => false);
         const provider = new MockDataProvider();
 
         renderWithProviders(
             <Form
                 path="/items/item_1"
                 defaultValues={{ _key: 'item_1', name: 'Test' }}
-                onFinally={onFinally}
+                onComplete={onComplete}
             >
                 <Input name="name" />
             </Form>,
@@ -154,7 +154,7 @@ describe('Form — save', () => {
         fireEvent.click(screen.getByRole('button', { name: /save|salva/i }));
 
         await waitFor(() => {
-            expect(onFinally).toHaveBeenCalledWith(
+            expect(onComplete).toHaveBeenCalledWith(
                 expect.objectContaining({ action: 'update' })
             );
         });

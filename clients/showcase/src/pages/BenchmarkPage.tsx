@@ -172,7 +172,7 @@ import { Form, Input, Select } from '@llmnative/react'
 
 export default function UserForm() {
   return (
-    <Form path="/users" aspect="card" showBack>
+    <Form path="/users" appearance="card" showBack>
       <Input  name="name"  label="Full name" required />
       <Input  name="email" label="Email" inputType="email" required />
       <Select

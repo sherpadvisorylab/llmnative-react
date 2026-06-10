@@ -41,7 +41,7 @@ export default function MarkdownDocPage({ doc }: MarkdownDocPageProps) {
             renderMarkdown={(content, route) => (
                 <MarkdownReader
                     content={content}
-                    head={{
+                    metadata={{
                         title: typeof route.meta.title === 'string' ? route.meta.title : doc.meta.title,
                         description: typeof route.meta.description === 'string' ? route.meta.description : doc.meta.description,
                     }}

@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Form, TextArea } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
@@ -28,12 +28,12 @@ const TEXTAREA_PROPS: PropDef[] = [
     { name: 'rows', type: 'number', description: 'Fixed number of visible rows. Ignored when maxRows is set and content is shorter.', control: 'number', min: 2, max: 12 },
     { name: 'maxRows', type: 'number', description: 'Auto-resize the height to fit the content, up to this many rows. Once the limit is reached a scrollbar appears.', control: 'number', min: 2, max: 20 },
     { name: 'feedback', type: 'string', description: 'Helper or validation text rendered below the field', control: 'text' },
-    { name: 'pre', type: 'ReactNode', description: 'Input-group content rendered before (left of) the textarea', control: 'text' },
-    { name: 'post', type: 'ReactNode', description: 'Input-group content rendered after (right of) the textarea', control: 'text' },
+    { name: 'before', type: 'ReactNode', description: 'Input-group content rendered before (left of) the textarea', control: 'text' },
+    { name: 'after', type: 'ReactNode', description: 'Input-group content rendered after (right of) the textarea', control: 'text' },
     { name: 'inputId', type: 'string', description: 'Explicit id for the textarea element. Auto-generated when omitted.' },
     { name: 'onChange', type: 'FieldOnChange', description: 'Custom change handler called by Form context' },
     { name: 'className', type: 'string', description: 'Extra CSS classes applied to the textarea element', control: 'text' },
-    { name: 'wrapClass', type: 'string', description: 'CSS classes applied to the outer wrapper div', control: 'text' },
+    { name: 'wrapperClassName', type: 'string', description: 'CSS classes applied to the outer wrapper div', control: 'text' },
     { name: 'labelClassName', type: 'string', description: 'CSS classes applied to the label element', control: 'text' },
 ];
 
@@ -55,10 +55,10 @@ const PLAYGROUND: PlaygroundConfig = {
         pre: '',
         post: '',
         className: '',
-        wrapClass: '',
+        wrapperClassName: '',
     },
     render: (p, onValuesChange) => (
-        <Form aspect="empty" onChange={onValuesChange}>
+        <Form appearance="empty" onChange={onValuesChange}>
             <TextArea
                 name={p.name}
                 label={p.label}
@@ -70,10 +70,10 @@ const PLAYGROUND: PlaygroundConfig = {
                 rows={p.rows}
                 maxRows={p.maxRows || undefined}
                 feedback={p.feedback || undefined}
-                pre={p.pre || undefined}
-                post={p.post || undefined}
+                before={p.pre || undefined}
+                after={p.post || undefined}
                 className={p.className || undefined}
-                wrapClass={p.wrapClass || undefined}
+                wrapperClassName={p.wrapperClassName || undefined}
             />
         </Form>
     ),
@@ -87,7 +87,7 @@ export default function TextAreaPage() {
             <Section
                 title="Basic textarea"
                 preview={
-                    <Form aspect="empty" defaultValues={{ notes: 'Initial note' }}>
+                    <Form appearance="empty" defaultValues={{ notes: 'Initial note' }}>
                         <TextArea name="notes" label="Notes" rows={4} />
                     </Form>
                 }
@@ -102,7 +102,7 @@ export default function TextAreaPage() {
                 title="Auto-resize with maxRows"
                 description="Set maxRows to make the textarea grow with its content. Once the row limit is reached the textarea stops expanding and shows a scrollbar."
                 preview={
-                    <Form aspect="empty">
+                    <Form appearance="empty">
                         <TextArea
                             name="bio"
                             label="Bio"
@@ -124,7 +124,7 @@ export default function TextAreaPage() {
             <Section
                 title="With feedback and placeholder"
                 preview={
-                    <Form aspect="empty">
+                    <Form appearance="empty">
                         <TextArea
                             name="description"
                             label="Description"
@@ -146,16 +146,16 @@ export default function TextAreaPage() {
             <Section
                 title="With pre/post addons"
                 preview={
-                    <Form aspect="empty">
+                    <Form appearance="empty">
                         <TextArea
                             name="note"
                             label="Signed note"
-                            pre="Note"
+                            before="Note"
                             rows={3}
                         />
                     </Form>
                 }
-                code={`<TextArea name="note" label="Signed note" pre="Note" rows={3} />`}
+                code={`<TextArea name="note" label="Signed note" before="Note" rows={3} />`}
             />
 
             <PropDocsTable props={TEXTAREA_PROPS} />

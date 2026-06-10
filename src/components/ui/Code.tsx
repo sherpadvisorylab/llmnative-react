@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+﻿import React, { useEffect, useRef } from 'react';
 
 import { UIProps } from '../..';
 import { useTheme } from '../../Theme';
@@ -128,9 +128,9 @@ async function loadPrismLanguage(language: PrismLanguage, loaded = new Set<strin
 const Code = ({
   language,
   children,
-  pre,
-  post,
-  wrapClass,
+  before,
+  after,
+  wrapperClassName,
   className,
   showCopy = true,
   theme = 'tomorrow',
@@ -185,9 +185,9 @@ const Code = ({
   }, [codeText, resolvedLanguage]);
 
   return (
-    <Wrapper className={wrapClass || themeConfig.Code.wrapClass}>
-      <div className={cn('flex w-full items-stretch gap-2', (pre || post) && 'overflow-x-auto')}>
-        {pre && <div className="flex shrink-0 items-center text-sm text-muted-foreground">{pre}</div>}
+    <Wrapper className={wrapperClassName || themeConfig.Code.wrapperClassName}>
+      <div className={cn('flex w-full items-stretch gap-2', (before || after) && 'overflow-x-auto')}>
+        {before && <div className="flex shrink-0 items-center text-sm text-muted-foreground">{before}</div>}
         <pre
           data-rf-code-theme={resolvedTheme}
           data-rf-code-background={resolvedBackground}
@@ -212,7 +212,7 @@ const Code = ({
             {codeText}
           </code>
         </pre>
-        {post && <div className="flex shrink-0 items-center text-sm text-muted-foreground">{post}</div>}
+        {after && <div className="flex shrink-0 items-center text-sm text-muted-foreground">{after}</div>}
       </div>
     </Wrapper>
   );

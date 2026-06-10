@@ -78,7 +78,7 @@ const PLAYGROUND: PlaygroundConfig = {
     props: UPLOAD_IMAGE_PROPS,
     defaultProps: { label: 'Images', multiple: true, editable: true, previewWidth: 112, previewHeight: 112 },
     render: (p, onValuesChange) => (
-        <Form aspect="empty" onChange={onValuesChange}>
+        <Form appearance="empty" onChange={onValuesChange}>
             <UploadImage
                 name="images"
                 label={p.label}
@@ -105,7 +105,7 @@ export default function UploadPage() {
                 description="Reads image files locally and stores the generated metadata in the Form record. Enable editable to open the crop editor after upload."
                 preview={
                     <div className="w-full max-w-xl">
-                        <Form aspect="empty">
+                        <Form appearance="empty">
                             <UploadImage
                                 name="images"
                                 label="Gallery"
@@ -136,7 +136,7 @@ export default function UploadPage() {
                 description="Accepts documents and shows file name, size and progress. Without storagePath it keeps the file as local base64 data."
                 preview={
                     <div className="w-full max-w-2xl">
-                        <Form aspect="empty">
+                        <Form appearance="empty">
                             <UploadDocument
                                 name="documents"
                                 label="Attachments"

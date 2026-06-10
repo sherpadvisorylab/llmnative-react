@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { DataProvider, Dropdown, DropdownDivider, DropdownHeader, DropdownItem, MockDataProvider, useDataProvider } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
@@ -9,7 +9,7 @@ import type { PropDef, PlaygroundConfig } from '../../docs-kit/playground';
 const DROPDOWN_PROPS: PropDef[] = [
     { name: 'children', type: 'ReactNode', required: true, description: 'Dropdown menu content' },
     { name: 'itemsPath', type: 'string', default: '/dropdown-items', description: 'Mock database collection used to render menu records in the playground', control: 'text' },
-    { name: 'toggleButton', type: 'string | ReactNode | ToggleButtonConfig', required: true, description: 'Button content or icon/text config', control: 'text', typeDetails: `string | ReactNode | {
+    { name: 'trigger', type: 'string | ReactNode | TriggerConfig', required: true, description: 'Button content or icon/text config', control: 'text', typeDetails: `string | ReactNode | {
   icon?: string;
   text?: string;
 }` },
@@ -26,15 +26,15 @@ const DROPDOWN_PROPS: PropDef[] = [
     { name: 'defaultOpen', type: 'boolean', default: 'false', description: 'Starts the uncontrolled dropdown open on first render', control: 'boolean' },
     { name: 'alwaysOpen', type: 'boolean', default: 'false', description: 'Renders the menu as a static always-visible panel without the toggle button', control: 'boolean' },
     { name: 'position', type: '"start" | "end"', default: 'none', description: 'Menu alignment. Empty means no forced horizontal alignment.', control: 'select', options: ['', 'start', 'end'] },
-    { name: 'pre', type: 'ReactNode', description: 'Content rendered to the left of the dropdown', control: 'text' },
-    { name: 'post', type: 'ReactNode', description: 'Content rendered to the right of the dropdown', control: 'text' },
-    { name: 'wrapClass', type: 'string', description: 'CSS classes on wrapper', control: 'text' },
+    { name: 'before', type: 'ReactNode', description: 'Content rendered to the left of the dropdown', control: 'text' },
+    { name: 'after', type: 'ReactNode', description: 'Content rendered to the right of the dropdown', control: 'text' },
+    { name: 'wrapperClassName', type: 'string', description: 'CSS classes on wrapper', control: 'text' },
     { name: 'className', type: 'string', description: 'CSS classes on dropdown root', control: 'text' },
-    { name: 'buttonClass', type: 'string', description: 'CSS classes on toggle button', control: 'text' },
-    { name: 'badgeClass', type: 'string', description: 'CSS classes on badge', control: 'text' },
-    { name: 'menuClass', type: 'string', description: 'CSS classes on the menu panel', control: 'text' },
-    { name: 'headerClass', type: 'string', description: 'CSS classes on header wrapper', control: 'text' },
-    { name: 'footerClass', type: 'string', description: 'CSS classes on footer wrapper', control: 'text' },
+    { name: 'triggerClassName', type: 'string', description: 'CSS classes on toggle button', control: 'text' },
+    { name: 'badgeClassName', type: 'string', description: 'CSS classes on badge', control: 'text' },
+    { name: 'menuClassName', type: 'string', description: 'CSS classes on the menu panel', control: 'text' },
+    { name: 'headerClassName', type: 'string', description: 'CSS classes on header wrapper', control: 'text' },
+    { name: 'footerClassName', type: 'string', description: 'CSS classes on footer wrapper', control: 'text' },
 ];
 
 type DropdownMockItem = {
@@ -106,7 +106,7 @@ const PLAYGROUND: PlaygroundConfig = {
     mockSeed: PLAYGROUND_SEED,
     defaultProps: {
         itemsPath: '/dropdown-items',
-        toggleButton: 'Actions',
+        trigger: 'Actions',
         badge: { content: '3', type: 'danger' },
         pre: '',
         post: '',
@@ -115,33 +115,33 @@ const PLAYGROUND: PlaygroundConfig = {
         defaultOpen: false,
         alwaysOpen: false,
         position: '',
-        wrapClass: '',
+        wrapperClassName: '',
         className: '',
-        buttonClass: '',
-        badgeClass: '',
-        menuClass: '',
-        headerClass: '',
-        footerClass: '',
+        triggerClassName: '',
+        badgeClassName: '',
+        menuClassName: '',
+        headerClassName: '',
+        footerClassName: '',
     },
     render: (p) => (
         <Dropdown
             key={`${p.defaultOpen}-${p.alwaysOpen}-${p.itemsPath}`}
-            toggleButton={p.toggleButton || 'Actions'}
+            trigger={p.trigger || 'Actions'}
             badge={p.badge || undefined}
             header={p.header || undefined}
             footer={p.footer || undefined}
             defaultOpen={p.defaultOpen}
             alwaysOpen={p.alwaysOpen}
             position={p.position || undefined}
-            pre={p.pre || undefined}
-            post={p.post || undefined}
-            wrapClass={p.wrapClass || undefined}
+            before={p.pre || undefined}
+            after={p.post || undefined}
+            wrapperClassName={p.wrapperClassName || undefined}
             className={p.className || undefined}
-            buttonClass={p.buttonClass || undefined}
-            badgeClass={p.badgeClass || undefined}
-            menuClass={p.menuClass || undefined}
-            headerClass={p.headerClass || undefined}
-            footerClass={p.footerClass || undefined}
+            triggerClassName={p.triggerClassName || undefined}
+            badgeClassName={p.badgeClassName || undefined}
+            menuClassName={p.menuClassName || undefined}
+            headerClassName={p.headerClassName || undefined}
+            footerClassName={p.footerClassName || undefined}
         >
             <DropdownItemsFromMock path={p.itemsPath || '/dropdown-items'} />
         </Dropdown>
@@ -158,7 +158,7 @@ export default function DropdownPage() {
                 description="Use DropdownItem for commands. Internal clicks keep the dropdown open by default; clicking outside or toggling the button closes it."
                 preview={
                     <div className="min-h-48 pt-3 pr-3">
-                        <Dropdown toggleButton="Actions" header="Menu">
+                        <Dropdown trigger="Actions" header="Menu">
                             <DropdownHeader>Record actions</DropdownHeader>
                             <DropdownItem icon="edit">Edit</DropdownItem>
                             <DropdownItem icon="copy">Duplicate</DropdownItem>
@@ -169,7 +169,7 @@ export default function DropdownPage() {
                 }
                 code={`import { Dropdown, DropdownDivider, DropdownHeader, DropdownItem } from '@llmnative/react';
 
-<Dropdown toggleButton="Actions" header="Menu">
+<Dropdown trigger="Actions" header="Menu">
     <DropdownHeader>Record actions</DropdownHeader>
     <DropdownItem icon="edit">Edit</DropdownItem>
     <DropdownItem icon="copy">Duplicate</DropdownItem>
@@ -184,7 +184,7 @@ export default function DropdownPage() {
                 preview={
                     <div className="min-h-56 pt-3 pr-4">
                         <WithDropdownMock>
-                            <Dropdown toggleButton="Data menu" header="From mock DB" defaultOpen>
+                            <Dropdown trigger="Data menu" header="From mock DB" defaultOpen>
                                 <DropdownItemsFromMock path="/dropdown-items" />
                             </Dropdown>
                         </WithDropdownMock>
@@ -207,7 +207,7 @@ function DropdownItemsFromMock({ path }) {
     });
 }
 
-<Dropdown toggleButton="Data menu" header="From mock DB">
+<Dropdown trigger="Data menu" header="From mock DB">
     <DropdownItemsFromMock path="/dropdown-items" />
 </Dropdown>`}
             />
@@ -218,7 +218,7 @@ function DropdownItemsFromMock({ path }) {
                 preview={
                     <div className="min-h-48 pt-3 pr-4">
                         <Dropdown
-                            toggleButton={{ icon: 'bell', text: 'Notifications' }}
+                            trigger={{ icon: 'bell', text: 'Notifications' }}
                             badge={{ content: 8, type: 'danger' }}
                             header="Notifications"
                             position="start"
@@ -233,7 +233,7 @@ function DropdownItemsFromMock({ path }) {
                 code={`import { Dropdown, DropdownDivider, DropdownItem } from '@llmnative/react';
 
 <Dropdown
-    toggleButton={{ icon: 'bell', text: 'Notifications' }}
+    trigger={{ icon: 'bell', text: 'Notifications' }}
     badge={{ content: 8, type: 'danger' }}
     header="Notifications"
     position="start"
@@ -251,7 +251,7 @@ function DropdownItemsFromMock({ path }) {
                 preview={
                     <div className="flex min-h-48 justify-end pt-3 pr-4">
                         <Dropdown
-                            toggleButton={{ icon: 'settings', text: 'Settings' }}
+                            trigger={{ icon: 'settings', text: 'Settings' }}
                             badge={{ content: 'new', type: 'success' }}
                             header="Preferences"
                             position="end"
@@ -265,7 +265,7 @@ function DropdownItemsFromMock({ path }) {
                 code={`import { Dropdown, DropdownItem } from '@llmnative/react';
 
 <Dropdown
-    toggleButton={{ icon: 'settings', text: 'Settings' }}
+    trigger={{ icon: 'settings', text: 'Settings' }}
     badge={{ content: 'new', type: 'success' }}
     header="Preferences"
     position="end"
@@ -282,7 +282,7 @@ function DropdownItemsFromMock({ path }) {
                 preview={
                     <div className="min-h-52 pt-3 pr-3">
                         <Dropdown
-                            toggleButton="Workspace"
+                            trigger="Workspace"
                             header={<span>Current workspace</span>}
                             footer={<button type="button" className="btn btn-link">Manage workspaces</button>}
                         >
@@ -296,7 +296,7 @@ function DropdownItemsFromMock({ path }) {
                 code={`import { Dropdown, DropdownHeader, DropdownItem } from '@llmnative/react';
 
 <Dropdown
-    toggleButton="Workspace"
+    trigger="Workspace"
     header={<span>Current workspace</span>}
     footer={<button type="button" className="btn btn-link">Manage workspaces</button>}
 >
@@ -312,7 +312,7 @@ function DropdownItemsFromMock({ path }) {
                 description="Internal controls can be used without closing the dropdown. The menu still closes when the user clicks outside."
                 preview={
                     <div className="min-h-56 pt-3 pr-3">
-                        <Dropdown toggleButton="Filters" header="Filter records" defaultOpen>
+                        <Dropdown trigger="Filters" header="Filter records" defaultOpen>
                             <DropdownHeader>Status</DropdownHeader>
                             <DropdownItem>
                                 <label className="flex items-center gap-2">
@@ -333,7 +333,7 @@ function DropdownItemsFromMock({ path }) {
                 }
                 code={`import { Dropdown, DropdownDivider, DropdownHeader, DropdownItem } from '@llmnative/react';
 
-<Dropdown toggleButton="Filters" header="Filter records">
+<Dropdown trigger="Filters" header="Filter records">
     <DropdownHeader>Status</DropdownHeader>
     <DropdownItem>
         <label className="flex items-center gap-2">

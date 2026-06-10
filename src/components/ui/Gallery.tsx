@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTheme } from "../../Theme";
 import { Wrapper } from "../ui/GridSystem";
 import { RecordProps } from "../../providers/data/DataProvider";
@@ -55,7 +55,7 @@ type GalleryRenderedRecord =
 type GalleryVisualCacheEntry = {
     recordRef: GalleryRecord;
     overlaysRef: GalleryOverlay[] | undefined;
-    onClickRef: GalleryProps["onClick"];
+    onClickRef: GalleryProps["onRowClick"];
     rowIndex: number;
     image: ImageProps;
     overlays: React.ReactNode;
@@ -64,61 +64,59 @@ type GalleryVisualCacheEntry = {
 export type GallerySelectionState = RecordSelectionState<GalleryRecord>;
 export type GallerySelectionChangeHandler = (selection: GallerySelectionState) => void;
 
-interface GalleryProps extends UIProps {
-    body?: GalleryRecord[];
-    Header?: string | React.ReactNode;
-    Footer?: string | React.ReactNode;
+export interface GalleryProps extends UIProps {
+    records?: GalleryRecord[];
+    header?: string | React.ReactNode;
+    footer?: string | React.ReactNode;
     overlays?: GalleryOverlay[];
-    onClick?: (record: GalleryRecord) => void;
+    onRowClick?: (record: GalleryRecord) => void;
     onSelectionChange?: GallerySelectionChangeHandler;
     sortable?: boolean | OrderConfig;
     pagination?: PaginationParams;
     scrollToTopOnChange?: boolean;
     scrollBehavior?: ScrollBehavior;
-    gutterSize?: 0 | 1 | 2 | 3 | 4 | 5;
-    rowCols?: 1 | 2 | 3 | 4 | 6;
+    gap?: 0 | 1 | 2 | 3 | 4 | 5;
+    columns?: 1 | 2 | 3 | 4 | 6;
     groupBy?: string | string[];
     selectedKeys?: string[];
-    selectedRowKeys?: string[];
-    scrollClass?: string;
-    headerClass?: string;
-    bodyClass?: string;
-    footerClass?: string;
-    selectedClass?: string;
+    scrollClassName?: string;
+    headerClassName?: string;
+    bodyClassName?: string;
+    footerClassName?: string;
+    selectedClassName?: string;
 }
 
 const Gallery = ({
-    body = undefined,
-    Header = undefined,
-    Footer = undefined,
+    records = undefined,
+    header = undefined,
+    footer = undefined,
     overlays = undefined,
-    onClick = undefined,
+    onRowClick = undefined,
     onSelectionChange = undefined,
     sortable = false,
     pagination = undefined,
-    gutterSize = undefined,
-    rowCols = undefined,
+    gap = undefined,
+    columns = undefined,
     groupBy = undefined,
     selectedKeys = undefined,
-    selectedRowKeys = undefined,
-    pre = undefined,
-    post = undefined,
-    wrapClass = undefined,
+    before = undefined,
+    after = undefined,
+    wrapperClassName = undefined,
     className = undefined,
-    headerClass = undefined,
-    scrollClass = undefined,
-    bodyClass = undefined,
-    footerClass = undefined,
-    selectedClass = undefined
+    headerClassName = undefined,
+    scrollClassName = undefined,
+    bodyClassName = undefined,
+    footerClassName = undefined,
+    selectedClassName = undefined
 }: GalleryProps) => {
     const theme = useTheme("gallery");
-    const activeClass = selectedClass || theme.Gallery.selectedClass;
+    const activeClass = selectedClassName || theme.Gallery.selectedClassName;
     const [paginationNavEl, setPaginationNavEl] = useState<HTMLElement | null>(null);
     const paginationNavRef = useCallback((node: HTMLDivElement | null) => {
         if (node) setPaginationNavEl(node);
     }, []);
-    const paddingSize = gutterSize ?? theme.Gallery.gutterSize;
-    const numCols = rowCols ?? theme.Gallery.rowCols;
+    const paddingSize = gap ?? theme.Gallery.gap;
+    const numCols = columns ?? theme.Gallery.rowCols;
     const spacingScale: Record<number, string> = {
         0: "0",
         1: "0.25rem",
@@ -127,23 +125,25 @@ const Gallery = ({
         4: "1.5rem",
         5: "3rem",
     };
-    const itemGap = spacingScale[paddingSize] || spacingScale[2];
+    const itemGap = spacingScale[paddingSize] ?? spacingScale[2];
     const overlayOffset = "0.75rem";
     const overlayLaneWidth = "calc(50% - 1rem)";
-    const itemWidth = `calc((100% - (${itemGap} * ${numCols - 1})) / ${numCols})`;
-    const galleryRecords = body || [];
+    const itemWidth = paddingSize === 0
+        ? `${(100 / numCols).toFixed(4)}%`
+        : `calc((100% - (${itemGap} * ${numCols - 1})) / ${numCols})`;
+    const galleryRecords = records || [];
     const sortableOrder = useMemo(() => {
         if (!sortable) return undefined;
         if (typeof sortable === 'object') return sortable;
 
-        const firstRecord = body?.[0];
+        const firstRecord = records?.[0];
         if (!firstRecord) return undefined;
 
         const firstSortableKey = Object.keys(firstRecord).find((key) => !key.startsWith('_'));
         if (!firstSortableKey) return undefined;
 
         return { field: firstSortableKey, dir: 'asc' as const };
-    }, [body, typeof sortable === 'object' ? sortable?.dir : undefined, typeof sortable === 'object' ? sortable?.field : undefined, sortable]);
+    }, [records, typeof sortable === 'object' ? sortable?.dir : undefined, typeof sortable === 'object' ? sortable?.field : undefined, sortable]);
     const getStableRecordKey = useStableRecordKey<GalleryRecord>('item');
     const getRecordKey = useCallback((record: GalleryRecord, index?: number) => getStableRecordKey(record, index), [getStableRecordKey]);
     const {
@@ -153,7 +153,7 @@ const Gallery = ({
     } = useRecordSelection<GalleryRecord>({
         records: galleryRecords,
         selectedKeys,
-        legacySelectedKeys: selectedRowKeys,
+        legacySelectedKeys: undefined,
         onSelectionChange,
         getRecordKey,
     });
@@ -189,7 +189,7 @@ const Gallery = ({
             }
         }
 
-        onClick?.(record);
+        onRowClick?.(record);
     };
 
     const toggleSelection = useCallback((record: GalleryRecord, index: number) => {
@@ -209,9 +209,9 @@ const Gallery = ({
                 style: {
                     ...(imgElement.props.style || {}),
                     aspectRatio: imgElement.props.style?.aspectRatio || "16 / 11",
-                    cursor: onClick ? "pointer" : "default",
+                    cursor: onRowClick ? "pointer" : "default",
                 },
-                onClick: onClick ? ((e: React.MouseEvent<HTMLImageElement>) => {
+                onClick: onRowClick ? ((e: React.MouseEvent<HTMLImageElement>) => {
                     handleClick(e, item);
                     imgElement.props.onClick?.(e);
                 }) : imgElement.props.onClick,
@@ -229,8 +229,8 @@ const Gallery = ({
                 alt={item.name}
                 width={item.width}
                 height={item.height}
-                style={{ aspectRatio: "16 / 11", cursor: onClick ? "pointer" : "default" }}
-                onClick={onClick ? ((e: React.MouseEvent<HTMLImageElement>) => handleClick(e, item)) : undefined}
+                style={{ aspectRatio: "16 / 11", cursor: onRowClick ? "pointer" : "default" }}
+                onClick={onRowClick ? ((e: React.MouseEvent<HTMLImageElement>) => handleClick(e, item)) : undefined}
             />
         );
     };
@@ -318,7 +318,7 @@ const Gallery = ({
             cached
             && cached.recordRef === item
             && cached.overlaysRef === overlays
-            && cached.onClickRef === onClick
+            && cached.onClickRef === onRowClick
             && cached.rowIndex === index
         ) {
             return {
@@ -335,14 +335,14 @@ const Gallery = ({
         visualCacheRef.current.set(recordKey, {
             recordRef: item,
             overlaysRef: overlays,
-            onClickRef: onClick,
+            onClickRef: onRowClick,
             rowIndex: index,
             image: visuals.image,
             overlays: visuals.overlays,
         });
 
         return visuals;
-    }, [getRecordKey, onClick, overlays]);
+    }, [getRecordKey, onRowClick, overlays]);
 
     const renderItem = (index: number, item: GalleryRecord) => {
         const recordKey = getRecordKey(item, index);
@@ -396,14 +396,14 @@ const Gallery = ({
     };
 
     const renderedBody = useMemo(() => {
-        if (!Array.isArray(body)) return undefined;
+        if (!Array.isArray(records)) return undefined;
 
-        const orderedBody = Order.records(body, sortableOrder) || [];
+        const orderedBody = Order.records(records, sortableOrder) || [];
 
         return groupBy
             ? getGroups(orderedBody, groupBy)
             : orderedBody.map((item, index) => ({ kind: "item", item, index }) as GalleryRenderedRecord);
-    }, [body, groupBy, sortableOrder]);
+    }, [records, groupBy, sortableOrder]);
 
     if (renderedBody === undefined) {
         return <p className={"p-4"}><span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />Loading...</p>;
@@ -412,21 +412,21 @@ const Gallery = ({
     }
 
     return (
-        <div className={cn("flex items-stretch gap-3", wrapClass || theme.Gallery.wrapClass)}>
-            {pre && <div className="gallery-pre flex shrink-0 items-center self-stretch">{pre}</div>}
+        <div className={cn("flex items-stretch gap-3", wrapperClassName || theme.Gallery.wrapperClassName)}>
+            {before && <div className="gallery-before flex shrink-0 items-center self-stretch">{before}</div>}
             <Wrapper className={cn("min-w-0 flex-1 flex flex-col", className || theme.Gallery.className)}>
-                {Header && <div className={headerClass || theme.Gallery.headerClass}>{Header}</div>}
-                <Wrapper className={cn("min-w-0 flex-1", scrollClass || theme.Gallery.scrollClass)}>
+                {header && <div className={headerClassName || theme.Gallery.headerClassName}>{header}</div>}
+                <Wrapper className={cn("min-w-0 flex-1", scrollClassName || theme.Gallery.scrollClassName)}>
                     <Pagination
-                        recordSet={renderedBody}
+                        records={renderedBody}
                         appendTo={paginationNavEl}
-                        wrapClass="px-3 pt-4 pb-2"
+                        wrapperClassName="px-3 pt-4 pb-2"
                         {...(pagination || {})}
                     >
                         {(pageRecords) => (
                             <div className="p-3">
                                 <div
-                                    className={"flex flex-wrap text-center items-center row-cols-" + numCols + " " + (bodyClass || theme.Gallery.bodyClass)}
+                                    className={"flex flex-wrap text-center items-center row-cols-" + numCols + " " + (bodyClassName || theme.Gallery.bodyClassName)}
                                     style={{ gap: itemGap }}
                                 >
                                     {pageRecords.map((record) => (
@@ -449,10 +449,11 @@ const Gallery = ({
                     </Pagination>
                 </Wrapper>
                 <div ref={paginationNavRef} className="mt-auto" />
-                {Footer && <div className={footerClass || theme.Gallery.footerClass}>{Footer}</div>}
+                {footer && <div className={footerClassName || theme.Gallery.footerClassName}>{footer}</div>}
             </Wrapper>
-            {post && <div className="gallery-post flex shrink-0 items-center self-stretch">{post}</div>}
+            {after && <div className="gallery-after flex shrink-0 items-center self-stretch">{after}</div>}
         </div>);
 };
 
 export default Gallery;
+

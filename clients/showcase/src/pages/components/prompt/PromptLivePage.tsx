@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { AIProvider, createAIProviderRegistry, Form, Prompt, PromptMode } from '@llmnative/react';
 import PageLayout from '../../../showcase/page';
 import Section from '../../../docs-kit/page/Section';
@@ -54,7 +54,7 @@ function PromptRunPlaygroundPreview({
     return (
         <AIProvider registry={registry} defaultKey={providerId}>
             <Form
-                aspect="empty"
+                appearance="empty"
                 defaultValues={createPromptPlaygroundSeed(props.defaultValue)}
                 onChange={onValuesChange}
             >
@@ -65,10 +65,10 @@ function PromptRunPlaygroundPreview({
                     required={props.required}
                     defaultValue={props.defaultValue}
                     rows={props.rows}
-                    pre={props.pre || undefined}
-                    post={props.post || undefined}
+                    before={props.pre || undefined}
+                    after={props.post || undefined}
                     className={props.className || undefined}
-                    wrapClass={props.wrapClass || undefined}
+                    wrapperClassName={props.wrapperClassName || undefined}
                 />
             </Form>
         </AIProvider>
@@ -149,7 +149,7 @@ export default function PromptLivePage() {
                 bare
                 preview={(
                     <Form
-                        aspect="empty"
+                        appearance="empty"
                         defaultValues={{
                             projectName: 'Northwind Revamp',
                             summary: {
@@ -178,7 +178,7 @@ export default function PromptLivePage() {
                     </Form>
                 )}
                 code={`<Form
-  aspect="empty"
+  appearance="empty"
   defaultValues={{
     projectName: 'Northwind Revamp',
     summary: {
@@ -211,7 +211,7 @@ export default function PromptLivePage() {
                 bare
                 preview={(
                     <Form
-                        aspect="empty"
+                        appearance="empty"
                         defaultValues={{
                             projectName: 'Northwind Revamp',
                             summary: {
@@ -245,7 +245,7 @@ export default function PromptLivePage() {
                     </Form>
                 )}
                 code={`<Form
-  aspect="empty"
+  appearance="empty"
   defaultValues={{
     projectName: 'Northwind Revamp',
     summary: {

@@ -30,7 +30,7 @@ describe('MarkdownReader', () => {
         renderWithProviders(
             <MarkdownReader
                 content={'# Installation'}
-                head={{
+                metadata={{
                     title: 'Installation',
                     description: 'Install @llmnative/react in a Vite app.',
                 }}
@@ -50,11 +50,11 @@ describe('MarkdownReader', () => {
         function Shell({ showPage }: { showPage: boolean }) {
             return (
                 <>
-                    <MarkdownReader content="" head={{ title: 'Showcase default' }} />
+                    <MarkdownReader content="" metadata={{ title: 'Showcase default' }} />
                     {showPage && (
                         <MarkdownReader
                             content="# Installation"
-                            head={{ title: 'Installation', description: 'Install page' }}
+                            metadata={{ title: 'Installation', description: 'Install page' }}
                         />
                     )}
                 </>
@@ -101,16 +101,16 @@ describe('MarkdownReader', () => {
     });
 
     it('intercepts internal links', () => {
-        const onNavigateInternal = vi.fn();
+        const onInternalLinkClick = vi.fn();
         renderWithProviders(
             <MarkdownReader
                 content={'Read [Quick start](/docs/quick-start) and [npm](https://www.npmjs.com/).'}
-                onNavigateInternal={onNavigateInternal}
+                onInternalLinkClick={onInternalLinkClick}
             />
         );
 
         fireEvent.click(screen.getByRole('link', { name: 'Quick start' }));
-        expect(onNavigateInternal).toHaveBeenCalledWith('/docs/quick-start', expect.any(Object));
+        expect(onInternalLinkClick).toHaveBeenCalledWith('/docs/quick-start', expect.any(Object));
         expect(screen.getByRole('link', { name: 'npm' })).toHaveAttribute('target', '_blank');
     });
 });

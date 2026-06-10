@@ -5,7 +5,7 @@ import { BadgeOverlay } from '../../../src/components/ui/Badge';
 
 describe('BadgeOverlay', () => {
     it('renders a standalone badge from descriptor props', () => {
-        render(<BadgeOverlay content="new" type="success" />);
+        render(<BadgeOverlay content="new" variant="success" />);
 
         const badge = screen.getByText('new');
 
@@ -16,7 +16,7 @@ describe('BadgeOverlay', () => {
     it('renders an overlay badge when children are provided', () => {
         render(
             <BadgeOverlay badge={3}>
-                <button type="button">Inbox</button>
+                <button variant="button">Inbox</button>
             </BadgeOverlay>
         );
 

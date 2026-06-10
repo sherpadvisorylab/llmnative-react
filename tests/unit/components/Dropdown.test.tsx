@@ -6,7 +6,7 @@ import { Dropdown, DropdownItem } from '../../../src/components/blocks/Dropdown'
 describe('Dropdown', () => {
     it('renders toggle badge through the shared overlay Badge component', () => {
         render(
-            <Dropdown toggleButton="Actions" badge={{ content: '3', type: 'danger' }}>
+            <Dropdown trigger="Actions" badge={{ content: '3', variant: 'danger' }}>
                 <DropdownItem>Edit</DropdownItem>
             </Dropdown>
         );
@@ -20,7 +20,7 @@ describe('Dropdown', () => {
 
     it('can render as an always-visible static menu without a toggle button', () => {
         render(
-            <Dropdown alwaysOpen header="Quick actions">
+            <Dropdown staticOpen header="Quick actions">
                 <DropdownItem>Create</DropdownItem>
             </Dropdown>
         );
@@ -32,7 +32,7 @@ describe('Dropdown', () => {
 
     it('does not force a horizontal position by default', () => {
         render(
-            <Dropdown toggleButton="Actions" defaultOpen>
+            <Dropdown trigger="Actions" defaultOpen>
                 <DropdownItem>Edit</DropdownItem>
             </Dropdown>
         );
@@ -45,7 +45,7 @@ describe('Dropdown', () => {
 
     it('keeps the menu open after an internal click', () => {
         render(
-            <Dropdown toggleButton="Actions" defaultOpen>
+            <Dropdown trigger="Actions" defaultOpen>
                 <DropdownItem>Edit</DropdownItem>
             </Dropdown>
         );
@@ -61,10 +61,10 @@ describe('Dropdown', () => {
     it('closes after an outside click', () => {
         render(
             <div>
-                <Dropdown toggleButton="Actions" defaultOpen>
+                <Dropdown trigger="Actions" defaultOpen>
                     <DropdownItem>Edit</DropdownItem>
                 </Dropdown>
-                <button type="button">Outside</button>
+                <button variant="button">Outside</button>
             </div>
         );
 

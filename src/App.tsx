@@ -139,7 +139,7 @@ function resolveProviderRegistries(providers: AppProvidersConfig = {}) {
     const ai: Record<string, AIProviderAdapter> = {};
     const credentials: Record<string, CredentialsAdapter> = {};
 
-    const registries = { data, storage, auth, email, ai, credentials } as Record<string, Record<string, any>>;
+    const registries = { data, storage, auth, email, ai, credentials } as Record<string, Record<string, unknown>>; // CR-042: heterogeneous adapter map, each service registry has a different value type
 
     // Manifest-driven: one loop for all providers - adding a new provider
     // only requires a new entry in PROVIDER_MANIFESTS, not a change here.
@@ -206,7 +206,7 @@ function App({
 
     const LayoutEmpty = ({ children }: { children: React.ReactNode }) => <>{children}</>;
     const FallbackPage: React.FC<{ pageSource: string, message?: string }> = ({ pageSource, message }) => (
-        <Alert type="warning">Missing Page: {pageSource}
+        <Alert variant="warning">Missing Page: {pageSource}
             {message && <code className={"ml-2"}>{message}</code>}
         </Alert>
     );

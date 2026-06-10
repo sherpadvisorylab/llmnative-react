@@ -61,9 +61,9 @@ const PROPS_CONFIG: PropDef[] = [
 }}` },
     { name: 'closeOnBackdrop', type: 'boolean', default: 'true', description: 'Close the modal when the backdrop is clicked', control: 'boolean' },
     { name: 'buttonFullscreen', type: 'boolean', default: 'false', description: 'Show fullscreen toggle button in the header', control: 'boolean' },
-    { name: 'headerClass', type: 'string', description: 'CSS classes on the header element', control: 'text' },
-    { name: 'bodyClass', type: 'string', description: 'CSS classes on the body element', control: 'text' },
-    { name: 'footerClass', type: 'string', description: 'CSS classes on the footer element', control: 'text' },
+    { name: 'headerClassName', type: 'string', description: 'CSS classes on the header element', control: 'text' },
+    { name: 'bodyClassName', type: 'string', description: 'CSS classes on the body element', control: 'text' },
+    { name: 'footerClassName', type: 'string', description: 'CSS classes on the footer element', control: 'text' },
 ];
 
 const PLAYGROUND: PlaygroundConfig = {
@@ -78,9 +78,9 @@ const PLAYGROUND: PlaygroundConfig = {
         position: 'center',
         closeOnBackdrop: true,
         buttonFullscreen: false,
-        headerClass: '',
-        bodyClass: '',
-        footerClass: '',
+        headerClassName: '',
+        bodyClassName: '',
+        footerClassName: '',
     },
     render: (p) => <ModalPlaygroundDemo props={p} />,
 };
@@ -99,9 +99,9 @@ function ModalPlaygroundDemo({ props: p }: { props: Record<string, any> }) {
                     position={p.position}
                     closeOnBackdrop={p.closeOnBackdrop}
                     buttonFullscreen={p.buttonFullscreen}
-                    headerClass={p.headerClass || undefined}
-                    bodyClass={p.bodyClass || undefined}
-                    footerClass={p.footerClass || undefined}
+                    headerClassName={p.headerClassName || undefined}
+                    bodyClassName={p.bodyClassName || undefined}
+                    footerClassName={p.footerClassName || undefined}
                     onClose={() => setOpen(false)}
                     onSave={async () => { setOpen(false); return true; }}
                 >

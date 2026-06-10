@@ -40,7 +40,7 @@ import {
 } from "./DataProvider";
 import type { ProviderConfigurationState } from "../ProviderConfiguration";
 
-type RecordObject = Record<string, Record<string, any>>;
+type RecordObject = Record<string, Record<string, any>>; // CR-042: Firebase RTDB val() returns any-typed JSON
 type WhereEntry = [string, Condition | OperatorValue];
 type OrderEntry = [string, "asc" | "desc"];
 type QueryPlan = {
@@ -344,7 +344,7 @@ export class FirebaseDataProvider implements DataProviderAdapter {
                     const source = typeof value === "object" && value !== null
                         ? { [SYSTEM_FIELDS.key]: key, ...value }
                         : { [SYSTEM_FIELDS.key]: key, [SYSTEM_FIELDS.value]: value };
-                    const mapped: Record<string, any> = {};
+                    const mapped: Record<string, any> = {}; // CR-042: accumulates Firebase-typed values, returned as RecordProps via cast
                     for (const prop of mapKeys) {
                         const field = fieldMap[prop];
                         mapped[prop] = field.includes("{")

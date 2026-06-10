@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ActionButton } from '@llmnative/react';
 import PageLayout from '../../../showcase/page';
 import Section from '../../../docs-kit/page/Section';
@@ -6,72 +6,147 @@ import PropDocsTable from '../../../docs-kit/docs/PropDocsTable';
 import { usePlayground } from '../../../docs-kit/playground';
 import type { PropDef, PlaygroundConfig } from '../../../docs-kit/playground';
 
-const BUTTON_CLASSES = [
-    'btn-primary',
-    'btn-secondary',
-    'btn-success',
-    'btn-danger',
-    'btn-warning',
-    'btn-info',
-    'btn-light',
-    'btn-dark',
-    'btn-outline-primary',
-    'btn-outline-secondary',
-    'btn-outline-success',
-    'btn-outline-danger',
-    'btn-outline-warning',
-    'btn-outline-info',
-    'btn-outline-light',
-    'btn-outline-dark',
-    'btn-link',
-];
+const VARIANTS = [
+    'primary', 'secondary', 'success', 'danger', 'warning', 'info', 'light', 'dark',
+    'outline-primary', 'outline-secondary', 'outline-danger', 'outline-success',
+] as const;
+
 const PROPS: PropDef[] = [
-    { name: 'icon', type: 'string', description: 'Icon name resolved by the active IconProvider', control: 'icon' },
     { name: 'label', type: 'string | ReactNode', description: 'Visible button label', control: 'text' },
-    { name: 'badge', type: 'ReactNode | BadgeConfig', description: 'Optional badge rendered on the top-right corner', control: 'json', rows: 4, shortcuts: [
+    { name: 'icon', type: 'string', description: 'Icon name resolved by the active IconProvider', control: 'icon' },
+    { name: 'variant', type: '"primary" | "secondary" | "danger" | "success" | "warning" | "info" | "light" | "dark" | "outline-*" | "link"', description: 'Semantic color variant (preferred over raw className)', control: 'select', options: [...VARIANTS, 'link'] },
+    { name: 'className', type: 'string', description: 'Raw CSS class override (used when variant is omitted)', control: 'text' },
+    { name: 'badge', type: 'ReactNode | BadgeDescriptor', description: 'Notification badge rendered top-right', control: 'json', rows: 3, shortcuts: [
         { label: 'none', value: null, help: 'No badge.' },
-        { label: 'count', value: { content: '3', type: 'danger' }, help: 'Numeric danger badge.' },
-        { label: 'new', value: { content: 'new', type: 'primary' }, help: 'Text badge.' },
-    ], typeDetails: `ReactNode | {
-  content: ReactNode;
-  type?: string;
-}` },
-    { name: 'title', type: 'string', description: 'Native button title attribute', control: 'text' },
-    { name: 'disabled', type: 'boolean', default: 'false', description: 'Disables the button', control: 'boolean' },
-    { name: 'className', type: 'string', description: 'CSS classes applied to the button', control: 'select', options: BUTTON_CLASSES },
+        { label: 'count', value: { content: '3', variant: 'danger' }, help: 'Numeric danger badge.' },
+        { label: 'new', value: { content: 'new', variant: 'primary' }, help: 'Text badge.' },
+    ]},
+    { name: 'disabled', type: 'boolean', default: 'false', description: 'Disables the button and shows a not-allowed cursor', control: 'boolean' },
+    { name: 'onClick', type: '(e) => void', description: 'Synchronous click handler. Stops propagation automatically.' },
+    { name: 'title', type: 'string', description: 'Native title attribute (tooltip)', control: 'text' },
 ];
 
 const PLAYGROUND: PlaygroundConfig = {
     size: 'lg',
     props: PROPS,
-    defaultProps: { label: 'Save', icon: 'save', badge: { content: '3', type: 'danger' }, title: 'Save changes', disabled: false, className: BUTTON_CLASSES[0] },
+    defaultProps: { label: 'Save', icon: 'save', variant: 'primary', badge: null, disabled: false, title: '', className: '' },
     render: (p) => (
         <ActionButton
-            label={p.label}
+            label={p.label || undefined}
             icon={typeof p.icon === 'string' ? p.icon : undefined}
-            badge={p.badge || undefined}
-            title={p.title || undefined}
-            disabled={p.disabled}
+            variant={p.variant || undefined}
             className={p.className || undefined}
+            badge={p.badge || undefined}
+            disabled={p.disabled}
+            title={p.title || undefined}
         />
     ),
 };
 
 export default function ActionButtonPage() {
     usePlayground(PLAYGROUND, 'ActionButton');
+    const [count, setCount] = useState(0);
+
     return (
-        <PageLayout title="ActionButton" description="Immediate action button with icon, badge and press motion support.">
+        <PageLayout
+            title="ActionButton"
+            description="Immediate synchronous action button with icon, badge, press motion, and variant system. Use LoadingButton for async operations."
+        >
             <Section
-                title="Common actions"
+                title="Color variants"
+                description="Use the variant prop to apply semantic colors without writing CSS class names."
                 preview={
-                    <div className="flex flex-wrap gap-4 pt-3 pr-3">
-                        <ActionButton className={BUTTON_CLASSES[0]} icon="save" label="Save" />
-                        <ActionButton className="btn-outline-secondary" icon="settings" label="Settings" badge={{ content: '3', type: 'danger' }} />
-                        <ActionButton className="btn-danger" icon="trash" title="Delete" />
+                    <div className="flex flex-wrap gap-2">
+                        {VARIANTS.map((v) => (
+                            <ActionButton key={v} variant={v} label={v} />
+                        ))}
                     </div>
                 }
-                code={`<ActionButton className="btn-primary" icon="save" label="Save" />`}
+                code={`<ActionButton variant="primary" label="Save" />
+<ActionButton variant="danger" label="Delete" />
+<ActionButton variant="outline-secondary" label="Cancel" />`}
             />
+
+            <Section
+                title="Icon + label combinations"
+                description="icon renders an icon from the active provider. Omit label for an icon-only button — pair with title for accessibility."
+                preview={
+                    <div className="flex flex-wrap gap-3">
+                        <ActionButton variant="primary" icon="save" label="Save" />
+                        <ActionButton variant="outline-secondary" icon="settings" label="Settings" />
+                        <ActionButton variant="danger" icon="trash" title="Delete record" />
+                        <ActionButton variant="outline-secondary" icon="download" title="Download" />
+                    </div>
+                }
+                code={`// Icon + label
+<ActionButton variant="primary" icon="save" label="Save" />
+
+// Icon only — always add title for screen readers
+<ActionButton variant="danger" icon="trash" title="Delete record" />`}
+            />
+
+            <Section
+                title="onClick handler"
+                description="onClick stops propagation automatically. The button does not manage loading state — use LoadingButton for async work."
+                preview={
+                    <div className="flex items-center gap-4">
+                        <ActionButton
+                            variant="primary"
+                            icon="plus"
+                            label="Increment"
+                            onClick={() => setCount((c) => c + 1)}
+                        />
+                        <span className="text-sm text-muted-foreground">Clicked: <strong>{count}</strong></span>
+                        <ActionButton
+                            variant="outline-secondary"
+                            icon="rotate-ccw"
+                            label="Reset"
+                            onClick={() => setCount(0)}
+                        />
+                    </div>
+                }
+                code={`const [count, setCount] = useState(0);
+
+<ActionButton
+    variant="primary"
+    icon="plus"
+    label="Increment"
+    onClick={() => setCount((c) => c + 1)}
+/>
+<span>Clicked: {count}</span>`}
+            />
+
+            <Section
+                title="Disabled state"
+                description="disabled prevents click and shows a not-allowed cursor on the wrapper. The button retains its visual shape."
+                preview={
+                    <div className="flex flex-wrap gap-3">
+                        <ActionButton variant="primary" icon="save" label="Save" disabled />
+                        <ActionButton variant="danger" icon="trash" label="Delete" disabled />
+                        <ActionButton variant="outline-secondary" icon="settings" label="Settings" disabled />
+                    </div>
+                }
+                code={`<ActionButton variant="primary" icon="save" label="Save" disabled />`}
+            />
+
+            <Section
+                title="Badge notification"
+                description="badge renders a count or text indicator top-right. Useful for pending items."
+                preview={
+                    <div className="flex flex-wrap gap-6">
+                        <ActionButton variant="outline-secondary" icon="bell" label="Notifications" badge={{ content: 5, variant: 'danger' }} />
+                        <ActionButton variant="outline-secondary" icon="message-circle" label="Messages" badge={{ content: 'new', variant: 'primary' }} />
+                        <ActionButton variant="outline-secondary" icon="shopping-cart" label="Cart" badge={{ content: 3, variant: 'success' }} />
+                    </div>
+                }
+                code={`<ActionButton
+    variant="outline-secondary"
+    icon="bell"
+    label="Notifications"
+    badge={{ content: 5, variant: 'danger' }}
+/>`}
+            />
+
             <PropDocsTable props={PROPS} />
         </PageLayout>
     );

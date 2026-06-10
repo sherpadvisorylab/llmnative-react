@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Form, Select } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
@@ -74,11 +74,11 @@ const SELECT_PROPS: PropDef[] = [
   field: 'label' | 'value';
   dir: 'asc' | 'desc';
 }`, example: `order={{ field: 'label', dir: 'asc' }}` },
-    { name: 'pre', type: 'ReactNode', description: 'Content rendered before the select inside an input group', control: 'text' },
-    { name: 'post', type: 'ReactNode', description: 'Content rendered after the select inside an input group', control: 'text' },
+    { name: 'before', type: 'ReactNode', description: 'Content rendered before the select inside an input group', control: 'text' },
+    { name: 'after', type: 'ReactNode', description: 'Content rendered after the select inside an input group', control: 'text' },
     { name: 'onChange', type: 'FieldOnChange', description: 'Custom change handler called by the Form context' },
     { name: 'className', type: 'string', description: 'CSS classes on the select element', control: 'text' },
-    { name: 'wrapClass', type: 'string', description: 'CSS classes on the outer wrapper', control: 'text' },
+    { name: 'wrapperClassName', type: 'string', description: 'CSS classes on the outer wrapper', control: 'text' },
 ];
 
 const PLAYGROUND: PlaygroundConfig = {
@@ -97,7 +97,7 @@ const PLAYGROUND: PlaygroundConfig = {
         label: 'Category',
         title: 'Choose a category',
         options: ROLES,
-        db: '/showcase/categories',
+        optionsSource: '/showcase/categories',
         optionEmpty: {
             label: 'Select...',
             value: '',
@@ -114,16 +114,16 @@ const PLAYGROUND: PlaygroundConfig = {
         pre: '',
         post: '',
         className: '',
-        wrapClass: '',
+        wrapperClassName: '',
     },
     render: (p, onValuesChange) => (
-        <Form aspect="empty" onChange={onValuesChange}>
+        <Form appearance="empty" onChange={onValuesChange}>
             <Select
                 name={p.name || 'categoryId'}
                 label={p.label}
                 title={p.title || undefined}
                 options={Array.isArray(p.options) ? p.options : []}
-                db={typeof p.db === 'string' && p.db ? { path: p.db } : (p.db && typeof p.db === 'object' ? p.db : undefined)}
+                optionsSource={typeof p.optionsSource === 'string' && p.optionsSource ? { path: p.db } : (p.optionsSource && typeof p.optionsSource === 'object' ? p.optionsSource : undefined)}
                 optionEmpty={p.optionEmpty === null ? null : (p.optionEmpty || undefined)}
                 required={p.required}
                 disabled={p.disabled}
@@ -131,10 +131,10 @@ const PLAYGROUND: PlaygroundConfig = {
                 defaultValue={p.defaultValue || undefined}
                 feedback={p.feedback || undefined}
                 order={p.order && typeof p.order === 'object' ? p.order : undefined}
-                pre={p.pre || undefined}
-                post={p.post || undefined}
+                before={p.pre || undefined}
+                after={p.post || undefined}
                 className={p.className || undefined}
-                wrapClass={p.wrapClass || undefined}
+                wrapperClassName={p.wrapperClassName || undefined}
             />
         </Form>
     ),
@@ -153,7 +153,7 @@ export default function SelectPage() {
                 description="Static options array - the simplest usage."
                 preview={
                     <div className="w-full max-w-md">
-                        <Form aspect="empty">
+                        <Form appearance="empty">
                             <Select name="role" label="Role" options={ROLES} />
                         </Form>
                     </div>
@@ -175,7 +175,7 @@ const ROLES = [
                 title="Required select"
                 preview={
                     <div className="w-full max-w-md">
-                        <Form aspect="empty">
+                        <Form appearance="empty">
                             <Select name="country" label="Country" options={COUNTRIES} required />
                         </Form>
                     </div>
@@ -188,11 +188,11 @@ const ROLES = [
                 description="Pass a db prop instead of options to fetch from the registered DataProvider at runtime."
                 preview={
                     <div className="w-full max-w-md">
-                        <Form aspect="empty">
+                        <Form appearance="empty">
                             <Select
                                 name="categoryId"
                                 label="Category"
-                                db={{ path: '/showcase/categories' }}
+                                optionsSource={{ path: '/showcase/categories' }}
                                 defaultValue="ops"
                             />
                         </Form>
@@ -203,7 +203,7 @@ const ROLES = [
     <Select
         name="categoryId"
         label="Category"
-        db={{ path: '/showcase/categories' }}
+        optionsSource={{ path: '/showcase/categories' }}
         defaultValue="ops"
     />
 </Form>`}

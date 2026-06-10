@@ -18,7 +18,7 @@ function LiveForm({ children, title, description, code }: {
             description={description}
             preview={
                 <div className="w-full max-w-md">
-                    <Form aspect="empty">
+                    <Form appearance="empty">
                         {children}
                     </Form>
                 </div>
@@ -37,12 +37,12 @@ const PROPS_CONFIG: PropDef[] = [
     { name: 'disabled', type: 'boolean', default: 'false', description: 'Makes the field read-only', control: 'boolean' },
     { name: 'updatable', type: 'boolean', default: 'false', description: 'Shows a pencil icon; field becomes editable on click', control: 'boolean' },
     { name: 'defaultValue', type: 'any', description: 'Initial value when not managed by a Form', control: 'text' },
-    { name: 'min', type: 'number', description: 'Minimum value (number/range inputs)', control: 'number', min: 0 },
-    { name: 'max', type: 'number', description: 'Maximum value (number/range inputs)', control: 'number', min: 0 },
+    { name: 'minItems', type: 'number', description: 'Minimum value (number/range inputs)', control: 'number', min: 0 },
+    { name: 'maxItems', type: 'number', description: 'Maximum value (number/range inputs)', control: 'number', min: 0 },
     { name: 'step', type: 'number', description: 'Step increment (number/range inputs)', control: 'number', min: 1 },
     { name: 'feedback', type: 'string', description: 'Validation feedback message shown below the field', control: 'text' },
     { name: 'className', type: 'string', description: 'CSS classes on the input element', control: 'text' },
-    { name: 'wrapClass', type: 'string', description: 'CSS classes on the outer wrapper', control: 'text' },
+    { name: 'wrapperClassName', type: 'string', description: 'CSS classes on the outer wrapper', control: 'text' },
 ];
 
 const PLAYGROUND: PlaygroundConfig = {
@@ -60,10 +60,10 @@ const PLAYGROUND: PlaygroundConfig = {
         defaultValue: '',
         feedback: '',
         className: '',
-        wrapClass: '',
+        wrapperClassName: '',
     },
     render: (p, onValuesChange) => (
-        <Form aspect="empty" defaultValues={p.defaultValue ? { [p.name || 'demo']: p.defaultValue } : {}} onChange={onValuesChange}>
+        <Form appearance="empty" defaultValues={p.defaultValue ? { [p.name || 'demo']: p.defaultValue } : {}} onChange={onValuesChange}>
             <Input
                 name={p.name || 'demo'}
                 label={p.label}
@@ -77,7 +77,7 @@ const PLAYGROUND: PlaygroundConfig = {
                 step={p.step || undefined}
                 feedback={p.feedback || undefined}
                 className={p.className || undefined}
-                wrapClass={p.wrapClass || undefined}
+                wrapperClassName={p.wrapperClassName || undefined}
             />
         </Form>
     ),
@@ -96,7 +96,7 @@ export default function InputPage() {
                 description="The most common input types. All support label, required, placeholder and disabled props."
                 code={`import { Form, Input } from '@llmnative/react';
 
-<Form aspect="empty">
+<Form appearance="empty">
     <Input name="firstName" label="First name" required />
     <Input name="email"    label="Email"    type="email" />
     <Input name="password" label="Password" type="password" />

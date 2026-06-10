@@ -1,4 +1,4 @@
-import React, {createContext, useContext, useEffect, useMemo, useState, ReactNode} from 'react';
+﻿import React, {createContext, useContext, useEffect, useMemo, useState, ReactNode} from 'react';
 import _themeDefault, { components as defaultComponents } from '../themes/default';
 import _themeFlat from '../themes/flat';
 import _themeCyber from '../themes/cyber';
@@ -49,60 +49,60 @@ export interface ColorScale {
 // ─── Per-component sub-interfaces ───────────────────────────────────────────
 
 export interface MenuTheme {
-    wrapClass?: string;
+    wrapperClassName?: string;
     className?: string;
-    headerClass?: string;
-    itemClass?: string;
-    linkClass?: string;
-    iconClass?: string;
-    textClass?: string;
-    badgeClass?: string;
-    arrowClass?: string;
-    submenuClass?: string;
+    headerClassName?: string;
+    itemClassName?: string;
+    linkClassName?: string;
+    iconClassName?: string;
+    textClassName?: string;
+    badgeClassName?: string;
+    arrowClassName?: string;
+    submenuClassName?: string;
 }
 
 export interface CardTheme {
-    wrapClass?: string;
+    wrapperClassName?: string;
     className?: string;
-    headerClass?: string;
-    bodyClass?: string;
-    footerClass?: string;
-    showLoader?: boolean;
+    headerClassName?: string;
+    bodyClassName?: string;
+    footerClassName?: string;
+    loading?: boolean;
     showArrow?: boolean;
 }
 
 export interface TableTheme {
-    wrapClass?: string;
+    wrapperClassName?: string;
     className?: string;
-    headerClass?: string;
-    bodyClass?: string;
-    footerClass?: string;
-    scrollClass?: string;
-    selectedClass?: string;
+    headerClassName?: string;
+    bodyClassName?: string;
+    footerClassName?: string;
+    scrollClassName?: string;
+    selectedClassName?: string;
 }
 
 export interface GalleryTheme {
-    wrapClass?: string;
+    wrapperClassName?: string;
     className?: string;
-    scrollClass?: string;
-    headerClass?: string;
-    bodyClass?: string;
-    footerClass?: string;
-    selectedClass?: string;
-    gutterSize?: 0 | 1 | 2 | 3 | 4 | 5;
+    scrollClassName?: string;
+    headerClassName?: string;
+    bodyClassName?: string;
+    footerClassName?: string;
+    selectedClassName?: string;
+    gap?: 0 | 1 | 2 | 3 | 4 | 5;
     rowCols?: 1 | 2 | 3 | 4 | 6;
 }
 
 export interface ModalTheme {
     size?: "sm" | "md" | "lg" | "xl" | "fullscreen";
     position?: "center" | "top" | "left" | "right" | "bottom";
-    wrapClass?: string;
+    wrapperClassName?: string;
     className?: string;
-    headerClass?: string;
-    titleClass?: string;
-    subTitleClass?: string;
-    bodyClass?: string;
-    footerClass?: string;
+    headerClassName?: string;
+    titleClassName?: string;
+    subtitleClassName?: string;
+    bodyClassName?: string;
+    footerClassName?: string;
     iconExpand?: string;
     iconCollapse?: string;
     motion?: {
@@ -135,9 +135,9 @@ export interface ThemeConfig {
     Table?: TableTheme;
     Gallery?: GalleryTheme;
     Pagination?: {
-        wrapClass?: string;
+        wrapperClassName?: string;
         className?: string;
-        stickyClass?: string;
+        stickyClassName?: string;
         scrollToTop?: boolean;
         scrollBehavior?: ScrollBehavior;
         maxItems?: number;
@@ -148,12 +148,12 @@ export interface ThemeConfig {
         showIndicators?: boolean;
         showControls?: boolean;
         showCaption?: boolean;
-        layoutDark?: boolean;
+        dark?: boolean;
         autoPlay?: boolean | { interval: number; pause: "hover" | "false" | "true"; wrap: boolean };
     };
     Card?: CardTheme;
     Loader?: {
-        wrapClass?: string;
+        wrapperClassName?: string;
         className?: string;
         icon?: string;
         title?: string;
@@ -161,14 +161,14 @@ export interface ThemeConfig {
     };
     ActionButton?: {
         className?: string;
-        badgeClass?: string;
+        badgeClassName?: string;
         motion?: {
             press?: MotionReference;
         };
     };
     LoadingButton?: {
         className?: string;
-        badgeClass?: string;
+        badgeClassName?: string;
         motion?: {
             press?: MotionReference;
         };
@@ -184,16 +184,16 @@ export interface ThemeConfig {
     };
     Modal?: ModalTheme;
     Dropdown?: {
-        wrapClass?: string;
+        wrapperClassName?: string;
         className?: string;
-        buttonClass?: string;
-        badgeClass?: string;
-        menuClass?: string;
+        triggerClassName?: string;
+        badgeClassName?: string;
+        menuClassName?: string;
         menuHeaderClass?: string;
         menuItemClass?: string;
         menuDividerClass?: string;
-        headerClass?: string;
-        footerClass?: string;
+        headerClassName?: string;
+        footerClassName?: string;
         Menu?: MenuTheme;
         motion?: {
             open?: MotionReference;
@@ -202,30 +202,30 @@ export interface ThemeConfig {
         };
     };
     Notifications?: {
-        wrapClass?: string;
+        wrapperClassName?: string;
         Dropdown?: {
             className?: string;
-            buttonClass?: string;
-            menuClass?: string;
+            triggerClassName?: string;
+            menuClassName?: string;
         };
     };
     Select?: {
-        wrapClass?: string;
+        wrapperClassName?: string;
         className?: string;
     };
     Autocomplete?: {
-        wrapClass?: string;
+        wrapperClassName?: string;
         className?: string;
     };
     Form?: {
-        wrapClass?: string;
+        wrapperClassName?: string;
         buttonSaveClass?: string;
         buttonDeleteClass?: string;
         buttonBackClass?: string;
         Card?: {
-            headerClass?: string;
-            bodyClass?: string;
-            footerClass?: string;
+            headerClassName?: string;
+            bodyClassName?: string;
+            footerClassName?: string;
         };
         i18n?: {
             headerAdd?: string;
@@ -239,17 +239,17 @@ export interface ThemeConfig {
     };
     Menu?: MenuTheme;
     Brand?: {
-        wrapClass?: string;
+        wrapperClassName?: string;
         className?: string;
-        logoClass?: string;
-        labelClass?: string;
+        logoClassName?: string;
+        labelClassName?: string;
     };
     SignIn?: {
         className?: string;
         avatarClass?: string;
     };
     Image?: {
-        wrapClass?: string;
+        wrapperClassName?: string;
         className?: string;
         motion?: {
             enter?: MotionReference;
@@ -257,27 +257,27 @@ export interface ThemeConfig {
         };
     };
     ImageAvatar?: {
-        wrapClass?: string;
+        wrapperClassName?: string;
         className?: string;
         motion?: { enter?: MotionReference; hover?: MotionReference };
     };
     Percentage?: {
-        wrapClass?: string;
+        wrapperClassName?: string;
         className?: string;
     };
     Tab?: {
-        wrapClass?: string;
+        wrapperClassName?: string;
         className?: string;
         motion?: {
             enter?: MotionReference;
         };
     };
     Code?: {
-        wrapClass?: string;
+        wrapperClassName?: string;
         className?: string;
     };
     Prompt?: {
-        wrapClass?: string;
+        wrapperClassName?: string;
         className?: string;
     };
 }

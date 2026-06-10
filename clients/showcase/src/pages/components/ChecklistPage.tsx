@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Checklist, Form } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
@@ -61,12 +61,12 @@ const CHECKLIST_PROPS: PropDef[] = [
   field: 'label' | 'value';
   dir: 'asc' | 'desc';
 }` },
-    { name: 'pre', type: 'ReactNode', description: 'Content rendered before the checklist inside an input group', control: 'text' },
-    { name: 'post', type: 'ReactNode', description: 'Content rendered after the checklist inside an input group', control: 'text' },
+    { name: 'before', type: 'ReactNode', description: 'Content rendered before the checklist inside an input group', control: 'text' },
+    { name: 'after', type: 'ReactNode', description: 'Content rendered after the checklist inside an input group', control: 'text' },
     { name: 'onChange', type: 'FieldOnChange', description: 'Custom change handler called by the Form context' },
     { name: 'checkClass', type: 'string', description: 'CSS classes applied to each individual checkbox wrapper', control: 'text' },
     { name: 'className', type: 'string', description: 'CSS classes on the checklist root', control: 'text' },
-    { name: 'wrapClass', type: 'string', description: 'CSS classes on the outer wrapper', control: 'text' },
+    { name: 'wrapperClassName', type: 'string', description: 'CSS classes on the outer wrapper', control: 'text' },
 ];
 
 const PLAYGROUND: PlaygroundConfig = {
@@ -85,7 +85,7 @@ const PLAYGROUND: PlaygroundConfig = {
         label: 'Technologies',
         title: 'Select technologies',
         options: TAGS,
-        db: '/showcase/tags',
+        optionsSource: '/showcase/tags',
         required: false,
         disabled: false,
         updatable: true,
@@ -99,27 +99,27 @@ const PLAYGROUND: PlaygroundConfig = {
         post: '',
         checkClass: '',
         className: '',
-        wrapClass: '',
+        wrapperClassName: '',
     },
     render: (p, onValuesChange) => (
-        <Form aspect="empty" onChange={onValuesChange}>
+        <Form appearance="empty" onChange={onValuesChange}>
             <Checklist
                 name={p.name || 'tags'}
                 label={p.label}
                 title={p.title || undefined}
                 options={Array.isArray(p.options) ? p.options : []}
-                db={typeof p.db === 'string' && p.db ? { path: p.db } : (p.db && typeof p.db === 'object' ? p.db : undefined)}
+                optionsSource={typeof p.optionsSource === 'string' && p.optionsSource ? { path: p.db } : (p.optionsSource && typeof p.optionsSource === 'object' ? p.optionsSource : undefined)}
                 required={p.required}
                 disabled={p.disabled}
                 updatable={p.updatable}
                 defaultValue={p.defaultValue}
                 feedback={p.feedback || undefined}
                 order={p.order && typeof p.order === 'object' ? p.order : undefined}
-                pre={p.pre || undefined}
-                post={p.post || undefined}
+                before={p.pre || undefined}
+                after={p.post || undefined}
                 checkClass={p.checkClass || undefined}
                 className={p.className || undefined}
-                wrapClass={p.wrapClass || undefined}
+                wrapperClassName={p.wrapperClassName || undefined}
             />
         </Form>
     ),
@@ -138,7 +138,7 @@ export default function ChecklistPage() {
                 description="Renders a checkbox for each option. Pre-selected values come from the Form's defaultValues."
                 preview={
                     <div className="w-full max-w-md">
-                        <Form aspect="empty" defaultValues={{ tags: ['react', 'typescript'] }}>
+                        <Form appearance="empty" defaultValues={{ tags: ['react', 'typescript'] }}>
                             <Checklist name="tags" label="Technologies" options={TAGS} />
                         </Form>
                     </div>
@@ -163,7 +163,7 @@ export default function ChecklistPage() {
                 description="Common pattern for role/permission configuration."
                 preview={
                     <div className="w-full max-w-md">
-                        <Form aspect="empty" defaultValues={{ permissions: ['read', 'write'] }}>
+                        <Form appearance="empty" defaultValues={{ permissions: ['read', 'write'] }}>
                             <Checklist name="permissions" label="Permissions" options={PERMISSIONS} />
                         </Form>
                     </div>
@@ -186,10 +186,10 @@ export default function ChecklistPage() {
                 title="Required and disabled"
                 preview={
                     <div className="w-full max-w-md flex gap-8">
-                        <Form aspect="empty">
+                        <Form appearance="empty">
                             <Checklist name="tags" label="Required" options={TAGS.slice(0, 3)} required />
                         </Form>
-                        <Form aspect="empty" defaultValues={{ tags: ['react'] }}>
+                        <Form appearance="empty" defaultValues={{ tags: ['react'] }}>
                             <Checklist name="tags" label="Disabled" options={TAGS.slice(0, 3)} disabled />
                         </Form>
                     </div>

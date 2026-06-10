@@ -203,8 +203,8 @@ export class Sanitizer {
   /* ----------------------------------------------
    * 🌐 Apply matches to an entire object
    * ---------------------------------------------- */
-  applyMatches<T extends Record<string, any>>(obj: T, autoCast: boolean = false): T {
-    const output: Record<string, any> = { ...obj };
+  applyMatches<T extends Record<string, unknown>>(obj: T, autoCast: boolean = false): T {
+    const output: Record<string, unknown> = { ...obj };
 
     for (const [field, value] of Object.entries(obj)) {
       for (const match of this.matches) {

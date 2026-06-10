@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+﻿import React, { useEffect } from 'react';
 import { useTheme } from '../../Theme';
 import { UIProps } from '../..';
 import { Wrapper } from "./GridSystem";
@@ -6,9 +6,9 @@ import { createPortal } from 'react-dom';
 import { cn } from '../../libs/cn';
 import Icon from './Icon';
 
-type AlertProps = {
+export type AlertProps = {
     children: string | React.ReactNode;
-    type?: "info" | "success" | "warning" | "danger" | "primary" | "secondary" | "light" | "dark";
+    variant?: "info" | "success" | "warning" | "danger" | "primary" | "secondary" | "light" | "dark";
     /** Visual shell:
      *  - `"default"` - full alert box with background and border (default)
      *  - `"text"` - no background, no border, width fits content; ideal for inline status indicators
@@ -38,15 +38,15 @@ const TEXT_COLORS: Record<string, string> = {
 
 const Alert = ({
     children,
-    type = "info",
+    variant = "info",
     appearance = "default",
     placement = "inline",
     timeout = undefined,
     onClose = undefined,
     icon = true,
-    pre = undefined,
-    post = undefined,
-    wrapClass = undefined,
+    before = undefined,
+    after = undefined,
+    wrapperClassName = undefined,
     className = undefined
 }: AlertProps) => {
     const theme = useTheme("alert");
@@ -63,7 +63,7 @@ const Alert = ({
     };
 
     const iconName: string | null = icon === false ? null
-        : icon === true ? (DEFAULT_ICONS[type] || null)
+        : icon === true ? (DEFAULT_ICONS[variant] || null)
         : (icon as string) || null;
 
     useEffect(() => {
@@ -82,7 +82,7 @@ const Alert = ({
                 role="status"
                 className={cn(
                     "inline-flex items-center gap-1 text-sm font-medium",
-                    TEXT_COLORS[type] ?? 'text-foreground',
+                    TEXT_COLORS[variant] ?? 'text-foreground',
                     className
                 )}
             >
@@ -96,7 +96,7 @@ const Alert = ({
         <div
             role="alert"
             className={cn(
-                "alert alert-" + type,
+                "alert alert-" + variant,
                 className || theme.Alert.className,
                 placement === 'fixed' && "w-full rounded-none border-x-0 shadow-md"
             )}
@@ -121,13 +121,13 @@ const Alert = ({
         return createPortal(alertEl, container);
     }
 
-    const resolvedWrapClass = wrapClass ?? ((pre || post) ? 'flex items-center gap-2' : undefined);
+    const resolvedWrapClass = wrapperClassName ?? ((before || after) ? 'flex items-center gap-2' : undefined);
 
     return (
         <Wrapper className={resolvedWrapClass}>
-            {pre}
+            {before}
             {alertEl}
-            {post}
+            {after}
         </Wrapper>
     );
 }

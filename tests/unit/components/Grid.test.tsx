@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+﻿import { describe, it, expect, vi } from 'vitest';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
@@ -522,7 +522,7 @@ describe('Grid - event payloads', () => {
                 path="/users"
                 order={{ name: 'asc' }}
                 columns={[{ key: 'name', label: 'Name', sortable: true }]}
-                onClickRow={(record) => clicks.push(record._key || '')}
+                onRowClick={(record) => clicks.push(record._key || '')}
             />,
             { provider }
         );
@@ -658,3 +658,4 @@ describe('Grid - event payloads', () => {
         expect(payloads).toEqual([['u1', 'u2']]);
     });
 });
+

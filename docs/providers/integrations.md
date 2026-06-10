@@ -73,7 +73,7 @@ function DropboxPanel() {
       <AuthButton
         provider="dropboxAuth"
         intent="connect"
-        aspect="button"
+        appearance="button"
         options={{ label: 'Connect Dropbox', icon: 'link' }}
       />
       <button onClick={() => dropBox.listFolders({ path: '/' }).then(setFiles)}>

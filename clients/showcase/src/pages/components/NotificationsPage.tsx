@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Notifications } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
@@ -12,21 +12,19 @@ const NOTIFICATIONS = [
 ];
 
 const NOTIFICATIONS_PROPS: PropDef[] = [
-    { name: 'children', type: 'NotificationItem[]', description: 'Notification records rendered in the dropdown' },
+    { name: 'items', type: 'NotificationItem[]', description: 'Notification records rendered in the dropdown' },
     { name: 'badge', type: 'ReactNode', description: 'Badge displayed on the bell toggle', control: 'text' },
-    { name: 'wrapClass', type: 'string', description: 'CSS classes on wrapper', control: 'text' },
+    { name: 'wrapperClassName', type: 'string', description: 'CSS classes on wrapper', control: 'text' },
 ];
 
 const PLAYGROUND: PlaygroundConfig = {
     props: NOTIFICATIONS_PROPS,
     defaultProps: {
         badge: '2',
-        wrapClass: '',
+        wrapperClassName: '',
     },
     render: (p) => (
-        <Notifications badge={p.badge || undefined} wrapClass={p.wrapClass || undefined}>
-            {NOTIFICATIONS}
-        </Notifications>
+        <Notifications badge={p.badge || undefined} wrapperClassName={p.wrapperClassName || undefined} items={NOTIFICATIONS} />
     ),
 };
 
@@ -37,14 +35,12 @@ export default function NotificationsPage() {
         <PageLayout title="Notifications" description="Notification dropdown built on top of Dropdown and DropdownItem.">
             <Section
                 title="Notification menu"
-                preview={<Notifications badge={2}>{NOTIFICATIONS}</Notifications>}
+                preview={<Notifications badge={2} items={NOTIFICATIONS} />}
                 code={`import { Notifications } from '@llmnative/react';
 
-<Notifications badge={2}>
-    {[
-        { title: 'New deployment completed', url: '/', time: '2 minutes ago', icon: 'check-circle' },
-    ]}
-</Notifications>`}
+<Notifications badge={2} items={[
+    { title: 'New deployment completed', url: '/', time: '2 minutes ago', icon: 'check-circle' },
+]} />`}
             />
 
             <PropDocsTable props={NOTIFICATIONS_PROPS} />

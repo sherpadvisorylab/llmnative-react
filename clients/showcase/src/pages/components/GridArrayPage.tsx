@@ -191,10 +191,10 @@ type GridArrayDocSurface = {
     footer: unknown;
     loading: unknown;
     sticky: unknown;
-    wrapClass: unknown;
+    wrapperClassName: unknown;
     pre: unknown;
     post: unknown;
-    onClickRow: unknown;
+    onRowClick: unknown;
     editDeepLink: unknown;
     onSave: unknown;
     onDelete: unknown;
@@ -390,26 +390,26 @@ Record<string, false | {
         description: 'Stick the card to the top or bottom of the scroll container.',
     },
     {
-        name: 'wrapClass',
+        name: 'wrapperClassName',
         type: 'string',
         default: '',
         category: 'Shared',
         description: 'CSS class on the outer card wrapper.',
     },
     {
-        name: 'pre',
+        name: 'before',
         type: 'ReactNode',
         category: 'Shared',
         description: 'Content rendered above the table/gallery body.',
     },
     {
-        name: 'post',
+        name: 'after',
         type: 'ReactNode',
         category: 'Shared',
         description: 'Content rendered below the table/gallery body.',
     },
     {
-        name: 'onClickRow',
+        name: 'onRowClick',
         type: '(record: TRecord) => void',
         default: 'false',
         category: 'Shared',
@@ -578,10 +578,10 @@ const SHARED_PROPS: PropDef[] = [
     },
     { group: 'Shared', name: 'loading', type: 'boolean', default: 'false', description: 'Show a loading overlay on the card.', control: 'boolean' },
     { group: 'Shared', name: 'sticky', type: '"top" | "bottom"', default: '', description: 'Stick the card to the top or bottom of the scroll container.', control: 'select', options: ['', 'top', 'bottom'] },
-    { group: 'Shared', name: 'wrapClass', type: 'string', default: '', description: 'CSS class on the outer card wrapper.', control: 'text' },
-    { group: 'Shared', name: 'pre', type: 'ReactNode', description: 'Content rendered above the table/gallery body.', control: 'textarea', rows: 2 },
-    { group: 'Shared', name: 'post', type: 'ReactNode', description: 'Content rendered below the table/gallery body.', control: 'textarea', rows: 2 },
-    { group: 'Shared', name: 'onClickRow', type: '(record) => void', default: 'false', description: 'Called with the full record on row/card click.', control: 'boolean' },
+    { group: 'Shared', name: 'wrapperClassName', type: 'string', default: '', description: 'CSS class on the outer card wrapper.', control: 'text' },
+    { group: 'Shared', name: 'before', type: 'ReactNode', description: 'Content rendered above the table/gallery body.', control: 'textarea', rows: 2 },
+    { group: 'Shared', name: 'after', type: 'ReactNode', description: 'Content rendered below the table/gallery body.', control: 'textarea', rows: 2 },
+    { group: 'Shared', name: 'onRowClick', type: '(record) => void', default: 'false', description: 'Called with the full record on row/card click.', control: 'boolean' },
     { group: 'Shared', name: 'editDeepLink', type: 'boolean', default: 'false', description: 'Sync edit modal to URL hash (#edit/{key}).', control: 'boolean' },
     { group: 'Shared', name: 'onSave', type: 'GridMutationSaveHandler<TRecord>', description: 'Override save path or implement custom persistence for create/update.', readOnly: true },
     { group: 'Shared', name: 'onDelete', type: 'GridMutationDeleteHandler<TRecord>', description: 'Override delete path before the provider removes the record.', readOnly: true },
@@ -667,7 +667,7 @@ function GridArrayPlaygroundPreview({ p }: { p: Record<string, any> }) {
         return p.actions;
     }, [p.actions]);
 
-    const hasOutput = selectionMode !== false || p.onClickRow;
+    const hasOutput = selectionMode !== false || p.onRowClick;
 
     return (
         <div className="space-y-4">
@@ -681,13 +681,13 @@ function GridArrayPlaygroundPreview({ p }: { p: Record<string, any> }) {
                 layout={p.layout}
                 loading={p.loading}
                 sticky={(p.sticky as any) || undefined}
-                wrapClass={typeof p.wrapClass === 'string' ? p.wrapClass : ''}
-                pre={resolvedPreNode}
-                post={resolvedPostNode}
+                wrapperClassName={typeof p.wrapperClassName === 'string' ? p.wrapperClassName : ''}
+                before={resolvedPreNode}
+                after={resolvedPostNode}
                 form={hasActions ? <GridUserForm /> : undefined}
                 actions={actions as any}
                 selection={resolvedSelection}
-                onClickRow={p.onClickRow ? (record) => setClickedRecord(record as UserRecord) : undefined}
+                onRowClick={p.onRowClick ? (record) => setClickedRecord(record as UserRecord) : undefined}
                 sortable={p.sortable}
                 groupBy={groupBy}
                 pagination={pagination}
@@ -730,10 +730,10 @@ function GridArrayPlaygroundPreview({ p }: { p: Record<string, any> }) {
                             </pre>
                         </div>
                     )}
-                    {p.onClickRow && (
+                    {p.onRowClick && (
                         <div className="rounded-md border bg-muted/40 p-3">
                             <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                onClickRow payload
+                                onRowClick payload
                             </div>
                             <pre className="overflow-auto whitespace-pre-wrap break-all text-xs text-foreground">
                                 {JSON.stringify(clickedRecord ?? null, null, 2)}
@@ -769,13 +769,13 @@ const PLAYGROUND: PlaygroundConfig = {
         pagination: { limit: 4, align: 'end' },
         loading: false,
         sticky: '',
-        wrapClass: '',
+        wrapperClassName: '',
         pre: '',
         post: '',
         title: 'Team members',
         header: false,
         footer: false,
-        onClickRow: false,
+        onRowClick: false,
         reorderable: false,
         editDeepLink: false,
         audit: false,
@@ -797,7 +797,7 @@ function SingleSelectionPreview() {
                 records={toArrayRecords()}
                 recordId="_key"
                 title="Choose one option"
-                wrapClass="w-full"
+                wrapperClassName="w-full"
                 selection={{ mode: 'single', onChange: (s) => setClickedKey(s.keys[0] || '') }}
                 pagination={{ limit: 4, align: 'end', sticky: false }}
             />
@@ -817,7 +817,7 @@ function MultipleSelectionPreview() {
                 records={toArrayRecords()}
                 recordId="_key"
                 title="Bulk selection"
-                wrapClass="w-full"
+                wrapperClassName="w-full"
                 selection={{
                     mode: 'multiple',
                     onChange: (s) => {
@@ -854,7 +854,7 @@ export default function GridArrayPage() {
                         recordId="_key"
                         columns={displayColumns as any}
                         sortable={{ name: 'asc' } as any}
-                        wrapClass="w-full"
+                        wrapperClassName="w-full"
                         pagination={{ limit: 4, align: 'end', sticky: false }}
                     />
                 )}
@@ -885,7 +885,7 @@ export default function GridArrayPage() {
                         records={toArrayRecords()}
                         recordId="_key"
                         columns={displayColumns as any}
-                        wrapClass="w-full"
+                        wrapperClassName="w-full"
                         onLoad={(records) =>
                             records.map((r) => ({
                                 ...r,
@@ -922,7 +922,7 @@ export default function GridArrayPage() {
                         columns={displayColumns as any}
                         sortable={{ role: 'asc' } as any}
                         groupBy="role"
-                        wrapClass="w-full"
+                        wrapperClassName="w-full"
                         pagination={{ limit: 4, align: 'end', sticky: false }}
                     />
                 )}
@@ -981,3 +981,4 @@ export default function GridArrayPage() {
         </PageLayout>
     );
 }
+

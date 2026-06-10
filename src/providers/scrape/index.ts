@@ -128,8 +128,8 @@ if (typeof onConfigChange === 'function') {
     });
 }
 
-function removeNullProperties(obj: Record<string, any>): Record<string, any> {
-    const newObj: Record<string, any> = {};
+function removeNullProperties(obj: Record<string, unknown>): Record<string, unknown> {
+    const newObj: Record<string, unknown> = {};
     for (const key in obj) {
         if (obj[key] !== null) {
             newObj[key] = obj[key];
@@ -161,7 +161,7 @@ const fetchSerpApi = async (search: string, engine: string) => {
             q: search,
         });
         console.log(SERPAPI_ENDPOINT, query);
-        const params = new URLSearchParams(query);
+        const params = new URLSearchParams(query as Record<string, string>);
         return `${SERPAPI_ENDPOINT}?${params}`;
     }
 

@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import {Dropdown, DropdownItem} from "./Dropdown";
 import {useTheme} from "../../Theme";
 import {Wrapper} from "../ui/GridSystem";
@@ -13,33 +13,33 @@ interface NotificationItem {
 }
 
 interface NotificationsProps {
-    children?: NotificationItem[];
+    items?: NotificationItem[];
     badge?: BadgeProps;
-    wrapClass?: string;
+    wrapperClassName?: string;
 }
 
 function Notifications({
-                           children     = [],
+                           items        = [],
                            badge        = undefined,
-                           wrapClass    = undefined
+                           wrapperClassName    = undefined
 }: NotificationsProps) {
   const theme = useTheme("notifications");
 
   return (
-      <Wrapper className={wrapClass || theme.Notifications.wrapClass}>
+      <Wrapper className={wrapperClassName || theme.Notifications.wrapperClassName}>
           <Dropdown
-              toggleButton={{
+              trigger={{
                 icon: "bell",
               }}
               className={"flex items-center " + theme.Notifications.Dropdown.className}
-              buttonClass={"fs-20px " + theme.Notifications.Dropdown.buttonClass}
-              menuClass={theme.Notifications.Dropdown.menuClass}
+              triggerClassName={"fs-20px " + theme.Notifications.Dropdown.triggerClassName}
+              menuClassName={theme.Notifications.Dropdown.menuClassName}
               badge={badge}
               header="NOTIFICATIONS"
               footer="SEE ALL"
           >
-              {(children || []).map((notify, index) => {
-                  const iconClass = index === 0 ? "fs-20px" : "fs-20px w-20px";
+              {(items || []).map((notify, index) => {
+                  const iconClassName = index === 0 ? "fs-20px" : "fs-20px w-20px";
 
                   return (
                       <DropdownItem
@@ -47,7 +47,7 @@ function Notifications({
                           className="py-10px text-wrap"
                           url={notify.url}
                           >
-                          <div className={iconClass}>
+                          <div className={iconClassName}>
                               <Icon name={notify.icon} className="text-theme" />
                           </div>
                           <div className="flex-1 flex-wrap pl-3">

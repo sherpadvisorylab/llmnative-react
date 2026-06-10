@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 
 // ── Icons (inline SVG - class component cannot use hooks) ─────────────────────
 
@@ -174,12 +174,12 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, State> {
             .map(l => l.trim())
             .filter(Boolean);
 
-        const wrapClass = fullPage
+        const wrapperClassName = fullPage
             ? 'flex min-h-screen flex-col items-center justify-center bg-background p-8'
             : 'flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center p-8';
 
         return (
-            <div className={wrapClass}>
+            <div className={wrapperClassName}>
             <div className="flex w-full max-w-xl flex-col gap-4 rounded-xl border border-destructive/25 bg-destructive/5 p-6">
 
                 {/* ── Header ───────────────────────────────────────── */}
@@ -209,7 +209,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, State> {
                     </button>
                     {detailsOpen && (
                         <div className="border-t">
-                            <pre className="max-h-48 overflow-y-auto px-3 py-3 text-[11px] leading-relaxed text-muted-foreground font-mono whitespace-pre-wrap break-all">
+                            <pre className="max-h-48 overflow-y-auto px-3 py-3 text-[11px] leading-relaxed text-muted-foreground font-mono whitespace-before-wrap break-all">
                                 {stackLines.join('\n')}
                             </pre>
                         </div>
@@ -246,7 +246,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, State> {
                                 {componentStackLines.length > 0 && (
                                     <div className="space-y-1">
                                         <p className="text-[10px] font-semibold uppercase tracking-wide text-amber-700/70 dark:text-amber-400/70">Component tree</p>
-                                        <pre className="max-h-36 overflow-y-auto text-[11px] font-mono leading-relaxed text-foreground/80 whitespace-pre-wrap">
+                                        <pre className="max-h-36 overflow-y-auto text-[11px] font-mono leading-relaxed text-foreground/80 whitespace-before-wrap">
                                             {componentStackLines.join('\n')}
                                         </pre>
                                     </div>

@@ -113,7 +113,7 @@ export const AI_MANIFEST: DriverManifest<AIConfig> = {
 
 // ── Central registry - adding a provider = one new entry here ────────────────
 
-export const PROVIDER_MANIFESTS: Record<string, DriverManifest<any>> = {
+export const PROVIDER_MANIFESTS: Record<string, DriverManifest<any>> = { // CR-042: each manifest has a different TConfig; the registry erases it at this level
     firebase: FIREBASE_MANIFEST,
     google:   GOOGLE_MANIFEST,
     dropbox:  DROPBOX_MANIFEST,

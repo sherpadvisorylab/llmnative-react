@@ -13,12 +13,12 @@ const PROPS_CONFIG: PropDef[] = [
     { name: 'title', type: 'string', description: 'Heading shown below the spinner. Defaults to the theme value.', control: 'text' },
     { name: 'description', type: 'string', description: 'Secondary text shown below the title.', control: 'text' },
     { name: 'className', type: 'string', description: 'CSS classes on the loader inner container.', control: 'text' },
-    { name: 'wrapClass', type: 'string', description: 'CSS classes on the outer wrapper.', control: 'text' },
+    { name: 'wrapperClassName', type: 'string', description: 'CSS classes on the outer wrapper.', control: 'text' },
 ];
 
 const PLAYGROUND: PlaygroundConfig = {
     props: PROPS_CONFIG,
-    defaultProps: { show: true, icon: '', title: '', description: '', className: '', wrapClass: '' },
+    defaultProps: { show: true, icon: '', title: '', description: '', className: '', wrapperClassName: '' },
     render: (p) => (
         <Loader
             show={p.show}
@@ -26,7 +26,7 @@ const PLAYGROUND: PlaygroundConfig = {
             title={p.title || undefined}
             description={p.description || undefined}
             className={p.className || undefined}
-            wrapClass={p.wrapClass || undefined}
+            wrapperClassName={p.wrapperClassName || undefined}
         >
             <div className="p-8 text-sm text-muted-foreground text-center border rounded-lg w-56">
                 Content area

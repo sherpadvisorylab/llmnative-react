@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { useMenu, type UseMenuItem } from '../../App';
 import { useTheme } from '../../Theme';
 import { Link } from 'react-router-dom';
@@ -9,37 +9,37 @@ import Icon from '../ui/Icon';
 import type { UIProps } from '../types';
 
 interface MenuProps extends UIProps {
-  context: string;
-  Type?: 'ul' | 'ol';
+  menuKey: string;
+  as?: 'ul' | 'ol';
   badges?: Record<string, { type?: BadgeType, children: string }>;
-  headerClass?: string;
-  itemClass?: string;
-  linkClass?: string;
-  iconClass?: string;
-  textClass?: string;
-  badgeClass?: string;
-  arrowClass?: string;
-  submenuClass?: string;
+  headerClassName?: string;
+  itemClassName?: string;
+  linkClassName?: string;
+  iconClassName?: string;
+  textClassName?: string;
+  badgeClassName?: string;
+  arrowClassName?: string;
+  submenuClassName?: string;
 }
 
 const Menu = ({
-  context,
-  Type          = 'ul',
+  menuKey,
+  as            = 'ul',
   badges        = {},
-  pre           = undefined,
-  post          = undefined,
-  wrapClass     = undefined,
+  before           = undefined,
+  after          = undefined,
+  wrapperClassName     = undefined,
   className     = undefined,
-  headerClass   = undefined,
-  itemClass     = undefined,
-  linkClass     = undefined,
-  iconClass     = undefined,
-  textClass     = undefined,
-  badgeClass    = undefined,
-  arrowClass    = undefined,
-  submenuClass  = undefined,
+  headerClassName   = undefined,
+  itemClassName     = undefined,
+  linkClassName     = undefined,
+  iconClassName     = undefined,
+  textClassName     = undefined,
+  badgeClassName    = undefined,
+  arrowClassName    = undefined,
+  submenuClassName  = undefined,
 }: MenuProps) => {
-  const menu = useMenu(context);
+  const menu = useMenu(menuKey);
   const theme = useTheme('menu');
 
   const MenuItem = ({ item, index }: { item: UseMenuItem; index: number }) => {
@@ -52,14 +52,14 @@ const Menu = ({
     const hasChildren = (item.children?.length ?? 0) > 0;
     const key = (item.title ?? '').toLowerCase();
     const MenuIcon = () => (
-      <span className={iconClass ?? theme.Menu.iconClass}>
+      <span className={iconClassName ?? theme.Menu.iconClassName}>
         <Icon name={item.icon} />
       </span>
     );
 
     if (!item.path) {
       return (
-        <li key={index} className={headerClass ?? theme.Menu.headerClass}>
+        <li key={index} className={headerClassName ?? theme.Menu.headerClassName}>
           {item.icon && <MenuIcon />}
           {item.title && (/^-+$/.test(item.title) ? <hr className={"m-0"} /> : <span>{item.title}</span>)}
         </li>
@@ -67,10 +67,10 @@ const Menu = ({
     }
 
     return (
-      <li className={`${item.active ? 'active ' : ''}${itemClass ?? theme.Menu.itemClass}`}>
+      <li className={`${item.active ? 'active ' : ''}${itemClassName ?? theme.Menu.itemClassName}`}>
         <Link
           to={item.path.split("*")[0]}
-          className={linkClass ?? theme.Menu.linkClass}
+          className={linkClassName ?? theme.Menu.linkClassName}
           {...(hasChildren && {
 
           })}
@@ -82,11 +82,11 @@ const Menu = ({
           }}
         >
           {item.icon && <MenuIcon />}
-          <span className={textClass ?? theme.Menu.textClass}>
+          <span className={textClassName ?? theme.Menu.textClassName}>
             {item.title}
           </span>
           {badges[key] && (
-            <Badge type={badges[key].type} className={badgeClass ?? theme.Menu.badgeClass}>
+            <Badge variant={badges[key].type} className={badgeClassName ?? theme.Menu.badgeClassName}>
               {badges[key].children}
             </Badge>
           )}
@@ -94,26 +94,27 @@ const Menu = ({
         </Link>
         {hasChildren && (
           <div className={`collapse ${isOpen ? 'show' : ''}`}>
-            <Type className={submenuClass ?? theme.Menu.submenuClass}>
+            {(() => { const ListElement = as; return <ListElement className={submenuClassName ?? theme.Menu.submenuClassName}>
               {(item.children as UseMenuItem[]).map((child, idx: number) => (
                 <MenuItem key={idx} item={child} index={idx} />
               ))}
-            </Type>
+            </ListElement>; })()}
           </div>
         )}
       </li>
     );
   };
 
+  const ListRoot = as;
   return (
-    <Wrapper className={wrapClass ?? theme.Menu.wrapClass}>
-      {pre}
-      <Type className={className ?? theme.Menu.className}>
+    <Wrapper className={wrapperClassName ?? theme.Menu.wrapperClassName}>
+      {before}
+      <ListRoot className={className ?? theme.Menu.className}>
         {menu.map((item, index) => (
           <MenuItem key={index} item={item} index={index} />
         ))}
-      </Type>
-      {post}
+      </ListRoot>
+      {after}
     </Wrapper>
   );
 };

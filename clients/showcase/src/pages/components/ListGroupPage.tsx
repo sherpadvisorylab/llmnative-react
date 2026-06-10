@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Badge, ListGroup } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
@@ -29,10 +29,10 @@ const LIST_GROUP_PROPS: PropDef[] = [
         { label: 'single', value: [1], help: 'Second item loading.' },
         { label: 'multi', value: [1, 2], help: 'Multiple loading items.' },
     ] },
-    { name: 'pre', type: 'ReactNode', description: 'Content before the list', control: 'text' },
-    { name: 'post', type: 'ReactNode', description: 'Content after the list', control: 'text' },
+    { name: 'before', type: 'ReactNode', description: 'Content before the list', control: 'text' },
+    { name: 'after', type: 'ReactNode', description: 'Content after the list', control: 'text' },
     { name: 'className', type: 'string', description: 'CSS classes on list-group', control: 'text' },
-    { name: 'wrapClass', type: 'string', description: 'CSS classes on wrapper', control: 'text' },
+    { name: 'wrapperClassName', type: 'string', description: 'CSS classes on wrapper', control: 'text' },
     { name: 'itemClass', type: 'string', description: 'CSS classes on each item', control: 'text' },
 ];
 
@@ -47,7 +47,7 @@ const PLAYGROUND: PlaygroundConfig = {
         pre: '',
         post: '',
         className: '',
-        wrapClass: '',
+        wrapperClassName: '',
         itemClass: '',
     },
     render: (p) => (
@@ -57,10 +57,10 @@ const PLAYGROUND: PlaygroundConfig = {
             actives={Array.isArray(p.actives) ? p.actives : []}
             disables={Array.isArray(p.disables) ? p.disables : []}
             loaders={Array.isArray(p.loaders) ? p.loaders : []}
-            pre={p.pre || undefined}
-            post={p.post || undefined}
+            before={p.pre || undefined}
+            after={p.post || undefined}
             className={p.className || undefined}
-            wrapClass={p.wrapClass || undefined}
+            wrapperClassName={p.wrapperClassName || undefined}
             itemClass={p.itemClass || undefined}
         >
             {ITEMS}
@@ -78,9 +78,9 @@ export default function ListGroupPage() {
                 preview={
                     <ListGroup label="Workflow" actives={[1]}>
                         {[
-                            <span>Backlog <Badge type="secondary">12</Badge></span>,
-                            <span>In progress <Badge type="primary">4</Badge></span>,
-                            <span>Review <Badge type="warning">2</Badge></span>,
+                            <span>Backlog <Badge variant="secondary">12</Badge></span>,
+                            <span>In progress <Badge variant="primary">4</Badge></span>,
+                            <span>Review <Badge variant="warning">2</Badge></span>,
                         ]}
                     </ListGroup>
                 }
@@ -88,9 +88,9 @@ export default function ListGroupPage() {
 
 <ListGroup label="Workflow" actives={[1]}>
     {[
-        <span>Backlog <Badge type="secondary">12</Badge></span>,
-        <span>In progress <Badge type="primary">4</Badge></span>,
-        <span>Review <Badge type="warning">2</Badge></span>,
+        <span>Backlog <Badge variant="secondary">12</Badge></span>,
+        <span>In progress <Badge variant="primary">4</Badge></span>,
+        <span>Review <Badge variant="warning">2</Badge></span>,
     ]}
 </ListGroup>`}
             />

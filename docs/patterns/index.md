@@ -77,7 +77,7 @@ export default function UserEdit() {
   const { id } = useParams();
 
   return (
-    <Form dataStoragePath="/users" recordId={id} aspect="card" showBack>
+    <Form dataStoragePath="/users" recordId={id} appearance="card" showBack>
       <Input name="name" label="Name" required />
       <Input name="email" label="Email" inputType="email" />
       <Select name="role" label="Role" options={[
@@ -142,7 +142,7 @@ export default function ProductForm() {
         updatedAt: Date.now(),
         ...(isNewRecord && { createdAt: Date.now() }),
       })}
-      onFinally={async ({ action }) => {
+      onComplete={async ({ action }) => {
         if (action === 'save' || action === 'delete') navigate('/products');
         return true;
       }}
@@ -216,11 +216,11 @@ Manual reorder is activated only by `onReorder`, so there is no extra flag to ke
 const [rows, setRows] = useState<RecordArray>(initialRows);
 
 <Table
-  header={[
+  columns={[
     { key: 'name', label: 'Name', sort: true },
     { key: 'status', label: 'Status' },
   ]}
-  body={rows}
+  records={rows}
   onReorder={(reorderedRecords) => setRows(reorderedRecords)}
 />
 ```

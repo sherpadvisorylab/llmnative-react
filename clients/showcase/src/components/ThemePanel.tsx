@@ -155,7 +155,7 @@ export default function ThemePanel({ open, onClose }: ThemePanelProps) {
             header={header}
             onClose={onClose}
             buttonFullscreen={false}
-            headerClass="h-14 !py-0 px-4"
+            headerClassName="h-14 !py-0 px-4"
         >
             <div className="space-y-6">
 

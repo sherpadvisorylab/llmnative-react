@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Autocomplete, Form } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
@@ -54,8 +54,8 @@ const AUTOCOMPLETE_PROPS: PropDef[] = [
         help: 'This playground uses a MockDataProvider. Edit the records in Mock database below to change the suggestions returned by this path.',
     },
     { name: 'placeholder', type: 'string', description: 'Input placeholder text', control: 'text' },
-    { name: 'min', type: 'number', description: 'Minimum number of selected items', control: 'number', min: 0 },
-    { name: 'max', type: 'number', description: 'Maximum number of selected items', control: 'number', min: 1 },
+    { name: 'minItems', type: 'number', description: 'Minimum number of selected items', control: 'number', min: 0 },
+    { name: 'maxItems', type: 'number', description: 'Maximum number of selected items', control: 'number', min: 1 },
     { name: 'creatable', type: 'boolean', default: 'false', description: 'Allow typing free values not in options list; press Enter to confirm', control: 'boolean' },
     { name: 'onCreate', type: '(value: string) => Promise<void> | void', description: 'Called when a new free value is confirmed; use this to persist the new option', example: `onCreate={async (value) => {
   await db.set(\`/tags/\${value}\`, { label: value, value });
@@ -77,10 +77,10 @@ const AUTOCOMPLETE_PROPS: PropDef[] = [
   field: 'label' | 'value';
   dir: 'asc' | 'desc';
 }`, example: `order={{ field: 'label', dir: 'asc' }}` },
-    { name: 'pre', type: 'ReactNode', description: 'Content rendered before the autocomplete inside an input group', control: 'text' },
-    { name: 'post', type: 'ReactNode', description: 'Content rendered after the autocomplete inside an input group', control: 'text' },
+    { name: 'before', type: 'ReactNode', description: 'Content rendered before the autocomplete inside an input group', control: 'text' },
+    { name: 'after', type: 'ReactNode', description: 'Content rendered after the autocomplete inside an input group', control: 'text' },
     { name: 'className', type: 'string', description: 'CSS classes on the input element', control: 'text' },
-    { name: 'wrapClass', type: 'string', description: 'CSS classes on the outer wrapper', control: 'text' },
+    { name: 'wrapperClassName', type: 'string', description: 'CSS classes on the outer wrapper', control: 'text' },
 ];
 
 const PLAYGROUND: PlaygroundConfig = {
@@ -99,10 +99,10 @@ const PLAYGROUND: PlaygroundConfig = {
         label: 'Users',
         title: 'Search users',
         options: PEOPLE,
-        db: '/showcase/users',
+        optionsSource: '/showcase/users',
         placeholder: 'Type a name...',
-        min: 0,
-        max: 5,
+        minItems: 0,
+        maxItems: 5,
         creatable: false,
         required: false,
         disabled: false,
@@ -116,17 +116,17 @@ const PLAYGROUND: PlaygroundConfig = {
         pre: '',
         post: '',
         className: '',
-        wrapClass: '',
+        wrapperClassName: '',
     },
     render: (p, onValuesChange) => (
-        <Form aspect="empty" onChange={onValuesChange}>
+        <Form appearance="empty" onChange={onValuesChange}>
             <Autocomplete
                 name={p.name || 'users'}
                 label={p.label}
                 title={p.title || undefined}
                 placeholder={p.placeholder || undefined}
                 options={Array.isArray(p.options) ? p.options : []}
-                db={typeof p.db === 'string' && p.db ? { path: p.db } : (p.db && typeof p.db === 'object' ? p.db : undefined)}
+                optionsSource={typeof p.optionsSource === 'string' && p.optionsSource ? { path: p.db } : (p.optionsSource && typeof p.optionsSource === 'object' ? p.optionsSource : undefined)}
                 max={p.max || undefined}
                 min={p.min || undefined}
                 creatable={p.creatable}
@@ -136,10 +136,10 @@ const PLAYGROUND: PlaygroundConfig = {
                 defaultValue={p.defaultValue}
                 feedback={p.feedback || undefined}
                 order={p.order && typeof p.order === 'object' ? p.order : undefined}
-                pre={p.pre || undefined}
-                post={p.post || undefined}
+                before={p.pre || undefined}
+                after={p.post || undefined}
                 className={p.className || undefined}
-                wrapClass={p.wrapClass || undefined}
+                wrapperClassName={p.wrapperClassName || undefined}
             />
         </Form>
     ),
@@ -149,7 +149,7 @@ function CreatableDemo() {
     const [tags, setTags] = useState(['react', 'typescript']);
     return (
         <div className="w-full max-w-md space-y-3">
-            <Form aspect="empty">
+            <Form appearance="empty">
                 <Autocomplete
                     name="tags"
                     label="Technologies"
@@ -180,7 +180,7 @@ export default function AutocompletePage() {
                 description="Type to filter suggestions. Selected items appear as removable tags."
                 preview={
                     <div className="w-full max-w-md">
-                        <Form aspect="empty">
+                        <Form appearance="empty">
                             <Autocomplete
                                 name="assignees"
                                 label="Assignees"
@@ -210,7 +210,7 @@ export default function AutocompletePage() {
                 description="Pre-populate with existing values. max=3 prevents selecting more than 3 items."
                 preview={
                     <div className="w-full max-w-md">
-                        <Form aspect="empty">
+                        <Form appearance="empty">
                             <Autocomplete
                                 name="assignees"
                                 label="Assignees (max 3)"
@@ -239,7 +239,7 @@ export default function AutocompletePage() {
                 description="Works equally well for free-form tags, not just people - any options array applies."
                 preview={
                     <div className="w-full max-w-md">
-                        <Form aspect="empty">
+                        <Form appearance="empty">
                             <Autocomplete
                                 name="tags"
                                 label="Technologies"
@@ -277,7 +277,7 @@ function TagField() {
                 name="tags"
                 label="Technologies"
                 placeholder="Select or type a new tag..."
-                db={{ path: '/tags' }}
+                optionsSource={{ path: '/tags' }}
                 creatable
                 onCreate={async (value) => {
                     await db.set(\`/tags/\${value}\`, { label: value, value });
@@ -293,12 +293,12 @@ function TagField() {
                 description="Pass db instead of options to load suggestions from the active DataProvider."
                 preview={
                     <div className="w-full max-w-md">
-                        <Form aspect="empty">
+                        <Form appearance="empty">
                             <Autocomplete
                                 name="users"
                                 label="Users"
                                 placeholder="Search users..."
-                                db={{ path: '/showcase/users' }}
+                                optionsSource={{ path: '/showcase/users' }}
                                 defaultValue={['alice']}
                             />
                         </Form>
@@ -309,7 +309,7 @@ function TagField() {
         name="users"
         label="Users"
         placeholder="Search users..."
-        db={{ path: '/users' }}
+        optionsSource={{ path: '/users' }}
     />
 </Form>`}
             />

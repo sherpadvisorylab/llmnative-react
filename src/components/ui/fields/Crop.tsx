@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+﻿import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import Card from "../Card";
 import { String, Switch } from "./Input";
 import { FileProps, getFileUrl } from "./Upload";
@@ -295,7 +295,7 @@ export const CropImage = forwardRef(({img, title} : { img: ImageProps, title?: s
                                     alt: `Crop ${scale}`,
                                     ref: el => imgRefs.current[scale] = el,
                                     onLoad: (e) => handleLoad(e, scale),
-                                    post: <CropBox cropData={cropData} scale={scale} handleMouseDown={handleMouseDown} />
+                                    after: <CropBox cropData={cropData} scale={scale} handleMouseDown={handleMouseDown} />
                                 }}
                                 file={{
                                     value: cropData[scale]?.fileName ?? img.fileName,
@@ -362,7 +362,7 @@ interface ImageEditorItemProps {
         alt: string;
         ref?: React.LegacyRef<HTMLImageElement>;
         onLoad?: (e: React.SyntheticEvent<HTMLImageElement, Event>) => void;
-        post?: React.ReactNode;
+        after?: React.ReactNode;
     };
     file: {
         value: string;
@@ -386,7 +386,7 @@ const ImageEditorItem = ({
                 className="relative img-fluid"
                 draggable={false}
             />
-            {img.post}
+            {img.after}
         </div>
         <FileNameEditor {...file} />
     </>)
@@ -432,7 +432,7 @@ export const FileNameEditor = ({
             label={label}
             value={inputValue}
             onChange={handleChange}
-            post={scale}
+            after={scale}
         />
     );
 };

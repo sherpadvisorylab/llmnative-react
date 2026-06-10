@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import {useTheme} from "../../Theme";
 import {generateUniqueId} from "../../libs/utils";
 
@@ -13,11 +13,11 @@ type CarouselProps = {
     showIndicators?: boolean;
     showControls?: boolean;
     showCaption?: boolean;
-    layoutDark?: boolean;
+    dark?: boolean;
     autoPlay?: AutoPlayOptions;
-    startSlide?: number;
-    onParseCaption?: (image: React.ReactElement) => React.ReactElement;
-    onClick?: (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
+    initialSlide?: number;
+    renderCaption?: (image: React.ReactElement) => React.ReactElement;
+    onSlideClick?: (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
 };
 
 const Carousel = ({
@@ -25,29 +25,29 @@ const Carousel = ({
                     showIndicators  = false,
                     showControls    = false,
                     showCaption     = false,
-                    layoutDark      = false,
+                    dark      = false,
                     autoPlay        = undefined,
-                    startSlide      = 0,
-                    onParseCaption  = undefined,
-                    onClick         = undefined,
+                    initialSlide      = 0,
+                    renderCaption  = undefined,
+                    onSlideClick    = undefined,
 } : CarouselProps) => {
     const theme = useTheme("carousel");
     showIndicators = showIndicators || theme.Carousel.showIndicators;
     showControls = showControls || theme.Carousel.showControls;
     showCaption = showCaption || theme.Carousel.showCaption;
-    layoutDark = layoutDark || theme.Carousel.layoutDark;
+    dark = dark || theme.Carousel.dark;
     const themeAutoPlay = theme.Carousel.autoPlay;
     autoPlay = autoPlay || (typeof themeAutoPlay === 'object' ? themeAutoPlay : undefined);
 
 
     const [isHover, setIsHover] = React.useState(false);
     const id = generateUniqueId();
-    const bgOverlay = layoutDark ? "bg-white" : "bg-dark";
-    const textCaption = layoutDark ? "text-gray" : "text-white";
+    const bgOverlay = dark ? "bg-white" : "bg-dark";
+    const textCaption = dark ? "text-gray" : "text-white";
 
     const Caption = (image : React.ReactElement) : React.ReactElement | null => {
         if (!showCaption) return null;
-        if (onParseCaption) return onParseCaption(image);
+        if (renderCaption) return renderCaption(image);
 
         const { alt, description } = image.props;
         if (alt || description) {
@@ -63,7 +63,7 @@ const Carousel = ({
 
     return (
         <div id={id}
-             className={"carousel slide" + (layoutDark ? " carousel-dark" : "")}
+             className={"carousel slide" + (dark ? " carousel-dark" : "")}
              data-bs-ride={autoPlay ? "carousel" : "false"}
              data-bs-interval={autoPlay?.interval || 2000}
              data-bs-pause={autoPlay?.pause || "hover"}
@@ -74,14 +74,14 @@ const Carousel = ({
             {children.length > 1 && <ol className="carousel-indicators mb-0">
                 {showIndicators && children.map((_, index) => {
                     return (
-                        <li key={index} data-bs-target={"#" + id} data-bs-slide-to={index} className={index === startSlide ? "active" : ""}></li>
+                        <li key={index} data-bs-target={"#" + id} data-bs-slide-to={index} className={index === initialSlide ? "active" : ""}></li>
                     );
                 })}
             </ol>}
-            <div className="carousel-inner" onClick={onClick} style={{cursor: onClick ? "pointer" : "default"}}>
+            <div className="carousel-inner" onClick={onSlideClick} style={{cursor: onSlideClick ? "pointer" : "default"}}>
                 {children.map((image, index) => {
                     return (
-                        <div key={index} className={`carousel-item${index === startSlide ? " active" : ""}`}>
+                        <div key={index} className={`carousel-item${index === initialSlide ? " active" : ""}`}>
                             {image}
                             {(showIndicators || showControls || showCaption) && isHover && <div className={"pointer-events-none absolute top-0 bottom-0 left-0 right-0 opacity-25 " + bgOverlay}></div>}
                             {isHover && Caption(image)}

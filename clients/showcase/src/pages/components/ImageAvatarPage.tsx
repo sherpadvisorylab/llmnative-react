@@ -50,10 +50,10 @@ const AVATAR_PROPS: PropDef[] = [
         ],
     },
     { name: 'feedback',  type: 'ReactNode',      description: 'Content rendered below the avatar — useful for labels or captions.',         control: 'text' },
-    { name: 'pre',       type: 'ReactNode',      description: 'Content rendered to the left of the avatar.',                                control: 'text' },
-    { name: 'post',      type: 'ReactNode',      description: 'Content rendered to the right of the avatar — ideal for name and role.',    control: 'text' },
+    { name: 'before',       type: 'ReactNode',      description: 'Content rendered to the left of the avatar.',                                control: 'text' },
+    { name: 'after',      type: 'ReactNode',      description: 'Content rendered to the right of the avatar — ideal for name and role.',    control: 'text' },
     { name: 'className', type: 'string',    description: 'CSS classes applied to the img element.',                                    control: 'text' },
-    { name: 'wrapClass', type: 'string',    description: 'CSS classes applied to the outer wrapper.',                                  control: 'text' },
+    { name: 'wrapperClassName', type: 'string',    description: 'CSS classes applied to the outer wrapper.',                                  control: 'text' },
 ];
 
 // ── Playground ────────────────────────────────────────────────────────────────
@@ -72,7 +72,7 @@ const PLAYGROUND: PlaygroundConfig = {
         pre:       '',
         post:      'Ada Lovelace',
         className: 'rounded-full border-2 border-primary',
-        wrapClass: '',
+        wrapperClassName: '',
     },
     render: (p) => (
         <ImageAvatar
@@ -84,10 +84,10 @@ const PLAYGROUND: PlaygroundConfig = {
             fit={p.fit      || undefined}
             badge={p.badge || undefined}
             feedback={p.feedback || undefined}
-            pre={p.pre      || undefined}
-            post={p.post ? <span className="font-medium text-sm">{p.post}</span> : undefined}
+            before={p.pre      || undefined}
+            after={p.post ? <span className="font-medium text-sm">{p.post}</span> : undefined}
             className={p.className  || undefined}
-            wrapClass={p.wrapClass  || undefined}
+            wrapperClassName={p.wrapperClassName  || undefined}
         />
     ),
 };
@@ -219,7 +219,7 @@ export default function ImageAvatarPage() {
                                 width={44}
                                 className="rounded-full border"
                                 badge={badge}
-                                post={
+                                after={
                                     <div className="flex flex-col gap-0.5 min-w-0">
                                         <span className="font-medium text-sm truncate">{name}</span>
                                         <span className={`badge ${type} text-xs self-start`}>{role}</span>
@@ -237,7 +237,7 @@ export default function ImageAvatarPage() {
     width={44}
     className="rounded-full border"
     badge={{ content: undefined, type: 'success' }}
-    post={
+    after={
         <div className="flex flex-col gap-0.5">
             <span className="font-medium text-sm">Ada Lovelace</span>
             <span className="badge badge-primary text-xs">Engineer</span>

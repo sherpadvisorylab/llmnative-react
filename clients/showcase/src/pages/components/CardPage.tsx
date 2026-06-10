@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Card } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
@@ -13,13 +13,13 @@ const PROPS_CONFIG: PropDef[] = [
     { name: 'footer', type: 'string | ReactNode', description: 'Footer content rendered below the body', control: 'text' },
     { name: 'showLoader', type: 'boolean', default: 'false', description: 'Overlay a loading spinner over the card body', control: 'boolean' },
     { name: 'showArrow', type: 'boolean', default: 'false', description: 'Show the optional decorative card-arrow layer from the theme', control: 'boolean' },
-    { name: 'headerClass', type: 'string', description: 'Additional CSS classes for the header element', control: 'text' },
-    { name: 'bodyClass', type: 'string', description: 'Additional CSS classes for the body element', control: 'text' },
-    { name: 'footerClass', type: 'string', description: 'Additional CSS classes for the footer element', control: 'text' },
+    { name: 'headerClassName', type: 'string', description: 'Additional CSS classes for the header element', control: 'text' },
+    { name: 'bodyClassName', type: 'string', description: 'Additional CSS classes for the body element', control: 'text' },
+    { name: 'footerClassName', type: 'string', description: 'Additional CSS classes for the footer element', control: 'text' },
     { name: 'className', type: 'string', description: 'Additional CSS classes on the card root', control: 'text' },
-    { name: 'wrapClass', type: 'string', description: 'CSS classes on the outer wrapper', control: 'text' },
-    { name: 'pre', type: 'ReactNode', description: 'Content rendered before the card', control: 'text' },
-    { name: 'post', type: 'ReactNode', description: 'Content rendered after the card', control: 'text' },
+    { name: 'wrapperClassName', type: 'string', description: 'CSS classes on the outer wrapper', control: 'text' },
+    { name: 'before', type: 'ReactNode', description: 'Content rendered before the card', control: 'text' },
+    { name: 'after', type: 'ReactNode', description: 'Content rendered after the card', control: 'text' },
 ];
 
 const PLAYGROUND: PlaygroundConfig = {
@@ -32,11 +32,11 @@ const PLAYGROUND: PlaygroundConfig = {
         footer: '',
         showLoader: false,
         showArrow: false,
-        headerClass: '',
-        bodyClass: '',
-        footerClass: '',
+        headerClassName: '',
+        bodyClassName: '',
+        footerClassName: '',
         className: '',
-        wrapClass: '',
+        wrapperClassName: '',
         pre: '',
         post: '',
     },
@@ -47,13 +47,13 @@ const PLAYGROUND: PlaygroundConfig = {
             footer={p.footer || undefined}
             showLoader={p.showLoader}
             showArrow={p.showArrow}
-            headerClass={p.headerClass || undefined}
-            bodyClass={p.bodyClass || undefined}
-            footerClass={p.footerClass || undefined}
+            headerClassName={p.headerClassName || undefined}
+            bodyClassName={p.bodyClassName || undefined}
+            footerClassName={p.footerClassName || undefined}
             className={p.className || undefined}
-            wrapClass={p.wrapClass || undefined}
-            pre={p.pre || undefined}
-            post={p.post || undefined}
+            wrapperClassName={p.wrapperClassName || undefined}
+            before={p.pre || undefined}
+            after={p.post || undefined}
         >
             {p.children}
         </Card>
@@ -71,7 +71,7 @@ export default function CardPage() {
             <Section
                 title="Basic card"
                 preview={
-                    <Card wrapClass="w-full max-w-sm">
+                    <Card wrapperClassName="w-full max-w-sm">
                         Card body content goes here.
                     </Card>
                 }
@@ -84,7 +84,7 @@ export default function CardPage() {
                 title="With header and footer"
                 preview={
                     <Card
-                        wrapClass="w-full max-w-sm"
+                        wrapperClassName="w-full max-w-sm"
                         title="Card title"
                         header={<span className="text-sm text-muted-foreground">action</span>}
                         footer={<button className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">Confirm</button>}
@@ -129,7 +129,7 @@ export default function CardPage() {
                 title="Card with loader"
                 description="Pass showLoader to overlay a spinner while data is being fetched."
                 preview={
-                    <Card wrapClass="w-full max-w-sm" title="User profile" showLoader={true}>
+                    <Card wrapperClassName="w-full max-w-sm" title="User profile" showLoader={true}>
                         <div className="flex items-center justify-center min-h-[60px] text-xs text-muted-foreground">
                             Loading...
                         </div>

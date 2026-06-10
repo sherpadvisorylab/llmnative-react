@@ -49,14 +49,14 @@ type GridDocSurface = {
     groupBy: unknown;
     loading: unknown;
     sticky: unknown;
-    wrapClass: unknown;
+    wrapperClassName: unknown;
     title: unknown;
     header: unknown;
     footer: unknown;
     form: unknown;
     actions: unknown;
     selection: unknown;
-    onClickRow: unknown;
+    onRowClick: unknown;
     reorderable: unknown;
     onReorder: unknown;
     editDeepLink: unknown;
@@ -589,7 +589,7 @@ function TabbedSection({
                 </div>
             </div>
             <div className="mt-4">
-                <Tab tabPosition="default" className="min-w-0">
+                <Tab layout="default" className="min-w-0">
                 {tabs.map((tab) => (
                     <TabItem key={tab.label} label={tab.label}>
                         <TabbedSectionBody tab={tab} />
@@ -640,7 +640,7 @@ function TabbedSectionBody({ tab }: { tab: ExampleTab }) {
 function MinimalGridPreview() {
     return (
         <WithMock>
-            <Grid path={GRID_SOURCE_PATH} wrapClass="w-full" pagination={{ limit: 4, align: 'end', sticky: false }} />
+            <Grid path={GRID_SOURCE_PATH} wrapperClassName="w-full" pagination={{ limit: 4, align: 'end', sticky: false }} />
         </WithMock>
     );
 }
@@ -648,7 +648,7 @@ function MinimalGridPreview() {
 function FromUrlGridPreview() {
     return (
         <WithMock>
-            <Grid fromUrl wrapClass="w-full" pagination={{ limit: 4, align: 'end', sticky: false }} />
+            <Grid fromUrl wrapperClassName="w-full" pagination={{ limit: 4, align: 'end', sticky: false }} />
         </WithMock>
     );
 }
@@ -662,7 +662,7 @@ function SingleSelectionPreview() {
                 records={toArrayRecords()}
                 recordId="_key"
                 title="Choose one option"
-                wrapClass="w-full"
+                wrapperClassName="w-full"
                 selection={{ mode: 'single', onChange: (s) => setClickedKey(s.keys[0] || '') }}
                 pagination={{ limit: 4, align: 'end', sticky: false }}
             />
@@ -683,7 +683,7 @@ function MultipleSelectionPreview() {
                 records={toArrayRecords()}
                 recordId="_key"
                 title="Bulk selection"
-                wrapClass="w-full"
+                wrapperClassName="w-full"
                 selection={{
                     mode: 'multiple',
                     onChange: (s) => {
@@ -718,7 +718,7 @@ function CrudPresetPreview({ provider }: { provider: MockDataProvider }) {
                 order={{ name: 'asc' }}
                 columns={explicitCompactColumns}
                 title="Preset CRUD"
-                wrapClass="w-full"
+                wrapperClassName="w-full"
                 form={<GridUserForm />}
                 actions={['add', 'edit', 'delete']}
                 pagination={{ limit: 4, align: 'end', sticky: false }}
@@ -735,7 +735,7 @@ function RouteActionPreview({ provider }: { provider: MockDataProvider }) {
                 order={{ name: 'asc' }}
                 columns={explicitCompactColumns}
                 title="Route action"
-                wrapClass="w-full"
+                wrapperClassName="w-full"
                 actions={{
                     add: {
                         kind: 'route',
@@ -778,7 +778,7 @@ function ActionsPreview({ provider }: { provider: MockDataProvider }) {
                     order={{ name: 'asc' }}
                     columns={actionColumns}
                     title="Team directory"
-                    wrapClass="w-full"
+                    wrapperClassName="w-full"
                     form={<GridUserForm />}
                     actions={{
                         add: {
@@ -990,9 +990,9 @@ const GRID_PROP_DOCS = definePropDocs<GridDocSurface>()([
     { name: 'groupBy', type: 'string | string[]', description: 'Gallery grouping separators or field names.', category: 'Display' },
     { name: 'loading', type: 'boolean', default: 'false', description: 'Show a loading spinner on the grid card. Useful while async data is being prepared before passing it to records.', category: 'Display' },
     { name: 'sticky', type: '"top" | "bottom"', description: 'Stick the card to the top or bottom of the scroll container. Applies a CSS sticky class to the card wrapper.', category: 'Display' },
-    { name: 'wrapClass', type: 'string', description: 'Extra CSS class forwarded to the outer card wrapper. Use this to set width constraints (e.g. w-full) or margins.', category: 'Display' },
-    { name: 'pre', type: 'ReactNode', description: 'Optional content rendered above the table or gallery body, inside the grid card.', category: 'Layout' },
-    { name: 'post', type: 'ReactNode', description: 'Optional content rendered below the table or gallery body, inside the grid card.', category: 'Layout' },
+    { name: 'wrapperClassName', type: 'string', description: 'Extra CSS class forwarded to the outer card wrapper. Use this to set width constraints (e.g. w-full) or margins.', category: 'Display' },
+    { name: 'before', type: 'ReactNode', description: 'Optional content rendered above the table or gallery body, inside the grid card.', category: 'Layout' },
+    { name: 'after', type: 'ReactNode', description: 'Optional content rendered below the table or gallery body, inside the grid card.', category: 'Layout' },
     { name: 'title', type: 'ReactNode', description: 'Title used by the default card header.', category: 'Layout' },
     {
         name: 'header',
@@ -1128,7 +1128,7 @@ type GridSelectionState<TRecord> = {
         description: 'Enables row selection. Use the string shorthand when Grid only needs to show selection UI. Add the object form to receive change callbacks via onChange or pre-select rows via defaultKeys. Grid always manages selection state internally.',
         category: 'Behavior',
     },
-    { name: 'onClickRow', type: '(record) => void', description: 'Called with the original record after row or card click.', category: 'Behavior' },
+    { name: 'onRowClick', type: '(record) => void', description: 'Called with the original record after row or card click.', category: 'Behavior' },
     { name: 'reorderable', type: 'boolean', default: 'false', description: 'Turns on row drag in table mode when used together with onReorder.', category: 'Behavior' },
     { name: 'onReorder', type: 'GridReorderHandler<TRecord>', description: 'Receives the reordered source records and drag metadata.', shape: `type GridReorderHandler<TRecord> = (
   records: TRecord[],
@@ -1231,7 +1231,7 @@ function GridPlaygroundPreview({ p }: { p: Record<string, any> }) {
         : undefined;
     const loading = p.loading as boolean | undefined;
     const sticky = (p.sticky as string) || undefined;
-    const wrapClass = typeof p.wrapClass === 'string' ? p.wrapClass : '';
+    const wrapperClassName = typeof p.wrapperClassName === 'string' ? p.wrapperClassName : '';
     const actions = React.useMemo(() => buildPlaygroundActions(p.actions), [p.actions]);
     const hasPreviewAction = React.useMemo(() => hasPlaygroundAction(p.actions, 'preview'), [p.actions]);
     const resolvedHeaderNode = React.useMemo(() => resolvePlaygroundNode<any>(p.header), [p.header]);
@@ -1304,7 +1304,7 @@ function GridPlaygroundPreview({ p }: { p: Record<string, any> }) {
         setSelectedRecords([]);
     }, [selectionMode]);
 
-    const hasOutput = selectionMode !== false || p.onClickRow || reorderable;
+    const hasOutput = selectionMode !== false || p.onRowClick || reorderable;
 
     return (
         <div className="space-y-4">
@@ -1324,13 +1324,13 @@ function GridPlaygroundPreview({ p }: { p: Record<string, any> }) {
                     layout={previewLayout}
                     loading={loading}
                     sticky={sticky as any}
-                    wrapClass={wrapClass}
-                    pre={resolvedPreNode}
-                    post={resolvedPostNode}
+                    wrapperClassName={wrapperClassName}
+                    before={resolvedPreNode}
+                    after={resolvedPostNode}
                     form={actions ? <GridUserForm /> : undefined}
                     actions={actions as any}
                     selection={resolvedSelection}
-                    onClickRow={p.onClickRow ? (record) => setClickedRecord(record as UserRecord) : undefined}
+                    onRowClick={p.onRowClick ? (record) => setClickedRecord(record as UserRecord) : undefined}
                     sortable={effectiveSortable}
                     groupBy={groupBy}
                     pagination={pagination}
@@ -1373,14 +1373,14 @@ function GridPlaygroundPreview({ p }: { p: Record<string, any> }) {
                     layout={previewLayout}
                     loading={loading}
                     sticky={sticky as any}
-                    wrapClass={wrapClass}
-                    pre={resolvedPreNode}
-                    post={resolvedPostNode}
+                    wrapperClassName={wrapperClassName}
+                    before={resolvedPreNode}
+                    after={resolvedPostNode}
                     onLoad={onLoadRecords as any}
                     form={actions ? <GridUserForm /> : undefined}
                     actions={actions as any}
                     selection={resolvedSelection}
-                    onClickRow={p.onClickRow ? (record) => setClickedRecord(record as UserRecord) : undefined}
+                    onRowClick={p.onRowClick ? (record) => setClickedRecord(record as UserRecord) : undefined}
                     sortable={effectiveSortable}
                     groupBy={groupBy}
                     pagination={pagination}
@@ -1403,9 +1403,9 @@ function GridPlaygroundPreview({ p }: { p: Record<string, any> }) {
                                 </pre>
                             </div>
                         )}
-                        {p.onClickRow && (
+                        {p.onRowClick && (
                             <div className="rounded-md border bg-muted/40 p-3">
-                                <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">onClickRow payload</div>
+                                <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">onRowClick payload</div>
                                 <pre className="overflow-auto whitespace-pre-wrap break-all text-xs text-foreground">
                                     {JSON.stringify(clickedRecord ?? null, null, 2)}
                                 </pre>
@@ -1585,9 +1585,9 @@ const PLAYGROUND: PlaygroundConfig = {
         },
         { name: 'loading', type: 'boolean', default: 'false', description: 'Show a loading spinner on the grid card.', control: 'boolean' },
         { name: 'sticky', type: '"top" | "bottom"', default: '""', description: 'Stick the card at the top or bottom of the scroll container.', control: 'select', options: ['', 'top', 'bottom'] },
-        { name: 'wrapClass', type: 'string', default: '""', description: 'Extra CSS class forwarded to the outer card wrapper.', control: 'text' },
+        { name: 'wrapperClassName', type: 'string', default: '""', description: 'Extra CSS class forwarded to the outer card wrapper.', control: 'text' },
         {
-            name: 'pre',
+            name: 'before',
             type: 'ReactNode',
             default: '""',
             description: 'Optional content rendered above the table or gallery body.',
@@ -1595,7 +1595,7 @@ const PLAYGROUND: PlaygroundConfig = {
             rows: 2,
         },
         {
-            name: 'post',
+            name: 'after',
             type: 'ReactNode',
             default: '""',
             description: 'Optional content rendered below the table or gallery body.',
@@ -1675,7 +1675,7 @@ const PLAYGROUND: PlaygroundConfig = {
                 { label: 'multi+keys', value: { mode: 'multiple', defaultKeys: ['u1', 'u5'] }, help: 'Multiple with u1 and u5 pre-selected on mount.' },
             ],
         },
-        { name: 'onClickRow', type: '(record) => void', default: 'false', description: 'Called with the full record on row or card click. Enable to see the payload below.', control: 'boolean' },
+        { name: 'onRowClick', type: '(record) => void', default: 'false', description: 'Called with the full record on row or card click. Enable to see the payload below.', control: 'boolean' },
         { name: 'onReorder', type: 'GridReorderHandler<TRecord>', description: 'Receives the reordered record array and drag metadata. Handled internally by the playground when reorderable is true.', readOnly: true, hidden: (props) => !resolvePlaygroundBoolean(props.reorderable) },
         { name: 'editDeepLink', type: 'boolean', default: 'false', description: 'Sync edit modal to URL hash. Opening a row edit appends #edit/{key} so the modal survives reload and is bookmarkable.', control: 'boolean', hidden: (props) => !hasPlaygroundAction(props.actions, 'edit') || props.layout === 'gallery' || props.source === 'array' },
         // ── Data lifecycle ────────────────────────────────────────────────────
@@ -1700,13 +1700,13 @@ const PLAYGROUND: PlaygroundConfig = {
         pagination: { limit: 4, align: 'end' },
         loading: false,
         sticky: '',
-        wrapClass: '',
+        wrapperClassName: '',
         pre: '',
         post: '',
         title: 'Team members',
         header: false,
         footer: false,
-        onClickRow: false,
+        onRowClick: false,
         reorderable: false,
         editDeepLink: false,
         audit: false,
@@ -1768,7 +1768,7 @@ export default function GridPage() {
                             <GridArray
                                 records={toArrayRecords()}
                                 recordId="_key"
-                                wrapClass="w-full"
+                                wrapperClassName="w-full"
                                 pagination={{ limit: 4, align: 'end', sticky: false }}
                             />
                         ),
@@ -1835,7 +1835,7 @@ export default function GridPage() {
                                 records={toArrayRecords()}
                                 recordId="_key"
                                 columns={explicitCompactColumns}
-                                wrapClass="w-full"
+                                wrapperClassName="w-full"
                                 pagination={{ limit: 4, align: 'end', sticky: false }}
                             />
                         ),
@@ -1859,7 +1859,7 @@ export default function GridPage() {
                                 records={toArrayRecords()}
                                 recordId="_key"
                                 columns={compactColumns}
-                                wrapClass="w-full"
+                                wrapperClassName="w-full"
                                 pagination={{ limit: 4, align: 'end', sticky: false }}
                             />
                         ),
@@ -1895,7 +1895,7 @@ export default function GridPage() {
                                 records={toArrayRecords()}
                                 recordId="_key"
                                 columns={nonSortableCompactColumns}
-                                wrapClass="w-full"
+                                wrapperClassName="w-full"
                                 sortable={false}
                                 pagination={{ limit: 4, align: 'end', sticky: false }}
                             />
@@ -1921,7 +1921,7 @@ export default function GridPage() {
                                 records={toArrayRecords()}
                                 recordId="_key"
                                 columns={partiallySortableCompactColumns}
-                                wrapClass="w-full"
+                                wrapperClassName="w-full"
                                 pagination={{ limit: 4, align: 'end', sticky: false }}
                             />
                         ),
@@ -1945,7 +1945,7 @@ export default function GridPage() {
                                 records={toArrayRecords()}
                                 recordId="_key"
                                 columns={explicitCompactColumns}
-                                wrapClass="w-full"
+                                wrapperClassName="w-full"
                                 pagination={{ limit: 4, align: 'end', sticky: false }}
                             />
                         ),
@@ -2185,7 +2185,7 @@ const [selectedRecords, setSelectedRecords] = useState<RecordArray>([]);
                         records={arrayRecords}
                         recordId="_key"
                         title="Manual ordering"
-                        wrapClass="w-full"
+                        wrapperClassName="w-full"
                         sortable={false}
                         reorderable
                         onReorder={(records) => setArrayRecords(records)}
@@ -2222,7 +2222,7 @@ const [selectedRecords, setSelectedRecords] = useState<RecordArray>([]);
                                 records={layoutRecords}
                                 recordId="_key"
                                 columns={layoutColumns}
-                                wrapClass="w-full"
+                                wrapperClassName="w-full"
                                 pagination={{ limit: 4, align: 'end', sticky: false }}
                             />
                         ),
@@ -2246,7 +2246,7 @@ const [selectedRecords, setSelectedRecords] = useState<RecordArray>([]);
                             <GridArray
                                 records={layoutRecords}
                                 recordId="_key"
-                                wrapClass="w-full"
+                                wrapperClassName="w-full"
                                 layout="gallery"
                                 pagination={{ limit: 4, align: 'end', sticky: false }}
                             />
@@ -2265,3 +2265,5 @@ const [selectedRecords, setSelectedRecords] = useState<RecordArray>([]);
         </PageLayout>
     );
 }
+
+

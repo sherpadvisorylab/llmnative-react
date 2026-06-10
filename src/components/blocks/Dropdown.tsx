@@ -1,8 +1,8 @@
-import React from 'react';
+﻿import React from 'react';
 import {Link} from "react-router-dom";
 import {useTheme} from "../../Theme";
 import {Wrapper} from "../ui/GridSystem";
-import { BadgeOverlay, BadgeProps } from "../ui/Badge";
+import { BadgeOverlay, BadgeProps, BadgeType } from "../ui/Badge";
 import Menu from './Menu';
 import { cn } from '../../libs/cn';
 import { useMotionState, usePressMotion } from '../../motion';
@@ -15,21 +15,21 @@ interface DropdownTogglerProps {
 }
 interface DropdownProps extends MotionUIProps {
     children: React.ReactNode;
-    toggleButton?: string | React.ReactNode | DropdownTogglerProps;
+    trigger?: string | React.ReactNode | DropdownTogglerProps;
     badge?: BadgeProps;
     header?: React.ReactNode;
     footer?: React.ReactNode;
     defaultOpen?: boolean;
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
-    alwaysOpen?: boolean;
+    staticOpen?: boolean;
     position?: "start" | "end";
     placement?: "auto" | "top" | "bottom";
-    buttonClass?: string;
-    badgeClass?: string;
-    menuClass?: string;
-    headerClass?: string;
-    footerClass?: string;
+    triggerClassName?: string;
+    badgeClassName?: string;
+    menuClassName?: string;
+    headerClassName?: string;
+    footerClassName?: string;
 }
 
 interface DropdownButtonProps extends Pick<MotionUIProps, 'motion'> {
@@ -37,7 +37,7 @@ interface DropdownButtonProps extends Pick<MotionUIProps, 'motion'> {
     badge?: BadgeProps;
     display?: "static" | "dynamic";
     className?: string;
-    badgeClass?: string;
+    badgeClassName?: string;
     onToggle?: () => void;
     open?: boolean;
     menuId?: string;
@@ -60,25 +60,25 @@ interface DropdownDividerProps {
 
 export const Dropdown = ({
                              children,
-                             toggleButton,
+                             trigger,
                              badge              = undefined,
                              header             = undefined,
                              footer             = undefined,
                              defaultOpen        = false,
                              open: controlledOpen = undefined,
                              onOpenChange       = undefined,
-                             alwaysOpen         = false,
+                             staticOpen         = false,
                              position           = undefined,
                              placement          = "bottom",
-                             wrapClass          = undefined,
+                             wrapperClassName          = undefined,
                              className          = undefined,
-                             pre                = undefined,
-                             post               = undefined,
-                             buttonClass        = undefined,
-                             menuClass          = undefined,
-                             badgeClass         = undefined,
-                             headerClass        = undefined,
-                             footerClass        = undefined,
+                             before                = undefined,
+                             after               = undefined,
+                             triggerClassName   = undefined,
+                             menuClassName          = undefined,
+                             badgeClassName         = undefined,
+                             headerClassName        = undefined,
+                             footerClassName        = undefined,
                              motion: motionConfig = undefined,
 
 }: DropdownProps) => {
@@ -87,19 +87,19 @@ export const Dropdown = ({
     const rootRef = React.useRef<HTMLDivElement>(null);
     const menuRef = React.useRef<HTMLDivElement>(null);
     const menuId = React.useId();
-    const open = alwaysOpen ? true : controlledOpen ?? uncontrolledOpen;
+    const open = staticOpen ? true : controlledOpen ?? uncontrolledOpen;
     const [resolvedPlacement, setResolvedPlacement] = React.useState<'top' | 'bottom'>('bottom');
-    const renderToggle = !alwaysOpen && toggleButton !== undefined;
+    const renderToggle = !staticOpen && trigger !== undefined;
     const menuMotionStyle = useMotionState(open, motionConfig ?? theme.Dropdown.motion?.open ?? 'fadeDown', theme.Dropdown.motion?.open ?? 'fadeDown');
 
     const updateOpen = React.useCallback((nextOpen: boolean) => {
-        if (alwaysOpen) return;
+        if (staticOpen) return;
         if (controlledOpen === undefined) setUncontrolledOpen(nextOpen);
         onOpenChange?.(nextOpen);
-    }, [alwaysOpen, controlledOpen, onOpenChange]);
+    }, [staticOpen, controlledOpen, onOpenChange]);
 
     React.useEffect(() => {
-        if (!open || alwaysOpen) return;
+        if (!open || staticOpen) return;
 
         const handlePointerDown = (event: PointerEvent) => {
             if (!rootRef.current?.contains(event.target as Node)) {
@@ -118,7 +118,7 @@ export const Dropdown = ({
             window.document.removeEventListener('pointerdown', handlePointerDown);
             window.document.removeEventListener('keydown', handleKeyDown);
         };
-    }, [alwaysOpen, open, updateOpen]);
+    }, [staticOpen, open, updateOpen]);
     React.useEffect(() => {
         if (!open || placement !== 'auto' || !rootRef.current) return;
         const trigger = rootRef.current.getBoundingClientRect();
@@ -136,23 +136,23 @@ export const Dropdown = ({
         );
     }
 
-    const Button = renderToggle ? <DropdownButton className={buttonClass} badge={badge} badgeClass={badgeClass} motion={motionConfig} onToggle={() => updateOpen(!open)} open={open} menuId={menuId}>
-        {isDropdownToggler(toggleButton)
+    const Button = renderToggle ? <DropdownButton className={triggerClassName} badge={badge} badgeClassName={badgeClassName} motion={motionConfig} onToggle={() => updateOpen(!open)} open={open} menuId={menuId}>
+        {isDropdownToggler(trigger)
             ? <>
-                {toggleButton.icon && <Icon name={toggleButton.icon} className={toggleButton.text ? "mr-2" : undefined} />}
-                {toggleButton.text}
+                {trigger.icon && <Icon name={trigger.icon} className={trigger.text ? "mr-2" : undefined} />}
+                {trigger.text}
             </>
-            : toggleButton
+            : trigger
         }
     </DropdownButton> : null;
 
 
-    const resolvedWrapClass = wrapClass ?? theme.Dropdown.wrapClass ?? ((pre || post) ? 'flex items-center gap-2' : undefined);
+    const resolvedWrapClass = wrapperClassName ?? theme.Dropdown.wrapperClassName ?? ((before || after) ? 'flex items-center gap-2' : undefined);
 
     return (
         <Wrapper className={resolvedWrapClass}>
-            {pre}
-            <div ref={rootRef} className={cn(alwaysOpen ? "inline-block text-left" : "relative inline-block text-left", className || theme.Dropdown.className)}>
+            {before}
+            <div ref={rootRef} className={cn(staticOpen ? "inline-block text-left" : "relative inline-block text-left", className || theme.Dropdown.className)}>
                 {Button}
                 <div
                      ref={menuRef}
@@ -161,16 +161,16 @@ export const Dropdown = ({
                      aria-hidden={!open}
                      className={cn(
                          "min-w-56 overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md outline-none",
-                         alwaysOpen ? "relative" : "absolute z-50",
-                         !alwaysOpen && position === "end" && "right-0",
-                         !alwaysOpen && position === "start" && "left-0",
-                         !alwaysOpen && placement === 'auto' && resolvedPlacement === 'bottom' && "top-full mt-1",
-                         !alwaysOpen && placement === 'auto' && resolvedPlacement === 'top' && "bottom-full mb-1",
-                         !alwaysOpen && placement === 'top' && "bottom-full top-auto mb-1",
-                         !alwaysOpen && placement === 'bottom' && "mt-2",
-                         placement !== 'auto' && (menuClass || theme.Dropdown.menuClass)
+                         staticOpen ? "relative" : "absolute z-50",
+                         !staticOpen && position === "end" && "right-0",
+                         !staticOpen && position === "start" && "left-0",
+                         !staticOpen && placement === 'auto' && resolvedPlacement === 'bottom' && "top-full mt-1",
+                         !staticOpen && placement === 'auto' && resolvedPlacement === 'top' && "bottom-full mb-1",
+                         !staticOpen && placement === 'top' && "bottom-full top-auto mb-1",
+                         !staticOpen && placement === 'bottom' && "mt-2",
+                         placement !== 'auto' && (menuClassName || theme.Dropdown.menuClassName)
                      )}
-                     style={alwaysOpen
+                     style={staticOpen
                          ? undefined
                          : {
                              ...menuMotionStyle,
@@ -182,18 +182,18 @@ export const Dropdown = ({
                          e.stopPropagation();
                      }}
                 >
-                    {header && <div className={cn("px-2 py-1.5 text-sm font-semibold", headerClass || theme.Dropdown.headerClass)}>
+                    {header && <div className={cn("px-2 py-1.5 text-sm font-semibold", headerClassName || theme.Dropdown.headerClassName)}>
                         {header}
                         <DropdownDivider />
                     </div>}
                     {children}
-                    {footer && <div className={(footerClass || theme.Dropdown.footerClass)}>
+                    {footer && <div className={(footerClassName || theme.Dropdown.footerClassName)}>
                         <DropdownDivider />
                         {footer}
                     </div>}
                 </div>
             </div>
-            {post}
+            {after}
         </Wrapper>
     );
 };
@@ -204,7 +204,7 @@ export const DropdownButton = ({
                                    badge        = undefined,
                                    display      = "dynamic",
                                    className    = undefined,
-                                   badgeClass   = undefined,
+                                   badgeClassName   = undefined,
                                    motion: motionConfig = undefined,
                                    onToggle     = undefined,
                                    open         = false,
@@ -216,7 +216,7 @@ export const DropdownButton = ({
     const button = (
         <button
             type="button"
-            className={cn("inline-flex items-center justify-center gap-2", className || theme.Dropdown.buttonClass)}
+            className={cn("inline-flex items-center justify-center gap-2", className || theme.Dropdown.triggerClassName)}
             style={motion.style}
             aria-haspopup="menu"
             aria-expanded={open}
@@ -236,7 +236,7 @@ export const DropdownButton = ({
     );
 
     return (
-        <BadgeOverlay badge={badge} className={badgeClass || theme.Dropdown.badgeClass}>
+        <BadgeOverlay badge={badge} className={badgeClassName || theme.Dropdown.badgeClassName}>
             {button}
         </BadgeOverlay>
     );
@@ -299,37 +299,37 @@ export const DropdownDivider = ({className}: DropdownDividerProps) => {
 }
 
 interface DropdownMenuProps {
-    context: string;
-    Type?: 'ul' | 'ol';
-    badges?: Record<string, any>;
-    pre?: React.ReactNode;
-    post?: React.ReactNode;
+    menuKey: string;
+    as?: 'ul' | 'ol';
+    badges?: Record<string, { type?: BadgeType; children: string }>;
+    before?: React.ReactNode;
+    after?: React.ReactNode;
 }
 
-export const DropdownMenu = ({  
-    context,
-    Type          = 'ul',
+export const DropdownMenu = ({
+    menuKey,
+    as            = 'ul',
     badges        = {},
-    pre           = undefined,
-    post          = undefined
+    before           = undefined,
+    after          = undefined
 }: DropdownMenuProps) => {
     const theme = useTheme("dropdown");
 
-    return <Menu 
-        context={context} 
-        Type={Type} 
-        badges={badges} 
-        pre={pre} 
-        post={post} 
-        wrapClass={theme.Dropdown.Menu.wrapClass}
+    return <Menu
+        menuKey={menuKey}
+        as={as}
+        badges={badges}
+        before={before}
+        after={after}
+        wrapperClassName={theme.Dropdown.Menu.wrapperClassName}
         className={theme.Dropdown.Menu.className}
-        headerClass={theme.Dropdown.Menu.headerClass}
-        itemClass={theme.Dropdown.Menu.itemClass}
-        linkClass={theme.Dropdown.Menu.linkClass}
-        iconClass={theme.Dropdown.Menu.iconClass}
-        textClass={theme.Dropdown.Menu.textClass}
-        badgeClass={theme.Dropdown.Menu.badgeClass}
-        arrowClass={theme.Dropdown.Menu.arrowClass}
-        submenuClass={theme.Dropdown.Menu.submenuClass}
+        headerClassName={theme.Dropdown.Menu.headerClassName}
+        itemClassName={theme.Dropdown.Menu.itemClassName}
+        linkClassName={theme.Dropdown.Menu.linkClassName}
+        iconClassName={theme.Dropdown.Menu.iconClassName}
+        textClassName={theme.Dropdown.Menu.textClassName}
+        badgeClassName={theme.Dropdown.Menu.badgeClassName}
+        arrowClassName={theme.Dropdown.Menu.arrowClassName}
+        submenuClassName={theme.Dropdown.Menu.submenuClassName}
     />
 }

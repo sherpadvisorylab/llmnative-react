@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+﻿import React, { useRef, useState } from "react";
 import Modal from "../Modal";
 import { ActionButton } from "../Buttons";
 import Badge from "../Badge";
@@ -22,16 +22,16 @@ export interface FileProps {
     progress: number;
     url: string;
     base64?: string;
-    variants: Record<string, any>;
-} 
+    variants: Record<string, any>; /* CR-042: heterogeneous crop/scale variant objects */
+}
 
 const useFileUpload = <T extends FileProps>(
     name: string,
     //value?: Array<T>,
     onChange?: FieldOnChange,
-    wrapClass?: string
+    wrapperClassName?: string
 ) => {
-    const { value, handleChange, formWrapClass } = useFormContext({name, onChange, wrapClass});
+    const { value, handleChange, formWrapClass } = useFormContext({name, onChange, wrapperClassName});
     const [files, setFiles] = useState<T[]>(Array.isArray(value) ? value as unknown as T[] : []);
     const [currentFile, setCurrentFile] = useState<T | null>(null);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -155,14 +155,14 @@ interface FileInputProps {
     multiple?: boolean;
     height?: number;
     width?: number;
-    iconClass?: string;
+    iconClassName?: string;
 }
 
 interface FileEditorProps {
     title: string;
     file: FileProps;
     type: 'img' | 'document';
-    onSave?: (result: { fileName: string; variants: Record<string, any> }) => void;
+    onSave?: (result: { fileName: string; variants: Record<string, any> /* CR-042 */ }) => void;
     onClose?: () => void;
 }   
 
@@ -178,7 +178,7 @@ const FileInput = ({
     multiple            = false,
     height              = undefined,
     width               = undefined,
-    iconClass           = undefined
+    iconClassName           = undefined
 }: FileInputProps) => {
     return (
         <>
@@ -186,7 +186,7 @@ const FileInput = ({
                 icon={icon}
                 label={label}
                 onClick={onUpload}
-                iconClass={iconClass}
+                iconClassName={iconClassName}
                 style={{height: height, width: width}}
             />
 
@@ -216,7 +216,7 @@ const FileEditor = ({
     const cropRef = useRef<{
         handleSave: () => {
             fileName: string;
-            variants: Record<string, any>;
+            variants: Record<string, any>; /* CR-042 */
         };
     }>(null);
 
@@ -278,17 +278,17 @@ export const UploadDocument = ({
     multiple    = false,
     max         = 100,
     accept      = ".pdf,.doc,.docx,.txt,.iso",
-    pre         = undefined,
-    post        = undefined,
-    wrapClass   = undefined,
+    before         = undefined,
+    after        = undefined,
+    wrapperClassName   = undefined,
     className   = undefined,
 }: UploadDocumentProps) => {
-    const { files, currentFile, fileInputRef, formWrapClass, handleUploadChange, handleUpload, handleRemove, handleSave, handleEdit, handleClose } = useFileUpload<FileProps>(name, onChange, wrapClass);
+    const { files, currentFile, fileInputRef, formWrapClass, handleUploadChange, handleUpload, handleRemove, handleSave, handleEdit, handleClose } = useFileUpload<FileProps>(name, onChange, wrapperClassName);
     const error = useFieldValidation(name, { required, label });
 
     return (
         <Wrapper className={formWrapClass}>
-            {pre}
+            {before}
             <div className={className}>
                 <div className={`flex items-center ${label ? 'justify-between' : 'justify-end'}`} >
                     {label && <Label label={label} required={required} />}
@@ -305,19 +305,19 @@ export const UploadDocument = ({
                     />}
                 </div>
                 {files.length > 0 && <Table
-                    onClick={(record) => editable && handleEdit(record as unknown as FileProps)}
-                    header={[
+                    onRowClick={(record) => editable && handleEdit(record as unknown as FileProps)}
+                    columns={[
                         { label: 'Name', key: 'name' },
                         { label: 'Kilobyte', key: 'kilobyte' },
                         { label: 'Actions', key: 'actions' }
                     ]}
-                    body={files.map((file) => ({
+                    records={files.map((file) => ({
                         ...file,
                         name: file.progress === 100 ? <a href={getFileUrl(file)} target="_blank" rel="noopener noreferrer">{file.fileName}</a> : file.fileName,
                         kilobyte: (
                             file.progress === 100
                             ? (file.size / 1024).toFixed(2) + ' KB'
-                            : <Percentage max={100} min={0} val={file.progress} shape="bar" />
+                            : <Percentage max={100} min={0} value={file.progress} appearance="bar" />
                         ),
                         actions: (
                             <>
@@ -337,7 +337,7 @@ export const UploadDocument = ({
                     onClose={handleClose}
                 />
             )}
-            {post}
+            {after}
         </Wrapper>
     );
 };
@@ -354,12 +354,12 @@ export const UploadImage = ({
     max             = 100,
     previewHeight   = 100,
     previewWidth    = 100,
-    pre             = undefined,
-    post            = undefined,
-    wrapClass       = undefined,
+    before             = undefined,
+    after            = undefined,
+    wrapperClassName       = undefined,
     className       = undefined,
 }: UploadImageProps) => {
-    const { files, currentFile, fileInputRef, formWrapClass, handleUploadChange, handleUpload, handleRemove, handleSave, handleEdit, handleClose } = useFileUpload<FileProps>(name, onChange, wrapClass);
+    const { files, currentFile, fileInputRef, formWrapClass, handleUploadChange, handleUpload, handleRemove, handleSave, handleEdit, handleClose } = useFileUpload<FileProps>(name, onChange, wrapperClassName);
     const error = useFieldValidation(name, { required, label });
 
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
@@ -377,7 +377,7 @@ export const UploadImage = ({
     
     return (
         <Wrapper className={formWrapClass}>
-            {pre}
+            {before}
             <Wrapper className={className}>
                 {label && <Label label={label} required={required} />}
                 <div className="flex gap-2 flex-wrap">
@@ -408,7 +408,7 @@ export const UploadImage = ({
                                     </div>
                                 </>
                             ) : (
-                                <Percentage max={100} min={0} val={img.progress} shape="circle" />
+                                <Percentage max={100} min={0} value={img.progress} appearance="circle" />
                             )}
                         </div>
                     ))}
@@ -424,7 +424,7 @@ export const UploadImage = ({
                         multiple={multiple}
                         height={previewHeight}
                         width={previewWidth}
-                        iconClass="fs-1"
+                        iconClassName="fs-1"
                     />}
                 </div>
                 {error && <FieldError message={error} />}
@@ -439,7 +439,7 @@ export const UploadImage = ({
                     onClose={handleClose}
                 />
             )}
-            {post}
+            {after}
         </Wrapper>
     );
 };
