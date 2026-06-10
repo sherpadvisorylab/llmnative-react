@@ -17,8 +17,6 @@ import { FormFieldProps, useFormContext } from './Form';
 export enum PromptMode {
     EDIT = "edit",
     RUN = "run",
-    EDITOR = "edit",
-    LIVE = "run"
 }
 
 type PromptOptions = AIRequestOptions & {
@@ -56,11 +54,11 @@ type PromptSharedProps = FormFieldProps & {
 };
 
 type PromptEditProps = PromptSharedProps & {
-    mode?: PromptMode.EDIT | PromptMode.EDITOR;
+    mode?: PromptMode.EDIT;
 };
 
 type PromptRunProps = PromptSharedProps & {
-    mode: PromptMode.RUN | PromptMode.LIVE;
+    mode: PromptMode.RUN;
     onRunPrompt?: OnRunPrompt;
     renderFallback?: RenderPlainFallback;
 };
