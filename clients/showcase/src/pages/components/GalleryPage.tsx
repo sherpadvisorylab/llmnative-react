@@ -1,5 +1,6 @@
 import React from 'react';
 import { ActionButton, Gallery, Modal, buttonOutlineSecondaryClass, buttonPrimaryClass, useDataProvider } from '@llmnative/react';
+import type { GalleryRecord } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
@@ -32,7 +33,7 @@ function svgAsset(name: string, color: string, accent: string) {
 const body = ASSETS.map((asset) => ({
     ...asset,
     img: <img src={svgAsset(asset.name, asset.color, asset.accent)} alt={asset.name} />,
-}));
+})) as unknown as GalleryRecord[];
 
 const GALLERY_PLAYGROUND_PATH = '/gallery-assets';
 
@@ -147,10 +148,10 @@ function GalleryPlaygroundPreview({ p }: { p: Record<string, any> }) {
         return provider.subscribe(GALLERY_PLAYGROUND_PATH, setSourceAssets);
     }, [provider]);
 
-    const playgroundBody = React.useMemo(() => sourceAssets.map((asset) => ({
+    const playgroundBody = React.useMemo(() => (sourceAssets.map((asset) => ({
         ...asset,
         img: <img src={svgAsset(asset.name, asset.color, asset.accent)} alt={asset.name} />,
-    })), [sourceAssets]);
+    })) as unknown as GalleryRecord[]), [sourceAssets]);
 
     const groupBy: string | string[] | undefined = (() => {
         const val = p.groupBy;
@@ -200,7 +201,7 @@ function GalleryPlaygroundPreview({ p }: { p: Record<string, any> }) {
                     setPlaygroundSelectedKeys(selection.keys);
                     setSelectionPayload({
                         keys: selection.keys,
-                        records: selection.records.map((record) => record._key || record.name || 'record'),
+                        records: selection.records.map((record) => String(record._key || record.name || 'record')),
                         hasSelection: selection.hasSelection,
                     });
                 }) : undefined}

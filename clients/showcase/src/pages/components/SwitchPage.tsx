@@ -37,7 +37,7 @@ const PLAYGROUND: PlaygroundConfig = {
     },
     render: (p, onValuesChange) => (
         <Form aspect="empty" onChange={onValuesChange}>
-            <Switch {...p} />
+            <Switch name="published" {...p} />
         </Form>
     ),
 };

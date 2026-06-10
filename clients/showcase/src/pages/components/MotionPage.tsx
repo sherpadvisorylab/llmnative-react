@@ -84,8 +84,8 @@ const createEffect = (
     properties: string[],
     easing = 'cubic-bezier(0.2, 0, 0, 1)'
 ): MotionEffect => ({
-    from,
-    to,
+    from: from as unknown as MotionEffect['from'],
+    to: to as unknown as MotionEffect['to'],
     transition: { duration, easing, properties },
     reducedMotion: 'respect-user',
 });
@@ -158,7 +158,7 @@ function RegistryEffectCard({
                 <div
                     className="h-14 w-full rounded-md border border-primary/25 bg-primary/10"
                     style={{
-                        ...details.to,
+                        ...(details.to as unknown as React.CSSProperties),
                         transition: details.transitionValue,
                     }}
                 />

@@ -80,7 +80,7 @@ export type { DataProviderAdapter, FieldValue, RecordProps, RecordArray, Databas
 export type { OrderConfig, OrderDirection } from './libs/order';
 export { Order } from './libs/order';
 export type { TableHeaderProp, TableReorderHandler, TableReorderMeta, TableSelectionChangeHandler, TableSelectionState } from './components/ui/Table';
-export type { GallerySelectionChangeHandler, GallerySelectionState } from './components/ui/Gallery';
+export type { GalleryRecord, GallerySelectionChangeHandler, GallerySelectionState } from './components/ui/Gallery';
 export type {
     GridAction,
     GridActions,

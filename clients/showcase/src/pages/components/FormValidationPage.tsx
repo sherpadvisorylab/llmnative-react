@@ -142,7 +142,7 @@ export default function FormValidationPage() {
                                 <Input
                                     name="password"
                                     label="Password"
-                                    inputType="password"
+                                    type="password"
                                     required
                                     validator={validatePassword}
                                 />
@@ -171,7 +171,7 @@ const validatePassword = (v: any) => {
     <Input  name="username" label="Username" required validator={validateUsername} />
     <Input  name="email"    label="Email"    required validator={validateEmail} />
     <Input  name="phone"    label="Phone"             validator={validatePhone} />
-    <Input  name="password" label="Password" inputType="password" required validator={validatePassword} />
+    <Input  name="password" label="Password" type="password" required validator={validatePassword} />
     <Select name="country"  label="Country"  required options={COUNTRY_OPTIONS} />
 </Form>`}
             />
@@ -246,7 +246,7 @@ const validatePassword = (v: any) => {
                                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mt-2 mb-1">Personal</p>
                                 <Input name="firstName" label="First name"    required />
                                 <Input name="lastName"  label="Last name"     required />
-                                <Input name="birthDate" label="Date of birth" inputType="date" required />
+                                <Input name="birthDate" label="Date of birth" type="date" required />
 
                                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mt-4 mb-1">Contact</p>
                                 <Input name="email"   label="Email"   required validator={validateEmail} />
@@ -261,10 +261,10 @@ const validatePassword = (v: any) => {
 
                                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mt-4 mb-1">Account</p>
                                 <Input name="username" label="Username" required validator={validateUsername} />
-                                <Input name="password" label="Password" inputType="password" required validator={validatePassword} />
+                                <Input name="password" label="Password" type="password" required validator={validatePassword} />
 
                                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mt-4 mb-1">Extra</p>
-                                <Input name="age" label="Age" inputType="number" required validator={validateAge} />
+                                <Input name="age" label="Age" type="number" required validator={validateAge} />
                                 <TextArea
                                     name="bio"
                                     label="Bio"
@@ -283,13 +283,13 @@ const validatePassword = (v: any) => {
 >
     <Input name="firstName" label="First name"    required />
     <Input name="lastName"  label="Last name"     required />
-    <Input name="birthDate" label="Date of birth" inputType="date" required />
+    <Input name="birthDate" label="Date of birth" type="date" required />
     <Input name="email"     label="Email"   required validator={validateEmail} />
     <Input name="address.street" label="Street"   required />
     <Select name="address.country" label="Country" required options={COUNTRY_OPTIONS} />
     <Input name="username" label="Username" required validator={validateUsername} />
-    <Input name="password" label="Password" inputType="password" required validator={validatePassword} />
-    <Input name="age"      label="Age"      inputType="number" required validator={validateAge} />
+    <Input name="password" label="Password" type="password" required validator={validatePassword} />
+    <Input name="age"      label="Age"      type="number" required validator={validateAge} />
 </Form>`}
             />
 

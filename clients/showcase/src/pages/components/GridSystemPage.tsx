@@ -76,7 +76,8 @@ const GRID_SYSTEM_PROPS: PropDef[] = [
     { name: 'xxl', type: 'boolean | number | "auto"', default: 'undefined', description: 'Column span for the xxl breakpoint.' },
 ];
 
-const normalizeCol = (value: any) => value === '' ? undefined : value === 'auto' ? 'auto' : Number(value);
+const normalizeCol = (value: unknown): number | 'auto' | undefined =>
+    value === '' || value == null ? undefined : value === 'auto' ? 'auto' : Number(value);
 
 const colPropsFrom = (p: Record<string, any>, prefix: string) => ({
     xs: normalizeCol(p[`${prefix}Xs`]),

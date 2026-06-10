@@ -1,5 +1,6 @@
 ﻿import React from 'react';
 import { ActionButton, Badge, Modal, Table, buttonOutlineSecondaryClass, buttonPrimaryClass, useDataProvider } from '@llmnative/react';
+import type { RecordProps } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
@@ -26,7 +27,7 @@ const header = [
 
 const plainBody = ROWS.map((row) => ({ ...row }));
 
-const tableBody = ROWS.map((row) => ({
+const tableBody = (ROWS.map((row) => ({
     ...row,
     status: (
         <Badge
@@ -41,7 +42,7 @@ const tableBody = ROWS.map((row) => ({
             {row.status}
         </Badge>
     ),
-}));
+}))) as unknown as RecordProps[];
 
 const responsiveHeader = [
     { key: 'name', label: 'Name' },
@@ -203,7 +204,7 @@ function TablePlaygroundPreview({ p }: { p: Record<string, any> }) {
     const [playgroundSelectedKeys, setPlaygroundSelectedKeys] = React.useState<string[]>([]);
     const [selectionPayload, setSelectionPayload] = React.useState<{ keys: string[]; records: string[]; hasSelection: boolean } | null>(null);
     const [reorderPayload, setReorderPayload] = React.useState<{ keys: string[]; fromIndex: number | null; toIndex: number | null }>({
-        keys: tableBody.map((record) => record._key || ''),
+        keys: tableBody.map((record) => String(record._key || '')),
         fromIndex: null,
         toIndex: null,
     });
@@ -231,11 +232,11 @@ function TablePlaygroundPreview({ p }: { p: Record<string, any> }) {
 
     React.useEffect(() => {
         const mappedRows = mapRows(sourceRows);
-        setPlaygroundRows(mappedRows);
+        setPlaygroundRows(mappedRows as unknown as RecordProps[]);
         setPlaygroundSelectedKeys([]);
         setSelectionPayload(null);
         setReorderPayload({
-            keys: mappedRows.map((record) => record._key || ''),
+            keys: (mappedRows as Array<Record<string, unknown>>).map((record) => String(record._key || '')),
             fromIndex: null,
             toIndex: null,
         });
@@ -311,14 +312,14 @@ function TablePlaygroundPreview({ p }: { p: Record<string, any> }) {
                     setPlaygroundSelectedKeys(selection.keys);
                     setSelectionPayload({
                         keys: selection.keys,
-                        records: selection.records.map((record) => record._key || record.name || 'record'),
+                        records: selection.records.map((record) => String(record._key || record.name || 'record')),
                         hasSelection: selection.hasSelection,
                     });
                 }) : undefined}
                 onReorder={dragEnabled ? ((reorderedRecords, meta) => {
                     setPlaygroundRows(reorderedRecords);
                     setReorderPayload({
-                        keys: reorderedRecords.map((record) => record._key || ''),
+                        keys: reorderedRecords.map((record) => String(record._key || '')),
                         fromIndex: meta.fromIndex,
                         toIndex: meta.toIndex,
                     });
@@ -371,9 +372,9 @@ function TablePlaygroundPreview({ p }: { p: Record<string, any> }) {
 export default function TablePage() {
     usePlayground(PLAYGROUND, 'Table');
     const [selected, setSelected] = React.useState<string>('');
-    const [reorderedRows, setReorderedRows] = React.useState(plainBody);
+    const [reorderedRows, setReorderedRows] = React.useState<RecordProps[]>(plainBody);
     const [bulkKeys, setBulkKeys] = React.useState<string[]>([]);
-    const [bulkRecords, setBulkRecords] = React.useState(plainBody.slice(0, 0));
+    const [bulkRecords, setBulkRecords] = React.useState<RecordProps[]>([]);
     const [exportOpen, setExportOpen] = React.useState(false);
 
     return (

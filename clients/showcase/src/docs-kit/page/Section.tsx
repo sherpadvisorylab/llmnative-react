@@ -3,7 +3,7 @@ import React from 'react';
 interface SectionProps {
     title: string;
     description?: string;
-    preview: React.ReactNode;
+    preview?: React.ReactNode;
     code: string;
     bare?: boolean;
 }
@@ -24,12 +24,14 @@ export default function Section({ title, description, preview, code, bare = fals
                 {description && <p className="mt-0.5 text-sm text-muted-foreground">{description}</p>}
             </div>
 
-            <div className={bare
-                ? 'px-5 py-4'
-                : 'min-h-[80px] flex flex-wrap items-start gap-3 bg-background p-6'
-            }>
-                {preview}
-            </div>
+            {preview !== undefined && (
+                <div className={bare
+                    ? 'px-5 py-4'
+                    : 'min-h-[80px] flex flex-wrap items-start gap-3 bg-background p-6'
+                }>
+                    {preview}
+                </div>
+            )}
 
             <div className="relative overflow-hidden rounded-b-lg border-t bg-muted/50">
                 <button

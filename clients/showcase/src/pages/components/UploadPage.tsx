@@ -76,7 +76,7 @@ const PLAYGROUND: PlaygroundConfig = {
     size: 'lg',
     showFormRecord: true,
     props: UPLOAD_IMAGE_PROPS,
-    defaultProps: { label: 'Images', multiple: true, editable: true, previewWidth: 112, previewHeight: 112, disabled: false },
+    defaultProps: { label: 'Images', multiple: true, editable: true, previewWidth: 112, previewHeight: 112 },
     render: (p, onValuesChange) => (
         <Form aspect="empty" onChange={onValuesChange}>
             <UploadImage
@@ -86,7 +86,6 @@ const PLAYGROUND: PlaygroundConfig = {
                 editable={p.editable}
                 previewWidth={p.previewWidth}
                 previewHeight={p.previewHeight}
-                disabled={p.disabled}
             />
         </Form>
     ),

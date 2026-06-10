@@ -37,7 +37,7 @@ const PLAYGROUND: PlaygroundConfig = {
     },
     render: (p, onValuesChange) => (
         <Form aspect="empty" onChange={onValuesChange}>
-            <Checkbox {...p} />
+            <Checkbox name="accepted" {...p} />
         </Form>
     ),
 };

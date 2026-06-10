@@ -208,9 +208,9 @@ export default function ImageAvatarPage() {
                 preview={
                     <div className="flex flex-col gap-3 w-full max-w-xs">
                         {[
-                            { avatar: AVATARS.ada,   name: 'Ada Lovelace',   role: 'Engineer',        type: 'badge-primary',   badge: { type: 'success' } },
-                            { avatar: AVATARS.bob,   name: 'Bob Chen',       role: 'Designer',        type: 'badge-success',   badge: { type: 'warning' } },
-                            { avatar: AVATARS.carol, name: 'Carol Wu',       role: 'Product Manager', type: 'badge-warning',   badge: { type: 'secondary' } },
+                            { avatar: AVATARS.ada,   name: 'Ada Lovelace',   role: 'Engineer',        type: 'badge-primary',   badge: { content: '' as const, type: 'success' as const } },
+                            { avatar: AVATARS.bob,   name: 'Bob Chen',       role: 'Designer',        type: 'badge-success',   badge: { content: '' as const, type: 'warning' as const } },
+                            { avatar: AVATARS.carol, name: 'Carol Wu',       role: 'Product Manager', type: 'badge-warning',   badge: { content: '' as const, type: 'secondary' as const } },
                         ].map(({ avatar, name, role, type, badge }) => (
                             <ImageAvatar
                                 key={name}

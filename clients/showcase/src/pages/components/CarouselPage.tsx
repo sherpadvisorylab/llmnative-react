@@ -11,7 +11,7 @@ const slides = ['2563eb', '059669', 'dc2626'].map((color, index) => (
         key={color}
         src={`data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="640" height="260" viewBox="0 0 640 260"%3E%3Crect width="640" height="260" fill="%23${color}"/%3E%3Ctext x="40" y="140" font-family="Arial" font-size="42" fill="white"%3ESlide ${index + 1}%3C/text%3E%3C/svg%3E`}
         alt={`Slide ${index + 1}`}
-        description={`Demo slide ${index + 1}`}
+        {...({ description: `Demo slide ${index + 1}` } as unknown as React.ImgHTMLAttributes<HTMLImageElement>)}
         className="w-full rounded-md"
     />
 ));

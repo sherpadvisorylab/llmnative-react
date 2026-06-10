@@ -14,6 +14,7 @@ import {
     TabItem,
     useDataProvider,
 } from '@llmnative/react';
+import type { RecordProps } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
@@ -59,6 +60,9 @@ type GridDocSurface = {
     reorderable: unknown;
     onReorder: unknown;
     editDeepLink: unknown;
+    onLoad: unknown;
+    pre: unknown;
+    post: unknown;
     onSave: unknown;
     onDelete: unknown;
     onAfterAction: unknown;
@@ -151,7 +155,7 @@ const toArrayRecords = () => (
     }))
 );
 
-const withGalleryThumbs = (records: UserRecord[]) => (
+const withGalleryThumbs = (records: UserRecord[]): RecordProps[] => (
     records.map((record) => ({
         ...record,
         img: (
@@ -161,7 +165,7 @@ const withGalleryThumbs = (records: UserRecord[]) => (
                 style={{ aspectRatio: '4 / 3' }}
             />
         ),
-    }))
+    })) as unknown as RecordProps[]
 );
 
 const toGalleryRecords = () => withGalleryThumbs(toArrayRecords());
@@ -173,13 +177,13 @@ const baseColumns = [
         key: 'role',
         label: 'Role',
         sortable: true,
-        render: ({ value }: { value: string }) => <Badge className={roleClass(value)}>{value}</Badge>,
+        render: ({ value }: { value: unknown }) => <Badge className={roleClass(String(value))}>{String(value)}</Badge>,
     },
     {
         key: 'status',
         label: 'Status',
         sortable: true,
-        render: ({ value }: { value: string }) => <Badge className={statusClass(value)}>{value}</Badge>,
+        render: ({ value }: { value: unknown }) => <Badge className={statusClass(String(value))}>{String(value)}</Badge>,
     },
     { key: 'team', label: 'Team', sortable: true },
     { key: 'city', label: 'City', sortable: true },
@@ -192,7 +196,7 @@ const compactColumns = [
         key: 'role',
         label: 'Role',
         sortable: true,
-        render: ({ value }: { value: string }) => <Badge className={roleClass(value)}>{value}</Badge>,
+        render: ({ value }: { value: unknown }) => <Badge className={roleClass(String(value))}>{String(value)}</Badge>,
     },
 ];
 
@@ -753,11 +757,11 @@ function ActionsPreview({ provider }: { provider: MockDataProvider }) {
             label: '',
             sortable: false,
             className: 'text-end',
-            render: ({ record, runAction }: { record: UserRecord; runAction: (actionKey: string) => void }) => (
+            render: ({ record, runAction }: { record: RecordProps; runAction: (actionKey: string) => void }) => (
                 <div className="flex justify-end">
                     <ActionButton
                         icon="eye"
-                        title={`Preview ${record.name}`}
+                        title={`Preview ${String(record.name)}`}
                         variant="link"
                         onClick={() => runAction('preview')}
                     />
@@ -803,7 +807,7 @@ function ActionsPreview({ provider }: { provider: MockDataProvider }) {
                             title: ({ record }) => `Delete ${record?.name}?`,
                             body: ({ record }) => (
                                 <div className="text-sm">
-                                    This teammate will be removed from the mock provider: <span className="font-medium">{record?.email}</span>
+                                    This teammate will be removed from the mock provider: <span className="font-medium">{record?.email as string}</span>
                                 </div>
                             ),
                         },
@@ -812,27 +816,27 @@ function ActionsPreview({ provider }: { provider: MockDataProvider }) {
                             label: 'Preview',
                             size: 'xl',
                             position: 'right',
-                            title: ({ record }) => record?.name,
+                            title: ({ record }) => String(record?.name ?? ''),
                             header: ({ record }) => (
                                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
-                                    <span>{record?.email}</span>
-                                    <span>{record?.role}</span>
-                                    <span>{record?.status}</span>
-                                    <span>{record?.team}</span>
-                                    <span>{record?.city}</span>
+                                    <span>{record?.email as string}</span>
+                                    <span>{record?.role as string}</span>
+                                    <span>{record?.status as string}</span>
+                                    <span>{record?.team as string}</span>
+                                    <span>{record?.city as string}</span>
                                 </div>
                             ),
                             body: ({ record }) => (
                                 <div className="space-y-4">
                                     <div>
-                                        <div className="text-lg font-semibold">{record?.name}</div>
-                                        <div className="text-sm text-muted-foreground">{record?.email}</div>
+                                        <div className="text-lg font-semibold">{record?.name as string}</div>
+                                        <div className="text-sm text-muted-foreground">{record?.email as string}</div>
                                     </div>
                                     <div className="grid gap-2 text-sm">
-                                        <div><span className="font-medium">Role:</span> {record?.role}</div>
-                                        <div><span className="font-medium">Status:</span> {record?.status}</div>
-                                        <div><span className="font-medium">Team:</span> {record?.team}</div>
-                                        <div><span className="font-medium">City:</span> {record?.city}</div>
+                                        <div><span className="font-medium">Role:</span> {record?.role as string}</div>
+                                        <div><span className="font-medium">Status:</span> {record?.status as string}</div>
+                                        <div><span className="font-medium">Team:</span> {record?.team as string}</div>
+                                        <div><span className="font-medium">City:</span> {record?.city as string}</div>
                                     </div>
                                 </div>
                             ),
@@ -1658,7 +1662,7 @@ const PLAYGROUND: PlaygroundConfig = {
         {
             name: 'selection',
             type: 'false | "single" | "multiple" | GridSelectionConfig<TRecord>',
-            default: false,
+            default: 'false',
             description: 'Selection mode. The playground wires onChange automatically — the payload is shown below the grid when active.',
             help: 'Use false to disable, "single"/"multiple" for string shorthand, or an object for defaultKeys. onChange is always wired internally.',
             control: 'json',

@@ -53,6 +53,7 @@
 | [CR-042](#cr-042--typescript-no-any-eliminazione-di-tutti-gli-usi-di-any) | TypeScript no-any: eliminazione di tutti gli usi di `any` | Alta | CR-003 | ✅ done |
 | [CR-043](#cr-043--token-benchmark-page-nel-showcase) | Token Benchmark page nel showcase | Media | CR-016 | ✅ done |
 | [CR-044](#cr-044--showcase-pagine-mancanti-label-uploadcsv-crop-command) | Showcase pagine mancanti (Label, UploadCSV, Crop, Command) | Bassa | CR-007 | ⬜ |
+| [CR-045](#cr-045--ai-adoption-piano-di-distribuzione-e-visibilita) | AI Adoption: piano di distribuzione e visibilità | Alta | CR-001, CR-016 | ⬜ |
 
 ---
 
@@ -4167,6 +4168,121 @@ Per ogni componente mancante:
 - [ ] Verificare navigazione funzionante nello showcase
 - [ ] `tsc --noEmit` zero errori
 - [ ] build ok
+
+---
+
+## CR-045 — AI Adoption: piano di distribuzione e visibilità
+
+**Stato:** ⬜ todo
+**Priorità:** Alta
+**Dipende da:** CR-001 (AI_REFERENCE), CR-016 (showcase + benchmark)
+**Stima:** 2-3 settimane
+**Breaking change:** No
+
+### Motivazione
+
+`@llmnative/react` è un framework AI-first, ma oggi un AI (Claude, GPT, Copilot, Cursor) che non ha `AI_REFERENCE.md` in contesto non sa nulla del framework. Inoltre non esiste presenza esterna — articoli, community, registry — che faccia conoscere il framework a sviluppatori e AI. Senza distribuzione e visibilità, il framework resta invisibile.
+
+### Macro-aree
+
+#### A — Distribuzione AI (training data + discovery)
+
+Obiettivo: rendere il framework "conosciuto" dagli AI anche senza contesto esplicito.
+
+1. **Pubblicare `AI_REFERENCE.md` su npm**
+   - Inserirlo nel pacchetto pubblicato (`docs/AI_REFERENCE.md`)
+   - Alcuni AI (es. Copilot, Cursor) scansionano `node_modules` e leggono i file `.md` dei pacchetti installati
+   - Un AI che trova `@llmnative/react` in `package.json` potrà rispondere sulle API
+
+2. **Generare `CLAUDE.md` / `.cursorrules` nello scaffold**
+   - `npx @llmnative/react create` genera anche `CLAUDE.md` nella root del progetto
+   - Contiene: pattern principali, esempi Grid/Form, regole naming, link a docs
+   - Ogni AI (Claude Code, Cursor, Copilot) che apre il progetto lo legge automaticamente
+   - File: `bin/templates/CLAUDE.md.hbs`
+
+3. **Registrare il framework su registry AI**
+   - **Smithery** (https://smithery.ai) — registry MCP server per AI
+   - **OpenAI GPTs Knowledge Retrieval** — caricare AI_REFERENCE.md come knowledge base pubblica
+   - **Anthropic Docs** (https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/overview) — documentatione framework per Claude Code
+   - **OpenCode Agents / Skills** — creare uno skill ufficiale @llmnative/react
+
+4. **System prompt pre-confezionato**
+   - `PROMPT_TEMPLATE.md` già esiste
+   - Aggiungere `npx @llmnative/react ai-prompt` che stampa il prompt in console
+   - Aggiungere `.aiprompt` nella root del progetto scaffoldato
+
+#### B — Articoli tecnici (pubblicazione)
+
+Obiettivo: far conoscere il framework alla comunità developer tramite contenuti autorevoli.
+
+1. **Temi articoli** (5 pezzi chiave):
+   - *"AI-first React: how we built a framework that cuts AI token consumption by 80%"* — narrativa principale, benchmark, perché è diverso
+   - *"Ports & Adapters in the browser: Firebase, Supabase, Mock with one line of config"* — pattern architetturale, provider matrix
+   - *"SchemaForm: generating forms from JSON schema with AI"* — quando CR-040 sarà implementata
+   - *"From prototype to production: scaffolding AI-friendly React apps"* — CLI, scaffold, developer experience
+   - *"How we eliminated 95% of `any` from a TypeScript framework"* — CR-042, qualità codice, TypeScript strict
+
+2. **Piattaforme autorevoli dove pubblicare:**
+
+| Piattaforma | Tipo | Pubblico | Note |
+|-------------|------|----------|------|
+| **dev.to** | Blog dev | 3M+ mese | Ottimo per "how we built X". Syndication automatica. |
+| **Medium / JavaScript in Plain English** | Blog tech | 100M+ mese | Buon reach, ma meno tecnico. |
+| **Hacker News** | Community | 10M+ mese | Serve un titolo che spacca. Il benchmark post potrebbe funzionare. |
+| **FreeCodeCamp News** | Blog dev | 10M+ mese | Guest post. Richiede pitch editoriale. |
+| **LogRocket Blog** | Blog React | 500K+ mese | Focus React + performance. Targeting perfetto. |
+| **CSS-Tricks** (Almanac) | Blog frontend | 2M+ mese | Approccio più tutorial. |
+| **React Newsletter** (react.statuscode, React Digest) | Newsletter | 100K+ | Una menzione nella newsletter = esposizione diretta. |
+| **Smashing Magazine** | Magazine web | 1M+ mese | Guest post. Standard alto. |
+| **InfoQ** | Magazine eng | 2M+ mese | Focus architetturale (provider pattern, ports & adapters). |
+| **ACM Queue** | Magazine acc | 100K+ | Molto selettivo. Solo se c'è un paper. |
+| **LinkedIn Engineering Blog** | Aziendale | 50M+ | Solo se pubblicato da un'azienda. Sherpa Advisory Lab qualifica. |
+| **Twitter/X** + **Reddit** (r/reactjs, r/typescript, r/webdev) | Social | — | Complementare. Post + discussione. |
+
+3. **Repo GitHub**
+   - Aggiungere **README.md** più convincente: benchmark badge, GIF dello showcase, "try it now" button
+   - GitHub **Topics** aggiornati: `react`, `typescript`, `ai-framework`, `firebase`, `supabase`, `low-code`, `admin-panel`, `react-admin`
+   - GitHub **Pages** (già presente?) o Vercel deploy dello showcase come landing page
+   - **Awesome React** list PR — candidarsi per essere aggiunti
+
+#### C — Community
+
+1. **Issue template** per feature request e bug report (già PR template?)
+2. **Discussion template** per "show and tell" — progetti fatti con il framework
+3. **Esempi reali** — 3-4 progetti esempio in `/examples/` (e-commerce admin, CRM, blog dashboard, inventario)
+4. **Contributor guide** (`CONTRIBUTING.md`) — chiara e leggera
+
+### Checklist
+
+**A — Distribuzione AI**
+- [ ] Inserire `docs/AI_REFERENCE.md` nel pacchetto npm
+- [ ] Generare `CLAUDE.md` nello scaffold (`bin/templates/CLAUDE.md.hbs`)
+- [ ] Generare `.cursorrules` o `.aiprompt` nello scaffold
+- [ ] Aggiungere `npx @llmnative/react ai-prompt` al CLI
+- [ ] Registrare su Smithery / MCP registry
+- [ ] Caricare AI_REFERENCE su Anthropic Docs / OpenAI Knowledge Retrieval
+- [ ] Creare skill ufficiale per OpenCode
+
+**B — Articoli**
+- [ ] Scrivere articolo 1: "AI-first React" (narrativa principale + benchmark)
+- [ ] Scrivere articolo 2: "Ports & Adapters in the browser"
+- [ ] Scrivere articolo 3: "SchemaForm" (dopo CR-040)
+- [ ] Scrivere articolo 4: "Scaffolding AI-friendly React apps"
+- [ ] Scrivere articolo 5: "Eliminating 95% of any" (TypeScript quality)
+- [ ] Pubblicare su dev.to + cross-post Medium/FreeCodeCamp
+- [ ] Postare su Hacker News
+- [ ] Inviare a React Newsletter / React Digest
+- [ ] Inviare a LogRocket Blog / Smashing Magazine
+- [ ] Pitch a InfoQ / LinkedIn Engineering Blog
+
+**C — Repo + Community**
+- [ ] Riscrivere README con benchmark badge + showcase GIF
+- [ ] Aggiornare GitHub Topics
+- [ ] Deployare showcase su Vercel o GitHub Pages come landing page
+- [ ] PR su Awesome React
+- [ ] Creare CONTRIBUTING.md
+- [ ] Aggiungere esempi reali in `/examples/`
+- [ ] Template issue/discussion su GitHub
 
 ## CR-044 — Showcase: refactor componenti nativi → framework (decisioni aperte)
 
