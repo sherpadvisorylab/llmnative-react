@@ -1,11 +1,20 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Badge } from '@llmnative/react';
 import PageLayout from '../showcase/page';
 
-// Token estimation: 1 token ≈ 4 characters (standard GPT approximation).
-// Used as a relative indicator — not an exact model-specific count.
-function tok(code: string): number {
-    return Math.ceil(code.trim().length / 4);
+// Token counts pre-computed with the GPT-4 cl100k_base tokenizer (gpt-tokenizer package).
+// To regenerate after changing a snippet:
+//   node clients/showcase/scripts/computeBenchmarkTokens.mjs
+const TOKEN_COUNTS: Record<string, number> = {
+    CRUD_FRAMEWORK: 112,
+    CRUD_VANILLA: 1118,
+    FORM_FRAMEWORK: 144,
+    FORM_VANILLA: 752,
+    PROVIDER_FRAMEWORK: 119,
+    PROVIDER_VANILLA: 466,
+    AUTH_FRAMEWORK: 150,
+    AUTH_VANILLA: 481,
 }
 
 // ─── Code snippets ────────────────────────────────────────────────────────────
@@ -99,7 +108,6 @@ export default function UserList() {
         <h2>Users</h2>
         <button onClick={openAdd}>+ Add</button>
       </div>
-
       <table style={{ width:'100%', borderCollapse:'collapse' }}>
         <thead>
           <tr><th>Name</th><th>Email</th><th>Role</th><th /></tr>
@@ -118,7 +126,6 @@ export default function UserList() {
           ))}
         </tbody>
       </table>
-
       <div style={{ display:'flex', gap:4, marginTop:8 }}>
         {Array.from({ length: pages }, (_, i) => (
           <button key={i} onClick={() => setPage(i)}
@@ -127,7 +134,6 @@ export default function UserList() {
           </button>
         ))}
       </div>
-
       {modal && (
         <div className="modal-backdrop">
           <div className="modal-dialog">
@@ -146,7 +152,6 @@ export default function UserList() {
           </div>
         </div>
       )}
-
       {deleteTarget && (
         <div className="modal-backdrop">
           <div className="modal-dialog">
@@ -246,17 +251,14 @@ export default function UserForm() {
         </div>
         <div>
           <label>Email</label>
-          <input
-            type="email"
-            value={data.email}
+          <input type="email" value={data.email}
             onChange={e => setData(d => ({ ...d, email: e.target.value }))}
           />
           {errors.email && <span style={{ color:'red' }}>{errors.email}</span>}
         </div>
         <div>
           <label>Role</label>
-          <select
-            value={data.role}
+          <select value={data.role}
             onChange={e => setData(d => ({ ...d, role: e.target.value }))}>
             <option value="">Select…</option>
             <option value="admin">Admin</option>
@@ -275,7 +277,8 @@ export default function UserForm() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const PROVIDER_FRAMEWORK = `\
-// One line change in providers config — no component code touched.
+// One line change in providers config — every component in your
+// app automatically uses the new backend.
 
 // mock (local in-memory, zero network)
 services: { data: 'mock' }
@@ -289,44 +292,59 @@ services: { data: 'firestoreDb' }
 // Supabase Postgres (with Realtime)
 services: { data: 'supabaseDb' }
 
-// Every Grid, Form and Select.db in your app
-// automatically uses the new backend.
-// Zero component changes required.`;
+// Grid, Form, Select.db and every provider-aware component
+// are already wired to the abstraction. Zero component changes.`;
 
 const PROVIDER_VANILLA = `\
-// No abstraction layer: every component reads Firebase directly.
-// Migrating to Supabase means touching every data-fetching site.
+// Without a framework you build the abstraction yourself —
+// or skip it and couple every component to Firebase directly.
 
-// ── Before (Firebase Realtime DB) ───────────────────────────────
-useEffect(() => {
-  return onValue(ref(db, '/users'), (snap) => {
-    setUsers(
-      Object.entries(snap.val() ?? {}).map(([id, v]) => ({
-        id, ...(v as Record<string, unknown>),
-      }))
-    )
-  })
-}, [db])
+// ── Option A: no abstraction (quick but hard to switch) ─────────
+// Every component calls Firebase directly. Switching to Supabase
+// means refactoring each one individually. Zero upfront cost,
+// high migration cost later.
 
-// ── After (Supabase) ────────────────────────────────────────────
-useEffect(() => {
-  supabase.from('users').select('*')
-    .then(({ data }) => setUsers(data ?? []))
+// ── Option B: DIY data service (~60 lines) ──────────────────────
+interface DataService {
+  list(path: string): Promise<Record<string, unknown>[]>
+  set(path: string, data: object): Promise<void>
+  remove(path: string): Promise<void>
+  subscribe(path: string, cb: (rows: Record<string,unknown>[]) => void): () => void
+}
 
-  const ch = supabase.channel('users')
-    .on(
-      'postgres_changes',
-      { event: '*', schema: 'public', table: 'users' },
-      () => supabase.from('users').select('*')
-             .then(({ data }) => setUsers(data ?? []))
-    )
-    .subscribe()
-  return () => { supabase.removeChannel(ch) }
-}, [])
+// Firebase adapter (~25 lines)
+const firebaseService: DataService = {
+  list: async (path) => { /* get + Object.entries */ return [] },
+  set: async (path, data) => { /* set / push */ },
+  remove: async (path) => { /* remove */ },
+  subscribe: (path, cb) => { /* onValue */ return () => undefined },
+}
 
-// Repeat the migration for UserForm, Dashboard, CategoryList,
-// ProductGrid, OrderTable, Settings … every component that
-// reads or writes data. No shared adapter to update centrally.`;
+// Supabase adapter (~25 lines)
+const supabaseService: DataService = {
+  list: async (table) => {
+    const { data } = await supabase.from(table).select('*')
+    return data ?? []
+  },
+  set: async (table, data) => { await supabase.from(table).upsert(data) },
+  remove: async (id) => { /* delete */ },
+  subscribe: (table, cb) => {
+    const ch = supabase.channel(table)
+      .on('postgres_changes', { event:'*', schema:'public', table },
+          () => supabaseService.list(table).then(cb))
+      .subscribe()
+    return () => { supabase.removeChannel(ch) }
+  },
+}
+
+// Wire up (one place — same config as the framework)
+export const dataService = import.meta.env.VITE_PROVIDER === 'supabase'
+  ? supabaseService
+  : firebaseService
+
+// Every component still needs to call dataService.list() / .subscribe()
+// explicitly. Grid, Form, Select get no abstraction benefit unless you
+// build component wrappers too. The framework ships all of this.`;
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -354,90 +372,64 @@ import { useAuthProvider } from '@llmnative/react'
 const auth = useAuthProvider()
 const user = auth.getUser() // { name, email, picture } | null`;
 
+// Fair comparison: uses @react-oauth/google (best-in-class library),
+// not manual GIS — this is what a careful developer would actually write.
 const AUTH_VANILLA = `\
-import React, {
-  createContext, useContext,
-  useState, useEffect, useRef,
-} from 'react'
+// Using @react-oauth/google — the standard library for Google sign-in.
+// A careful developer would write this, not raw GIS boilerplate.
+
+import React, { createContext, useContext, useState } from 'react'
+import {
+  GoogleOAuthProvider,
+  useGoogleLogin,
+  googleLogout,
+} from '@react-oauth/google'
 
 interface User { name: string; email: string; picture: string }
-interface AuthCtx { user: User | null; signOut: () => void; loading: boolean }
+interface AuthCtx { user: User | null; login: () => void; signOut: () => void }
 
 const Ctx = createContext<AuthCtx>({
-  user: null, signOut: () => undefined, loading: true,
+  user: null, login: () => undefined, signOut: () => undefined,
 })
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser]       = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
+function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null)
 
-  useEffect(() => {
-    const saved = localStorage.getItem('gUser')
-    if (saved) { setUser(JSON.parse(saved) as User); setLoading(false); return }
+  const login = useGoogleLogin({
+    onSuccess: async ({ access_token }) => {
+      const info = await fetch(
+        'https://www.googleapis.com/oauth2/v3/userinfo',
+        { headers: { Authorization: \`Bearer \${access_token}\` } }
+      ).then(r => r.json() as Promise<User>)
+      setUser(info)
+    },
+  })
 
-    const script = document.createElement('script')
-    script.src = 'https://accounts.google.com/gsi/client'
-    script.onload = () => {
-      type GIS = {
-        google?: {
-          accounts: {
-            id: {
-              initialize: (o: unknown) => void
-              prompt: () => void
-            }
-          }
-        }
-      }
-      ;(window as unknown as GIS).google?.accounts.id.initialize({
-        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-        callback: (r: { credential: string }) => {
-          const p = JSON.parse(
-            atob(r.credential.split('.')[1])
-          ) as User
-          setUser(p)
-          localStorage.setItem('gUser', JSON.stringify(p))
-          setLoading(false)
-        },
-      })
-      ;(window as unknown as GIS).google?.accounts.id.prompt()
-    }
-    document.head.appendChild(script)
-    return () => { document.head.removeChild(script) }
-  }, [])
-
-  const signOut = () => {
-    setUser(null); localStorage.removeItem('gUser')
-  }
-  return <Ctx.Provider value={{ user, signOut, loading }}>{children}</Ctx.Provider>
+  const signOut = () => { googleLogout(); setUser(null) }
+  return (
+    <Ctx.Provider value={{ user, login, signOut }}>
+      {children}
+    </Ctx.Provider>
+  )
 }
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useContext(Ctx)
-  const btnRef = useRef<HTMLDivElement>(null)
-  useEffect(() => {
-    if (!user && !loading && btnRef.current) {
-      type GIS = { google?: { accounts: { id: { renderButton: (el: HTMLElement, o: object) => void } } } }
-      ;(window as unknown as GIS).google?.accounts.id
-        .renderButton(btnRef.current, { theme: 'outline', size: 'large' })
-    }
-  }, [user, loading])
-  if (loading) return <div>Loading…</div>
-  if (!user)   return <div ref={btnRef} />
+  const { user, login } = useContext(Ctx)
+  if (!user) return <button onClick={login}>Sign in with Google</button>
   return <>{children}</>
 }
 
-// Wrap your entire app in <AuthProvider>.
+// In index.tsx: wrap App in
+//   <GoogleOAuthProvider clientId="..."><AuthProvider>…</AuthProvider></GoogleOAuthProvider>
 // Wrap every protected page in <ProtectedRoute>.
 export default function Dashboard() {
   const { user, signOut } = useContext(Ctx)
   return (
     <ProtectedRoute>
-      <div>
-        <img src={user?.picture} alt={user?.name} width={32} height={32} />
-        <span>{user?.name}</span>
-        <button onClick={signOut}>Sign out</button>
-        <h1>Welcome!</h1>
-      </div>
+      <img src={user?.picture} alt={user?.name} width={32} height={32} />
+      <span>{user?.name}</span>
+      <button onClick={signOut}>Sign out</button>
+      <h1>Welcome!</h1>
     </ProtectedRoute>
   )
 }`;
@@ -450,8 +442,12 @@ interface Scenario {
     tags: string[];
     fwLabel: string;
     vnLabel: string;
+    vnNote?: string;
+    demoPath?: string;
     framework: string;
     vanilla: string;
+    /** Keys into TOKEN_COUNTS for pre-computed token values */
+    tokenKey: string;
 }
 
 const SCENARIOS: Scenario[] = [
@@ -463,8 +459,10 @@ const SCENARIOS: Scenario[] = [
         tags: ['Grid', 'Form', 'Modal', 'Firebase'],
         fwLabel: '@llmnative/react',
         vnLabel: 'React + Firebase',
+        demoPath: '/components/grid',
         framework: CRUD_FRAMEWORK,
         vanilla: CRUD_VANILLA,
+        tokenKey: 'CRUD',
     },
     {
         title: 'Form with validation + load/save',
@@ -474,8 +472,10 @@ const SCENARIOS: Scenario[] = [
         tags: ['Form', 'Input', 'Select', 'Validation'],
         fwLabel: '@llmnative/react',
         vnLabel: 'React + Firebase',
+        demoPath: '/components/form',
         framework: FORM_FRAMEWORK,
         vanilla: FORM_VANILLA,
+        tokenKey: 'FORM',
     },
     {
         title: 'Switch data backend',
@@ -484,9 +484,13 @@ const SCENARIOS: Scenario[] = [
             'Firestore or Supabase — without touching a single component.',
         tags: ['DataProvider', 'Ports & Adapters'],
         fwLabel: 'Config change (1 line)',
-        vnLabel: 'Per-component migration',
+        vnLabel: 'DIY abstraction layer',
+        vnNote: 'A careful developer would build a DataService adapter (~60 lines). ' +
+                'The framework ships the same abstraction pre-built and pre-wired to Grid, Form and Select.',
+        demoPath: '/providers',
         framework: PROVIDER_FRAMEWORK,
         vanilla: PROVIDER_VANILLA,
+        tokenKey: 'PROVIDER',
     },
     {
         title: 'Google Auth + protected route',
@@ -495,9 +499,13 @@ const SCENARIOS: Scenario[] = [
             'anywhere, handle loading and sign-out states.',
         tags: ['Auth', 'Google', 'Protected route'],
         fwLabel: '@llmnative/react',
-        vnLabel: 'React + GIS',
+        vnLabel: '@react-oauth/google',
+        vnNote: 'Uses the standard @react-oauth/google library — the fairest vanilla comparison, ' +
+                'not raw GIS boilerplate.',
+        demoPath: '/components/auth',
         framework: AUTH_FRAMEWORK,
         vanilla: AUTH_VANILLA,
+        tokenKey: 'AUTH',
     },
 ];
 
@@ -506,7 +514,7 @@ const SCENARIOS: Scenario[] = [
 function TokenPill({ count }: { count: number }) {
     return (
         <span className="inline-flex items-center text-xs font-mono font-medium bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
-            ~{count.toLocaleString()} tokens
+            {count.toLocaleString()} tokens
         </span>
     );
 }
@@ -523,8 +531,8 @@ function SavingsPill({ pct }: { pct: number }) {
 }
 
 function ScenarioCard({ s }: { s: Scenario }) {
-    const fw  = tok(s.framework);
-    const vn  = tok(s.vanilla);
+    const fw  = TOKEN_COUNTS[`${s.tokenKey}_FRAMEWORK`] ?? 0;
+    const vn  = TOKEN_COUNTS[`${s.tokenKey}_VANILLA`] ?? 0;
     const pct = Math.round((1 - fw / vn) * 100);
 
     return (
@@ -532,7 +540,17 @@ function ScenarioCard({ s }: { s: Scenario }) {
             {/* Header */}
             <div className="px-5 py-4 border-b bg-card flex items-start justify-between gap-4 flex-wrap">
                 <div className="min-w-0">
-                    <h3 className="font-semibold text-foreground">{s.title}</h3>
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="font-semibold text-foreground">{s.title}</h3>
+                        {s.demoPath && (
+                            <Link
+                                to={s.demoPath}
+                                className="text-xs text-primary hover:underline shrink-0"
+                            >
+                                See live →
+                            </Link>
+                        )}
+                    </div>
                     <p className="text-sm text-muted-foreground mt-0.5 leading-relaxed">{s.description}</p>
                     <div className="flex gap-1.5 mt-2.5 flex-wrap">
                         {s.tags.map(t => (
@@ -560,6 +578,9 @@ function ScenarioCard({ s }: { s: Scenario }) {
                         <span className="text-xs font-semibold text-muted-foreground">{s.vnLabel}</span>
                         <TokenPill count={vn} />
                     </div>
+                    {s.vnNote && (
+                        <p className="text-xs text-muted-foreground italic leading-relaxed">{s.vnNote}</p>
+                    )}
                     <pre className="text-xs font-mono bg-muted/40 rounded-lg p-3 overflow-auto max-h-72 leading-relaxed whitespace-pre flex-1">{s.vanilla}</pre>
                 </div>
             </div>
@@ -570,8 +591,8 @@ function ScenarioCard({ s }: { s: Scenario }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function BenchmarkPage() {
-    const totalFw  = SCENARIOS.reduce((n, s) => n + tok(s.framework), 0);
-    const totalVn  = SCENARIOS.reduce((n, s) => n + tok(s.vanilla), 0);
+    const totalFw  = SCENARIOS.reduce((n, s) => n + (TOKEN_COUNTS[`${s.tokenKey}_FRAMEWORK`] ?? 0), 0);
+    const totalVn  = SCENARIOS.reduce((n, s) => n + (TOKEN_COUNTS[`${s.tokenKey}_VANILLA`] ?? 0), 0);
     const totalPct = Math.round((1 - totalFw / totalVn) * 100);
     const saved    = totalVn - totalFw;
 
@@ -581,12 +602,22 @@ export default function BenchmarkPage() {
             description="How much less code — and how many fewer tokens — an AI needs to describe the same UI using @llmnative/react vs plain React."
         >
             {/* ── Methodology note ── */}
-            <div className="text-sm text-muted-foreground bg-muted/40 rounded-lg px-4 py-3 mb-8 leading-relaxed">
-                Token counts are estimated as{' '}
-                <code className="font-mono text-xs bg-muted px-1 py-0.5 rounded">⌈chars / 4⌉</code>
-                {' '}— the standard GPT approximation (1 token ≈ 4 characters).
-                {' '}Actual token counts vary by model and tokenizer;
-                {' '}the relative difference between the two columns is what matters.
+            <div className="text-sm text-muted-foreground bg-muted/40 rounded-lg px-4 py-3 mb-8 leading-relaxed space-y-1.5">
+                <p>
+                    <span className="font-medium text-foreground">Token counting</span>
+                    {' '}uses the{' '}
+                    <code className="font-mono text-xs bg-muted px-1 py-0.5 rounded">gpt-tokenizer</code>
+                    {' '}library (GPT-4 cl100k_base tokenizer). Other models tokenize slightly differently;
+                    {' '}the relative difference between columns is what matters, not the absolute numbers.
+                </p>
+                <p>
+                    <span className="font-medium text-foreground">Fair comparisons</span>
+                    {' '}— each "vanilla" column uses best-in-class libraries and patterns
+                    {' '}(e.g. <code className="font-mono text-xs bg-muted px-1 py-0.5 rounded">@react-oauth/google</code> for auth,
+                    {' '}a proper DataService abstraction for the provider switch scenario),
+                    {' '}not hand-rolled boilerplate.
+                    {' '}The goal is to measure the framework's API compression, not to cherry-pick bad vanilla code.
+                </p>
             </div>
 
             {/* ── Aggregate summary ── */}
@@ -598,18 +629,18 @@ export default function BenchmarkPage() {
                         <span className="text-base font-normal text-muted-foreground ml-2">fewer tokens</span>
                     </p>
                     <p className="text-sm text-muted-foreground mt-1">
-                        ~{totalFw.toLocaleString()} tokens with @llmnative/react
-                        {' '}vs ~{totalVn.toLocaleString()} tokens with plain React
-                        {' '}— a saving of ~{saved.toLocaleString()} tokens
+                        {totalFw.toLocaleString()} tokens with @llmnative/react
+                        {' '}vs {totalVn.toLocaleString()} tokens with plain React
+                        {' '}— a saving of {saved.toLocaleString()} tokens
                     </p>
                 </div>
                 <div className="grid grid-cols-2 gap-4 shrink-0">
                     <div className="text-center">
-                        <p className="text-2xl font-bold text-success">~{totalFw.toLocaleString()}</p>
+                        <p className="text-2xl font-bold text-success">{totalFw.toLocaleString()}</p>
                         <p className="text-xs text-muted-foreground mt-0.5">@llmnative/react</p>
                     </div>
                     <div className="text-center">
-                        <p className="text-2xl font-bold text-muted-foreground">~{totalVn.toLocaleString()}</p>
+                        <p className="text-2xl font-bold text-muted-foreground">{totalVn.toLocaleString()}</p>
                         <p className="text-xs text-muted-foreground mt-0.5">Plain React</p>
                     </div>
                 </div>
