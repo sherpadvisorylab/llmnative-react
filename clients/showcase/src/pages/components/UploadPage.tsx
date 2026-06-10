@@ -1,102 +1,80 @@
 import React from 'react';
-import { Form, UploadDocument, UploadImage } from '@llmnative/react';
+import { Link } from 'react-router-dom';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
+
+const variantPages = [
+    {
+        title: 'UploadImage',
+        path: '/components/upload/image',
+        description: 'Inline thumbnail grid with hover overlay for preview, crop and removal. Supports single or multiple images.',
+    },
+    {
+        title: 'UploadDocument',
+        path: '/components/upload/document',
+        description: 'File list with name, size and progress bar. Accepts any file type via the accept filter.',
+    },
+    {
+        title: 'UploadCSV',
+        path: '/components/upload/csv',
+        description: 'Drag-and-drop CSV parser. Delivers typed rows and field names to onDataLoaded. Works standalone without a Form.',
+    },
+];
 
 export default function UploadPage() {
     return (
         <PageLayout
             title="Upload"
-            description="Three specialised upload fields for images, documents and CSV data. Each variant handles local preview, file management and optional cloud storage independently."
+            description="Three specialised upload fields for images, documents and CSV data. Each variant manages local preview, file binding and optional cloud storage independently."
         >
             <Section
-                title="Image upload"
-                description="Stores image metadata in the Form record. Renders inline thumbnails with a hover overlay for preview, crop and removal. Use UploadImage inside a Form to bind the result to a record field."
+                title="Variants"
+                description="Choose the variant that matches the file type. All three extend FormFieldProps and bind their result to the enclosing Form record via the name prop."
                 preview={
-                    <div className="w-full max-w-xl">
-                        <Form appearance="empty">
-                            <UploadImage
-                                name="images"
-                                label="Gallery"
-                                multiple
-                                editable
-                                previewHeight={88}
-                                previewWidth={88}
-                            />
-                        </Form>
+                    <div className="grid gap-3 md:grid-cols-3">
+                        {variantPages.map((page) => (
+                            <Link
+                                key={page.path}
+                                to={page.path}
+                                className="block rounded-md border bg-card p-4 transition-colors hover:border-primary/50 hover:bg-primary/5"
+                            >
+                                <h3 className="font-semibold text-foreground">{page.title}</h3>
+                                <p className="mt-1 text-sm text-muted-foreground">{page.description}</p>
+                            </Link>
+                        ))}
                     </div>
                 }
-                code={`import { Form, UploadImage } from '@llmnative/react';
+                code={`import { Form, UploadImage, UploadDocument, UploadCSV } from '@llmnative/react';
 
+// Image thumbnails with optional crop editor
 <Form>
-  <UploadImage
-    name="cover"
-    label="Cover photo"
-    previewHeight={112}
-    previewWidth={112}
-  />
-</Form>`}
-            />
+  <UploadImage name="cover" label="Cover" multiple editable previewHeight={112} previewWidth={112} />
+</Form>
 
-            <Section
-                title="Document upload"
-                description="Accepts any file type and presents a table with name, size and an upload progress bar. Files are stored as base64 in the record unless a StorageProvider is configured."
-                preview={
-                    <div className="w-full max-w-2xl">
-                        <Form appearance="empty">
-                            <UploadDocument
-                                name="attachments"
-                                label="Attachments"
-                                multiple
-                                accept=".pdf,.doc,.docx,.txt"
-                            />
-                        </Form>
-                    </div>
-                }
-                code={`import { Form, UploadDocument } from '@llmnative/react';
-
+// File list with name, size and progress
 <Form>
-  <UploadDocument
-    name="attachments"
-    label="Attachments"
-    multiple
-    accept=".pdf,.doc,.docx"
-  />
-</Form>`}
-            />
+  <UploadDocument name="attachments" label="Attachments" multiple accept=".pdf,.docx" />
+</Form>
 
-            <Section
-                title="CSV upload"
-                description="Parses CSV and TSV files with PapaParse and delivers typed rows to onDataLoaded. Works standalone — no Form wrapper needed."
-                preview={
-                    <div className="alert alert-info text-sm w-full">
-                        See the <strong>UploadCSV</strong> sub-page for a live demo with row preview.
-                    </div>
-                }
-                code={`import { UploadCSV } from '@llmnative/react';
-import type { UploadCSVData } from '@llmnative/react';
-
+// CSV parser — standalone, no Form needed
 <UploadCSV
   name="import"
   label="Drop CSV here"
   normalizeKeys
-  onDataLoaded={(result) => {
-    console.log(result.fields, result.data);
-  }}
+  onDataLoaded={(result) => console.log(result.fields, result.data)}
 />`}
             />
 
             <Section
                 title="Cloud storage"
-                description="Register a StorageProvider in App and pass storagePath on any upload field to stream files to Firebase Storage or Supabase Storage instead of storing them locally."
+                description="Register a StorageProvider in App and pass storagePath on UploadImage or UploadDocument to stream files to Firebase Storage or Supabase Storage instead of keeping them as local base64."
                 preview={
                     <div className="alert alert-info text-sm w-full">
-                        The showcase runs offline — storagePath demos require credentials.
+                        The showcase runs offline — storagePath demos require a configured StorageProvider.
                     </div>
                 }
                 code={`import { App } from '@llmnative/react';
 
-// Register storage backend once
 <App
   providers={{
     firebase: { config: firebaseConfig },
@@ -104,15 +82,9 @@ import type { UploadCSVData } from '@llmnative/react';
   }}
 />
 
-// Then pass storagePath on any upload field
-<UploadImage
-  name="avatar"
-  storagePath="/uploads/avatars"
-/>
-<UploadDocument
-  name="docs"
-  storagePath="/uploads/documents"
-/>`}
+// storagePath is resolved by the active StorageProvider at upload time
+<UploadImage  name="avatar"  storagePath="/uploads/avatars" />
+<UploadDocument name="docs" storagePath="/uploads/documents" />`}
             />
         </PageLayout>
     );
