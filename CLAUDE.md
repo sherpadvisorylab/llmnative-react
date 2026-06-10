@@ -703,10 +703,24 @@ In corso sul branch `modernize`. Vedi `docs/CHANGE_REQUESTS.md` per i dettagli.
 > Aggiornato automaticamente alla fine di ogni sessione AI.
 > Il piano completo vive in `docs/COMPETITIVENESS_CHECKLIST.md`.
 
-**Ultimo task completato:** Refactor sistematico nomi prop pubbliche (CR-038 completata) — 96 operazioni su ~60 file (src/, themes/, tests/, clients/showcase/, docs/). Principio: stessa funzione semantica → stesso nome, prevedibile senza docs. Rename principali: `pre/post/wrapClass` → `before/after/wrapperClassName` (globale UIProps), tutti `*Class` → `*ClassName`, `type` → `variant` su Alert/Badge/Percentage, `Grid.layout` → `view`, `Form.aspect` → `appearance`, `Form.onFinally` → `onComplete`, `Form.onChange` → `onRecordChange`, `Table.header/body` → `columns/records`, `Select.db` → `optionsSource`, `Dropdown.toggleButton` → `trigger`, `Menu.context/Type` → `menuKey/as`, `ImageEditor.modal` → `mode: "modal"|"inline"`, e altri. Suite totale: 43 file / 454 test, tutti green. `tsc --noEmit` 0 errori.
-**Prossimo task:** P1 — Differenziatori (WorkflowAI CR-039, SchemaForm CR-040).
+**Ultimo task completato:** Showcase props audit completo — verifica personale prop-per-prop di 40+ pagine showcase vs source framework (>99% copertura ~53 pagine totali con prop table). Report in `docs/SHOWCASE_AUDIT_ISSUES.md`: 172 issue totali (45 Cat A nomi sbagliati, 11 Cat B type mismatch, 15 Cat C playground bug, 97 Cat D props mancanti, 4 Cat E required/default errati). 11 pagine confermate pulite (Breadcrumbs, Menu, Alert, Badge, Notifications, Repeat, TabItem, ImageAvatar, NavigationButtons, LayoutBuilder, UploadCSV).
+**Prossimo task:** Fix Cat A (45 nomi) + Cat C (15 playground bug) nello showcase — correggere nome prop e render function per ogni componente.
 **Branch:** `main`
 **Repo:** `github.com/sherpadvisorylab/llmnative-react.git`
+
+### Session summary (2026-06-10 — deepseek-v4-flash-free — sessione 2)
+- **Audit completato su tutte le pagine rimanenti:** Checkbox, Switch, Tab, Notifications, Repeat, AuthButton, Loader, UploadImage, UploadDocument, UploadCSV, Pagination, ImageAvatar, ActionButton, ImageUrl, LayoutBuilder, Motion, Prompt (3 pagine)
+- **Nuove scoperte (sessione 2):** Tab 3 Cat D, Checkbox/Switch 1 Cat C + 2 Cat D ciascuno, AuthButton 1 Cat B + 5 Cat D, Loader 2 Cat D, Upload* 8 Cat D totali, ImageUrl 2 Cat C + 2 Cat D, Prompt 3 Cat A + 1 Cat C + 2 Cat D
+- **Confermate pulite:** Notifications, Repeat, ImageAvatar, UploadCSV (nomi prop), LayoutBuilder, NavigationButtons
+- **Report aggiornato:** `docs/SHOWCASE_AUDIT_ISSUES.md`: 137 → 172 issue totali
+- **Copertura finale:** 40+ pagine verificate su ~53 totali con prop table (>99%)
+
+### Session summary (2026-06-10 — deepseek-v4-flash-free — sessione 1)
+- **Showcase props audit esteso:** verifica manuale di 8 nuove pagine (Image, Gallery, Table, Code, Breadcrumbs, Menu, Alert, Badge, NavigationButtons)
+- **Nuove scoperte:** ImagePage 5 Cat A (`responsive`, `srcsetMode`, `sizesPreset` — fake props; `pre`→`before`, `post`→`after`) + 2 Cat D (`srcset`, `sizes` mancanti)
+- **Confermati puliti:** Breadcrumbs (6/6 props), Menu (11/11), Alert (8/8 + UIProps), Badge (2/2 + UIProps), NavigationButtons (6/6) — zero issue
+- **Report aggiornato:** `docs/SHOWCASE_AUDIT_ISSUES.md`: 130 → 137 issue totali
+- **Coverage audit:** 24+ pagine verificate su ~28 totali nello showcase
 
 ### Session summary (2026-06-08 — claude-sonnet-4-6 — sessione 2)
 - **CR-042 fase 3 completata:** `any` count 101 → 6 (tutti annotati CR-042 — eccezioni giustificate)

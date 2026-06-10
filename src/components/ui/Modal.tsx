@@ -130,7 +130,7 @@ const ModalDefault = ({
     const positions = {
         center: {
             coverClass: "fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4",
-            dialogClass: cn("relative z-50 flex w-full flex-col overflow-hidden rounded-lg border bg-card shadow-xl", dialogSizeClass, wrapperClassName || theme.Modal.wrapperClassName),
+            dialogClass: cn("relative z-50 flex w-full flex-col overflow-hidden rounded-lg border bg-card shadow-xl", sizeClass !== "fullscreen" && "max-h-[calc(100dvh-2rem)]", dialogSizeClass, wrapperClassName || theme.Modal.wrapperClassName),
             contentClass: cn("flex min-h-0 flex-1 flex-col", className || theme.Modal.className),
             headerClassName: cn("flex items-center justify-between gap-3 border-b px-4 py-3", headerClassName || theme.Modal.headerClassName),
             titleClassName: cn("text-lg font-semibold leading-none", titleClassName || theme.Modal.titleClassName),

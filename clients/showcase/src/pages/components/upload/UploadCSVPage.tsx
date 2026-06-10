@@ -71,12 +71,48 @@ const PLAYGROUND: PlaygroundConfig = {
                     className={p.className || undefined}
                     wrapperClassName={p.wrapperClassName || undefined}
                     onDataLoaded={setData}
+                    onClear={() => setData(null)}
                 />
                 <DataPreview data={data} />
             </div>
         );
     },
 };
+
+function NormalizeSection() {
+    const [data, setData] = useState<UploadCSVData | null>(null);
+    return (
+        <div className="space-y-4 w-full">
+            <UploadCSV
+                name="csv-normalize"
+                label="Upload CSV to see normalized keys"
+                normalizeKeys
+                removeEmptyFields
+                onDataLoaded={setData}
+                onClear={() => setData(null)}
+            />
+            <DataPreview data={data} />
+        </div>
+    );
+}
+
+function TransformSection() {
+    const [data, setData] = useState<UploadCSVData | null>(null);
+    return (
+        <div className="space-y-4 w-full">
+            <UploadCSV
+                name="csv-transform"
+                label="Upload CSV — columns starting with _ will be dropped"
+                onParseField={([key, value]) =>
+                    key.startsWith('_') ? undefined : [key, value]
+                }
+                onDataLoaded={setData}
+                onClear={() => setData(null)}
+            />
+            <DataPreview data={data} />
+        </div>
+    );
+}
 
 export default function UploadCSVPage() {
     usePlayground(PLAYGROUND, 'UploadCSV');
@@ -97,6 +133,7 @@ export default function UploadCSVPage() {
                             name="csv-basic"
                             label="Drag or click to upload CSV"
                             onDataLoaded={setParsed}
+                            onClear={() => setParsed(null)}
                         />
                         <DataPreview data={parsed} />
                     </div>
@@ -112,6 +149,7 @@ function MyPage() {
             name="import"
             label="Drag or click to upload CSV"
             onDataLoaded={setCsvData}
+            onClear={() => setCsvData(null)}
         />
     );
 }`}
@@ -119,13 +157,8 @@ function MyPage() {
 
             <Section
                 title="Normalized keys + empty field removal"
-                description="normalizeKeys slug-ifies column headers. removeEmptyFields drops cells with null/empty values."
-                preview={
-                    <div className="alert alert-info text-sm space-y-1">
-                        <p><code className="font-mono">normalizeKeys</code> turns <em>First Name</em> → <em>first_name</em>.</p>
-                        <p><code className="font-mono">removeEmptyFields</code> drops columns that are blank for a row.</p>
-                    </div>
-                }
+                description="normalizeKeys slug-ifies column headers (e.g. First Name → first_name). removeEmptyFields drops cells with null/empty values per row."
+                preview={<NormalizeSection />}
                 code={`<UploadCSV
     name="import"
     normalizeKeys
@@ -139,12 +172,8 @@ function MyPage() {
 
             <Section
                 title="Custom field transform"
-                description="Use onParseField to intercept each [key, value] pair. Return the pair (optionally modified) or undefined to drop the field."
-                preview={
-                    <div className="alert alert-info text-sm">
-                        Return <code className="font-mono">undefined</code> to drop a field, or return a new <code className="font-mono">[key, value]</code> tuple to rename/cast.
-                    </div>
-                }
+                description="Use onParseField to intercept each [key, value] pair. Return the pair (optionally modified) or undefined to drop the field. Try uploading a CSV — columns whose name starts with _ will be dropped."
+                preview={<TransformSection />}
                 code={`<UploadCSV
     name="import"
     onParseField={([key, value]) => {
