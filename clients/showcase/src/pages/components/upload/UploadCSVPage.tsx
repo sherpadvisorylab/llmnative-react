@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { UploadCSV } from '@llmnative/react';
 import type { UploadCSVData } from '@llmnative/react';
-import PageLayout from '../../showcase/page';
-import Section from '../../docs-kit/page/Section';
-import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
-import { usePlayground } from '../../docs-kit/playground';
-import type { PropDef, PlaygroundConfig } from '../../docs-kit/playground';
+import PageLayout from '../../../showcase/page';
+import Section from '../../../docs-kit/page/Section';
+import PropDocsTable from '../../../docs-kit/docs/PropDocsTable';
+import { usePlayground } from '../../../docs-kit/playground';
+import type { PropDef, PlaygroundConfig } from '../../../docs-kit/playground';
 
 function DataPreview({ data }: { data: UploadCSVData | null }) {
     if (!data) {

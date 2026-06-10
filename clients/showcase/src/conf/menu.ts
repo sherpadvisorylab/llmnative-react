@@ -59,7 +59,9 @@ const SelectPage = lazyPage(() => import('../pages/components/SelectPage'));
 const AutocompletePage = lazyPage(() => import('../pages/components/AutocompletePage'));
 const ChecklistPage = lazyPage(() => import('../pages/components/ChecklistPage'));
 const UploadPage = lazyPage(() => import('../pages/components/UploadPage'));
-const UploadCSVPage = lazyPage(() => import('../pages/components/UploadCSVPage'));
+const UploadImagePage = lazyPage(() => import('../pages/components/upload/UploadImagePage'));
+const UploadDocumentPage = lazyPage(() => import('../pages/components/upload/UploadDocumentPage'));
+const UploadCSVPage = lazyPage(() => import('../pages/components/upload/UploadCSVPage'));
 const FormPage = lazyPage(() => import('../pages/components/FormPage'));
 const FormValidationPage = lazyPage(() => import('../pages/components/FormValidationPage'));
 const GridPage = lazyPage(() => import('../pages/components/GridPage'));
@@ -201,8 +203,17 @@ export const menu = {
         { path: '/components/select', title: 'Select', page: SelectPage, group: 'Form fields' },
         { path: '/components/switch', title: 'Switch', page: SwitchPage, group: 'Form fields' },
         { path: '/components/textarea', title: 'TextArea', page: TextAreaPage, group: 'Form fields' },
-        { path: '/components/upload', title: 'Upload', page: UploadPage, group: 'Form fields' },
-        { path: '/components/upload-csv', title: 'UploadCSV', page: UploadCSVPage, group: 'Form fields' },
+        {
+            path: '/components/upload',
+            title: 'Upload',
+            page: UploadPage,
+            group: 'Form fields',
+            children: [
+                { path: '/components/upload/image', title: 'UploadImage', page: UploadImagePage },
+                { path: '/components/upload/document', title: 'UploadDocument', page: UploadDocumentPage },
+                { path: '/components/upload/csv', title: 'UploadCSV', page: UploadCSVPage },
+            ],
+        },
 
         // ── Blocks (alphabetical) ─────────────────────────────────────────────
         { path: '/components/brand', title: 'Brand', page: BrandPage, group: 'Blocks' },
