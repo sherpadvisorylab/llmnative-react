@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useId, useState } from 'react';
+﻿import React, { useEffect, useId, useRef, useState } from 'react';
 import { useTheme } from "../../Theme";
 import { Prompt as PromptConf, PromptVariables, PROMPT_CLEANUP, PROMPT_NO_REFERENCE } from '../../conf/Prompt';
 import { type AIProviderCapabilities, type AIProviderAdapter, type AIRequestOptions, parseAIModelRef, formatAIModelRef } from '../../providers/ai/AIProvider';
@@ -14,11 +14,39 @@ import { Wrapper } from '../ui/GridSystem';
 import { Label, Range, Switch, TextArea } from '../ui/fields/Input';
 import { Select } from '../ui/fields/Select';
 import { FormFieldProps, useFormContext } from './Form';
+import { PromptUtils } from '../../libs/promptUtils';
 
 export enum PromptMode {
     EDIT = "edit",
     RUN = "run",
 }
+
+export type PromptCommand = {
+    name: string;
+    description?: string;
+    icon?: string;
+    handler?: (currentValue: string) => string | Promise<string>;
+};
+
+export type PromptAction = {
+    key: string;
+    icon: string;
+    label?: string;
+    content?: React.ReactNode;
+};
+
+export type PromptStatusItem =
+    | 'tokensIn' | 'tokensOut' | 'contextPercent' | 'model' | 'duration'
+    | { key: string; render: (stats: PromptRunStats) => React.ReactNode };
+
+export type PromptRunStats = {
+    tokensIn: number;
+    tokensOut: number;
+    contextPercent: number | null;
+    model: string;
+    durationMs: number;
+    estimatedCost: number | null;
+};
 
 type PromptOptions = AIRequestOptions & {
     value: string;
@@ -63,6 +91,10 @@ type PromptRunProps = PromptSharedProps & {
     mode: PromptMode.RUN;
     onRunPrompt?: OnRunPrompt;
     renderFallback?: RenderPlainFallback;
+    commands?: PromptCommand[];
+    attachments?: boolean;
+    actions?: PromptAction[];
+    statusItems?: PromptStatusItem[];
 };
 
 export type PromptProps = PromptEditProps | PromptRunProps;
@@ -370,6 +402,10 @@ const PromptRun = ({
     onRunPrompt,
     renderAIUnavailable,
     variables,
+    commands,
+    attachments,
+    actions,
+    statusItems,
 }: PromptRunBranchProps) => {
     const { handleChange, record } = useFormContext({ name });
     const theme = useTheme("prompt");
@@ -377,6 +413,10 @@ const PromptRun = ({
     const [editing, setEditing] = useState(false);
     const [templateText, setTemplateText] = useState(defaultValue?.value ?? '');
     const [previewOpen, setPreviewOpen] = useState(false);
+    const [cmdQuery, setCmdQuery] = useState<string | null>(null);
+    const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+    const [runStats, setRunStats] = useState<PromptRunStats | null>(null);
+    const attachInputRef = useRef<HTMLInputElement>(null);
     const ai = useAIProvider();
     const aiRegistry = useAIProviderRegistry();
     const promptDefaults = PromptConf.defaults();
@@ -413,15 +453,55 @@ const PromptRun = ({
         const resolvedProvider = parsed
             ? (aiRegistry?.registry[parsed.provider] ?? ai ?? undefined)
             : (ai ?? undefined);
+        const startMs = Date.now();
         try {
             const mergedData = { ...(record as PromptVariables), ...variables };
             const result = await runPrompt(value?.prompt as PromptOptions, mergedData, onRunPrompt, resolvedProvider);
+            const durationMs = Date.now() - startMs;
             setRunError(null);
             handleChange?.({ target: { name: name + ".value", value: result } });
+            if (statusItems && statusItems.length > 0) {
+                const resolved = PromptConf.parsePrompt(value?.prompt?.value?.toString() ?? '', mergedData);
+                const tokensIn = PromptUtils.countTokens(resolved);
+                const tokensOut = PromptUtils.countTokens(result ?? '');
+                const ctxPct = PromptUtils.contextPercent(tokensIn, modelRef);
+                const estimatedCost = PromptUtils.estimateCost(tokensIn, tokensOut, modelRef);
+                setRunStats({
+                    tokensIn,
+                    tokensOut,
+                    contextPercent: ctxPct > 0 ? ctxPct : null,
+                    model: modelRef,
+                    durationMs,
+                    estimatedCost: isFinite(estimatedCost) ? estimatedCost : null,
+                });
+            }
         } catch (error) {
             setRunError(getPromptRunErrorMessage(error));
         }
     };
+
+    const getResultValue = (): string => {
+        const fieldData = record?.[name];
+        if (fieldData && typeof fieldData === 'object' && !Array.isArray(fieldData)) {
+            return String((fieldData as Record<string, unknown>).value ?? '');
+        }
+        return '';
+    };
+
+    const filteredCommands = React.useMemo(() => {
+        if (!commands?.length || cmdQuery === null) return [];
+        const q = cmdQuery.toLowerCase();
+        return commands.filter((c) => !q || c.name.toLowerCase().startsWith(q) || c.description?.toLowerCase().includes(q));
+    }, [commands, cmdQuery]);
+
+    const applyCommand = React.useCallback(async (cmd: PromptCommand) => {
+        setCmdQuery(null);
+        if (!cmd.handler) return;
+        const current = getResultValue();
+        const newValue = await cmd.handler(current);
+        handleChange?.({ target: { name: name + ".value", value: newValue } });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [name, handleChange, record]);
 
     const setField = (field: string, val: string) =>
         handleChange?.({ target: { name: field, value: val } } as React.ChangeEvent<HTMLInputElement>);
@@ -474,7 +554,14 @@ const PromptRun = ({
                             <div className={editing ? 'hidden' : ''}>
                                 <TextArea
                                     name={name + ".value"}
-                                    onChange={onChange}
+                                    onChange={(params) => {
+                                        if (commands?.length) {
+                                            const val = String(params.event.target.value ?? '');
+                                            const match = /^\/(\w*)$/.exec(val.trim());
+                                            setCmdQuery(match ? match[1] : null);
+                                        }
+                                        onChange?.(params);
+                                    }}
                                     required={required}
                                     inheritWrapperClassName={false}
                                     wrapperClassName=""
@@ -484,7 +571,120 @@ const PromptRun = ({
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-1 border-t border-input px-2 py-1 rounded-b-xl">
+                        {/* Attached files row */}
+                        {attachedFiles.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5 border-t border-input px-3 py-2">
+                                {attachedFiles.map((f, i) => (
+                                    <span key={`${f.name}-${i}`} className="inline-flex items-center gap-1 rounded-md border border-input bg-muted/40 px-2 py-0.5 text-xs text-foreground">
+                                        <Icon name="paperclip" size={11} className="text-muted-foreground" />
+                                        <span className="max-w-[140px] truncate">{f.name}</span>
+                                        <button
+                                            type="button"
+                                            className="ml-0.5 text-muted-foreground hover:text-foreground"
+                                            onClick={() => setAttachedFiles((prev) => prev.filter((_, idx) => idx !== i))}
+                                        >
+                                            <Icon name="x" size={10} />
+                                        </button>
+                                    </span>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Hidden file input for attachments */}
+                        {attachments && (
+                            <input
+                                ref={attachInputRef}
+                                type="file"
+                                multiple
+                                className="hidden"
+                                onChange={(e) => {
+                                    if (e.target.files) {
+                                        setAttachedFiles((prev) => [...prev, ...Array.from(e.target.files as FileList)]);
+                                        e.target.value = '';
+                                    }
+                                }}
+                            />
+                        )}
+
+                        <div className="relative flex items-center gap-1 border-t border-input px-2 py-1 rounded-b-xl">
+
+                            {/* Slash command popover — absolute above footer */}
+                            {!editing && filteredCommands.length > 0 && (
+                                <div className="absolute bottom-full left-0 right-0 z-20 mb-1 overflow-hidden rounded-lg border border-input bg-popover shadow-lg">
+                                    {filteredCommands.map((cmd) => (
+                                        <button
+                                            key={cmd.name}
+                                            type="button"
+                                            className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground"
+                                            onClick={() => applyCommand(cmd)}
+                                        >
+                                            {cmd.icon && <Icon name={cmd.icon} size={14} className="shrink-0 text-muted-foreground" />}
+                                            <span className="font-medium">/{cmd.name}</span>
+                                            {cmd.description && (
+                                                <span className="ml-1 text-xs text-muted-foreground">{cmd.description}</span>
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Run-mode left buttons: attachments + slash trigger + custom actions */}
+                            {!editing && (
+                                <>
+                                    {attachments && (
+                                        <button
+                                            type="button"
+                                            title="Attach files"
+                                            className={`${promptGhostIcon} flex items-center justify-center`}
+                                            onClick={() => attachInputRef.current?.click()}
+                                        >
+                                            <Icon name="paperclip" size={13} />
+                                        </button>
+                                    )}
+                                    {commands && commands.length > 0 && (
+                                        <button
+                                            type="button"
+                                            title="Slash commands"
+                                            className={`${promptGhostIcon} flex items-center justify-center ${cmdQuery !== null ? "bg-muted text-foreground" : ""}`}
+                                            onClick={() => setCmdQuery((q) => q === null ? '' : null)}
+                                        >
+                                            <Icon name="slash" size={13} />
+                                        </button>
+                                    )}
+                                    {actions?.map((action) =>
+                                        action.content ? (
+                                            <Dropdown
+                                                key={action.key}
+                                                trigger={{ icon: action.icon, title: action.label }}
+                                                placement="top"
+                                                position="start"
+                                                triggerClassName={promptGhostIcon}
+                                            >
+                                                {action.key === 'tokenUsage' && runStats ? (
+                                                    <div className="px-3 py-2 text-xs space-y-1">
+                                                        <p className="font-medium text-foreground">Token usage</p>
+                                                        <p className="text-muted-foreground">Input: {runStats.tokensIn} tok</p>
+                                                        <p className="text-muted-foreground">Output: {runStats.tokensOut} tok</p>
+                                                        {runStats.contextPercent !== null && <p className="text-muted-foreground">Context: {runStats.contextPercent.toFixed(1)}%</p>}
+                                                        {runStats.estimatedCost !== null && <p className="text-muted-foreground">Cost: ~${runStats.estimatedCost.toFixed(5)}</p>}
+                                                        <p className="text-muted-foreground">Time: {(runStats.durationMs / 1000).toFixed(1)}s</p>
+                                                    </div>
+                                                ) : action.content}
+                                            </Dropdown>
+                                        ) : (
+                                            <button
+                                                key={action.key}
+                                                type="button"
+                                                title={action.label}
+                                                className={`${promptGhostIcon} flex items-center justify-center`}
+                                            >
+                                                <Icon name={action.icon} size={13} />
+                                            </button>
+                                        )
+                                    )}
+                                </>
+                            )}
+
                             {editing && (
                                 <>
                                     {/* Model — list items directly */}
@@ -584,6 +784,30 @@ const PromptRun = ({
                                 />
                             )}
                         </div>
+
+                        {/* Status strip — shown after a run when statusItems are configured */}
+                        {statusItems && statusItems.length > 0 && runStats && !editing && (
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 rounded-b-xl border-t border-input/50 bg-muted/20 px-4 py-1.5 text-[11px] text-muted-foreground">
+                                {statusItems.map((item) => {
+                                    if (typeof item === 'string') {
+                                        switch (item) {
+                                            case 'tokensIn': return <span key="tokensIn">↑ {runStats.tokensIn} tok</span>;
+                                            case 'tokensOut': return <span key="tokensOut">↓ {runStats.tokensOut} tok</span>;
+                                            case 'contextPercent': return runStats.contextPercent !== null
+                                                ? <span key="ctx">ctx {runStats.contextPercent.toFixed(1)}%</span>
+                                                : null;
+                                            case 'model': return <span key="model" className="font-mono">{(parseAIModelRef(runStats.model)?.model || runStats.model).split('/').pop()}</span>;
+                                            case 'duration': return <span key="dur">{(runStats.durationMs / 1000).toFixed(1)}s</span>;
+                                            default: return null;
+                                        }
+                                    }
+                                    return <span key={item.key}>{item.render(runStats)}</span>;
+                                })}
+                                {runStats.estimatedCost !== null && !statusItems.some((i) => typeof i === 'object' && i.key === 'cost') && (
+                                    <span className="ml-auto font-mono">~${runStats.estimatedCost.toFixed(5)}</span>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
                 {after && <div className="shrink-0">{after}</div>}

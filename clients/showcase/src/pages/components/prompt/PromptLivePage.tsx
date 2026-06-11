@@ -1,5 +1,6 @@
 import React from 'react';
-import { AIProvider, createAIProviderRegistry, Form, Prompt, PromptMode } from '@llmnative/react';
+import { AIProvider, createAIProviderRegistry, Form, Prompt, PromptMode, PromptUtils } from '@llmnative/react';
+import type { PromptCommand, PromptAction, PromptStatusItem } from '@llmnative/react';
 import PageLayout from '../../../showcase/page';
 import Section from '../../../docs-kit/page/Section';
 import PropDocsTable from '../../../docs-kit/docs/PropDocsTable';
@@ -520,6 +521,157 @@ export default function PromptLivePage() {
     </div>
   )}
 />`}
+            />
+
+            {/* ── Slash commands ── */}
+            <Section
+                title="Slash commands"
+                description="Pass commands to enable /command shortcuts in the result textarea. Type / or click the slash icon in the footer bar to see available commands. Selecting one calls its handler with the current field value."
+                bare
+                preview={(
+                    <Form
+                        appearance="empty"
+                        defaultValues={{
+                            projectName: 'Atlas Console',
+                            copy: { value: 'Our platform helps DevOps teams ship faster with zero-config CI/CD pipelines and real-time observability.' },
+                        }}
+                    >
+                        <div className="max-w-3xl">
+                            <Prompt
+                                name="copy"
+                                label="Marketing copy"
+                                mode={PromptMode.RUN}
+                                rows={5}
+                                commands={[
+                                    { name: 'translate', description: 'Wrap for translation to English', icon: 'languages', handler: (v) => `Translate the following to English:\n\n${v}` },
+                                    { name: 'shorten', description: 'Ask AI to shorten the text', icon: 'minimize-2', handler: (v) => `Shorten to 1 sentence:\n\n${v}` },
+                                    { name: 'bulletpoints', description: 'Convert to bullet points', icon: 'list', handler: (v) => `Convert to 3 bullet points:\n\n${v}` },
+                                ]}
+                                defaultValue={{ value: '', enabled: true }}
+                                onRunPrompt={executePromptPreview}
+                            />
+                        </div>
+                    </Form>
+                )}
+                code={`import type { PromptCommand } from '@llmnative/react';
+
+const COMMANDS: PromptCommand[] = [
+  { name: 'translate', description: 'Wrap for translation', icon: 'languages',
+    handler: (v) => \`Translate the following to English:\\n\\n\${v}\` },
+  { name: 'shorten', description: 'Ask AI to shorten', icon: 'minimize-2',
+    handler: (v) => \`Shorten to 1 sentence:\\n\\n\${v}\` },
+  { name: 'bulletpoints', description: 'Convert to bullets', icon: 'list',
+    handler: (v) => \`Convert to 3 bullet points:\\n\\n\${v}\` },
+];
+
+<Prompt
+  name="copy"
+  label="Marketing copy"
+  mode={PromptMode.RUN}
+  commands={COMMANDS}
+  onRunPrompt={myRunner}
+/>`}
+            />
+
+            {/* ── Attachments ── */}
+            <Section
+                title="Attachments"
+                description="Set attachments to enable the paperclip button in the footer bar. Selected files appear as removable chips above the footer. Files are accessible in onRunPrompt via the data argument."
+                bare
+                preview={(
+                    <Form
+                        appearance="empty"
+                        defaultValues={{ report: { value: '', prompt: { enabled: 'on', value: 'Summarise the attached document.' } } }}
+                    >
+                        <div className="max-w-3xl">
+                            <Prompt
+                                name="report"
+                                label="Document summary"
+                                mode={PromptMode.RUN}
+                                rows={4}
+                                attachments
+                                defaultValue={{ value: '', enabled: true, value: 'Summarise the attached document.' }}
+                                onRunPrompt={executePromptPreview}
+                            />
+                        </div>
+                    </Form>
+                )}
+                code={`<Prompt
+  name="report"
+  label="Document summary"
+  mode={PromptMode.RUN}
+  attachments
+  defaultValue={{ value: 'Summarise the attached document.', enabled: true }}
+  onRunPrompt={myRunner}
+/>`}
+            />
+
+            {/* ── Status items ── */}
+            <Section
+                title="Status items — token usage"
+                description="statusItems adds a strip below the footer bar that populates after each run. Built-in named items: tokensIn, tokensOut, contextPercent, model, duration. Add a custom action with the tokenUsage key for a detailed popup panel."
+                bare
+                preview={(
+                    <Form
+                        appearance="empty"
+                        defaultValues={{
+                            projectName: 'Atlas Console',
+                            summary: { value: '', prompt: { enabled: 'on', value: 'Write a concise summary for {projectName}.', language: 'English' } },
+                        }}
+                    >
+                        <div className="max-w-3xl">
+                            <Prompt
+                                name="summary"
+                                label="Summary"
+                                mode={PromptMode.RUN}
+                                rows={5}
+                                statusItems={['tokensIn', 'tokensOut', 'contextPercent', 'duration']}
+                                actions={[{ key: 'tokenUsage', icon: 'bar-chart-2', label: 'Token details', content: <span /> }]}
+                                defaultValue={{ value: 'Write a concise summary for {projectName}.', enabled: true, language: 'English' }}
+                                onRunPrompt={executePromptPreview}
+                            />
+                        </div>
+                    </Form>
+                )}
+                code={`import type { PromptStatusItem, PromptAction } from '@llmnative/react';
+
+const STATUS: PromptStatusItem[] = ['tokensIn', 'tokensOut', 'contextPercent', 'duration'];
+
+const ACTIONS: PromptAction[] = [
+  { key: 'tokenUsage', icon: 'bar-chart-2', label: 'Token details', content: <span /> },
+];
+
+<Prompt
+  name="summary"
+  mode={PromptMode.RUN}
+  statusItems={STATUS}
+  actions={ACTIONS}
+  onRunPrompt={myRunner}
+/>`}
+            />
+
+            {/* ── PromptUtils API ── */}
+            <Section
+                title="PromptUtils — client-side utilities"
+                description="PromptUtils provides browser-safe helpers for token estimation, context window lookup, and cost estimation — no server required."
+                preview={(
+                    <div className="rounded-xl border border-input bg-muted/20 p-4 text-sm font-mono space-y-1 text-foreground">
+                        <p><span className="text-muted-foreground">// token count (heuristic: chars / 4)</span></p>
+                        <p>PromptUtils.countTokens(<span className="text-primary">"Hello world"</span>) <span className="text-muted-foreground">→ {PromptUtils.countTokens("Hello world")}</span></p>
+                        <p className="pt-1"><span className="text-muted-foreground">// context window lookup</span></p>
+                        <p>PromptUtils.modelContextWindow(<span className="text-primary">"openai/gpt-4o"</span>) <span className="text-muted-foreground">→ {PromptUtils.modelContextWindow("openai/gpt-4o")?.toLocaleString()}</span></p>
+                        <p className="pt-1"><span className="text-muted-foreground">// context usage %</span></p>
+                        <p>PromptUtils.contextPercent(<span className="text-primary">5000</span>, <span className="text-primary">"openai/gpt-4o"</span>) <span className="text-muted-foreground">→ {PromptUtils.contextPercent(5000, "openai/gpt-4o").toFixed(2)}%</span></p>
+                        <p className="pt-1"><span className="text-muted-foreground">// cost estimate in USD</span></p>
+                        <p>PromptUtils.estimateCost(<span className="text-primary">500</span>, <span className="text-primary">200</span>, <span className="text-primary">"openai/gpt-4o"</span>) <span className="text-muted-foreground">→ ${PromptUtils.estimateCost(500, 200, "openai/gpt-4o").toFixed(6)}</span></p>
+                    </div>
+                )}
+                code={`import { PromptUtils } from '@llmnative/react';
+
+PromptUtils.countTokens(text)                        // chars / 4
+PromptUtils.modelContextWindow("openai/gpt-4o")      // 128000
+PromptUtils.contextPercent(5000, "openai/gpt-4o")    // 3.91
+PromptUtils.estimateCost(500, 200, "openai/gpt-4o")  // 0.000325`}
             />
 
             <PropDocsTable props={[...PROMPT_LIVE_PROPS, ...PROMPT_SHARED_PROPS]} />
