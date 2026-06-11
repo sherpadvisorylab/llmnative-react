@@ -595,8 +595,8 @@ const PromptRun = ({
 
                         <div className="relative flex items-center gap-1 border-t border-input px-2 py-1 rounded-b-xl">
 
-                            {/* Run-mode left: custom items (attachments + actions) + separator if any */}
-                            {!editing && (attachments || (actions?.length ?? 0) > 0) && (
+                            {/* Run-mode left: upload + slash + custom actions — separator before settings */}
+                            {!editing && (attachments || (commands?.length ?? 0) > 0 || (actions?.length ?? 0) > 0) && (
                                 <>
                                     {attachments && (
                                         <button
@@ -607,6 +607,27 @@ const PromptRun = ({
                                         >
                                             <Icon name="paperclip" size={13} />
                                         </button>
+                                    )}
+                                    {commands && commands.length > 0 && (
+                                        <Dropdown
+                                            trigger={{ icon: 'slash', title: 'Commands' }}
+                                            placement="top"
+                                            position="start"
+                                            triggerClassName={`${promptGhostIcon} flex items-center justify-center`}
+                                        >
+                                            {commands.map((cmd) => (
+                                                <DropdownItem
+                                                    key={cmd.name}
+                                                    icon={cmd.icon}
+                                                    onClick={() => applyCommand(cmd)}
+                                                >
+                                                    <span className="font-medium">/{cmd.name}</span>
+                                                    {cmd.description && (
+                                                        <span className="ml-2 text-xs text-muted-foreground">{cmd.description}</span>
+                                                    )}
+                                                </DropdownItem>
+                                            ))}
+                                        </Dropdown>
                                     )}
                                     {actions?.map((action) =>
                                         action.content ? (
@@ -721,29 +742,6 @@ const PromptRun = ({
                                         {runError ?? (availability.reason || "AI not configured")}
                                     </span>
                                 </span>
-                            )}
-
-                            {/* Slash command dropdown — right side, shown only when no error and commands configured */}
-                            {!editing && !runError && availability.configured && commands && commands.length > 0 && (
-                                <Dropdown
-                                    trigger={{ icon: 'slash', title: 'Commands' }}
-                                    placement="top"
-                                    position="end"
-                                    triggerClassName={`${promptGhostIcon} flex items-center justify-center`}
-                                >
-                                    {commands.map((cmd) => (
-                                        <DropdownItem
-                                            key={cmd.name}
-                                            icon={cmd.icon}
-                                            onClick={() => applyCommand(cmd)}
-                                        >
-                                            <span className="font-medium">/{cmd.name}</span>
-                                            {cmd.description && (
-                                                <span className="ml-2 text-xs text-muted-foreground">{cmd.description}</span>
-                                            )}
-                                        </DropdownItem>
-                                    ))}
-                                </Dropdown>
                             )}
 
                             {/* Preview toggle — only in edit mode when variables produce substitutions */}
