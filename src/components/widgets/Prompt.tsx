@@ -676,8 +676,8 @@ const PromptRun = ({
                                 </>
                             )}
 
-                            {/* Run-mode settings: model / role / language / voice / style / temperature */}
-                            {!editing && (
+                            {/* Run-mode settings: shown only when AI is available (no error) */}
+                            {!editing && !runError && availability.configured && (
                                 <>
                                     {/* Model */}
                                     <Dropdown
