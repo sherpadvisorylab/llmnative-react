@@ -550,6 +550,34 @@ const PromptRun = ({
                                 )}
                             </div>
                             <div className={editing ? 'hidden' : ''}>
+                                {attachedFiles.length > 0 && (
+                                    <div className="flex gap-2 overflow-x-auto border-b border-input px-3 py-2.5">
+                                        {attachedFiles.map(({ file, objectUrl }, i) => (
+                                            <div key={objectUrl} className="relative shrink-0">
+                                                {file.type.startsWith('image/') ? (
+                                                    <div className="h-16 w-16 overflow-hidden rounded-lg border border-input bg-muted/30">
+                                                        <img src={objectUrl} alt={file.name} className="h-full w-full object-cover" />
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex items-center gap-2 rounded-lg border border-input bg-muted/30 px-2.5 py-2 text-xs">
+                                                        <Icon name="file-text" size={18} className="shrink-0 text-muted-foreground" />
+                                                        <div className="max-w-[100px]">
+                                                            <p className="truncate font-medium text-foreground">{file.name}</p>
+                                                            <p className="text-muted-foreground">{(file.size / 1024).toFixed(0)} KB</p>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                <button
+                                                    type="button"
+                                                    className="absolute -right-1.5 -top-1.5 flex h-4 w-4 cursor-pointer items-center justify-center rounded-full bg-foreground text-background shadow"
+                                                    onClick={() => removeAttachment(i)}
+                                                >
+                                                    <Icon name="x" size={9} />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                                 <TextArea
                                     name={name + ".value"}
                                     onChange={(params) => {
@@ -563,36 +591,6 @@ const PromptRun = ({
                                 />
                             </div>
                         </div>
-
-                        {/* Attachment previews — shown above the result textarea */}
-                        {attachedFiles.length > 0 && !editing && (
-                            <div className="flex gap-2 overflow-x-auto border-b border-input px-3 py-2.5">
-                                {attachedFiles.map(({ file, objectUrl }, i) => (
-                                    <div key={objectUrl} className="relative shrink-0">
-                                        {file.type.startsWith('image/') ? (
-                                            <div className="h-16 w-16 overflow-hidden rounded-lg border border-input bg-muted/30">
-                                                <img src={objectUrl} alt={file.name} className="h-full w-full object-cover" />
-                                            </div>
-                                        ) : (
-                                            <div className="flex items-center gap-2 rounded-lg border border-input bg-muted/30 px-2.5 py-2 text-xs">
-                                                <Icon name="file-text" size={18} className="shrink-0 text-muted-foreground" />
-                                                <div className="max-w-[100px]">
-                                                    <p className="truncate font-medium text-foreground">{file.name}</p>
-                                                    <p className="text-muted-foreground">{(file.size / 1024).toFixed(0)} KB</p>
-                                                </div>
-                                            </div>
-                                        )}
-                                        <button
-                                            type="button"
-                                            className="absolute -right-1.5 -top-1.5 flex h-4 w-4 cursor-pointer items-center justify-center rounded-full bg-foreground text-background shadow"
-                                            onClick={() => removeAttachment(i)}
-                                        >
-                                            <Icon name="x" size={9} />
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
 
                         {/* Hidden file input for attachments */}
                         {attachments && (
