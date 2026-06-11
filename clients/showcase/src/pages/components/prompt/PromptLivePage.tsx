@@ -533,7 +533,13 @@ export default function PromptLivePage() {
                         appearance="empty"
                         defaultValues={{
                             projectName: 'Atlas Console',
-                            copy: { value: 'Our platform helps DevOps teams ship faster with zero-config CI/CD pipelines and real-time observability.' },
+                            copy: {
+                                value: 'Our platform helps DevOps teams ship faster with zero-config CI/CD pipelines and real-time observability.',
+                                prompt: {
+                                    enabled: 'on',
+                                    value: 'Describe our DevOps platform in 2 sentences. Focus on speed and reliability.',
+                                },
+                            },
                         }}
                     >
                         <div className="max-w-3xl">
@@ -547,7 +553,7 @@ export default function PromptLivePage() {
                                     { name: 'shorten', description: 'Ask AI to shorten the text', icon: 'minimize-2', handler: (v) => `Shorten to 1 sentence:\n\n${v}` },
                                     { name: 'bulletpoints', description: 'Convert to bullet points', icon: 'list', handler: (v) => `Convert to 3 bullet points:\n\n${v}` },
                                 ]}
-                                defaultValue={{ value: '', enabled: true }}
+                                defaultValue={{ value: 'Describe our DevOps platform in 2 sentences. Focus on speed and reliability.', enabled: true }}
                                 onRunPrompt={executePromptPreview}
                             />
                         </div>
@@ -590,7 +596,7 @@ const COMMANDS: PromptCommand[] = [
                                 mode={PromptMode.RUN}
                                 rows={4}
                                 attachments
-                                defaultValue={{ value: '', enabled: true, value: 'Summarise the attached document.' }}
+                                defaultValue={{ value: 'Summarise the attached document.', enabled: true }}
                                 onRunPrompt={executePromptPreview}
                             />
                         </div>
