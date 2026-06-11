@@ -40,7 +40,7 @@ export const createOpenAICompatibleProviderDefinition = ({
         requiredConfigKeys,
         defaultModel,
         fallbackModels,
-        capabilities: { supportsTemperature: true },
+        capabilities: { supportsTemperature: true, supportsVision: true },
         discoverModels: async (apiKey) => {
             const response = await fetchJson(resolvedModelsUrl, {
                 headers: {
@@ -52,6 +52,17 @@ export const createOpenAICompatibleProviderDefinition = ({
                 : [];
         },
         complete: async (apiKey, request) => {
+            const imageAttachments = (request.attachments ?? []).filter((a) => a.mimeType.startsWith('image/'));
+            const userContent = imageAttachments.length > 0
+                ? [
+                    ...imageAttachments.map((a) => ({
+                        type: 'image_url' as const,
+                        image_url: { url: `data:${a.mimeType};base64,${a.base64}` },
+                    })),
+                    { type: 'text' as const, text: request.prompt },
+                  ]
+                : request.prompt;
+
             const response = await fetchJson(resolvedChatUrl, {
                 method: 'POST',
                 headers: {
@@ -61,7 +72,7 @@ export const createOpenAICompatibleProviderDefinition = ({
                     model: request.model,
                     messages: [
                         ...(request.role ? [{ role: 'system', content: Prompt.parseRole(request.role, request as unknown as import("../../conf/Prompt").PromptVariables) }] : []),
-                        { role: 'user', content: request.prompt },
+                        { role: 'user', content: userContent },
                     ],
                     ...(typeof request.temperature === 'number' ? { temperature: request.temperature } : {}),
                 },

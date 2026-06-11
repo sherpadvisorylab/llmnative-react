@@ -78,6 +78,7 @@ function PromptRunPlaygroundPreview({
                     className={typeof props.className === 'string' ? props.className : undefined}
                     wrapperClassName={typeof props.wrapperClassName === 'string' ? props.wrapperClassName : undefined}
                     variables={variables}
+                    attachments={Boolean(props.attachments)}
                 />
             </Form>
         </AIProvider>
@@ -582,7 +583,7 @@ const COMMANDS: PromptCommand[] = [
             {/* ── Attachments ── */}
             <Section
                 title="Attachments"
-                description="Set attachments to enable the paperclip button in the footer bar. Selected files appear as removable chips above the footer. Files are accessible in onRunPrompt via the data argument."
+                description="Set attachments to enable the paperclip button in the footer bar. Selected files appear as image thumbnails or document cards above the result textarea and can be removed individually."
                 bare
                 preview={(
                     <Form
@@ -610,6 +611,30 @@ const COMMANDS: PromptCommand[] = [
   defaultValue={{ value: 'Summarise the attached document.', enabled: true }}
   onRunPrompt={myRunner}
 />`}
+            />
+
+            {/* ── Multimodal inputs ── */}
+            <Section
+                title="Multimodal inputs"
+                description="When attachments is enabled and a vision-capable provider is selected, attached files are forwarded directly to the AI model alongside the prompt. OpenAI receives images as base64 image_url parts; Anthropic receives images and PDFs as typed source blocks; Gemini accepts images, PDFs, audio and video as inline_data. The model handles extraction and analysis — no server-side pre-processing needed."
+                code={`// Images — OpenAI, Anthropic, Gemini
+// PDFs — Anthropic, Gemini
+// Audio / Video — Gemini
+
+<Prompt
+  name="analysis"
+  label="Document analysis"
+  mode={PromptMode.RUN}
+  attachments
+  defaultValue={{
+    value: 'Analyse the attached file and summarise the key findings.',
+    enabled: true,
+    model: 'anthropic/claude-sonnet-4-6',
+  }}
+/>
+
+// The AIRequestOptions forwarded to onRunPrompt now includes attachments:
+// onRunPrompt(prompt, { model, language, ..., attachments: [{ mimeType, base64, name }] }, data)`}
             />
 
             {/* ── Status items ── */}

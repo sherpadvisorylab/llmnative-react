@@ -58,6 +58,45 @@ export const PROMPT_LIVE_PROPS: PropDef[] = [
         ],
         typeDetails: `Record<string, unknown>`,
     },
+    {
+        name: 'commands',
+        type: 'PromptCommand[]',
+        description: 'Slash commands shown via the / button in the run-mode footer. Selecting a command calls its handler with the current textarea value and replaces it with the returned string.',
+        group: 'Specific',
+        typeDetails: `{
+  name: string;
+  description?: string;
+  icon?: string;
+  handler?: (currentValue: string) => string | Promise<string>;
+}[]`,
+    },
+    {
+        name: 'attachments',
+        type: 'boolean',
+        default: 'false',
+        description: 'Enables the paperclip button in the footer bar. Attached files appear as previews above the result textarea and are forwarded as multimodal inputs to vision-capable AI providers (OpenAI images, Anthropic images + PDFs, Gemini all file types).',
+        control: 'boolean',
+        group: 'Specific',
+    },
+    {
+        name: 'actions',
+        type: 'PromptAction[]',
+        description: 'Custom icon buttons in the run-mode footer bar. A tokenUsage key activates the built-in token usage popup after each run.',
+        group: 'Specific',
+        typeDetails: `{
+  key: string;
+  icon: string;
+  label?: string;
+  content?: ReactNode;
+}[]`,
+    },
+    {
+        name: 'statusItems',
+        type: 'PromptStatusItem[]',
+        description: "Named items shown in the status strip below the footer after each run. Built-in keys: 'tokensIn', 'tokensOut', 'contextPercent', 'model', 'duration'. Custom items accept a { key, render } object.",
+        group: 'Specific',
+        typeDetails: `('tokensIn' | 'tokensOut' | 'contextPercent' | 'model' | 'duration' | { key: string; render: (stats: PromptRunStats) => ReactNode })[]`,
+    },
     { name: 'renderAIUnavailable', type: '({ mode, providerId, reason, configured }) => ReactNode', description: 'Custom inline renderer shown when no AI provider is configured.', group: 'Specific' },
     { name: 'renderFallback', type: '(props) => ReactNode', description: 'Custom renderer shown when prompt mode is disabled (enabled=false) — replaces the default plain textarea.', group: 'Specific' },
 ];
@@ -141,6 +180,7 @@ export const createPromptPlaygroundDefaults = (mode: 'edit' | 'run' | 'plain') =
         return {
             ...base,
             variables: { projectName: 'Atlas Console' },
+            attachments: false,
         };
     }
 

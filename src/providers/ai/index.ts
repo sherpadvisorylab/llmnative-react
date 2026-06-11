@@ -10,7 +10,7 @@ import { OPENCODE_PROVIDER_DEFINITION } from './opencode';
 import { OPENROUTER_PROVIDER_DEFINITION } from './openrouter';
 import { getAIModelCatalog, type AIProviderDefinition, type AIModelCatalog, RuntimeAIProvider } from './shared';
 
-export type { AIProviderAdapter, AIModelDescriptor, AIProviderCapabilities, AIRequestOptions } from './AIProvider';
+export type { AIProviderAdapter, AIModelDescriptor, AIProviderCapabilities, AIRequestOptions, AIAttachment } from './AIProvider';
 export { formatAIModelRef, parseAIModelRef } from './AIProvider';
 export type { AIModelCatalog } from './shared';
 export { getAIModelCatalog } from './shared';

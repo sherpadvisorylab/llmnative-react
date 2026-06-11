@@ -15,6 +15,7 @@ export interface IButton extends MotionUIProps {
     label?: string | React.ReactNode;
     badge?: BadgeProps;
     title?: string;
+    ariaLabel?: string;
     disabled?: boolean;
     loading?: boolean;
     iconClassName?: string;
@@ -69,6 +70,7 @@ export const LoadingButton = ({
     label           = undefined,
     badge           = undefined,
     title           = undefined,
+    ariaLabel       = undefined,
     disabled        = false,
     loading      = false,
     before             = undefined,
@@ -102,6 +104,7 @@ export const LoadingButton = ({
         <button
             type="button"
             title={title}
+            aria-label={ariaLabel}
             className={cn(
                 buttonBaseClass,
                 variant ? resolveButtonVariant(variant) : (className || theme.LoadingButton.className),

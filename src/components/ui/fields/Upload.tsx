@@ -341,7 +341,7 @@ export const UploadDocument = ({
                                         </td>
                                         <td className="px-3 py-2.5 text-muted-foreground text-right whitespace-nowrap w-24">
                                             {file.progress === 100
-                                                ? (file.size / 1024).toFixed(1) + ' KB'
+                                                ? (file.size / 1024).toFixed(2) + ' KB'
                                                 : <Percentage max={100} min={0} value={file.progress} appearance="bar" />
                                             }
                                         </td>
@@ -372,8 +372,8 @@ export const UploadDocument = ({
                                     onClick={handleUpload}
                                     className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
                                 >
-                                    <Icon name="plus" className="w-3.5 h-3.5" />
-                                    Add {multiple ? 'files' : 'file'}
+                                    <Icon name="upload" className="w-3.5 h-3.5" />
+                                    Upload {multiple ? 'more files' : 'file'}
                                 </button>
                             </div>
                         )}

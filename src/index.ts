@@ -144,7 +144,7 @@ export { IconProvider, useIconProvider, useIconController } from './providers/ic
 export type { AppIconProviderConfig, IconController } from './providers/icon/IconProviderContext';
 export { useEmailProvider, EmailProvider } from './providers/email/EmailProviderContext';
 export { GmailEmailProvider } from './providers/email/google/GmailEmailProvider';
-export type { AIRequestOptions, AIProviderAdapter, AIModelDescriptor, AIProviderCapabilities, AIModelCatalog } from './providers/ai';
+export type { AIRequestOptions, AIAttachment, AIProviderAdapter, AIModelDescriptor, AIProviderCapabilities, AIModelCatalog } from './providers/ai';
 export { createAIProviderRegistry, getAIModelCatalog, formatAIModelRef, parseAIModelRef } from './providers/ai';
 export { useAIProvider, useAIProviderRegistry, AIProvider } from './providers/ai/AIProviderContext';
 export { proxyFetch, useProxy, configureProxy } from './providers/proxy';

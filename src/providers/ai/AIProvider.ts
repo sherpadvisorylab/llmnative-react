@@ -12,6 +12,13 @@ export interface AIModelDescriptor {
 export interface AIProviderCapabilities {
     models: AIModelDescriptor[];
     supportsTemperature?: boolean;
+    supportsVision?: boolean;
+}
+
+export interface AIAttachment {
+    mimeType: string;
+    base64: string;
+    name?: string;
 }
 
 export interface AIRequestOptions {
@@ -21,6 +28,7 @@ export interface AIRequestOptions {
     role?: string;
     model?: string;
     temperature?: number;
+    attachments?: AIAttachment[];
 }
 
 export interface AICompleteRequest extends AIRequestOptions {

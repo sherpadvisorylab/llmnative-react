@@ -1,7 +1,7 @@
 ﻿import React, { useEffect, useId, useRef, useState } from 'react';
 import { useTheme } from "../../Theme";
 import { Prompt as PromptConf, PromptVariables, PROMPT_CLEANUP, PROMPT_NO_REFERENCE } from '../../conf/Prompt';
-import { type AIProviderCapabilities, type AIProviderAdapter, type AIRequestOptions, parseAIModelRef, formatAIModelRef } from '../../providers/ai/AIProvider';
+import { type AIProviderCapabilities, type AIProviderAdapter, type AIRequestOptions, type AIAttachment, parseAIModelRef, formatAIModelRef } from '../../providers/ai/AIProvider';
 import { useAIProvider, useAIProviderRegistry } from '../../providers/ai/AIProviderContext';
 import { getAIModelCatalog } from '../../providers/ai/shared';
 import { RecordProps } from '../../providers/data/DataProvider';
@@ -461,7 +461,24 @@ const PromptRun = ({
         const startMs = Date.now();
         try {
             const mergedData = { ...(record as PromptVariables), ...variables };
-            const result = await runPrompt(value?.prompt as PromptOptions, mergedData, onRunPrompt, resolvedProvider);
+            const fileAttachments = await Promise.all(
+                attachedFiles.map(({ file }) => new Promise<AIAttachment>((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        const dataUrl = reader.result as string;
+                        resolve({ mimeType: file.type || 'application/octet-stream', base64: dataUrl.split(',')[1], name: file.name });
+                    };
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                }))
+            );
+            const result = await runPrompt(
+                value?.prompt as PromptOptions,
+                mergedData,
+                onRunPrompt,
+                resolvedProvider,
+                fileAttachments.length > 0 ? fileAttachments : undefined,
+            );
             const durationMs = Date.now() - startMs;
             setRunError(null);
             handleChange?.({ target: { name: name + ".value", value: result } });
@@ -781,6 +798,7 @@ const PromptRun = ({
                                     icon="send"
                                     loadingLabel=""
                                     disabled={runDisabled}
+                                    ariaLabel="Run prompt"
                                     title={runTitle ?? "Run prompt"}
                                     variant="primary"
                                     className="!p-0 h-8 w-8"
@@ -872,12 +890,13 @@ export const runPrompt = async (
     options: PromptOptions,
     data?: PromptVariables,
     onRunPrompt?: OnRunPrompt,
-    provider?: AIProviderAdapter
+    provider?: AIProviderAdapter,
+    attachments?: AIAttachment[],
 ): Promise<string> => {
     const { value: promptText, model: modelRef, ...requestOptions } = options ?? {};
 
     if (onRunPrompt) {
-        return onRunPrompt(promptText, { ...requestOptions, model: modelRef }, data);
+        return onRunPrompt(promptText, { ...requestOptions, model: modelRef, attachments }, data);
     }
 
     if (!promptText) return '';
@@ -893,6 +912,7 @@ export const runPrompt = async (
         model,
         prompt: [PROMPT_CLEANUP, promptText, PROMPT_NO_REFERENCE].join('\n'),
         data,
+        attachments,
     });
 
     if (typeof response !== 'string' || !response.trim()) {

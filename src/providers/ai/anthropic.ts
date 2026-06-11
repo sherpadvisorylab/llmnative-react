@@ -13,7 +13,7 @@ export const ANTHROPIC_PROVIDER_DEFINITION: AIProviderDefinition = {
     configKey: 'anthropicApiKey',
     defaultModel: 'claude-sonnet-4-0',
     fallbackModels: ['claude-sonnet-4-0', 'claude-opus-4-1', 'claude-3-7-sonnet-latest'],
-    capabilities: { supportsTemperature: true },
+    capabilities: { supportsTemperature: true, supportsVision: true },
     discoverModels: async (apiKey) => {
         const response = await fetchJson(ANTHROPIC_MODELS_URL, {
             headers: {
@@ -26,6 +26,17 @@ export const ANTHROPIC_PROVIDER_DEFINITION: AIProviderDefinition = {
             : [];
     },
     complete: async (apiKey, request) => {
+        const attachments = request.attachments ?? [];
+        const userContent = attachments.length > 0
+            ? [
+                ...attachments.map((a) => a.mimeType.startsWith('image/')
+                    ? { type: 'image', source: { type: 'base64', media_type: a.mimeType, data: a.base64 } }
+                    : { type: 'document', source: { type: 'base64', media_type: a.mimeType, data: a.base64 } }
+                ),
+                { type: 'text', text: request.prompt },
+              ]
+            : request.prompt;
+
         const response = await fetchJson(ANTHROPIC_MESSAGES_URL, {
             method: 'POST',
             headers: {
@@ -36,7 +47,7 @@ export const ANTHROPIC_PROVIDER_DEFINITION: AIProviderDefinition = {
                 model: request.model,
                 max_tokens: 4096,
                 ...(request.role ? { system: Prompt.parseRole(request.role, request as unknown as import("../../conf/Prompt").PromptVariables) } : {}),
-                messages: [{ role: 'user', content: request.prompt }],
+                messages: [{ role: 'user', content: userContent }],
                 ...(typeof request.temperature === 'number' ? { temperature: request.temperature } : {}),
             },
         }, proxyFetch);
