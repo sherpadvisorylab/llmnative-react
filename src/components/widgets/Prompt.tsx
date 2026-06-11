@@ -384,7 +384,7 @@ const PromptEditor = ({
 };
 
 const promptTextareaClass = "border-0 shadow-none rounded-none focus-visible:ring-0 resize-none";
-const promptGhostIcon = "h-7 w-7 rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground";
+const promptGhostIcon = "h-7 w-7 cursor-pointer rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground";
 const promptModelTrigger = "h-7 max-w-[140px] rounded-md px-2 text-xs gap-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground truncate";
 
 const PromptRun = ({
@@ -413,7 +413,6 @@ const PromptRun = ({
     const [editing, setEditing] = useState(false);
     const [templateText, setTemplateText] = useState(defaultValue?.value ?? '');
     const [previewOpen, setPreviewOpen] = useState(false);
-    const [cmdQuery, setCmdQuery] = useState<string | null>(null);
     const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
     const [runStats, setRunStats] = useState<PromptRunStats | null>(null);
     const attachInputRef = useRef<HTMLInputElement>(null);
@@ -488,14 +487,7 @@ const PromptRun = ({
         return '';
     };
 
-    const filteredCommands = React.useMemo(() => {
-        if (!commands?.length || cmdQuery === null) return [];
-        const q = cmdQuery.toLowerCase();
-        return commands.filter((c) => !q || c.name.toLowerCase().startsWith(q) || c.description?.toLowerCase().includes(q));
-    }, [commands, cmdQuery]);
-
     const applyCommand = React.useCallback(async (cmd: PromptCommand) => {
-        setCmdQuery(null);
         if (!cmd.handler) return;
         const current = getResultValue();
         const newValue = await cmd.handler(current);
@@ -555,11 +547,6 @@ const PromptRun = ({
                                 <TextArea
                                     name={name + ".value"}
                                     onChange={(params) => {
-                                        if (commands?.length) {
-                                            const val = String(params.event.target.value ?? '');
-                                            const match = /^\/(\w*)$/.exec(val.trim());
-                                            setCmdQuery(match ? match[1] : null);
-                                        }
                                         onChange?.(params);
                                     }}
                                     required={required}
@@ -608,26 +595,6 @@ const PromptRun = ({
 
                         <div className="relative flex items-center gap-1 border-t border-input px-2 py-1 rounded-b-xl">
 
-                            {/* Slash command popover — absolute above footer */}
-                            {!editing && filteredCommands.length > 0 && (
-                                <div className="absolute bottom-full left-0 right-0 z-20 mb-1 overflow-hidden rounded-lg border border-input bg-popover shadow-lg">
-                                    {filteredCommands.map((cmd) => (
-                                        <button
-                                            key={cmd.name}
-                                            type="button"
-                                            className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground"
-                                            onClick={() => applyCommand(cmd)}
-                                        >
-                                            {cmd.icon && <Icon name={cmd.icon} size={14} className="shrink-0 text-muted-foreground" />}
-                                            <span className="font-medium">/{cmd.name}</span>
-                                            {cmd.description && (
-                                                <span className="ml-1 text-xs text-muted-foreground">{cmd.description}</span>
-                                            )}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-
                             {/* Run-mode left: custom items (attachments + actions) + separator if any */}
                             {!editing && (attachments || (actions?.length ?? 0) > 0) && (
                                 <>
@@ -650,15 +617,19 @@ const PromptRun = ({
                                                 position="start"
                                                 triggerClassName={promptGhostIcon}
                                             >
-                                                {action.key === 'tokenUsage' && runStats ? (
-                                                    <div className="px-3 py-2 text-xs space-y-1">
-                                                        <p className="font-medium text-foreground">Token usage</p>
-                                                        <p className="text-muted-foreground">Input: {runStats.tokensIn} tok</p>
-                                                        <p className="text-muted-foreground">Output: {runStats.tokensOut} tok</p>
-                                                        {runStats.contextPercent !== null && <p className="text-muted-foreground">Context: {runStats.contextPercent.toFixed(1)}%</p>}
-                                                        {runStats.estimatedCost !== null && <p className="text-muted-foreground">Cost: ~${runStats.estimatedCost.toFixed(5)}</p>}
-                                                        <p className="text-muted-foreground">Time: {(runStats.durationMs / 1000).toFixed(1)}s</p>
-                                                    </div>
+                                                {action.key === 'tokenUsage' ? (
+                                                    runStats ? (
+                                                        <div className="px-3 py-2 text-xs space-y-1">
+                                                            <p className="font-medium text-foreground">Token usage</p>
+                                                            <p className="text-muted-foreground">Input: {runStats.tokensIn} tok</p>
+                                                            <p className="text-muted-foreground">Output: {runStats.tokensOut} tok</p>
+                                                            {runStats.contextPercent !== null && <p className="text-muted-foreground">Context: {runStats.contextPercent.toFixed(1)}%</p>}
+                                                            {runStats.estimatedCost !== null && <p className="text-muted-foreground">Cost: ~${runStats.estimatedCost.toFixed(5)}</p>}
+                                                            <p className="text-muted-foreground">Time: {(runStats.durationMs / 1000).toFixed(1)}s</p>
+                                                        </div>
+                                                    ) : (
+                                                        <p className="px-3 py-2 text-xs text-muted-foreground">Run the prompt to see token usage.</p>
+                                                    )
                                                 ) : action.content}
                                             </Dropdown>
                                         ) : (
@@ -752,16 +723,27 @@ const PromptRun = ({
                                 </span>
                             )}
 
-                            {/* Slash command toggle — right side, shown only when no error and commands configured */}
+                            {/* Slash command dropdown — right side, shown only when no error and commands configured */}
                             {!editing && !runError && availability.configured && commands && commands.length > 0 && (
-                                <button
-                                    type="button"
-                                    title="Slash commands"
-                                    className={`${promptGhostIcon} flex items-center justify-center ${cmdQuery !== null ? "bg-muted text-foreground" : ""}`}
-                                    onClick={() => setCmdQuery((q) => q === null ? '' : null)}
+                                <Dropdown
+                                    trigger={{ icon: 'slash', title: 'Commands' }}
+                                    placement="top"
+                                    position="end"
+                                    triggerClassName={`${promptGhostIcon} flex items-center justify-center`}
                                 >
-                                    <Icon name="slash" size={13} />
-                                </button>
+                                    {commands.map((cmd) => (
+                                        <DropdownItem
+                                            key={cmd.name}
+                                            icon={cmd.icon}
+                                            onClick={() => applyCommand(cmd)}
+                                        >
+                                            <span className="font-medium">/{cmd.name}</span>
+                                            {cmd.description && (
+                                                <span className="ml-2 text-xs text-muted-foreground">{cmd.description}</span>
+                                            )}
+                                        </DropdownItem>
+                                    ))}
+                                </Dropdown>
                             )}
 
                             {/* Preview toggle — only in edit mode when variables produce substitutions */}
