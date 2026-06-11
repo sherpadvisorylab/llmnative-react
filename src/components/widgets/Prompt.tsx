@@ -628,8 +628,8 @@ const PromptRun = ({
                                 </div>
                             )}
 
-                            {/* Run-mode left buttons: attachments + custom actions */}
-                            {!editing && (
+                            {/* Run-mode left: custom items (attachments + actions) + separator if any */}
+                            {!editing && (attachments || (actions?.length ?? 0) > 0) && (
                                 <>
                                     {attachments && (
                                         <button
@@ -672,12 +672,14 @@ const PromptRun = ({
                                             </button>
                                         )
                                     )}
+                                    <div className="mx-1 h-4 w-px shrink-0 bg-border" />
                                 </>
                             )}
 
-                            {editing && (
+                            {/* Run-mode settings: model / role / language / voice / style / temperature */}
+                            {!editing && (
                                 <>
-                                    {/* Model — list items directly */}
+                                    {/* Model */}
                                     <Dropdown
                                         trigger={{ icon: "cpu", text: modelLabel ?? "Model" }}
                                         placement="top"
@@ -726,7 +728,7 @@ const PromptRun = ({
                                         ))}
                                     </Dropdown>
 
-                                    {/* Temperature — range slider, kept inline */}
+                                    {/* Temperature */}
                                     {supportsTemperature && (
                                         <Dropdown trigger={{ icon: "thermometer", title: "Temperature" }} placement="top" position="start" triggerClassName={promptGhostIcon}>
                                             <DropdownItem>
@@ -737,11 +739,8 @@ const PromptRun = ({
                                 </>
                             )}
 
-                            {/* Separator (run + custom left items) or flex-1 spacer (everything else) */}
-                            {!editing && (attachments || (actions?.length ?? 0) > 0)
-                                ? <div className="mx-1 h-4 w-px shrink-0 bg-border" />
-                                : <div className="flex-1" />
-                            }
+                            {/* Spacer — always pushes right-side items to the far right */}
+                            <div className="flex-1" />
 
                             {/* Availability / run-error notice — right side, replaces slash button when present */}
                             {!editing && (runError || !availability.configured) && (
