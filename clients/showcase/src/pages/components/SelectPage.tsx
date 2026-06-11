@@ -34,38 +34,39 @@ const SELECT_PROPS: PropDef[] = [
   { label: 'Editor', value: 'editor' },
 ]}` },
     {
-        name: 'db',
+        name: 'optionsSource',
         type: 'SelectDbConfig',
         description: 'DataProvider path used to fetch options',
         typeDetails: `{
   path?: string;
   fieldMap?: Record<string, string>;
   where?: Record<string, unknown>;
-  order?: { field: string; dir: 'asc' | 'desc' };
+  order?: { [field: string]: 'asc' | 'desc' };
 }`,
-        example: `db={{
+        example: `optionsSource={{
   path: '/showcase/categories',
   fieldMap: { label: 'name', value: '_key' },
   where: { active: true },
-  order: { field: 'label', dir: 'asc' },
+  order: { label: 'asc' },
 }}`,
         control: 'text',
         readOnly: true,
         help: 'This playground uses a MockDataProvider. Edit the records in Mock database below to change the options returned by this path.',
     },
-    { name: 'optionEmpty', type: 'Option | null', description: 'Placeholder option shown when nothing is selected; set to null to hide it', control: 'json', rows: 3, shortcuts: [
+    { name: 'placeholderOption', type: 'Option | null', description: 'Placeholder option shown when nothing is selected; set to null to hide it', control: 'json', rows: 3, shortcuts: [
         { label: 'default', value: { label: 'Select...', value: '' }, help: 'Default empty option.' },
         { label: 'choose', value: { label: 'Choose a role', value: '' }, help: 'Custom placeholder text.' },
         { label: 'null', value: null, help: 'Hide the empty option.' },
     ], typeDetails: `{
   label: string;
   value: string;
-} | null`, example: `optionEmpty={{ label: 'Select...', value: '' }}` },
+} | null`, example: `placeholderOption={{ label: 'Select...', value: '' }}` },
     { name: 'required', type: 'boolean', default: 'false', description: 'Marks field as required', control: 'boolean' },
     { name: 'disabled', type: 'boolean', default: 'false', description: 'Disables the select', control: 'boolean' },
-    { name: 'updatable', type: 'boolean', default: 'true', description: 'When false, an existing value locks the select', control: 'boolean' },
+    { name: 'readOnlyAfterSet', type: 'boolean', default: 'false', description: 'Field becomes read-only (disabled) once a value has been set', control: 'boolean' },
     { name: 'defaultValue', type: 'any', description: 'Initial selected value', control: 'text' },
     { name: 'feedback', type: 'string', description: 'Validation feedback message shown below the field', control: 'text' },
+    { name: 'validator', type: '(value: FieldValue) => string | undefined', description: 'Custom validation function; return an error string to block submission, undefined to pass' },
     { name: 'order', type: 'OrderConfig', description: 'Sort order for options (default: label asc)', control: 'json', rows: 4, shortcuts: [
         { label: 'label asc', value: { field: 'label', dir: 'asc' }, help: 'Sort by label ascending.' },
         { label: 'label desc', value: { field: 'label', dir: 'desc' }, help: 'Sort by label descending.' },
@@ -98,21 +99,21 @@ const PLAYGROUND: PlaygroundConfig = {
         title: 'Choose a category',
         options: ROLES,
         optionsSource: '/showcase/categories',
-        optionEmpty: {
+        placeholderOption: {
             label: 'Select...',
             value: '',
         },
         required: false,
         disabled: false,
-        updatable: true,
+        readOnlyAfterSet: false,
         defaultValue: '',
         feedback: '',
         order: {
             field: 'label',
             dir: 'asc',
         },
-        pre: '',
-        post: '',
+        before: '',
+        after: '',
         className: '',
         wrapperClassName: '',
     },
@@ -123,16 +124,16 @@ const PLAYGROUND: PlaygroundConfig = {
                 label={p.label}
                 title={p.title || undefined}
                 options={Array.isArray(p.options) ? p.options : []}
-                optionsSource={typeof p.optionsSource === 'string' && p.optionsSource ? { path: p.db } : (p.optionsSource && typeof p.optionsSource === 'object' ? p.optionsSource : undefined)}
-                optionEmpty={p.optionEmpty === null ? null : (p.optionEmpty || undefined)}
+                optionsSource={typeof p.optionsSource === 'string' && p.optionsSource ? { path: p.optionsSource } : (p.optionsSource && typeof p.optionsSource === 'object' ? p.optionsSource : undefined)}
+                placeholderOption={p.placeholderOption === null ? null : (p.placeholderOption || undefined)}
                 required={p.required}
                 disabled={p.disabled}
-                updatable={p.updatable}
+                readOnlyAfterSet={p.readOnlyAfterSet}
                 defaultValue={p.defaultValue || undefined}
                 feedback={p.feedback || undefined}
                 order={p.order && typeof p.order === 'object' ? p.order : undefined}
-                before={p.pre || undefined}
-                after={p.post || undefined}
+                before={p.before || undefined}
+                after={p.after || undefined}
                 className={p.className || undefined}
                 wrapperClassName={p.wrapperClassName || undefined}
             />
@@ -185,7 +186,7 @@ const ROLES = [
 
             <Section bare
                 title="DataProvider-backed"
-                description="Pass a db prop instead of options to fetch from the registered DataProvider at runtime."
+                description="Pass an optionsSource prop instead of options to fetch from the registered DataProvider at runtime."
                 preview={
                     <div className="w-full max-w-md">
                         <Form appearance="empty">

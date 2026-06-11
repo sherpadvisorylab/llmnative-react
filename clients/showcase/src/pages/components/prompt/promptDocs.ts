@@ -28,11 +28,12 @@ export const PROMPT_SHARED_PROPS: PropDef[] = [
 }`,
     },
     { name: 'rows', type: 'number', description: 'Textarea rows', control: 'number', min: 2, max: 14, group: 'Shared' },
-    { name: 'pre', type: 'ReactNode', description: 'Content rendered before the prompt block', control: 'text', group: 'Shared' },
-    { name: 'post', type: 'ReactNode', description: 'Content rendered after the prompt block', control: 'text', group: 'Shared' },
+    { name: 'before', type: 'ReactNode', description: 'Content rendered before the prompt block', control: 'text', group: 'Shared' },
+    { name: 'after', type: 'ReactNode', description: 'Content rendered after the prompt block', control: 'text', group: 'Shared' },
     { name: 'onChange', type: 'FieldOnChange', description: 'Custom change handler called by Form context', group: 'Shared' },
     { name: 'className', type: 'string', description: 'CSS classes passed to the active textarea', control: 'text', group: 'Shared' },
-    { name: 'wrapClass', type: 'string', description: 'CSS classes passed to the outer wrapper', control: 'text', group: 'Shared' },
+    { name: 'wrapperClassName', type: 'string', description: 'CSS classes passed to the outer wrapper', control: 'text', group: 'Shared' },
+    { name: 'inheritWrapperClassName', type: 'boolean', default: 'true', description: 'When true the field inherits the wrapperClassName from the parent Form context', control: 'boolean', group: 'Shared' },
 ];
 
 export const PROMPT_EDITOR_PROPS: PropDef[] = [
@@ -77,10 +78,10 @@ export const createPromptPlaygroundDefaults = (mode: 'edit' | 'run' | 'plain') =
         label: mode === 'edit' ? 'Summary prompt' : mode === 'plain' ? 'Summary' : 'AI summary',
         required: false,
         rows: mode === 'plain' ? 4 : 6,
-        pre: '',
-        post: '',
+        before: '',
+        after: '',
         className: '',
-        wrapClass: '',
+        wrapperClassName: '',
     };
 
     if (mode === 'plain') {

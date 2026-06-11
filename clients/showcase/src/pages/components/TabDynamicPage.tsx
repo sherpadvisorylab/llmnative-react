@@ -13,8 +13,8 @@ const TAB_DYNAMIC_PROPS: PropDef[] = [
     { name: 'onAdd', type: '(value: any[]) => void', description: 'Called after adding a tab' },
     { name: 'onRemove', type: '(index: number) => void', description: 'Called after removing a tab' },
     { name: 'label', type: 'string', default: '"Tab"', description: 'Tab label prefix or converter template', control: 'text' },
-    { name: 'minItems', type: 'number', default: '1', description: 'Minimum number of tabs', control: 'number', min: 0, max: 5 },
-    { name: 'maxItems', type: 'number', description: 'Maximum number of tabs', control: 'number', min: 1, max: 8 },
+    { name: 'min', type: 'number', default: '1', description: 'Minimum number of tabs', control: 'number', min: 0, max: 5 },
+    { name: 'max', type: 'number', description: 'Maximum number of tabs', control: 'number', min: 1, max: 8 },
     { name: 'activeIndex', type: 'number', default: '0', description: 'Initial active tab', control: 'number', min: 0, max: 4 },
     { name: 'title', type: 'string', description: 'Heading above the tabs', control: 'text' },
     { name: 'readOnly', type: 'boolean', default: 'false', description: 'Hides add/remove actions', control: 'boolean' },
@@ -27,8 +27,8 @@ const PLAYGROUND: PlaygroundConfig = {
     defaultProps: {
         name: 'sections',
         label: 'Section',
-        minItems: 1,
-        maxItems: 4,
+        min: 1,
+        max: 4,
         activeIndex: 0,
         title: 'Dynamic sections',
         readOnly: false,
@@ -39,8 +39,8 @@ const PLAYGROUND: PlaygroundConfig = {
             <TabDynamic
                 name={p.name || 'sections'}
                 label={p.label || 'Section'}
-                minItems={p.minItems}
-                maxItems={p.maxItems}
+                min={p.min}
+                max={p.max}
                 activeIndex={p.activeIndex}
                 title={p.title || undefined}
                 readOnly={p.readOnly}

@@ -14,17 +14,17 @@ const LIST_GROUP_PROPS: PropDef[] = [
     { name: 'onClick', type: '(event, index) => void', description: 'Enables clickable list items' },
     { name: 'draggable', type: 'boolean', default: 'false', description: 'Makes items draggable', control: 'boolean' },
     { name: 'onDrop', type: '(text: string) => string', description: 'Transforms dragged text before it is placed on dataTransfer' },
-    { name: 'actives', type: 'number[]', description: 'Indexes rendered as active', control: 'json', rows: 3, shortcuts: [
+    { name: 'activeIndices', type: 'number[]', description: 'Indexes rendered as active', control: 'json', rows: 3, shortcuts: [
         { label: 'none', value: [], help: 'No active items.' },
         { label: 'first', value: [0], help: 'First item active.' },
         { label: 'multi', value: [1, 2], help: 'Multiple active items.' },
     ] },
-    { name: 'disables', type: 'number[]', description: 'Indexes rendered as disabled', control: 'json', rows: 3, shortcuts: [
+    { name: 'disabledIndices', type: 'number[]', description: 'Indexes rendered as disabled', control: 'json', rows: 3, shortcuts: [
         { label: 'none', value: [], help: 'No disabled items.' },
         { label: 'last', value: [3], help: 'Disable the last item.' },
         { label: 'mixed', value: [0, 3], help: 'Disable first and last items.' },
     ] },
-    { name: 'loaders', type: 'number[]', description: 'Indexes rendered as loading', control: 'json', rows: 3, shortcuts: [
+    { name: 'loadingIndices', type: 'number[]', description: 'Indexes rendered as loading', control: 'json', rows: 3, shortcuts: [
         { label: 'none', value: [], help: 'No loading state.' },
         { label: 'single', value: [1], help: 'Second item loading.' },
         { label: 'multi', value: [1, 2], help: 'Multiple loading items.' },
@@ -33,7 +33,7 @@ const LIST_GROUP_PROPS: PropDef[] = [
     { name: 'after', type: 'ReactNode', description: 'Content after the list', control: 'text' },
     { name: 'className', type: 'string', description: 'CSS classes on list-group', control: 'text' },
     { name: 'wrapperClassName', type: 'string', description: 'CSS classes on wrapper', control: 'text' },
-    { name: 'itemClass', type: 'string', description: 'CSS classes on each item', control: 'text' },
+    { name: 'itemClassName', type: 'string', description: 'CSS classes on each item', control: 'text' },
 ];
 
 const PLAYGROUND: PlaygroundConfig = {
@@ -41,27 +41,27 @@ const PLAYGROUND: PlaygroundConfig = {
     defaultProps: {
         label: 'Workflow',
         draggable: false,
-        actives: [1],
-        disables: [3],
-        loaders: [],
-        pre: '',
-        post: '',
+        activeIndices: [1],
+        disabledIndices: [3],
+        loadingIndices: [],
+        before: '',
+        after: '',
         className: '',
         wrapperClassName: '',
-        itemClass: '',
+        itemClassName: '',
     },
     render: (p) => (
         <ListGroup
             label={p.label || undefined}
             draggable={p.draggable}
-            actives={Array.isArray(p.actives) ? p.actives : []}
-            disables={Array.isArray(p.disables) ? p.disables : []}
-            loaders={Array.isArray(p.loaders) ? p.loaders : []}
-            before={p.pre || undefined}
-            after={p.post || undefined}
+            activeIndices={Array.isArray(p.activeIndices) ? p.activeIndices : []}
+            disabledIndices={Array.isArray(p.disabledIndices) ? p.disabledIndices : []}
+            loadingIndices={Array.isArray(p.loadingIndices) ? p.loadingIndices : []}
+            before={p.before || undefined}
+            after={p.after || undefined}
             className={p.className || undefined}
             wrapperClassName={p.wrapperClassName || undefined}
-            itemClass={p.itemClass || undefined}
+            itemClassName={p.itemClassName || undefined}
         >
             {ITEMS}
         </ListGroup>
@@ -76,7 +76,7 @@ export default function ListGroupPage() {
             <Section
                 title="Status list"
                 preview={
-                    <ListGroup label="Workflow" actives={[1]}>
+                    <ListGroup label="Workflow" activeIndices={[1]}>
                         {[
                             <span>Backlog <Badge variant="secondary">12</Badge></span>,
                             <span>In progress <Badge variant="primary">4</Badge></span>,
@@ -86,7 +86,7 @@ export default function ListGroupPage() {
                 }
                 code={`import { Badge, ListGroup } from '@llmnative/react';
 
-<ListGroup label="Workflow" actives={[1]}>
+<ListGroup label="Workflow" activeIndices={[1]}>
     {[
         <span>Backlog <Badge variant="secondary">12</Badge></span>,
         <span>In progress <Badge variant="primary">4</Badge></span>,

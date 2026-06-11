@@ -42,11 +42,11 @@ function makeSamplePng(): string {
 }
 
 const PROPS_CONFIG: PropDef[] = [
-    { name: 'imageUrl', type: 'string', required: true, description: 'URL or data URL of the image to edit.' },
-    { name: 'title', type: 'string', description: 'Title shown in the modal header (only when modal=true).', default: '"Image Editor"' },
+    { name: 'src', type: 'string', required: true, description: 'URL or data URL of the image to edit.' },
+    { name: 'title', type: 'string', description: 'Title shown in the modal header (only when mode="modal").', default: '"Image Editor"' },
     { name: 'width', type: 'number', description: 'Max CSS width of the canvas in pixels.', default: '700' },
     { name: 'height', type: 'number', description: 'Max CSS height of the canvas in pixels.', default: '500' },
-    { name: 'modal', type: 'boolean', description: 'Render inside a modal overlay instead of inline.', default: 'false' },
+    { name: 'mode', type: '"modal" | "inline"', description: 'Render inside a modal overlay ("modal") or inline on the page ("inline").', default: '"inline"' },
     { name: 'onImageLoad', type: '() => void', description: 'Callback fired when the image finishes loading into the editor.' },
     { name: 'onClose', type: '() => void', description: 'Callback fired when the user closes the modal (modal=true only).' },
     { name: 'onSave', type: '(dataUrl: string) => void | Promise<void>', description: 'Callback fired when the user clicks Save. Receives the edited image as a data URL.' },
@@ -98,7 +98,7 @@ export default function ImageEditorPage() {
 
             <Section
                 title="Modal editor"
-                description="Pass modal to open the editor in a full-screen overlay. The title and toolbar are merged into a single clean header row. onClose is called when the user dismisses it."
+                description='Pass mode="modal" to open the editor in a full-screen overlay. The title and toolbar are merged into a single clean header row. onClose is called when the user dismisses it.'
                 preview={
                     <div className="w-full">
                         <button
@@ -111,7 +111,7 @@ export default function ImageEditorPage() {
                             <ImageEditor
                                 src={sampleImage}
                                 title="Edit photo"
-                                modal
+                                mode="modal"
                                 width={700}
                                 height={480}
                                 onClose={() => setModalOpen(false)}
@@ -144,7 +144,7 @@ const [open, setOpen] = useState(false);
   <ImageEditor
     src={imageUrl}
     title="Edit photo"
-    modal
+    mode="modal"
     width={700}
     height={480}
     onClose={() => setOpen(false)}

@@ -16,8 +16,8 @@ const BRAND_PROPS: PropDef[] = [
     { name: 'height', type: 'number', default: '36', description: 'Logo height', control: 'number', min: 16, max: 160 },
     { name: 'wrapperClassName', type: 'string', description: 'CSS classes on wrapper', control: 'text' },
     { name: 'className', type: 'string', description: 'CSS classes on brand container', control: 'text' },
-    { name: 'logoClass', type: 'string', description: 'CSS classes on link/span around logo', control: 'text' },
-    { name: 'labelClass', type: 'string', description: 'CSS classes on label text', control: 'text' },
+    { name: 'logoClassName', type: 'string', description: 'CSS classes on link/span around logo', control: 'text' },
+    { name: 'labelClassName', type: 'string', description: 'CSS classes on label text', control: 'text' },
 ];
 
 const PLAYGROUND: PlaygroundConfig = {
@@ -30,8 +30,8 @@ const PLAYGROUND: PlaygroundConfig = {
         height: 32,
         wrapperClassName: '',
         className: 'flex items-center',
-        logoClass: 'inline-flex items-center gap-2 text-foreground no-underline',
-        labelClass: 'font-semibold',
+        logoClassName: 'inline-flex items-center gap-2 text-foreground no-underline',
+        labelClassName: 'font-semibold',
     },
     render: (p) => <Brand {...p} />,
 };

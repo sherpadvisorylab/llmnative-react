@@ -11,12 +11,18 @@ const ITEMS = Array.from({ length: 50 }, (_, i) => ({ id: i + 1, label: `Record 
 const PROPS_CONFIG: PropDef[] = [
     { name: 'records', type: 'T[]', required: true, description: 'Full dataset to paginate' },
     { name: 'children', type: '(records: T[], offset: number) => ReactNode', required: true, description: 'Render function receiving current page records and offset' },
+    { name: 'page', type: 'number', default: '1', description: 'Initial active page (1-based). Passed once at mount; internal state drives subsequent navigation.' },
     { name: 'limit', type: 'number', default: 'records.length', description: 'Number of items per page', control: 'number', min: 1, step: 1 },
     { name: 'maxPageButtons', type: 'number', default: '5', description: 'Max number of visible page buttons', control: 'number', min: 3, max: 10 },
     { name: 'sticky', type: 'boolean', default: 'true', description: 'Fix pagination bar at viewport bottom', control: 'boolean' },
     { name: 'align', type: '"start" | "center" | "end"', default: '"end"', description: 'Horizontal alignment of the pagination controls', control: 'select', options: ['start', 'center', 'end'] },
     { name: 'scrollToTopOnChange', type: 'boolean', default: 'false', description: 'Scroll to top of page when page changes', control: 'boolean' },
+    { name: 'scrollBehavior', type: 'ScrollBehavior', description: 'scrollIntoView behavior used when scrollToTopOnChange is enabled', control: 'select', options: ['auto', 'smooth', 'instant'] },
     { name: 'appendTo', type: 'HTMLElement | null', description: 'Portal target for the pagination bar' },
+    { name: 'before', type: 'ReactNode', description: 'Content rendered inside the pagination wrapper, before the page-button nav bar' },
+    { name: 'after', type: 'ReactNode', description: 'Content rendered inside the pagination wrapper, after the page-button nav bar' },
+    { name: 'wrapperClassName', type: 'string', description: 'CSS classes applied to the outermost wrapper element', control: 'text' },
+    { name: 'className', type: 'string', description: 'CSS classes applied to the nav element containing the page buttons', control: 'text' },
 ];
 
 const PLAYGROUND: PlaygroundConfig = {

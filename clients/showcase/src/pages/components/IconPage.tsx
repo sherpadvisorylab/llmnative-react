@@ -47,7 +47,7 @@ function resolveProvider(name: string | undefined): IconProviderAdapter | undefi
 // ─── playground ───────────────────────────────────────────────────────────────
 
 const ICON_PROPS: PropDef[] = [
-    { name: 'name',      type: 'string',              required: true,  description: 'Icon name resolved by the active icon provider', control: 'select', options: COMMON_ICONS },
+    { name: 'name',      type: 'string',              description: 'Icon name resolved by the active icon provider', control: 'select', options: COMMON_ICONS },
     { name: 'size',      type: 'number',              default: '16',   description: 'Rendered size in pixels', control: 'number', min: 8, max: 64 },
     { name: 'className', type: 'string',              default: '-',    description: 'Tailwind / CSS classes - use text-* for color', control: 'text', suggestions: [
         'text-foreground', 'text-primary', 'text-success', 'text-warning', 'text-danger', 'text-muted-foreground',
@@ -56,8 +56,8 @@ const ICON_PROPS: PropDef[] = [
         'opacity-50', 'opacity-75',
     ]},
     { name: 'style',     type: 'React.CSSProperties', default: '-',    description: 'Inline style object' },
-    { name: 'provider',  type: 'string',              default: '-',    description: 'Override the global provider for this instance only', control: 'text', suggestions: ['lucide', 'phosphor'], placeholder: 'lucide / phosphor' },
-    { name: 'weight',    type: 'PhosphorWeight',      default: '-',    description: 'Provider-specific variant (Phosphor only). Overrides the provider default.', control: 'select', options: ['', 'thin', 'light', 'regular', 'bold', 'fill', 'duotone'] },
+    { name: 'provider',  type: 'IconProviderAdapter',  default: '-',    description: 'Override the global provider for this instance only. In the playground, type "lucide" or "phosphor" to switch.', control: 'text', suggestions: ['lucide', 'phosphor'], placeholder: 'lucide / phosphor' },
+    { name: 'weight',    type: 'string',              default: '-',    description: 'Provider-specific variant (Phosphor only). Overrides the provider default.', control: 'select', options: ['', 'thin', 'light', 'regular', 'bold', 'fill', 'duotone'] },
     { name: 'label',     type: 'string',              default: '-',    description: 'Accessible label - sets aria-label; omit for decorative icons (aria-hidden)' },
 ];
 

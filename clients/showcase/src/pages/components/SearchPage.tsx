@@ -7,7 +7,7 @@ import { usePlayground } from '../../docs-kit/playground';
 import type { PropDef, PlaygroundConfig } from '../../docs-kit/playground';
 
 const SEARCH_PROPS: PropDef[] = [
-    { name: 'handleSearch', type: '(event: ChangeEvent<HTMLInputElement>) => void', description: 'Called when the hidden search input changes' },
+    { name: 'onQueryChange', type: '(event: ChangeEvent<HTMLInputElement>) => void', description: 'Called when the hidden search input changes' },
 ];
 
 const PLAYGROUND: PlaygroundConfig = {
@@ -26,7 +26,7 @@ export default function SearchPage() {
                 preview={<Search />}
                 code={`import { Search } from '@llmnative/react';
 
-<Search handleSearch={(event) => console.log(event.target.value)} />`}
+<Search onQueryChange={(event) => console.log(event.target.value)} />`}
             />
 
             <PropDocsTable props={SEARCH_PROPS} />

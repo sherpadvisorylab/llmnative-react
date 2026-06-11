@@ -20,6 +20,9 @@ const TAB_PROPS: PropDef[] = [
     { name: 'children', type: 'ReactNode', required: true, description: 'TabItem children' },
     { name: 'defaultIndex', type: 'number', default: '0', description: 'Index of the initially active tab', control: 'number', min: 0 },
     { name: 'layout', type: '"default" | "top" | "left" | "right" | "bottom"', default: '"default"', description: 'Layout position of the tab navigation', control: 'select', options: ['default', 'top', 'left', 'right', 'bottom'] },
+    { name: 'before', type: 'ReactNode', description: 'Content rendered immediately before the tab container' },
+    { name: 'after', type: 'ReactNode', description: 'Content rendered immediately after the tab container' },
+    { name: 'motion', type: 'MotionReference', description: 'Named motion preset or inline MotionProps override applied to each tab pane on activation' },
     { name: 'className', type: 'string', description: 'Additional CSS classes on the Tab root', control: 'text' },
     { name: 'wrapperClassName', type: 'string', description: 'CSS classes on the outer wrapper', control: 'text' },
 ];

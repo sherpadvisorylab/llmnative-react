@@ -16,6 +16,9 @@ const PROPS: PropDef[] = [
     { name: 'accept', type: 'string', default: '"image/*"', description: 'Accepted MIME types (e.g. "image/png,image/jpeg")', control: 'text' },
     { name: 'max', type: 'number', default: '100', description: 'Maximum number of files allowed', control: 'number', min: 1, max: 20 },
     { name: 'required', type: 'boolean', default: 'false', description: 'Mark field as required — blocks form submit when empty', control: 'boolean' },
+    { name: 'onChange', type: 'FieldOnChange', description: 'Called on every file list change with the updated value and form context' },
+    { name: 'before', type: 'ReactNode', description: 'Content rendered before the image grid, inside the outer wrapper' },
+    { name: 'after', type: 'ReactNode', description: 'Content rendered after the image grid, inside the outer wrapper' },
     { name: 'className', type: 'string', description: 'CSS classes on the inner container', control: 'text' },
     { name: 'wrapperClassName', type: 'string', description: 'CSS classes on the outer wrapper', control: 'text' },
 ];

@@ -41,10 +41,10 @@ function WithMock({ children }: { children: React.ReactNode }) {
 const FORM_PROPS: PropDef[] = [
     { name: 'path', type: 'string', description: 'Collection path (e.g. /users). Appended with record._key on save.', control: 'text' },
     { name: 'defaultValues', type: 'object', description: 'Initial field values. Include _key to signal edit mode (isNewRecord = false → Save + Delete shown).' },
-    { name: 'appearance', type: '"card" | "none"', default: '"none"', description: 'Visual wrapper style', control: 'select', options: ['none', 'card'] },
+    { name: 'appearance', type: '"card" | "empty"', default: '"empty"', description: 'Visual wrapper style', control: 'select', options: ['card', 'empty'] },
     { name: 'showBack', type: 'boolean', default: 'false', description: 'Show a back navigation button', control: 'boolean' },
     { name: 'keyGenerator', type: '(record) => string', description: 'Custom primary key generator for new records. Presence forces create mode (no DB read).' },
-    { name: 'onLoad', type: '(data: object) => object', description: 'Transform record data after loading (e.g. unit conversions)' },
+    { name: 'onLoad', type: '(record: RecordProps) => void', description: 'Called after the record is loaded. Use it to trigger side effects; return value is not used.' },
     {
         name: 'onSave',
         type: 'FormSaveHandler',
@@ -85,6 +85,16 @@ type FormCompleteArgs = {
   action: "create" | "update" | "delete";
 }`,
     },
+    { name: 'onRecordChange', type: '(record: RecordProps) => void', description: 'Called on every field change with the current record state.' },
+    { name: 'header', type: 'React.ReactNode', description: 'Custom content rendered in the form header area.' },
+    { name: 'footer', type: 'React.ReactNode', description: 'Custom content rendered in the form footer area.' },
+    { name: 'handlers', type: 'Partial<FormRef>', description: 'Expose internal save/delete handles to a parent ref, allowing external components to trigger form actions.' },
+    { name: 'log', type: 'boolean', default: 'false', description: 'Log field-change events to the console (dev helper).', control: 'boolean' },
+    { name: 'showNotice', type: 'boolean', default: 'true', description: 'Show the inline save/delete notice banner.', control: 'boolean' },
+    { name: 'wrapperClassName', type: 'string', description: 'CSS classes on the outermost wrapper element.', control: 'text' },
+    { name: 'headerClassName', type: 'string', description: 'CSS classes on the header container.', control: 'text' },
+    { name: 'className', type: 'string', description: 'CSS classes on the form body element.', control: 'text' },
+    { name: 'footerClassName', type: 'string', description: 'CSS classes on the footer container.', control: 'text' },
 ];
 
 const PLAYGROUND_SEED = { '/users': USERS_SEED };

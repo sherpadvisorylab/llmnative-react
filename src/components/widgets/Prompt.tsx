@@ -8,7 +8,8 @@ import { RecordProps } from '../../providers/data/DataProvider';
 import { getProviderConfigurationState } from '../../providers/ProviderConfiguration';
 import { Dropdown, DropdownItem } from '../blocks/Dropdown';
 import Alert from '../ui/Alert';
-import { LoadingButton } from '../ui/Buttons';
+import { ActionButton, LoadingButton } from '../ui/Buttons';
+import Icon from '../ui/Icon';
 import { Wrapper } from '../ui/GridSystem';
 import { Label, Range, Switch, TextArea } from '../ui/fields/Input';
 import { Select } from '../ui/fields/Select';
@@ -51,6 +52,7 @@ type PromptSharedProps = FormFieldProps & {
     rows?: number;
     defaultValue?: PromptDefaultValue;
     renderAIUnavailable?: RenderAIUnavailable;
+    variables?: PromptVariables;
 };
 
 type PromptEditProps = PromptSharedProps & {
@@ -349,7 +351,9 @@ const PromptEditor = ({
     );
 };
 
-const promptTextareaClass = "border-0 shadow-none rounded-none focus-visible:ring-0";
+const promptTextareaClass = "border-0 shadow-none rounded-none focus-visible:ring-0 resize-none";
+const promptGhostIcon = "h-7 w-7 rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground";
+const promptModelTrigger = "h-7 max-w-[140px] rounded-md px-2 text-xs gap-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground truncate";
 
 const PromptRun = ({
     name,
@@ -364,12 +368,15 @@ const PromptRun = ({
     wrapperClassName,
     className,
     onRunPrompt,
-    renderAIUnavailable
+    renderAIUnavailable,
+    variables,
 }: PromptRunBranchProps) => {
     const { handleChange, record } = useFormContext({ name });
     const theme = useTheme("prompt");
     const caption = label || name;
     const [editing, setEditing] = useState(false);
+    const [templateText, setTemplateText] = useState(defaultValue?.value ?? '');
+    const [previewOpen, setPreviewOpen] = useState(false);
     const ai = useAIProvider();
     const aiRegistry = useAIProviderRegistry();
     const promptDefaults = PromptConf.defaults();
@@ -389,173 +396,195 @@ const PromptRun = ({
         : undefined;
     const [runError, setRunError] = useState<string | null>(null);
 
+    const resolvedPreview = React.useMemo(() => {
+        if (!templateText) return '';
+        const merged = { ...(record as PromptVariables), ...variables };
+        return PromptConf.parsePrompt(templateText, merged);
+    }, [templateText, record, variables]);
+    const hasVariableSubstitution = resolvedPreview !== templateText;
+
+    const modelLabel = selectedModelRef
+        ? (parseAIModelRef(selectedModelRef)?.model || selectedModelRef).split('/').pop() || selectedModelRef
+        : null;
+
+    const runHandler = async () => {
+        const modelRef = value?.prompt?.model?.toString() || defaultModelRef;
+        const parsed = parseAIModelRef(modelRef);
+        const resolvedProvider = parsed
+            ? (aiRegistry?.registry[parsed.provider] ?? ai ?? undefined)
+            : (ai ?? undefined);
+        try {
+            const mergedData = { ...(record as PromptVariables), ...variables };
+            const result = await runPrompt(value?.prompt as PromptOptions, mergedData, onRunPrompt, resolvedProvider);
+            setRunError(null);
+            handleChange?.({ target: { name: name + ".value", value: result } });
+        } catch (error) {
+            setRunError(getPromptRunErrorMessage(error));
+        }
+    };
+
+    const setField = (field: string, val: string) =>
+        handleChange?.({ target: { name: field, value: val } } as React.ChangeEvent<HTMLInputElement>);
+
     return (
         <Wrapper className={wrapperClassName || theme.Prompt.wrapperClassName}>
             <div className="flex items-center gap-2">
                 {before && <div className="shrink-0">{before}</div>}
                 <div className={`${promptBodyClass} min-w-0 flex-1`}>
-                <PromptFieldHeader
-                    htmlFor={fieldId}
-                    label={caption}
-                    required={required}
-                />
-                <div className="rounded-md border border-input shadow-sm focus-within:ring-1 focus-within:ring-ring">
-                    <div className="overflow-hidden rounded-t-md">
-                        <div className={editing ? '' : 'hidden'}>
-                            <TextArea
-                                id={fieldId}
-                                name={name + ".prompt.value"}
-                                defaultValue={defaultValue?.value}
-                                onChange={onChange}
-                                required={true}
-                                inheritWrapperClassName={false}
-                                wrapperClassName=""
-                                className={`${className || theme.Prompt.className} ${promptTextareaClass}`}
-                                maxRows={rows}
-                            />
-                        </div>
-                        <div className={editing ? 'hidden' : ''}>
-                            <TextArea
-                                name={name + ".value"}
-                                onChange={onChange}
-                                required={required}
-                                inheritWrapperClassName={false}
-                                wrapperClassName=""
-                                className={`${className || theme.Prompt.className} ${promptTextareaClass}`}
-                                maxRows={rows}
-                            />
-                        </div>
-                    </div>
-                    <div className="relative flex items-center gap-2 border-t border-input bg-muted/30 px-2 py-1.5 rounded-b-md">
-                        <Switch
-                            name={name + ".prompt.editing"}
-                            ariaLabel={editing ? "Mode: editing prompt template" : "Mode: viewing result"}
-                            title={editing ? "Switch to result mode" : "Switch to edit prompt template"}
-                            defaultValue=""
-                            inheritWrapperClassName={false}
-                            onChange={({ event }) => setEditing(event.target.value === 'on')}
+                    {caption && (
+                        <PromptFieldHeader
+                            htmlFor={fieldId}
+                            label={editing ? `Prompt: ${caption}` : caption}
+                            required={required}
                         />
-                        <span className="select-none text-xs text-muted-foreground">
-                            {editing ? "Edit prompt" : "Result"}
-                        </span>
-                        <div className="flex-1" />
-                        {editing && (
-                            <Dropdown position="end" placement="auto" trigger={{ icon: "settings" }} triggerClassName="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
-                                <DropdownItem>
-                                    <Select
-                                        name={name + ".prompt.role"}
-                                        before="Role"
-                                        defaultValue={defaultValue?.role}
-                                        inheritWrapperClassName={false}
-                                        className="text-xs"
-                                        options={PromptConf.getRoles()}
-                                        placeholderOption={{ label: "Default (" + promptDefaults.role + ")", value: "" }}
-                                    />
-                                </DropdownItem>
-                                <DropdownItem>
-                                    <Select
-                                        name={name + ".prompt.language"}
-                                        before="Language"
-                                        defaultValue={defaultValue?.language}
-                                        inheritWrapperClassName={false}
-                                        className="text-xs"
-                                        options={PromptConf.getLangs()}
-                                        placeholderOption={{ label: "Default (" + promptDefaults.language + ")", value: "" }}
-                                    />
-                                </DropdownItem>
-                                <DropdownItem>
-                                    <Select
-                                        name={name + ".prompt.voice"}
-                                        before="Voice"
-                                        defaultValue={defaultValue?.voice}
-                                        inheritWrapperClassName={false}
-                                        className="text-xs"
-                                        options={PromptConf.getVoices()}
-                                        placeholderOption={{ label: "Default (" + promptDefaults.voice + ")", value: "" }}
-                                    />
-                                </DropdownItem>
-                                <DropdownItem>
-                                    <Select
-                                        name={name + ".prompt.style"}
-                                        before="Style"
-                                        defaultValue={defaultValue?.style}
-                                        inheritWrapperClassName={false}
-                                        className="text-xs"
-                                        options={PromptConf.getStyles()}
-                                        placeholderOption={{ label: "Default (" + promptDefaults.style + ")", value: "" }}
-                                    />
-                                </DropdownItem>
-                                <DropdownItem>
-                                    <Select
-                                        name={name + ".prompt.model"}
-                                        before="Model"
-                                        defaultValue={defaultValue?.model}
-                                        inheritWrapperClassName={false}
-                                        className="text-xs"
-                                        options={modelOptions}
-                                        placeholderOption={{ label: "Default (" + defaultModelRef + ")", value: "" }}
-                                    />
-                                </DropdownItem>
-                                {supportsTemperature && (
-                                    <DropdownItem>
-                                        <Range
-                                            name={name + ".prompt.temperature"}
-                                            label="Temperature"
-                                            defaultValue={defaultValue?.temperature}
-                                            inheritWrapperClassName={false}
-                                            min={0}
-                                            max={1}
-                                            step={0.1}
-                                        />
-                                    </DropdownItem>
-                                )}
-                            </Dropdown>
-                        )}
-                        {!editing && (
-                            <LoadingButton
-                                icon="stars"
-                                label="Run"
-                                loadingLabel="Running..."
-                                disabled={runDisabled}
-                                title={runTitle}
-                                onClick={async () => {
-                                    const modelRef = value?.prompt?.model?.toString() || defaultModelRef;
-                                    const parsed = parseAIModelRef(modelRef);
-                                    const resolvedProvider = parsed
-                                        ? (aiRegistry?.registry[parsed.provider] ?? ai ?? undefined)
-                                        : (ai ?? undefined);
+                    )}
+                    <div className={`group relative rounded-xl border border-input shadow-sm transition-shadow focus-within:shadow-md focus-within:ring-2 focus-within:ring-offset-0 ${editing ? "focus-within:ring-warning" : "focus-within:ring-ring"}`}>
+                        {/* Settings overlay — gear on hover (result) / X always visible (edit) */}
+                        <button
+                            type="button"
+                            title={editing ? "Close prompt editor" : "Edit prompt settings"}
+                            className={`absolute right-2 top-2 z-10 flex h-6 w-6 items-center justify-center rounded-md transition-all ${editing ? "bg-warning/10 text-warning opacity-100" : "bg-background/80 text-muted-foreground opacity-0 group-hover:opacity-100 hover:bg-muted hover:text-foreground"}`}
+                            onClick={() => setEditing((e) => !e)}
+                        >
+                            <Icon name={editing ? "x" : "settings"} size={13} />
+                        </button>
 
-                                    try {
-                                        const result = await runPrompt(value?.prompt as PromptOptions, record, onRunPrompt, resolvedProvider);
-                                        setRunError(null);
-                                        handleChange?.({
-                                            target: {
-                                                name: name + ".value",
-                                                value: result,
-                                            },
-                                        });
-                                    } catch (error) {
-                                        setRunError(getPromptRunErrorMessage(error));
-                                    }
-                                }}
-                            />
-                        )}
+                        <div className="overflow-hidden rounded-t-xl">
+                            <div className={editing ? '' : 'hidden'}>
+                                <TextArea
+                                    id={fieldId}
+                                    name={name + ".prompt.value"}
+                                    defaultValue={defaultValue?.value}
+                                    onChange={(params) => {
+                                        setTemplateText(String(params.event.target.value ?? ''));
+                                        onChange?.(params);
+                                    }}
+                                    required={true}
+                                    inheritWrapperClassName={false}
+                                    wrapperClassName=""
+                                    className={`${className || theme.Prompt.className} ${promptTextareaClass}`}
+                                    maxRows={rows}
+                                />
+                                {editing && hasVariableSubstitution && previewOpen && (
+                                    <div className="border-t border-input px-4 py-3 bg-muted/20">
+                                        <p className="whitespace-pre-wrap text-sm text-foreground/70">{resolvedPreview}</p>
+                                    </div>
+                                )}
+                            </div>
+                            <div className={editing ? 'hidden' : ''}>
+                                <TextArea
+                                    name={name + ".value"}
+                                    onChange={onChange}
+                                    required={required}
+                                    inheritWrapperClassName={false}
+                                    wrapperClassName=""
+                                    className={`${className || theme.Prompt.className} ${promptTextareaClass}`}
+                                    maxRows={rows}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-1 border-t border-input px-2 py-1 rounded-b-xl">
+                            {editing && (
+                                <>
+                                    {/* Model — list items directly */}
+                                    <Dropdown
+                                        trigger={{ icon: "cpu", text: modelLabel ?? "Model" }}
+                                        placement="top"
+                                        position="start"
+                                        triggerClassName={promptModelTrigger}
+                                    >
+                                        <DropdownItem onClick={() => setField(name + ".prompt.model", "")}>
+                                            Default
+                                        </DropdownItem>
+                                        {modelOptions.map((opt) => (
+                                            <DropdownItem key={opt.value} onClick={() => setField(name + ".prompt.model", opt.value)}>
+                                                {opt.label}
+                                            </DropdownItem>
+                                        ))}
+                                    </Dropdown>
+
+                                    {/* Role */}
+                                    <Dropdown trigger={{ icon: "user", title: "Role" }} placement="top" position="start" triggerClassName={promptGhostIcon}>
+                                        <DropdownItem onClick={() => setField(name + ".prompt.role", "")}>Default ({promptDefaults.role})</DropdownItem>
+                                        {PromptConf.getRoles().map((v) => (
+                                            <DropdownItem key={v} onClick={() => setField(name + ".prompt.role", v)}>{v}</DropdownItem>
+                                        ))}
+                                    </Dropdown>
+
+                                    {/* Language */}
+                                    <Dropdown trigger={{ icon: "globe", title: "Language" }} placement="top" position="start" triggerClassName={promptGhostIcon}>
+                                        <DropdownItem onClick={() => setField(name + ".prompt.language", "")}>Default ({promptDefaults.language})</DropdownItem>
+                                        {PromptConf.getLangs().map((v) => (
+                                            <DropdownItem key={v} onClick={() => setField(name + ".prompt.language", v)}>{v}</DropdownItem>
+                                        ))}
+                                    </Dropdown>
+
+                                    {/* Voice */}
+                                    <Dropdown trigger={{ icon: "mic", title: "Voice" }} placement="top" position="start" triggerClassName={promptGhostIcon}>
+                                        <DropdownItem onClick={() => setField(name + ".prompt.voice", "")}>Default ({promptDefaults.voice})</DropdownItem>
+                                        {PromptConf.getVoices().map((v) => (
+                                            <DropdownItem key={v} onClick={() => setField(name + ".prompt.voice", v)}>{v}</DropdownItem>
+                                        ))}
+                                    </Dropdown>
+
+                                    {/* Style */}
+                                    <Dropdown trigger={{ icon: "feather", title: "Style" }} placement="top" position="start" triggerClassName={promptGhostIcon}>
+                                        <DropdownItem onClick={() => setField(name + ".prompt.style", "")}>Default ({promptDefaults.style})</DropdownItem>
+                                        {PromptConf.getStyles().map((v) => (
+                                            <DropdownItem key={v} onClick={() => setField(name + ".prompt.style", v)}>{v}</DropdownItem>
+                                        ))}
+                                    </Dropdown>
+
+                                    {/* Temperature — range slider, kept inline */}
+                                    {supportsTemperature && (
+                                        <Dropdown trigger={{ icon: "thermometer", title: "Temperature" }} placement="top" position="start" triggerClassName={promptGhostIcon}>
+                                            <DropdownItem>
+                                                <Range name={name + ".prompt.temperature"} label="Temperature" defaultValue={defaultValue?.temperature} inheritWrapperClassName={false} min={0} max={1} step={0.1} />
+                                            </DropdownItem>
+                                        </Dropdown>
+                                    )}
+                                </>
+                            )}
+
+                            <div className="flex-1" />
+
+                            {/* Availability / run-error notice — inline in footer, hidden in edit mode */}
+                            {!editing && (runError || !availability.configured) && (
+                                <span className="flex min-w-0 items-center gap-1 text-xs text-warning truncate mr-1">
+                                    <Icon name="triangle-alert" size={13} className="shrink-0" />
+                                    <span className="truncate">
+                                        {runError ?? (availability.reason || "AI not configured")}
+                                    </span>
+                                </span>
+                            )}
+
+                            {/* Preview toggle — only in edit mode when variables produce substitutions */}
+                            {editing && hasVariableSubstitution && (
+                                <button
+                                    type="button"
+                                    title={previewOpen ? "Hide preview" : "Show resolved preview"}
+                                    className={`${promptGhostIcon} flex items-center justify-center ${previewOpen ? "bg-muted text-foreground" : ""}`}
+                                    onClick={() => setPreviewOpen((o) => !o)}
+                                >
+                                    <Icon name={previewOpen ? "eye-off" : "eye"} size={13} />
+                                </button>
+                            )}
+
+                            {/* Run — icon only, hidden in edit mode */}
+                            {!editing && (
+                                <LoadingButton
+                                    icon="send"
+                                    loadingLabel=""
+                                    disabled={runDisabled}
+                                    title={runTitle ?? "Run prompt"}
+                                    variant="primary"
+                                    className="!p-0 h-8 w-8"
+                                    onClick={runHandler}
+                                />
+                            )}
+                        </div>
                     </div>
-                </div>
-                <PromptAvailabilityNotice
-                    mode={PromptMode.RUN}
-                    availability={availability}
-                    renderAIUnavailable={renderAIUnavailable}
-                />
-                {runError && (
-                    <Alert
-                        variant="danger"
-                        icon="warning"
-                        className="text-xs leading-5"
-                    >
-                        {runError}
-                    </Alert>
-                )}
                 </div>
                 {after && <div className="shrink-0">{after}</div>}
             </div>

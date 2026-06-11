@@ -35,12 +35,15 @@ const PROPS_CONFIG: PropDef[] = [
     { name: 'placeholder', type: 'string', description: 'Placeholder text', control: 'text' },
     { name: 'required', type: 'boolean', default: 'false', description: 'Marks field as required and shows a * on the label', control: 'boolean' },
     { name: 'disabled', type: 'boolean', default: 'false', description: 'Makes the field read-only', control: 'boolean' },
-    { name: 'updatable', type: 'boolean', default: 'false', description: 'Shows a pencil icon; field becomes editable on click', control: 'boolean' },
+    { name: 'readOnlyAfterSet', type: 'boolean', default: 'false', description: 'Field becomes read-only (disabled) once a value has been set', control: 'boolean' },
     { name: 'defaultValue', type: 'any', description: 'Initial value when not managed by a Form', control: 'text' },
-    { name: 'minItems', type: 'number', description: 'Minimum value (number/range inputs)', control: 'number', min: 0 },
-    { name: 'maxItems', type: 'number', description: 'Maximum value (number/range inputs)', control: 'number', min: 0 },
+    { name: 'min', type: 'number', description: 'Minimum value (number/range inputs)', control: 'number', min: 0 },
+    { name: 'max', type: 'number', description: 'Maximum value (number/range inputs)', control: 'number', min: 0 },
     { name: 'step', type: 'number', description: 'Step increment (number/range inputs)', control: 'number', min: 1 },
     { name: 'feedback', type: 'string', description: 'Validation feedback message shown below the field', control: 'text' },
+    { name: 'id', type: 'string', description: 'Explicit id for the input element. Auto-generated via useId when omitted.', control: 'text' },
+    { name: 'labelClassName', type: 'string', description: 'CSS classes applied to the label element', control: 'text' },
+    { name: 'validator', type: '(value: FieldValue) => string | undefined', description: 'Custom validation function. Return an error message string to block submission, or undefined when the value is valid.' },
     { name: 'className', type: 'string', description: 'CSS classes on the input element', control: 'text' },
     { name: 'wrapperClassName', type: 'string', description: 'CSS classes on the outer wrapper', control: 'text' },
 ];
@@ -56,7 +59,7 @@ const PLAYGROUND: PlaygroundConfig = {
         placeholder: 'Type something…',
         required: false,
         disabled: false,
-        updatable: false,
+        readOnlyAfterSet: false,
         defaultValue: '',
         feedback: '',
         className: '',
@@ -71,7 +74,7 @@ const PLAYGROUND: PlaygroundConfig = {
                 placeholder={p.placeholder || undefined}
                 required={p.required}
                 disabled={p.disabled}
-                updatable={p.updatable}
+                readOnlyAfterSet={p.readOnlyAfterSet}
                 min={p.min || undefined}
                 max={p.max || undefined}
                 step={p.step || undefined}
@@ -160,13 +163,13 @@ export default function InputPage() {
             </LiveForm>
 
             <LiveForm
-                title="Disabled and updatable"
-                description="updatable makes a read-only field editable on click (pencil icon)."
+                title="Disabled and readOnlyAfterSet"
+                description="readOnlyAfterSet disables the field once a value has been set."
                 code={`<Input name="id"   label="Record ID" disabled />
-<Input name="slug" label="Slug"      updatable />`}
+<Input name="slug" label="Slug"      readOnlyAfterSet />`}
             >
                 <Input name="id"   label="Record ID" defaultValue="rec_42"         disabled />
-                <Input name="slug" label="Slug"      defaultValue="my-article-slug" updatable />
+                <Input name="slug" label="Slug"      defaultValue="my-article-slug" readOnlyAfterSet />
             </LiveForm>
 
             <PropDocsTable props={PROPS_CONFIG} title="Input props" />

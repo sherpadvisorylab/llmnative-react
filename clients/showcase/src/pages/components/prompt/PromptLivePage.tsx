@@ -65,8 +65,8 @@ function PromptRunPlaygroundPreview({
                     required={props.required}
                     defaultValue={props.defaultValue}
                     rows={props.rows}
-                    before={props.pre || undefined}
-                    after={props.post || undefined}
+                    before={props.before || undefined}
+                    after={props.after || undefined}
                     className={props.className || undefined}
                     wrapperClassName={props.wrapperClassName || undefined}
                 />

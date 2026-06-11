@@ -113,7 +113,7 @@ const TABLE_PROPS: PropDef[] = [
   { key: 'status', label: 'Status' },
   { key: 'team', label: 'Team', sort: false },
 ]}` },
-    { name: 'records', type: 'RecordArray', required: true, description: 'Array of row records to render.' },
+    { name: 'records', type: 'RecordArray', description: 'Array of row records to render.' },
     { name: 'onReorder', type: 'TableReorderHandler', description: 'Called after a drag reorder with the full reordered record set and the moved row metadata. When provided, drag and drop is enabled automatically.', shape: `type TableReorderHandler = (
   reorderedRecords: RecordArray,
   meta: TableReorderMeta
@@ -132,6 +132,7 @@ type TableSelectionState = ${TABLE_SELECTION_STATE_TYPE}`, example: `onSelection
   setSelectedKeys(selection.keys);
   setSelectedRecords(selection.records);
 }}` },
+    { name: 'selection', type: '"single" | "multiple"', default: '"multiple"', description: 'Selection mode. "multiple" renders checkboxes; "single" renders radio buttons. Only visible when onSelectionChange or selectedKeys is provided.', control: 'select', options: ['single', 'multiple'] },
     { name: 'sortable', type: 'boolean | OrderConfig', default: 'false', description: 'Enables header sorting. Pass an OrderConfig object to set the initial client-side sort without a separate order prop.', control: 'json', rows: 4, shortcuts: [
         { label: 'false', value: false, help: 'Disable sorting.' },
         { label: 'name asc', value: { field: 'name', dir: 'asc' }, help: 'Start sorted by name ascending.' },
@@ -141,6 +142,7 @@ type TableSelectionState = ${TABLE_SELECTION_STATE_TYPE}`, example: `onSelection
   dir: 'asc' | 'desc';
 }`, example: `sortable={{ field: 'name', dir: 'asc' }}` },
     { name: 'onRowClick', type: '(record) => void', description: 'Called with the clicked record.' },
+    { name: 'activeKey', type: 'string | null', description: 'Controlled active row key. When provided, the component uses this value instead of its internal click-tracked state to apply selectedClassName to the matching row.' },
     { name: 'pagination', type: PAGINATION_PARAMS_TYPE, description: 'Shared pagination configuration. Default align is "end", so controls are right-aligned unless overridden.', control: 'json', rows: 6, shortcuts: [
         { label: 'default', value: { limit: 4, align: 'end', sticky: false }, help: 'Right-aligned default pagination.' },
         { label: 'compact', value: { limit: 2, align: 'center', sticky: false }, help: 'Smaller pages, centered controls.' },
@@ -163,6 +165,9 @@ type TableSelectionState = ${TABLE_SELECTION_STATE_TYPE}`, example: `onSelection
         ],
     },
     { name: 'footer', type: 'ReactNode', description: 'Footer row or content rendered inside tfoot.', control: 'text' },
+    { name: 'renderCell', type: '(record: RecordProps, key: string, absoluteIndex: number) => ReactNode', description: 'Custom cell renderer. When provided it replaces the default field-value resolution for every cell. Receives the full record, the column key and the absolute row index across pages.' },
+    { name: 'before', type: 'ReactNode', description: 'Content rendered to the left of the table, vertically centered and stretching to the full table height. Use it for contextual actions, toolbars or status panels.' },
+    { name: 'after', type: 'ReactNode', description: 'Content rendered to the right of the table, vertically centered and stretching to the full table height.' },
     { name: 'selectedClassName', type: 'string', description: 'Class applied to the active row after click.', control: 'text' },
     { name: 'wrapperClassName', type: 'string', description: 'CSS class applied to the outer responsive wrapper. Use it for width and horizontal overflow behavior.', control: 'text' },
     { name: 'heightClassName', type: 'string', description: 'Tailwind height or max-height class for the inner viewport. When set, the table enables internal vertical scrolling automatically.', control: 'text' },

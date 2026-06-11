@@ -703,8 +703,8 @@ In corso sul branch `modernize`. Vedi `docs/CHANGE_REQUESTS.md` per i dettagli.
 > Aggiornato automaticamente alla fine di ogni sessione AI.
 > Il piano completo vive in `docs/COMPETITIVENESS_CHECKLIST.md`.
 
-**Ultimo task completato:** Showcase props audit completo — verifica personale prop-per-prop di 40+ pagine showcase vs source framework (>99% copertura ~53 pagine totali con prop table). Report in `docs/SHOWCASE_AUDIT_ISSUES.md`: 172 issue totali (45 Cat A nomi sbagliati, 11 Cat B type mismatch, 15 Cat C playground bug, 97 Cat D props mancanti, 4 Cat E required/default errati). 11 pagine confermate pulite (Breadcrumbs, Menu, Alert, Badge, Notifications, Repeat, TabItem, ImageAvatar, NavigationButtons, LayoutBuilder, UploadCSV).
-**Prossimo task:** Fix Cat A (45 nomi) + Cat C (15 playground bug) nello showcase — correggere nome prop e render function per ogni componente.
+**Ultimo task completato:** CR-046b PromptRun `variables` prop — preview inline read-only in edit mode: `variables?: PromptVariables` aggiunto a `PromptSharedProps`; template textarea traccia `templateText` via `useState`; `resolvedPreview` calcolato con `Prompt.parsePrompt(templateText, { ...record, ...variables })`; sezione preview visibile solo quando ci sono sostituzioni effettive (`resolvedPreview !== templateText`); `runHandler` mergia `{ ...record, ...variables }` come `mergedData`.
+**Prossimo task:** CR-047 (extensible toolbar: commands, attachments, actions, statusItems + PromptUtils API) oppure showcase page aggiornamento per PromptRun.
 **Branch:** `main`
 **Repo:** `github.com/sherpadvisorylab/llmnative-react.git`
 

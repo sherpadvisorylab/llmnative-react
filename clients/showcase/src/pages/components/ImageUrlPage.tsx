@@ -17,7 +17,9 @@ const IMAGE_URL_PROPS: PropDef[] = [
         { label: 'square', value: { url: SAMPLE_IMAGE, alt: { value: 'Square thumbnail' }, width: 240, height: 240 }, help: 'Square image example.' },
         { label: 'empty', value: { url: '', alt: { value: '' }, width: 320, height: 180 }, help: 'Empty starting object.' },
     ] },
-    { name: 'mode', type: 'PromptMode', description: 'Prompt mode used for alt text', control: 'select', options: ['editor', 'live'] },
+    { name: 'value', type: 'FieldValue', description: 'Controlled value — the current nested image object managed externally (url, alt, width, height)' },
+    { name: 'inheritWrapperClassName', type: 'boolean', default: 'true', description: 'When true the field inherits the wrapperClassName from the parent Form context', control: 'boolean' },
+    { name: 'mode', type: 'PromptMode', description: 'Prompt mode used for alt text', control: 'select', options: ['edit', 'run'] },
     { name: 'before', type: 'ReactNode', description: 'Content before the field group', control: 'text' },
     { name: 'after', type: 'ReactNode', description: 'Content after the field group', control: 'text' },
     { name: 'onChange', type: 'FieldOnChange', description: 'Custom change handler called by Form context' },
@@ -40,8 +42,8 @@ const PLAYGROUND: PlaygroundConfig = {
             height: 180,
         },
         mode: PromptMode.EDIT,
-        pre: '',
-        post: '',
+        before: '',
+        after: '',
         className: '',
         wrapperClassName: '',
     },
@@ -53,8 +55,8 @@ const PLAYGROUND: PlaygroundConfig = {
                 required={p.required}
                 defaultValue={p.defaultValue}
                 mode={p.mode}
-                before={p.pre || undefined}
-                after={p.post || undefined}
+                before={p.before || undefined}
+                after={p.after || undefined}
                 className={p.className || undefined}
                 wrapperClassName={p.wrapperClassName || undefined}
             />

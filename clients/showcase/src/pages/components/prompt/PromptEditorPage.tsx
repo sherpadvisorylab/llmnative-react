@@ -22,8 +22,8 @@ const PLAYGROUND = createPromptPlayground(
                     required={p.required}
                     defaultValue={p.defaultValue}
                     rows={p.rows}
-                    before={p.pre || undefined}
-                    after={p.post || undefined}
+                    before={p.before || undefined}
+                    after={p.after || undefined}
                     className={p.className || undefined}
                     wrapperClassName={p.wrapperClassName || undefined}
                 />

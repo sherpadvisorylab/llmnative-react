@@ -31,7 +31,7 @@ const CHECKLIST_PROPS: PropDef[] = [
         { label: 'simple', value: ['one', 'two', 'three'], help: 'Simple string values.' },
     ], typeDetails: `Array<{ label: string; value: string }> | string[] | number[]` },
     {
-        name: 'db',
+        name: 'optionsSource',
         type: 'ChecklistDbConfig',
         description: 'DataProvider path used to fetch checkbox options',
         typeDetails: `{
@@ -46,13 +46,14 @@ const CHECKLIST_PROPS: PropDef[] = [
     },
     { name: 'required', type: 'boolean', default: 'false', description: 'Marks the field as required', control: 'boolean' },
     { name: 'disabled', type: 'boolean', default: 'false', description: 'Disables all checkboxes', control: 'boolean' },
-    { name: 'updatable', type: 'boolean', default: 'true', description: 'When false, an existing value locks the checklist', control: 'boolean' },
+    { name: 'readOnlyAfterSet', type: 'boolean', default: 'false', description: 'Field becomes read-only (disabled) once a value has been set', control: 'boolean' },
     { name: 'defaultValue', type: 'string[] | string', description: 'Initial selected values', control: 'json', rows: 3, shortcuts: [
         { label: 'single', value: 'react', help: 'Single default selection.' },
         { label: 'multi', value: ['react', 'typescript'], help: 'Multiple defaults.' },
         { label: 'empty', value: [], help: 'No default selections.' },
     ] },
     { name: 'feedback', type: 'string', description: 'Validation feedback message shown below the list', control: 'text' },
+    { name: 'validator', type: '(value: FieldValue) => string | undefined', description: 'Custom validation function; return an error string to block submission, undefined to pass' },
     { name: 'order', type: 'OrderConfig', description: 'Sort order for options (default: label asc)', control: 'json', rows: 4, shortcuts: [
         { label: 'label asc', value: { field: 'label', dir: 'asc' }, help: 'Sort by label ascending.' },
         { label: 'label desc', value: { field: 'label', dir: 'desc' }, help: 'Sort by label descending.' },
@@ -64,7 +65,7 @@ const CHECKLIST_PROPS: PropDef[] = [
     { name: 'before', type: 'ReactNode', description: 'Content rendered before the checklist inside an input group', control: 'text' },
     { name: 'after', type: 'ReactNode', description: 'Content rendered after the checklist inside an input group', control: 'text' },
     { name: 'onChange', type: 'FieldOnChange', description: 'Custom change handler called by the Form context' },
-    { name: 'checkClass', type: 'string', description: 'CSS classes applied to each individual checkbox wrapper', control: 'text' },
+    { name: 'itemClassName', type: 'string', description: 'CSS classes applied to each individual checkbox wrapper', control: 'text' },
     { name: 'className', type: 'string', description: 'CSS classes on the checklist root', control: 'text' },
     { name: 'wrapperClassName', type: 'string', description: 'CSS classes on the outer wrapper', control: 'text' },
 ];
@@ -88,16 +89,16 @@ const PLAYGROUND: PlaygroundConfig = {
         optionsSource: '/showcase/tags',
         required: false,
         disabled: false,
-        updatable: true,
+        readOnlyAfterSet: false,
         defaultValue: ['react', 'typescript'],
         feedback: '',
         order: {
             field: 'label',
             dir: 'asc',
         },
-        pre: '',
-        post: '',
-        checkClass: '',
+        before: '',
+        after: '',
+        itemClassName: '',
         className: '',
         wrapperClassName: '',
     },
@@ -108,16 +109,16 @@ const PLAYGROUND: PlaygroundConfig = {
                 label={p.label}
                 title={p.title || undefined}
                 options={Array.isArray(p.options) ? p.options : []}
-                optionsSource={typeof p.optionsSource === 'string' && p.optionsSource ? { path: p.db } : (p.optionsSource && typeof p.optionsSource === 'object' ? p.optionsSource : undefined)}
+                optionsSource={typeof p.optionsSource === 'string' && p.optionsSource ? { path: p.optionsSource } : (p.optionsSource && typeof p.optionsSource === 'object' ? p.optionsSource : undefined)}
                 required={p.required}
                 disabled={p.disabled}
-                updatable={p.updatable}
+                readOnlyAfterSet={p.readOnlyAfterSet}
                 defaultValue={p.defaultValue}
                 feedback={p.feedback || undefined}
                 order={p.order && typeof p.order === 'object' ? p.order : undefined}
-                before={p.pre || undefined}
-                after={p.post || undefined}
-                checkClass={p.checkClass || undefined}
+                before={p.before || undefined}
+                after={p.after || undefined}
+                itemClassName={p.itemClassName || undefined}
                 className={p.className || undefined}
                 wrapperClassName={p.wrapperClassName || undefined}
             />

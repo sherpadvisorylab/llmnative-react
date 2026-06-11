@@ -60,7 +60,7 @@ const CODE_PROPS: PropDef[] = [
             { label: 'bash', value: SAMPLE_BASH, help: 'CLI install commands.' },
         ],
     },
-    { name: 'language', type: 'PrismLanguage', required: true, default: '"tsx"', description: 'Prism language used for syntax highlighting', control: 'select', options: LANGUAGES },
+    { name: 'language', type: 'PrismLanguage', default: '"tsx"', description: 'Prism language used for syntax highlighting', control: 'select', options: LANGUAGES },
     { name: 'showCopy', type: 'boolean', default: 'true', description: 'Shows the copy-to-clipboard action', control: 'boolean' },
     { name: 'theme', type: 'PrismTheme', default: '"tomorrow"', description: 'Prism theme stylesheet loaded for the block', control: 'select', options: THEMES },
     { name: 'background', type: 'PrismBackground', default: '"default"', description: 'Optional background utility applied to the pre element', control: 'select', options: BACKGROUNDS },
@@ -79,8 +79,8 @@ const PLAYGROUND: PlaygroundConfig = {
         showCopy: true,
         theme: 'tomorrow',
         background: 'default',
-        pre: '',
-        post: '',
+        before: '',
+        after: '',
         wrapperClassName: '',
         className: '',
     },
@@ -90,8 +90,8 @@ const PLAYGROUND: PlaygroundConfig = {
             showCopy={p.showCopy}
             theme={p.theme}
             background={p.background}
-            before={p.pre || undefined}
-            after={p.post || undefined}
+            before={p.before || undefined}
+            after={p.after || undefined}
             wrapperClassName={p.wrapperClassName || undefined}
             className={p.className || undefined}
         >

@@ -44,26 +44,35 @@ const PROPS_CONFIG: PropDef[] = [
     <button>Confirm</button>
   </div>
 )}` },
-    { name: 'size', type: '"sm" | "md" | "lg" | "xl" | "2xl" | "fullscreen"', default: '"md"', description: 'Dialog width', control: 'select', options: ['sm', 'md', 'lg', 'xl', '2xl', 'fullscreen'] },
+    { name: 'size', type: '"sm" | "md" | "lg" | "xl" | "2xl" | "fullscreen"', default: '"lg"', description: 'Dialog width', control: 'select', options: ['sm', 'md', 'lg', 'xl', '2xl', 'fullscreen'] },
     { name: 'position', type: '"center" | "top" | "left" | "right" | "bottom"', default: '"center"', description: 'Where the modal appears. Non-center positions render as edge panels.', control: 'select', options: ['center', 'top', 'left', 'right', 'bottom'] },
     { name: 'onClose', type: '() => void', description: 'Called when the user dismisses the modal' },
     { name: 'onSave', type: 'ModalSaveHandler', description: 'Async save handler. Return true to close, false to keep open.', shape: `type ModalSaveHandler = (
-  e: React.MouseEvent<HTMLButtonElement>
+  e: React.MouseEvent<HTMLElement>
 ) => Promise<boolean>`, example: `onSave={async () => {
   await saveRecord();
   return true;
 }}` },
     { name: 'onDelete', type: 'ModalDeleteHandler', description: 'Async delete handler. Shows a delete button in the footer.', shape: `type ModalDeleteHandler = (
-  e: React.MouseEvent<HTMLButtonElement>
+  e: React.MouseEvent<HTMLElement>
 ) => Promise<boolean>`, example: `onDelete={async () => {
   await deleteRecord();
   return true;
 }}` },
     { name: 'closeOnBackdrop', type: 'boolean', default: 'true', description: 'Close the modal when the backdrop is clicked', control: 'boolean' },
-    { name: 'buttonFullscreen', type: 'boolean', default: 'false', description: 'Show fullscreen toggle button in the header', control: 'boolean' },
-    { name: 'headerClassName', type: 'string', description: 'CSS classes on the header element', control: 'text' },
-    { name: 'bodyClassName', type: 'string', description: 'CSS classes on the body element', control: 'text' },
-    { name: 'footerClassName', type: 'string', description: 'CSS classes on the footer element', control: 'text' },
+    { name: 'allowFullscreen', type: 'boolean', default: 'true', description: 'Show fullscreen toggle button in the header', control: 'boolean' },
+    { name: 'showCancel', type: 'boolean', default: 'true', description: 'Show the Cancel button in the footer when onClose is provided', control: 'boolean' },
+    { name: 'zIndex', type: 'number', description: 'CSS z-index override — useful when stacking multiple modals', control: 'number' },
+    { name: 'headerClassName', type: 'string', description: 'CSS classes on the header container', control: 'text' },
+    { name: 'titleClassName', type: 'string', description: 'CSS classes on the title element', control: 'text' },
+    { name: 'subtitleClassName', type: 'string', description: 'CSS classes on the subtitle element (rendered when both title and header are set)', control: 'text' },
+    { name: 'bodyClassName', type: 'string', description: 'CSS classes on the body container', control: 'text' },
+    { name: 'footerClassName', type: 'string', description: 'CSS classes on the footer container', control: 'text' },
+    { name: 'wrapperClassName', type: 'string', description: 'CSS classes on the outermost dialog wrapper element', control: 'text' },
+    { name: 'className', type: 'string', description: 'CSS classes on the inner content flex container', control: 'text' },
+    { name: 'before', type: 'ReactNode', description: 'Content rendered before the inner content container, inside the dialog wrapper' },
+    { name: 'after', type: 'ReactNode', description: 'Content rendered after the inner content container, inside the dialog wrapper' },
+    { name: 'motion', type: 'MotionReference', description: 'Named motion preset or inline MotionProps override for the dialog entrance/exit animation', typeDetails: 'string | MotionEffect | false' },
 ];
 
 const PLAYGROUND: PlaygroundConfig = {
@@ -77,7 +86,7 @@ const PLAYGROUND: PlaygroundConfig = {
         size: 'md',
         position: 'center',
         closeOnBackdrop: true,
-        buttonFullscreen: false,
+        allowFullscreen: false,
         headerClassName: '',
         bodyClassName: '',
         footerClassName: '',
@@ -98,7 +107,7 @@ function ModalPlaygroundDemo({ props: p }: { props: Record<string, any> }) {
                     size={p.size}
                     position={p.position}
                     closeOnBackdrop={p.closeOnBackdrop}
-                    buttonFullscreen={p.buttonFullscreen}
+                    allowFullscreen={p.allowFullscreen}
                     headerClassName={p.headerClassName || undefined}
                     bodyClassName={p.bodyClassName || undefined}
                     footerClassName={p.footerClassName || undefined}

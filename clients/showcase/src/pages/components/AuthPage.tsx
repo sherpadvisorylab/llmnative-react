@@ -15,17 +15,28 @@ const AUTH_BUTTON_PROPS: PropDef[] = [
     { name: 'scopes', type: 'string[]', description: 'Scopes requested from the selected provider.', control: 'json', typeDetails: `string[]`, example: `scopes={['files.metadata.read', 'files.content.read']}` },
     { name: 'iconLogout', type: 'string', default: '"log-out"', description: 'IconProvider key used for the avatar logout menu item.', control: 'icon' },
     { name: 'avatarClass', type: 'string', description: 'CSS classes applied to the profile avatar.', control: 'text' },
-    { name: 'options', type: 'IButton', description: 'ActionButton options such as label, icon, className and disabled.', control: 'json', typeDetails: `{
-  label?: string;
+    { name: 'options', type: 'Omit<IButton, "onClick">', description: 'ActionButton overrides applied on top of the auth button defaults. When set, individual top-level props (label, icon, title, className, disabled) are used as fallback values.', control: 'json', typeDetails: `{
+  label?: string | ReactNode;
   icon?: string;
-  className?: string;
+  title?: string;
   disabled?: boolean;
+  loading?: boolean;
+  iconClassName?: string;
+  style?: React.CSSProperties;
+  variant?: "primary" | "secondary" | "danger" | "success" | "warning" | "info" | "light" | "dark" | "outline-primary" | "outline-secondary" | "outline-danger" | "outline-success" | "link";
+  badge?: BadgeProps;
+  className?: string;
 }`, example: `options={{
   label: 'Connect Dropbox',
   icon: 'link',
   className: 'btn-primary',
   disabled: true,
 }}` },
+    { name: 'label', type: 'string | ReactNode', description: 'Button label. Overridden by options.label when options is provided. Defaults to "Connected" when authenticated, "Sign in" for signIn intent otherwise.', control: 'text' },
+    { name: 'icon', type: 'string', description: 'IconProvider key for the button. Overridden by options.icon when options is provided. Defaults to "link" / "link-break" based on auth state.', control: 'icon' },
+    { name: 'title', type: 'string', description: 'Native title attribute (tooltip). Overridden by options.title when options is provided. Auto-set to a configuration error message when the provider is not configured.', control: 'text' },
+    { name: 'disabled', type: 'boolean', default: 'false', description: 'Disables the button. Overridden by options.disabled when options is provided. Automatically forced to true when the auth provider is not configured.', control: 'boolean' },
+    { name: 'className', type: 'string', description: 'CSS classes applied to the button. Overridden by options.className when options is provided.', control: 'text' },
 ];
 
 const AUTH_BUTTON_PLAYGROUND_PROPS: PropDef[] = [

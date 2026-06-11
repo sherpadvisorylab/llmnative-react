@@ -12,7 +12,7 @@ const TEXTAREA_PROPS: PropDef[] = [
     { name: 'placeholder', type: 'string', description: 'Placeholder text', control: 'text' },
     { name: 'required', type: 'boolean', default: 'false', description: 'Marks field as required', control: 'boolean' },
     { name: 'disabled', type: 'boolean', default: 'false', description: 'Disables the textarea', control: 'boolean' },
-    { name: 'updatable', type: 'boolean', default: 'true', description: 'When false and the field already has a value, the textarea is locked to prevent edits', control: 'boolean' },
+    { name: 'readOnlyAfterSet', type: 'boolean', default: 'false', description: 'Textarea becomes read-only (disabled) once a value has been set', control: 'boolean' },
     {
         name: 'defaultValue',
         type: 'string',
@@ -30,8 +30,10 @@ const TEXTAREA_PROPS: PropDef[] = [
     { name: 'feedback', type: 'string', description: 'Helper or validation text rendered below the field', control: 'text' },
     { name: 'before', type: 'ReactNode', description: 'Input-group content rendered before (left of) the textarea', control: 'text' },
     { name: 'after', type: 'ReactNode', description: 'Input-group content rendered after (right of) the textarea', control: 'text' },
-    { name: 'inputId', type: 'string', description: 'Explicit id for the textarea element. Auto-generated when omitted.' },
+    { name: 'id', type: 'string', description: 'Explicit id for the textarea element. Auto-generated when omitted.', control: 'text' },
     { name: 'onChange', type: 'FieldOnChange', description: 'Custom change handler called by Form context' },
+    { name: 'textareaRef', type: 'React.RefObject<HTMLTextAreaElement | null> | ((el: HTMLTextAreaElement | null) => void)', description: 'Ref forwarded to the underlying <textarea> element. Accepts both a RefObject and a callback ref.' },
+    { name: 'validator', type: '(value: FieldValue) => string | undefined', description: 'Custom validation function. Return an error message string to block submission, or undefined when the value is valid.' },
     { name: 'className', type: 'string', description: 'Extra CSS classes applied to the textarea element', control: 'text' },
     { name: 'wrapperClassName', type: 'string', description: 'CSS classes applied to the outer wrapper div', control: 'text' },
     { name: 'labelClassName', type: 'string', description: 'CSS classes applied to the label element', control: 'text' },
@@ -47,13 +49,13 @@ const PLAYGROUND: PlaygroundConfig = {
         placeholder: 'Write a short note...',
         required: false,
         disabled: false,
-        updatable: true,
+        readOnlyAfterSet: false,
         defaultValue: 'Follow up with the customer next week.',
         rows: 4,
         maxRows: undefined,
         feedback: '',
-        pre: '',
-        post: '',
+        before: '',
+        after: '',
         className: '',
         wrapperClassName: '',
     },
@@ -65,13 +67,13 @@ const PLAYGROUND: PlaygroundConfig = {
                 placeholder={p.placeholder}
                 required={p.required}
                 disabled={p.disabled}
-                updatable={p.updatable}
+                readOnlyAfterSet={p.readOnlyAfterSet}
                 defaultValue={p.defaultValue}
                 rows={p.rows}
                 maxRows={p.maxRows || undefined}
                 feedback={p.feedback || undefined}
-                before={p.pre || undefined}
-                after={p.post || undefined}
+                before={p.before || undefined}
+                after={p.after || undefined}
                 className={p.className || undefined}
                 wrapperClassName={p.wrapperClassName || undefined}
             />

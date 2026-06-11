@@ -50,6 +50,8 @@ const PROPS_CONFIG: PropDef[] = [
     { name: 'normalizeKeys', type: 'boolean', default: 'false', description: 'Lowercase and slug-ify column header names', control: 'boolean' },
     { name: 'removeEmptyFields', type: 'boolean', default: 'false', description: 'Drop fields with empty / null values from each row', control: 'boolean' },
     { name: 'onParseField', type: 'UploadCSVParseFieldHandler', description: 'Transform each [key, value] pair during parse. Return undefined to drop the field.' },
+    { name: 'before', type: 'ReactNode', description: 'Content rendered before the drop zone, inside the outer wrapper' },
+    { name: 'after', type: 'ReactNode', description: 'Content rendered after the drop zone, inside the outer wrapper' },
     { name: 'className', type: 'string', description: 'CSS classes on the drop zone element', control: 'text' },
     { name: 'wrapperClassName', type: 'string', description: 'CSS classes on the outer wrapper', control: 'text' },
 ];

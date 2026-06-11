@@ -12,6 +12,7 @@ import Icon from '../ui/Icon';
 interface DropdownTogglerProps {
     icon?: string;
     text?: string;
+    title?: string;
 }
 interface DropdownProps extends MotionUIProps {
     children: React.ReactNode;
@@ -38,6 +39,7 @@ interface DropdownButtonProps extends Pick<MotionUIProps, 'motion'> {
     display?: "static" | "dynamic";
     className?: string;
     badgeClassName?: string;
+    title?: string;
     onToggle?: () => void;
     open?: boolean;
     menuId?: string;
@@ -89,6 +91,8 @@ export const Dropdown = ({
     const menuId = React.useId();
     const open = staticOpen ? true : controlledOpen ?? uncontrolledOpen;
     const [resolvedPlacement, setResolvedPlacement] = React.useState<'top' | 'bottom'>('bottom');
+    const [maxMenuHeight, setMaxMenuHeight] = React.useState<number | undefined>(undefined);
+    const [menuCoords, setMenuCoords] = React.useState<{ top?: number; bottom?: number; left?: number; right?: number } | null>(null);
     const renderToggle = !staticOpen && trigger !== undefined;
     const menuMotionStyle = useMotionState(open, motionConfig ?? theme.Dropdown.motion?.open ?? 'fadeDown', theme.Dropdown.motion?.open ?? 'fadeDown');
 
@@ -120,12 +124,38 @@ export const Dropdown = ({
         };
     }, [staticOpen, open, updateOpen]);
     React.useEffect(() => {
-        if (!open || placement !== 'auto' || !rootRef.current) return;
-        const trigger = rootRef.current.getBoundingClientRect();
-        const spaceBelow = window.innerHeight - trigger.bottom;
-        const menuHeight = menuRef.current ? menuRef.current.scrollHeight : 240;
-        setResolvedPlacement(spaceBelow < menuHeight + 8 ? 'top' : 'bottom');
-    }, [open, placement]);
+        if (!open || staticOpen || !rootRef.current) return;
+        const triggerRect = rootRef.current.getBoundingClientRect();
+        const spaceBelow = window.innerHeight - triggerRect.bottom - 8;
+        const spaceAbove = triggerRect.top - 8;
+
+        let resolved: 'top' | 'bottom';
+        if (placement === 'auto') {
+            const menuHeight = menuRef.current ? menuRef.current.scrollHeight : 240;
+            resolved = spaceBelow < menuHeight + 8 ? 'top' : 'bottom';
+            setResolvedPlacement(resolved);
+        } else {
+            resolved = placement === 'top' ? 'top' : 'bottom';
+        }
+
+        const available = resolved === 'top' ? spaceAbove : spaceBelow;
+        setMaxMenuHeight(Math.max(160, available));
+
+        // Fixed coords so menu escapes any stacking context (e.g. sticky topbar)
+        const isEnd = position === 'end';
+        const isStart = position === 'start';
+        setMenuCoords(
+            resolved === 'top'
+                ? {
+                    bottom: window.innerHeight - triggerRect.top + 4,
+                    ...(isEnd ? { right: window.innerWidth - triggerRect.right } : isStart ? { left: triggerRect.left } : { left: triggerRect.left }),
+                  }
+                : {
+                    top: triggerRect.bottom + 4,
+                    ...(isEnd ? { right: window.innerWidth - triggerRect.right } : isStart ? { left: triggerRect.left } : { left: triggerRect.left }),
+                  }
+        );
+    }, [open, placement, position, staticOpen]);
 
     function isDropdownToggler(button: unknown): button is DropdownTogglerProps {
         return (
@@ -136,7 +166,7 @@ export const Dropdown = ({
         );
     }
 
-    const Button = renderToggle ? <DropdownButton className={triggerClassName} badge={badge} badgeClassName={badgeClassName} motion={motionConfig} onToggle={() => updateOpen(!open)} open={open} menuId={menuId}>
+    const Button = renderToggle ? <DropdownButton className={triggerClassName} badge={badge} badgeClassName={badgeClassName} motion={motionConfig} title={isDropdownToggler(trigger) ? trigger.title : undefined} onToggle={() => updateOpen(!open)} open={open} menuId={menuId}>
         {isDropdownToggler(trigger)
             ? <>
                 {trigger.icon && <Icon name={trigger.icon} className={trigger.text ? "mr-2" : undefined} />}
@@ -160,14 +190,8 @@ export const Dropdown = ({
                      role="menu"
                      aria-hidden={!open}
                      className={cn(
-                         "min-w-56 overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md outline-none",
-                         staticOpen ? "relative" : "absolute z-50",
-                         !staticOpen && position === "end" && "right-0",
-                         !staticOpen && position === "start" && "left-0",
-                         !staticOpen && placement === 'auto' && resolvedPlacement === 'bottom' && "top-full mt-1",
-                         !staticOpen && placement === 'auto' && resolvedPlacement === 'top' && "bottom-full mb-1",
-                         !staticOpen && placement === 'top' && "bottom-full top-auto mb-1",
-                         !staticOpen && placement === 'bottom' && "mt-2",
+                         "min-w-56 overflow-y-auto rounded-md border bg-popover p-1 text-popover-foreground shadow-md outline-none",
+                         staticOpen ? "relative" : "fixed z-[200]",
                          placement !== 'auto' && (menuClassName || theme.Dropdown.menuClassName)
                      )}
                      style={staticOpen
@@ -177,6 +201,9 @@ export const Dropdown = ({
                              opacity: open ? 1 : 0,
                              visibility: open ? 'visible' : 'hidden',
                              pointerEvents: open ? undefined : 'none',
+                             maxHeight: maxMenuHeight,
+                             minWidth: rootRef.current ? rootRef.current.offsetWidth : undefined,
+                             ...menuCoords ?? {},
                          }}
                      onClick={(e) => {
                          e.stopPropagation();
@@ -206,6 +233,7 @@ export const DropdownButton = ({
                                    className    = undefined,
                                    badgeClassName   = undefined,
                                    motion: motionConfig = undefined,
+                                   title        = undefined,
                                    onToggle     = undefined,
                                    open         = false,
                                    menuId       = undefined
@@ -216,6 +244,7 @@ export const DropdownButton = ({
     const button = (
         <button
             type="button"
+            title={title}
             className={cn("inline-flex items-center justify-center gap-2", className || theme.Dropdown.triggerClassName)}
             style={motion.style}
             aria-haspopup="menu"

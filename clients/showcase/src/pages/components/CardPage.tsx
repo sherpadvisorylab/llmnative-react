@@ -11,7 +11,7 @@ const PROPS_CONFIG: PropDef[] = [
     { name: 'title', type: 'string', description: 'Card title rendered in the header area', control: 'text' },
     { name: 'header', type: 'string | ReactNode', description: 'Custom header content (replaces or extends title)', control: 'text' },
     { name: 'footer', type: 'string | ReactNode', description: 'Footer content rendered below the body', control: 'text' },
-    { name: 'showLoader', type: 'boolean', default: 'false', description: 'Overlay a loading spinner over the card body', control: 'boolean' },
+    { name: 'loading', type: 'boolean', default: 'false', description: 'Overlay a loading spinner over the card body', control: 'boolean' },
     { name: 'showArrow', type: 'boolean', default: 'false', description: 'Show the optional decorative card-arrow layer from the theme', control: 'boolean' },
     { name: 'headerClassName', type: 'string', description: 'Additional CSS classes for the header element', control: 'text' },
     { name: 'bodyClassName', type: 'string', description: 'Additional CSS classes for the body element', control: 'text' },
@@ -30,30 +30,30 @@ const PLAYGROUND: PlaygroundConfig = {
         title: 'Card title',
         header: '',
         footer: '',
-        showLoader: false,
+        loading: false,
         showArrow: false,
         headerClassName: '',
         bodyClassName: '',
         footerClassName: '',
         className: '',
         wrapperClassName: '',
-        pre: '',
-        post: '',
+        before: '',
+        after: '',
     },
     render: (p) => (
         <Card
             title={p.title || undefined}
             header={p.header || undefined}
             footer={p.footer || undefined}
-            showLoader={p.showLoader}
+            loading={p.loading}
             showArrow={p.showArrow}
             headerClassName={p.headerClassName || undefined}
             bodyClassName={p.bodyClassName || undefined}
             footerClassName={p.footerClassName || undefined}
             className={p.className || undefined}
             wrapperClassName={p.wrapperClassName || undefined}
-            before={p.pre || undefined}
-            after={p.post || undefined}
+            before={p.before || undefined}
+            after={p.after || undefined}
         >
             {p.children}
         </Card>
@@ -127,15 +127,15 @@ export default function CardPage() {
 
             <Section
                 title="Card with loader"
-                description="Pass showLoader to overlay a spinner while data is being fetched."
+                description="Pass loading to overlay a spinner while data is being fetched."
                 preview={
-                    <Card wrapperClassName="w-full max-w-sm" title="User profile" showLoader={true}>
+                    <Card wrapperClassName="w-full max-w-sm" title="User profile" loading={true}>
                         <div className="flex items-center justify-center min-h-[60px] text-xs text-muted-foreground">
                             Loading...
                         </div>
                     </Card>
                 }
-                code={`<Card title="User profile" showLoader={isLoading}>
+                code={`<Card title="User profile" loading={isLoading}>
     {data && <UserDetails user={data} />}
 </Card>`}
             />

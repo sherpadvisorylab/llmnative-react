@@ -16,18 +16,24 @@ const PROPS: PropDef[] = [
     { name: 'icon', type: 'string', description: 'Icon shown while idle', control: 'icon' },
     { name: 'onClick', type: '(e, setMessage?) => Promise<unknown>', description: 'Async handler. Button disables itself until the promise resolves. Use setMessage to update the label mid-flight.' },
     { name: 'loadingLabel', type: 'string | ReactNode', description: 'Label shown while loading. Defaults to label + "…"', control: 'text' },
-    { name: 'showLoader', type: 'boolean', default: 'false', description: 'Controlled loading state from outside (e.g. form submit in progress)', control: 'boolean' },
+    { name: 'loading', type: 'boolean', default: 'false', description: 'Controlled loading state from outside (e.g. form submit in progress)', control: 'boolean' },
     { name: 'variant', type: '"primary" | "secondary" | … | "outline-*"', description: 'Semantic color variant', control: 'select', options: [...VARIANTS] },
     { name: 'className', type: 'string', description: 'Raw CSS class override', control: 'text' },
     { name: 'disabled', type: 'boolean', default: 'false', description: 'Disables the button permanently (regardless of loading)', control: 'boolean' },
     { name: 'badge', type: 'ReactNode | BadgeDescriptor', description: 'Badge shown while idle (hidden during loading)', control: 'json' },
     { name: 'title', type: 'string', description: 'Native title attribute', control: 'text' },
+    { name: 'iconClassName', type: 'string', description: 'CSS classes applied to the icon element inside the button' },
+    { name: 'style', type: 'React.CSSProperties', description: 'Inline style applied to the button element (merged with motion transform)' },
+    { name: 'before', type: 'ReactNode', description: 'Content rendered immediately before the button in the wrapper' },
+    { name: 'after', type: 'ReactNode', description: 'Content rendered immediately after the button in the wrapper' },
+    { name: 'wrapperClassName', type: 'string', description: 'CSS classes applied to the outermost wrapper element' },
+    { name: 'motion', type: 'string | MotionEffect | false', default: '"press"', description: 'Named motion preset or inline MotionEffect override. Defaults to the theme press motion.' },
 ];
 
 const PLAYGROUND: PlaygroundConfig = {
     size: 'lg',
     props: PROPS,
-    defaultProps: { label: 'Save', icon: 'save', loadingLabel: '', showLoader: false, disabled: false, variant: 'primary', className: '', title: '', badge: null },
+    defaultProps: { label: 'Save', icon: 'save', loadingLabel: '', loading: false, disabled: false, variant: 'primary', className: '', title: '', badge: null },
     render: (p) => (
         <LoadingButton
             label={p.label || undefined}
@@ -35,7 +41,7 @@ const PLAYGROUND: PlaygroundConfig = {
             variant={p.variant || undefined}
             className={p.className || undefined}
             loadingLabel={p.loadingLabel || undefined}
-            showLoader={p.showLoader}
+            loading={p.loading}
             disabled={p.disabled}
             title={p.title || undefined}
             badge={p.badge || undefined}
@@ -157,15 +163,15 @@ export default function LoadingButtonPage() {
             />
 
             <Section
-                title="Controlled loading (showLoader)"
-                description="showLoader lets a parent component control the loading state externally — useful when the button is part of a larger form submit flow."
+                title="Controlled loading (loading)"
+                description="loading lets a parent component control the loading state externally — useful when the button is part of a larger form submit flow."
                 preview={
                     <div className="flex items-center gap-4">
                         <LoadingButton
                             variant="primary"
                             icon="send"
                             label="Submit form"
-                            showLoader={result === 'loading'}
+                            loading={result === 'loading'}
                             onClick={async () => {
                                 setResult('loading');
                                 await new Promise((r) => setTimeout(r, 1500));
@@ -184,7 +190,7 @@ export default function LoadingButtonPage() {
 <LoadingButton
     variant="primary"
     label="Submit form"
-    showLoader={loading}
+    loading={loading}
     onClick={async () => {
         setLoading(true);
         await submitForm();

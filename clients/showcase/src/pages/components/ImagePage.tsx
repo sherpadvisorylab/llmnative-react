@@ -39,11 +39,17 @@ const IMAGE_PROPS: PropDef[] = [
     { name: 'feedback', type: 'ReactNode', group: 'Slots', description: 'Caption or feedback text rendered below the image', control: 'text' },
     { name: 'before', type: 'ReactNode', group: 'Slots', description: 'Content rendered to the left of the image', control: 'text' },
     { name: 'after', type: 'ReactNode', group: 'Slots', description: 'Content rendered to the right of the image', control: 'text' },
-    { name: 'responsive', type: 'boolean', group: 'Responsive', description: 'Aggiunge srcset all\'export (toHTML / toJSON). Non cambia il preview — il browser userebbe varianti file che in demo non esistono.', control: 'boolean' },
-    { name: 'srcsetMode', type: '"width" | "density"', group: 'Responsive', description: 'Strategia srcset. width (-400w/-800w/-1600w): immagini fluid/responsive, il browser sceglie in base a viewport + sizes. density (@2x/@3x): immagini a dimensione fissa (logo, avatar), il browser sceglie in base al devicePixelRatio.', control: 'select', options: ['width', 'density'], help: 'width â†’ usa sizes per dire al browser quanto spazio occupa l\'immagine · density â†’ nessun sizes, scelta basata sul DPR dello schermo', hidden: (p) => !p.responsive },
-    { name: 'sizesPreset', type: 'string', group: 'Responsive', description: 'Descrive al browser quanto spazio visivo occupa l\'immagine al variare della viewport.', control: 'select', options: ['Hero — occupa tutta la larghezza', 'Articolo — colonna di testo (max 900px)', 'Card — griglia 2 colonne', 'Card — griglia 3 colonne', 'Thumbnail — elemento piccolo'], help: 'Hero: 100vw · Articolo: (max 900px) 100vw, 900px · Card 2col: (≤640px) 100vw, 50vw · Card 3col: (≤640px) 100vw, (≤1024px) 50vw, 33vw · Thumb: (≤640px) 50vw, 200px', hidden: (p) => !p.responsive || p.srcsetMode === 'density' },
+    { name: 'srcset', type: 'string', group: 'Responsive', description: 'Native HTML srcset attribute — comma-separated list of image candidate strings for responsive image selection by the browser', control: 'text' },
+    { name: 'sizes', type: 'string', group: 'Responsive', description: 'Native HTML sizes attribute — media-condition / width descriptor pairs that tell the browser which srcset candidate to use at each viewport width', control: 'text' },
     { name: 'className', type: 'string', group: 'Styling', description: 'CSS classes applied to the <img> element', control: 'text' },
     { name: 'wrapperClassName', type: 'string', group: 'Styling', description: 'CSS classes applied to the outer wrapper', control: 'text' },
+];
+
+// Playground-only controls — used by ImageExportPanel to demonstrate useImage/srcset, not Image component props
+const PLAYGROUND_EXTRA_PROPS: PropDef[] = [
+    { name: 'responsive', type: 'boolean', group: 'Export demo', description: 'Adds srcset to the export output (toHTML / toJSON). Does not change the preview.', control: 'boolean' },
+    { name: 'srcsetMode', type: '"width" | "density"', group: 'Export demo', description: 'srcset strategy for the export demo.', control: 'select', options: ['width', 'density'], hidden: (p) => !p.responsive },
+    { name: 'sizesPreset', type: 'string', group: 'Export demo', description: 'sizes attribute preset for width-mode srcset export.', control: 'select', options: ['Hero — occupa tutta la larghezza', 'Articolo — colonna di testo (max 900px)', 'Card — griglia 2 colonne', 'Card — griglia 3 colonne', 'Thumbnail — elemento piccolo'], hidden: (p) => !p.responsive || p.srcsetMode === 'density' },
 ];
 
 // Filename used in export when src is a playground preset (not a real file)
@@ -122,8 +128,8 @@ function ImageExportPanel(p: Record<string, any>) {
                 feedback={p.feedback || undefined}
                 width={PREVIEW_WIDTH}
                 height={previewHeight}
-                before={p.pre || undefined}
-                after={p.post || undefined}
+                before={p.before || undefined}
+                after={p.after || undefined}
                 className={p.className || undefined}
                 wrapperClassName={p.wrapperClassName || undefined}
             />
@@ -186,7 +192,7 @@ function ImageExportPanel(p: Record<string, any>) {
 const PLAYGROUND: PlaygroundConfig = {
     size: 'xl',
     layout: 'split',
-    props: IMAGE_PROPS,
+    props: [...IMAGE_PROPS, ...PLAYGROUND_EXTRA_PROPS],
     defaultProps: {
         src: 'landscape',
         label: 'Sample landscape illustration',
@@ -197,8 +203,8 @@ const PLAYGROUND: PlaygroundConfig = {
         fit: 'cover',
         position: 'center',
         feedback: 'Caption rendered below the image',
-        pre: '',
-        post: '',
+        before: '',
+        after: '',
         responsive: false,
         srcsetMode: 'width',
         sizesPreset: 'Card — griglia 2 colonne',
@@ -316,8 +322,8 @@ export default function ImagePage() {
             />
 
             <Section
-                title="Pre / post slots"
-                description="pre renders to the left of the image, post to the right — both vertically centred. Use them for labels, action buttons or metadata beside the image. feedback still appears below."
+                title="Before / after slots"
+                description="before renders to the left of the image, after to the right — both vertically centred. Use them for labels, action buttons or metadata beside the image. feedback still appears below."
                 preview={
                     <div className="flex flex-col gap-6 w-full">
                         <Image
@@ -565,11 +571,11 @@ img.toHtml({ mode: 'density', densities: [1, 2, 3] });
 
 // Width mode — responsive images (hero, card, content)
 // Files expected: photo-400w.jpg  photo-800w.jpg  photo-1200w.jpg
-// priority: true â†’ fetchpriority="high" + loading="eager"  (LCP image)
+// priority: true â†' fetchpriority="high" + loading="eager"  (LCP image)
 const hero = useImage({ src: 'photo.jpg', alt: 'Campaign hero', width: 800, height: 450, priority: true });
 hero.toHtml({ mode: 'width', widths: [400, 800, 1200], sizes: '(max-width: 640px) 100vw, 800px' });
 
-// Custom suffix override: img.jpg â†’ img-2x.jpg instead of img@2x.jpg
+// Custom suffix override: img.jpg â†' img-2x.jpg instead of img@2x.jpg
 const logo = useImage({ src: 'img.jpg', alt: 'Img' });
 logo.toHtml({ mode: 'density', densities: [1, 2], suffix: (d) => d === 1 ? '' : \`-\${d}x\` });`}
             />
@@ -589,7 +595,7 @@ logo.toHtml({ mode: 'density', densities: [1, 2], suffix: (d) => d === 1 ? '' : 
                                 feedback={<span className="text-xs text-muted-foreground">card.jpg · 640x360 · fit: cover</span>}
                             />
                             <div className="flex flex-col gap-2">
-                                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mt-2">â†’ HTML</span>
+                                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mt-2">â†' HTML</span>
                                 <pre className="rounded-lg border bg-muted p-3 text-xs overflow-x-auto whitespace-pre">{
                                     useImage({ src: 'card.jpg', alt: 'Card image', width: 640, height: 360, fit: 'cover', loading: 'lazy' })
                                         .toHtml({ mode: 'width', widths: [320, 640, 1280], sizes: '(max-width: 768px) 100vw, 640px' })
@@ -597,7 +603,7 @@ logo.toHtml({ mode: 'density', densities: [1, 2], suffix: (d) => d === 1 ? '' : 
                             </div>
                         </div>
                         <div className="flex flex-col gap-2">
-                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">â†’ JSON params</span>
+                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">â†' JSON params</span>
                             <pre className="rounded-lg border bg-muted p-3 text-xs overflow-x-auto whitespace-pre">{
                                 useImage({ src: 'card.jpg', alt: 'Card image', width: 640, height: 360, fit: 'cover', loading: 'lazy' })
                                     .toJson({ mode: 'width', widths: [320, 640, 1280], sizes: '(max-width: 768px) 100vw, 640px' })

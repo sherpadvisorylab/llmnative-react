@@ -191,7 +191,7 @@ type GridDbDocSurface = {
     columns: unknown;
     actions: unknown;
     form: unknown;
-    layout: unknown;
+    view: unknown;
     sortable: unknown;
     pagination: unknown;
     selection: unknown;
@@ -209,7 +209,7 @@ type GridDbDocSurface = {
     editDeepLink: unknown;
     onSave: unknown;
     onDelete: unknown;
-    onAfterAction: unknown;
+    onComplete: unknown;
     audit: unknown;
 };
 
@@ -336,7 +336,7 @@ Record<string, false | {
 }) => ReactNode)`,
     },
     {
-        name: 'layout',
+        name: 'view',
         type: '"table" | "gallery"',
         default: '"table"',
         category: 'Shared',
@@ -489,7 +489,7 @@ Record<string, false | {
 }) => Promise<string | undefined>`,
     },
     {
-        name: 'onAfterAction',
+        name: 'onComplete',
         type: 'GridAfterActionHandler<TRecord>',
         category: 'Shared',
         description: 'Post-action hook. Return false to keep the modal open.',
@@ -612,7 +612,7 @@ const SHARED_PROPS: PropDef[] = [
         ],
     },
     { group: 'Shared', name: 'form', type: 'ReactElement | ((ctx) => ReactNode)', description: 'Add/edit form rendered inside the modal. Grid wraps it in Form automatically.', readOnly: true },
-    { group: 'Shared', name: 'layout', type: '"table" | "gallery"', default: '"table"', description: 'Visual surface: table rows or gallery cards.', control: 'select', options: ['table', 'gallery'] },
+    { group: 'Shared', name: 'view', type: '"table" | "gallery"', default: '"table"', description: 'Visual surface: table rows or gallery cards.', control: 'select', options: ['table', 'gallery'] },
     {
         group: 'Shared', name: 'sortable', type: 'boolean | OrderConfig', default: 'true',
         description: 'Enable client-side header sorting or set an initial sort via OrderConfig.',
@@ -675,7 +675,7 @@ const SHARED_PROPS: PropDef[] = [
     { group: 'Shared', name: 'editDeepLink', type: 'boolean', default: 'false', description: 'Sync edit modal to URL hash (#edit/{key}).', control: 'boolean' },
     { group: 'Shared', name: 'onSave', type: 'GridMutationSaveHandler<TRecord>', description: 'Override save path or implement custom persistence for create/update.', readOnly: true },
     { group: 'Shared', name: 'onDelete', type: 'GridMutationDeleteHandler<TRecord>', description: 'Override delete path before the provider removes the record.', readOnly: true },
-    { group: 'Shared', name: 'onAfterAction', type: 'GridAfterActionHandler<TRecord>', description: 'Post-action hook. Return false to keep the modal open.', readOnly: true },
+    { group: 'Shared', name: 'onComplete', type: 'GridAfterActionHandler<TRecord>', description: 'Post-action hook. Return false to keep the modal open.', readOnly: true },
     { group: 'Shared', name: 'audit', type: 'boolean', default: 'false', description: 'Enable form-level audit logging during modal saves.', control: 'boolean' },
 ];
 
@@ -775,7 +775,7 @@ function GridDbPlaygroundPreview({ p }: { p: Record<string, any> }) {
                 title={p.title ?? 'Team members'}
                 header={resolvedHeaderNode}
                 footer={resolvedFooterNode}
-                layout={p.layout}
+                view={p.view}
                 loading={p.loading}
                 sticky={(p.sticky as any) || undefined}
                 wrapperClassName={typeof p.wrapperClassName === 'string' ? p.wrapperClassName : ''}
@@ -841,7 +841,7 @@ const PLAYGROUND: PlaygroundConfig = {
         path: GRID_SOURCE_PATH,
         fromUrl: false,
         recordId: '_key',
-        layout: 'table',
+        view: 'table',
         columns: baseColumns,
         actions: ['add', 'edit', 'delete'],
         selection: false,

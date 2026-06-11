@@ -12,6 +12,8 @@ const PROPS_CONFIG: PropDef[] = [
     { name: 'icon', type: 'string', description: 'Icon name for the spinner. Defaults to the theme value (Loader.icon).', control: 'icon' },
     { name: 'title', type: 'string', description: 'Heading shown below the spinner. Defaults to the theme value.', control: 'text' },
     { name: 'description', type: 'string', description: 'Secondary text shown below the title.', control: 'text' },
+    { name: 'before', type: 'ReactNode', description: 'Content rendered before the spinner content, inside the overlay (only when show=true).' },
+    { name: 'after', type: 'ReactNode', description: 'Content rendered after the spinner content, inside the overlay (only when show=true).' },
     { name: 'className', type: 'string', description: 'CSS classes on the loader inner container.', control: 'text' },
     { name: 'wrapperClassName', type: 'string', description: 'CSS classes on the outer wrapper.', control: 'text' },
 ];

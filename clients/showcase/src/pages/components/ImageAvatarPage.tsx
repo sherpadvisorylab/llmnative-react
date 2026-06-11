@@ -69,8 +69,8 @@ const PLAYGROUND: PlaygroundConfig = {
         fit:       'cover',
         badge:     { content: '3', type: 'danger' },
         feedback:  '',
-        pre:       '',
-        post:      'Ada Lovelace',
+        before:    '',
+        after:     'Ada Lovelace',
         className: 'rounded-full border-2 border-primary',
         wrapperClassName: '',
     },
@@ -84,8 +84,8 @@ const PLAYGROUND: PlaygroundConfig = {
             fit={p.fit      || undefined}
             badge={p.badge || undefined}
             feedback={p.feedback || undefined}
-            before={p.pre      || undefined}
-            after={p.post ? <span className="font-medium text-sm">{p.post}</span> : undefined}
+            before={p.before      || undefined}
+            after={p.after ? <span className="font-medium text-sm">{p.after}</span> : undefined}
             className={p.className  || undefined}
             wrapperClassName={p.wrapperClassName  || undefined}
         />

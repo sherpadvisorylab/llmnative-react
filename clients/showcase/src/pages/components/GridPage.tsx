@@ -43,7 +43,7 @@ type GridDocSurface = {
     order: unknown;
     fieldMap: unknown;
     columns: unknown;
-    layout: unknown;
+    view: unknown;
     sortable: unknown;
     pagination: unknown;
     groupBy: unknown;
@@ -65,7 +65,7 @@ type GridDocSurface = {
     post: unknown;
     onSave: unknown;
     onDelete: unknown;
-    onAfterAction: unknown;
+    onComplete: unknown;
     audit: unknown;
 };
 
@@ -965,7 +965,7 @@ const GRID_PROP_DOCS = definePropDocs<GridDocSurface>()([
         description: 'Column definitions with sortable, className and render support. The render function receives a record-bound runAction().',
         category: 'Display',
     },
-    { name: 'layout', type: '"table" | "gallery"', default: '"table"', description: 'Visual surface used by GridCore.', category: 'Display' },
+    { name: 'view', type: '"table" | "gallery"', default: '"table"', description: 'Visual surface used by GridCore.', category: 'Display' },
     {
         name: 'sortable',
         type: 'boolean | OrderConfig',
@@ -1170,7 +1170,7 @@ type GridMutationDeleteArgs<TRecord> = {
         category: 'Data lifecycle',
     },
     {
-        name: 'onAfterAction',
+        name: 'onComplete',
         type: 'GridAfterActionHandler<TRecord>',
         description: 'Post-action hook used to keep or close the current workflow.',
         shape: `type GridAfterActionHandler<TRecord> = (
@@ -1206,7 +1206,7 @@ function GridPlaygroundPreview({ p }: { p: Record<string, any> }) {
     const recordId = React.useMemo(() => resolvePlaygroundRecordId(p.recordId), [p.recordId]);
     const isColumnsInfer = p.columns == null || (typeof p.columns === 'object' && !Array.isArray(p.columns) && Object.keys(p.columns).length === 0);
     const reorderableRequested = resolvePlaygroundBoolean(p.reorderable);
-    const previewLayout = reorderableRequested ? 'table' : p.layout;
+    const previewView = reorderableRequested ? 'table' : p.view;
     const previewSourceMode = reorderableRequested ? 'array' : sourceMode;
     const groupBy: string | string[] | undefined = (() => {
         const val = p.groupBy;
@@ -1226,7 +1226,7 @@ function GridPlaygroundPreview({ p }: { p: Record<string, any> }) {
     const where = previewSourceMode === 'db' && typeof p.where === 'object' && p.where !== null && Object.keys(p.where).length > 0 ? p.where : undefined;
     const order = previewSourceMode === 'db' && typeof p.order === 'object' && p.order !== null && Object.keys(p.order).length > 0 ? p.order : undefined;
     const fieldMap = previewSourceMode === 'db' && typeof p.fieldMap === 'object' && p.fieldMap !== null && Object.keys(p.fieldMap).length > 0 ? p.fieldMap : undefined;
-    const onLoadRecords = previewSourceMode === 'db' && previewLayout === 'gallery'
+    const onLoadRecords = previewSourceMode === 'db' && previewView === 'gallery'
         ? (records: UserRecord[]) => withGalleryThumbs(records)
         : undefined;
     const loading = p.loading as boolean | undefined;
@@ -1250,8 +1250,8 @@ function GridPlaygroundPreview({ p }: { p: Record<string, any> }) {
     }, [db, previewSourceMode]);
 
     const arrayRecords = React.useMemo(
-        () => previewLayout === 'gallery' ? withGalleryThumbs(rawArrayRecords) : rawArrayRecords,
-        [previewLayout, rawArrayRecords],
+        () => previewView === 'gallery' ? withGalleryThumbs(rawArrayRecords) : rawArrayRecords,
+        [previewView, rawArrayRecords],
     );
 
     const [reorderState, setReorderState] = React.useState<UserRecord[] | null>(null);
@@ -1259,7 +1259,7 @@ function GridPlaygroundPreview({ p }: { p: Record<string, any> }) {
         setReorderState(null);
         setReorderPayload(null);
     }, [rawArrayRecords]);
-    const reorderable = reorderableRequested && previewSourceMode === 'array' && previewLayout === 'table';
+    const reorderable = reorderableRequested && previewSourceMode === 'array' && previewView === 'table';
     const effectiveArrayRecords = reorderable && reorderState !== null ? reorderState : arrayRecords;
     const effectiveSortable = reorderable ? false : p.sortable;
 
@@ -1310,7 +1310,7 @@ function GridPlaygroundPreview({ p }: { p: Record<string, any> }) {
         <div className="space-y-4">
             {reorderable && (
                 <div className="rounded-md border border-dashed border-primary/30 bg-primary/5 px-3 py-2 text-xs text-muted-foreground">
-                    Reorder preview attivo: il playground usa automaticamente <code>layout="table"</code>, <code>source="array"</code> e <code>sortable=false</code> per mostrare il drag & drop.
+                    Reorder preview attivo: il playground usa automaticamente <code>view="table"</code>, <code>source="array"</code> e <code>sortable=false</code> per mostrare il drag & drop.
                 </div>
             )}
             {previewSourceMode === 'array' ? (
@@ -1321,7 +1321,7 @@ function GridPlaygroundPreview({ p }: { p: Record<string, any> }) {
                     title={p.title ?? 'Team members'}
                     header={resolvedHeaderNode}
                     footer={resolvedFooterNode}
-                    layout={previewLayout}
+                    view={previewView}
                     loading={loading}
                     sticky={sticky as any}
                     wrapperClassName={wrapperClassName}
@@ -1370,7 +1370,7 @@ function GridPlaygroundPreview({ p }: { p: Record<string, any> }) {
                     title={p.title ?? 'Team members'}
                     header={resolvedHeaderNode}
                     footer={resolvedFooterNode}
-                    layout={previewLayout}
+                    view={previewView}
                     loading={loading}
                     sticky={sticky as any}
                     wrapperClassName={wrapperClassName}
@@ -1524,7 +1524,7 @@ const PLAYGROUND: PlaygroundConfig = {
                 { label: 'align', value: playgroundColumnsAligned, help: 'Shows className and alignment-oriented configuration.' },
             ],
         },
-        { name: 'layout', type: '"table" | "gallery"', default: '"table"', description: 'Visual surface used by GridCore.', control: 'select', options: ['table', 'gallery'] },
+        { name: 'view', type: '"table" | "gallery"', default: '"table"', description: 'Visual surface used by GridCore.', control: 'select', options: ['table', 'gallery'] },
         {
             name: 'sortable',
             type: 'boolean | OrderConfig',
@@ -1677,18 +1677,18 @@ const PLAYGROUND: PlaygroundConfig = {
         },
         { name: 'onRowClick', type: '(record) => void', default: 'false', description: 'Called with the full record on row or card click. Enable to see the payload below.', control: 'boolean' },
         { name: 'onReorder', type: 'GridReorderHandler<TRecord>', description: 'Receives the reordered record array and drag metadata. Handled internally by the playground when reorderable is true.', readOnly: true, hidden: (props) => !resolvePlaygroundBoolean(props.reorderable) },
-        { name: 'editDeepLink', type: 'boolean', default: 'false', description: 'Sync edit modal to URL hash. Opening a row edit appends #edit/{key} so the modal survives reload and is bookmarkable.', control: 'boolean', hidden: (props) => !hasPlaygroundAction(props.actions, 'edit') || props.layout === 'gallery' || props.source === 'array' },
+        { name: 'editDeepLink', type: 'boolean', default: 'false', description: 'Sync edit modal to URL hash. Opening a row edit appends #edit/{key} so the modal survives reload and is bookmarkable.', control: 'boolean', hidden: (props) => !hasPlaygroundAction(props.actions, 'edit') || props.view === 'gallery' || props.source === 'array' },
         // ── Data lifecycle ────────────────────────────────────────────────────
         { name: 'onLoad', type: '(records) => records | Promise<records>', description: 'Normalize or enrich records before display. In the playground this automatically adds gallery thumbnails when layout is gallery.', readOnly: true },
         { name: 'onSave', type: 'GridMutationSaveHandler<TRecord>', description: 'Override save target path or implement custom persistence for create/update. Handled automatically by the playground.', readOnly: true },
         { name: 'onDelete', type: 'GridMutationDeleteHandler<TRecord>', description: 'Override delete target path before the provider removes the record. Handled automatically by the playground.', readOnly: true },
-        { name: 'onAfterAction', type: 'GridAfterActionHandler<TRecord>', description: 'Post-action hook. Return false to keep the modal open after save/delete.', readOnly: true },
+        { name: 'onComplete', type: 'GridAfterActionHandler<TRecord>', description: 'Post-action hook. Return false to keep the modal open after save/delete.', readOnly: true },
         { name: 'audit', type: 'boolean', default: 'false', description: 'Enables form-level audit logging during modal saves.', control: 'boolean', hidden: (props) => !buildPlaygroundActions(props.actions) },
     ],
     defaultProps: {
         source: 'db',
         recordId: '_key',
-        layout: 'table',
+        view: 'table',
         columns: playgroundColumnsBase,
         actions: playgroundCustomActions,
         selection: false,
@@ -2247,14 +2247,14 @@ const [selectedRecords, setSelectedRecords] = useState<RecordArray>([]);
                                 records={layoutRecords}
                                 recordId="_key"
                                 wrapperClassName="w-full"
-                                layout="gallery"
+                                view="gallery"
                                 pagination={{ limit: 4, align: 'end', sticky: false }}
                             />
                         ),
                         code: `<GridArray
   records={records}
   recordId="_key"
-  layout="gallery"
+  view="gallery"
   pagination={{ limit: 4, align: "end", sticky: false }}
 />`,
                     },

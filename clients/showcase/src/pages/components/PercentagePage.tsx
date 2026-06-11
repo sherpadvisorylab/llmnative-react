@@ -10,8 +10,8 @@ const COLORS = ['primary', 'secondary', 'success', 'danger', 'warning', 'info', 
 
 const PERCENTAGE_PROPS: PropDef[] = [
     { name: 'value', type: 'number', default: '0', description: 'Current value before min/max normalization', control: 'number', min: -50, max: 250 },
-    { name: 'maxItems', type: 'number', default: '100', description: 'Maximum value mapped to 100%', control: 'number', min: 1, max: 250 },
-    { name: 'minItems', type: 'number', default: '0', description: 'Minimum value mapped to 0%', control: 'number', min: -50, max: 150 },
+    { name: 'max', type: 'number', default: '100', description: 'Maximum value mapped to 100%', control: 'number', min: 1, max: 250 },
+    { name: 'min', type: 'number', default: '0', description: 'Minimum value mapped to 0%', control: 'number', min: -50, max: 150 },
     { name: 'appearance', type: '"bar" | "circle"', default: '"bar"', description: 'Progress shape', control: 'select', options: ['bar', 'circle'] },
     { name: 'variant', type: 'ColorType', default: '"primary"', description: 'Progress fill color', control: 'select', options: COLORS },
     { name: 'trackVariant', type: 'ColorType', default: '"secondary"', description: 'Track/background color', control: 'select', options: COLORS },
@@ -30,8 +30,8 @@ const PLAYGROUND: PlaygroundConfig = {
     props: PERCENTAGE_PROPS,
     defaultProps: {
         value: 72,
-        maxItems: 100,
-        minItems: 0,
+        max: 100,
+        min: 0,
         appearance: 'bar',
         variant: 'primary',
         trackVariant: 'secondary',
@@ -40,16 +40,16 @@ const PLAYGROUND: PlaygroundConfig = {
         size: 100,
         fontSize: 13,
         label: 'Completion',
-        pre: '',
-        post: '',
+        before: '',
+        after: '',
         className: '',
         wrapperClassName: '',
     },
     render: (p) => (
         <Percentage
             value={p.value}
-            maxItems={p.maxItems}
-            minItems={p.minItems}
+            max={p.max}
+            min={p.min}
             appearance={p.appearance}
             variant={p.variant}
             trackVariant={p.trackVariant}
@@ -58,8 +58,8 @@ const PLAYGROUND: PlaygroundConfig = {
             size={p.size}
             fontSize={p.fontSize}
             label={p.label || undefined}
-            before={p.pre || undefined}
-            after={p.post || undefined}
+            before={p.before || undefined}
+            after={p.after || undefined}
             className={p.className || undefined}
             wrapperClassName={p.wrapperClassName || undefined}
         />

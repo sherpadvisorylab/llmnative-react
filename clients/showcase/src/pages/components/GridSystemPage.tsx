@@ -68,12 +68,13 @@ const GRID_SYSTEM_PROPS: PropDef[] = [
     { name: 'className', type: 'string', description: 'Additional classes merged with the generated Bootstrap-like classes.' },
     { name: 'style', type: 'CSSProperties', description: 'Inline style forwarded to the rendered element.' },
     { name: 'onClick', type: 'MouseEventHandler', description: 'Click handler forwarded to the rendered element.' },
-    { name: 'xs', type: 'boolean | number | "auto"', default: 'undefined', description: 'Column span for the xs breakpoint. true or undefined uses fluid .col behavior.' },
-    { name: 'sm', type: 'boolean | number | "auto"', default: 'undefined', description: 'Column span for the sm breakpoint.' },
-    { name: 'md', type: 'boolean | number | "auto"', default: 'undefined', description: 'Column span for the md breakpoint.' },
-    { name: 'lg', type: 'boolean | number | "auto"', default: 'undefined', description: 'Column span for the lg breakpoint.' },
-    { name: 'xl', type: 'boolean | number | "auto"', default: 'undefined', description: 'Column span for the xl breakpoint.' },
-    { name: 'xxl', type: 'boolean | number | "auto"', default: 'undefined', description: 'Column span for the xxl breakpoint.' },
+    { name: 'defaultSize', type: 'number', default: 'undefined', description: 'Declared fallback column span for when no breakpoint-specific size prop (xs … xxl) is provided. Part of the ColProps contract.' },
+    { name: 'xs', type: 'number | "auto"', default: 'undefined', description: 'Column span for the xs breakpoint. Omit for fluid .col behavior.' },
+    { name: 'sm', type: 'number | "auto"', default: 'undefined', description: 'Column span for the sm breakpoint.' },
+    { name: 'md', type: 'number | "auto"', default: 'undefined', description: 'Column span for the md breakpoint.' },
+    { name: 'lg', type: 'number | "auto"', default: 'undefined', description: 'Column span for the lg breakpoint.' },
+    { name: 'xl', type: 'number | "auto"', default: 'undefined', description: 'Column span for the xl breakpoint.' },
+    { name: 'xxl', type: 'number | "auto"', default: 'undefined', description: 'Column span for the xxl breakpoint.' },
 ];
 
 const normalizeCol = (value: unknown): number | 'auto' | undefined =>

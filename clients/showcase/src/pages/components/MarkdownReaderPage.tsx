@@ -35,12 +35,14 @@ Continue to [Quick start](/docs/quick-start).`;
 
 const PROPS_CONFIG: PropDef[] = [
     { name: 'content', type: 'string', required: true, description: 'Markdown string to render' },
-    { name: 'head', type: 'HeadConfig', description: 'SEO metadata injected via Head component', typeDetails: `{
+    { name: 'metadata', type: 'PageMetadataState', description: 'SEO metadata injected via Head component', typeDetails: `{
   title?: string;
   description?: string;
 }` },
-    { name: 'onNavigateInternal', type: '(href: string) => void', description: 'Intercepts clicks on internal links (relative paths). Use to navigate with React Router.' },
+    { name: 'onInternalLinkClick', type: '(href: string, event: React.MouseEvent<HTMLAnchorElement>) => void', description: 'Intercepts clicks on internal links (relative paths). Use to navigate with React Router.' },
+    { name: 'components', type: 'Components', description: 'Custom react-markdown component overrides merged on top of the built-in themed renderers (h1–h4, p, ul, ol, table, a, pre, code, …).' },
     { name: 'className', type: 'string', description: 'Additional CSS classes on the prose wrapper', control: 'text' },
+    { name: 'wrapperClassName', type: 'string', description: 'Additional CSS classes on the outermost div (applied alongside className)', control: 'text' },
 ];
 
 const PLAYGROUND: PlaygroundConfig = {
@@ -78,7 +80,7 @@ export default function MarkdownReaderPage() {
                                 title: 'MarkdownReader',
                                 description: 'Render Markdown with GFM support and themed components.',
                             }}
-                            onNavigateInternal={(href) => setLastNavigation(href)}
+                            onInternalLinkClick={(href) => setLastNavigation(href)}
                         />
                         {lastNavigation && (
                             <div className="alert alert-info mt-4 text-sm">
@@ -95,7 +97,7 @@ export default function MarkdownReaderPage() {
     title: 'MarkdownReader',
     description: 'Render Markdown with GFM support and themed components.',
   }}
-  onNavigateInternal={(href) => navigate(href)}
+  onInternalLinkClick={(href) => navigate(href)}
 />`}
             />
 

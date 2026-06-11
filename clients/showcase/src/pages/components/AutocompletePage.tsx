@@ -36,7 +36,7 @@ const AUTOCOMPLETE_PROPS: PropDef[] = [
   { label: 'Bob Martinez', value: 'bob' },
 ]}` },
     {
-        name: 'db',
+        name: 'optionsSource',
         type: 'AutocompleteDbConfig',
         description: 'DataProvider path used to fetch suggestions',
         typeDetails: `{
@@ -45,7 +45,7 @@ const AUTOCOMPLETE_PROPS: PropDef[] = [
   where?: Record<string, unknown>;
   order?: { field: string; dir: 'asc' | 'desc' };
 }`,
-        example: `db={{
+        example: `optionsSource={{
   path: '/showcase/users',
   order: { field: 'label', dir: 'asc' },
 }}`,
@@ -62,13 +62,15 @@ const AUTOCOMPLETE_PROPS: PropDef[] = [
 }}` },
     { name: 'required', type: 'boolean', default: 'false', description: 'Marks field as required', control: 'boolean' },
     { name: 'disabled', type: 'boolean', default: 'false', description: 'Disables the field', control: 'boolean' },
-    { name: 'updatable', type: 'boolean', default: 'true', description: 'When false, an existing value locks the input', control: 'boolean' },
+    { name: 'readOnlyAfterSet', type: 'boolean', default: 'false', description: 'Field becomes read-only (disabled) once a value has been set', control: 'boolean' },
     { name: 'defaultValue', type: 'string[] | string', description: 'Initial selected values', control: 'json', rows: 3, shortcuts: [
         { label: 'single', value: 'alice', help: 'Single selected value.' },
         { label: 'multi', value: ['alice', 'carla'], help: 'Multiple selected values.' },
         { label: 'empty', value: [], help: 'No initial value.' },
     ] },
     { name: 'feedback', type: 'string', description: 'Validation feedback message shown below the field', control: 'text' },
+    { name: 'validator', type: '(value: FieldValue) => string | undefined', description: 'Custom validation function; return an error string to block submission, undefined to pass' },
+    { name: 'onChange', type: 'FieldOnChange', description: 'Custom change handler called by the Form context' },
     { name: 'order', type: 'OrderConfig', description: 'Sort order for options (default: label asc)', control: 'json', rows: 4, shortcuts: [
         { label: 'label asc', value: { field: 'label', dir: 'asc' }, help: 'Sort by label ascending.' },
         { label: 'label desc', value: { field: 'label', dir: 'desc' }, help: 'Sort by label descending.' },
@@ -106,15 +108,15 @@ const PLAYGROUND: PlaygroundConfig = {
         creatable: false,
         required: false,
         disabled: false,
-        updatable: true,
+        readOnlyAfterSet: false,
         defaultValue: ['alice'],
         feedback: '',
         order: {
             field: 'label',
             dir: 'asc',
         },
-        pre: '',
-        post: '',
+        before: '',
+        after: '',
         className: '',
         wrapperClassName: '',
     },
@@ -126,18 +128,18 @@ const PLAYGROUND: PlaygroundConfig = {
                 title={p.title || undefined}
                 placeholder={p.placeholder || undefined}
                 options={Array.isArray(p.options) ? p.options : []}
-                optionsSource={typeof p.optionsSource === 'string' && p.optionsSource ? { path: p.db } : (p.optionsSource && typeof p.optionsSource === 'object' ? p.optionsSource : undefined)}
-                max={p.max || undefined}
-                min={p.min || undefined}
+                optionsSource={typeof p.optionsSource === 'string' && p.optionsSource ? { path: p.optionsSource } : (p.optionsSource && typeof p.optionsSource === 'object' ? p.optionsSource : undefined)}
+                maxItems={p.maxItems || undefined}
+                minItems={p.minItems || undefined}
                 creatable={p.creatable}
                 required={p.required}
                 disabled={p.disabled}
-                updatable={p.updatable}
+                readOnlyAfterSet={p.readOnlyAfterSet}
                 defaultValue={p.defaultValue}
                 feedback={p.feedback || undefined}
                 order={p.order && typeof p.order === 'object' ? p.order : undefined}
-                before={p.pre || undefined}
-                after={p.post || undefined}
+                before={p.before || undefined}
+                after={p.after || undefined}
                 className={p.className || undefined}
                 wrapperClassName={p.wrapperClassName || undefined}
             />
@@ -290,7 +292,7 @@ function TagField() {
 
             <Section bare
                 title="DataProvider-backed"
-                description="Pass db instead of options to load suggestions from the active DataProvider."
+                description="Pass optionsSource instead of options to load suggestions from the active DataProvider."
                 preview={
                     <div className="w-full max-w-md">
                         <Form appearance="empty">

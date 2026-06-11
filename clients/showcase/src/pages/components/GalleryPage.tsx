@@ -111,7 +111,17 @@ type GallerySelectionState = ${GALLERY_SELECTION_STATE_TYPE}`,
             { label: 'cat+status', value: ['category', 'status'], help: 'Multi-level: category then status.' },
         ],
     },
+    { name: 'scrollToTopOnChange', type: 'boolean', description: 'Scroll the gallery back to the top when the page changes', control: 'boolean' },
+    { name: 'scrollBehavior', type: '"auto" | "instant" | "smooth"', description: 'Scroll behavior used when scrolling to top on page change', control: 'select', options: ['auto', 'instant', 'smooth'] },
+    { name: 'className', type: 'string', description: 'Class applied to the inner flex-column wrapper', control: 'text' },
+    { name: 'wrapperClassName', type: 'string', description: 'Class applied to the outermost wrapper element', control: 'text' },
+    { name: 'scrollClassName', type: 'string', description: 'Class applied to the scrollable body container', control: 'text' },
+    { name: 'headerClassName', type: 'string', description: 'Class applied to the header container', control: 'text' },
+    { name: 'bodyClassName', type: 'string', description: 'Class applied to the flex-wrap items container', control: 'text' },
+    { name: 'footerClassName', type: 'string', description: 'Class applied to the footer container', control: 'text' },
     { name: 'selectedClassName', type: 'string', description: 'Class applied to the selected item', control: 'text' },
+    { name: 'before', type: 'ReactNode', description: 'Content rendered to the left of the gallery' },
+    { name: 'after', type: 'ReactNode', description: 'Content rendered to the right of the gallery' },
 ];
 
 const PLAYGROUND: PlaygroundConfig = {

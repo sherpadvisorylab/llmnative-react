@@ -24,6 +24,12 @@ const PROPS: PropDef[] = [
     { name: 'disabled', type: 'boolean', default: 'false', description: 'Disables the button and shows a not-allowed cursor', control: 'boolean' },
     { name: 'onClick', type: '(e) => void', description: 'Synchronous click handler. Stops propagation automatically.' },
     { name: 'title', type: 'string', description: 'Native title attribute (tooltip)', control: 'text' },
+    { name: 'iconClassName', type: 'string', description: 'CSS classes applied to the icon element inside the button' },
+    { name: 'style', type: 'React.CSSProperties', description: 'Inline style applied to the button element (merged with motion transform)' },
+    { name: 'before', type: 'ReactNode', description: 'Content rendered immediately before the button in the wrapper' },
+    { name: 'after', type: 'ReactNode', description: 'Content rendered immediately after the button in the wrapper' },
+    { name: 'wrapperClassName', type: 'string', description: 'CSS classes applied to the outermost wrapper element' },
+    { name: 'motion', type: 'string | MotionEffect | false', default: '"press"', description: 'Named motion preset or inline MotionEffect override. Defaults to the theme press motion.' },
 ];
 
 const PLAYGROUND: PlaygroundConfig = {

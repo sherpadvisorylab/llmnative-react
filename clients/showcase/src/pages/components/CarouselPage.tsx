@@ -21,19 +21,19 @@ const CAROUSEL_PROPS: PropDef[] = [
     { name: 'showIndicators', type: 'boolean', default: 'false', description: 'Shows slide indicators on hover', control: 'boolean' },
     { name: 'showControls', type: 'boolean', default: 'false', description: 'Shows previous/next controls on hover', control: 'boolean' },
     { name: 'showCaption', type: 'boolean', default: 'false', description: 'Shows captions from image alt/description on hover', control: 'boolean' },
-    { name: 'layoutDark', type: 'boolean', default: 'false', description: 'Uses dark control layout', control: 'boolean' },
+    { name: 'dark', type: 'boolean', default: 'false', description: 'Uses dark control layout', control: 'boolean' },
     { name: 'autoPlay', type: 'AutoPlayConfig', description: 'Bootstrap carousel autoplay options', control: 'json', rows: 4, shortcuts: [
         { label: 'off', value: null, help: 'Disable autoplay.' },
         { label: 'default', value: { interval: 3000, pause: 'hover', wrap: true }, help: 'Standard autoplay with hover pause.' },
-        { label: 'fast', value: { interval: 1200, pause: false, wrap: true }, help: 'Fast looping carousel.' },
+        { label: 'fast', value: { interval: 1200, pause: 'false', wrap: true }, help: 'Fast looping carousel.' },
     ], typeDetails: `{
   interval?: number;
-  pause?: "hover" | false;
+  pause?: "hover" | "false" | "true";
   wrap?: boolean;
 }` },
-    { name: 'startSlide', type: 'number', default: '0', description: 'Initial active slide index', control: 'number', min: 0, max: 2 },
-    { name: 'onParseCaption', type: '(image) => ReactElement', description: 'Custom caption renderer' },
-    { name: 'onClick', type: '(event) => void', description: 'Click handler on carousel inner area' },
+    { name: 'initialSlide', type: 'number', default: '0', description: 'Initial active slide index', control: 'number', min: 0, max: 2 },
+    { name: 'renderCaption', type: '(image) => ReactElement', description: 'Custom caption renderer' },
+    { name: 'onSlideClick', type: '(event) => void', description: 'Click handler on carousel inner area' },
 ];
 
 const PLAYGROUND: PlaygroundConfig = {
@@ -42,18 +42,18 @@ const PLAYGROUND: PlaygroundConfig = {
         showIndicators: true,
         showControls: true,
         showCaption: true,
-        layoutDark: false,
+        dark: false,
         autoPlay: null,
-        startSlide: 0,
+        initialSlide: 0,
     },
     render: (p) => (
         <Carousel
             showIndicators={p.showIndicators}
             showControls={p.showControls}
             showCaption={p.showCaption}
-            layoutDark={p.layoutDark}
+            dark={p.dark}
             autoPlay={p.autoPlay && typeof p.autoPlay === 'object' ? p.autoPlay : undefined}
-            startSlide={p.startSlide}
+            initialSlide={p.initialSlide}
         >
             {slides}
         </Carousel>

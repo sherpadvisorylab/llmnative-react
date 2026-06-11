@@ -54,6 +54,9 @@
 | [CR-043](#cr-043--token-benchmark-page-nel-showcase) | Token Benchmark page nel showcase | Media | CR-016 | ✅ done |
 | [CR-044](#cr-044--showcase-pagine-mancanti-label-uploadcsv-crop-command) | Showcase pagine mancanti (Label, UploadCSV, Crop, Command) | Bassa | CR-007 | ⬜ |
 | [CR-045](#cr-045--ai-adoption-piano-di-distribuzione-e-visibilita) | AI Adoption: piano di distribuzione e visibilità | Alta | CR-001, CR-016 | ⬜ |
+| [CR-046](#cr-046--promptrun-visual-redesign--chatbot-style) | PromptRun visual redesign — chatbot style | Alta | — | ⬜ |
+| [CR-047](#cr-047--prompt-extensible-toolbar-commands-attachments-actions-statusitems--promptutils-api) | Prompt extensible toolbar + PromptUtils API | Alta | CR-046 | ⬜ |
+| [CR-048](#cr-048--prompt-file-attachment--ai-provider-visiondocs-integration) | Prompt file attachment — AI provider vision/docs | Media | CR-047 | ⬜ |
 
 ---
 
@@ -4375,3 +4378,213 @@ Aggiunge syntax highlighting Prism, copy button integrato. Il copy button custom
 - [ ] Decisione 2 presa e implementata
 - [ ] Decisione 3 presa e implementata
 - [ ] Decisione 4 presa e implementata
+
+---
+
+## CR-046 — PromptRun visual redesign — chatbot style
+
+**Stato:** ⬜ todo
+**Priorità:** Alta
+**Dipende da:** —
+
+### Motivazione
+
+Il layout attuale di `PromptRun` (Switch toggle + gear + Run button in una bottom bar generica) non comunica chiaramente il modello mentale "scrivi → esegui → vedi risultato". Il pattern visivo dei prodotti AI consumer (Claude, ChatGPT, Gemini) è ormai uno standard de facto: textarea prominente, barra azioni compatta in basso, bottone invio a destra.
+
+### Scope
+
+- Ridisegnare `PromptRun` in `src/components/widgets/Prompt.tsx`:
+  - Textarea senza bordo interno, `border-0 shadow-none focus-visible:ring-0`
+  - Container esterno con `rounded-xl border border-input shadow-sm focus-within:ring-2 focus-within:ring-ring`
+  - Bottom bar: `flex items-center gap-2 px-3 py-2 border-t border-input bg-transparent`
+  - Sinistra: toggle "Edit prompt" come piccolo icon-button (matita) invece di Switch + testo
+  - Centro: modello selezionato come testo muted cliccabile (apre il settings dropdown)
+  - Destra: pulsante Run con `rounded-lg` e variante `primary`, sempre visibile
+  - Settings gear spostato accanto al model selector, non nascosto dietro il toggle edit
+- `PromptEditor` (EDIT mode): stesso trattamento visivo, Switch abilitazione a destra del label
+- Nessun breaking change alle props pubbliche
+- Aggiornare il tema `prompt` in `src/Theme.tsx` se necessario
+
+### Architettura visiva target
+
+```
+┌─────────────────────────────────────────────────────┐  ← rounded-xl border focus-within:ring
+│                                                     │
+│  [placeholder / risultato / template]               │  ← textarea borderless, px-4 py-3
+│                                                     │
+├─────────────────────────────────────────────────────┤  ← border-t
+│ [✏]  claude-sonnet-4 ▾  [⚙]       [✨ Run  →]    │  ← h-10 px-3
+└─────────────────────────────────────────────────────┘
+```
+
+### Checklist
+
+- [ ] Ridisegnare `PromptRun` — container, textarea, bottom bar
+- [ ] Ridisegnare `PromptEditor` — allineamento visivo coerente con Run
+- [ ] Sostituire Switch "Result/Edit" con icon-button ✏ a sinistra della barra
+- [ ] Model selector come testo cliccabile (apre dropdown settings)
+- [ ] Verificare dark mode e tutti i temi (default, flat, cyber)
+- [ ] Aggiornare showcase `PromptLivePage`, `PromptEditorPage`, `PromptPlainPage`
+- [ ] Zero breaking change alle props
+
+---
+
+## CR-047 — Prompt extensible toolbar: commands, attachments, actions, statusItems + PromptUtils API
+
+**Stato:** ⬜ todo
+**Priorità:** Alta
+**Dipende da:** CR-046
+
+### Motivazione
+
+Il `PromptRun` è usato come input AI in applicazioni reali. Le app hanno bisogno di:
+1. **Slash commands** — comandi contestuali che l'utente può invocare digitando `/`
+2. **Allegati** — file da includere nel contesto del prompt
+3. **Toolbar estensibile** — slot per aggiungere azioni custom (dropdown, pannelli)
+4. **Status bar** — informazioni live post-esecuzione (token, contesto, costo)
+5. **API pubblica** — funzioni di utilità riutilizzabili fuori dal componente
+
+### API pubblica proposta
+
+```tsx
+// Props aggiuntive su Prompt (mode="run")
+<Prompt
+  mode="run"
+  commands={[
+    { name: 'translate', description: 'Translate to English', icon: 'languages',
+      handler: (currentValue) => `Translate the following to English:\n${currentValue}` },
+    { name: 'summarize', description: 'Summarize in 3 bullet points', icon: 'list' },
+  ]}
+  attachments                   // boolean — abilita il bottone attach (📎)
+  actions={[
+    { key: 'tokenUsage', icon: 'cpu', label: 'Token usage' },   // built-in named
+    { key: 'myPanel', icon: 'chart', label: 'Stats',
+      content: <MyStatsPanel /> },                               // custom
+  ]}
+  statusItems={[
+    'tokensIn', 'tokensOut', 'contextPercent',                   // built-in named
+    { key: 'cost', render: (stats) => `~$${stats.estimatedCost}` }, // custom
+  ]}
+/>
+```
+
+```ts
+// Utility pubblica
+import { PromptUtils } from '@llmnative/react'
+
+PromptUtils.countTokens(text: string): number
+// stima approssimata chars/4 — compatibile browser senza tiktoken
+
+PromptUtils.contextPercent(tokens: number, modelRef: string): number
+// tokens / contextWindow * 100, lookup da getAIModelCatalog
+
+PromptUtils.estimateCost(tokensIn: number, tokensOut: number, modelRef: string): number
+// lookup pricing dal catalog (se disponibile), altrimenti NaN
+
+PromptUtils.modelContextWindow(modelRef: string): number | null
+// es. 200000 per claude-sonnet-4, null se sconosciuto
+```
+
+### Tipi
+
+```ts
+type PromptCommand = {
+  name: string;
+  description?: string;
+  icon?: string;
+  handler?: (currentValue: string) => string | Promise<string>;
+};
+
+type PromptAction =
+  | { key: string; icon: string; label?: string }   // built-in named
+  | { key: string; icon: string; label?: string; content: React.ReactNode }; // custom
+
+type PromptStatusItem =
+  | 'tokensIn' | 'tokensOut' | 'contextPercent' | 'model' | 'duration'
+  | { key: string; render: (stats: PromptRunStats) => React.ReactNode };
+
+type PromptRunStats = {
+  tokensIn: number;
+  tokensOut: number;
+  contextPercent: number | null;
+  model: string;
+  durationMs: number;
+  estimatedCost: number | null;
+};
+```
+
+### Layout con tutto abilitato
+
+```
+┌───────────────────────────────────────────────────────┐
+│                                                       │
+│  [textarea]                                           │
+│                                                       │
+├───────────────────────────────────────────────────────┤
+│ [📎] [/cmd] [cpu▾] [chart▾]  claude-s ▾ [⚙] [▶ Run]│
+│ in: 340 tok · out: 89 · ctx: 12% · ~$0.001           │
+└───────────────────────────────────────────────────────┘
+```
+
+### Scope
+
+- Aggiungere `commands`, `attachments`, `actions`, `statusItems` a `PromptRunBranchProps`
+- Implementare slash-command popover (listener `onKeyDown`, filtra per `/ + testo`)
+- Implementare attach button (click → `<input type="file">` hidden, file list visibile)
+- Implementare `actions` slot: ogni item = icon-button + Dropdown
+- Implementare `statusItems` strip: riga muted sotto la barra, popolata dopo ogni Run
+- Esportare `PromptUtils` da `src/index.ts`
+- Aggiornare showcase `PromptLivePage` con esempi per ogni nuova feature
+
+### Checklist
+
+- [ ] Tipi `PromptCommand`, `PromptAction`, `PromptStatusItem`, `PromptRunStats`
+- [ ] `PromptUtils` in `src/libs/promptUtils.ts` con `countTokens`, `contextPercent`, `estimateCost`, `modelContextWindow`
+- [ ] Esportare `PromptUtils` da `src/index.ts`
+- [ ] Slash-command popover in `PromptRun`
+- [ ] Attach button + file list in `PromptRun`
+- [ ] `actions` slot rendering
+- [ ] `statusItems` strip, popolata da `PromptRunStats` after run
+- [ ] Built-in named actions: `tokenUsage` panel
+- [ ] Unit test per `PromptUtils`
+- [ ] Aggiornare showcase `PromptLivePage`
+- [ ] Aggiornare `docs/AI_REFERENCE.md` con la nuova API
+
+---
+
+## CR-048 — Prompt file attachment — AI provider vision/docs integration
+
+**Stato:** ⬜ todo
+**Priorità:** Media
+**Dipende da:** CR-047
+
+### Motivazione
+
+CR-047 aggiunge il bottone attach nella UI ma i file restano lato client. Questa CR integra gli allegati nell'esecuzione del prompt: immagini passate ai modelli vision, documenti convertiti in testo e inclusi nel contesto.
+
+### Scope
+
+- Estendere `AIRequestOptions` con `attachments?: PromptAttachment[]`
+- Definire `PromptAttachment = { file: File; type: 'image' | 'document' | 'auto'; dataUrl?: string }`
+- Aggiornare `runPrompt()` per passare gli allegati al provider
+- Implementare lato provider:
+  - **OpenAI**: `content` array con `image_url` per immagini (vision), testo estratto per PDF
+  - **Anthropic**: `content` array con `image` block (base64) e `document` block
+  - **Gemini**: `parts` array con `inlineData`
+- `AIProviderCapabilities` esteso con `supportsVision: boolean`, `supportsDocuments: boolean`
+- UI: file preview nella `PromptRun` (thumbnail per immagini, nome+size per documenti)
+- `PromptUtils.fileToAttachment(file: File): Promise<PromptAttachment>` — converte File in attachment pronto per il provider
+
+### Checklist
+
+- [ ] Tipo `PromptAttachment`
+- [ ] `AIRequestOptions.attachments`
+- [ ] `AIProviderCapabilities.supportsVision` + `supportsDocuments`
+- [ ] `PromptUtils.fileToAttachment()`
+- [ ] OpenAI provider: vision + document
+- [ ] Anthropic provider: vision + document
+- [ ] Gemini provider: vision + document
+- [ ] UI preview allegati in `PromptRun`
+- [ ] Disabilitare attach button se provider non supporta (`supportsVision === false && supportsDocuments === false`)
+- [ ] Unit test
+- [ ] Aggiornare `docs/AI_REFERENCE.md`

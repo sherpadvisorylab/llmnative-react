@@ -8,23 +8,25 @@ import type { PropDef, PlaygroundConfig } from '../../docs-kit/playground';
 
 const DROPDOWN_PROPS: PropDef[] = [
     { name: 'children', type: 'ReactNode', required: true, description: 'Dropdown menu content' },
-    { name: 'itemsPath', type: 'string', default: '/dropdown-items', description: 'Mock database collection used to render menu records in the playground', control: 'text' },
     { name: 'trigger', type: 'string | ReactNode | TriggerConfig', required: true, description: 'Button content or icon/text config', control: 'text', typeDetails: `string | ReactNode | {
   icon?: string;
   text?: string;
 }` },
     { name: 'badge', type: 'ReactNode | BadgeConfig', description: 'Badge displayed on the toggle', control: 'json', rows: 4, shortcuts: [
         { label: 'none', value: null, help: 'No badge on the toggle.' },
-        { label: 'count', value: { content: '3', type: 'danger' }, help: 'Numeric danger badge.' },
-        { label: 'live', value: { content: 'live', type: 'success' }, help: 'Status badge.' },
+        { label: 'count', value: { content: '3', variant: 'danger' }, help: 'Numeric danger badge.' },
+        { label: 'live', value: { content: 'live', variant: 'success' }, help: 'Status badge.' },
     ], typeDetails: `ReactNode | {
   content: ReactNode;
-  type?: string;
+  variant?: string;
 }` },
     { name: 'header', type: 'ReactNode', description: 'Header content above menu items', control: 'text' },
     { name: 'footer', type: 'ReactNode', description: 'Footer content below menu items', control: 'text' },
     { name: 'defaultOpen', type: 'boolean', default: 'false', description: 'Starts the uncontrolled dropdown open on first render', control: 'boolean' },
-    { name: 'alwaysOpen', type: 'boolean', default: 'false', description: 'Renders the menu as a static always-visible panel without the toggle button', control: 'boolean' },
+    { name: 'open', type: 'boolean', description: 'Controlled open state. When provided the component becomes fully controlled; pair with onOpenChange.' },
+    { name: 'onOpenChange', type: '(open: boolean) => void', description: 'Callback fired when the open state changes in controlled mode.' },
+    { name: 'staticOpen', type: 'boolean', default: 'false', description: 'Renders the menu as a static always-visible panel without the toggle button', control: 'boolean' },
+    { name: 'placement', type: '"auto" | "top" | "bottom"', default: '"bottom"', description: 'Vertical placement of the menu panel relative to the toggle. "auto" detects available space.', control: 'select', options: ['auto', 'top', 'bottom'] },
     { name: 'position', type: '"start" | "end"', default: 'none', description: 'Menu alignment. Empty means no forced horizontal alignment.', control: 'select', options: ['', 'start', 'end'] },
     { name: 'before', type: 'ReactNode', description: 'Content rendered to the left of the dropdown', control: 'text' },
     { name: 'after', type: 'ReactNode', description: 'Content rendered to the right of the dropdown', control: 'text' },
@@ -35,6 +37,7 @@ const DROPDOWN_PROPS: PropDef[] = [
     { name: 'menuClassName', type: 'string', description: 'CSS classes on the menu panel', control: 'text' },
     { name: 'headerClassName', type: 'string', description: 'CSS classes on header wrapper', control: 'text' },
     { name: 'footerClassName', type: 'string', description: 'CSS classes on footer wrapper', control: 'text' },
+    { name: 'motion', type: 'MotionReference', description: 'Override the open animation. Accepts a named preset string, a MotionEffect object, or false to disable animation.' },
 ];
 
 type DropdownMockItem = {
@@ -107,13 +110,13 @@ const PLAYGROUND: PlaygroundConfig = {
     defaultProps: {
         itemsPath: '/dropdown-items',
         trigger: 'Actions',
-        badge: { content: '3', type: 'danger' },
-        pre: '',
-        post: '',
+        badge: { content: '3', variant: 'danger' },
+        before: '',
+        after: '',
         header: 'Menu',
         footer: 'Footer',
         defaultOpen: false,
-        alwaysOpen: false,
+        staticOpen: false,
         position: '',
         wrapperClassName: '',
         className: '',
@@ -125,16 +128,16 @@ const PLAYGROUND: PlaygroundConfig = {
     },
     render: (p) => (
         <Dropdown
-            key={`${p.defaultOpen}-${p.alwaysOpen}-${p.itemsPath}`}
+            key={`${p.defaultOpen}-${p.staticOpen}-${p.itemsPath}`}
             trigger={p.trigger || 'Actions'}
             badge={p.badge || undefined}
             header={p.header || undefined}
             footer={p.footer || undefined}
             defaultOpen={p.defaultOpen}
-            alwaysOpen={p.alwaysOpen}
+            staticOpen={p.staticOpen}
             position={p.position || undefined}
-            before={p.pre || undefined}
-            after={p.post || undefined}
+            before={p.before || undefined}
+            after={p.after || undefined}
             wrapperClassName={p.wrapperClassName || undefined}
             className={p.className || undefined}
             triggerClassName={p.triggerClassName || undefined}
@@ -219,7 +222,7 @@ function DropdownItemsFromMock({ path }) {
                     <div className="min-h-48 pt-3 pr-4">
                         <Dropdown
                             trigger={{ icon: 'bell', text: 'Notifications' }}
-                            badge={{ content: 8, type: 'danger' }}
+                            badge={{ content: 8, variant: 'danger' }}
                             header="Notifications"
                             position="start"
                         >
@@ -234,7 +237,7 @@ function DropdownItemsFromMock({ path }) {
 
 <Dropdown
     trigger={{ icon: 'bell', text: 'Notifications' }}
-    badge={{ content: 8, type: 'danger' }}
+    badge={{ content: 8, variant: 'danger' }}
     header="Notifications"
     position="start"
 >
@@ -252,7 +255,7 @@ function DropdownItemsFromMock({ path }) {
                     <div className="flex min-h-48 justify-end pt-3 pr-4">
                         <Dropdown
                             trigger={{ icon: 'settings', text: 'Settings' }}
-                            badge={{ content: 'new', type: 'success' }}
+                            badge={{ content: 'new', variant: 'success' }}
                             header="Preferences"
                             position="end"
                         >
@@ -266,7 +269,7 @@ function DropdownItemsFromMock({ path }) {
 
 <Dropdown
     trigger={{ icon: 'settings', text: 'Settings' }}
-    badge={{ content: 'new', type: 'success' }}
+    badge={{ content: 'new', variant: 'success' }}
     header="Preferences"
     position="end"
 >
@@ -354,9 +357,9 @@ function DropdownItemsFromMock({ path }) {
 
             <Section
                 title="Static menu"
-                description="Set alwaysOpen to render the menu panel directly, without a toggle button. Use this when the dropdown content is part of the page instead of a transient popup."
+                description="Set staticOpen to render the menu panel directly, without a toggle button. Use this when the dropdown content is part of the page instead of a transient popup."
                 preview={
-                    <Dropdown alwaysOpen header="Quick actions" footer={<button type="button" className="btn btn-link">View all</button>}>
+                    <Dropdown staticOpen header="Quick actions" footer={<button type="button" className="btn btn-link">View all</button>}>
                         <DropdownItem icon="plus">Create record</DropdownItem>
                         <DropdownItem icon="upload">Import data</DropdownItem>
                         <DropdownItem icon="download">Export report</DropdownItem>
@@ -364,7 +367,7 @@ function DropdownItemsFromMock({ path }) {
                 }
                 code={`import { Dropdown, DropdownItem } from '@llmnative/react';
 
-<Dropdown alwaysOpen header="Quick actions" footer={<button type="button" className="btn btn-link">View all</button>}>
+<Dropdown staticOpen header="Quick actions" footer={<button type="button" className="btn btn-link">View all</button>}>
     <DropdownItem icon="plus">Create record</DropdownItem>
     <DropdownItem icon="upload">Import data</DropdownItem>
     <DropdownItem icon="download">Export report</DropdownItem>
