@@ -628,7 +628,7 @@ const PromptRun = ({
                                 </div>
                             )}
 
-                            {/* Run-mode left buttons: attachments + slash trigger + custom actions */}
+                            {/* Run-mode left buttons: attachments + custom actions */}
                             {!editing && (
                                 <>
                                     {attachments && (
@@ -639,16 +639,6 @@ const PromptRun = ({
                                             onClick={() => attachInputRef.current?.click()}
                                         >
                                             <Icon name="paperclip" size={13} />
-                                        </button>
-                                    )}
-                                    {commands && commands.length > 0 && (
-                                        <button
-                                            type="button"
-                                            title="Slash commands"
-                                            className={`${promptGhostIcon} flex items-center justify-center ${cmdQuery !== null ? "bg-muted text-foreground" : ""}`}
-                                            onClick={() => setCmdQuery((q) => q === null ? '' : null)}
-                                        >
-                                            <Icon name="slash" size={13} />
                                         </button>
                                     )}
                                     {actions?.map((action) =>
@@ -747,15 +737,13 @@ const PromptRun = ({
                                 </>
                             )}
 
-                            {/* Separator between custom run-items and standard items */}
-                            {!editing && (attachments || (commands?.length ?? 0) > 0 || (actions?.length ?? 0) > 0) && (
-                                <div className="mx-1 h-4 w-px shrink-0 bg-border" />
-                            )}
+                            {/* Separator (run + custom left items) or flex-1 spacer (everything else) */}
+                            {!editing && (attachments || (actions?.length ?? 0) > 0)
+                                ? <div className="mx-1 h-4 w-px shrink-0 bg-border" />
+                                : <div className="flex-1" />
+                            }
 
-                            {/* Spacer — edit mode only (pushes eye button to the right) */}
-                            {editing && <div className="flex-1" />}
-
-                            {/* Availability / run-error notice — inline in footer, hidden in edit mode */}
+                            {/* Availability / run-error notice — right side, replaces slash button when present */}
                             {!editing && (runError || !availability.configured) && (
                                 <span className="flex min-w-0 items-center gap-1 text-xs text-warning truncate mr-1">
                                     <Icon name="triangle-alert" size={13} className="shrink-0" />
@@ -763,6 +751,18 @@ const PromptRun = ({
                                         {runError ?? (availability.reason || "AI not configured")}
                                     </span>
                                 </span>
+                            )}
+
+                            {/* Slash command toggle — right side, shown only when no error and commands configured */}
+                            {!editing && !runError && availability.configured && commands && commands.length > 0 && (
+                                <button
+                                    type="button"
+                                    title="Slash commands"
+                                    className={`${promptGhostIcon} flex items-center justify-center ${cmdQuery !== null ? "bg-muted text-foreground" : ""}`}
+                                    onClick={() => setCmdQuery((q) => q === null ? '' : null)}
+                                >
+                                    <Icon name="slash" size={13} />
+                                </button>
                             )}
 
                             {/* Preview toggle — only in edit mode when variables produce substitutions */}
