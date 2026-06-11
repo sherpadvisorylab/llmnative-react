@@ -413,7 +413,13 @@ const PromptRun = ({
     const [editing, setEditing] = useState(false);
     const [templateText, setTemplateText] = useState(defaultValue?.value ?? '');
     const [previewOpen, setPreviewOpen] = useState(false);
-    const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+    const [attachedFiles, setAttachedFiles] = useState<{ file: File; objectUrl: string }[]>([]);
+    const removeAttachment = React.useCallback((idx: number) => {
+        setAttachedFiles((prev) => {
+            URL.revokeObjectURL(prev[idx].objectUrl);
+            return prev.filter((_, i) => i !== idx);
+        });
+    }, []);
     const [runStats, setRunStats] = useState<PromptRunStats | null>(null);
     const attachInputRef = useRef<HTMLInputElement>(null);
     const ai = useAIProvider();
@@ -558,21 +564,32 @@ const PromptRun = ({
                             </div>
                         </div>
 
-                        {/* Attached files row */}
-                        {attachedFiles.length > 0 && (
-                            <div className="flex flex-wrap gap-1.5 border-t border-input px-3 py-2">
-                                {attachedFiles.map((f, i) => (
-                                    <span key={`${f.name}-${i}`} className="inline-flex items-center gap-1 rounded-md border border-input bg-muted/40 px-2 py-0.5 text-xs text-foreground">
-                                        <Icon name="paperclip" size={11} className="text-muted-foreground" />
-                                        <span className="max-w-[140px] truncate">{f.name}</span>
+                        {/* Attachment previews — shown above the result textarea */}
+                        {attachedFiles.length > 0 && !editing && (
+                            <div className="flex gap-2 overflow-x-auto border-b border-input px-3 py-2.5">
+                                {attachedFiles.map(({ file, objectUrl }, i) => (
+                                    <div key={objectUrl} className="relative shrink-0">
+                                        {file.type.startsWith('image/') ? (
+                                            <div className="h-16 w-16 overflow-hidden rounded-lg border border-input bg-muted/30">
+                                                <img src={objectUrl} alt={file.name} className="h-full w-full object-cover" />
+                                            </div>
+                                        ) : (
+                                            <div className="flex items-center gap-2 rounded-lg border border-input bg-muted/30 px-2.5 py-2 text-xs">
+                                                <Icon name="file-text" size={18} className="shrink-0 text-muted-foreground" />
+                                                <div className="max-w-[100px]">
+                                                    <p className="truncate font-medium text-foreground">{file.name}</p>
+                                                    <p className="text-muted-foreground">{(file.size / 1024).toFixed(0)} KB</p>
+                                                </div>
+                                            </div>
+                                        )}
                                         <button
                                             type="button"
-                                            className="ml-0.5 text-muted-foreground hover:text-foreground"
-                                            onClick={() => setAttachedFiles((prev) => prev.filter((_, idx) => idx !== i))}
+                                            className="absolute -right-1.5 -top-1.5 flex h-4 w-4 cursor-pointer items-center justify-center rounded-full bg-foreground text-background shadow"
+                                            onClick={() => removeAttachment(i)}
                                         >
-                                            <Icon name="x" size={10} />
+                                            <Icon name="x" size={9} />
                                         </button>
-                                    </span>
+                                    </div>
                                 ))}
                             </div>
                         )}
@@ -586,7 +603,11 @@ const PromptRun = ({
                                 className="hidden"
                                 onChange={(e) => {
                                     if (e.target.files) {
-                                        setAttachedFiles((prev) => [...prev, ...Array.from(e.target.files as FileList)]);
+                                        const newFiles = Array.from(e.target.files as FileList).map((file) => ({
+                                            file,
+                                            objectUrl: URL.createObjectURL(file),
+                                        }));
+                                        setAttachedFiles((prev) => [...prev, ...newFiles]);
                                         e.target.value = '';
                                     }
                                 }}
