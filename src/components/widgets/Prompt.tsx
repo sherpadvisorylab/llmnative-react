@@ -747,7 +747,13 @@ const PromptRun = ({
                                 </>
                             )}
 
-                            <div className="flex-1" />
+                            {/* Separator between custom run-items and standard items */}
+                            {!editing && (attachments || (commands?.length ?? 0) > 0 || (actions?.length ?? 0) > 0) && (
+                                <div className="mx-1 h-4 w-px shrink-0 bg-border" />
+                            )}
+
+                            {/* Spacer — edit mode only (pushes eye button to the right) */}
+                            {editing && <div className="flex-1" />}
 
                             {/* Availability / run-error notice — inline in footer, hidden in edit mode */}
                             {!editing && (runError || !availability.configured) && (
