@@ -83,5 +83,7 @@ export * from './widgets/Prompt';
 export { default as TabDynamic } from './widgets/TabDynamic';
 export { default as Component } from './Component';
 export { ComponentBlock } from './Component';
+export type { FieldAdapter, FieldFactory, ModelProps, FormTree } from './Component';
+export type { ComponentFormSchemaMap } from '../types/FormSchema';
 export type { ModalDeleteHandler, ModalSaveHandler } from './ui/Modal';
 
