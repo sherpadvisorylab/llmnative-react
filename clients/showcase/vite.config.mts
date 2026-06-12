@@ -15,9 +15,6 @@ export default defineConfig(({ mode }) => {
             visualizer({ filename: 'dist/stats.html', open: false, gzipSize: true, brotliSize: true }),
         ].filter(Boolean),
         resolve: {
-            alias: {
-                '@llmnative/react': resolve(__dirname, '../../dist/index.mjs'),
-            },
             dedupe: ['react', 'react-dom', 'react-router-dom'],
         },
         optimizeDeps: {

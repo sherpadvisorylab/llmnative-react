@@ -25,6 +25,7 @@ export { default as ImageAvatar } from './ui/ImageAvatar';
 export { default as Loader } from './ui/Loader';
 export { default as Modal } from './ui/Modal';
 export * from './ui/Modal';
+export { default as Pagination } from './ui/Pagination';
 export { default as Percentage } from './ui/Percentage';
 export { default as Repeat } from './ui/Repeat';
 export { default as Tab } from './ui/Tab';
