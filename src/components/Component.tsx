@@ -1,6 +1,7 @@
 import React from "react";
 import componentLayout from "../types/Layout";
 import componentFormFields from "../types/FormFields";
+import componentFormSchema from "../types/FormSchema";
 import Form  from "./widgets/Form";
 import { RecordProps } from "../providers/data/DataProvider";
 
@@ -13,7 +14,7 @@ export interface FieldRenderProps {
 
 type Defaults = Record<string, unknown>;
 
-interface FieldAdapter<TProps = Record<string, unknown>> {
+export interface FieldAdapter<TProps = Record<string, unknown>> {
     getDefaults: (name: string) => Defaults;
     render: (props?: FieldRenderProps & TProps) => React.ReactNode;
     __props: TProps;
@@ -37,6 +38,7 @@ export type FormTree = {
 export const Component = {
     layout: componentLayout,
     input: componentFormFields,
+    schema: componentFormSchema,
     block: {},
     section: {},
 };

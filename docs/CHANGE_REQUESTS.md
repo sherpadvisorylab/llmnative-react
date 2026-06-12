@@ -2,7 +2,7 @@
 
 > Ogni CR rappresenta un'unità di lavoro autonoma con motivazione, scope e checklist.  
 > Stato: `⬜ todo` · `🔄 in progress` · `✅ done` · `🚫 cancelled`  
-> Ultima revisione: 2026-06-06
+> Ultima revisione: 2026-06-12
 
 ---
 
@@ -57,6 +57,7 @@
 | [CR-046](#cr-046--promptrun-visual-redesign--chatbot-style) | PromptRun visual redesign — chatbot style | Alta | — | ⬜ |
 | [CR-047](#cr-047--prompt-extensible-toolbar-commands-attachments-actions-statusitems--promptutils-api) | Prompt extensible toolbar + PromptUtils API | Alta | CR-046 | ⬜ |
 | [CR-048](#cr-048--prompt-file-attachment--ai-provider-visiondocs-integration) | Prompt file attachment — AI provider vision/docs | Media | CR-047 | ⬜ |
+| [CR-049](#cr-049--componentschema--meta-layer-per-configurazione-campi) | Component.schema — meta-layer configurazione campi | Alta | — | ✅ |
 
 ---
 
@@ -4549,6 +4550,56 @@ type PromptRunStats = {
 - [ ] Unit test per `PromptUtils`
 - [ ] Aggiornare showcase `PromptLivePage`
 - [ ] Aggiornare `docs/AI_REFERENCE.md` con la nuova API
+
+---
+
+## CR-049 — Component.schema — meta-layer per configurazione campi
+
+**Stato:** ✅ done
+**Branch:** `main`
+**Priorità:** Alta
+**Dipende da:** —
+**Breaking change:** No
+
+### Motivazione
+
+`Component.input` fornisce factory per costruire form di editing dei contenuti (es. il creator che scrive il titolo di un articolo). Manca un livello parallelo per configurare le proprietà del campo stesso: label, placeholder, se è obbligatorio, min/max righe, ecc.
+
+Il CMS `llmnative-cms` deve generare automaticamente la UI di configurazione di ogni campo dello schema partendo dalle stesse strutture di `@llmnative/react`, senza duplicare logica e mantenendo la type-safety completa.
+
+### Decisione architetturale
+
+`Component.schema` è un namespace parallelo a `Component.input` nel medesimo oggetto `Component`. Ogni metodo riceve un parametro `overrides` tipizzato all'interfaccia esatta del componente sottostante (es. `TextAreaProps`, `SelectProps`) e ritorna un `SchemaFields` — un oggetto in cui ogni chiave è un `FieldAdapter` che rappresenta una proprietà configurabile del campo.
+
+La chiave di ogni override si mappa sul `defaultValue` del suo sotto-campo specifico, senza cross-contamination tra campi diversi.
+
+### Scope
+
+- Nuovo file `src/types/FormSchema.tsx` con `ComponentFormSchemaMap` e implementazione per tutti i 19 tipi di campo: `string`, `number`, `email`, `password`, `color`, `date`, `time`, `datetime`, `week`, `month`, `textarea`, `checkbox`, `switch`, `select`, `autocomplete`, `checklist`, `uploadImage`, `uploadDocument`, `imageUrl`
+- `src/components/Component.tsx`: aggiunta `schema: componentFormSchema`, export di `FieldAdapter`
+- `src/components/index.ts`: export di `FieldAdapter`, `FieldFactory`, `ModelProps`, `FormTree`, `ComponentFormSchemaMap`
+
+### Esempio d'uso
+
+```ts
+// Ottiene i campi di configurazione per un textarea,
+// con il valore predefinito "5 righe" pre-impostato
+const fields = Component.schema.textarea({ rows: 5 })
+// fields.rows  → f.number({ label: "Righe", min: 1, defaultValue: 5 })
+// fields.label → f.string({ label: "Label", required: true })
+// ...nessun altro campo riceve rows: 5
+
+// Usato nel CMS per costruire la form di configurazione di un campo schema
+const configForm = Component.schema[field.type](field.overrides)
+```
+
+### Checklist
+
+- [x] Creare `src/types/FormSchema.tsx`
+- [x] Implementare tutti i 19 tipi di campo
+- [x] Aggiornare `Component.tsx`: aggiungere `schema`, esportare `FieldAdapter`
+- [x] Aggiornare `src/components/index.ts`: nuovi type export
+- [x] Build e TypeScript passano
 
 ---
 
