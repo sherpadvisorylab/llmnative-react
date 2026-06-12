@@ -12,14 +12,13 @@ export default function HomePage() {
             </div>
 
             <Grid
-                dataStoragePath="/tasks"
+                path="/tasks"
                 columns={[
                     { key: 'title', label: 'Task' },
                     { key: 'status', label: 'Status' },
                 ]}
-                allowedActions={['add', 'edit', 'delete']}
-                modal={{ mode: 'form' }}
-                type="table"
+                actions={['add', 'edit', 'delete']}
+                view="table"
             />
         </div>
     );

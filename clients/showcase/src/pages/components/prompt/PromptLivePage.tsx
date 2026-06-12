@@ -246,6 +246,7 @@ export default function PromptLivePage() {
                                 label="Summary"
                                 mode={PromptMode.RUN}
                                 rows={5}
+                                variables={{ projectName: 'Northwind Revamp' }}
                                 defaultValue={{
                                     value: 'Write a concise launch summary for {projectName}.',
                                     enabled: true,
@@ -269,6 +270,7 @@ export default function PromptLivePage() {
     label="Summary"
     mode={PromptMode.RUN}
     rows={5}
+    variables={{ projectName: 'Northwind Revamp' }}
     defaultValue={{
       value: 'Write a concise launch summary for {projectName}.',
       enabled: true,
@@ -475,7 +477,7 @@ export default function PromptLivePage() {
             {/* ── Custom unavailable notice ── */}
             <Section
                 title="Custom unavailable notice"
-                description="renderAIUnavailable replaces the default footer warning with your own UI — useful for linking to a settings page or showing a branded message."
+                description="renderAIUnavailable replaces the default unavailable notice on the right side of the footer bar with your own UI — useful for linking to a settings page or showing a branded message."
                 bare
                 preview={(
                     <Form
@@ -616,7 +618,7 @@ const COMMANDS: PromptCommand[] = [
             {/* ── Multimodal inputs ── */}
             <Section
                 title="Multimodal inputs"
-                description="When attachments is enabled and a vision-capable provider is selected, attached files are forwarded directly to the AI model alongside the prompt. OpenAI receives images as base64 image_url parts; Anthropic receives images and PDFs as typed source blocks; Gemini accepts images, PDFs, audio and video as inline_data. The model handles extraction and analysis — no server-side pre-processing needed."
+                description="When attachments is enabled and a compatible provider is selected, attached files are forwarded directly to the AI model alongside the prompt. OpenAI-compatible providers currently accept images as base64 image_url parts; Anthropic receives images and PDFs as typed source blocks; Gemini accepts images, PDFs, audio and video as inline_data."
                 code={`// Images — OpenAI, Anthropic, Gemini
 // PDFs — Anthropic, Gemini
 // Audio / Video — Gemini
@@ -657,7 +659,7 @@ const COMMANDS: PromptCommand[] = [
                                 mode={PromptMode.RUN}
                                 rows={5}
                                 statusItems={['tokensIn', 'tokensOut', 'contextPercent', 'duration']}
-                                actions={[{ key: 'tokenUsage', icon: 'bar-chart-2', label: 'Token details', content: <span /> }]}
+                                actions={[{ key: 'tokenUsage', icon: 'bar-chart-2', label: 'Token details' }]}
                                 defaultValue={{ value: 'Write a concise summary for {projectName}.', enabled: true, language: 'English' }}
                                 onRunPrompt={executePromptPreview}
                             />
@@ -669,7 +671,7 @@ const COMMANDS: PromptCommand[] = [
 const STATUS: PromptStatusItem[] = ['tokensIn', 'tokensOut', 'contextPercent', 'duration'];
 
 const ACTIONS: PromptAction[] = [
-  { key: 'tokenUsage', icon: 'bar-chart-2', label: 'Token details', content: <span /> },
+  { key: 'tokenUsage', icon: 'bar-chart-2', label: 'Token details' },
 ];
 
 <Prompt
@@ -684,7 +686,7 @@ const ACTIONS: PromptAction[] = [
             {/* ── PromptUtils API ── */}
             <Section
                 title="PromptUtils — client-side utilities"
-                description="PromptUtils provides browser-safe helpers for token estimation, context window lookup, and cost estimation — no server required."
+                description="PromptUtils provides browser-safe helpers for token estimation, context window lookup, cost estimation and file-to-attachment conversion — no server required."
                 preview={(
                     <div className="rounded-xl border border-input bg-muted/20 p-4 text-sm font-mono space-y-1 text-foreground">
                         <p><span className="text-muted-foreground">// token count (heuristic: chars / 4)</span></p>
@@ -702,7 +704,8 @@ const ACTIONS: PromptAction[] = [
 PromptUtils.countTokens(text)                        // chars / 4
 PromptUtils.modelContextWindow("openai/gpt-4o")      // 128000
 PromptUtils.contextPercent(5000, "openai/gpt-4o")    // 3.91
-PromptUtils.estimateCost(500, 200, "openai/gpt-4o")  // 0.000325`}
+PromptUtils.estimateCost(500, 200, "openai/gpt-4o")  // 0.00325
+await PromptUtils.fileToAttachment(file)             // { mimeType, base64, name }`}
             />
 
             <PropDocsTable props={[...PROMPT_LIVE_PROPS, ...PROMPT_SHARED_PROPS]} />

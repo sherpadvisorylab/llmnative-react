@@ -21,27 +21,26 @@ const roleVariant: Record<string, string> = {
 export default function UsersPage() {
     return (
         <Grid
-            dataStoragePath="/users"
+            path="/users"
             columns={[
-                { key: 'name',      label: 'Name',    sort: true },
+                { key: 'name',      label: 'Name',    sortable: true },
                 { key: 'email',     label: 'Email' },
                 { key: 'role',      label: 'Role',
-                    onDisplay: ({ value }) => (
+                    render: ({ value }) => (
                         <Badge variant={roleVariant[value] ?? 'secondary'}>{value}</Badge>
                     ),
                 },
                 { key: 'status',    label: 'Status',
-                    onDisplay: ({ value }) => (
+                    render: ({ value }) => (
                         <Badge variant={value === 'active' ? 'success' : 'secondary'}>{value}</Badge>
                     ),
                 },
-                { key: 'createdAt', label: 'Created', onDisplay: 'toDate' },
+                { key: 'createdAt', label: 'Created', render: 'date' },
             ]}
-            allowedActions={['add', 'edit', 'delete']}
-            modal={{ mode: 'form' }}
-            type="table"
-            allowedSorting
-            pagination={{ perPage: 25 }}
+            actions={['add', 'edit', 'delete']}
+            view="table"
+            sortable
+            pagination={{ limit: 25 }}
         >
             {() => (
                 <>

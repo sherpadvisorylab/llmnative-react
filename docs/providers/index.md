@@ -31,7 +31,7 @@ Most of the time, you do not call a provider directly. You configure it and use 
 
 ```tsx
 <Grid
-  dataStoragePath="/customers"
+  path="/customers"
   columns={[
     { key: 'name', label: 'Name' },
     { key: 'email', label: 'Email' },

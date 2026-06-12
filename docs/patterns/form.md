@@ -12,7 +12,7 @@ description: Standalone Form for loading, validating and saving provider-backed 
 
 ```tsx
 <Form
-  dataStoragePath="/users/alice"
+  path="/users/alice"
   fields={[
     { name: 'name', label: 'Name', type: 'text' },
     { name: 'email', label: 'Email', type: 'email' },

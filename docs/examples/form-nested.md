@@ -12,7 +12,7 @@ import { Form, Input, Select, Repeat, Upload } from '@llmnative/react'
 export default function QuoteForm() {
   return (
     <Form
-      dataStoragePath="/quotes"
+      path="/quotes"
       appearance="card"
       showBack
       defaultValues={{

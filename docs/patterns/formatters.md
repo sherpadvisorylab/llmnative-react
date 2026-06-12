@@ -12,12 +12,12 @@ Columns can transform values before rendering.
 
 ```tsx
 <Grid
-  dataStoragePath="/orders"
+  path="/orders"
   columns={[
     {
       key: 'total',
       label: 'Total',
-      onDisplay: (value) => new Intl.NumberFormat('en', {
+      render: ({ value }) => new Intl.NumberFormat('en', {
         style: 'currency',
         currency: 'USD',
       }).format(Number(value ?? 0)),

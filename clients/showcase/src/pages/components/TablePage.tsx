@@ -393,7 +393,7 @@ export default function TablePage() {
                 preview={
                     <Table
                         columns={header}
-                        records={tableBody.slice(0, 4)}
+                        records={plainBody.slice(0, 4)}
                     />
                 }
                 code={`<Table
@@ -487,7 +487,7 @@ export default function TablePage() {
 
             <Section
                 title="Auto headers"
-                description="When you omit header, Table derives columns from the first record. If sortable is true, those generated columns are sortable by default."
+                description="When you omit columns, Table derives them from the first record. If sortable is true, those generated columns are sortable by default."
                 preview={
                     <Table
                         records={plainBody}
@@ -504,7 +504,7 @@ export default function TablePage() {
 
             <Section
                 title="Record click"
-                description="onClick receives the whole record, so selection stays correct even after sorting or pagination. Consumers can use record._key directly."
+                description="onRowClick receives the whole record, so selection stays correct even after sorting or pagination. Consumers can use record._key directly."
                 preview={
                     <div className="space-y-3">
                         <Table
@@ -534,7 +534,7 @@ export default function TablePage() {
 
             <Section
                 title="Bulk selection"
-                description="onSelectionChange is enough to turn on the checkbox column. Commands stay outside the component: here they live in the table header, and Export opens a modal with the selected records JSON."
+                description="onSelectionChange is enough to turn on the checkbox column. Commands stay outside the component: here they are rendered through the table's before slot, and Export opens a modal with the selected records JSON."
                 preview={
                     <div className="space-y-3">
                         <Table
@@ -587,7 +587,10 @@ export default function TablePage() {
                         )}
                     </div>
                 }
-                code={`const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
+                code={`import { ActionButton, Modal, Table, buttonOutlineSecondaryClass } from '@llmnative/react';
+import { useState } from 'react';
+
+const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
 const [selectedRecords, setSelectedRecords] = useState<RecordArray>([]);
 const [exportOpen, setExportOpen] = useState(false);
 
@@ -600,11 +603,21 @@ const [exportOpen, setExportOpen] = useState(false);
         {selectedKeys.length ? \`\${selectedKeys.length} selected\` : 'Select rows to enable external bulk commands'}
       </span>
       <div className="flex items-center gap-2">
-        <button disabled={!selectedKeys.length} onClick={() => setExportOpen(true)}>Export</button>
-        <button disabled={!selectedKeys.length} onClick={() => {
+        <ActionButton
+          className={\`\${buttonOutlineSecondaryClass} btn-sm\`}
+          label="Export"
+          disabled={!selectedKeys.length}
+          onClick={() => setExportOpen(true)}
+        />
+        <ActionButton
+          className={\`\${buttonOutlineSecondaryClass} btn-sm\`}
+          label="Clear"
+          disabled={!selectedKeys.length}
+          onClick={() => {
           setSelectedKeys([]);
           setSelectedRecords([]);
-        }}>Clear</button>
+          }}
+        />
       </div>
     </div>
   )}
@@ -618,7 +631,9 @@ const [exportOpen, setExportOpen] = useState(false);
 
 {exportOpen && (
   <Modal title="Selected records" onClose={() => setExportOpen(false)}>
-    <pre>{JSON.stringify(selectedRecords, null, 2)}</pre>
+    <pre className="overflow-auto rounded-md bg-muted p-3 text-xs">
+      {JSON.stringify(selectedRecords, null, 2)}
+    </pre>
   </Modal>
 )}`}
             />

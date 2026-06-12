@@ -8,16 +8,16 @@ import PageLayout from '../showcase/page';
 //   node clients/showcase/scripts/computeBenchmarkTokens.mjs
 const TOKEN_COUNTS: Record<string, number> = {
     CRUD_FRAMEWORK: 112,
-    CRUD_VANILLA: 1118,
+    CRUD_VANILLA: 1117,
     FORM_FRAMEWORK: 144,
-    FORM_VANILLA: 752,
-    PROVIDER_FRAMEWORK: 119,
-    PROVIDER_VANILLA: 466,
-    AUTH_FRAMEWORK: 150,
-    AUTH_VANILLA: 481,
-}
+    FORM_VANILLA: 748,
+    PROVIDER_FRAMEWORK: 118,
+    PROVIDER_VANILLA: 450,
+    AUTH_FRAMEWORK: 195,
+    AUTH_VANILLA: 480,
+};
 
-// ─── Code snippets ────────────────────────────────────────────────────────────
+// Code snippets
 
 const CRUD_FRAMEWORK = `\
 import { Grid } from '@llmnative/react'
@@ -100,7 +100,7 @@ export default function UserList() {
   const paged  = sorted.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
   const pages  = Math.ceil(sorted.length / PAGE_SIZE)
 
-  if (loading) return <div>Loading…</div>
+  if (loading) return <div>Loading...</div>
 
   return (
     <div>
@@ -164,8 +164,6 @@ export default function UserList() {
     </div>
   )
 }`;
-
-// ─────────────────────────────────────────────────────────────────────────────
 
 const FORM_FRAMEWORK = `\
 import { Form, Input, Select } from '@llmnative/react'
@@ -235,11 +233,11 @@ export default function UserForm() {
     } finally { setSaving(false) }
   }
 
-  if (loading) return <div>Loading…</div>
+  if (loading) return <div>Loading...</div>
 
   return (
     <div className="card p-4">
-      <button onClick={() => navigate(-1)}>← Back</button>
+      <button onClick={() => navigate(-1)}>Back</button>
       <form onSubmit={handleSubmit} noValidate>
         <div>
           <label>Full name</label>
@@ -260,24 +258,22 @@ export default function UserForm() {
           <label>Role</label>
           <select value={data.role}
             onChange={e => setData(d => ({ ...d, role: e.target.value }))}>
-            <option value="">Select…</option>
+            <option value="">Select...</option>
             <option value="admin">Admin</option>
             <option value="editor">Editor</option>
             <option value="viewer">Viewer</option>
           </select>
         </div>
         <button type="submit" disabled={saving}>
-          {saving ? 'Saving…' : 'Save'}
+          {saving ? 'Saving...' : 'Save'}
         </button>
       </form>
     </div>
   )
 }`;
 
-// ─────────────────────────────────────────────────────────────────────────────
-
 const PROVIDER_FRAMEWORK = `\
-// One line change in providers config — every component in your
+// One line change in providers config - every component in your
 // app automatically uses the new backend.
 
 // mock (local in-memory, zero network)
@@ -292,19 +288,19 @@ services: { data: 'firestoreDb' }
 // Supabase Postgres (with Realtime)
 services: { data: 'supabaseDb' }
 
-// Grid, Form, Select.db and every provider-aware component
+// Grid, Form, Select and other provider-aware components
 // are already wired to the abstraction. Zero component changes.`;
 
 const PROVIDER_VANILLA = `\
-// Without a framework you build the abstraction yourself —
+// Without a framework you build the abstraction yourself -
 // or skip it and couple every component to Firebase directly.
 
-// ── Option A: no abstraction (quick but hard to switch) ─────────
+// Option A: no abstraction (quick but hard to switch)
 // Every component calls Firebase directly. Switching to Supabase
 // means refactoring each one individually. Zero upfront cost,
 // high migration cost later.
 
-// ── Option B: DIY data service (~60 lines) ──────────────────────
+// Option B: DIY data service (~60 lines)
 interface DataService {
   list(path: string): Promise<Record<string, unknown>[]>
   set(path: string, data: object): Promise<void>
@@ -337,16 +333,14 @@ const supabaseService: DataService = {
   },
 }
 
-// Wire up (one place — same config as the framework)
+// Wire up (one place - same config as the framework)
 export const dataService = import.meta.env.VITE_PROVIDER === 'supabase'
   ? supabaseService
   : firebaseService
 
 // Every component still needs to call dataService.list() / .subscribe()
-// explicitly. Grid, Form, Select get no abstraction benefit unless you
+// explicitly. Grid, Form and Select get no abstraction benefit unless you
 // build component wrappers too. The framework ships all of this.`;
-
-// ─────────────────────────────────────────────────────────────────────────────
 
 const AUTH_FRAMEWORK = `\
 // 1. Declare the provider once in <App> config:
@@ -355,27 +349,30 @@ providers={{
   services: { auth: 'googleAuth' },
 }}
 
-// 2. Wrap any page in <Auth> to require sign-in:
-import { Auth } from '@llmnative/react'
+// 2. Use the provider-driven auth UI and gate content off the auth adapter:
+import { AuthButton, useAuthProvider } from '@llmnative/react'
 
 export default function Dashboard() {
+  const auth = useAuthProvider()
+  const user = auth.getUser()
+
+  if (!user) {
+    return <AuthButton provider="googleAuth" intent="signIn" />
+  }
+
   return (
-    <Auth>
-      <h1>Welcome!</h1>
-    </Auth>
+    <section>
+      <h1>Welcome, {user.name ?? user.email ?? 'there'}!</h1>
+    </section>
   )
 }
 
 // 3. Access the signed-in user anywhere:
-import { useAuthProvider } from '@llmnative/react'
+// const auth = useAuthProvider()
+// const user = auth.getUser() // { name, email, picture } | null`;
 
-const auth = useAuthProvider()
-const user = auth.getUser() // { name, email, picture } | null`;
-
-// Fair comparison: uses @react-oauth/google (best-in-class library),
-// not manual GIS — this is what a careful developer would actually write.
 const AUTH_VANILLA = `\
-// Using @react-oauth/google — the standard library for Google sign-in.
+// Using @react-oauth/google - the standard library for Google sign-in.
 // A careful developer would write this, not raw GIS boilerplate.
 
 import React, { createContext, useContext, useState } from 'react'
@@ -420,7 +417,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 // In index.tsx: wrap App in
-//   <GoogleOAuthProvider clientId="..."><AuthProvider>…</AuthProvider></GoogleOAuthProvider>
+//   <GoogleOAuthProvider clientId="..."><AuthProvider>...</AuthProvider></GoogleOAuthProvider>
 // Wrap every protected page in <ProtectedRoute>.
 export default function Dashboard() {
   const { user, signOut } = useContext(Ctx)
@@ -434,8 +431,6 @@ export default function Dashboard() {
   )
 }`;
 
-// ─── Types & data ─────────────────────────────────────────────────────────────
-
 interface Scenario {
     title: string;
     description: string;
@@ -446,7 +441,6 @@ interface Scenario {
     demoPath?: string;
     framework: string;
     vanilla: string;
-    /** Keys into TOKEN_COUNTS for pre-computed token values */
     tokenKey: string;
 }
 
@@ -454,8 +448,8 @@ const SCENARIOS: Scenario[] = [
     {
         title: 'CRUD Grid with realtime + pagination',
         description:
-            'Full create/read/update/delete table backed by Firebase Realtime DB, ' +
-            'with live updates, sorting, pagination and modal dialogs.',
+            'Provider-backed CRUD grid with realtime updates, built-in add/edit/delete actions, ' +
+            'sorting and pagination.',
         tags: ['Grid', 'Form', 'Modal', 'Firebase'],
         fwLabel: '@llmnative/react',
         vnLabel: 'React + Firebase',
@@ -467,8 +461,8 @@ const SCENARIOS: Scenario[] = [
     {
         title: 'Form with validation + load/save',
         description:
-            'Edit or create a record: loads existing data from the provider, ' +
-            'validates required fields and email format, saves back.',
+            'Provider-backed form that loads an existing record when needed, validates input ' +
+            'and saves through the active data adapter.',
         tags: ['Form', 'Input', 'Select', 'Validation'],
         fwLabel: '@llmnative/react',
         vnLabel: 'React + Firebase',
@@ -480,8 +474,8 @@ const SCENARIOS: Scenario[] = [
     {
         title: 'Switch data backend',
         description:
-            'Change the data source for the entire app — mock, Firebase RTDB, ' +
-            'Firestore or Supabase — without touching a single component.',
+            'Change the data source for the entire app - mock, Firebase RTDB, ' +
+            'Firestore or Supabase - without touching a single component.',
         tags: ['DataProvider', 'Ports & Adapters'],
         fwLabel: 'Config change (1 line)',
         vnLabel: 'DIY abstraction layer',
@@ -495,12 +489,12 @@ const SCENARIOS: Scenario[] = [
     {
         title: 'Google Auth + protected route',
         description:
-            'Require Google sign-in on any page, access the user profile ' +
-            'anywhere, handle loading and sign-out states.',
+            'Wire Google sign-in once, access the user profile anywhere, ' +
+            'and gate page content off provider auth state.',
         tags: ['Auth', 'Google', 'Protected route'],
         fwLabel: '@llmnative/react',
         vnLabel: '@react-oauth/google',
-        vnNote: 'Uses the standard @react-oauth/google library — the fairest vanilla comparison, ' +
+        vnNote: 'Uses the standard @react-oauth/google library - the fairest vanilla comparison, ' +
                 'not raw GIS boilerplate.',
         demoPath: '/components/auth',
         framework: AUTH_FRAMEWORK,
@@ -508,8 +502,6 @@ const SCENARIOS: Scenario[] = [
         tokenKey: 'AUTH',
     },
 ];
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
 
 function TokenPill({ count }: { count: number }) {
     return (
@@ -531,13 +523,12 @@ function SavingsPill({ pct }: { pct: number }) {
 }
 
 function ScenarioCard({ s }: { s: Scenario }) {
-    const fw  = TOKEN_COUNTS[`${s.tokenKey}_FRAMEWORK`] ?? 0;
-    const vn  = TOKEN_COUNTS[`${s.tokenKey}_VANILLA`] ?? 0;
+    const fw = TOKEN_COUNTS[`${s.tokenKey}_FRAMEWORK`] ?? 0;
+    const vn = TOKEN_COUNTS[`${s.tokenKey}_VANILLA`] ?? 0;
     const pct = Math.round((1 - fw / vn) * 100);
 
     return (
         <div className="rounded-xl border bg-card overflow-hidden shadow-sm">
-            {/* Header */}
             <div className="px-5 py-4 border-b bg-card flex items-start justify-between gap-4 flex-wrap">
                 <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -547,7 +538,7 @@ function ScenarioCard({ s }: { s: Scenario }) {
                                 to={s.demoPath}
                                 className="text-xs text-primary hover:underline shrink-0"
                             >
-                                See live →
+                                See live {'->'}
                             </Link>
                         )}
                     </div>
@@ -561,9 +552,7 @@ function ScenarioCard({ s }: { s: Scenario }) {
                 <SavingsPill pct={pct} />
             </div>
 
-            {/* Code columns */}
             <div className="grid grid-cols-1 lg:grid-cols-2 divide-y divide-border lg:divide-y-0 lg:divide-x">
-                {/* Framework */}
                 <div className="p-4 flex flex-col gap-2">
                     <div className="flex items-center justify-between">
                         <span className="text-xs font-semibold text-success">{s.fwLabel}</span>
@@ -572,7 +561,6 @@ function ScenarioCard({ s }: { s: Scenario }) {
                     <pre className="text-xs font-mono bg-muted/40 rounded-lg p-3 overflow-auto max-h-72 leading-relaxed whitespace-pre flex-1">{s.framework}</pre>
                 </div>
 
-                {/* Vanilla */}
                 <div className="p-4 flex flex-col gap-2">
                     <div className="flex items-center justify-between">
                         <span className="text-xs font-semibold text-muted-foreground">{s.vnLabel}</span>
@@ -588,20 +576,17 @@ function ScenarioCard({ s }: { s: Scenario }) {
     );
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
-
 export default function BenchmarkPage() {
-    const totalFw  = SCENARIOS.reduce((n, s) => n + (TOKEN_COUNTS[`${s.tokenKey}_FRAMEWORK`] ?? 0), 0);
-    const totalVn  = SCENARIOS.reduce((n, s) => n + (TOKEN_COUNTS[`${s.tokenKey}_VANILLA`] ?? 0), 0);
+    const totalFw = SCENARIOS.reduce((n, s) => n + (TOKEN_COUNTS[`${s.tokenKey}_FRAMEWORK`] ?? 0), 0);
+    const totalVn = SCENARIOS.reduce((n, s) => n + (TOKEN_COUNTS[`${s.tokenKey}_VANILLA`] ?? 0), 0);
     const totalPct = Math.round((1 - totalFw / totalVn) * 100);
-    const saved    = totalVn - totalFw;
+    const saved = totalVn - totalFw;
 
     return (
         <PageLayout
             title="Token Benchmark"
-            description="How much less code — and how many fewer tokens — an AI needs to describe the same UI using @llmnative/react vs plain React."
+            description="How much less code - and how many fewer tokens - an AI needs to express the same app behavior using @llmnative/react vs plain React."
         >
-            {/* ── Methodology note ── */}
             <div className="text-sm text-muted-foreground bg-muted/40 rounded-lg px-4 py-3 mb-8 leading-relaxed space-y-1.5">
                 <p>
                     <span className="font-medium text-foreground">Token counting</span>
@@ -612,15 +597,19 @@ export default function BenchmarkPage() {
                 </p>
                 <p>
                     <span className="font-medium text-foreground">Fair comparisons</span>
-                    {' '}— each "vanilla" column uses best-in-class libraries and patterns
-                    {' '}(e.g. <code className="font-mono text-xs bg-muted px-1 py-0.5 rounded">@react-oauth/google</code> for auth,
-                    {' '}a proper DataService abstraction for the provider switch scenario),
+                    {' '} - each vanilla column uses best-in-class libraries and patterns
+                    {' '}(for example <code className="font-mono text-xs bg-muted px-1 py-0.5 rounded">@react-oauth/google</code> for auth,
+                    {' '}and a proper DataService abstraction for the provider switch scenario),
                     {' '}not hand-rolled boilerplate.
-                    {' '}The goal is to measure the framework's API compression, not to cherry-pick bad vanilla code.
+                    {' '}The goal is to measure the framework&apos;s API compression, not to cherry-pick bad vanilla code.
+                </p>
+                <p>
+                    <span className="font-medium text-foreground">Representative snippets</span>
+                    {' '} - each column shows the core implementation shape for that scenario, not every surrounding app concern
+                    {' '}(routing, styling and deployment setup are intentionally omitted from both sides).
                 </p>
             </div>
 
-            {/* ── Aggregate summary ── */}
             <div className="rounded-xl border bg-card px-6 py-5 mb-8 flex flex-col sm:flex-row items-start sm:items-center gap-6">
                 <div className="flex-1">
                     <p className="text-sm text-muted-foreground">Across all 4 scenarios</p>
@@ -631,7 +620,7 @@ export default function BenchmarkPage() {
                     <p className="text-sm text-muted-foreground mt-1">
                         {totalFw.toLocaleString()} tokens with @llmnative/react
                         {' '}vs {totalVn.toLocaleString()} tokens with plain React
-                        {' '}— a saving of {saved.toLocaleString()} tokens
+                        {' '}- a saving of {saved.toLocaleString()} tokens
                     </p>
                 </div>
                 <div className="grid grid-cols-2 gap-4 shrink-0">
@@ -646,14 +635,12 @@ export default function BenchmarkPage() {
                 </div>
             </div>
 
-            {/* ── Scenarios ── */}
             <div className="space-y-6">
                 {SCENARIOS.map(s => (
                     <ScenarioCard key={s.title} s={s} />
                 ))}
             </div>
 
-            {/* ── Why it matters ── */}
             <div className="mt-10 rounded-xl border bg-card px-6 py-5">
                 <h2 className="font-semibold text-foreground mb-3">Why fewer tokens matter</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-muted-foreground">
@@ -663,7 +650,7 @@ export default function BenchmarkPage() {
                     </div>
                     <div>
                         <p className="font-medium text-foreground mb-1">Lower cost</p>
-                        <p>Every AI API call is billed per token. Fewer output tokens per feature means lower cost per feature — at scale the difference is significant.</p>
+                        <p>Every AI API call is billed per token. Fewer output tokens per feature means lower cost per feature - at scale the difference is significant.</p>
                     </div>
                     <div>
                         <p className="font-medium text-foreground mb-1">Higher reliability</p>

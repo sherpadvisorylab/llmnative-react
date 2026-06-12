@@ -513,7 +513,7 @@ export default function ContactsPage() {
   return (
     <>
       <Head title="Contacts" description="Manage your contact list." />
-      <Grid dataStoragePath="/contacts" … />
+      <Grid path="/contacts" … />
     </>
   );
 }

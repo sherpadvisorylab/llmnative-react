@@ -81,7 +81,7 @@ export const PROMPT_LIVE_PROPS: PropDef[] = [
     {
         name: 'actions',
         type: 'PromptAction[]',
-        description: 'Custom icon buttons in the run-mode footer bar. A tokenUsage key activates the built-in token usage popup after each run.',
+        description: 'Custom icon buttons in the run-mode footer bar. A tokenUsage key activates the built-in token usage popup after each run, without needing custom popup content.',
         group: 'Specific',
         typeDetails: `{
   key: string;
@@ -97,7 +97,7 @@ export const PROMPT_LIVE_PROPS: PropDef[] = [
         group: 'Specific',
         typeDetails: `('tokensIn' | 'tokensOut' | 'contextPercent' | 'model' | 'duration' | { key: string; render: (stats: PromptRunStats) => ReactNode })[]`,
     },
-    { name: 'renderAIUnavailable', type: '({ mode, providerId, reason, configured }) => ReactNode', description: 'Custom inline renderer shown when no AI provider is configured.', group: 'Specific' },
+    { name: 'renderAIUnavailable', type: '({ mode, providerId, reason, configured }) => ReactNode', description: 'Custom renderer for the unavailable notice shown when no AI provider is configured.', group: 'Specific' },
     { name: 'renderFallback', type: '(props) => ReactNode', description: 'Custom renderer shown when prompt mode is disabled (enabled=false) — replaces the default plain textarea.', group: 'Specific' },
 ];
 

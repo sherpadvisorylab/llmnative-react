@@ -350,16 +350,54 @@ Usa il provider icone configurato (lucide/phosphor/custom).
 - `<UploadCSV />` â€” import CSV con preview tabellare
 
 #### Prompt
-Campo AI-potenziato con editor e modalitÃ  live.
+Campo AI-potenziato con editor e modalita live.
 | Prop | Type | Default |
 |------|------|---------|
 | `name` | string | required |
 | `mode` | `"edit" \| "run"` | `"edit"` |
-| `rows` | number | â€” |
-| `onRunPrompt` | `(prompt, options, data?) => Promise<string>` | â€” |
-| `renderFallback` | `(props) => ReactNode` | â€” |
-| `renderAIUnavailable` | `(props) => ReactNode` | â€” |
+| `rows` | number | - |
+| `onRunPrompt` | `(prompt, options, data?) => Promise<string>` | - |
+| `commands` | `PromptCommand[]` | - |
+| `attachments` | boolean | `false` |
+| `actions` | `PromptAction[]` | - |
+| `statusItems` | `PromptStatusItem[]` | - |
+| `renderFallback` | `(props) => ReactNode` | - |
+| `renderAIUnavailable` | `(props) => ReactNode` | - |
 
+```tsx
+<Prompt
+  name="summary"
+  mode={PromptMode.RUN}
+  commands={[
+    { name: 'translate', icon: 'languages', handler: (value) => `Translate to English:\n\n${value}` },
+  ]}
+  attachments
+  actions={[{ key: 'tokenUsage', icon: 'bar-chart-2', label: 'Token details' }]}
+  statusItems={['tokensIn', 'tokensOut', 'contextPercent', 'duration']}
+/>
+```
+
+```ts
+type PromptCommand = {
+  name: string
+  description?: string
+  icon?: string
+  handler?: (currentValue: string) => string | Promise<string>
+}
+
+type PromptAction = {
+  key: string
+  icon: string
+  label?: string
+  content?: React.ReactNode
+}
+
+type PromptStatusItem =
+  | 'tokensIn' | 'tokensOut' | 'contextPercent' | 'model' | 'duration'
+  | { key: string; render: (stats: PromptRunStats) => React.ReactNode }
+```
+
+`onRunPrompt` receives `AIRequestOptions.attachments` when files are attached. `PromptUtils` also exports `countTokens()`, `modelContextWindow()`, `contextPercent()`, `estimateCost()` and `fileToAttachment()`.
 #### WorkflowAI _(CR-039, coming soon)_
 `<WorkflowAI steps={[...]} />` â€” pipeline di prompt multi-step con selezione varianti e output concatenato tra step.
 
@@ -712,4 +750,5 @@ removeGlobalVars(key)                  // rimuovi
 ```
 
 Backend: `localStorage`. Dati condivisi tra pagine senza provider.
+
 

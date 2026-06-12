@@ -10,12 +10,12 @@ const PROPS: PropDef[] = [
     { name: 'name', type: 'string', required: true, description: 'Field name bound to the Form record' },
     { name: 'label', type: 'string', description: 'Label rendered above the upload area', control: 'text' },
     { name: 'multiple', type: 'boolean', default: 'false', description: 'Allow selecting more than one image at a time', control: 'boolean' },
-    { name: 'editable', type: 'boolean', default: 'false', description: 'Show crop/edit button on hover — opens the image editor', control: 'boolean' },
+    { name: 'editable', type: 'boolean', default: 'false', description: 'Show crop/edit button on hover; opens the image editor', control: 'boolean' },
     { name: 'previewWidth', type: 'number', default: '100', description: 'Thumbnail width in pixels', control: 'number', min: 48, max: 256, step: 8 },
     { name: 'previewHeight', type: 'number', default: '100', description: 'Thumbnail height in pixels', control: 'number', min: 48, max: 256, step: 8 },
     { name: 'accept', type: 'string', default: '"image/*"', description: 'Accepted MIME types (e.g. "image/png,image/jpeg")', control: 'text' },
     { name: 'max', type: 'number', default: '100', description: 'Maximum number of files allowed', control: 'number', min: 1, max: 20 },
-    { name: 'required', type: 'boolean', default: 'false', description: 'Mark field as required — blocks form submit when empty', control: 'boolean' },
+    { name: 'required', type: 'boolean', default: 'false', description: 'Mark field as required; blocks form submit when empty', control: 'boolean' },
     { name: 'onChange', type: 'FieldOnChange', description: 'Called on every file list change with the updated value and form context' },
     { name: 'before', type: 'ReactNode', description: 'Content rendered before the image grid, inside the outer wrapper' },
     { name: 'after', type: 'ReactNode', description: 'Content rendered after the image grid, inside the outer wrapper' },
@@ -64,11 +64,11 @@ export default function UploadImagePage() {
     return (
         <PageLayout
             title="UploadImage"
-            description="Image upload field with inline thumbnail preview, hover overlay (view / crop / remove) and optional multi-image support. Stores file metadata in the Form record."
+            description="Image upload field with inline thumbnail preview, hover overlay actions and optional multi-image support. Stores file descriptors in the Form record."
         >
             <Section
                 title="Single image"
-                description="Default usage — one image at a time with a fixed-size thumbnail. Clicking the thumbnail opens the full-size preview in a new tab."
+                description="Default usage: one image at a time with a fixed-size thumbnail. After upload, use the hover overlay actions to preview or remove the image."
                 preview={
                     <div className="w-full max-w-sm">
                         <Form appearance="empty">
@@ -83,7 +83,7 @@ export default function UploadImagePage() {
                 }
                 code={`import { Form, UploadImage } from '@llmnative/react';
 
-<Form>
+<Form appearance="empty">
   <UploadImage
     name="avatar"
     label="Avatar"
@@ -110,19 +110,21 @@ export default function UploadImagePage() {
                         </Form>
                     </div>
                 }
-                code={`<UploadImage
-  name="gallery"
-  label="Gallery"
-  multiple
-  max={6}
-  previewHeight={88}
-  previewWidth={88}
-/>`}
+                code={`<Form appearance="empty">
+  <UploadImage
+    name="gallery"
+    label="Gallery"
+    multiple
+    max={6}
+    previewHeight={88}
+    previewWidth={88}
+  />
+</Form>`}
             />
 
             <Section
                 title="Editable (crop)"
-                description="Add editable to show a pencil icon on hover. Clicking it opens the image editor with crop and scale tools. The edited file replaces the original in the Form record."
+                description="Add editable to show a pencil icon on hover. Clicking it opens the image editor with crop and scale tools, and the generated variants are saved on that file entry in the Form record."
                 preview={
                     <div className="w-full max-w-xl">
                         <Form appearance="empty">
@@ -137,18 +139,21 @@ export default function UploadImagePage() {
                         </Form>
                     </div>
                 }
-                code={`<UploadImage
-  name="cover"
-  label="Cover photo"
-  editable
-  previewHeight={112}
-  previewWidth={112}
-/>`}
+                code={`<Form appearance="empty">
+  <UploadImage
+    name="cover"
+    label="Cover photo"
+    multiple
+    editable
+    previewHeight={112}
+    previewWidth={112}
+  />
+</Form>`}
             />
 
             <Section
                 title="Accept filter"
-                description="Restrict the file picker to specific MIME types. The browser enforces the filter at the OS level; the field does not re-validate on drop."
+                description="Restrict the file picker to specific MIME types. The browser enforces the filter in the native file chooser."
                 preview={
                     <div className="w-full max-w-sm">
                         <Form appearance="empty">
@@ -162,13 +167,15 @@ export default function UploadImagePage() {
                         </Form>
                     </div>
                 }
-                code={`<UploadImage
-  name="logo"
-  label="Logo (PNG only)"
-  accept="image/png"
-  previewHeight={88}
-  previewWidth={88}
-/>`}
+                code={`<Form appearance="empty">
+  <UploadImage
+    name="logo"
+    label="Logo (PNG only)"
+    accept="image/png"
+    previewHeight={88}
+    previewWidth={88}
+  />
+</Form>`}
             />
 
             <PropDocsTable props={PROPS} />

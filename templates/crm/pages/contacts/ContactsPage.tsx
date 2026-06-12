@@ -16,29 +16,30 @@ const statusVariant: Record<string, string> = {
 export default function ContactsPage() {
     return (
         <Grid
-            dataStoragePath="/contacts"
+            path="/contacts"
             columns={[
-                { key: 'name',    label: 'Name',    sort: true },
-                { key: 'email',   label: 'Email' },
-                { key: 'company', label: 'Company', sort: true },
-                { key: 'phone',   label: 'Phone' },
-                { key: 'status',  label: 'Status',
-                    onDisplay: ({ value }) => (
+                { key: 'name', label: 'Name', sortable: true },
+                { key: 'email', label: 'Email' },
+                { key: 'company', label: 'Company', sortable: true },
+                { key: 'phone', label: 'Phone' },
+                {
+                    key: 'status',
+                    label: 'Status',
+                    render: ({ value }) => (
                         <Badge variant={statusVariant[value] ?? 'secondary'}>{value}</Badge>
                     ),
                 },
             ]}
-            allowedActions={['add', 'edit', 'delete']}
-            modal={{ mode: 'form' }}
-            type="table"
-            allowedSorting
-            pagination={{ perPage: 20 }}
+            actions={['add', 'edit', 'delete']}
+            view="table"
+            sortable
+            pagination={{ limit: 20 }}
         >
             {() => (
                 <>
-                    <Input name="name"    label="Full name"   required />
-                    <Input name="email"   label="Email"       inputType="email" />
-                    <Input name="phone"   label="Phone" />
+                    <Input name="name" label="Full name" required />
+                    <Input name="email" label="Email" inputType="email" />
+                    <Input name="phone" label="Phone" />
                     <Input name="company" label="Company" />
                     <Select name="status" label="Status" options={statusOptions} />
                 </>

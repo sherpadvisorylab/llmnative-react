@@ -22,22 +22,21 @@ One component can define a full CRUD table:
 
 ```tsx
 <Grid
-  dataStoragePath="/users"
+  path="/users"
   columns={[
-    { key: "name", label: "Name", sort: true },
+    { key: "name", label: "Name", sortable: true },
     { key: "email", label: "Email" },
     { key: "role", label: "Role" }
   ]}
-  allowedActions={["add", "edit", "delete"]}
-  modal={{ mode: "form" }}
-  pagination={{ perPage: 20 }}
+  actions={["add", "edit", "delete"]}
+  pagination={{ limit: 20 }}
 />
 ```
 
 One component tree can define a form wired to the backend:
 
 ```tsx
-<Form dataStoragePath="/users" aspect="card">
+<Form path="/users" appearance="card">
   <Input name="name" label="Name" required />
   <Input name="email" label="Email" inputType="email" />
   <Select name="role" label="Role" options={[{ label: "Admin", value: "admin" }]} />
@@ -67,7 +66,12 @@ Example:
 ```tsx
 import { MockDataProvider } from "@llmnative/react"
 
-<App dataProvider={new MockDataProvider()} />
+<App
+  providers={{
+    mock: { data: {} },
+    services: { data: "mock" }
+  }}
+/>
 ```
 
 For demos and prototypes with no backend, prefer `MockDataProvider`.

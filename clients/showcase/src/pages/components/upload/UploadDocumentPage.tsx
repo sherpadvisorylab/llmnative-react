@@ -8,17 +8,17 @@ import type { PropDef, PlaygroundConfig } from '../../../docs-kit/playground';
 
 const PROPS: PropDef[] = [
     { name: 'name', type: 'string', required: true, description: 'Field name bound to the Form record' },
-    { name: 'label', type: 'string', description: 'Label rendered above the file list and upload button', control: 'text' },
-    { name: 'multiple', type: 'boolean', default: 'false', description: 'Allow uploading more than one file at a time', control: 'boolean' },
-    { name: 'editable', type: 'boolean', default: 'false', description: 'Enable clicking a row to open the file editor', control: 'boolean' },
-    { name: 'accept', type: 'string', default: '".pdf,.doc,.docx,.txt,.iso"', description: 'Accepted file extensions (e.g. ".pdf,.docx")', control: 'text' },
-    { name: 'max', type: 'number', default: '100', description: 'Maximum number of files allowed', control: 'number', min: 1, max: 20 },
-    { name: 'required', type: 'boolean', default: 'false', description: 'Mark field as required — blocks form submit when empty', control: 'boolean' },
-    { name: 'onChange', type: 'FieldOnChange', description: 'Called on every file list change with the updated value and form context' },
-    { name: 'before', type: 'ReactNode', description: 'Content rendered before the upload area, inside the outer wrapper' },
-    { name: 'after', type: 'ReactNode', description: 'Content rendered after the upload area, inside the outer wrapper' },
-    { name: 'className', type: 'string', description: 'CSS classes on the inner container', control: 'text' },
-    { name: 'wrapperClassName', type: 'string', description: 'CSS classes on the outer wrapper', control: 'text' },
+    { name: 'label', type: 'string', description: 'Label rendered above the drop zone or file table', control: 'text' },
+    { name: 'multiple', type: 'boolean', default: 'false', description: 'Allow selecting and storing more than one file', control: 'boolean' },
+    { name: 'editable', type: 'boolean', default: 'false', description: 'Open the file-name editor modal when a table row is clicked', control: 'boolean' },
+    { name: 'accept', type: 'string', default: '".pdf,.doc,.docx,.txt,.iso"', description: 'Native file input accept filter shown in the picker and drop zone hint', control: 'text' },
+    { name: 'max', type: 'number', default: '100', description: 'Maximum number of files that can be kept in the field', control: 'number', min: 1, max: 20 },
+    { name: 'required', type: 'boolean', default: 'false', description: 'Mark the hidden file input as required and show validation feedback when empty', control: 'boolean' },
+    { name: 'onChange', type: 'FieldOnChange', description: 'Called whenever the file array stored in the Form record changes' },
+    { name: 'before', type: 'ReactNode', description: 'Content rendered before the upload field inside the outer wrapper' },
+    { name: 'after', type: 'ReactNode', description: 'Content rendered after the upload field inside the outer wrapper' },
+    { name: 'className', type: 'string', description: 'CSS classes applied to the inner field container', control: 'text' },
+    { name: 'wrapperClassName', type: 'string', description: 'CSS classes applied to the outer Wrapper element', control: 'text' },
 ];
 
 const PLAYGROUND: PlaygroundConfig = {
@@ -58,11 +58,11 @@ export default function UploadDocumentPage() {
     return (
         <PageLayout
             title="UploadDocument"
-            description="File upload field that renders uploaded files as a table with name, size and progress. Accepts any file type via the accept filter. Stores file data in the Form record."
+            description="Document upload field with drag-and-drop, inline progress, removable rows and optional file-name editing. The Form record stores an array of file descriptors."
         >
             <Section
                 title="Basic document upload"
-                description="Single-file upload. Shows the file name, size and a progress indicator while the file is being read. Without a StorageProvider the file is stored as base64 in the Form record."
+                description="Single-file upload with drag-and-drop. The field reads the selected file locally, shows progress while converting it, then stores the uploaded entry in the Form record."
                 preview={
                     <div className="w-full max-w-2xl">
                         <Form appearance="empty">
@@ -76,7 +76,7 @@ export default function UploadDocumentPage() {
                 }
                 code={`import { Form, UploadDocument } from '@llmnative/react';
 
-<Form>
+<Form appearance="empty">
   <UploadDocument
     name="report"
     label="Report"
@@ -87,7 +87,7 @@ export default function UploadDocumentPage() {
 
             <Section
                 title="Multiple files"
-                description="Enable multiple to allow selecting several files in one picker interaction. Each file is displayed as a separate row. The upload button disappears once max is reached."
+                description="Enable multiple to keep several files in the same field. Each uploaded file becomes a table row, and the inline upload action stays available until max is reached."
                 preview={
                     <div className="w-full max-w-2xl">
                         <Form appearance="empty">
@@ -101,18 +101,49 @@ export default function UploadDocumentPage() {
                         </Form>
                     </div>
                 }
-                code={`<UploadDocument
-  name="attachments"
-  label="Attachments"
-  multiple
-  max={5}
-  accept=".pdf,.doc,.docx,.txt,.md"
-/>`}
+                code={`<Form appearance="empty">
+  <UploadDocument
+    name="attachments"
+    label="Attachments (max 5)"
+    multiple
+    max={5}
+    accept=".pdf,.doc,.docx,.txt,.md"
+  />
+</Form>`}
+            />
+
+            <Section
+                title="Editable file names"
+                description="Set editable to make each row clickable. Clicking a completed row opens the built-in file-name editor modal and saves the new fileName back into the stored file entry."
+                preview={
+                    <div className="w-full max-w-2xl">
+                        <Form appearance="empty">
+                            <UploadDocument
+                                name="deliverables"
+                                label="Deliverables"
+                                editable
+                                multiple
+                                max={4}
+                                accept=".pdf,.docx,.txt"
+                            />
+                        </Form>
+                    </div>
+                }
+                code={`<Form appearance="empty">
+  <UploadDocument
+    name="deliverables"
+    label="Deliverables"
+    editable
+    multiple
+    max={4}
+    accept=".pdf,.docx,.txt"
+  />
+</Form>`}
             />
 
             <Section
                 title="Accept filter"
-                description="Restrict the file picker to specific extensions. Combine multiple extensions with commas. The field does not re-validate files dropped outside the picker."
+                description="Restrict the native file chooser to specific extensions. The same accept string is also shown inside the empty drop zone as a visual hint for the allowed formats."
                 preview={
                     <div className="space-y-2 w-full max-w-2xl">
                         <Form appearance="empty">
@@ -124,19 +155,26 @@ export default function UploadDocumentPage() {
                         </Form>
                     </div>
                 }
-                code={`// Spreadsheets
-<UploadDocument name="data" accept=".csv,.xls,.xlsx" />
+                code={`<Form appearance="empty">
+  <UploadDocument
+    name="data"
+    label="CSV / Excel only"
+    accept=".csv,.xls,.xlsx"
+  />
+</Form>
 
-// Images as documents (no preview)
-<UploadDocument name="assets" accept=".png,.jpg,.svg" />
-
-// All files (default)
-<UploadDocument name="any" accept="*" />`}
+<Form appearance="empty">
+  <UploadDocument
+    name="assets"
+    label="Assets"
+    accept=".png,.jpg,.svg"
+  />
+</Form>`}
             />
 
             <Section
                 title="Required field"
-                description="Add required to prevent the form from submitting when no file has been uploaded. The field renders a validation error below the upload area."
+                description="Add required to surface form validation when the field is empty. The validation message is rendered below the upload area using the standard form field error slot."
                 preview={
                     <div className="w-full max-w-2xl">
                         <Form appearance="card" onComplete={async () => false}>
@@ -149,10 +187,10 @@ export default function UploadDocumentPage() {
                         </Form>
                     </div>
                 }
-                code={`<Form>
+                code={`<Form appearance="card" onComplete={async () => false}>
   <UploadDocument
     name="contract"
-    label="Contract"
+    label="Contract (required)"
     required
     accept=".pdf"
   />

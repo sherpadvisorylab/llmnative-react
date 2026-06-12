@@ -42,6 +42,7 @@ const SELECT_PROPS: PropDef[] = [
   fieldMap?: Record<string, string>;
   where?: Record<string, unknown>;
   order?: { [field: string]: 'asc' | 'desc' };
+  onLoad?: (data) => data;
 }`,
         example: `optionsSource={{
   path: '/showcase/categories',
@@ -167,13 +168,14 @@ const ROLES = [
     { label: 'Viewer', value: 'viewer' },
 ];
 
-<Form>
+<Form appearance="empty">
     <Select name="role" label="Role" options={ROLES} />
 </Form>`}
             />
 
             <Section bare
                 title="Required select"
+                description="Use required when the field must be chosen before form submission."
                 preview={
                     <div className="w-full max-w-md">
                         <Form appearance="empty">
@@ -181,7 +183,66 @@ const ROLES = [
                         </Form>
                     </div>
                 }
-                code={`<Select name="country" label="Country" options={COUNTRIES} required />`}
+                code={`<Form appearance="empty">
+    <Select
+        name="country"
+        label="Country"
+        options={COUNTRIES}
+        required
+    />
+</Form>`}
+            />
+
+            <Section bare
+                title="No placeholder option"
+                description="Set placeholderOption to null to hide the empty row. When no value is set, Select automatically chooses the first available option."
+                preview={
+                    <div className="w-full max-w-md">
+                        <Form appearance="empty">
+                            <Select
+                                name="roleNoPlaceholder"
+                                label="Role"
+                                options={ROLES}
+                                placeholderOption={null}
+                            />
+                        </Form>
+                    </div>
+                }
+                code={`<Form appearance="empty">
+    <Select
+        name="roleNoPlaceholder"
+        label="Role"
+        options={ROLES}
+        placeholderOption={null}
+    />
+</Form>`}
+            />
+
+            <Section bare
+                title="Read-only after set"
+                description="Use readOnlyAfterSet when the choice should lock after the first selection. If the field already has a value, the select renders disabled."
+                preview={
+                    <div className="w-full max-w-md">
+                        <Form appearance="empty">
+                            <Select
+                                name="lockedRole"
+                                label="Role"
+                                options={ROLES}
+                                defaultValue="editor"
+                                readOnlyAfterSet
+                            />
+                        </Form>
+                    </div>
+                }
+                code={`<Form appearance="empty">
+    <Select
+        name="lockedRole"
+        label="Role"
+        options={ROLES}
+        defaultValue="editor"
+        readOnlyAfterSet
+    />
+</Form>`}
             />
 
             <Section bare
@@ -200,7 +261,7 @@ const ROLES = [
                     </div>
                 }
                 code={`// Fetches records from the active DataProvider and maps them to options.
-<Form>
+<Form appearance="empty">
     <Select
         name="categoryId"
         label="Category"

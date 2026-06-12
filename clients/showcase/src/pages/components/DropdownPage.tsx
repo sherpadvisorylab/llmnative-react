@@ -117,6 +117,7 @@ const PLAYGROUND: PlaygroundConfig = {
         footer: 'Footer',
         defaultOpen: false,
         staticOpen: false,
+        placement: 'bottom',
         position: '',
         wrapperClassName: '',
         className: '',
@@ -135,6 +136,7 @@ const PLAYGROUND: PlaygroundConfig = {
             footer={p.footer || undefined}
             defaultOpen={p.defaultOpen}
             staticOpen={p.staticOpen}
+            placement={p.placement || undefined}
             position={p.position || undefined}
             before={p.before || undefined}
             after={p.after || undefined}
@@ -210,14 +212,24 @@ function DropdownItemsFromMock({ path }) {
     });
 }
 
-<Dropdown trigger="Data menu" header="From mock DB">
-    <DropdownItemsFromMock path="/dropdown-items" />
-</Dropdown>`}
+<DataProvider registry={{ default: new MockDataProvider({
+  '/dropdown-items': {
+    header: { type: 'header', label: 'Record actions' },
+    edit: { type: 'item', label: 'Edit', icon: 'edit' },
+    duplicate: { type: 'item', label: 'Duplicate', icon: 'copy' },
+    divider: { type: 'divider' },
+    delete: { type: 'item', label: 'Delete', icon: 'trash' },
+  },
+}) }} defaultKey="default">
+    <Dropdown trigger="Data menu" header="From mock DB" defaultOpen>
+        <DropdownItemsFromMock path="/dropdown-items" />
+    </Dropdown>
+</DataProvider>`}
             />
 
             <Section
                 title="Toggle badge"
-                description="Badges use the shared overlay Badge behavior. Pass badge as a number/string or as { content, type } for semantic colors."
+                description="Badges use the shared overlay Badge behavior. Pass badge as a number/string or as { content, variant } for semantic colors."
                 preview={
                     <div className="min-h-48 pt-3 pr-4">
                         <Dropdown

@@ -28,7 +28,7 @@ const SRC_PRESETS: Record<string, string> = {
 };
 
 const IMAGE_PROPS: PropDef[] = [
-    { name: 'src', type: 'string', required: true, group: 'Core', description: 'Preset image — selects between the sample assets used in the playground', control: 'select', options: ['landscape', 'landscape-alt', 'portrait', 'empty'] },
+    { name: 'src', type: 'string', required: true, group: 'Core', description: 'Image source URL or one of the sample presets used in the playground', control: 'select', options: ['landscape', 'landscape-alt', 'portrait', 'empty'] },
     { name: 'label', type: 'string', group: 'Core', description: 'Alt text shown to screen readers and on broken images', control: 'text' },
     { name: 'title', type: 'string', group: 'Core', description: 'Native title attribute — shown as tooltip on hover', control: 'text' },
     { name: 'placeholder', type: 'string', group: 'Core', description: 'Fallback image shown when src is empty or not yet resolved.', control: 'text', help: 'URL (https://…) · path relativo (/img/x.png) · data URI SVG (data:image/svg+xml,…) · base64 (data:image/png;base64,…). Vuoto = placeholder del tema.' },
@@ -47,7 +47,7 @@ const IMAGE_PROPS: PropDef[] = [
 
 // Playground-only controls — used by ImageExportPanel to demonstrate useImage/srcset, not Image component props
 const PLAYGROUND_EXTRA_PROPS: PropDef[] = [
-    { name: 'responsive', type: 'boolean', group: 'Export demo', description: 'Adds srcset to the export output (toHTML / toJSON). Does not change the preview.', control: 'boolean' },
+    { name: 'responsive', type: 'boolean', group: 'Export demo', description: 'Adds srcset to the export output (`toHtml` / `toJson`). Does not change the visual preview.', control: 'boolean' },
     { name: 'srcsetMode', type: '"width" | "density"', group: 'Export demo', description: 'srcset strategy for the export demo.', control: 'select', options: ['width', 'density'], hidden: (p) => !p.responsive },
     { name: 'sizesPreset', type: 'string', group: 'Export demo', description: 'sizes attribute preset for width-mode srcset export.', control: 'select', options: ['Hero — occupa tutta la larghezza', 'Articolo — colonna di testo (max 900px)', 'Card — griglia 2 colonne', 'Card — griglia 3 colonne', 'Thumbnail — elemento piccolo'], hidden: (p) => !p.responsive || p.srcsetMode === 'density' },
 ];
@@ -128,6 +128,8 @@ function ImageExportPanel(p: Record<string, any>) {
                 feedback={p.feedback || undefined}
                 width={PREVIEW_WIDTH}
                 height={previewHeight}
+                srcset={p.srcset || undefined}
+                sizes={p.sizes || undefined}
                 before={p.before || undefined}
                 after={p.after || undefined}
                 className={p.className || undefined}
@@ -220,7 +222,7 @@ export default function ImagePage() {
     return (
         <PageLayout
             title="Image"
-            description="Themed image wrapper with placeholder fallback, pre/post content slots and optional feedback caption."
+            description="Themed image wrapper with placeholder fallback, before/after content slots and optional feedback caption."
         >
             <Section
                 title="Basic image"
@@ -360,7 +362,7 @@ export default function ImagePage() {
                 }
                 code={`import { Image } from '@llmnative/react';
 
-// pre = left, post = right, both vertically centred
+// before = left, after = right, both vertically centred
 <Image
     src={bannerUrl}
     label="Hero banner"

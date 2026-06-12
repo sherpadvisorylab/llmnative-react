@@ -247,6 +247,135 @@ describe('Prompt', () => {
             expect(screen.getByText('Provider exploded')).toBeInTheDocument();
         });
     });
+
+    it('opens slash commands from the textarea and applies the highlighted command with Enter', async () => {
+        renderWithProviders(
+            <Form
+                aspect="empty"
+                defaultValues={{
+                    copy: {
+                        value: '',
+                        prompt: {
+                            enabled: 'on',
+                            value: 'Draft product copy.',
+                        },
+                    },
+                }}
+            >
+                <Prompt
+                    name="copy"
+                    label="Copy"
+                    mode={PromptMode.RUN}
+                    defaultValue={{ value: 'Draft product copy.', enabled: true }}
+                    onRunPrompt={async (prompt) => prompt}
+                    commands={[
+                        {
+                            name: 'shorten',
+                            description: 'Shorten to one sentence',
+                            handler: (value) => `Shorten this text:\n\n${value}`,
+                        },
+                    ]}
+                />
+            </Form>
+        );
+
+        const textarea = document.querySelector('textarea[name="copy.value"]') as HTMLTextAreaElement | null;
+        expect(textarea).not.toBeNull();
+
+        fireEvent.keyDown(textarea!, { key: '/' });
+        fireEvent.change(textarea!, { target: { value: '/' } });
+
+        await waitFor(() => {
+            expect(screen.getByText('/shorten')).toBeInTheDocument();
+        });
+
+        fireEvent.keyDown(textarea!, { key: 'Enter' });
+
+        await waitFor(() => {
+            expect(textarea?.value).toBe('Shorten this text:\n\n/');
+        });
+    });
+
+    it('forwards attached files to the custom executor', async () => {
+        const executor = vi.fn(async () => 'Attachment summary');
+
+        renderWithProviders(
+            <Form
+                aspect="empty"
+                defaultValues={{
+                    report: {
+                        value: '',
+                        prompt: {
+                            enabled: 'on',
+                            value: 'Summarise the attachment.',
+                        },
+                    },
+                }}
+            >
+                <Prompt
+                    name="report"
+                    label="Report"
+                    mode={PromptMode.RUN}
+                    defaultValue={{ value: 'Summarise the attachment.', enabled: true }}
+                    onRunPrompt={executor}
+                    attachments
+                />
+            </Form>
+        );
+
+        const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement | null;
+        expect(fileInput).not.toBeNull();
+
+        const file = new File(['hello world'], 'notes.txt', { type: 'text/plain' });
+        fireEvent.change(fileInput!, { target: { files: [file] } });
+
+        fireEvent.click(screen.getByRole('button', { name: /Run/i }));
+
+        await waitFor(() => {
+            expect(executor).toHaveBeenCalledTimes(1);
+        });
+
+        const [, options] = executor.mock.calls[0];
+        expect(options.attachments).toHaveLength(1);
+        expect(options.attachments?.[0]).toMatchObject({
+            mimeType: 'text/plain',
+            name: 'notes.txt',
+        });
+        expect(options.attachments?.[0].base64).toBeTruthy();
+    });
+
+    it('renders status items after a successful run', async () => {
+        renderWithProviders(
+            <Form
+                aspect="empty"
+                defaultValues={{
+                    summary: {
+                        value: '',
+                        prompt: {
+                            enabled: 'on',
+                            value: 'Write a concise summary for Atlas Console.',
+                        },
+                    },
+                }}
+            >
+                <Prompt
+                    name="summary"
+                    label="Summary"
+                    mode={PromptMode.RUN}
+                    defaultValue={{ value: 'Write a concise summary for Atlas Console.', enabled: true, model: 'openai/gpt-4o' }}
+                    onRunPrompt={async () => 'A concise answer.'}
+                    statusItems={['tokensIn', 'tokensOut', 'duration']}
+                />
+            </Form>
+        );
+
+        fireEvent.click(screen.getByRole('button', { name: /Run/i }));
+
+        await waitFor(() => {
+            expect(screen.getByText(/↑ \d+ tok/i)).toBeInTheDocument();
+            expect(screen.getByText(/↓ \d+ tok/i)).toBeInTheDocument();
+        });
+    });
 });
 
 describe('runPrompt', () => {

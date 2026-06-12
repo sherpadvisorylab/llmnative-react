@@ -1,4 +1,4 @@
-import { parseAIModelRef } from '../providers/ai/AIProvider';
+import { type AIAttachment, parseAIModelRef } from '../providers/ai/AIProvider';
 
 // Approximate context windows (tokens) per known model
 const CONTEXT_WINDOWS: Record<string, number> = {
@@ -57,6 +57,20 @@ const resolveModelId = (modelRef: string): string => {
     return parsed?.model ?? modelRef;
 };
 
+const readFileAsDataUrl = (file: File): Promise<string> => (
+    new Promise((resolve, reject) => {
+        if (typeof FileReader === 'undefined') {
+            reject(new Error('FileReader is not available in this environment.'));
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result ?? ''));
+        reader.onerror = () => reject(reader.error ?? new Error(`Failed to read file "${file.name}".`));
+        reader.readAsDataURL(file);
+    })
+);
+
 export const PromptUtils = {
     /**
      * Rough token count: ~4 chars per token (heuristic, no tiktoken needed).
@@ -91,5 +105,18 @@ export const PromptUtils = {
         const pricing = PRICING[modelId];
         if (!pricing) return NaN;
         return (tokensIn * pricing[0] + tokensOut * pricing[1]) / 1_000_000;
+    },
+
+    /**
+     * Convert a browser File into the transport-ready attachment shape used by AI providers.
+     */
+    async fileToAttachment(file: File): Promise<AIAttachment> {
+        const dataUrl = await readFileAsDataUrl(file);
+        const base64 = dataUrl.includes(',') ? dataUrl.split(',')[1] : '';
+        return {
+            mimeType: file.type || 'application/octet-stream',
+            base64,
+            name: file.name,
+        };
     },
 };

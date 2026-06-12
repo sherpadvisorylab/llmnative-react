@@ -40,7 +40,7 @@ It is not a generic design system. It is opinionated around a few recurring appl
 The central idea is simple: define data shape and UI intent once, then let the framework render and persist the screen.
 
 ```tsx
-<Form dataStoragePath="/users">
+<Form path="/users">
   <Input name="name" label="Name" required />
   <Input name="email" label="Email" inputType="email" />
   <Select name="role" label="Role" options={roleOptions} />
@@ -51,14 +51,13 @@ The same principle powers `Grid`: columns describe the data and the widget handl
 
 ```tsx
 <Grid
-  dataStoragePath="/users"
+  path="/users"
   columns={[
-    { key: 'name', label: 'Name', sort: true },
+    { key: 'name', label: 'Name', sortable: true },
     { key: 'email', label: 'Email' },
     { key: 'role', label: 'Role' },
   ]}
-  allowedActions={['add', 'edit', 'delete']}
-  modal={{ mode: 'form' }}
+  actions={['add', 'edit', 'delete']}
 />
 ```
 

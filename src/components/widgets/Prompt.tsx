@@ -8,11 +8,10 @@ import { RecordProps } from '../../providers/data/DataProvider';
 import { getProviderConfigurationState } from '../../providers/ProviderConfiguration';
 import { Dropdown, DropdownItem } from '../blocks/Dropdown';
 import Alert from '../ui/Alert';
-import { ActionButton, LoadingButton } from '../ui/Buttons';
+import { LoadingButton } from '../ui/Buttons';
 import Icon from '../ui/Icon';
 import { Wrapper } from '../ui/GridSystem';
 import { Label, Range, Switch, TextArea } from '../ui/fields/Input';
-import { Select } from '../ui/fields/Select';
 import { FormFieldProps, useFormContext } from './Form';
 import { PromptUtils } from '../../libs/promptUtils';
 
@@ -120,6 +119,12 @@ type PromptAvailabilityState = {
 type PromptCapabilitiesState = {
     modelOptions: Array<{ label: string; value: string }>;
     capabilitiesByProvider: Record<string, AIProviderCapabilities>;
+};
+
+type SlashMatchState = {
+    query: string;
+    start: number;
+    end: number;
 };
 
 const promptLabel = "Prompt: ";
@@ -414,6 +419,9 @@ const PromptRun = ({
     const [templateText, setTemplateText] = useState(defaultValue?.value ?? '');
     const [previewOpen, setPreviewOpen] = useState(false);
     const [attachedFiles, setAttachedFiles] = useState<{ file: File; objectUrl: string }[]>([]);
+    const resultTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+    const [slashMatch, setSlashMatch] = useState<SlashMatchState | null>(null);
+    const [activeCommandIndex, setActiveCommandIndex] = useState(0);
     const removeAttachment = React.useCallback((idx: number) => {
         setAttachedFiles((prev) => {
             URL.revokeObjectURL(prev[idx].objectUrl);
@@ -433,6 +441,8 @@ const PromptRun = ({
     const selectedProvider = parseAIModelRef(selectedModelRef)?.provider;
     const selectedCapabilities = selectedProvider ? capabilitiesByProvider[selectedProvider] : undefined;
     const supportsTemperature = selectedCapabilities?.supportsTemperature ?? true;
+    const supportsVision = selectedCapabilities?.supportsVision ?? Boolean(onRunPrompt);
+    const supportsDocuments = selectedCapabilities?.supportsDocuments ?? Boolean(onRunPrompt);
     const fieldId = useId();
     const availability = usePromptAvailability(selectedModelRef, Boolean(onRunPrompt));
     const runDisabled = !availability.configured;
@@ -440,6 +450,14 @@ const PromptRun = ({
         ? (availability.reason || "AI is not configured. Prompt execution is unavailable.")
         : undefined;
     const [runError, setRunError] = useState<string | null>(null);
+    const customUnavailableNotice = !runError && !availability.configured
+        ? renderAIUnavailable?.({
+            mode: PromptMode.RUN,
+            providerId: availability.providerId,
+            reason: availability.reason,
+            configured: availability.configured,
+        })
+        : null;
 
     const resolvedPreview = React.useMemo(() => {
         if (!templateText) return '';
@@ -451,6 +469,147 @@ const PromptRun = ({
     const modelLabel = selectedModelRef
         ? (parseAIModelRef(selectedModelRef)?.model || selectedModelRef).split('/').pop() || selectedModelRef
         : null;
+    const attachmentSupportKnown = Boolean(selectedCapabilities) || Boolean(onRunPrompt);
+    const attachmentsDisabled = Boolean(attachments)
+        && !editing
+        && (
+            (!availability.configured && !onRunPrompt)
+            || (attachmentSupportKnown && !supportsVision && !supportsDocuments)
+        );
+    const attachmentsTitle = attachmentsDisabled
+        ? (!availability.configured && !onRunPrompt
+            ? (availability.reason || 'AI is not configured. Prompt execution is unavailable.')
+            : 'The selected AI provider does not support image or document attachments.')
+        : 'Attach files';
+
+    const getSlashMatchState = React.useCallback((text: string, caret: number): SlashMatchState | null => {
+        const beforeCaret = text.slice(0, caret);
+        const match = beforeCaret.match(/(?:^|\s)\/([^\s/]*)$/);
+        if (!match) return null;
+
+        const slashIndex = beforeCaret.lastIndexOf('/');
+        if (slashIndex < 0) return null;
+
+        return {
+            query: match[1] ?? '',
+            start: slashIndex,
+            end: caret,
+        };
+    }, []);
+
+    const getResultValue = (): string => {
+        const fieldData = record?.[name];
+        if (fieldData && typeof fieldData === 'object' && !Array.isArray(fieldData)) {
+            return String((fieldData as Record<string, unknown>).value ?? '');
+        }
+        return '';
+    };
+
+    const syncSlashState = React.useCallback(() => {
+        if (editing || !commands?.length || !resultTextareaRef.current) {
+            setSlashMatch(null);
+            return;
+        }
+
+        const el = resultTextareaRef.current;
+        const caret = el.selectionStart ?? el.value.length;
+        setSlashMatch(getSlashMatchState(el.value, caret));
+    }, [commands, editing, getSlashMatchState]);
+
+    const scheduleSlashSync = React.useCallback(() => {
+        if (typeof requestAnimationFrame === 'function') {
+            requestAnimationFrame(() => syncSlashState());
+            return;
+        }
+        setTimeout(() => syncSlashState(), 0);
+    }, [syncSlashState]);
+
+    const getMatchingCommands = React.useCallback((query?: string | null) => {
+        if (!commands?.length) return [];
+
+        const normalizedQuery = query?.trim().toLowerCase();
+        if (!normalizedQuery) return commands;
+
+        return commands.filter((cmd) =>
+            cmd.name.toLowerCase().includes(normalizedQuery)
+            || cmd.description?.toLowerCase().includes(normalizedQuery)
+        );
+    }, [commands]);
+
+    const filteredCommands = React.useMemo(
+        () => getMatchingCommands(slashMatch?.query),
+        [getMatchingCommands, slashMatch]
+    );
+
+    useEffect(() => {
+        setActiveCommandIndex(0);
+    }, [slashMatch?.query]);
+
+    useEffect(() => {
+        return () => {
+            attachedFiles.forEach(({ objectUrl }) => URL.revokeObjectURL(objectUrl));
+        };
+    }, [attachedFiles]);
+
+    const applyCommand = React.useCallback(async (
+        cmd: PromptCommand,
+        currentValue?: string,
+        matchState?: SlashMatchState | null,
+    ) => {
+        const current = currentValue ?? getResultValue();
+        const resolvedSlashMatch = matchState ?? slashMatch;
+        const fallbackValue = resolvedSlashMatch
+            ? `${current.slice(0, resolvedSlashMatch.start)}/${cmd.name} ${current.slice(resolvedSlashMatch.end)}`
+            : `${current}${current && !/\s$/.test(current) ? '\n' : ''}/${cmd.name} `;
+        const newValue = cmd.handler ? await cmd.handler(current) : fallbackValue;
+        handleChange?.({ target: { name: name + ".value", value: newValue } });
+        setSlashMatch(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [handleChange, name, record, slashMatch]);
+
+    const handleResultTextareaKeyDown = React.useCallback((event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (!commands?.length || editing) return;
+
+        const currentValue = event.currentTarget.value;
+        const currentCaret = event.currentTarget.selectionStart ?? currentValue.length;
+        const currentSlashMatch = getSlashMatchState(currentValue, currentCaret);
+        const resolvedSlashMatch = slashMatch ?? currentSlashMatch;
+        const resolvedCommands = getMatchingCommands(resolvedSlashMatch?.query);
+
+        if (resolvedSlashMatch && resolvedCommands.length > 0) {
+            if (event.key === 'ArrowDown') {
+                event.preventDefault();
+                setActiveCommandIndex((current) => (current + 1) % resolvedCommands.length);
+                return;
+            }
+
+            if (event.key === 'ArrowUp') {
+                event.preventDefault();
+                setActiveCommandIndex((current) => (current - 1 + resolvedCommands.length) % resolvedCommands.length);
+                return;
+            }
+
+            if (event.key === 'Enter' || event.key === 'Tab') {
+                event.preventDefault();
+                void applyCommand(
+                    resolvedCommands[activeCommandIndex] ?? resolvedCommands[0],
+                    currentValue,
+                    resolvedSlashMatch,
+                );
+                return;
+            }
+
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                setSlashMatch(null);
+                return;
+            }
+        }
+
+        if (event.key === '/' || event.key === 'Backspace' || event.key === 'Delete') {
+            scheduleSlashSync();
+        }
+    }, [activeCommandIndex, applyCommand, commands, editing, getMatchingCommands, getSlashMatchState, scheduleSlashSync, slashMatch]);
 
     const runHandler = async () => {
         const modelRef = value?.prompt?.model?.toString() || defaultModelRef;
@@ -462,15 +621,7 @@ const PromptRun = ({
         try {
             const mergedData = { ...(record as PromptVariables), ...variables };
             const fileAttachments = await Promise.all(
-                attachedFiles.map(({ file }) => new Promise<AIAttachment>((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = () => {
-                        const dataUrl = reader.result as string;
-                        resolve({ mimeType: file.type || 'application/octet-stream', base64: dataUrl.split(',')[1], name: file.name });
-                    };
-                    reader.onerror = reject;
-                    reader.readAsDataURL(file);
-                }))
+                attachedFiles.map(({ file }) => PromptUtils.fileToAttachment(file))
             );
             const result = await runPrompt(
                 value?.prompt as PromptOptions,
@@ -501,22 +652,6 @@ const PromptRun = ({
             setRunError(getPromptRunErrorMessage(error));
         }
     };
-
-    const getResultValue = (): string => {
-        const fieldData = record?.[name];
-        if (fieldData && typeof fieldData === 'object' && !Array.isArray(fieldData)) {
-            return String((fieldData as Record<string, unknown>).value ?? '');
-        }
-        return '';
-    };
-
-    const applyCommand = React.useCallback(async (cmd: PromptCommand) => {
-        if (!cmd.handler) return;
-        const current = getResultValue();
-        const newValue = await cmd.handler(current);
-        handleChange?.({ target: { name: name + ".value", value: newValue } });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [name, handleChange, record]);
 
     const setField = (field: string, val: string) =>
         handleChange?.({ target: { name: field, value: val } } as React.ChangeEvent<HTMLInputElement>);
@@ -599,7 +734,11 @@ const PromptRun = ({
                                     name={name + ".value"}
                                     onChange={(params) => {
                                         onChange?.(params);
+                                        scheduleSlashSync();
                                     }}
+                                    onKeyDown={handleResultTextareaKeyDown}
+                                    onClick={scheduleSlashSync}
+                                    textareaRef={resultTextareaRef}
                                     required={required}
                                     inheritWrapperClassName={false}
                                     wrapperClassName=""
@@ -637,8 +776,9 @@ const PromptRun = ({
                                     {attachments && (
                                         <button
                                             type="button"
-                                            title="Attach files"
+                                            title={attachmentsTitle}
                                             className={`${promptGhostIcon} flex items-center justify-center`}
+                                            disabled={attachmentsDisabled}
                                             onClick={() => attachInputRef.current?.click()}
                                         >
                                             <Icon name="paperclip" size={13} />
@@ -647,14 +787,30 @@ const PromptRun = ({
                                     {commands && commands.length > 0 && (
                                         <Dropdown
                                             trigger={{ icon: 'slash', title: 'Commands' }}
+                                            open={Boolean(slashMatch)}
+                                            onOpenChange={(open) => {
+                                                if (open) {
+                                                    const current = getResultValue();
+                                                    const caret = resultTextareaRef.current?.selectionStart ?? current.length;
+                                                    setSlashMatch(getSlashMatchState(current, caret) ?? {
+                                                        query: '',
+                                                        start: caret,
+                                                        end: caret,
+                                                    });
+                                                    setActiveCommandIndex(0);
+                                                    return;
+                                                }
+                                                setSlashMatch(null);
+                                            }}
                                             placement="top"
                                             position="start"
                                             triggerClassName={`${promptGhostIcon} flex items-center justify-center`}
                                         >
-                                            {commands.map((cmd) => (
+                                            {filteredCommands.map((cmd, index) => (
                                                 <DropdownItem
                                                     key={cmd.name}
                                                     icon={cmd.icon}
+                                                    className={index === activeCommandIndex ? 'bg-accent text-accent-foreground' : undefined}
                                                     onClick={() => applyCommand(cmd)}
                                                 >
                                                     <span className="font-medium">/{cmd.name}</span>
@@ -663,10 +819,15 @@ const PromptRun = ({
                                                     )}
                                                 </DropdownItem>
                                             ))}
+                                            {filteredCommands.length === 0 && (
+                                                <DropdownItem className="text-muted-foreground">
+                                                    No matching commands
+                                                </DropdownItem>
+                                            )}
                                         </Dropdown>
                                     )}
                                     {actions?.map((action) =>
-                                        action.content ? (
+                                        action.key === 'tokenUsage' || action.content ? (
                                             <Dropdown
                                                 key={action.key}
                                                 trigger={{ icon: action.icon, title: action.label }}
@@ -772,12 +933,18 @@ const PromptRun = ({
 
                             {/* Availability / run-error notice — right side, replaces slash button when present */}
                             {!editing && (runError || !availability.configured) && (
-                                <span className="flex min-w-0 items-center gap-1 text-xs text-warning truncate mr-1">
-                                    <Icon name="triangle-alert" size={13} className="shrink-0" />
-                                    <span className="truncate">
-                                        {runError ?? (availability.reason || "AI not configured")}
+                                customUnavailableNotice ? (
+                                    <div className="mr-1 min-w-0">
+                                        {customUnavailableNotice}
+                                    </div>
+                                ) : (
+                                    <span className="flex min-w-0 items-center gap-1 text-xs text-warning truncate mr-1">
+                                        <Icon name="triangle-alert" size={13} className="shrink-0" />
+                                        <span className="truncate">
+                                            {runError ?? (availability.reason || "AI not configured")}
+                                        </span>
                                     </span>
-                                </span>
+                                )
                             )}
 
                             {/* Preview toggle — only in edit mode when variables produce substitutions */}

@@ -13,6 +13,7 @@ export interface AIProviderCapabilities {
     models: AIModelDescriptor[];
     supportsTemperature?: boolean;
     supportsVision?: boolean;
+    supportsDocuments?: boolean;
 }
 
 export interface AIAttachment {

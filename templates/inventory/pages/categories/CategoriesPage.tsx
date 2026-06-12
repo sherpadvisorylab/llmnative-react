@@ -4,15 +4,14 @@ import { Grid, Input } from '@llmnative/react';
 export default function CategoriesPage() {
     return (
         <Grid
-            dataStoragePath="/categories"
+            path="/categories"
             columns={[
-                { key: 'name', label: 'Category', sort: true },
+                { key: 'name', label: 'Category', sortable: true },
                 { key: 'slug', label: 'Slug' },
             ]}
-            allowedActions={['add', 'edit', 'delete']}
-            modal={{ mode: 'form' }}
-            type="table"
-            allowedSorting
+            actions={['add', 'edit', 'delete']}
+            view="table"
+            sortable
         >
             {() => (
                 <>

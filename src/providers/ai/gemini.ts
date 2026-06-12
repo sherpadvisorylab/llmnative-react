@@ -12,7 +12,7 @@ export const GEMINI_PROVIDER_DEFINITION: AIProviderDefinition = {
     configKey: 'geminiApiKey',
     defaultModel: 'gemini-2.5-pro',
     fallbackModels: ['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite'],
-    capabilities: { supportsTemperature: true, supportsVision: true },
+    capabilities: { supportsTemperature: true, supportsVision: true, supportsDocuments: true },
     discoverModels: async (apiKey) => {
         const response = await fetchJson(`${GEMINI_MODELS_URL}?key=${apiKey}`, null, proxyFetch);
         return Array.isArray(response?.models)

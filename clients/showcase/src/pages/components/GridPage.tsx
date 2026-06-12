@@ -61,8 +61,8 @@ type GridDocSurface = {
     onReorder: unknown;
     editDeepLink: unknown;
     onLoad: unknown;
-    pre: unknown;
-    post: unknown;
+    before: unknown;
+    after: unknown;
     onSave: unknown;
     onDelete: unknown;
     onComplete: unknown;
@@ -308,7 +308,7 @@ type PlaygroundActionJson =
         title?: string;
         size?: 'sm' | 'md' | 'lg' | 'xl' | 'fullscreen';
         position?: 'center' | 'top' | 'left' | 'right' | 'bottom';
-        buttonFullscreen?: boolean;
+        allowFullscreen?: boolean;
         header?: string;
         body?: string;
         footer?: string | false;
@@ -491,7 +491,7 @@ const buildPlaygroundActions = (actionsValue: unknown) => {
             title: config.title,
             size: config.size,
             position: config.position,
-            buttonFullscreen: config.buttonFullscreen,
+            allowFullscreen: config.allowFullscreen,
             header: renderActionTextBlock(config.header, 'header'),
             body: renderActionTextBlock(config.body, 'body'),
             footer: config.footer === false ? false : renderActionTextBlock(config.footer, 'footer'),
@@ -1050,7 +1050,7 @@ Modal / delete
   title?: ReactNode | ((ctx) => ReactNode)
   size?: "sm" | "md" | "lg" | "xl" | "fullscreen"
   position?: "center" | "top" | "left" | "right" | "bottom"
-  buttonFullscreen?: boolean
+  allowFullscreen?: boolean
   header?: ReactNode | ((ctx) => ReactNode)
   body?: ReactNode | ((ctx) => ReactNode)
   footer?: ReactNode | false | ((ctx) => ReactNode)
@@ -1236,11 +1236,11 @@ function GridPlaygroundPreview({ p }: { p: Record<string, any> }) {
     const hasPreviewAction = React.useMemo(() => hasPlaygroundAction(p.actions, 'preview'), [p.actions]);
     const resolvedHeaderNode = React.useMemo(() => resolvePlaygroundNode<any>(p.header), [p.header]);
     const resolvedFooterNode = React.useMemo(() => resolvePlaygroundNode<any>(p.footer), [p.footer]);
-    const resolvedPreNode = typeof p.pre === 'string' && p.pre.trim() && p.pre.trim().toLowerCase() !== 'false'
-        ? p.pre.trim()
+    const resolvedBeforeNode = typeof p.before === 'string' && p.before.trim() && p.before.trim().toLowerCase() !== 'false'
+        ? p.before.trim()
         : undefined;
-    const resolvedPostNode = typeof p.post === 'string' && p.post.trim() && p.post.trim().toLowerCase() !== 'false'
-        ? p.post.trim()
+    const resolvedAfterNode = typeof p.after === 'string' && p.after.trim() && p.after.trim().toLowerCase() !== 'false'
+        ? p.after.trim()
         : undefined;
 
     const [rawArrayRecords, setRawArrayRecords] = React.useState<UserRecord[]>([]);
@@ -1325,8 +1325,8 @@ function GridPlaygroundPreview({ p }: { p: Record<string, any> }) {
                     loading={loading}
                     sticky={sticky as any}
                     wrapperClassName={wrapperClassName}
-                    before={resolvedPreNode}
-                    after={resolvedPostNode}
+                    before={resolvedBeforeNode}
+                    after={resolvedAfterNode}
                     form={actions ? <GridUserForm /> : undefined}
                     actions={actions as any}
                     selection={resolvedSelection}
@@ -1374,8 +1374,8 @@ function GridPlaygroundPreview({ p }: { p: Record<string, any> }) {
                     loading={loading}
                     sticky={sticky as any}
                     wrapperClassName={wrapperClassName}
-                    before={resolvedPreNode}
-                    after={resolvedPostNode}
+                    before={resolvedBeforeNode}
+                    after={resolvedAfterNode}
                     onLoad={onLoadRecords as any}
                     form={actions ? <GridUserForm /> : undefined}
                     actions={actions as any}
@@ -1640,7 +1640,7 @@ const PLAYGROUND: PlaygroundConfig = {
             type: '("add" | "edit" | "delete")[] | Record<string, GridAction>',
             default: JSON.stringify(playgroundCustomActions),
             description: 'Action catalog as JSON. Supports CRUD array shorthand and declarative modal, delete, route and external actions.',
-            help: 'JSON cannot express functions, so this playground supports the declarative subset: static strings/booleans plus kind, label, icon, size, position, to, href, header, body and footer=false.',
+            help: 'JSON cannot express functions, so this playground supports the declarative subset: static strings/booleans plus kind, label, icon, size, position, allowFullscreen, to, href, header, body and footer=false.',
             control: 'json',
             rows: 12,
             shortcuts: [
@@ -1701,8 +1701,8 @@ const PLAYGROUND: PlaygroundConfig = {
         loading: false,
         sticky: '',
         wrapperClassName: '',
-        pre: '',
-        post: '',
+        before: '',
+        after: '',
         title: 'Team members',
         header: false,
         footer: false,

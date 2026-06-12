@@ -343,7 +343,8 @@ const validatePassword = (v: any) => {
                         )}
                     </WithMock>
                 }
-                code={`import { Modal, Form, Input, Select, FormRef } from '@llmnative/react';
+                code={`import { Modal, Form, Input, Select } from '@llmnative/react';
+import type { FormRef } from '@llmnative/react';
 import { useRef, useState } from 'react';
 
 const formRef = useRef<FormRef>(null);

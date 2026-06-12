@@ -48,6 +48,9 @@ export interface TextAreaProps extends FormFieldProps {
     id?: string;
     labelClassName?: string;
     validator?: (value: FieldValue) => string | undefined;
+    onKeyDown?: React.KeyboardEventHandler<HTMLTextAreaElement>;
+    onClick?: React.MouseEventHandler<HTMLTextAreaElement>;
+    onBlur?: React.FocusEventHandler<HTMLTextAreaElement>;
 }
 
 export interface ListGroupProps extends UIProps {
@@ -429,6 +432,9 @@ export const TextArea = ({
     className = undefined,
     wrapperClassName = undefined,
     validator = undefined,
+    onKeyDown = undefined,
+    onClick = undefined,
+    onBlur = undefined,
 }: TextAreaProps) => {
     const { value, handleChange, formWrapClass } = useFormContext({ name, onChange, wrapperClassName, defaultValue, inheritWrapperClassName });
     const error = useFieldValidation(name, { required, label, validator });
@@ -502,6 +508,9 @@ export const TextArea = ({
                     disabled={disabled || (readOnlyAfterSet && !isEmpty(value))}
                     value={(value as string | number | undefined) ?? ''}
                     onChange={handleChange}
+                    onKeyDown={onKeyDown}
+                    onClick={onClick}
+                    onBlur={onBlur}
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={handleDrop}
                 />

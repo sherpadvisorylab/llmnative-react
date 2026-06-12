@@ -30,7 +30,7 @@ This framework is **AI-first, not human-first**. The main consumer is a **langua
 
 An LLM that knows react-firestrap:
 
-- Writes `<Grid dataStoragePath="/users" />` instead of 20 lines of React Admin
+- Writes `<Grid path="/users" />` instead of 20 lines of React Admin
 - Writes `<Form><Input name="x" required /></Form>` instead of configuring resource, data provider, validation, routing
 - Spends 5 tokens where other frameworks spend 50
 - Produces code that works on the first attempt, without having to "guess" missing configurations
@@ -95,7 +95,7 @@ Schema-driven, data-optional, provider-agnostic.
 
 ```tsx
 // 5 tokens vs 50+ in other frameworks
-<Grid dataStoragePath="/users" />
+<Grid path="/users" />
 ```
 
 Apt generates UI, validation, persistence, and real-time from your schema.
@@ -138,7 +138,7 @@ UI, validation, persistence, real-time, AI — all from a few lines.
 
 ```tsx
 // Define the pith, get the interface
-<Form dataStoragePath="/users">
+<Form path="/users">
   <Input name="email" required />
 </Form>
 ```
@@ -165,7 +165,7 @@ Schema-driven React framework. Knit knows the patterns.
 
 ```tsx
 <Knit>
-  <Grid dataStoragePath="/orders" />
+  <Grid path="/orders" />
 </Knit>
 ```
 
@@ -221,7 +221,7 @@ To motivate the AI-first choice, here is the token cost of a simple CRUD for man
 **Apt (~8 tokens)**
 
 ```tsx
-<Grid dataStoragePath="/orders" allowedActions={["add","edit","delete"]} />
+<Grid path="/orders" actions={["add","edit","delete"]} />
 ```
 
 Ratio: **Apt consumes ~5x fewer tokens** for equivalent output.

@@ -40,7 +40,7 @@ export const createOpenAICompatibleProviderDefinition = ({
         requiredConfigKeys,
         defaultModel,
         fallbackModels,
-        capabilities: { supportsTemperature: true, supportsVision: true },
+        capabilities: { supportsTemperature: true, supportsVision: true, supportsDocuments: false },
         discoverModels: async (apiKey) => {
             const response = await fetchJson(resolvedModelsUrl, {
                 headers: {
