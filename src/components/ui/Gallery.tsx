@@ -1,5 +1,6 @@
 ﻿import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTheme } from "../../Theme";
+import { useI18n, interpolate } from "../../I18n";
 import { Wrapper } from "../ui/GridSystem";
 import { RecordProps } from "../../providers/data/DataProvider";
 import Pagination, { PaginationParams } from './Pagination';
@@ -110,6 +111,8 @@ const Gallery = ({
     selectedClassName = undefined
 }: GalleryProps) => {
     const theme = useTheme("gallery");
+    const dict = useI18n('gallery');
+    const common = useI18n('common');
     const activeClass = selectedClassName || theme.Gallery.selectedClassName;
     const [paginationNavEl, setPaginationNavEl] = useState<HTMLElement | null>(null);
     const paginationNavRef = useCallback((node: HTMLDivElement | null) => {
@@ -364,7 +367,7 @@ const Gallery = ({
                         <label className="absolute left-3 top-3 z-20 inline-flex items-center rounded bg-background/90 px-2 py-1 shadow-sm">
                             <input
                                 type="checkbox"
-                                aria-label={`Select item ${recordKey}`}
+                                aria-label={interpolate(dict.selectItem, { key: recordKey })}
                                 checked={isSelected}
                                 onChange={() => toggleSelection(item, index)}
                                 onClick={(event) => event.stopPropagation()}
@@ -406,9 +409,9 @@ const Gallery = ({
     }, [records, groupBy, sortableOrder]);
 
     if (renderedBody === undefined) {
-        return <p className={"p-4"}><span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />Loading...</p>;
+        return <p className={"p-4"}><span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />{common.loading}</p>;
     } else if (renderedBody.length === 0) {
-        return <p className={"p-4"}>No data found</p>;
+        return <p className={"p-4"}>{common.noDataFound}</p>;
     }
 
     return (

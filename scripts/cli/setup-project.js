@@ -91,6 +91,9 @@ async function askInteractive(callback) {
             ? themeInput.trim()
             : 'default';
 
+        const localeInput = await question('Default locale? (en, it, fr, de, es; default: en) ');
+        const locale = localeInput.trim() || 'en';
+
         const templateInput = await question('Which app template? (blank, crm, admin, inventory, project; default: blank) ');
         const template = ['blank', 'crm', 'admin', 'inventory', 'project'].includes(templateInput.trim())
             ? templateInput.trim()
@@ -144,7 +147,7 @@ async function askInteractive(callback) {
         }
 
         rl.close();
-        callback({ projectname, provider, aiProvider, proxyProvider, iconProvider, theme, template, hosting, firebase, supabase, ai });
+        callback({ projectname, provider, aiProvider, proxyProvider, iconProvider, theme, locale, template, hosting, firebase, supabase, ai });
     } catch (error) {
         rl.close();
         console.error('Error during interactive prompt:', error);
@@ -224,6 +227,7 @@ function createEnvFile(params) {
         `VITE_AI_PROVIDER=${params.aiProvider ?? 'none'}`,
         `VITE_ICON_PROVIDER=${params.iconProvider}`,
         `VITE_THEME=${params.theme}`,
+        `VITE_LOCALE=${params.locale ?? 'en'}`,
         '',
         '# --- Proxy (required for AI calls from the browser) ---',
         `VITE_PROXY_PROVIDER=${params.proxyProvider ?? 'none'}`,
@@ -447,6 +451,7 @@ export const appConfig = {
   aiProvider:   selectedAIProvider,
   iconProvider: env.VITE_ICON_PROVIDER ?? '${params.iconProvider}',
   theme:        env.VITE_THEME        ?? '${params.theme}',
+  locale:       env.VITE_LOCALE       ?? '${params.locale}',
 };
 
 export const aiConfig: AIConfig = {
@@ -522,7 +527,19 @@ createRoot(document.getElementById('root')!).render(
       providers={providers}
       aiConfig={aiConfig}
       iconProvider={appConfig.iconProvider}
-      themeProvider={appConfig.theme}
+      themeProvider={{
+        theme: appConfig.theme,
+        // themeOverride: {
+        //   Modal: { size: 'xl' },
+        //   ActionButton: { className: 'btn-primary font-semibold' },
+        // },
+      }}
+      i18n={{
+        locale: appConfig.locale,
+        // translations: {
+        //   it: { common: { save: 'Salva', cancel: 'Annulla' }, form: { buttonSave: 'Salva' } },
+        // },
+      }}
     />
   </React.StrictMode>
 );
@@ -542,6 +559,7 @@ function scaffoldProject() {
             proxyProvider: getArg('proxy-provider', 'none'),
             iconProvider: getArg('icon-provider', 'lucide'),
             theme:        getArg('theme', getArg('theme-provider', 'default')),
+            locale:       getArg('locale', 'en'),
             template:     getArg('template', 'blank'),
             hosting:      getArg('hosting', 'n'),
             firebase: {

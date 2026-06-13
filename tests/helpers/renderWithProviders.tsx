@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { DataProvider } from '../../src/providers/data/DataProviderContext';
 import { MockDataProvider } from '../../src/providers/data/mock';
 import { HeadProvider } from '../../src/Head';
+import { I18nProvider } from '../../src/I18n';
 
 interface Options extends Omit<RenderOptions, 'wrapper'> {
     provider?: MockDataProvider;
@@ -22,7 +23,9 @@ export function renderWithProviders(
             >
                 <DataProvider registry={{ default: provider }} defaultKey="default">
                     <HeadProvider>
-                        {children}
+                        <I18nProvider>
+                            {children}
+                        </I18nProvider>
                     </HeadProvider>
                 </DataProvider>
             </MemoryRouter>

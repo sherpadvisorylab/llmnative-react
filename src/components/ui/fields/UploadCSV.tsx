@@ -1,4 +1,5 @@
 import React, { useRef, useState, ChangeEvent, DragEvent } from 'react';
+import { useI18n } from '../../../I18n';
 import Papa, { ParseResult } from 'papaparse';
 import { Wrapper } from '../GridSystem';
 import { Icon, normalizeKey, UIProps } from '../../..';
@@ -48,6 +49,7 @@ export const UploadCSV: React.FC<UploadCSVProps> = ({
   wrapperClassName   = undefined,
   className          = undefined,
 }) => {
+  const dict = useI18n('upload');
   const [error,      setError    ] = useState<string | null>(null);
   const [dragOver,   setDragOver ] = useState(false);
   const [loadedFile, setLoadedFile] = useState<File | null>(null);
@@ -153,7 +155,7 @@ export const UploadCSV: React.FC<UploadCSVProps> = ({
               {/* Success badge */}
               <div className="flex items-center gap-1 text-xs text-emerald-600 font-medium shrink-0">
                 <Icon name="check-circle" className="w-4 h-4" />
-                Loaded
+                {dict.loaded}
               </div>
 
               {/* Remove / replace */}
@@ -161,7 +163,7 @@ export const UploadCSV: React.FC<UploadCSVProps> = ({
                 type="button"
                 onClick={() => { setLoadedFile(null); onClear?.(); }}
                 className="w-7 h-7 flex items-center justify-center rounded-full text-muted-foreground hover:bg-red-50 hover:text-red-500 transition-colors"
-                title="Remove"
+                title={dict.removeFile}
               >
                 <Icon name="x" className="w-3.5 h-3.5" />
               </button>
@@ -175,7 +177,7 @@ export const UploadCSV: React.FC<UploadCSVProps> = ({
                 className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
               >
                 <Icon name="refresh-cw" className="w-3.5 h-3.5" />
-                Upload another file
+                {dict.uploadAnother}
               </button>
             </div>
           </div>
@@ -196,7 +198,7 @@ export const UploadCSV: React.FC<UploadCSVProps> = ({
           >
             <Icon name={icon} className="w-8 h-8" />
             <span className="text-sm font-medium">
-              {dragOver ? 'Drop to parse' : 'Click to upload or drag and drop'}
+              {dragOver ? dict.dropToParse : dict.clickOrDrag}
             </span>
             <span className="text-xs opacity-60">.csv, .tsv</span>
           </button>

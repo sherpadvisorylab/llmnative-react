@@ -7,6 +7,7 @@ import { useAuthProvider } from './providers/auth/AuthProviderContext';
 import type { AuthIntent, UserProfile } from './providers/auth/AuthProvider';
 import ImageAvatar from './components/ui/ImageAvatar';
 import { PLACEHOLDER_USER, useTheme } from './Theme';
+import { useI18n, interpolate } from './I18n';
 import { getProviderConfigurationState } from './providers/ProviderConfiguration';
 import Icon from './components/ui/Icon';
 
@@ -231,6 +232,7 @@ export const AuthButton = ({
 }: AuthButtonProps) => {
     const auth = useAuthProvider(provider);
     const theme = useTheme('auth');
+    const dict = useI18n('auth');
     const providerLabel = provider || 'AuthProvider';
     const getConfigurationState = React.useCallback(
         () => getProviderConfigurationState(auth, providerLabel),
@@ -245,7 +247,7 @@ export const AuthButton = ({
     const [authenticated, setAuthenticated] = React.useState<boolean>(() => isConfigured && (auth.isAuthenticated?.() ?? !!auth.getUser()));
     const [avatarOpen, setAvatarOpen] = React.useState(false);
     const notConfiguredTitle = configurationState.reason
-        || `Auth provider "${providerLabel}" is not configured. Add the required client key before using this action.`;
+        || interpolate(dict.notConfigured, { provider: providerLabel });
 
     React.useEffect(() => {
         const configured = getConfigurationState().configured;
@@ -286,7 +288,7 @@ export const AuthButton = ({
         }
 
         if (!auth.signIn) {
-            throw new Error('AuthProvider does not implement signIn().');
+            throw new Error(dict.notImplemented);
         }
 
         await auth.signIn({ scopes, intent });
@@ -296,7 +298,7 @@ export const AuthButton = ({
     const mergedOptions = {
         ...rest,
         ...options,
-        label: options.label ?? label ?? (authenticated ? 'Connected' : intent === 'signIn' ? 'Sign in' : 'Connect'),
+        label: options.label ?? label ?? (authenticated ? dict.connected : intent === 'signIn' ? dict.signIn : dict.connect),
         icon: options.icon ?? icon ?? (authenticated ? 'link' : 'link-break'),
         title: !isConfigured ? notConfiguredTitle : options.title ?? title,
         className: options.className ?? className,
@@ -307,7 +309,7 @@ export const AuthButton = ({
     };
 
     if (aspect === 'avatar') {
-        const displayName = user?.displayName ?? user?.email ?? (authenticated ? 'Authenticated' : 'Sign in');
+        const displayName = user?.displayName ?? user?.email ?? (authenticated ? dict.authenticated : dict.signIn);
 
         return (
             <div

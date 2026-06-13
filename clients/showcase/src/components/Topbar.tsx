@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { useThemeController, Badge } from '@llmnative/react';
+import { useThemeController, Badge, LocaleSwitcher } from '@llmnative/react';
 import Icon from './Icon';
 import { usePlaygroundContext } from '../docs-kit/playground';
 
@@ -58,6 +58,9 @@ export default function Topbar({ onOpenThemePanel }: TopbarProps) {
                         Playground
                     </button>
                 )}
+                {/* Locale switcher */}
+                <LocaleSwitcher />
+
                 {/* Dark / light toggle */}
                 <button
                     onClick={toggleMode}

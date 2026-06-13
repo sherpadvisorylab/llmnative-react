@@ -1,6 +1,7 @@
 ﻿import React, {useEffect, useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import {useTheme} from "../../Theme";
+import { useI18n } from '../../I18n';
 import { BadgeOverlay } from './Badge';
 import type { MotionUIProps, UIProps } from '../types';
 import { Wrapper } from './GridSystem';
@@ -201,7 +202,7 @@ interface BackLinkProps extends UIProps {
 }
 
 export const BackLink = ({
-    label           = "<- Back",
+    label           = undefined,
     before             = undefined,
     after            = undefined,
     wrapperClassName       = undefined,
@@ -209,6 +210,7 @@ export const BackLink = ({
 }: BackLinkProps) => {
     const navigate = useNavigate();
     const theme = useTheme("button");
+    const dict = useI18n('common');
     return (
         <Wrapper className={wrapperClassName}>
             {before}
@@ -219,7 +221,7 @@ export const BackLink = ({
                    navigate(-1);
                }}
             >
-                {label}
+                {label ?? dict.back}
             </a>
             {after}
         </Wrapper>

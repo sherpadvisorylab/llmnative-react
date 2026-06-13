@@ -1,6 +1,7 @@
 ﻿import React from 'react';
 import {Link} from "react-router-dom";
 import Icon from "../ui/Icon";
+import { useI18n } from "../../I18n";
 
 
 interface SearchProps {
@@ -26,11 +27,12 @@ export const SearchButton = () => {
 function Search ({
                      onQueryChange = undefined
 }: SearchProps) {
+    const dict = useI18n('common');
     return (
 
         <div>
             <SearchButton />
-            <input className={"hidden"} type="text" placeholder="Search" onChange={onQueryChange}/>
+            <input className={"hidden"} type="text" placeholder={dict.search} onChange={onQueryChange}/>
         </div>
     )
 }

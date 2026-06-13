@@ -1,4 +1,5 @@
 ﻿import React, {useRef, useEffect, useCallback, useState} from 'react';
+import { useI18n } from "../../I18n";
 import Modal from "../ui/Modal";
 import {LoadingButton} from "../ui/Buttons";
 import Icon from "../ui/Icon";
@@ -51,6 +52,7 @@ const ImageEditor = ({
                          onClose        = undefined,
                          onSave         = undefined
 }: ImageEditorProps) => {
+    const dict = useI18n('imageEditor');
     const rootEl = useRef<HTMLDivElement | null>(null);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const imageEditorInst = useRef<any>(null); // CR-042: tui-image-editor has no TS types
@@ -241,48 +243,48 @@ const ImageEditor = ({
 
     const ToolButtons = (
         <>
-            <button className={toolBtn} title="Undo" onClick={(e) => handleStartDrawingMode(e, 'UNDO')}>
+            <button className={toolBtn} title={dict.undo} onClick={(e) => handleStartDrawingMode(e, 'UNDO')}>
                 <Icon name="arrow-arc-left" size={16} />
             </button>
-            <button className={toolBtn} title="Redo" onClick={(e) => handleStartDrawingMode(e, 'REDO')}>
+            <button className={toolBtn} title={dict.redo} onClick={(e) => handleStartDrawingMode(e, 'REDO')}>
                 <Icon name="arrow-arc-right" size={16} />
             </button>
-            <button className={toolBtn} title="Zoom Out" onClick={(e) => handleStartDrawingMode(e, 'ZOOMOUT')}>
+            <button className={toolBtn} title={dict.zoomOut} onClick={(e) => handleStartDrawingMode(e, 'ZOOMOUT')}>
                 <Icon name="magnifying-glass-minus" size={16} />
             </button>
-            <button className={toolBtn} title="Zoom In" onClick={(e) => handleStartDrawingMode(e, 'ZOOMIN')}>
+            <button className={toolBtn} title={dict.zoomIn} onClick={(e) => handleStartDrawingMode(e, 'ZOOMIN')}>
                 <Icon name="magnifying-glass-plus" size={16} />
             </button>
             <Divider />
-            <button className={toolBtn} title="Crop" onClick={(e) => handleStartDrawingMode(e, 'CROPPER')}>
+            <button className={toolBtn} title={dict.crop} onClick={(e) => handleStartDrawingMode(e, 'CROPPER')}>
                 <Icon name="crop" size={16} />
             </button>
-            <button className={toolBtn} title="Flip horizontal" onClick={(e) => handleStartDrawingMode(e, 'FLIPX')}>
+            <button className={toolBtn} title={dict.flipHorizontal} onClick={(e) => handleStartDrawingMode(e, 'FLIPX')}>
                 <Icon name="arrow-line-right" size={16} />
             </button>
-            <button className={toolBtn} title="Flip vertical" onClick={(e) => handleStartDrawingMode(e, 'FLIPY')}>
+            <button className={toolBtn} title={dict.flipVertical} onClick={(e) => handleStartDrawingMode(e, 'FLIPY')}>
                 <Icon name="arrow-line-down" size={16} />
             </button>
-            <button className={toolBtn} title="Rotate 90°" onClick={(e) => handleStartDrawingMode(e, 'ROTATE')}>
+            <button className={toolBtn} title={dict.rotate} onClick={(e) => handleStartDrawingMode(e, 'ROTATE')}>
                 <Icon name="camera-rotate" size={16} />
             </button>
             <Divider />
-            <button className={toolBtn} title="Free drawing" onClick={(e) => handleStartDrawingMode(e, 'FREE_DRAWING')}>
+            <button className={toolBtn} title={dict.freeDrawing} onClick={(e) => handleStartDrawingMode(e, 'FREE_DRAWING')}>
                 <Icon name="pencil" size={16} />
             </button>
-            <button className={toolBtn} title="Arrow" onClick={(e) => handleStartDrawingMode(e, 'LINE_DRAWING')}>
+            <button className={toolBtn} title={dict.arrow} onClick={(e) => handleStartDrawingMode(e, 'LINE_DRAWING')}>
                 <Icon name="arrow-right" size={16} />
             </button>
-            <button className={toolBtn} title="Text" onClick={(e) => handleStartDrawingMode(e, 'TEXT')}>
+            <button className={toolBtn} title={dict.text} onClick={(e) => handleStartDrawingMode(e, 'TEXT')}>
                 <Icon name="text-t" size={16} />
             </button>
-            <button className={toolBtn} title="Rectangle" onClick={(e) => handleStartDrawingMode(e, 'rect')}>
+            <button className={toolBtn} title={dict.rectangle} onClick={(e) => handleStartDrawingMode(e, 'rect')}>
                 <Icon name="rectangle" size={16} />
             </button>
-            <button className={toolBtn} title="Circle" onClick={(e) => handleStartDrawingMode(e, 'circle')}>
+            <button className={toolBtn} title={dict.circle} onClick={(e) => handleStartDrawingMode(e, 'circle')}>
                 <Icon name="circle" size={16} />
             </button>
-            <button className={toolBtn} title="Triangle" onClick={(e) => handleStartDrawingMode(e, 'triangle')}>
+            <button className={toolBtn} title={dict.triangle} onClick={(e) => handleStartDrawingMode(e, 'triangle')}>
                 <Icon name="triangle" size={16} />
             </button>
         </>
@@ -292,14 +294,14 @@ const ImageEditor = ({
     const ModalHeader = (
         <div className="flex flex-1 min-w-0 items-center gap-0.5 overflow-x-auto">
             <span className="shrink-0 text-sm font-semibold text-foreground pr-2 mr-1">
-                {title || "Image Editor"}
+                {title || dict.title}
             </span>
             <Divider />
             {ToolButtons}
             {onSave && (
                 <>
                     <Divider />
-                    <LoadingButton className="btn-primary btn-sm ml-1" onClick={handleSave} icon="floppy-disk" label="Save" />
+                    <LoadingButton className="btn-primary btn-sm ml-1" onClick={handleSave} icon="floppy-disk" label={dict.save} />
                 </>
             )}
         </div>
@@ -311,7 +313,7 @@ const ImageEditor = ({
             {ToolButtons}
             {onSave && (
                 <div className="ml-auto pl-2">
-                    <LoadingButton className="btn-primary btn-sm" onClick={handleSave} icon="floppy-disk" label="Save" />
+                    <LoadingButton className="btn-primary btn-sm" onClick={handleSave} icon="floppy-disk" label={dict.save} />
                 </div>
             )}
         </div>

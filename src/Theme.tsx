@@ -126,11 +126,6 @@ export interface ThemeConfig {
         Table?: TableTheme;
         Gallery?: GalleryTheme;
         Modal?: ModalTheme & { mode?: 'form' | 'empty' };
-        i18n?: {
-            headerAdd?: string;
-            headerEdit?: string;
-            buttonAdd?: string;
-        };
     };
     Table?: TableTheme;
     Gallery?: GalleryTheme;
@@ -226,15 +221,6 @@ export interface ThemeConfig {
             headerClassName?: string;
             bodyClassName?: string;
             footerClassName?: string;
-        };
-        i18n?: {
-            headerAdd?: string;
-            headerEdit?: string;
-            headerNewRecord?: string;
-            buttonSave?: string;
-            buttonDelete?: string;
-            buttonBack?: string;
-            noticeRequiredFields?: string;
         };
     };
     Menu?: MenuTheme;

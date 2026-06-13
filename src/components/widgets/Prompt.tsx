@@ -1,5 +1,6 @@
 ﻿import React, { useEffect, useId, useRef, useState } from 'react';
 import { useTheme } from "../../Theme";
+import { useI18n, interpolate } from "../../I18n";
 import { Prompt as PromptConf, PromptVariables, PROMPT_CLEANUP, PROMPT_NO_REFERENCE } from '../../conf/Prompt';
 import { type AIProviderCapabilities, type AIProviderAdapter, type AIRequestOptions, type AIAttachment, parseAIModelRef, formatAIModelRef } from '../../providers/ai/AIProvider';
 import { useAIProvider, useAIProviderRegistry } from '../../providers/ai/AIProviderContext';
@@ -262,6 +263,7 @@ const PromptAvailabilityNotice = ({
     availability: PromptAvailabilityState;
     renderAIUnavailable?: RenderAIUnavailable;
 }) => {
+    const dict = useI18n('prompt');
     if (availability.configured) return null;
 
     const customNotice = renderAIUnavailable?.({
@@ -280,8 +282,8 @@ const PromptAvailabilityNotice = ({
             className="text-xs leading-5"
         >
             {mode === PromptMode.EDIT
-                ? (availability.reason || "AI is not configured. You can still edit and save this prompt.")
-                : (availability.reason || "AI is not configured. Prompt execution is unavailable.")}
+                ? (availability.reason || dict.aiNotConfiguredEdit)
+                : (availability.reason || dict.aiNotConfiguredRun)}
         </Alert>
     );
 };
@@ -311,9 +313,8 @@ const isPromptEnabled = (value: unknown, fallback?: boolean, promptState?: unkno
     return Boolean(fallback);
 };
 
-const getPromptToggleTitle = (enabled: boolean) => enabled
-    ? "Prompt ON. In PromptRun, this textarea is treated as the prompt template and can be executed against the current record. Turn OFF to skip the prompt system and use the plain fallback text instead."
-    : "Prompt OFF. In PromptRun, the prompt system is skipped and the plain fallback text is used directly. Turn ON to use this textarea as the prompt template.";
+const getPromptToggleTitle = (enabled: boolean, dict: { toggleOnTitle: string; toggleOffTitle: string }) =>
+    enabled ? dict.toggleOnTitle : dict.toggleOffTitle;
 
 const PromptEditor = ({
     name,
@@ -331,9 +332,10 @@ const PromptEditor = ({
 }: PromptEditorProps) => {
     const { handleChange } = useFormContext({ name });
     const theme = useTheme("prompt");
+    const dict = useI18n('prompt');
     const caption = label || name;
     const promptEnabled = isPromptEnabled(value?.prompt?.enabled, defaultValue?.enabled, value?.prompt);
-    const switchTitle = getPromptToggleTitle(promptEnabled);
+    const switchTitle = getPromptToggleTitle(promptEnabled, dict);
     const editorId = useId();
     const selectedModelRef = value?.prompt?.model?.toString() || defaultValue?.model;
     const availability = usePromptAvailability(selectedModelRef);
@@ -414,6 +416,7 @@ const PromptRun = ({
 }: PromptRunBranchProps) => {
     const { handleChange, record } = useFormContext({ name });
     const theme = useTheme("prompt");
+    const dict = useI18n('prompt');
     const caption = label || name;
     const [editing, setEditing] = useState(false);
     const [templateText, setTemplateText] = useState(defaultValue?.value ?? '');
@@ -478,9 +481,9 @@ const PromptRun = ({
         );
     const attachmentsTitle = attachmentsDisabled
         ? (!availability.configured && !onRunPrompt
-            ? (availability.reason || 'AI is not configured. Prompt execution is unavailable.')
+            ? (availability.reason || dict.aiNotConfiguredRun)
             : 'The selected AI provider does not support image or document attachments.')
-        : 'Attach files';
+        : dict.attachFiles;
 
     const getSlashMatchState = React.useCallback((text: string, caret: number): SlashMatchState | null => {
         const beforeCaret = text.slice(0, caret);
@@ -672,7 +675,7 @@ const PromptRun = ({
                         {/* Settings overlay — gear on hover (result) / X always visible (edit) */}
                         <button
                             type="button"
-                            title={editing ? "Close prompt editor" : "Edit prompt settings"}
+                            title={editing ? dict.closeEditor : dict.editSettings}
                             className={`absolute right-2 top-2 z-10 flex h-6 w-6 items-center justify-center rounded-md transition-all ${editing ? "bg-warning/10 text-warning opacity-100" : "bg-background/80 text-muted-foreground opacity-0 group-hover:opacity-100 hover:bg-muted hover:text-foreground"}`}
                             onClick={() => setEditing((e) => !e)}
                         >
@@ -821,7 +824,7 @@ const PromptRun = ({
                                             ))}
                                             {filteredCommands.length === 0 && (
                                                 <DropdownItem className="text-muted-foreground">
-                                                    No matching commands
+                                                    {dict.noMatchingCommands}
                                                 </DropdownItem>
                                             )}
                                         </Dropdown>
@@ -838,15 +841,15 @@ const PromptRun = ({
                                                 {action.key === 'tokenUsage' ? (
                                                     runStats ? (
                                                         <div className="px-3 py-2 text-xs space-y-1">
-                                                            <p className="font-medium text-foreground">Token usage</p>
-                                                            <p className="text-muted-foreground">Input: {runStats.tokensIn} tok</p>
-                                                            <p className="text-muted-foreground">Output: {runStats.tokensOut} tok</p>
-                                                            {runStats.contextPercent !== null && <p className="text-muted-foreground">Context: {runStats.contextPercent.toFixed(1)}%</p>}
-                                                            {runStats.estimatedCost !== null && <p className="text-muted-foreground">Cost: ~${runStats.estimatedCost.toFixed(5)}</p>}
-                                                            <p className="text-muted-foreground">Time: {(runStats.durationMs / 1000).toFixed(1)}s</p>
+                                                            <p className="font-medium text-foreground">{dict.tokenUsage}</p>
+                                                            <p className="text-muted-foreground">{interpolate(dict.tokenInput, { count: String(runStats.tokensIn) })}</p>
+                                                            <p className="text-muted-foreground">{interpolate(dict.tokenOutput, { count: String(runStats.tokensOut) })}</p>
+                                                            {runStats.contextPercent !== null && <p className="text-muted-foreground">{interpolate(dict.tokenContext, { percent: runStats.contextPercent.toFixed(1) })}</p>}
+                                                            {runStats.estimatedCost !== null && <p className="text-muted-foreground">{interpolate(dict.tokenCost, { amount: runStats.estimatedCost.toFixed(5) })}</p>}
+                                                            <p className="text-muted-foreground">{interpolate(dict.tokenTime, { seconds: (runStats.durationMs / 1000).toFixed(1) })}</p>
                                                         </div>
                                                     ) : (
-                                                        <p className="px-3 py-2 text-xs text-muted-foreground">Run the prompt to see token usage.</p>
+                                                        <p className="px-3 py-2 text-xs text-muted-foreground">{dict.tokenUsageEmpty}</p>
                                                     )
                                                 ) : action.content}
                                             </Dropdown>
@@ -951,7 +954,7 @@ const PromptRun = ({
                             {editing && hasVariableSubstitution && (
                                 <button
                                     type="button"
-                                    title={previewOpen ? "Hide preview" : "Show resolved preview"}
+                                    title={previewOpen ? dict.hidePreview : dict.showPreview}
                                     className={`${promptGhostIcon} flex items-center justify-center ${previewOpen ? "bg-muted text-foreground" : ""}`}
                                     onClick={() => setPreviewOpen((o) => !o)}
                                 >
@@ -965,8 +968,8 @@ const PromptRun = ({
                                     icon="send"
                                     loadingLabel=""
                                     disabled={runDisabled}
-                                    ariaLabel="Run prompt"
-                                    title={runTitle ?? "Run prompt"}
+                                    ariaLabel={dict.run}
+                                    title={runTitle ?? dict.run}
                                     variant="primary"
                                     className="!p-0 h-8 w-8"
                                     onClick={runHandler}

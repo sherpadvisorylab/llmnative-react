@@ -1,4 +1,5 @@
 import { useFormContext } from "../widgets/Form";
+import { useI18n } from "../../I18n";
 import React, {
   forwardRef,
   useEffect,
@@ -156,6 +157,7 @@ const makeRoomByShrinkingNearest = (
 export const LayoutBuilder = forwardRef<LayoutBuilderHandle, Props>(
   ({ name, defaultSpan = 1, heightPx = 100 }, ref) => {
     const rowRef = useRef<HTMLDivElement | null>(null);
+    const dict = useI18n('layout');
 
     const { value, handleChange } = useFormContext({ name, defaultValue: [] });
     const items: RowItem[] = Array.isArray(value) ? value as unknown as RowItem[] : [];
@@ -218,7 +220,7 @@ export const LayoutBuilder = forwardRef<LayoutBuilderHandle, Props>(
 
       // limite massimo: 12 elementi
       if (items.length >= MAX_ITEMS) {
-        showNotice("Hai già 12 elementi nella row: rimuovine uno prima di aggiungerne un altro.");
+        showNotice(dict.maxElements);
         return;
       }
 
@@ -246,20 +248,20 @@ export const LayoutBuilder = forwardRef<LayoutBuilderHandle, Props>(
       const room = makeRoomByShrinkingNearest(items, dropCol, span);
       if (!room) {
         // Caso raro: nessun item ha abbastanza span per liberare `span` colonne senza scendere sotto 1
-        showNotice("Nessuno spazio: non posso restringere abbastanza gli elementi per inserire questo campo.");
+        showNotice(dict.noSpace);
         return;
       }
 
       setItems((prev) => {
         // ricalcolo su prev per sicurezza
         if (prev.length >= MAX_ITEMS) {
-          showNotice("Hai già 12 elementi nella row: rimuovine uno prima di aggiungerne un altro.");
+          showNotice(dict.maxElements);
           return prev;
         }
 
         const roomPrev = makeRoomByShrinkingNearest(prev, dropCol, span);
         if (!roomPrev) {
-          showNotice("Nessuno spazio: non posso restringere abbastanza gli elementi per inserire questo campo.");
+          showNotice(dict.noSpace);
           return prev;
         }
 
@@ -411,7 +413,7 @@ export const LayoutBuilder = forwardRef<LayoutBuilderHandle, Props>(
                 justifyContent: "center",
                 userSelect: "none",
               }}
-              title="Trascina per spostare"
+              title={dict.dragToMove}
             >
               {/* Testo centrale */}
               <div style={{ fontSize: 10, fontWeight: 400, opacity: 0.9 }}>{it.fieldName}</div>
@@ -430,7 +432,7 @@ export const LayoutBuilder = forwardRef<LayoutBuilderHandle, Props>(
                   fontSize: 12,
                   cursor: "pointer",
                 }}
-                title="Rimuovi"
+                title={dict.remove}
               >
                 ×
               </button>
@@ -449,7 +451,7 @@ export const LayoutBuilder = forwardRef<LayoutBuilderHandle, Props>(
                   background: "rgba(255, 255, 255, 0.12)",
                   cursor: "ew-resize",
                 }}
-                title="Trascina per ridimensionare"
+                title={dict.dragToResize}
               />
             </div>
           ))}
@@ -466,7 +468,7 @@ export const LayoutBuilder = forwardRef<LayoutBuilderHandle, Props>(
                 pointerEvents: "none",
               }}
             >
-              Trascina un elemento qui dentro
+              {dict.dragHere}
             </div>
           )}
         </div>

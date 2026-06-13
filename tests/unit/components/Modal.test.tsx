@@ -2,15 +2,16 @@ import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import Modal from '../../../src/components/ui/Modal';
+import { I18nProvider } from '../../../src/I18n';
 
 describe('Modal', () => {
     it('closes on backdrop click by default', async () => {
         const onClose = vi.fn();
 
         render(
-            <Modal title="Playground" onClose={onClose}>
+            <I18nProvider><Modal title="Playground" onClose={onClose}>
                 Modal body
-            </Modal>
+            </Modal></I18nProvider>
         );
 
         fireEvent.click(document.body.querySelector('[data-rf-modal-backdrop]') as Element);
@@ -24,9 +25,9 @@ describe('Modal', () => {
         const onClose = vi.fn();
 
         render(
-            <Modal title="Locked" onClose={onClose} closeOnBackdrop={false}>
+            <I18nProvider><Modal title="Locked" onClose={onClose} closeOnBackdrop={false}>
                 Modal body
-            </Modal>
+            </Modal></I18nProvider>
         );
 
         fireEvent.click(document.body.querySelector('[data-rf-modal-backdrop]') as Element);

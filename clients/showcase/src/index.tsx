@@ -6,6 +6,7 @@ import './globals.css';
 
 import ShowcaseLayout from './layouts/ShowcaseLayout';
 import { menu } from './conf/menu';
+import { showcaseTranslations } from './conf/i18n';
 
 const env = import.meta.env;
 const mockData = {
@@ -80,11 +81,14 @@ root.render(
         iconProvider="lucide"
         themeProvider={{
             theme: 'default',
-            themeOverride: {
-                Pagination: {
-                    sticky: false,
-                },
-            },
+            // themeOverride: {
+            //   Modal: { size: 'xl' },
+            //   ActionButton: { className: 'btn-primary font-semibold' },
+            // },
+        }}
+        i18n={{
+            locale: 'en',
+            translations: showcaseTranslations,
         }}
     />
 );

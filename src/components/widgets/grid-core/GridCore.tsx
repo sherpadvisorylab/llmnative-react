@@ -1,5 +1,6 @@
 ﻿import React, { useCallback, useMemo } from "react";
 import { useTheme } from "../../../Theme";
+import { useI18n } from "../../../I18n";
 import { useDataProvider } from "../../../providers/data/DataProviderContext";
 import Card from "../../ui/Card";
 import Modal from "../../ui/Modal";
@@ -29,17 +30,19 @@ import useGridSelection from "./useGridSelection";
 const buildActionTitle = <TRecord extends RecordProps>(
     actionKey: string,
     action: GridAction<TRecord> | undefined,
-    context: GridActionContext<TRecord> | GridModalActionContext<TRecord>
+    context: GridActionContext<TRecord> | GridModalActionContext<TRecord>,
+    deleteConfirmLabel: string,
+    labels?: { add?: string }
 ) => {
     if (action?.kind === "delete") {
         if (typeof action.title === "function") return action.title(context as GridModalActionContext<TRecord>);
-        return action.title || "Delete record";
+        return action.title || deleteConfirmLabel;
     }
     if (action?.kind === "modal") {
         if (typeof action.title === "function") return action.title(context as GridModalActionContext<TRecord>);
-        return action.title || getActionLabel(actionKey, action);
+        return action.title || getActionLabel(actionKey, action, labels);
     }
-    return getActionLabel(actionKey, action);
+    return getActionLabel(actionKey, action, labels);
 };
 
 function GridCore<TRecord extends RecordProps>({
@@ -73,6 +76,8 @@ function GridCore<TRecord extends RecordProps>({
     onLoad,
 }: GridCoreProps<TRecord>) {
     const theme = useTheme("grid");
+    const dict = useI18n('grid');
+    const gridLabels = { add: dict.buttonAdd };
     const db = useDataProvider();
     const { preparedRecords, loading: preparedRecordsLoading } = useGridPreparedRecords({ records, onLoad });
     const inferredColumns = useGridColumns({ columns, records: preparedRecords, form });
@@ -127,7 +132,7 @@ function GridCore<TRecord extends RecordProps>({
             <ActionButton
                 className={className || (actionKey === "add" ? buttonPrimaryClass : undefined)}
                 icon={action.icon}
-                label={getActionLabel(actionKey, action)}
+                label={getActionLabel(actionKey, action, gridLabels)}
                 disabled={isActionDisabled(action, record)}
                 onClick={() => runAction(actionKey, record)}
             />
@@ -275,7 +280,9 @@ function GridCore<TRecord extends RecordProps>({
                         activeActionConfig,
                         activeActionConfig.kind === "modal" || activeActionConfig.kind === "delete"
                             ? getModalActionContext(activeAction.actionKey, activeAction.record)
-                            : getActionContext(activeAction.actionKey, activeAction.record)
+                            : getActionContext(activeAction.actionKey, activeAction.record),
+                        dict.deleteConfirm,
+                        gridLabels
                     )}
                     onClose={close}
                     onSave={

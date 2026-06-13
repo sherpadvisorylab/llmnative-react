@@ -1,5 +1,6 @@
 ﻿import React from 'react';
 import {useTheme} from "../../Theme";
+import { useI18n } from "../../I18n";
 import {generateUniqueId} from "../../libs/utils";
 
 type AutoPlayOptions = {
@@ -32,6 +33,7 @@ const Carousel = ({
                     onSlideClick    = undefined,
 } : CarouselProps) => {
     const theme = useTheme("carousel");
+    const dict = useI18n('common');
     showIndicators = showIndicators || theme.Carousel.showIndicators;
     showControls = showControls || theme.Carousel.showControls;
     showCaption = showCaption || theme.Carousel.showCaption;
@@ -90,8 +92,8 @@ const Carousel = ({
                 })}
             </div>
             {showControls && isHover && children.length > 1 && <>
-                <a className="carousel-control-prev" href={"#" + id} role="button" data-bs-slide="prev"><span className="carousel-control-prev-icon" aria-hidden="true"></span><span className="sr-only">Previous</span></a>
-                <a className="carousel-control-next" href={"#" + id} role="button" data-bs-slide="next"><span className="carousel-control-next-icon" aria-hidden="true"></span><span className="sr-only">Next</span></a>
+                <a className="carousel-control-prev" href={"#" + id} role="button" data-bs-slide="prev"><span className="carousel-control-prev-icon" aria-hidden="true"></span><span className="sr-only">{dict.previous}</span></a>
+                <a className="carousel-control-next" href={"#" + id} role="button" data-bs-slide="next"><span className="carousel-control-next-icon" aria-hidden="true"></span><span className="sr-only">{dict.next}</span></a>
             </>}
         </div>
     );

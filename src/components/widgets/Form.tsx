@@ -9,6 +9,7 @@
     import { BackLink, LoadingButton } from "../ui/Buttons";
     import { getGlobalVars } from "../../Global";
     import { useTheme } from "../../Theme";
+    import { useI18n, interpolate } from "../../I18n";
     import Alert from "../ui/Alert";
     import { FieldValue, RecordProps, RECORD_KEY } from "../../providers/data/DataProvider";
     import {FormTree, ModelProps, buildFormFields} from "../Component";
@@ -477,6 +478,7 @@ export const useFormContext = ({name, onChange, wrapperClassName, inputType = "t
         footerClassName = undefined
     }, ref) => {
         const theme = useTheme("form");
+        const dict = useI18n('form');
         const db = useDataProvider();
 
         const [record, setRecord] = useState<RecordProps | undefined>(defaultValues);
@@ -546,7 +548,9 @@ export const useFormContext = ({name, onChange, wrapperClassName, inputType = "t
                         (typeof value === 'string' && value.trim() === '') ||
                         (Array.isArray(value) && value.length === 0);
                     if (empty) {
-                        newErrors[fieldName] = label ? `${label} is required` : 'Required field';
+                        newErrors[fieldName] = label
+                            ? interpolate(dict.requiredField, { field: label })
+                            : dict.requiredFieldGeneric;
                         continue;
                     }
                 }
@@ -600,7 +604,7 @@ export const useFormContext = ({name, onChange, wrapperClassName, inputType = "t
                 showNotice && setNotification(undefined);
             });
             if (!validateFields()) {
-                showNotice && setNotification({ message: theme.Form.i18n.noticeRequiredFields, type: "warning" });
+                showNotice && setNotification({ message: dict.noticeRequiredFields, type: "warning" });
                 return false;
             }
             const action = isNewRecord ? "create" : "update";
@@ -643,7 +647,7 @@ export const useFormContext = ({name, onChange, wrapperClassName, inputType = "t
                 });
             }
 
-            notice({ message: `Record ${action}d successfully`, type: "success" });
+            notice({ message: action === 'delete' ? dict.deleteSuccess : dict.saveSuccess, type: "success" });
 
             return (await onComplete?.({record: recordRef.current, action})) ?? true;
         }, [log, path, onComplete, notice]);
@@ -693,23 +697,23 @@ export const useFormContext = ({name, onChange, wrapperClassName, inputType = "t
                 case "card":
                 default:
                     return <Card
-                        header={header || <Breadcrumbs rootItem={(isNewRecord ? theme.Form.i18n.headerAdd : theme.Form.i18n.headerEdit)} trail={path || undefined} />}
+                        header={header || <Breadcrumbs rootItem={(isNewRecord ? dict.headerAdd : dict.headerEdit)} trail={path || undefined} />}
                         footer={(footer || !isNewRecord || onSave || onDelete || showBack || !!path) && <>
                             {footer}
                             {notificationEl}
                             {(onSave || !!path || !isNewRecord) && <LoadingButton
                                 className={theme.Form.buttonSaveClass}
-                                label={theme.Form.i18n.buttonSave}
+                                label={dict.buttonSave}
                                 onClick={e => handleSave(e)}
                             />}
                             {(onDelete || !isNewRecord) && <LoadingButton
                                 className={theme.Form.buttonDeleteClass}
-                                label={theme.Form.i18n.buttonDelete}
+                                label={dict.buttonDelete}
                                 onClick={handleDelete}
                             />}
                             {showBack && <BackLink
                                 className={theme.Form.buttonBackClass}
-                                label={theme.Form.i18n.buttonBack}
+                                label={dict.buttonBack}
                             />}
                         </>}
                         headerClassName={headerClassName || theme.Form.Card.headerClassName}

@@ -23,6 +23,8 @@ export * from './ui/GridSystem';
 export { default as Image } from './ui/Image';
 export { default as ImageAvatar } from './ui/ImageAvatar';
 export { default as Loader } from './ui/Loader';
+export { default as LocaleSwitcher } from './ui/LocaleSwitcher';
+export type { LocaleSwitcherProps } from './ui/LocaleSwitcher';
 export { default as Modal } from './ui/Modal';
 export * from './ui/Modal';
 export { default as Pagination } from './ui/Pagination';

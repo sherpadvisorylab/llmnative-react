@@ -3,6 +3,9 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { AuthButton } from '../../../src/auth';
+import { I18nProvider } from '../../../src/I18n';
+
+const renderWithI18n = (ui: React.ReactElement) => render(ui, { wrapper: I18nProvider });
 import { AuthProvider } from '../../../src/providers/auth/AuthProviderContext';
 import type { AuthProviderAdapter, UserProfile } from '../../../src/providers/auth/AuthProvider';
 
@@ -19,7 +22,7 @@ describe('AuthButton', () => {
     it('delegates sign-in to the selected AuthProvider', async () => {
         const adapter = createAuthAdapter();
 
-        render(
+        renderWithI18n(
             <AuthProvider registry={{ dropboxAuth: adapter }} defaultKey="dropboxAuth">
                 <AuthButton
                     provider="dropboxAuth"
@@ -41,7 +44,7 @@ describe('AuthButton', () => {
     it('delegates logout intents to signOut', async () => {
         const adapter = createAuthAdapter({ uid: 'u1', displayName: 'Ada' });
 
-        render(
+        renderWithI18n(
             <AuthProvider registry={{ googleAuth: adapter }} defaultKey="googleAuth">
                 <AuthButton intent="signOut" options={{ label: 'Sign out' }} />
             </AuthProvider>
@@ -60,7 +63,7 @@ describe('AuthButton', () => {
             photoURL: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'%3E%3C/svg%3E",
         });
 
-        render(
+        renderWithI18n(
             <AuthProvider registry={{ googleAuth: adapter }} defaultKey="googleAuth">
                 <AuthButton provider="googleAuth" intent="signIn" aspect="avatar" />
             </AuthProvider>
@@ -72,7 +75,7 @@ describe('AuthButton', () => {
     it('disables avatar actions when the selected provider is not configured', async () => {
         const adapter = createAuthAdapter({ uid: 'u1', displayName: 'Ada Lovelace' }, false);
 
-        render(
+        renderWithI18n(
             <AuthProvider registry={{ googleAuth: adapter }} defaultKey="googleAuth">
                 <AuthButton provider="googleAuth" intent="signIn" aspect="avatar" />
             </AuthProvider>
@@ -93,7 +96,7 @@ describe('AuthButton', () => {
     it('disables button aspect with a configuration tooltip when the provider is not configured', () => {
         const adapter = createAuthAdapter(null, false);
 
-        render(
+        renderWithI18n(
             <AuthProvider registry={{ dropboxAuth: adapter }} defaultKey="dropboxAuth">
                 <AuthButton provider="dropboxAuth" intent="connect" label="Connect Dropbox" />
             </AuthProvider>

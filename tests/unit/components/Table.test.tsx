@@ -2,6 +2,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import Table from '../../../src/components/ui/Table';
+import { I18nProvider } from '../../../src/I18n';
+
+const renderWithI18n = (ui: React.ReactElement) => render(ui, { wrapper: I18nProvider });
 
 const header = [
     { key: 'name', label: 'Name', sort: true },
@@ -19,7 +22,7 @@ describe('Table', () => {
     });
 
     it('sorts records internally and toggles direction from the header', async () => {
-        render(<Table columns={header} records={body} sortable />);
+        renderWithI18n(<Table columns={header} records={body} sortable />);
 
         await waitFor(() => {
             const initialCells = screen.getAllByRole('cell').filter((cell) => ['Alice', 'Bob'].includes(cell.textContent || ''));
@@ -40,7 +43,7 @@ describe('Table', () => {
     it('passes the clicked record to onClick', () => {
         const clicks: string[] = [];
 
-        render(
+        renderWithI18n(
             <Table
                 columns={header}
                 records={body}
@@ -54,7 +57,7 @@ describe('Table', () => {
     });
 
     it('keeps the clicked row highlighted after sort and toggles it off on second click', async () => {
-        render(
+        renderWithI18n(
             <Table
                 columns={header}
                 records={body}
@@ -81,7 +84,7 @@ describe('Table', () => {
     });
 
     it('supports a controlled active row key', () => {
-        const { rerender } = render(
+        const { rerender } = renderWithI18n(
             <Table
                 columns={header}
                 records={body}
@@ -111,7 +114,7 @@ describe('Table', () => {
     it('reorders rows and calls onReorder', () => {
         const reorderedKeys: string[][] = [];
 
-        render(
+        renderWithI18n(
             <Table
                 columns={header}
                 records={body}
@@ -139,7 +142,7 @@ describe('Table', () => {
     it('starts drag reorder from the visible handle button', () => {
         const reorderedKeys: string[][] = [];
 
-        render(
+        renderWithI18n(
             <Table
                 columns={header}
                 records={body}
@@ -162,7 +165,7 @@ describe('Table', () => {
     it('keeps the dropped order when reorder is enabled even if sortable is true', () => {
         const reorderedKeys: string[][] = [];
 
-        render(
+        renderWithI18n(
             <Table
                 columns={header}
                 records={body}
@@ -189,7 +192,7 @@ describe('Table', () => {
     it('warns and ignores sort configuration when reorder is enabled', () => {
         const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
 
-        render(
+        renderWithI18n(
             <Table
                 columns={header}
                 records={body}
@@ -210,7 +213,7 @@ describe('Table', () => {
     it('tracks checkbox selection and exposes it through onSelectionChange', () => {
         const selections: string[][] = [];
 
-        render(
+        renderWithI18n(
             <Table
                 columns={header}
                 records={body}
@@ -228,7 +231,7 @@ describe('Table', () => {
     it('keeps selection mapped to the original record when sorted rows have no _key', async () => {
         const selections: string[][] = [];
 
-        render(
+        renderWithI18n(
             <Table
                 columns={[{ key: 'name', label: 'Name', sort: true }]}
                 records={[

@@ -162,11 +162,15 @@ export const isActionDisabled = <TRecord extends RecordProps>(action: GridAction
     return typeof action.disabled === "function" ? action.disabled(record) : action.disabled;
 };
 
-export const getActionLabel = (actionKey: string, action: { label?: string } | undefined) => {
+export const getActionLabel = (
+    actionKey: string,
+    action: { label?: string } | undefined,
+    labels?: { add?: string; edit?: string; delete?: string }
+) => {
     if (action?.label) return action.label;
-    if (actionKey === "add") return "Add";
-    if (actionKey === "edit") return "Edit";
-    if (actionKey === "delete") return "Delete";
+    if (actionKey === "add") return labels?.add ?? "Add";
+    if (actionKey === "edit") return labels?.edit ?? "Edit";
+    if (actionKey === "delete") return labels?.delete ?? "Delete";
     return converter.toCamel(actionKey, " ");
 };
 

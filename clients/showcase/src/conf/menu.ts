@@ -26,6 +26,7 @@ const CarouselPage = lazyPage(() => import('../pages/components/CarouselPage'));
 const CheckboxPage = lazyPage(() => import('../pages/components/CheckboxPage'));
 const CodePage = lazyPage(() => import('../pages/components/CodePage'));
 const LoaderPage = lazyPage(() => import('../pages/components/LoaderPage'));
+const LocaleSwitcherPage = lazyPage(() => import('../pages/components/LocaleSwitcherPage'));
 const DropdownPage = lazyPage(() => import('../pages/components/DropdownPage'));
 const GalleryPage = lazyPage(() => import('../pages/components/GalleryPage'));
 const GridSystemPage = lazyPage(() => import('../pages/components/GridSystemPage'));
@@ -140,6 +141,7 @@ export const menu = {
         { path: '/components/image', title: 'Image', page: ImagePage, group: 'UI Primitives' },
         { path: '/components/image-avatar', title: 'ImageAvatar', page: ImageAvatarPage, group: 'UI Primitives' },
         { path: '/components/loader', title: 'Loader', page: LoaderPage, group: 'UI Primitives' },
+        { path: '/components/locale-switcher', title: 'LocaleSwitcher', page: LocaleSwitcherPage, group: 'UI Primitives' },
         {
             path: '/components/modal',
             title: 'Modal',

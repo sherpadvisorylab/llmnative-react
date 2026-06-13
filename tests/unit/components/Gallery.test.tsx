@@ -2,6 +2,9 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import Gallery from '../../../src/components/ui/Gallery';
+import { I18nProvider } from '../../../src/I18n';
+
+const renderWithI18n = (ui: React.ReactElement) => render(ui, { wrapper: I18nProvider });
 
 const body = [
     {
@@ -20,7 +23,7 @@ const body = [
 
 describe('Gallery overlays', () => {
     it('renders a badge overlay on every item when no filter is provided', () => {
-        render(
+        renderWithI18n(
             <Gallery
                 records={body}
                 overlays={[{ position: 'topRight', badge: { content: 'new', variant: 'primary' } }]}
@@ -37,7 +40,7 @@ describe('Gallery overlays', () => {
     });
 
     it('filters overlay rules by record fields', () => {
-        render(
+        renderWithI18n(
             <Gallery
                 records={body}
                 overlays={[{ position: 'bottomLeft', badge: 'brand', when: { category: 'Brand' } }]}
@@ -49,7 +52,7 @@ describe('Gallery overlays', () => {
     });
 
     it('orders records before rendering when sortable OrderConfig is provided', () => {
-        render(<Gallery records={body} sortable={{ field: 'name', dir: 'desc' }} />);
+        renderWithI18n(<Gallery records={body} sortable={{ field: 'name', dir: 'desc' }} />);
 
         const images = screen.getAllByRole('img');
         expect(images[0]).toHaveAttribute('alt', 'Launch');
@@ -59,7 +62,7 @@ describe('Gallery overlays', () => {
     it('passes the clicked record to onClick', () => {
         const clicks: string[] = [];
 
-        render(
+        renderWithI18n(
             <Gallery
                 records={body}
                 onRowClick={(record) => clicks.push(record._key || '')}
@@ -73,7 +76,7 @@ describe('Gallery overlays', () => {
     it('shows selection checkboxes when onSelectionChange is provided and reports selected keys', () => {
         const selections: string[][] = [];
 
-        render(
+        renderWithI18n(
             <Gallery
                 records={body}
                 onSelectionChange={(selection) => selections.push(selection.keys)}
@@ -87,7 +90,7 @@ describe('Gallery overlays', () => {
     it('keeps selection mapped to the ordered item when records have no _key', () => {
         const selections: string[][] = [];
 
-        render(
+        renderWithI18n(
             <Gallery
                 records={[
                     { name: 'Zulu', img: <img src="zulu.png" alt="Zulu" /> },
@@ -103,7 +106,7 @@ describe('Gallery overlays', () => {
     });
 
     it('keeps grouped gallery checkboxes checked after selection changes', () => {
-        render(
+        renderWithI18n(
             <Gallery
                 records={[
                     { _key: 'u1', name: 'Alice', role: 'Admin', img: <img src="alice.png" alt="Admin | Alice" /> },
@@ -123,7 +126,7 @@ describe('Gallery overlays', () => {
     it('evaluates overlay functions only for items visible on the current page', async () => {
         const badgeSpy = vi.fn((item: { name?: string }) => item.name);
 
-        render(
+        renderWithI18n(
             <Gallery
                 records={[
                     { _key: 'u1', name: 'Alpha', img: <img src="alpha.png" alt="Alpha" /> },
@@ -157,7 +160,7 @@ describe('Gallery overlays', () => {
     it('reuses cached overlay results when previously visible items become visible again', async () => {
         const badgeSpy = vi.fn((item: { name?: string }) => item.name);
 
-        render(
+        renderWithI18n(
             <Gallery
                 records={[
                     { _key: 'u1', name: 'Alpha', img: <img src="alpha.png" alt="Alpha" /> },

@@ -1,6 +1,7 @@
 ﻿import React from "react";
 import {Dropdown, DropdownItem} from "./Dropdown";
 import {useTheme} from "../../Theme";
+import { useI18n } from "../../I18n";
 import {Wrapper} from "../ui/GridSystem";
 import Icon from "../ui/Icon";
 import type { BadgeProps } from "../ui/Badge";
@@ -24,6 +25,7 @@ function Notifications({
                            wrapperClassName    = undefined
 }: NotificationsProps) {
   const theme = useTheme("notifications");
+  const dict = useI18n('notifications');
 
   return (
       <Wrapper className={wrapperClassName || theme.Notifications.wrapperClassName}>
@@ -35,8 +37,8 @@ function Notifications({
               triggerClassName={"fs-20px " + theme.Notifications.Dropdown.triggerClassName}
               menuClassName={theme.Notifications.Dropdown.menuClassName}
               badge={badge}
-              header="NOTIFICATIONS"
-              footer="SEE ALL"
+              header={dict.title}
+              footer={dict.seeAll}
           >
               {(items || []).map((notify, index) => {
                   const iconClassName = index === 0 ? "fs-20px" : "fs-20px w-20px";

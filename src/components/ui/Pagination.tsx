@@ -2,6 +2,7 @@
 import { UIProps, Wrapper } from "../index";
 import { createPortal } from 'react-dom';
 import { useTheme } from '../../Theme';
+import { useI18n } from '../../I18n';
 
 /**
  * Pagination configuration shared between `<Pagination>` and `<Grid pagination={...}>`.
@@ -47,6 +48,7 @@ const Pagination = <T,>({
     sticky = undefined
 }: PaginationProps<T>) => {
     const theme = useTheme("pagination");
+    const dict = useI18n('common');
 
     const [currentPage, setCurrentPage] = useState(page || 1);
 
@@ -113,7 +115,7 @@ const Pagination = <T,>({
             {before}
 
             {records.length > pageLimit && (
-                <nav aria-label="Page navigation" className={`${className || theme.Pagination.className} flex w-full ${alignmentClass}`}>
+                <nav aria-label={dict.pageNavigation} className={`${className || theme.Pagination.className} flex w-full ${alignmentClass}`}>
                     <ul className="pagination">
 
                         <li className={`page-item page-item-group-start ${disabledPrev}`}>

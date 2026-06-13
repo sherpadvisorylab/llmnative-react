@@ -1,4 +1,5 @@
 ﻿import React, { useEffect, useId, useMemo, useState } from 'react';
+import { useI18n } from "../../../I18n";
 import {
     Label,
     FieldError,
@@ -146,10 +147,7 @@ export const Select = ({
     required = false,
     readOnlyAfterSet = false,
     disabled = false,
-    placeholderOption = {
-        label: "Select...",
-        value: ""
-    },
+    placeholderOption = undefined,
     label = undefined,
     title = undefined,
     before = undefined,
@@ -166,6 +164,8 @@ export const Select = ({
     const { value, handleChange, formWrapClass } = useFormContext({ name, onChange, wrapperClassName, defaultValue, inheritWrapperClassName });
     const error = useFieldValidation(name, { required, label, validator });
     const theme = useTheme("select");
+    const dict = useI18n('select');
+    const resolvedPlaceholder = placeholderOption ?? { label: dict.placeholder, value: "" };
 
     const dbOptions = useMemo(() => getOptionsDB(optionsSource), [optionsSource?.fieldMap, optionsSource?.where, optionsSource?.order, optionsSource?.onLoad]);
     const database = useDataProvider();
@@ -184,7 +184,7 @@ export const Select = ({
         );
     }, [options, lookup, order, optionsSource?.order, dbOptions.fieldMap, value]);
 
-    if (!value && !placeholderOption && opts.length > 0) {
+    if (!value && !resolvedPlaceholder && opts.length > 0) {
         handleChange?.({ target: { name, value: opts[0].value } });
     }
 
@@ -211,7 +211,7 @@ export const Select = ({
                     onChange={handleChange}
                     title={title}
                 >
-                    {placeholderOption && <option key={`${id}-empty`} value={placeholderOption.value}>{placeholderOption.label}</option>}
+                    {resolvedPlaceholder && <option key={`${id}-empty`} value={resolvedPlaceholder.value}>{resolvedPlaceholder.label}</option>}
                     {opts.map((op, index) => <option key={`${id}-${index}`} value={op.value}>{op.label}</option>)}
                 </select>
                 {after && <SelectAddon side="after">{after}</SelectAddon>}

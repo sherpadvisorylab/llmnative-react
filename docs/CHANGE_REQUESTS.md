@@ -413,14 +413,17 @@ Adapter opzionale:
 
 ### Checklist
 
-- [ ] Definire `I18nProvider`, `useI18n()` e adapter interface.
-- [ ] Creare dizionario default `en`.
-- [ ] Aggiungere supporto override parziale.
-- [ ] Aggiungere interpolazione semplice.
-- [ ] Estrarre stringhe da `AuthButton`.
-- [ ] Estrarre stringhe da form/grid/upload/select.
-- [ ] Estrarre stringhe da modal/notifications/navigation.
-- [ ] Estrarre messaggi provider/configuration state.
+- [x] Definire `I18nProvider`, `useI18n()` e tipi (`I18nDict`, `I18nConfig`, `I18nController`).
+- [x] Creare dizionario default `en` (`src/conf/i18n/en.ts`).
+- [x] Aggiungere supporto override parziale (deep merge in `I18nProvider`).
+- [x] Aggiungere interpolazione semplice (`interpolate(template, vars)`).
+- [x] Estrarre stringhe da `Select` (placeholder), `Modal` (save/delete/cancel/close), `Notifications`, `Search`.
+- [x] Estrarre stringhe da `Form` (header, button labels, validation, success messages).
+- [x] Estrarre stringhe da `Grid`/`GridCore` (deleteConfirm).
+- [x] Estrarre stringhe da `Upload` (dropzone, editFileName, editorImage).
+- [x] Integrare `<I18nProvider>` in `App.tsx`; prop `i18n?: I18nConfig` aggiunta.
+- [x] Rimossi `ThemeConfig.Form.i18n` e `ThemeConfig.Grid.i18n` (obsoleti).
+- [x] Esportare `I18nProvider`, `useI18n`, `interpolate`, tipi da `src/index.ts`.
 - [ ] Aggiungere showcase per cambio lingua.
 - [ ] Aggiungere docs i18n.
 - [ ] Aggiungere test per fallback, override e interpolazione.

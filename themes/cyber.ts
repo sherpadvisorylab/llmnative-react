@@ -176,11 +176,6 @@ export const components: Theme = {
                 backdrop: 'fade',
             },
         },
-        i18n: {
-            headerAdd: 'Add',
-            headerEdit: 'Edit',
-            buttonAdd: 'Add',
-        },
     },
     Table: {
         wrapperClassName: 'bootstrap-table',
@@ -333,15 +328,6 @@ export const components: Theme = {
             headerClassName: '',
             bodyClassName: '',
             footerClassName: 'flex items-center justify-end gap-3',
-        },
-        i18n: {
-            headerAdd: 'Add',
-            headerEdit: 'Edit',
-            headerNewRecord: 'New Record',
-            buttonSave: 'Save',
-            buttonDelete: 'Delete',
-            buttonBack: 'Back',
-            noticeRequiredFields: 'Please fill in all required fields',
         },
     },
     Menu: {

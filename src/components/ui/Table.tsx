@@ -1,6 +1,7 @@
 ﻿import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { ArrowDown, ArrowUp, ArrowUpDown, GripVertical } from 'lucide-react';
 import { useTheme } from "../../Theme";
+import { useI18n, interpolate } from "../../I18n";
 import { RecordArray, RecordProps } from "../../providers/data/DataProvider";
 import { UIProps } from '../';
 import Pagination, { PaginationParams } from './Pagination';
@@ -76,6 +77,7 @@ function Table({
     renderCell = undefined
 }: TableProps) {
     const theme = useTheme("table");
+    const dict = useI18n('table');
     const activeClass = selectedClassName || theme.Table.selectedClassName;
     const [rows, setRows] = useState<RecordArray>(records || []);
     const sortableOrder = useMemo(() => {
@@ -231,7 +233,7 @@ function Table({
     }, [draggedKey, dropIndicator?.position, getRecordKey, onReorder, sortedBody]);
 
     if (sortedBody.length === 0) {
-        return <p className={"p-4"}>No data found</p>;
+        return <p className={"p-4"}>{dict.noDataFound}</p>;
     }
 
     const headers: TableHeaderProp[] = columns || Object.keys(sortedBody[0]).map((key) => ({ key, label: key, sort: sortingEnabled }));
@@ -297,7 +299,7 @@ function Table({
                                         <div className="th-inner py-1">
                                             <input
                                                 type="checkbox"
-                                                aria-label="Select all rows"
+                                                aria-label={dict.selectAllRows}
                                                 checked={selectionState.records.length > 0 && selectionState.records.length === rows.length}
                                                 onChange={(event) => {
                                                     const nextKeys = event.target.checked
@@ -346,13 +348,13 @@ function Table({
                                                         onClick={() => setCurrentOrder((prev) => Order.toggle(prev, hdr.key))}
                                                         aria-label={
                                                             isActiveSort
-                                                                ? `Sort by ${hdr.label}, currently ${currentOrder?.dir === 'desc' ? 'descending' : 'ascending'}`
-                                                                : `Sort by ${hdr.label}`
+                                                                ? interpolate(dict.sortByCurrent, { label: hdr.label, direction: currentOrder?.dir === 'desc' ? 'descending' : 'ascending' })
+                                                                : interpolate(dict.sortBy, { label: hdr.label })
                                                         }
                                                         title={
                                                             isActiveSort
                                                                 ? `${hdr.label}: ${currentOrder?.dir === 'desc' ? 'descending' : 'ascending'}`
-                                                                : `Sort by ${hdr.label}`
+                                                                : interpolate(dict.sortBy, { label: hdr.label })
                                                         }
                                                     >
                                                         <span
@@ -481,7 +483,7 @@ function Table({
                                                         <input
                                                             type={selection === 'single' ? 'radio' : 'checkbox'}
                                                             name={selection === 'single' ? singleSelectionGroupName : undefined}
-                                                            aria-label={`Select row ${rowKey}`}
+                                                            aria-label={interpolate(dict.selectRow, { key: rowKey })}
                                                             checked={isSelected}
                                                             onChange={() => {
                                                                 if (selection === 'single') {
@@ -506,7 +508,7 @@ function Table({
                                                             type="button"
                                                             draggable={reorderable}
                                                             className="inline-flex cursor-grab items-center justify-center rounded-sm border-0 bg-transparent p-0 text-muted-foreground"
-                                                            aria-label={`Reorder row ${rowKey}`}
+                                                            aria-label={interpolate(dict.reorderRow, { key: rowKey })}
                                                             onClick={(event) => event.preventDefault()}
                                                             onDragStart={(event) => {
                                                                 event.stopPropagation();

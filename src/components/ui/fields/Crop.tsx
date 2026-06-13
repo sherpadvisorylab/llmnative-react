@@ -1,4 +1,5 @@
 import React, { forwardRef, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState } from "react";
+import { useI18n, interpolate } from "../../../I18n";
 import { FileProps, getFileUrl } from "./Upload";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -72,6 +73,7 @@ export const CropImage = forwardRef(({
     scales?: Record<string, number>;
 }, ref) => {
     const SCALES = scalesProp ?? DEFAULT_SCALES;
+    const dict = useI18n('crop');
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const imgRef    = useRef<HTMLImageElement | null>(null);
@@ -348,7 +350,7 @@ export const CropImage = forwardRef(({
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
                                     d="M4 8V6a2 2 0 012-2h2M4 16v2a2 2 0 002 2h2M16 4h2a2 2 0 012 2v2M16 20h2a2 2 0 002-2v-2M9 12l2 2 4-4" />
                             </svg>
-                            <p className="text-sm">Click <strong className="text-zinc-300">{activeScale}</strong> to enable this crop</p>
+                            <p className="text-sm">{dict.enableCrop.split('{scale}')[0]}<strong className="text-zinc-300">{activeScale}</strong>{dict.enableCrop.split('{scale}')[1]}</p>
                         </div>
                     )}
                 </div>
@@ -360,14 +362,14 @@ export const CropImage = forwardRef(({
                         <NativeFileNameEditor
                             value={originalFileName}
                             onChange={setOriginalFileName}
-                            label="File name"
+                            label={dict.fileName}
                         />
                     </div>
 
                     {/* Ratio cards */}
                     <div className="flex-1 min-h-0 flex flex-col gap-2 overflow-y-auto">
                         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide shrink-0">
-                            Variants
+                            {dict.variants}
                         </p>
                         {Object.keys(SCALES).map(scale => (
                             <RatioCard
@@ -388,7 +390,7 @@ export const CropImage = forwardRef(({
                     {/* Derived variant filename — read-only, shown for reference */}
                     {isActiveEnabled && activeCrop && (
                         <div className="shrink-0 pt-3 border-t border-border">
-                            <p className="text-xs font-medium text-muted-foreground mb-1">Output file</p>
+                            <p className="text-xs font-medium text-muted-foreground mb-1">{dict.outputFile}</p>
                             <p className="text-xs text-foreground/70 truncate tabular-nums" title={activeCrop.fileName}>
                                 {activeCrop.fileName ?? variantFileName(originalFileName, activeScale)}
                             </p>
@@ -433,6 +435,7 @@ const getThumbDims = (ratio: number) => {
 };
 
 const RatioCard = ({ scale, ratio, img, crop, bounds, enabled, active, onClick, onRemove }: RatioCardProps) => {
+    const dict = useI18n('crop');
     const { w: tw, h: th } = getThumbDims(ratio);
 
     // CSS background trick for live preview — no canvas needed
@@ -485,14 +488,14 @@ const RatioCard = ({ scale, ratio, img, crop, bounds, enabled, active, onClick, 
                     {scale}
                 </span>
                 {active && enabled && (
-                    <span className="text-xs text-primary/60 font-normal">active</span>
+                    <span className="text-xs text-primary/60 font-normal">{dict.active}</span>
                 )}
                 {enabled && (
                     <span
                         role="button"
                         tabIndex={-1}
                         onClick={onRemove}
-                        title={`Remove ${scale} variant`}
+                        title={interpolate(dict.removeVariant, { scale })}
                         className="ml-auto w-5 h-5 flex items-center justify-center rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors text-base leading-none"
                     >
                         ×

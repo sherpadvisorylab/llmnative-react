@@ -1,6 +1,7 @@
 ﻿import React, {useState} from 'react';
 import { createPortal } from 'react-dom';
 import {useTheme} from "../../Theme";
+import { useI18n } from "../../I18n";
 import {ActionButton, LoadingButton} from "./Buttons";
 import type { MotionUIProps } from '../types';
 import { useMotionEffect, useMotionState } from '../../motion';
@@ -94,6 +95,7 @@ const ModalDefault = ({
                           motion: motionConfig = undefined
 }: ModalProps) => {
     const theme = useTheme("modal");
+    const dict = useI18n('modal');
     const [entered, setEntered] = React.useState(false);
     const closingRef = React.useRef(false);
     const closeTimerRef = React.useRef<number | undefined>(undefined);
@@ -266,8 +268,8 @@ const ModalDefault = ({
                             </button>}
                             {onClose && <button
                                 type="button"
-                                title="Close"
-                                aria-label="Close"
+                                title={dict.close}
+                                aria-label={dict.close}
                                 className={closeButtonClass}
                                 onClick={(e) => {
                                     e.preventDefault();
@@ -284,7 +286,7 @@ const ModalDefault = ({
                         {footer}
                         {onSave && <LoadingButton
                             className="btn-primary"
-                            label={"Save"}
+                            label={dict.save}
                             onClick={async (e) => {
                                 e.preventDefault();
                                 
@@ -295,7 +297,7 @@ const ModalDefault = ({
                         />}
                         {onDelete && <LoadingButton
                             className="btn-danger"
-                            label={"Delete"}
+                            label={dict.delete}
                             onClick={async (e) => {
                                 e.preventDefault();
                                 await onDelete(e);
@@ -304,7 +306,7 @@ const ModalDefault = ({
                         />}
                         {showCancel && onClose && <ActionButton
                             className="btn-link"
-                            label={"Cancel"}
+                            label={dict.cancel}
                             onClick={handleClose}
                         />}
                     </div>}

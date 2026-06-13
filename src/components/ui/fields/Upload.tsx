@@ -1,4 +1,5 @@
 ﻿import React, { useEffect, useRef, useState } from "react";
+import { useI18n } from "../../../I18n";
 import Modal from "../Modal";
 import Badge from "../Badge";
 import Percentage from "../Percentage";
@@ -273,6 +274,7 @@ export const UploadDocument = ({
 }: UploadDocumentProps) => {
     const { files, currentFile, fileInputRef, formWrapClass, handleFiles, handleUploadChange, handleUpload, handleRemove, handleSave, handleEdit, handleClose } = useFileUpload<FileProps>(name, onChange, wrapperClassName);
     const error = useFieldValidation(name, { required, label });
+    const dict = useI18n('upload');
     const [dragOver, setDragOver] = useState(false);
 
     const canUpload = isUploadable(files, max, multiple);
@@ -313,7 +315,7 @@ export const UploadDocument = ({
                     >
                         <Icon name="upload" className="w-8 h-8" />
                         <span className="text-sm font-medium">
-                            {dragOver ? 'Drop to upload' : 'Click to upload or drag and drop'}
+                            {dragOver ? dict.dropToUpload : dict.clickOrDrag}
                         </span>
                         <span className="text-xs opacity-60">{accept}</span>
                     </button>
@@ -373,7 +375,7 @@ export const UploadDocument = ({
                                     className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
                                 >
                                     <Icon name="upload" className="w-3.5 h-3.5" />
-                                    Upload {multiple ? 'more files' : 'file'}
+                                    {dict.uploadMore}
                                 </button>
                             </div>
                         )}
@@ -395,7 +397,7 @@ export const UploadDocument = ({
             </div>
             {editable && currentFile && (
                 <FileEditor
-                    title="Edit file name"
+                    title={dict.editFileName}
                     file={currentFile}
                     type="document"
                     onSave={handleSave}
@@ -426,6 +428,7 @@ export const UploadImage = ({
 }: UploadImageProps) => {
     const { files, currentFile, fileInputRef, formWrapClass, handleUploadChange, handleUpload, handleRemove, handleSave, handleEdit, handleClose } = useFileUpload<FileProps>(name, onChange, wrapperClassName);
     const error = useFieldValidation(name, { required, label });
+    const dict = useI18n('upload');
 
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
@@ -521,7 +524,7 @@ export const UploadImage = ({
 
             {editable && currentFile && (
                 <FileEditor
-                    title="Editor Image"
+                    title={dict.editorImage}
                     file={currentFile}
                     type="img"
                     onSave={handleSave}

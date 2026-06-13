@@ -2,6 +2,7 @@
 
 import { UIProps } from '../..';
 import { useTheme } from '../../Theme';
+import { useI18n } from '../../I18n';
 import { cn } from '../../libs/cn';
 import { copyToClipboard } from '../../libs/utils';
 import Icon from './Icon';
@@ -138,6 +139,7 @@ const Code = ({
 }: CodeProps) => {
   const codeRef = useRef<HTMLElement>(null);
   const themeConfig = useTheme('code');
+  const dict = useI18n('code');
   const codeText = typeof children === 'string' ? children : String(children ?? '');
   const resolvedLanguage = isRecordKey(LANGUAGES, language) ? language : 'tsx';
   const resolvedTheme = isRecordKey(THEMES, theme) ? theme : 'tomorrow';
@@ -202,8 +204,8 @@ const Code = ({
             <button
               onClick={() => copyToClipboard(codeText)}
               className="absolute right-2 top-2 inline-flex items-center justify-center rounded-md bg-secondary px-2 py-1 text-xs font-medium text-secondary-foreground transition-colors hover:bg-secondary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              title="Copy code"
-              aria-label="Copy code"
+              title={dict.copyCode}
+              aria-label={dict.copyCode}
             >
               <Icon name="clipboard" size={14} />
             </button>

@@ -43,6 +43,7 @@ import type { CredentialsAdapter } from "./providers/credentials/CredentialsProv
 import { CredentialsProvider } from "./providers/credentials/CredentialsProviderContext";
 import { IconProvider, type AppIconProviderConfig } from "./providers/icon/IconProviderContext";
 import { HeadProvider } from "./Head";
+import { I18nProvider, type I18nConfig } from "./I18n";
 import {
     PROVIDER_MANIFESTS,
     type ServicesConfig,
@@ -106,6 +107,8 @@ export type AppProps = {
     iconProvider?: AppIconProviderConfig;
     /** Theme registry config. String shorthand selects the active theme id. */
     themeProvider?: AppThemeProviderConfig;
+    /** Internationalization config: locale and per-locale translation overrides. */
+    i18n?: I18nConfig;
     children?: React.ReactNode;
     /** POST endpoint for error reports. When set, a "Send report" button appears in the error boundary. */
     errorReportUrl?: string;
@@ -195,6 +198,7 @@ function App({
     providers = {},
     iconProvider,
     themeProvider,
+    i18n,
     children,
     errorReportUrl,
     debug,
@@ -287,6 +291,7 @@ function App({
                                 <AIProvider {...registries.ai}>
                                     <IconProvider config={iconProvider}>
                                         <HeadProvider appName={appName}>
+                                            <I18nProvider config={i18n}>
                                             <ThemeProvider config={themeProvider}>
                                                 {children}
                                                 <Routes>
@@ -306,6 +311,7 @@ function App({
                                                     <Route path='*' element={<NotFound />}></Route>
                                                 </Routes>
                                             </ThemeProvider>
+                                            </I18nProvider>
                                         </HeadProvider>
                                     </IconProvider>
                                 </AIProvider>
