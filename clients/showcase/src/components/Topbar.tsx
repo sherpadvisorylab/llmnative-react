@@ -1,20 +1,12 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { useThemeController, Badge, LocaleSwitcher } from '@llmnative/react';
+import { useThemeController, Badge, LocaleSwitcher, useI18n } from '@llmnative/react';
 import Icon from './Icon';
 import { usePlaygroundContext } from '../docs-kit/playground';
 
 interface TopbarProps {
     onOpenThemePanel: () => void;
 }
-
-const TOP_NAV = [
-    { label: 'Docs',       path: '/docs' },
-    { label: 'Components', path: '/components' },
-    { label: 'Providers / Integrations',  path: '/providers' },
-    { label: 'Examples',   path: '/examples' },
-    { label: 'Benchmark',  path: '/benchmark' },
-];
 
 const activeLinkClass = ({ isActive }: { isActive: boolean }) =>
     `text-sm font-medium px-1 py-0.5 transition-colors border-b-2 ${
@@ -26,6 +18,15 @@ const activeLinkClass = ({ isActive }: { isActive: boolean }) =>
 export default function Topbar({ onOpenThemePanel }: TopbarProps) {
     const { resolvedMode, toggleMode } = useThemeController();
     const { config, openPlayground } = usePlaygroundContext();
+    const t = useI18n('showcase');
+
+    const TOP_NAV = [
+        { label: t.navDocs,       path: '/docs' },
+        { label: t.navComponents, path: '/components' },
+        { label: t.navProviders,  path: '/providers' },
+        { label: t.navExamples,   path: '/examples' },
+        { label: t.navBenchmark,  path: '/benchmark' },
+    ];
 
     return (
         <header className="sticky top-0 z-30 h-14 border-b bg-card/80 backdrop-blur-sm flex items-center px-6 gap-8">
@@ -52,10 +53,10 @@ export default function Topbar({ onOpenThemePanel }: TopbarProps) {
                     <button
                         onClick={openPlayground}
                         className="flex items-center gap-1.5 px-3 h-8 rounded-md text-sm font-medium border border-primary/40 text-primary hover:bg-primary/10 transition-colors cursor-pointer"
-                        title="Open Playground"
+                        title={t.playgroundOpen}
                     >
                         <Icon name="play" size={13} />
-                        Playground
+                        {t.playgroundButton}
                     </button>
                 )}
                 {/* Locale switcher */}

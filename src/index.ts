@@ -58,6 +58,7 @@ export type {
 export { useTheme, useThemeController, BUILT_IN_THEMES, BUILT_IN_THEME_IDS } from './Theme';
 export { I18nProvider, useI18n, interpolate } from './I18n';
 export type { I18nDict, I18nConfig, I18nController, I18nTranslations, DeepPartial } from './I18n';
+export * as locales from './conf/i18n';
 export type {
     AppThemeProviderConfig,
     BuiltInThemeId,
