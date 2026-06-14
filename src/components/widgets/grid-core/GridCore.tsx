@@ -77,7 +77,7 @@ function GridCore<TRecord extends RecordProps>({
 }: GridCoreProps<TRecord>) {
     const theme = useTheme("grid");
     const dict = useI18n('grid');
-    const gridLabels = { add: dict.buttonAdd };
+    const gridLabels = useMemo(() => ({ add: dict.buttonAdd }), [dict.buttonAdd]);
     const db = useDataProvider();
     const { preparedRecords, loading: preparedRecordsLoading } = useGridPreparedRecords({ records, onLoad });
     const inferredColumns = useGridColumns({ columns, records: preparedRecords, form });
@@ -137,7 +137,7 @@ function GridCore<TRecord extends RecordProps>({
                 onClick={() => runAction(actionKey, record)}
             />
         );
-    }, [normalizedActions, runAction]);
+    }, [normalizedActions, runAction, gridLabels]);
 
     const headerActionKeys = useMemo(() => {
         return Object.entries(normalizedActions)
