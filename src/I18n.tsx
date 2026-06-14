@@ -147,7 +147,7 @@ export interface I18nDict {
     };
 }
 
-type DeepPartial<T> = { [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K] };
+export type DeepPartial<T> = { [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K] };
 
 export type I18nTranslations = Partial<Record<string, DeepPartial<I18nDict>>>;
 
