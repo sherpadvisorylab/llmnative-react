@@ -569,7 +569,7 @@ export const useFormContext = ({name, onChange, wrapperClassName, inputType = "t
                 });
             }
             return Object.keys(newErrors).length === 0;
-        }, []);
+        }, [dict]);
 
         // Builds the DB write path from the collection path and record key.
         // For existing records: strips trailing record-ID segment if already in path,
@@ -620,7 +620,7 @@ export const useFormContext = ({name, onChange, wrapperClassName, inputType = "t
 
             recordStoragePath && await db.set(recordStoragePath, cleanRecord(recordRef.current));
             return await handleFinally(action);
-        }, [path, onSave, onComplete, showNotice, computeSavePath, validateFields]);
+        }, [path, onSave, onComplete, showNotice, computeSavePath, validateFields, dict]);
 
         const handleDelete = useCallback(async (e: React.MouseEvent<HTMLElement>) => {
             e.preventDefault();
@@ -650,7 +650,7 @@ export const useFormContext = ({name, onChange, wrapperClassName, inputType = "t
             notice({ message: action === 'delete' ? dict.deleteSuccess : dict.saveSuccess, type: "success" });
 
             return (await onComplete?.({record: recordRef.current, action})) ?? true;
-        }, [log, path, onComplete, notice]);
+        }, [log, path, onComplete, notice, dict]);
 
         useImperativeHandle(ref, () => ({
             handleSave: handlers?.handleSave ?? handleSave,
@@ -723,7 +723,7 @@ export const useFormContext = ({name, onChange, wrapperClassName, inputType = "t
                         {components}
                     </Card>;
             }
-        }, [appearance, header, footer, onSave, onDelete, showBack, components, ref, notificationEl]);
+        }, [appearance, header, footer, onSave, onDelete, showBack, components, ref, notificationEl, dict, isNewRecord, path, handleSave, handleDelete]);
 
         return (
             <Wrapper className={wrapperClassName || theme.Form.wrapperClassName}>
