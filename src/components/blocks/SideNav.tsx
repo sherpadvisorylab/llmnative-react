@@ -339,7 +339,7 @@ export default function SideNav({
     }
 
     return (
-        <div style={{ width: collapsed ? W_COLLAPSED : W_EXPANDED, transition: 'width 220ms cubic-bezier(0.4,0,0.2,1)', flexShrink: 0, position: 'relative' }}>
+        <div style={{ width: collapsed ? W_COLLAPSED : W_EXPANDED, height: '100%', transition: 'width 220ms cubic-bezier(0.4,0,0.2,1)', flexShrink: 0, position: 'relative' }}>
             <aside
                 style={{
                     width: isExpanded ? W_EXPANDED : W_COLLAPSED,

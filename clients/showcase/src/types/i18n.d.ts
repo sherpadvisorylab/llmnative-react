@@ -1869,6 +1869,33 @@ interface ShowcaseFormI18n {
     };
 }
 
+interface ShowcaseRichTextI18n {
+    page: { title: string; description: string; };
+    sections: {
+        basicUsage: ShowcasePageSectionCopy;
+        toolbarModes: ShowcasePageSectionCopy;
+        customCommands: ShowcasePageSectionCopy;
+        tableSupport: ShowcasePageSectionCopy;
+        sourceCode: ShowcasePageSectionCopy;
+        statusBar: ShowcasePageSectionCopy;
+        outputFormats: ShowcasePageSectionCopy;
+        disabledState: ShowcasePageSectionCopy;
+    };
+    labels: {
+        articleBody: string;
+        description: string;
+        comment: string;
+        notes: string;
+        content: string;
+        startTyping: string;
+    };
+    propsDocs: {
+        title: string;
+        items: Record<string, ShowcaseGridDocFieldCopy>;
+    };
+    playground: { title: string; };
+}
+
 interface ShowcaseFormValidationI18n {
     page: { title: string; description: string; };
     sections: {
@@ -2392,6 +2419,9 @@ declare module '@llmnative/react' {
             promptEditor:                 ShowcasePromptEditorI18n;
             promptLive:                   ShowcasePromptLiveI18n;
             promptPlain:                  ShowcasePromptPlainI18n;
+            form:                         ShowcaseFormI18n;
+            formValidation:               ShowcaseFormValidationI18n;
+            richText:                     ShowcaseRichTextI18n;
         };
     }
 }

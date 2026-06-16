@@ -65,6 +65,7 @@ const UploadDocumentPage = lazyPage(() => import('../pages/components/upload/Upl
 const UploadCSVPage = lazyPage(() => import('../pages/components/upload/UploadCSVPage'));
 const FormPage = lazyPage(() => import('../pages/components/FormPage'));
 const FormValidationPage = lazyPage(() => import('../pages/components/FormValidationPage'));
+const RichTextPage = lazyPage(() => import('../pages/components/RichTextPage'));
 const GridPage = lazyPage(() => import('../pages/components/GridPage'));
 const GridArrayPage = lazyPage(() => import('../pages/components/GridArrayPage'));
 const GridDbPage = lazyPage(() => import('../pages/components/GridDbPage'));
@@ -205,6 +206,7 @@ export const menu = {
         { path: '/components/select', title: 'Select', page: SelectPage, group: 'Form fields' },
         { path: '/components/switch', title: 'Switch', page: SwitchPage, group: 'Form fields' },
         { path: '/components/textarea', title: 'TextArea', page: TextAreaPage, group: 'Form fields' },
+        { path: '/components/rich-text', title: 'RichText', page: RichTextPage, group: 'Form fields' },
         {
             path: '/components/upload',
             title: 'Upload',

@@ -1,0 +1,58 @@
+import { defineLocaleMessages } from '@llmnative/react';
+
+export default defineLocaleMessages({
+    showcase: {
+        richText: {
+            page: {
+                title: 'RichText',
+                description: 'محرر نص غني WYSIWYG متكامل مع سياق النموذج. يتم تحميل TipTap بشكل كسول عند التركيب فقط.',
+            },
+            sections: {
+                basicUsage: { title: 'الاستخدام الأساسي', description: 'ضع RichText داخل Form كأي حقل آخر. يُخزن القيمة كـ HTML افتراضيًا.' },
+                toolbarModes: { title: 'أوضاع شريط الأدوات', description: '"fixed" يعرض شريط أدوات ثابت. "floating" يعرض شريط أدوات عائم عند التحديد. false يخفي شريط الأدوات.' },
+                customCommands: { title: 'أوامر شريط الأدوات المخصصة', description: 'مرر toolbarCommands لاختيار الأزرار. استخدم "|" كفاصل مرئي.' },
+                tableSupport: { title: 'دعم الجداول', description: 'أضف "table" إلى toolbarCommands لتفعيل زر إدراج الجدول.' },
+                sourceCode: { title: 'وضع الكود المصدري', description: 'أضف "sourceCode" للتبديل بين المحرر المرئي وHTML الخام.' },
+                statusBar: { title: 'شريط الحالة', description: 'اضبط statusBar={true} لإظهار شريط الحالة الافتراضي.' },
+                outputFormats: { title: 'تنسيقات الإخراج', description: '"html" يحفظ HTML. "json" يحفظ مستند TipTap JSON. "text" يحفظ نصًا عاديًا فقط.' },
+                disabledState: { title: 'الحالة المعطلة', description: 'الخاصية disabled تجعل المحرر بالكامل للقراءة فقط.' },
+            },
+            labels: {
+                articleBody: 'نص المقالة',
+                description: 'الوصف',
+                comment: 'تعليق',
+                notes: 'ملاحظات',
+                content: 'المحتوى',
+                startTyping: 'ابدأ الكتابة...',
+            },
+            propsDocs: {
+                title: 'خصائص RichText',
+                items: {
+                    name: { description: 'اسم الحقل كمفتاح النموذج.' },
+                    label: { description: 'تسمية فوق المحرر.' },
+                    required: { description: 'يحدد الحقل كمطلوب.' },
+                    placeholder: { description: 'نص العنصر النائب.' },
+                    disabled: { description: 'يجعل المحرر للقراءة فقط.' },
+                    toolbar: { description: 'موضع شريط الأدوات: "fixed" أو "floating" أو false.' },
+                    toolbarCommands: { description: 'قائمة مرتبة من أوامر شريط الأدوات.' },
+                    outputFormat: { description: 'تنسيق التخزين: "html" أو "json" أو "text".' },
+                    statusBar: { description: 'تفعيل شريط الحالة.' },
+                    minHeight: { description: 'الحد الأدنى لارتفاع المحرر بالبكسل.' },
+                    maxHeight: { description: 'الحد الأقصى للارتفاع بالبكسل.' },
+                    uploadPath: { description: 'مسار StorageProvider لأوامر الرفع.' },
+                    feedback: { description: 'نص المساعدة أسفل المحرر.' },
+                    defaultValue: { description: 'القيمة الأولية خارج سياق النموذج.' },
+                    validator: { description: 'دالة تحقق مخصصة.' },
+                    id: { description: 'معرف صريح لعنصر المحرر.' },
+                    labelClassName: { description: 'فئات CSS على عنصر التسمية.' },
+                    className: { description: 'فئات CSS على حاوية المحرر.' },
+                    wrapperClassName: { description: 'فئات CSS على الغلاف الخارجي.' },
+                    before: { description: 'محتوى قبل غلاف المحرر.' },
+                    after: { description: 'محتوى بعد غلاف المحرر.' },
+                    onChange: { description: 'معالج تغيير مخصص.' },
+                },
+            },
+            playground: { title: 'RichText' },
+        },
+    },
+});

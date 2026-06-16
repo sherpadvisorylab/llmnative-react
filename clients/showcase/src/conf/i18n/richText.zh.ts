@@ -1,0 +1,58 @@
+import { defineLocaleMessages } from '@llmnative/react';
+
+export default defineLocaleMessages({
+    showcase: {
+        richText: {
+            page: {
+                title: 'RichText',
+                description: '与 Form 上下文集成的所见即所得富文本编辑器。仅在挂载时懒加载 TipTap。支持固定和浮动工具栏、表格、图片/文档上传、源代码模式和状态栏。',
+            },
+            sections: {
+                basicUsage: { title: '基本用法', description: '像其他字段一样将 RichText 放入 Form 中。默认以 HTML 存储值。' },
+                toolbarModes: { title: '工具栏模式', description: '"fixed" 显示固定工具栏。"floating" 在文本选择时显示气泡工具栏。false 隐藏工具栏。' },
+                customCommands: { title: '自定义工具栏命令', description: '传入 toolbarCommands 选择显示的按钮。使用 "|" 作为视觉分隔符。' },
+                tableSupport: { title: '表格支持', description: '将 "table" 添加到 toolbarCommands 以启用插入表格按钮。' },
+                sourceCode: { title: '源代码模式', description: '将 "sourceCode" 添加到 toolbarCommands 以在 WYSIWYG 和原始 HTML 之间切换。' },
+                statusBar: { title: '状态栏', description: '设置 statusBar={true} 以显示默认状态栏。传入 StatusBarConfig 对象进行精细控制。' },
+                outputFormats: { title: '输出格式', description: '"html" 存储 HTML。"json" 存储 TipTap JSON 文档。"text" 仅存储纯文本。' },
+                disabledState: { title: '禁用状态', description: 'disabled 属性使整个编辑器只读。' },
+            },
+            labels: {
+                articleBody: '文章正文',
+                description: '描述',
+                comment: '评论',
+                notes: '备注',
+                content: '内容',
+                startTyping: '开始输入...',
+            },
+            propsDocs: {
+                title: 'RichText 属性',
+                items: {
+                    name: { description: '字段名称，用作表单键和点表示法路径。' },
+                    label: { description: '编辑器上方显示的标签。' },
+                    required: { description: '将字段标记为必填项。' },
+                    placeholder: { description: '编辑器为空时显示的占位文本。' },
+                    disabled: { description: '使整个编辑器只读。' },
+                    toolbar: { description: '工具栏位置："fixed"、"floating" 或 false。' },
+                    toolbarCommands: { description: '工具栏命令的有序列表。' },
+                    outputFormat: { description: '存储格式："html"、"json" 或 "text"。' },
+                    statusBar: { description: '启用状态栏。' },
+                    minHeight: { description: '编辑器最小高度（像素）。' },
+                    maxHeight: { description: '最大高度（像素）。' },
+                    uploadPath: { description: '上传命令使用的 StorageProvider 路径。' },
+                    feedback: { description: '编辑器下方的帮助文本。' },
+                    defaultValue: { description: '在 Form 上下文之外使用时的初始值。' },
+                    validator: { description: '自定义验证函数。' },
+                    id: { description: '编辑器元素的显式 ID。' },
+                    labelClassName: { description: '应用于标签元素的 CSS 类。' },
+                    className: { description: '应用于编辑器容器的 CSS 类。' },
+                    wrapperClassName: { description: '应用于外部包装器的 CSS 类。' },
+                    before: { description: '编辑器包装器之前的内容。' },
+                    after: { description: '编辑器包装器之后的内容。' },
+                    onChange: { description: '自定义更改处理程序。' },
+                },
+            },
+            playground: { title: 'RichText' },
+        },
+    },
+});

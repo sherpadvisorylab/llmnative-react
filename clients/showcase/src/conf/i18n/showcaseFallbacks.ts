@@ -62,6 +62,7 @@ import tableEn from './table.en';
 import authEn from './auth.en';
 import examplesOverviewEn from './examplesOverview.en';
 import benchmarkEn from './benchmark.en';
+import richTextEn from './richText.en';
 
 export const showcaseFallbacks = {
     common: commonEn.showcase.common,
@@ -128,4 +129,5 @@ export const showcaseFallbacks = {
     auth: authEn.showcase.auth,
     examplesOverview: examplesOverviewEn.showcase.examplesOverview,
     benchmark: benchmarkEn.showcase.benchmark,
+    richText: richTextEn.showcase.richText,
 } as const;

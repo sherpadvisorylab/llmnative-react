@@ -64,7 +64,8 @@ export type ShowcaseNamespace =
     | 'promptLive'
     | 'promptPlain'
     | 'form'
-    | 'formValidation';
+    | 'formValidation'
+    | 'richText';
 
 type LocaleKey = 'en' | 'it' | 'de' | 'ru' | 'zh' | 'ar';
 type LocaleModule = { default: I18nLocale };
@@ -585,6 +586,14 @@ const dedicatedNamespaceLoaders: Partial<Record<ShowcaseNamespace, Record<Locale
         ru: () => import('./formValidation.ru'),
         zh: () => import('./formValidation.zh'),
         ar: () => import('./formValidation.ar'),
+    },
+    richText: {
+        en: () => import('./richText.en'),
+        it: () => import('./richText.it'),
+        de: () => import('./richText.de'),
+        ru: () => import('./richText.ru'),
+        zh: () => import('./richText.zh'),
+        ar: () => import('./richText.ar'),
     },
 };
 

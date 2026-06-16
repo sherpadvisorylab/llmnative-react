@@ -45,6 +45,8 @@ export * from './ui/fields/ImageUrl';
 export * from './ui/fields/RichText';
 
 export { default as Menu } from './blocks/Menu';
+export { default as SideNav } from './blocks/SideNav';
+export type { SideNavProps, SideNavItemDef } from './blocks/SideNav';
 
 export { default as Form } from './widgets/Form';
 export type { FormProps, FormDeleteArgs, FormDeleteHandler, FormFinallyArgs, FormFinallyHandler, FormRef, FormSaveArgs, FormSaveHandler } from './widgets/Form';

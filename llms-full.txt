@@ -653,6 +653,7 @@ export const providers: AppProvidersConfig = {
 | `SignInButton` non esiste | Rinominato | `<AuthButton />` |
 | `firebase: { config: ... }` errato | FirebaseConfig è flat | `firebase: { apiKey, authDomain, databaseURL, ... }` |
 | `google: { oAuth2: { clientId } }` errato | GoogleProviderConfig è flat | `google: { clientId, scope }` |
+| Route "/" non funziona (Missing Page: ./pages/Home.js) | Il framework inietta sempre `default: [{ path: "/" }]` senza `page` — chiama `importPage` e fallisce | Aggiungi `default: [{ path: '/', page: HomePage, layout: Default }]` nel tuo `menuConfig`: lo spread sovrascrive il fallback interno |
 | `children` su `Grid` | Grid non accetta children | Usa `form={<Fields />}` per il form inline |
 | `recordId` su `Form` | Prop non esiste | La chiave del record viene da URL automaticamente |
 | `MenuConfig` non importabile | Era type interno | Ora esportato: `import type { MenuConfig } from '@llmnative/react'` |

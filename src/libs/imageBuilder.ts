@@ -1,12 +1,16 @@
 /**
  * imageBuilder - pure utility for generating SEO/performance-optimised <img> tags
- * with srcset support. Does NOT resize images; assumes variant files already exist.
+ * with srcset support.
  *
- * Two srcset modes:
- *   density - fixed-size images (logos, avatars): 1x / 2x / 3x descriptors
- *             naming: image.jpg → image@2x.jpg, image@3x.jpg
- *   width   - responsive/fluid images (hero, content): width descriptors + sizes
- *             naming: image.jpg → image-400w.jpg, image-800w.jpg ...
+ * Three srcset modes:
+ *   density  - fixed-size images (logos, avatars): 1x / 2x / 3x descriptors
+ *              naming: image.jpg → image@2x.jpg, image@3x.jpg
+ *   width    - responsive/fluid images (hero, content): width descriptors + sizes
+ *              naming: image.jpg → image-400w.jpg, image-800w.jpg ...
+ *   explicit - variants already in hand (data URIs or uploaded URLs); no naming assumptions
+ *
+ * resizeVariants() generates width-based variants client-side via canvas (browser only).
+ * Pair it with explicit mode to go from a single src to a full srcset without a server.
  */
 
 export type ImgFit = 'cover' | 'contain' | 'fill' | 'scale-down' | 'none';
@@ -72,7 +76,26 @@ export interface SrcsetWidthConfig {
     sizes?: string;
 }
 
-export type SrcsetConfig = SrcsetDensityConfig | SrcsetWidthConfig;
+/**
+ * Explicit srcset: variants are already in hand (uploaded URLs or data URIs).
+ * No naming conventions assumed — each entry carries its own src.
+ * Use together with resizeVariants() for fully client-side srcset generation.
+ */
+export interface SrcsetExplicitConfig {
+    mode: 'explicit';
+    /**
+     * Each variant must carry either a `width` (w descriptor) or a `density` (x descriptor).
+     * Mix of both in the same srcset is invalid per spec — pick one.
+     */
+    variants: Array<{ src: string; width: number } | { src: string; density: number }>;
+    /**
+     * CSS sizes attribute. Only meaningful when variants use width descriptors.
+     * Example: '(max-width: 640px) 100vw, 800px'
+     */
+    sizes?: string;
+}
+
+export type SrcsetConfig = SrcsetDensityConfig | SrcsetWidthConfig | SrcsetExplicitConfig;
 
 /** JSON-serialisable representation of all <img> attributes. */
 export interface ImageParams {
@@ -106,6 +129,12 @@ function insertSuffix(src: string, suffix: string): string {
 }
 
 function buildSrcsetString(src: string, cfg: SrcsetConfig): string {
+    if (cfg.mode === 'explicit') {
+        return cfg.variants
+            .map(v => 'width' in v ? `${v.src} ${v.width}w` : `${v.src} ${v.density}x`)
+            .join(', ');
+    }
+
     if (cfg.mode === 'density') {
         const densities = cfg.densities ?? [1, 2];
         return densities
@@ -155,7 +184,7 @@ function buildImageParams(
 
     if (srcset) {
         params.srcset = buildSrcsetString(config.src, srcset);
-        if (srcset.mode === 'width' && srcset.sizes) {
+        if (srcset.mode !== 'density' && srcset.sizes) {
             params.sizes = srcset.sizes;
         }
     }
@@ -200,7 +229,6 @@ export interface UseImageResult {
 
 /**
  * Returns toHtml / toJson / params helpers bound to the given image config.
- * Does NOT resize images - assumes variant files already exist on the server.
  *
  * @example
  * const img = useImage({ src: 'hero.jpg', alt: 'Hero', width: 800, height: 450, priority: true })
@@ -211,6 +239,10 @@ export interface UseImageResult {
  * // Fixed-size HTML with density srcset (files: hero.jpg, hero@2x.jpg, hero@3x.jpg)
  * img.toHtml({ mode: 'density', densities: [1, 2, 3] })
  *
+ * // Explicit srcset from resizeVariants() or uploaded URLs — no naming assumptions
+ * const variants = await resizeVariants('photo.jpg', [400, 800])
+ * img.toHtml({ mode: 'explicit', variants, sizes: '(max-width: 640px) 100vw, 800px' })
+ *
  * // JSON params for CMS or SSR
  * img.toJson({ mode: 'width', widths: [400, 800, 1200], sizes: '100vw' })
  */
@@ -220,4 +252,61 @@ export function useImage(config: ImageBuilderConfig): UseImageResult {
         toJson:  (srcset?) => JSON.stringify(buildImageParams(config, srcset), null, 2),
         params:  (srcset?) => buildImageParams(config, srcset),
     };
+}
+
+/**
+ * Resizes a source image to multiple widths proportionally using canvas (browser only).
+ * Widths larger than the natural image width are skipped — the original is used as the
+ * largest variant instead, avoiding pointless upscaling.
+ *
+ * Returns an array of { src: dataURI, width } ready to pass as `variants` in explicit mode.
+ * After uploading each variant to storage, swap the data URIs for the resulting URLs.
+ *
+ * @example
+ * const variants = await resizeVariants(file, [400, 800, 1200])
+ * // upload variants to storage if needed, then:
+ * useImage({ src: variants.at(-1)!.src, alt: 'Photo' })
+ *   .toHtml({ mode: 'explicit', variants, sizes: '(max-width: 640px) 100vw, 800px' })
+ */
+export async function resizeVariants(
+    src: string,
+    widths: number[],
+): Promise<Array<{ src: string; width: number }>> {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+
+        img.onload = () => {
+            const naturalW = img.naturalWidth;
+            const naturalH = img.naturalHeight;
+            const mimeType = src.startsWith('data:')
+                ? src.slice(5, src.indexOf(';'))
+                : 'image/jpeg';
+
+            const sorted = [...widths].sort((a, b) => a - b);
+
+            const variants = sorted
+                .filter(w => w < naturalW)
+                .map(targetW => {
+                    const targetH = Math.round(naturalH * (targetW / naturalW));
+                    const canvas  = document.createElement('canvas');
+                    canvas.width  = targetW;
+                    canvas.height = targetH;
+                    const ctx = canvas.getContext('2d');
+                    if (!ctx) throw new Error('Canvas 2D context unavailable');
+                    ctx.drawImage(img, 0, 0, targetW, targetH);
+                    return { src: canvas.toDataURL(mimeType), width: targetW };
+                });
+
+            // Always include the original as the largest entry
+            variants.push({ src, width: naturalW });
+
+            resolve(variants);
+        };
+
+        img.onerror = () => reject(new Error(`resizeVariants: failed to load image`));
+
+        // Needed for cross-origin URLs so canvas.toDataURL() doesn't throw a taint error
+        if (!src.startsWith('data:')) img.crossOrigin = 'anonymous';
+        img.src = src;
+    });
 }

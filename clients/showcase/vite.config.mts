@@ -22,6 +22,19 @@ export default defineConfig(({ mode }) => {
         },
         optimizeDeps: {
             exclude: ['@llmnative/react'],
+            include: [
+                '@tiptap/react',
+                '@tiptap/react > @tiptap/core',
+                '@tiptap/starter-kit',
+                '@tiptap/extension-underline',
+                '@tiptap/extension-link',
+                '@tiptap/extension-image',
+                '@tiptap/extension-table',
+                '@tiptap/extension-placeholder',
+                '@tiptap/extension-character-count',
+                '@tiptap/extension-bubble-menu',
+                '@tiptap/react/menus',
+            ],
         },
         server: {
             host: '127.0.0.1',

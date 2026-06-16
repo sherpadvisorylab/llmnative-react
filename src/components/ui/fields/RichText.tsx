@@ -6,7 +6,7 @@ import type { FieldValue } from '../../../providers/data/DataProvider';
 import { Label, FieldError, fieldFeedbackClass } from './Input';
 import { cn } from '../../../libs/cn';
 import Icon from '../Icon';
-import { useStorageProvider } from '../../../providers/storage/StorageProviderContext';
+import { useFileUploadCore, type FileProps } from './Upload';
 
 // ── LAZY MODULE LOADER ────────────────────────────────────────────────────────
 // TipTap (~400 KB) is only fetched when a RichText field is actually mounted.
@@ -43,6 +43,7 @@ const ensureTipTap = (): Promise<TipTapModules> => {
 
 export type ToolbarCommand =
     | 'bold' | 'italic' | 'underline' | 'strike'
+    | 'headings'
     | 'heading1' | 'heading2' | 'heading3'
     | 'bulletList' | 'orderedList'
     | 'blockquote' | 'code' | 'codeBlock'
@@ -88,7 +89,7 @@ export interface RichTextProps extends FormFieldProps {
 
 const DEFAULT_TOOLBAR_COMMANDS: ToolbarCommand[] = [
     'bold', 'italic', 'underline', 'strike', '|',
-    'heading1', 'heading2', 'heading3', '|',
+    'headings', '|',
     'bulletList', 'orderedList', '|',
     'blockquote', 'code', 'codeBlock', '|',
     'link', '|',
@@ -114,23 +115,23 @@ interface ToolbarButtonDef {
 }
 
 const TOOLBAR_DEFS: Partial<Record<Exclude<ToolbarCommand, '|'>, ToolbarButtonDef>> = {
-    bold:        { icon: 'text-b',            label: 'Bold',          isActive: e => e.isActive('bold'),                      execute: e => e.chain().focus().toggleBold().run() },
-    italic:      { icon: 'text-italic',       label: 'Italic',        isActive: e => e.isActive('italic'),                    execute: e => e.chain().focus().toggleItalic().run() },
-    underline:   { icon: 'text-underline',    label: 'Underline',     isActive: e => e.isActive('underline'),                 execute: e => e.chain().focus().toggleUnderline().run() },
-    strike:      { icon: 'text-strikethrough',label: 'Strikethrough', isActive: e => e.isActive('strike'),                   execute: e => e.chain().focus().toggleStrike().run() },
-    heading1:    { icon: 'text-h-one',        label: 'Heading 1',     isActive: e => e.isActive('heading', { level: 1 }),     execute: e => e.chain().focus().toggleHeading({ level: 1 }).run() },
-    heading2:    { icon: 'text-h-two',        label: 'Heading 2',     isActive: e => e.isActive('heading', { level: 2 }),     execute: e => e.chain().focus().toggleHeading({ level: 2 }).run() },
-    heading3:    { icon: 'text-h-three',      label: 'Heading 3',     isActive: e => e.isActive('heading', { level: 3 }),     execute: e => e.chain().focus().toggleHeading({ level: 3 }).run() },
+    bold:        { icon: 'bold',              label: 'Bold',          isActive: e => e.isActive('bold'),                      execute: e => e.chain().focus().toggleBold().run() },
+    italic:      { icon: 'italic',            label: 'Italic',        isActive: e => e.isActive('italic'),                    execute: e => e.chain().focus().toggleItalic().run() },
+    underline:   { icon: 'underline',         label: 'Underline',     isActive: e => e.isActive('underline'),                 execute: e => e.chain().focus().toggleUnderline().run() },
+    strike:      { icon: 'strikethrough',     label: 'Strikethrough', isActive: e => e.isActive('strike'),                   execute: e => e.chain().focus().toggleStrike().run() },
+    heading1:    { icon: 'heading-1',         label: 'Heading 1',     isActive: e => e.isActive('heading', { level: 1 }),     execute: e => e.chain().focus().toggleHeading({ level: 1 }).run() },
+    heading2:    { icon: 'heading-2',         label: 'Heading 2',     isActive: e => e.isActive('heading', { level: 2 }),     execute: e => e.chain().focus().toggleHeading({ level: 2 }).run() },
+    heading3:    { icon: 'heading-3',         label: 'Heading 3',     isActive: e => e.isActive('heading', { level: 3 }),     execute: e => e.chain().focus().toggleHeading({ level: 3 }).run() },
     bulletList:  { icon: 'list',              label: 'Bullet List',   isActive: e => e.isActive('bulletList'),                execute: e => e.chain().focus().toggleBulletList().run() },
-    orderedList: { icon: 'list-numbers',      label: 'Ordered List',  isActive: e => e.isActive('orderedList'),               execute: e => e.chain().focus().toggleOrderedList().run() },
-    blockquote:  { icon: 'quotes',            label: 'Blockquote',    isActive: e => e.isActive('blockquote'),                execute: e => e.chain().focus().toggleBlockquote().run() },
+    orderedList: { icon: 'list-ordered',      label: 'Ordered List',  isActive: e => e.isActive('orderedList'),               execute: e => e.chain().focus().toggleOrderedList().run() },
+    blockquote:  { icon: 'quote',             label: 'Blockquote',    isActive: e => e.isActive('blockquote'),                execute: e => e.chain().focus().toggleBlockquote().run() },
     code:        { icon: 'code',              label: 'Inline Code',   isActive: e => e.isActive('code'),                     execute: e => e.chain().focus().toggleCode().run() },
-    codeBlock:   { icon: 'code-block',        label: 'Code Block',    isActive: e => e.isActive('codeBlock'),                 execute: e => e.chain().focus().toggleCodeBlock().run() },
-    link:        { icon: 'link',              label: 'Link',          isActive: e => e.isActive('link'),                     execute: e => { const url = window.prompt('URL'); if (url) e.chain().focus().setLink({ href: url }).run(); else e.chain().focus().unsetLink().run(); } },
+    codeBlock:   { icon: 'square-code',       label: 'Code Block',    isActive: e => e.isActive('codeBlock'),                 execute: e => e.chain().focus().toggleCodeBlock().run() },
+    link:        { icon: 'link',              label: 'Link',          isActive: e => e.isActive('link'),                     execute: e => { if (e.isActive('link')) { e.chain().focus().unsetLink().run(); return; } const url = window.prompt('URL'); if (url) e.chain().focus().setLink({ href: url }).run(); } },
     table:       { icon: 'table',             label: 'Insert Table',                                                          execute: e => e.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run() },
-    undo:        { icon: 'arrow-counter-clockwise', label: 'Undo',                                                            execute: e => e.chain().focus().undo().run() },
-    redo:        { icon: 'arrow-clockwise',   label: 'Redo',                                                                  execute: e => e.chain().focus().redo().run() },
-    clearFormat: { icon: 'text-t',            label: 'Clear Format',                                                          execute: e => e.chain().focus().clearNodes().unsetAllMarks().run() },
+    undo:        { icon: 'undo-2',            label: 'Undo',                                                                  execute: e => e.chain().focus().undo().run() },
+    redo:        { icon: 'redo-2',            label: 'Redo',                                                                  execute: e => e.chain().focus().redo().run() },
+    clearFormat: { icon: 'eraser',            label: 'Clear Format',                                                          execute: e => e.chain().focus().clearNodes().unsetAllMarks().run() },
 };
 
 // ── INTERNAL: TOOLBAR BUTTON ──────────────────────────────────────────────────
@@ -153,6 +154,71 @@ const ToolbarButton = ({ def, editor }: { def: ToolbarButtonDef; editor: Editor 
     );
 };
 
+// ── INTERNAL: HEADING PICKER ──────────────────────────────────────────────────
+
+const HEADING_OPTIONS = [
+    { value: 0,  label: 'Normal',    previewClass: 'text-sm',              execute: (e: Editor) => e.chain().focus().setParagraph().run() },
+    { value: 1,  label: 'Heading 1', previewClass: 'text-2xl font-bold',   execute: (e: Editor) => e.chain().focus().setHeading({ level: 1 }).run() },
+    { value: 2,  label: 'Heading 2', previewClass: 'text-xl font-semibold',execute: (e: Editor) => e.chain().focus().setHeading({ level: 2 }).run() },
+    { value: 3,  label: 'Heading 3', previewClass: 'text-lg font-semibold',execute: (e: Editor) => e.chain().focus().setHeading({ level: 3 }).run() },
+] as const;
+
+const HeadingPicker = ({ editor }: { editor: Editor }) => {
+    const [open, setOpen] = React.useState(false);
+    const ref = useRef<HTMLDivElement>(null);
+
+    React.useEffect(() => {
+        const close = (e: MouseEvent) => {
+            if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+        };
+        document.addEventListener('mousedown', close);
+        return () => document.removeEventListener('mousedown', close);
+    }, []);
+
+    const currentLabel =
+        editor.isActive('heading', { level: 1 }) ? 'H1' :
+        editor.isActive('heading', { level: 2 }) ? 'H2' :
+        editor.isActive('heading', { level: 3 }) ? 'H3' :
+        'P';
+
+    return (
+        <div ref={ref} className="relative">
+            <button
+                type="button"
+                title="Paragraph style"
+                onMouseDown={ev => { ev.preventDefault(); setOpen(o => !o); }}
+                className="inline-flex h-7 items-center gap-0.5 rounded px-1.5 text-xs font-medium transition-colors hover:bg-muted"
+            >
+                {currentLabel}
+                <Icon name="chevron-down" size={10} />
+            </button>
+            {open && (
+                <div className="absolute left-0 top-full z-50 mt-1 w-44 overflow-hidden rounded-md border border-border bg-background shadow-lg">
+                    {HEADING_OPTIONS.map(opt => (
+                        <button
+                            key={opt.value}
+                            type="button"
+                            onMouseDown={ev => {
+                                ev.preventDefault();
+                                opt.execute(editor);
+                                setOpen(false);
+                            }}
+                            className={cn(
+                                'block w-full px-3 py-1.5 text-left leading-snug transition-colors hover:bg-muted',
+                                opt.previewClass,
+                                opt.value === 0 && editor.isActive('paragraph') && 'bg-muted/60',
+                                opt.value !== 0 && editor.isActive('heading', { level: opt.value }) && 'bg-muted/60',
+                            )}
+                        >
+                            {opt.label}
+                        </button>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};
+
 // ── INTERNAL: TOOLBAR ─────────────────────────────────────────────────────────
 
 interface ToolbarProps {
@@ -165,10 +231,24 @@ interface ToolbarProps {
     compact?: boolean;
 }
 
-const RichTextToolbar = ({ editor, commands, sourceMode, onImageUpload, onDocumentUpload, onSourceToggle, compact }: ToolbarProps) => (
+const RichTextToolbar = ({ editor, commands, sourceMode, onImageUpload, onDocumentUpload, onSourceToggle, compact }: ToolbarProps) => {
+    const [, rerender] = React.useReducer(n => n + 1, 0);
+
+    React.useEffect(() => {
+        editor.on('selectionUpdate', rerender);
+        editor.on('transaction', rerender);
+        return () => {
+            editor.off('selectionUpdate', rerender);
+            editor.off('transaction', rerender);
+        };
+    }, [editor]);
+
+    return (
     <div className={cn('flex flex-wrap items-center gap-0.5 px-2 py-1', !compact && 'border-b border-border')}>
         {commands.map((cmd, i) => {
             if (cmd === '|') return <div key={i} className="mx-0.5 h-4 w-px bg-border" />;
+
+            if (cmd === 'headings') return <HeadingPicker key={cmd} editor={editor} />;
 
             if (cmd === 'imageUpload') return (
                 <button key={cmd} type="button" title="Upload Image"
@@ -182,7 +262,7 @@ const RichTextToolbar = ({ editor, commands, sourceMode, onImageUpload, onDocume
                 <button key={cmd} type="button" title="Upload Document"
                     onMouseDown={ev => { ev.preventDefault(); onDocumentUpload(); }}
                     className="inline-flex h-7 w-7 items-center justify-center rounded text-sm transition-colors hover:bg-muted">
-                    <Icon name="file-arrow-up" size={14} />
+                    <Icon name="file-up" size={14} />
                 </button>
             );
 
@@ -202,7 +282,8 @@ const RichTextToolbar = ({ editor, commands, sourceMode, onImageUpload, onDocume
             return <ToolbarButton key={cmd} def={def} editor={editor} />;
         })}
     </div>
-);
+    );
+};
 
 // ── INTERNAL: STATUS BAR ──────────────────────────────────────────────────────
 
@@ -262,6 +343,106 @@ const RichTextStatusBar = ({ editor, config }: { editor: Editor; config: StatusB
     );
 };
 
+// ── IMAGE INSERT / EDIT DIALOG ────────────────────────────────────────────────
+
+type ImageDialogState =
+    | { mode: 'insert'; fileProps: FileProps; preview: string; defaultAlt: string }
+    | { mode: 'edit';   pos: number; attrs: Record<string, unknown> };
+
+interface ImageDialogValues { alt: string; href: string; target: string }
+
+const ImageInsertDialog = ({
+    state,
+    onConfirm,
+    onCancel,
+}: {
+    state: ImageDialogState;
+    onConfirm: (values: ImageDialogValues) => void;
+    onCancel: () => void;
+}) => {
+    const isInsert = state.mode === 'insert';
+    const [alt,    setAlt   ] = useState(isInsert ? state.defaultAlt : (state.attrs.alt as string ?? ''));
+    const [href,   setHref  ] = useState(isInsert ? '' : (state.attrs.href as string ?? ''));
+    const [target, setTarget] = useState(isInsert ? '_blank' : (state.attrs.target as string ?? '_blank'));
+    const altRef = useRef<HTMLInputElement>(null);
+    useEffect(() => { altRef.current?.focus(); }, []);
+
+    const confirm = () => onConfirm({ alt, href, target });
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onMouseDown={onCancel}>
+            <div className="flex w-80 flex-col gap-3 rounded-lg border border-border bg-background p-4 shadow-xl"
+                 onMouseDown={e => e.stopPropagation()}>
+                <p className="text-sm font-semibold">{isInsert ? 'Insert image' : 'Edit image'}</p>
+
+                {(() => {
+                    const src = isInsert ? state.preview : (state.attrs.src as string | undefined);
+                    return src ? <img src={src} alt="" className="max-h-40 w-full rounded-md bg-muted/40 object-contain" /> : null;
+                })()}
+
+                {/* Alt text */}
+                <div className="flex flex-col gap-1">
+                    <label className="text-xs font-medium text-muted-foreground">
+                        Alt text <span className="font-normal opacity-60">(accessibility &amp; SEO)</span>
+                    </label>
+                    <input
+                        ref={altRef}
+                        type="text"
+                        value={alt}
+                        onChange={e => setAlt(e.target.value)}
+                        onKeyDown={e => { if (e.key === 'Escape') onCancel(); }}
+                        placeholder="E.g. Team photo at company retreat"
+                        className="h-8 rounded-md border border-input bg-background px-2.5 text-sm outline-none focus:ring-1 focus:ring-ring"
+                    />
+                </div>
+
+                {/* Link URL + target */}
+                <div className="flex flex-col gap-1">
+                    <label className="text-xs font-medium text-muted-foreground">
+                        Link URL <span className="font-normal opacity-60">(optional)</span>
+                    </label>
+                    <div className="flex gap-1.5">
+                        <input
+                            type="url"
+                            value={href}
+                            onChange={e => setHref(e.target.value)}
+                            onKeyDown={e => { if (e.key === 'Escape') onCancel(); }}
+                            placeholder="https://..."
+                            className="h-8 min-w-0 flex-1 rounded-md border border-input bg-background px-2.5 text-sm outline-none focus:ring-1 focus:ring-ring"
+                        />
+                        <select
+                            value={target}
+                            onChange={e => setTarget(e.target.value)}
+                            disabled={!href}
+                            className="h-8 rounded-md border border-input bg-background px-2 text-xs outline-none focus:ring-1 focus:ring-ring disabled:opacity-40"
+                        >
+                            <option value="_blank">New tab</option>
+                            <option value="_self">Same tab</option>
+                        </select>
+                    </div>
+                </div>
+
+                {isInsert && (state.fileProps.srcset || (state.fileProps.url && state.fileProps.url !== state.preview)) && (
+                    <p className="text-xs text-muted-foreground">
+                        Responsive variants uploaded automatically.
+                    </p>
+                )}
+
+                <div className="flex justify-end gap-2">
+                    <button type="button" onClick={onCancel}
+                        className="h-8 rounded-md px-3 text-sm transition-colors hover:bg-muted">
+                        Cancel
+                    </button>
+                    <button type="button" onClick={confirm}
+                        className="h-8 rounded-md bg-primary px-3 text-sm text-primary-foreground transition-colors hover:bg-primary/90">
+                        {isInsert ? 'Insert' : 'Save'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 // ── INTERNAL: EDITOR INNER ────────────────────────────────────────────────────
 // Rendered only after TipTap modules are loaded — all TipTap hooks live here.
 
@@ -294,22 +475,70 @@ const RichTextInner = ({
     const Underline                    = modules[3].default;
     const Link                         = modules[4].default;
     const Image                        = modules[5].default;
+    const ImageExtended = Image.extend({
+        addAttributes() {
+            return {
+                ...(this.parent?.() ?? {}),
+                srcset:   { default: null },
+                sizes:    { default: null },
+                loading:  { default: null },
+                decoding: { default: null },
+                href:     { default: null },
+                target:   { default: null },
+            };
+        },
+        renderHTML({ HTMLAttributes }: { HTMLAttributes: Record<string, unknown> }) {
+            const { href, target, ...rest } = HTMLAttributes;
+            const extDefaults = ((this.options as unknown) as { HTMLAttributes?: Record<string, unknown> }).HTMLAttributes ?? {};
+            const imgAttrs = Object.fromEntries(
+                Object.entries({ ...extDefaults, ...rest })
+                    .filter(([, v]) => v !== null && v !== undefined)
+            );
+            // CR-042 — DOMOutputSpec tuple type requires a const assertion to satisfy TS
+            const imgSpec = ['img', imgAttrs] as const;
+            if (href) {
+                return ['a', { href, target: target ?? '_blank', rel: 'noopener noreferrer' }, imgSpec] as unknown as readonly [string, ...unknown[]];
+            }
+            return imgSpec as unknown as readonly [string, ...unknown[]];
+        },
+    });
     const { Table, TableRow, TableHeader, TableCell } = modules[6];
     const Placeholder                  = modules[7].default;
     const CharacterCount               = modules[8].default;
 
     const [sourceMode, setSourceMode] = useState(false);
     const [sourceContent, setSourceContent] = useState('');
-    const imageInputRef = useRef<HTMLInputElement>(null);
-    const docInputRef   = useRef<HTMLInputElement>(null);
-    const storage       = useStorageProvider();
+    const [imgDialog, setImgDialog] = useState<ImageDialogState | null>(null);
+    const [, rerenderOnSelection] = React.useReducer(n => n + 1, 0);
+    const docInputRef = useRef<HTMLInputElement>(null);
+
+    const imgCore = useFileUploadCore({
+        uploadPath,
+        generateSrcset: true,
+        onFileReady: (fp) => {
+            const defaultAlt = fp.fileName
+                .replace(/\.[^/.]+$/, '')
+                .replace(/[-_]+/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim()
+                .replace(/^(.)/, c => c.toUpperCase());
+            // Compute preview directly — avoids getFileUrl/urlCache entirely
+            const preview = fp.url || (fp.base64 ? `data:${fp.type};base64,${fp.base64}` : '');
+            setImgDialog({ mode: 'insert', fileProps: fp, preview, defaultAlt });
+        },
+    });
+
+    const editorContentMinHeight = minHeight - 16; // subtract py-2 (8px top + 8px bottom)
 
     const editor = useEditor({
         extensions: [
             StarterKit,
             Underline,
-            Link.configure({ openOnClick: false }),
-            Image,
+            Link.configure({
+                openOnClick: false,
+                HTMLAttributes: { target: null, rel: 'noopener noreferrer nofollow' },
+            }),
+            ImageExtended.configure({ allowBase64: true }),
             Table.configure({ resizable: true }),
             TableRow,
             TableHeader,
@@ -319,6 +548,35 @@ const RichTextInner = ({
         ],
         content: value || '',
         editable: !disabled,
+        editorProps: {
+            attributes: {
+                style: `min-height: ${editorContentMinHeight}px`,
+            },
+            handleClick(view, pos, event) {
+                if (event.ctrlKey || event.metaKey) {
+                    const marks = view.state.doc.resolve(pos).marks();
+                    const linkMark = marks.find(m => m.type.name === 'link');
+                    if (linkMark?.attrs.href) {
+                        window.open(linkMark.attrs.href as string, '_blank', 'noopener,noreferrer');
+                        return true;
+                    }
+                }
+                // Use event.target + posAtDOM for reliable image detection.
+                // The `pos` param is only the "nearest" position and can miss leaf nodes.
+                const target = event.target as HTMLElement;
+                if (target.tagName === 'IMG') {
+                    try {
+                        const imgPos = view.posAtDOM(target, 0);
+                        const node = view.state.doc.nodeAt(imgPos);
+                        if (node?.type.name === 'image') {
+                            setImgDialog({ mode: 'edit', pos: imgPos, attrs: node.attrs as Record<string, unknown> });
+                            return true;
+                        }
+                    } catch { /* ignore — posAtDOM can throw if element is outside the doc */ }
+                }
+                return false;
+            },
+        },
         onUpdate: ({ editor: ed }) => {
             const content =
                 outputFormat === 'json' ? JSON.stringify(ed.getJSON()) :
@@ -344,6 +602,16 @@ const RichTextInner = ({
         }
     }, [value, editor, outputFormat]);
 
+    // Keep ProseMirror min-height in sync with the minHeight prop.
+    // Also subscribe to selectionUpdate so RichTextInner re-renders when the cursor moves,
+    // ensuring the link tooltip popup always reads a fresh href from the editor state.
+    useEffect(() => {
+        if (!editor) return;
+        editor.view.dom.style.minHeight = `${editorContentMinHeight}px`;
+        editor.on('selectionUpdate', rerenderOnSelection);
+        return () => { editor.off('selectionUpdate', rerenderOnSelection); };
+    }, [editor, editorContentMinHeight]);
+
     // Source mode: toggle between WYSIWYG and raw HTML textarea.
     const handleSourceToggle = () => {
         if (!editor) return;
@@ -352,24 +620,50 @@ const RichTextInner = ({
         setSourceMode(s => !s);
     };
 
-    // Upload helpers — use StorageProvider when available, fall back to data URL.
+    // Upload helpers — document upload uses StorageProvider directly; image upload delegates to imgCore.
     const uploadAndInsert = async (file: File, insert: (url: string) => void) => {
         const reader = new FileReader();
         reader.onload = async ev => {
             const dataUrl = ev.target?.result as string;
-            if (storage && uploadPath) {
-                const url = await storage.upload(dataUrl, `${uploadPath}/${file.name}`);
-                if (url) insert(url);
-            } else {
-                insert(dataUrl);
-            }
+            insert(dataUrl);
         };
         reader.readAsDataURL(file);
     };
 
-    const handleImageFile = (file: File) => {
-        if (!editor) return;
-        uploadAndInsert(file, url => editor.chain().focus().setImage({ src: url }).run());
+    const confirmImageDialog = ({ alt, href, target }: ImageDialogValues) => {
+        if (!editor || !imgDialog) return;
+
+        if (imgDialog.mode === 'edit') {
+            const { pos, attrs } = imgDialog;
+            setImgDialog(null);
+            const node = editor.state.doc.nodeAt(pos);
+            if (node?.type.name === 'image') {
+                const { tr } = editor.state;
+                tr.setNodeMarkup(pos, null, {
+                    ...attrs,
+                    alt:    alt    || null,
+                    href:   href   || null,
+                    target: href ? (target || '_blank') : null,
+                });
+                editor.view.dispatch(tr);
+            }
+            return;
+        }
+
+        const { fileProps, preview } = imgDialog;
+        setImgDialog(null);
+        imgCore.handleRemove(fileProps.key);
+
+        const src = fileProps.url || preview;
+        const baseAttrs = {
+            alt:    alt    || null,
+            href:   href   || null,
+            target: href ? (target || '_blank') : null,
+        };
+        const attrs = fileProps.srcset
+            ? { ...baseAttrs, src, srcset: fileProps.srcset, sizes: fileProps.sizes ?? '(max-width: 640px) 100vw, 800px', loading: 'lazy', decoding: 'async' }
+            : { ...baseAttrs, src };
+        editor.chain().focus().insertContent({ type: 'image', attrs }).run();
     };
 
     const handleDocFile = (file: File) => {
@@ -385,6 +679,14 @@ const RichTextInner = ({
     );
 
     return (
+        <>
+        {imgDialog && (
+            <ImageInsertDialog
+                state={imgDialog}
+                onConfirm={confirmImageDialog}
+                onCancel={() => setImgDialog(null)}
+            />
+        )}
         <div
             className={cn(
                 'rounded-md border border-input bg-background shadow-sm transition-colors',
@@ -400,7 +702,7 @@ const RichTextInner = ({
                     editor={editor}
                     commands={toolbarCommands}
                     sourceMode={sourceMode}
-                    onImageUpload={() => imageInputRef.current?.click()}
+                    onImageUpload={imgCore.handleUpload}
                     onDocumentUpload={() => docInputRef.current?.click()}
                     onSourceToggle={handleSourceToggle}
                 />
@@ -414,12 +716,67 @@ const RichTextInner = ({
                             editor={editor}
                             commands={floatingCommands}
                             sourceMode={sourceMode}
-                            onImageUpload={() => imageInputRef.current?.click()}
+                            onImageUpload={imgCore.handleUpload}
                             onDocumentUpload={() => docInputRef.current?.click()}
                             onSourceToggle={handleSourceToggle}
                             compact
                         />
                     </div>
+                </BubbleMenu>
+            )}
+
+            {/* Link tooltip — shown when cursor is inside a link with a valid href */}
+            {editor && !sourceMode && (
+                <BubbleMenu
+                    editor={editor}
+                    shouldShow={({ editor: ed, from, to }) => {
+                        if (from !== to) return false;
+                        if (!ed.isActive('link')) return false;
+                        return !!(ed.getAttributes('link').href as string | undefined);
+                    }}
+                    options={{ placement: 'bottom-start', offset: 6 }}
+                >
+                    {(() => {
+                        const href = editor.getAttributes('link').href as string | undefined ?? '';
+                        return (
+                            <div className="flex items-center gap-1.5 rounded-md border border-border bg-background px-2 py-1.5 shadow-md">
+                                <Icon name="link" size={12} className="shrink-0 text-muted-foreground" />
+                                <a
+                                    href={href}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="max-w-[220px] truncate text-xs text-primary underline"
+                                >
+                                    {href}
+                                </a>
+                                <div className="mx-0.5 h-3 w-px bg-border" />
+                                <button
+                                    type="button"
+                                    title="Edit link"
+                                    onMouseDown={ev => {
+                                        ev.preventDefault();
+                                        const url = window.prompt('URL', href);
+                                        if (url) editor.chain().focus().setLink({ href: url }).run();
+                                        else if (url === '') editor.chain().focus().unsetLink().run();
+                                    }}
+                                    className="inline-flex h-5 w-5 items-center justify-center rounded transition-colors hover:bg-muted"
+                                >
+                                    <Icon name="pencil" size={11} />
+                                </button>
+                                <button
+                                    type="button"
+                                    title="Remove link"
+                                    onMouseDown={ev => {
+                                        ev.preventDefault();
+                                        editor.chain().focus().unsetLink().run();
+                                    }}
+                                    className="inline-flex h-5 w-5 items-center justify-center rounded transition-colors hover:bg-muted"
+                                >
+                                    <Icon name="unlink" size={11} />
+                                </button>
+                            </div>
+                        );
+                    })()}
                 </BubbleMenu>
             )}
 
@@ -450,7 +807,7 @@ const RichTextInner = ({
                         '[&_.ProseMirror_table]:w-full [&_.ProseMirror_table]:border-collapse',
                         '[&_.ProseMirror_td]:border [&_.ProseMirror_td]:border-border [&_.ProseMirror_td]:px-2 [&_.ProseMirror_td]:py-1',
                         '[&_.ProseMirror_th]:border [&_.ProseMirror_th]:border-border [&_.ProseMirror_th]:bg-muted [&_.ProseMirror_th]:px-2 [&_.ProseMirror_th]:py-1 [&_.ProseMirror_th]:font-semibold',
-                        '[&_.ProseMirror_a]:text-primary [&_.ProseMirror_a]:underline',
+                        '[&_.ProseMirror_a]:text-primary [&_.ProseMirror_a]:underline [&_.ProseMirror_a]:pointer-events-none',
                         '[&_.ProseMirror_.is-editor-empty:first-child::before]:pointer-events-none [&_.ProseMirror_.is-editor-empty:first-child::before]:float-left [&_.ProseMirror_.is-editor-empty:first-child::before]:h-0 [&_.ProseMirror_.is-editor-empty:first-child::before]:text-muted-foreground [&_.ProseMirror_.is-editor-empty:first-child::before]:content-[attr(data-placeholder)]',
                     )}
                 >
@@ -465,15 +822,11 @@ const RichTextInner = ({
 
             {/* Hidden file inputs for upload commands */}
             <input
-                ref={imageInputRef}
+                ref={imgCore.fileInputRef}
                 type="file"
                 accept="image/*"
                 className="hidden"
-                onChange={e => {
-                    const f = e.target.files?.[0];
-                    if (f) handleImageFile(f);
-                    e.target.value = '';
-                }}
+                onChange={imgCore.handleUploadChange}
             />
             <input
                 ref={docInputRef}
@@ -487,6 +840,7 @@ const RichTextInner = ({
                 }}
             />
         </div>
+        </>
     );
 };
 
