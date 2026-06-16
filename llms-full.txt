@@ -90,55 +90,37 @@ const creds   = useCredentialsProvider()    // CredentialsAdapter | null
 const supabase = useDataProvider('supabase')
 ```
 
-### DataProviderAdapter interface
-```ts
-interface DataProviderAdapter {
-  read(path: string, options?: ReadOptions): Promise<unknown>
-  set(path: string, data: object): Promise<void>
-  update(path: string, data: object): Promise<void>
-  remove(path: string): Promise<void>
-  subscribe(path: string | undefined, callback: (records: RecordArray) => void): () => void
-  count?(path: string, where?: WhereClause[]): Promise<number>
-}
-```
+### Interfacce principali
 
-### StorageProviderAdapter interface
 ```ts
-interface StorageProviderAdapter {
-  upload(file: string, path: string): Promise<string | undefined>
-  getURL(path: string): Promise<string | undefined>
-  download(path: string): Promise<Blob | undefined>
-  delete(path: string): Promise<boolean>
-}
-```
+// DataProviderAdapter
+read(path, options?) / set(path, data) / update(path, data) / remove(path)
+subscribe(path, callback: (records: RecordArray) => void): () => void
+count?(path, where?): Promise<number>
 
-### AuthProviderAdapter interface
-```ts
-interface AuthProviderAdapter {
-  signIn(intent?: AuthIntent, options?: AuthSignInOptions): Promise<UserProfile | undefined>
-  signOut(): Promise<void>
-  onAuthChange(callback: (user: UserProfile | null) => void): () => void
-  getAccessToken(): Promise<string | null>
-  getUser(): UserProfile | null
-}
+// StorageProviderAdapter
+upload(file, path): Promise<string|undefined>
+getURL(path) / download(path): Promise<Blob|undefined> / delete(path): Promise<boolean>
+
+// AuthProviderAdapter
+signIn(intent?, options?) / signOut() / getUser(): UserProfile|null
+onAuthChange(callback) / getAccessToken(): Promise<string|null>
 ```
 
 ### Auth sign-in methods
 
+| method | Firebase | Supabase | Google |
+|---|---|---|---|
+| `password` | ✅ | ✅ | — |
+| `anonymous` | ✅ | ✅ | — |
+| `magic_link` | — | ✅ | — |
+| `oauth` (github, apple…) | ✅ | ✅ | — |
+| GIS + scoped token | — | — | ✅ |
+
 ```ts
-// FirebaseAuthProvider
 await auth.signIn({ method: 'password', email: '...', password: '...' })
-await auth.signIn({ method: 'anonymous' })
-await auth.signIn({ method: 'oauth', provider: 'github' })  // github, apple, microsoft, yahoo
-
-// SupabaseAuthProvider
-await auth.signIn({ method: 'password', email: '...', password: '...' })
-await auth.signIn({ method: 'magic_link', email: '...' })
 await auth.signIn({ method: 'oauth', provider: 'github' })
-await auth.signIn({ method: 'anonymous' })
-
-// GoogleAuthProvider — GIS + scoped token per Google APIs
-await auth.signIn()
+// Google: token per API scope
 const token = await auth.getAccessToken('https://www.googleapis.com/auth/gmail.send')
 ```
 
@@ -259,27 +241,12 @@ export class RestDataProvider implements DataProviderAdapter {
 
 ### Input
 ```tsx
-<Input name="x" label="..." required />
-<Input name="x" inputType="number" min={0} max={100} step={0.01} />
-<Input name="x" inputType="email" />
-<Input name="x" inputType="password" />
-<Input name="x" inputType="color" />
-<Input name="x" inputType="date" />
-<Input name="x" inputType="datetime-local" />
+<Input name="x" label="..." required inputType="number" min={0} max={100} step={0.01} />
 <Input.TextArea name="x" rows={4} />
 <Input.Checkbox name="x" valueChecked="yes" />
 ```
-
-| Prop | Tipo |
-|---|---|
-| `name` | `string` (required) |
-| `label` | `string` |
-| `inputType` | `'text' \| 'number' \| 'email' \| 'password' \| 'color' \| 'date' \| 'time' \| 'datetime-local' \| 'week' \| 'month'` |
-| `required` | `boolean` |
-| `disabled` | `boolean` |
-| `placeholder` | `string` |
-| `min`, `max`, `step` | `number` |
-| `validator` | `(value) => string \| undefined` |
+`inputType`: `text`(default) `number` `email` `password` `color` `date` `time` `datetime-local` `week` `month`
+`name`(req) `label` `required` `disabled` `placeholder` `min` `max` `step` `validator:(v)=>string|undefined`
 
 ### Select
 ```tsx
