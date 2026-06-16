@@ -1,7 +1,8 @@
 import './globals.css';
 export { default as App } from './App';
 export { useMenu } from './App';
-export type { AppProps, AppProvidersConfig } from './App';
+export type { AppProps, AppProvidersConfig, MenuConfig } from './App';
+export type { AIConfig } from './Config';
 export type {
     ServicesConfig,
     SupabaseProviderConfig,
@@ -121,6 +122,7 @@ export type {
     GridSelectionState,
     GridSticky,
     GridTableViewProps,
+    GridCellContext,
 } from './components/widgets/Grid';
 export type { ProviderConfigurable, ProviderConfigurationState } from './providers/ProviderConfiguration';
 export { getProviderConfigurationState } from './providers/ProviderConfiguration';

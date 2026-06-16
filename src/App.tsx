@@ -70,7 +70,7 @@ export interface UseMenuItem extends MenuItem {
     onClick?: () => void;
 }
 
-type MenuConfig = {
+export type MenuConfig = {
     [key: string]: (MenuItem & {
         page?: React.ComponentType;
         layout?: React.ComponentType;
