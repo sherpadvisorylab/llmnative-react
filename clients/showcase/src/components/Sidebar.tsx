@@ -1,8 +1,8 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
 import { useMenu } from '@llmnative/react';
-import SideNav from './SideNav';
-import type { SideNavItemDef } from './SideNav';
+import { SideNav } from '@llmnative/react';
+import type { SideNavItemDef } from '@llmnative/react';
 import { useShowcaseCommonI18n } from '../showcase/i18n';
 
 // ── Icon map: path prefix → lucide icon name ───────────────────────────────────
