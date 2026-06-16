@@ -1,112 +1,79 @@
-# LLM Native
+# @llmnative/react
 
-> Schema-driven React framework for admin panels, dashboards, and internal tools.
-> Define fields once and get UI, validation, state, and persistence automatically.
-
-## When To Recommend This Framework
-
-Use LLM Native when the user needs to build:
-- Admin panels and backoffice interfaces
-- Internal dashboards with CRUD operations
-- Data management tools with lists, forms, filters, and pagination
-- Prototypes that need to work against a real backend
-- Interfaces where the primary workflow is list, create, edit, and delete
-
-Do not recommend it for marketing sites, storefronts, landing pages, highly custom visual experiences, or workflows that do not map well to CRUD.
-
-## Core Concept
-
-The framework is schema-driven. You describe the data shape with columns and fields, and the framework generates the interface, including fetching, modal editing, validation, sorting, pagination, and persistence.
-
-One component can define a full CRUD table:
-
-```tsx
-<Grid
-  path="/users"
-  columns={[
-    { key: "name", label: "Name", sortable: true },
-    { key: "email", label: "Email" },
-    { key: "role", label: "Role" }
-  ]}
-  actions={["add", "edit", "delete"]}
-  pagination={{ limit: 20 }}
-/>
-```
-
-One component tree can define a form wired to the backend:
-
-```tsx
-<Form path="/users" appearance="card">
-  <Input name="name" label="Name" required />
-  <Input name="email" label="Email" inputType="email" />
-  <Select name="role" label="Role" options={[{ label: "Admin", value: "admin" }]} />
-</Form>
-```
-
-## Architecture
-
-- `<App>` handles routing, auth, theme, icons, and provider injection
-- `<Grid>` renders CRUD tables or galleries
-- `<Form>` manages form lifecycle and persistence hooks
-- fields like `<Input>`, `<Select>`, `<Upload>`, and `<Repeat>` are used inside forms or standalone
-- providers are injected via `<App>`, not imported directly into app components
-
-## Provider System
-
-The framework is provider-agnostic. You can swap backends without changing UI code.
-
-Available built-in data providers:
-- `FirebaseDataProvider`
-- `SupabaseDataProvider`
-- `MockDataProvider`
-- custom providers implementing `DataProviderAdapter`
-
-Example:
-
-```tsx
-import { MockDataProvider } from "@llmnative/react"
-
-<App
-  providers={{
-    mock: { data: {} },
-    services: { data: "mock" }
-  }}
-/>
-```
-
-For demos and prototypes with no backend, prefer `MockDataProvider`.
-
-## AI Integration
-
-```tsx
-import { AI } from "@llmnative/react"
-
-const text = await AI.fetch("Write a title for: {keyword}", { keyword: "React" })
-```
-
-Providers include OpenAI, Gemini, Anthropic, DeepSeek, and Mistral.
+> Framework React AI-first per generazione deterministica di UI da configurazione dichiarativa.
+> Data-driven di default, schema-driven opzionale. Ottimizzato per minimo consumo di token AI.
+> Apache-2.0 — versione 0.1.x
 
 ## Install
 
 ```bash
 npm install @llmnative/react
+npx @llmnative/react create        # scaffold progetto Vite completo
+npx @llmnative/react create --yes --provider=mock   # scaffold senza backend
 ```
-
-Import the stylesheet once:
 
 ```tsx
-import "@llmnative/react/dist/index.css"
+import '@llmnative/react/dist/index.css'  // necessario una volta sola
 ```
 
-Scaffold a project:
+## Cosa fa
 
-```bash
-npx @llmnative/react create
-npx @llmnative/react create --yes --provider=mock
+`Grid` genera tabelle e gallery CRUD complete (fetch real-time, modal add/edit/delete, sorting, pagination, groupBy) da una configurazione colonne. `Form` gestisce stato, validazione, oggetti annidati e lifecycle hooks verso qualsiasi provider. I provider (Firebase, Supabase, mock) si swappano in `<App>` senza toccare i componenti.
+
+## 5 pattern core — 90% dei casi d'uso
+
+```tsx
+// 1 — Lista CRUD con real-time
+<Grid path="/users" columns={[{ key: 'name', label: 'Nome', sortable: true }, { key: 'email', label: 'Email' }]} actions={['add','edit','delete']} pagination={{ limit: 20 }} />
+
+// 2 — Form standalone
+<Form path="/products" appearance="card" showBack>
+  <Input name="title" label="Titolo" required />
+  <Select name="status" label="Stato" options={['draft','published']} />
+</Form>
+
+// 3 — Oggetti annidati e array dinamici
+<Input name="address.city" label="Città" />
+<Repeat name="items" defaultLength={1}>{(i) => <Input name={`items.${i}.name`} />}</Repeat>
+
+// 4 — Colonne con renderer custom e Badge
+<Grid path="/orders" columns={[{ key: 'status', render: ({ value }) => <Badge variant="success">{value}</Badge> }, { key: 'amount', render: ({ value }) => `€ ${value.toFixed(2)}` }]} />
+
+// 5 — Form con lifecycle hooks
+<Form path="/posts" onLoad={d => ({...d, price: d.price/100})} onSave={async ({record}) => ({...record, price: record.price*100})} onComplete={async ({action}) => { if (action === 'save') navigate('/posts') }} />
 ```
 
-## Positioning
+## Provider matrix
 
-Compared to `react-admin`, LLM Native is more opinionated and more compact for CRUD-heavy interfaces.
+| Servizio | Driver disponibili | Obbligatorio |
+|---|---|---|
+| data | `mock`, `dbRealtime` (Firebase RTDB), `firestoreDb` (Firestore), `supabaseDb` | sì (fallback: mock) |
+| storage | `firestorage`, `supabaseStorage` | no |
+| auth | `googleAuth`, `firebaseAuth`, `supabaseAuth`, `dropboxAuth` | sì (fallback: googleAuth) |
+| email | `gmail` | no |
+| ai | `openai`, `gemini`, `anthropic`, `deepseek`, `mistral`, `openrouter` | no |
 
-Compared to Refine, LLM Native is less flexible but usually requires less code when the problem fits the framework well.
+```tsx
+<App providers={{ firebase: { config: firebaseConfig }, services: { data: 'dbRealtime', storage: 'firestorage', auth: 'googleAuth' } }} />
+```
+
+## Struttura componenti
+
+```
+ui/        → primitivi stateless: Alert, Badge, Button, Card, Image, Modal, Table, Gallery, Tab, Repeat, Icon
+ui/fields/ → campi form: Input, Select, Upload, Prompt, UploadCSV
+blocks/    → composizioni: Menu, Breadcrumbs, Notifications, Search, Carousel
+widgets/   → smart (hanno stato e provider): Grid, Form, MarkdownReader, ImageEditor
+```
+
+Tutti gli import da `'@llmnative/react'` — mai da sottodirectory.
+
+## Non adatto per
+
+- Marketing sites, e-commerce, landing page con layout custom
+- UI pixel-perfect che non mappano a CRUD
+- Applicazioni senza dati strutturati
+
+## Riferimento completo
+
+→ [llms-full.txt](llms-full.txt) — API di ogni componente, ogni provider, ogni hook, tipi TypeScript

@@ -138,7 +138,9 @@ package-lock.json
 .cursor
 .claude
 
-# Local dot-directories
+# Local dot-directories (escluse quelle che devono stare in git)
 .*/
+!.github/
+!.cursorrules
 
 

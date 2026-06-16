@@ -1,0 +1,635 @@
+# @llmnative/react — Riferimento completo
+
+Framework React AI-first per generazione deterministica di UI. Data-driven di default, schema-driven opzionale.
+Versione 0.1.x — Apache-2.0
+
+```bash
+npm install @llmnative/react
+import '@llmnative/react/dist/index.css'
+```
+
+---
+
+## Regole fondamentali
+
+- Tutti gli import da `'@llmnative/react'` — mai da sottodirectory
+- I provider sono iniettati via `<App providers={...}>` — mai importati direttamente nei componenti
+- Usare `useDataProvider()`, `useAuthProvider()`, ecc. nei componenti, non istanze dirette
+- TypeScript strict: no `any` — usare `unknown`, `Record<string, unknown>`, tipi specifici
+- Naming props: `view` (presentazione contenuto), `appearance` (guscio visuale), `layout` (disposizione spaziale), `mode` (comportamento operativo), `variant` (tono semantico), `position` (ancoraggio), `size` (scala)
+
+---
+
+## App — Entry point
+
+```tsx
+<App
+  providers={{
+    firebase: { config: firebaseConfig },
+    supabase: { url, anonKey },
+    google: { oAuth2: { clientId } },
+    mock: { data: mockData },
+    services: {
+      data:        'dbRealtime',      // DataDriverName
+      storage:     'firestorage',     // StorageDriverName | null
+      auth:        'googleAuth',      // AuthDriverName | null
+      email:       'gmail',           // EmailDriverName | null
+      ai:          'openai',          // AIDriverName | null
+      credentials: 'googleServiceAccount',
+    },
+  }}
+  iconProvider="lucide"              // 'lucide' | 'phosphor' | AppIconProviderConfig
+  themeProvider="default"            // 'default' | 'flat' | 'cyber' | AppThemeProviderConfig
+  menuConfig={menuConfig}
+  importPage={(path) => import(path)}
+/>
+```
+
+### AppThemeProviderConfig
+```ts
+{
+  mode?: 'light' | 'dark' | 'system';
+  theme: string;
+  themes?: Record<string, {
+    preset?: { colors?: ColorScale; radius?: number; font?: string };
+    motion?: MotionRegistry;
+    components?: Record<string, Partial<ThemeComponent>>;
+  }>;
+  themeOverride?: Record<string, Partial<ThemeComponent>>;
+}
+```
+
+Built-in themes: `default`, `flat`, `cyber`.
+
+---
+
+## Provider System
+
+### Matrix completa
+
+| Servizio | Interfaccia | Driver | Config key | Obbligatorio |
+|---|---|---|---|---|
+| data | `DataProviderAdapter` | `mock`, `dbRealtime`, `firestoreDb`, `supabaseDb` | `providers.mock/firebase/supabase` | sì (fallback: mock) |
+| storage | `StorageProviderAdapter` | `firestorage`, `supabaseStorage` | `providers.firebase/supabase` | no |
+| auth | `AuthProviderAdapter` | `googleAuth`, `firebaseAuth`, `supabaseAuth`, `dropboxAuth` | `providers.google/firebase/supabase/dropbox` | sì (fallback: googleAuth) |
+| email | `EmailProviderAdapter` | `gmail` | `providers.google` | no |
+| ai | `AIProviderAdapter` | `openai`, `gemini`, `anthropic`, `deepseek`, `mistral`, `openrouter`, `opencode` | `Config.tsx AIConfig` | no |
+| credentials | `CredentialsAdapter` | `googleServiceAccount` | `providers.google.serviceAccount` | no |
+
+### Hooks
+
+```ts
+const data    = useDataProvider()           // DataProviderAdapter | null
+const storage = useStorageProvider()        // StorageProviderAdapter | null
+const auth    = useAuthProvider()           // AuthProviderAdapter | null
+const email   = useEmailProvider()          // EmailProviderAdapter | null
+const ai      = useAIProvider()             // AIProviderAdapter | null
+const creds   = useCredentialsProvider()    // CredentialsAdapter | null
+
+// Named provider (multi-provider setup)
+const supabase = useDataProvider('supabase')
+```
+
+### DataProviderAdapter interface
+```ts
+interface DataProviderAdapter {
+  read(path: string, options?: ReadOptions): Promise<unknown>
+  set(path: string, data: object): Promise<void>
+  update(path: string, data: object): Promise<void>
+  remove(path: string): Promise<void>
+  subscribe(path: string | undefined, callback: (records: RecordArray) => void): () => void
+  count?(path: string, where?: WhereClause[]): Promise<number>
+}
+```
+
+### StorageProviderAdapter interface
+```ts
+interface StorageProviderAdapter {
+  upload(file: string, path: string): Promise<string | undefined>
+  getURL(path: string): Promise<string | undefined>
+  download(path: string): Promise<Blob | undefined>
+  delete(path: string): Promise<boolean>
+}
+```
+
+### AuthProviderAdapter interface
+```ts
+interface AuthProviderAdapter {
+  signIn(intent?: AuthIntent, options?: AuthSignInOptions): Promise<UserProfile | undefined>
+  signOut(): Promise<void>
+  onAuthChange(callback: (user: UserProfile | null) => void): () => void
+  getAccessToken(): Promise<string | null>
+  getUser(): UserProfile | null
+}
+```
+
+### Auth sign-in methods
+
+```ts
+// FirebaseAuthProvider
+await auth.signIn({ method: 'password', email: '...', password: '...' })
+await auth.signIn({ method: 'anonymous' })
+await auth.signIn({ method: 'oauth', provider: 'github' })  // github, apple, microsoft, yahoo
+
+// SupabaseAuthProvider
+await auth.signIn({ method: 'password', email: '...', password: '...' })
+await auth.signIn({ method: 'magic_link', email: '...' })
+await auth.signIn({ method: 'oauth', provider: 'github' })
+await auth.signIn({ method: 'anonymous' })
+
+// GoogleAuthProvider — GIS + scoped token per Google APIs
+await auth.signIn()
+const token = await auth.getAccessToken('https://www.googleapis.com/auth/gmail.send')
+```
+
+### CredentialsAdapter (Google Service Account)
+```tsx
+// Chiama Google APIs lato browser senza Node.js
+<App providers={{ google: { serviceAccount: { clientEmail, privateKey } }, services: { credentials: 'googleServiceAccount' } }} />
+
+const creds = useCredentialsProvider()
+const token = await creds.getToken('https://www.googleapis.com/auth/solar')
+```
+
+### Provider custom
+```ts
+import { DataProviderAdapter, RecordArray } from '@llmnative/react'
+
+export class RestDataProvider implements DataProviderAdapter {
+  async read(path: string): Promise<unknown> { ... }
+  async set(path: string, data: object): Promise<void> { ... }
+  async update(path: string, data: object): Promise<void> { ... }
+  async remove(path: string): Promise<void> { ... }
+  subscribe(path: string | undefined, callback: (records: RecordArray) => void): () => void {
+    return () => undefined
+  }
+}
+```
+
+---
+
+## Grid — CRUD table/gallery
+
+```tsx
+<Grid
+  path="/users"               // DataProvider-backed — oppure records={array} per in-memory
+  columns={[
+    { key: 'name',  label: 'Nome',   sortable: true },
+    { key: 'email', label: 'Email' },
+    { key: 'role',  label: 'Ruolo',  render: ({ value }) => <Badge>{value}</Badge> },
+    { key: 'date',  label: 'Data',   render: 'date' },
+  ]}
+  actions={['add', 'edit', 'delete']}   // oppure Record<string, GridAction>
+  view="table"                          // 'table' | 'gallery'
+  pagination={{ limit: 20 }}
+  groupBy="status"
+  sortable={{ field: 'name', dir: 'asc' }}
+  form={<FormFields />}
+  onSave={async ({ record, action }) => record._key}
+  onActionComplete={async ({ record, action }) => true}
+  selection={{ mode: 'multiple', onChange: (sel) => {} }}
+  reorderable
+  onReorder={(records, meta) => {}}
+  header={(ctx) => <div>{ctx.title}</div>}
+  footer={(ctx) => <div>{ctx.records.length} records</div>}
+/>
+```
+
+| Prop | Tipo | Note |
+|---|---|---|
+| `path` | `string \| "fromUrl"` | Path provider-backed |
+| `records` | `RecordArray` | Dati in memoria (alternativa a path) |
+| `columns` | `GridColumn[]` | `{ key, label, sortable?, render? }` |
+| `actions` | `Array<'add'\|'edit'\|'delete'> \| Record<string, GridAction>` | |
+| `view` | `'table' \| 'gallery'` | |
+| `groupBy` | `string \| string[]` | |
+| `pagination` | `{ limit: number }` | |
+| `sortable` | `boolean \| OrderConfig` | |
+| `form` | `ReactElement \| ((ctx) => ReactNode)` | Form condiviso per CRUD |
+| `onSave` | `async ({ record, action }) => string` | |
+| `onActionComplete` | `async ({ record, action }) => boolean` | |
+
+**Render built-in colonne:** `'text'`, `'email'`, `'date'`, `'datetime'`, `'badge'`, `'image'`, `'boolean'`, `'json'`
+
+**GridAction kind:** `'modal'` (default), `'route'`, `'external'`, `'inline'`, `'delete'`
+
+---
+
+## Form — form CRUD con lifecycle
+
+```tsx
+<Form
+  path="/products"
+  appearance="card"           // 'card' | 'none'
+  showBack
+  defaultValues={{ status: 'draft' }}
+  keyGenerator={() => `prod_${Date.now()}`}
+  onLoad={(data) => ({ ...data, price: data.price / 100 })}
+  onSave={async ({ record }) => ({ ...record, price: record.price * 100 })}
+  onDelete={async ({ record }) => { /* confirm */ }}
+  onComplete={async ({ action }) => { if (action === 'save') navigate('/products') }}
+>
+  <Input name="title" label="Titolo" required />
+  <Input name="price" label="Prezzo" inputType="number" />
+  <Input name="address.city" label="Città" />      {/* oggetto annidato */}
+  <Repeat name="tags" defaultLength={1}>
+    {(i) => <Input name={`tags.${i}`} label={`Tag ${i+1}`} />}
+  </Repeat>
+</Form>
+```
+
+| Prop | Tipo | Note |
+|---|---|---|
+| `path` | `string` | Path provider-backed |
+| `appearance` | `'card' \| 'none'` | |
+| `showBack` | `boolean` | |
+| `defaultValues` | `RecordProps` | Valori iniziali per nuovo record |
+| `keyGenerator` | `(record) => string` | Generatore chiave primaria custom |
+| `onLoad` | `(record) => RecordProps` | Trasforma dopo il caricamento |
+| `onRecordChange` | `(record) => void` | Cambio campo in tempo reale |
+| `onSave` | `FormSaveHandler` | Trasforma prima del salvataggio |
+| `onDelete` | `FormDeleteHandler` | Hook prima della cancellazione |
+| `onComplete` | `FormFinallyHandler` | Dopo save/delete |
+
+**FormRef** (via `useRef<FormRef>()`): `{ handleSave, handleDelete, getRecord, getHeader, getFooter }`
+
+---
+
+## Campi form
+
+### Input
+```tsx
+<Input name="x" label="..." required />
+<Input name="x" inputType="number" min={0} max={100} step={0.01} />
+<Input name="x" inputType="email" />
+<Input name="x" inputType="password" />
+<Input name="x" inputType="color" />
+<Input name="x" inputType="date" />
+<Input name="x" inputType="datetime-local" />
+<Input.TextArea name="x" rows={4} />
+<Input.Checkbox name="x" valueChecked="yes" />
+```
+
+| Prop | Tipo |
+|---|---|
+| `name` | `string` (required) |
+| `label` | `string` |
+| `inputType` | `'text' \| 'number' \| 'email' \| 'password' \| 'color' \| 'date' \| 'time' \| 'datetime-local' \| 'week' \| 'month'` |
+| `required` | `boolean` |
+| `disabled` | `boolean` |
+| `placeholder` | `string` |
+| `min`, `max`, `step` | `number` |
+| `validator` | `(value) => string \| undefined` |
+
+### Select
+```tsx
+<Select name="role" options={[{ label: 'Admin', value: 'admin' }]} />
+<Select name="categoryId" optionsSource={{ path: '/categories', labelField: 'name', valueField: '_key' }} />
+<Select.Autocomplete name="userId" optionsSource={{ path: '/users', labelField: 'email' }} />
+<Select.Checklist name="tags" options={['a', 'b', 'c']} />
+```
+
+| Prop | Tipo |
+|---|---|
+| `options` | `Option[] \| string[] \| number[]` |
+| `optionsSource` | `{ path, labelField, valueField? }` — carica da provider |
+| `order` | `{ field: 'label' \| 'value', dir: 'asc' \| 'desc' }` |
+
+### Upload
+```tsx
+<Upload name="file" label="Allegato" accept=".pdf,.zip" multiple />
+<Upload.Image name="cover" label="Copertina" />    {/* con crop editor */}
+<Upload.Document name="pdf" label="PDF" />
+<UploadCSV name="data" label="Importa CSV" />      {/* con preview tabellare */}
+```
+
+| Prop | Tipo |
+|---|---|
+| `name` | `string` (required) |
+| `accept` | `string` |
+| `multiple` | `boolean` |
+| `editable` | `boolean` |
+| `max` | `number` (MB) |
+
+### Repeat — array dinamici
+```tsx
+<Repeat name="items" defaultLength={3} minItems={1} maxItems={10}>
+  {(index) => (
+    <>
+      <Input name={`items.${index}.name`} label="Nome" />
+      <Upload.Image name={`items.${index}.photo`} label="Foto" />
+    </>
+  )}
+</Repeat>
+```
+
+### Prompt — campo AI-potenziato
+```tsx
+<Prompt
+  name="summary"
+  mode="run"                  // 'edit' | 'run'
+  onRunPrompt={async (prompt, options) => AI.fetch(prompt)}
+  commands={[{ name: 'translate', icon: 'languages', handler: (v) => `Translate:\n${v}` }]}
+  attachments
+  statusItems={['tokensIn', 'tokensOut', 'contextPercent', 'duration']}
+/>
+```
+
+---
+
+## UI Primitives
+
+### Alert
+```tsx
+<Alert variant="success">Salvato!</Alert>
+<Alert variant="warning" icon placement="fixed" timeout={3000}>Attenzione</Alert>
+```
+`variant`: `'info' | 'success' | 'warning' | 'danger' | 'primary' | 'secondary' | 'light' | 'dark'`
+`appearance`: `'default' | 'text'`
+`placement`: `'inline' | 'fixed'`
+
+### Badge
+```tsx
+<Badge variant="success">Attivo</Badge>
+```
+`variant`: stessi valori di Alert
+
+### Button variants
+```tsx
+<ActionButton variant="primary" label="Salva" icon="save" onClick={handleSave} />
+<LoadingButton variant="primary" label="Invia" onClick={async (e, setMsg) => { await save(); setMsg('Salvato!') }} />
+<BackLink label="Indietro" />
+<GoSite href="https://..." label="Visita" />
+```
+
+**IButton props:** `variant`, `label`, `icon`, `badge`, `disabled`, `loading`, `onClick`
+
+### Card
+```tsx
+<Card title="Titolo" header={<Actions />} footer={<Pagination />} loading={isLoading}>
+  {children}
+</Card>
+```
+
+### Modal
+```tsx
+<Modal title="Conferma" size="md" position="center" onClose={() => {}} onSave={handleSave} onDelete={handleDelete}>
+  {content}
+</Modal>
+<Modal.YesNo title="Sicuro?" onClose={() => {}} onSave={() => {}} />
+<Modal.Ok title="Completato!" onClose={() => {}} />
+```
+`size`: `'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'fullscreen'`
+`position`: `'center' | 'top' | 'left' | 'right' | 'bottom'`
+
+### Table
+```tsx
+<Table
+  columns={[{ key: 'name', label: 'Nome', sort: true }]}
+  records={records}
+  onRowClick={(record) => {}}
+  selection="multiple"
+  sortable={{ field: 'name', dir: 'asc' }}
+  pagination={{ limit: 20 }}
+/>
+```
+
+### Gallery
+```tsx
+<Gallery
+  records={records}           // GalleryRecord extends RecordProps: img, thumbnail, name, width, height
+  overlays={[{ position: 'top-right', badge: { variant: 'success', children: 'New' } }]}
+  columns={3}
+  gutterSize={2}
+  onClickRow={(record) => {}}
+/>
+```
+
+### Tab
+```tsx
+<Tab defaultIndex={0} layout="top">
+  <Tab.Item label="Generale">{content1}</Tab.Item>
+  <Tab.Item label="SEO">{content2}</Tab.Item>
+</Tab>
+```
+`layout`: `'default' | 'top' | 'left' | 'right' | 'bottom'`
+
+### Image
+```tsx
+<Image src="..." fit="cover" position="center" width={400} height={300} />
+```
+`fit`: `'cover' | 'contain' | 'fill' | 'scale-down' | 'none'`
+
+### Pagination (standalone)
+```tsx
+<Pagination records={items} limit={20}>
+  {(pageRecords, offset) => pageRecords.map(r => <Row key={r._key} record={r} />)}
+</Pagination>
+```
+
+### Percentage
+```tsx
+<Percentage value={75} appearance="bar" variant="success" showText />
+<Percentage value={0.75} appearance="circle" size={60} />
+```
+
+### Altre primitive
+```tsx
+<Icon name="user" size={20} />           // usa provider icone configurato
+<ImageAvatar src="..." label="Mario" size={40} />
+<Loader />                               // spinner
+<Code language="tsx">{snippet}</Code>   // syntax highlight
+<GridSystem.Row><GridSystem.Col xs={12} md={6}>...</GridSystem.Col></GridSystem.Row>
+```
+
+---
+
+## Blocks
+
+```tsx
+<Breadcrumbs trail={[{ label: 'Home', href: '/' }, { label: 'Utenti' }]} separator="/" jsonLd />
+<Brand url="/" label="MyApp" logo="/logo.svg" width={120} />
+<Search onQueryChange={(e) => setQ(e.target.value)} />
+<Notifications />
+<Carousel images={[...]} />
+```
+
+---
+
+## Widgets
+
+### MarkdownReader
+```tsx
+<MarkdownReader
+  content={markdownString}
+  onInternalLinkClick={(href, e) => { e.preventDefault(); navigate(href) }}
+  wrapperClassName="prose"
+/>
+```
+
+### ImageEditor
+```tsx
+<ImageEditor src="..." onSave={(blob) => upload(blob)} />
+```
+
+### TabDynamic
+Tab con lazy loading dei contenuti — gestione dinamica aggiunta/rimozione tab.
+
+---
+
+## AI Integration
+
+```ts
+import { AI } from '@llmnative/react'
+
+const text  = await AI.fetch("Scrivi un titolo per: {keyword}", { keyword: "React" })
+const json  = await AI.json("Lista di 5 categorie per blog tech")
+const arr   = await AI.array("5 tag per: machine learning")
+
+// Hooks
+const provider  = useAIProvider()           // provider di default
+const registry  = useAIProviderRegistry()   // tutti i provider AI registrati
+const catalog   = getAIModelCatalog()       // modelli disponibili
+
+// Provider custom
+class MyAIProvider implements AIProviderAdapter {
+  async fetch(prompt: string, options?: AIRequestOptions): Promise<string> { ... }
+  async json<T>(prompt: string, options?: AIRequestOptions): Promise<T> { ... }
+  async array(prompt: string, options?: AIRequestOptions): Promise<string[]> { ... }
+}
+```
+
+Configurazione API key in `Config.tsx`: `geminiApiKey`, `openaiApiKey`, `anthropicApiKey`, `deepSeekApiKey`, `mistralApiKey`.
+
+---
+
+## Theme e icone
+
+```tsx
+const theme = useThemeController()
+theme.applyTheme('flat')     // 'default' | 'flat' | 'cyber' | custom
+theme.setMode('dark')        // 'light' | 'dark' | 'system'
+
+const icons = useIconController()
+icons.setProvider('phosphor')   // 'lucide' | 'phosphor' | custom
+```
+
+---
+
+## Head (SEO)
+
+```ts
+useHead({
+  title: 'Pagina',
+  description: '...',
+  robots: 'noindex',
+  canonical: 'https://...',
+  og: { title: '...', image: '...' }
+})
+```
+
+---
+
+## Global state (localStorage)
+
+```ts
+const vars = useGlobalVars()
+getGlobalVars('key')
+setGlobalVars({ key: 'value' })
+removeGlobalVars('key')
+```
+
+---
+
+## Hooks completi
+
+| Hook | Ritorna |
+|---|---|
+| `useDataProvider(name?)` | `DataProviderAdapter \| null` |
+| `useStorageProvider(name?)` | `StorageProviderAdapter \| null` |
+| `useAuthProvider(name?)` | `AuthProviderAdapter \| null` |
+| `useEmailProvider(name?)` | `EmailProviderAdapter \| null` |
+| `useAIProvider(name?)` | `AIProviderAdapter \| null` |
+| `useAIProviderRegistry()` | `Record<string, AIProviderAdapter>` |
+| `useTheme()` | `Theme \| undefined` |
+| `useThemeController()` | `ThemeController` |
+| `useIconController()` | `IconController` |
+| `useAccessToken()` | `string \| null` |
+| `useGlobalVars()` | `Record<string, unknown>` |
+| `useHead()` | `HeadController` |
+| `useProxy()` | `(url, init?) => Promise<Response>` |
+| `useImage()` | `UseImageResult` |
+| `useI18n()` | `I18nController` |
+| `useMenu()` | Menu hook |
+
+---
+
+## Tipi chiave
+
+```ts
+type RecordProps  = Record<string, FieldValue>
+type FieldValue   = string | number | boolean | null | undefined | Record<string, unknown> | unknown[]
+type RecordArray  = RecordProps[]
+
+type OrderConfig  = { field: string; dir: 'asc' | 'desc' }
+type WhereClause  = { field: string; op: '==' | '!=' | '<' | '<=' | '>' | '>=' | 'in' | 'not-in' | 'array-contains' | 'array-contains-any'; value: unknown }
+
+interface UIProps {
+  before?: React.ReactNode
+  after?: React.ReactNode
+  wrapperClassName?: string
+  className?: string
+}
+
+type UserProfile = { uid?: string; email?: string; displayName?: string; photoURL?: string; [key: string]: unknown }
+```
+
+---
+
+## Utilities
+
+```ts
+import { cn, converter, sanitizer, order, path, fetch, seo } from '@llmnative/react'
+
+cn('base', condition && 'extra', className)   // tailwind-merge classname
+seo.getKeywordIdeas(keyword)                  // Google Ads Keywords
+seo.getGoogleTrendsData(keyword)              // Google Trends
+```
+
+---
+
+## Struttura scaffold (npx create)
+
+```
+src/
+  index.tsx          ← App entry: <App providers=... menuConfig=... importPage=... />
+  conf/menu.ts       ← menuConfig: array di voci nav con path, label, icon, children
+  layouts/           ← wrapper per aree dell'app (con sidebar, header)
+  pages/             ← componenti pagina (una per route nel menu)
+  components/        ← componenti custom
+  styles/globals.css ← @import '@llmnative/react/dist/index.css' + override
+```
+
+---
+
+## Dove cercare nel codice sorgente
+
+| Cosa | File |
+|---|---|
+| Form | `src/components/widgets/Form.tsx` |
+| Grid | `src/components/widgets/Grid.tsx` |
+| Campi form | `src/components/ui/fields/` |
+| Provider data Firebase | `src/providers/data/firebase.ts` |
+| Provider data Supabase | `src/providers/data/supabase.ts` |
+| Provider auth Firebase | `src/providers/auth/firebase/FirebaseAuthProvider.ts` |
+| Provider auth Google | `src/providers/auth/google/` |
+| Interfaccia DataProvider | `src/providers/data/DataProvider.ts` |
+| Interfaccia StorageProvider | `src/providers/storage/StorageProvider.ts` |
+| Interfaccia AuthProvider | `src/providers/auth/AuthProvider.ts` |
+| Registry provider | `src/providers/manifest.ts` |
+| AI integration | `src/providers/ai/index.ts` |
+| SEO / Google Trends | `src/providers/seo/google/` |
+| Sistema tema | `src/Theme.tsx` |
+| Config runtime | `src/Config.tsx` |
+| Tipi TypeScript | `src/types/` |
+| Utilities pure | `src/libs/` |
