@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { useMenu } from '@llmnative/react';
 import SideNav from './SideNav';
 import type { SideNavItemDef } from './SideNav';
+import { useShowcaseCommonI18n } from '../showcase/i18n';
 
 // ── Icon map: path prefix → lucide icon name ───────────────────────────────────
 
@@ -69,6 +70,7 @@ function injectIcons(items: RawItem[]): SideNavItemDef[] {
 
 export default function Sidebar() {
     const { pathname } = useLocation();
+    const common = useShowcaseCommonI18n();
 
     const docsItems       = useMenu('docs');
     const componentsItems = useMenu('components');
@@ -83,7 +85,26 @@ export default function Sidebar() {
 
     if (raw.length === 0) return null;
 
-    const items = injectIcons(raw);
+    const translatedGroups: Record<string, string> = {
+        Foundation: common.groups.foundation,
+        'UI Primitives': common.groups.uiPrimitives,
+        Widgets: common.groups.widgets,
+        'Form fields': common.groups.formFields,
+        Blocks: common.groups.blocks,
+        'Built-in drivers': common.groups.builtInDrivers,
+        'Common patterns': common.groups.commonPatterns,
+        'Auth flows': common.groups.authFlows,
+    };
+
+    const translateGroups = (items: RawItem[]): RawItem[] => (
+        items.map((item) => ({
+            ...item,
+            group: item.group ? (translatedGroups[item.group] ?? item.group) : item.group,
+            children: item.children ? translateGroups(item.children) : item.children,
+        }))
+    );
+
+    const items = injectIcons(translateGroups(raw));
 
     return <SideNav items={items} />;
 }

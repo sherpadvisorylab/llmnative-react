@@ -5,37 +5,42 @@ import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
 import { usePlayground } from '../../docs-kit/playground';
 import type { PropDef, PlaygroundConfig } from '../../docs-kit/playground';
-
-const NOTIFICATIONS = [
-    { title: 'New deployment completed', url: '/components/notifications', time: '2 minutes ago', icon: 'check-circle' },
-    { title: 'Storage usage reached 80%', url: '/components/notifications', time: '1 hour ago', icon: 'warning' },
-];
-
-const NOTIFICATIONS_PROPS: PropDef[] = [
-    { name: 'items', type: 'NotificationItem[]', description: 'Notification records rendered in the dropdown' },
-    { name: 'badge', type: 'ReactNode', description: 'Badge displayed on the bell toggle', control: 'text' },
-    { name: 'wrapperClassName', type: 'string', description: 'CSS classes on wrapper', control: 'text' },
-];
-
-const PLAYGROUND: PlaygroundConfig = {
-    props: NOTIFICATIONS_PROPS,
-    defaultProps: {
-        badge: '2',
-        wrapperClassName: '',
-    },
-    render: (p) => (
-        <Notifications badge={p.badge || undefined} wrapperClassName={p.wrapperClassName || undefined} items={NOTIFICATIONS} />
-    ),
-};
+import { useShowcaseCommonI18n, useShowcaseNotificationsI18n } from '../../showcase/i18n';
 
 export default function NotificationsPage() {
-    usePlayground(PLAYGROUND, 'Notifications');
+    const common = useShowcaseCommonI18n();
+    const t = useShowcaseNotificationsI18n();
+
+    const notifications = React.useMemo(() => [
+        { title: t.labels.newDeploymentCompleted, url: '/components/notifications', time: t.labels.twoMinutesAgo, icon: 'check-circle' },
+        { title: t.labels.storageUsageReached80, url: '/components/notifications', time: t.labels.oneHourAgo, icon: 'warning' },
+    ], [t]);
+
+    const notificationsProps = React.useMemo<PropDef[]>(() => [
+        { name: 'items', type: 'NotificationItem[]', description: t.propsDocs.items.items.description },
+        { name: 'badge', type: 'ReactNode', description: t.propsDocs.items.badge.description, control: 'text' },
+        { name: 'wrapperClassName', type: 'string', description: t.propsDocs.items.wrapperClassName.description, control: 'text' },
+    ], [t]);
+
+    const playground = React.useMemo<PlaygroundConfig>(() => ({
+        props: notificationsProps,
+        defaultProps: {
+            badge: t.playground.defaultBadge,
+            wrapperClassName: '',
+        },
+        render: (p) => (
+            <Notifications badge={p.badge || undefined} wrapperClassName={p.wrapperClassName || undefined} items={notifications} />
+        ),
+    }), [notifications, notificationsProps, t]);
+
+    usePlayground(playground, t.playground.title);
 
     return (
-        <PageLayout title="Notifications" description="Notification dropdown built on top of Dropdown and DropdownItem.">
+        <PageLayout title={t.page.title} description={t.page.description}>
             <Section
-                title="Notification menu"
-                preview={<Notifications badge={2} items={NOTIFICATIONS} />}
+                title={t.sections.notificationMenu.title}
+                description={t.sections.notificationMenu.description}
+                preview={<Notifications badge={2} items={notifications} />}
                 code={`import { Notifications } from '@llmnative/react';
 
 <Notifications badge={2} items={[
@@ -43,7 +48,7 @@ export default function NotificationsPage() {
 ]} />`}
             />
 
-            <PropDocsTable props={NOTIFICATIONS_PROPS} />
+            <PropDocsTable props={notificationsProps} title={common.sections.props} />
         </PageLayout>
     );
 }

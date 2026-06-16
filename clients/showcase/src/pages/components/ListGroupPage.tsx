@@ -1,86 +1,115 @@
-﻿import React from 'react';
+import React from 'react';
 import { Badge, ListGroup } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
 import { usePlayground } from '../../docs-kit/playground';
 import type { PropDef, PlaygroundConfig } from '../../docs-kit/playground';
-
-const ITEMS = ['Backlog', 'In progress', 'Review', 'Done'];
-
-const LIST_GROUP_PROPS: PropDef[] = [
-    { name: 'children', type: 'ReactNode[]', required: true, description: 'List item content' },
-    { name: 'label', type: 'string', description: 'Optional label above the list', control: 'text' },
-    { name: 'onClick', type: '(event, index) => void', description: 'Enables clickable list items' },
-    { name: 'draggable', type: 'boolean', default: 'false', description: 'Makes items draggable', control: 'boolean' },
-    { name: 'onDrop', type: '(text: string) => string', description: 'Transforms dragged text before it is placed on dataTransfer' },
-    { name: 'activeIndices', type: 'number[]', description: 'Indexes rendered as active', control: 'json', rows: 3, shortcuts: [
-        { label: 'none', value: [], help: 'No active items.' },
-        { label: 'first', value: [0], help: 'First item active.' },
-        { label: 'multi', value: [1, 2], help: 'Multiple active items.' },
-    ] },
-    { name: 'disabledIndices', type: 'number[]', description: 'Indexes rendered as disabled', control: 'json', rows: 3, shortcuts: [
-        { label: 'none', value: [], help: 'No disabled items.' },
-        { label: 'last', value: [3], help: 'Disable the last item.' },
-        { label: 'mixed', value: [0, 3], help: 'Disable first and last items.' },
-    ] },
-    { name: 'loadingIndices', type: 'number[]', description: 'Indexes rendered as loading', control: 'json', rows: 3, shortcuts: [
-        { label: 'none', value: [], help: 'No loading state.' },
-        { label: 'single', value: [1], help: 'Second item loading.' },
-        { label: 'multi', value: [1, 2], help: 'Multiple loading items.' },
-    ] },
-    { name: 'before', type: 'ReactNode', description: 'Content before the list', control: 'text' },
-    { name: 'after', type: 'ReactNode', description: 'Content after the list', control: 'text' },
-    { name: 'className', type: 'string', description: 'CSS classes on list-group', control: 'text' },
-    { name: 'wrapperClassName', type: 'string', description: 'CSS classes on wrapper', control: 'text' },
-    { name: 'itemClassName', type: 'string', description: 'CSS classes on each item', control: 'text' },
-];
-
-const PLAYGROUND: PlaygroundConfig = {
-    props: LIST_GROUP_PROPS,
-    defaultProps: {
-        label: 'Workflow',
-        draggable: false,
-        activeIndices: [1],
-        disabledIndices: [3],
-        loadingIndices: [],
-        before: '',
-        after: '',
-        className: '',
-        wrapperClassName: '',
-        itemClassName: '',
-    },
-    render: (p) => (
-        <ListGroup
-            label={p.label || undefined}
-            draggable={p.draggable}
-            activeIndices={Array.isArray(p.activeIndices) ? p.activeIndices : []}
-            disabledIndices={Array.isArray(p.disabledIndices) ? p.disabledIndices : []}
-            loadingIndices={Array.isArray(p.loadingIndices) ? p.loadingIndices : []}
-            before={p.before || undefined}
-            after={p.after || undefined}
-            className={p.className || undefined}
-            wrapperClassName={p.wrapperClassName || undefined}
-            itemClassName={p.itemClassName || undefined}
-        >
-            {ITEMS}
-        </ListGroup>
-    ),
-};
+import { useShowcaseCommonI18n, useShowcaseListGroupI18n } from '../../showcase/i18n';
 
 export default function ListGroupPage() {
-    usePlayground(PLAYGROUND, 'ListGroup');
+    const common = useShowcaseCommonI18n();
+    const t = useShowcaseListGroupI18n();
+
+    const items = React.useMemo(
+        () => [t.labels.backlog, t.labels.inProgress, t.labels.review, t.labels.done],
+        [t],
+    );
+
+    const listGroupProps = React.useMemo<PropDef[]>(() => [
+        { name: 'children', type: 'ReactNode[]', required: true, description: t.propsDocs.items.children.description },
+        { name: 'label', type: 'string', description: t.propsDocs.items.label.description, control: 'text' },
+        { name: 'onClick', type: '(event, index) => void', description: t.propsDocs.items.onClick.description },
+        { name: 'draggable', type: 'boolean', default: 'false', description: t.propsDocs.items.draggable.description, control: 'boolean' },
+        { name: 'onDrop', type: '(text: string) => string', description: t.propsDocs.items.onDrop.description },
+        {
+            name: 'activeIndices',
+            type: 'number[]',
+            description: t.propsDocs.items.activeIndices.description,
+            control: 'json',
+            rows: 3,
+            shortcuts: [
+                { label: t.propsDocs.items.activeIndices.shortcuts?.none.label || 'none', value: [], help: t.propsDocs.items.activeIndices.shortcuts?.none.help },
+                { label: t.propsDocs.items.activeIndices.shortcuts?.first.label || 'first', value: [0], help: t.propsDocs.items.activeIndices.shortcuts?.first.help },
+                { label: t.propsDocs.items.activeIndices.shortcuts?.multi.label || 'multi', value: [1, 2], help: t.propsDocs.items.activeIndices.shortcuts?.multi.help },
+            ],
+        },
+        {
+            name: 'disabledIndices',
+            type: 'number[]',
+            description: t.propsDocs.items.disabledIndices.description,
+            control: 'json',
+            rows: 3,
+            shortcuts: [
+                { label: t.propsDocs.items.disabledIndices.shortcuts?.none.label || 'none', value: [], help: t.propsDocs.items.disabledIndices.shortcuts?.none.help },
+                { label: t.propsDocs.items.disabledIndices.shortcuts?.last.label || 'last', value: [3], help: t.propsDocs.items.disabledIndices.shortcuts?.last.help },
+                { label: t.propsDocs.items.disabledIndices.shortcuts?.mixed.label || 'mixed', value: [0, 3], help: t.propsDocs.items.disabledIndices.shortcuts?.mixed.help },
+            ],
+        },
+        {
+            name: 'loadingIndices',
+            type: 'number[]',
+            description: t.propsDocs.items.loadingIndices.description,
+            control: 'json',
+            rows: 3,
+            shortcuts: [
+                { label: t.propsDocs.items.loadingIndices.shortcuts?.none.label || 'none', value: [], help: t.propsDocs.items.loadingIndices.shortcuts?.none.help },
+                { label: t.propsDocs.items.loadingIndices.shortcuts?.single.label || 'single', value: [1], help: t.propsDocs.items.loadingIndices.shortcuts?.single.help },
+                { label: t.propsDocs.items.loadingIndices.shortcuts?.multi.label || 'multi', value: [1, 2], help: t.propsDocs.items.loadingIndices.shortcuts?.multi.help },
+            ],
+        },
+        { name: 'before', type: 'ReactNode', description: t.propsDocs.items.before.description, control: 'text' },
+        { name: 'after', type: 'ReactNode', description: t.propsDocs.items.after.description, control: 'text' },
+        { name: 'className', type: 'string', description: t.propsDocs.items.className.description, control: 'text' },
+        { name: 'wrapperClassName', type: 'string', description: t.propsDocs.items.wrapperClassName.description, control: 'text' },
+        { name: 'itemClassName', type: 'string', description: t.propsDocs.items.itemClassName.description, control: 'text' },
+    ], [t]);
+
+    const playground = React.useMemo<PlaygroundConfig>(() => ({
+        props: listGroupProps,
+        defaultProps: {
+            label: t.labels.workflow,
+            draggable: false,
+            activeIndices: [1],
+            disabledIndices: [3],
+            loadingIndices: [],
+            before: '',
+            after: '',
+            className: '',
+            wrapperClassName: '',
+            itemClassName: '',
+        },
+        render: (p) => (
+            <ListGroup
+                label={p.label || undefined}
+                draggable={p.draggable}
+                activeIndices={Array.isArray(p.activeIndices) ? p.activeIndices : []}
+                disabledIndices={Array.isArray(p.disabledIndices) ? p.disabledIndices : []}
+                loadingIndices={Array.isArray(p.loadingIndices) ? p.loadingIndices : []}
+                before={p.before || undefined}
+                after={p.after || undefined}
+                className={p.className || undefined}
+                wrapperClassName={p.wrapperClassName || undefined}
+                itemClassName={p.itemClassName || undefined}
+            >
+                {items}
+            </ListGroup>
+        ),
+    }), [items, listGroupProps, t]);
+
+    usePlayground(playground, t.playground.title);
 
     return (
-        <PageLayout title="ListGroup" description="Bootstrap-compatible list group with active, disabled, loading, click and drag states.">
+        <PageLayout title={t.page.title} description={t.page.description}>
             <Section
-                title="Status list"
+                title={t.sections.statusList.title}
+                description={t.sections.statusList.description}
                 preview={
-                    <ListGroup label="Workflow" activeIndices={[1]}>
+                    <ListGroup label={t.labels.workflow} activeIndices={[1]}>
                         {[
-                            <span>Backlog <Badge variant="secondary">12</Badge></span>,
-                            <span>In progress <Badge variant="primary">4</Badge></span>,
-                            <span>Review <Badge variant="warning">2</Badge></span>,
+                            <span>{t.labels.backlog} <Badge variant="secondary">12</Badge></span>,
+                            <span>{t.labels.inProgress} <Badge variant="primary">4</Badge></span>,
+                            <span>{t.labels.review} <Badge variant="warning">2</Badge></span>,
                         ]}
                     </ListGroup>
                 }
@@ -95,7 +124,7 @@ export default function ListGroupPage() {
 </ListGroup>`}
             />
 
-            <PropDocsTable props={LIST_GROUP_PROPS} />
+            <PropDocsTable props={listGroupProps} title={common.sections.props} />
         </PageLayout>
     );
 }

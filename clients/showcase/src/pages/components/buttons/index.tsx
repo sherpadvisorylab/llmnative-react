@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import PageLayout from '../../../showcase/page';
 import Section from '../../../docs-kit/page/Section';
+import { useShowcaseButtonsI18n } from '../../../showcase/i18n';
 
 const solidVariants = ['primary', 'secondary', 'danger', 'success', 'warning', 'info', 'light', 'dark'] as const;
 const outlineVariants = ['primary', 'secondary', 'danger', 'success', 'warning', 'info', 'light', 'dark'] as const;
@@ -25,14 +26,16 @@ const componentPages = [
 ];
 
 export default function ButtonsIndexPage() {
+    const t = useShowcaseButtonsI18n();
+
     return (
         <PageLayout
-            title="Buttons"
-            description="Semantic button states plus focused components for immediate actions, async actions, navigation and external references."
+            title={t.page.title}
+            description={t.page.description}
         >
             <Section
-                title="Native state classes"
-                description="Use framework-owned btn state classes for simple buttons and links."
+                title={t.sections.nativeStates.title}
+                description={t.sections.nativeStates.description}
                 preview={
                     <div className="flex flex-wrap gap-2 pt-3 pr-3">
                         {solidVariants.map((name) => (
@@ -45,8 +48,8 @@ export default function ButtonsIndexPage() {
 <button className="btn btn-danger">danger</button>`}
             />
             <Section
-                title="Outline and link"
-                description="Outline states use the same semantic names and tokens as solid buttons."
+                title={t.sections.outlineLink.title}
+                description={t.sections.outlineLink.description}
                 preview={
                     <div className="flex flex-wrap items-center gap-2 pt-3 pr-3">
                         {outlineVariants.map((name) => (
@@ -61,8 +64,8 @@ export default function ButtonsIndexPage() {
 <button className="btn btn-link">link</button>`}
             />
             <Section
-                title="Button components"
-                description="Use the focused pages for examples, props and playgrounds specific to each button component."
+                title={t.sections.components.title}
+                description={t.sections.components.description}
                 preview={
                     <div className="grid gap-3 md:grid-cols-2">
                         {componentPages.map((page) => (
@@ -72,7 +75,13 @@ export default function ButtonsIndexPage() {
                                 className="block rounded-md border bg-card p-4 transition-colors hover:border-primary/50 hover:bg-primary/5"
                             >
                                 <h3 className="font-semibold text-foreground">{page.title}</h3>
-                                <p className="mt-1 text-sm text-muted-foreground">{page.description}</p>
+                                <p className="mt-1 text-sm text-muted-foreground">
+                                    {page.title === 'ActionButton'
+                                        ? t.cards.actionButton
+                                        : page.title === 'LoadingButton'
+                                            ? t.cards.loadingButton
+                                            : t.cards.navigation}
+                                </p>
                             </Link>
                         ))}
                     </div>

@@ -5,6 +5,7 @@ import Section from '../../../docs-kit/page/Section';
 import PropDocsTable from '../../../docs-kit/docs/PropDocsTable';
 import { usePlayground } from '../../../docs-kit/playground';
 import type { PropDef, PlaygroundConfig } from '../../../docs-kit/playground';
+import { useShowcaseActionButtonI18n, useShowcaseCommonI18n } from '../../../showcase/i18n';
 
 const VARIANTS = [
     'primary', 'secondary', 'success', 'danger', 'warning', 'info', 'light', 'dark',
@@ -51,16 +52,18 @@ const PLAYGROUND: PlaygroundConfig = {
 
 export default function ActionButtonPage() {
     usePlayground(PLAYGROUND, 'ActionButton');
+    const common = useShowcaseCommonI18n();
+    const t = useShowcaseActionButtonI18n();
     const [count, setCount] = useState(0);
 
     return (
         <PageLayout
-            title="ActionButton"
-            description="Immediate synchronous action button with icon, badge, press motion, and variant system. Use LoadingButton for async operations."
+            title={t.page.title}
+            description={t.page.description}
         >
             <Section
-                title="Color variants"
-                description="Use the variant prop to apply semantic colors without writing CSS class names."
+                title={common.sections.variants}
+                description={t.sections.variants.description}
                 preview={
                     <div className="flex flex-wrap gap-2">
                         {VARIANTS.map((v) => (
@@ -74,8 +77,8 @@ export default function ActionButtonPage() {
             />
 
             <Section
-                title="Icon + label combinations"
-                description="icon renders an icon from the active provider. Omit label for an icon-only button — pair with title for accessibility."
+                title={t.sections.iconLabel.title}
+                description={t.sections.iconLabel.description}
                 preview={
                     <div className="flex flex-wrap gap-3">
                         <ActionButton variant="primary" icon="save" label="Save" />
@@ -87,13 +90,13 @@ export default function ActionButtonPage() {
                 code={`// Icon + label
 <ActionButton variant="primary" icon="save" label="Save" />
 
-// Icon only — always add title for screen readers
+// Icon only - always add title for screen readers
 <ActionButton variant="danger" icon="trash" title="Delete record" />`}
             />
 
             <Section
-                title="onClick handler"
-                description="onClick stops propagation automatically. The button does not manage loading state — use LoadingButton for async work."
+                title={t.sections.onClick.title}
+                description={t.sections.onClick.description}
                 preview={
                     <div className="flex items-center gap-4">
                         <ActionButton
@@ -123,8 +126,8 @@ export default function ActionButtonPage() {
             />
 
             <Section
-                title="Disabled state"
-                description="disabled prevents click and shows a not-allowed cursor on the wrapper. The button retains its visual shape."
+                title={t.sections.disabled.title}
+                description={t.sections.disabled.description}
                 preview={
                     <div className="flex flex-wrap gap-3">
                         <ActionButton variant="primary" icon="save" label="Save" disabled />
@@ -136,8 +139,8 @@ export default function ActionButtonPage() {
             />
 
             <Section
-                title="Badge notification"
-                description="badge renders a count or text indicator top-right. Useful for pending items."
+                title={t.sections.badge.title}
+                description={t.sections.badge.description}
                 preview={
                     <div className="flex flex-wrap gap-6">
                         <ActionButton variant="outline-secondary" icon="bell" label="Notifications" badge={{ content: 5, variant: 'danger' }} />

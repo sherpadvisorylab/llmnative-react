@@ -6,15 +6,23 @@ import Section from '../../../docs-kit/page/Section';
 import PropDocsTable from '../../../docs-kit/docs/PropDocsTable';
 import { usePlayground } from '../../../docs-kit/playground';
 import type { PropDef, PlaygroundConfig } from '../../../docs-kit/playground';
+import { useShowcaseUploadCsvI18n } from '../../../showcase/i18n';
 
-function DataPreview({ data }: { data: UploadCSVData | null }) {
+type PreviewLabels = {
+    emptyState: string;
+    rowsLabel: string;
+    fieldsLabel: string;
+    andMoreRowsLabel: string;
+};
+
+function DataPreview({ data, labels }: { data: UploadCSVData | null; labels: PreviewLabels; }) {
     if (!data) {
-        return <p className="text-sm text-muted-foreground italic">No file loaded yet.</p>;
+        return <p className="text-sm text-muted-foreground italic">{labels.emptyState}</p>;
     }
 
     return (
         <div className="space-y-2 text-sm">
-            <p className="font-medium">{data.file.name} - {data.data.length} rows, {data.fields.length} fields</p>
+            <p className="font-medium">{data.file.name} - {data.data.length} {labels.rowsLabel}, {data.fields.length} {labels.fieldsLabel}</p>
             <div className="overflow-auto max-h-48 rounded border">
                 <table className="w-full text-xs">
                     <thead>
@@ -36,121 +44,131 @@ function DataPreview({ data }: { data: UploadCSVData | null }) {
                 </table>
             </div>
             {data.data.length > 5 && (
-                <p className="text-muted-foreground">...and {data.data.length - 5} more rows</p>
+                <p className="text-muted-foreground">
+                    {labels.andMoreRowsLabel.replace('{count}', String(data.data.length - 5))}
+                </p>
             )}
         </div>
     );
 }
 
-const PROPS_CONFIG: PropDef[] = [
-    { name: 'name', type: 'string', required: true, description: 'Field name used for the wrapper data-name attribute' },
-    { name: 'onDataLoaded', type: 'UploadCSVDataLoadedHandler', required: true, description: 'Called with parsed rows, header fields and the original File after a successful parse' },
-    { name: 'onClear', type: '() => void', description: 'Called when the loaded file is removed from the component UI' },
-    { name: 'label', type: 'string', description: 'Label rendered above the drop zone', control: 'text' },
-    { name: 'icon', type: 'string', default: '"upload"', description: 'Icon name shown inside the drop zone', control: 'icon' },
-    { name: 'delimiter', type: 'string', description: 'Optional delimiter passed to PapaParse. When omitted, PapaParse auto-detects it.', control: 'text' },
-    { name: 'normalizeKeys', type: 'boolean', default: 'false', description: 'Normalize header names with normalizeKey before exposing them in fields and row objects', control: 'boolean' },
-    { name: 'removeEmptyFields', type: 'boolean', default: 'false', description: 'Drop row entries whose parsed value is empty string or null', control: 'boolean' },
-    { name: 'onParseField', type: 'UploadCSVParseFieldHandler', description: 'Transform or drop each [key, value] pair during parsing. Return undefined to omit the field.' },
-    { name: 'before', type: 'ReactNode', description: 'Content rendered before the uploader inside the outer wrapper' },
-    { name: 'after', type: 'ReactNode', description: 'Content rendered after the uploader inside the outer wrapper' },
-    { name: 'className', type: 'string', description: 'CSS classes applied to the inner uploader container', control: 'text' },
-    { name: 'wrapperClassName', type: 'string', description: 'CSS classes applied to the outer wrapper', control: 'text' },
-];
-
-const PLAYGROUND: PlaygroundConfig = {
-    props: PROPS_CONFIG,
-    defaultProps: {
-        label: 'Drag or click to upload CSV',
-        icon: 'upload',
-        normalizeKeys: false,
-        removeEmptyFields: false,
-        delimiter: '',
-        className: '',
-        wrapperClassName: '',
-    },
-    render: (p) => {
-        const [data, setData] = React.useState<UploadCSVData | null>(null);
-
-        return (
-            <div className="space-y-4 w-full">
-                <UploadCSV
-                    name="csv-demo"
-                    label={p.label || undefined}
-                    icon={p.icon || 'upload'}
-                    normalizeKeys={p.normalizeKeys}
-                    removeEmptyFields={p.removeEmptyFields}
-                    delimiter={p.delimiter || undefined}
-                    className={p.className || undefined}
-                    wrapperClassName={p.wrapperClassName || undefined}
-                    onDataLoaded={setData}
-                    onClear={() => setData(null)}
-                />
-                <DataPreview data={data} />
-            </div>
-        );
-    },
-};
-
-function NormalizeSection() {
+function NormalizeSection({ label, labels }: { label: string; labels: PreviewLabels; }) {
     const [data, setData] = useState<UploadCSVData | null>(null);
 
     return (
         <div className="space-y-4 w-full">
             <UploadCSV
                 name="csv-normalize"
-                label="Upload CSV to see normalized keys"
+                label={label}
                 normalizeKeys
                 removeEmptyFields
                 onDataLoaded={setData}
                 onClear={() => setData(null)}
             />
-            <DataPreview data={data} />
+            <DataPreview data={data} labels={labels} />
         </div>
     );
 }
 
-function TransformSection() {
+function TransformSection({ label, labels }: { label: string; labels: PreviewLabels; }) {
     const [data, setData] = useState<UploadCSVData | null>(null);
 
     return (
         <div className="space-y-4 w-full">
             <UploadCSV
                 name="csv-transform"
-                label="Upload CSV - columns starting with _ will be dropped"
+                label={label}
                 onParseField={([key, value]) =>
                     key.startsWith('_') ? undefined : [key, value]
                 }
                 onDataLoaded={setData}
                 onClear={() => setData(null)}
             />
-            <DataPreview data={data} />
+            <DataPreview data={data} labels={labels} />
         </div>
     );
 }
 
 export default function UploadCSVPage() {
-    usePlayground(PLAYGROUND, 'UploadCSV');
-
+    const t = useShowcaseUploadCsvI18n();
     const [parsed, setParsed] = useState<UploadCSVData | null>(null);
+
+    const previewLabels = React.useMemo<PreviewLabels>(() => ({
+        emptyState: t.labels.emptyState,
+        rowsLabel: t.labels.rows,
+        fieldsLabel: t.labels.fields,
+        andMoreRowsLabel: t.labels.andMoreRows,
+    }), [t.labels.andMoreRows, t.labels.emptyState, t.labels.fields, t.labels.rows]);
+
+    const propsConfig = React.useMemo<PropDef[]>(() => ([
+        { name: 'name', type: 'string', required: true, description: t.propsDocs.items.name.description },
+        { name: 'onDataLoaded', type: 'UploadCSVDataLoadedHandler', required: true, description: t.propsDocs.items.onDataLoaded.description },
+        { name: 'onClear', type: '() => void', description: t.propsDocs.items.onClear.description },
+        { name: 'label', type: 'string', description: t.propsDocs.items.label.description, control: 'text' },
+        { name: 'icon', type: 'string', default: t.propsDocs.items.icon.default, description: t.propsDocs.items.icon.description, control: 'icon' },
+        { name: 'delimiter', type: 'string', description: t.propsDocs.items.delimiter.description, control: 'text' },
+        { name: 'normalizeKeys', type: 'boolean', default: t.propsDocs.items.normalizeKeys.default, description: t.propsDocs.items.normalizeKeys.description, control: 'boolean' },
+        { name: 'removeEmptyFields', type: 'boolean', default: t.propsDocs.items.removeEmptyFields.default, description: t.propsDocs.items.removeEmptyFields.description, control: 'boolean' },
+        { name: 'onParseField', type: 'UploadCSVParseFieldHandler', description: t.propsDocs.items.onParseField.description },
+        { name: 'before', type: 'ReactNode', description: t.propsDocs.items.before.description },
+        { name: 'after', type: 'ReactNode', description: t.propsDocs.items.after.description },
+        { name: 'className', type: 'string', description: t.propsDocs.items.className.description, control: 'text' },
+        { name: 'wrapperClassName', type: 'string', description: t.propsDocs.items.wrapperClassName.description, control: 'text' },
+    ]), [t]);
+
+    const playground = React.useMemo<PlaygroundConfig>(() => ({
+        props: propsConfig,
+        defaultProps: {
+            label: t.playground.defaultLabel,
+            icon: 'upload',
+            normalizeKeys: false,
+            removeEmptyFields: false,
+            delimiter: '',
+            className: '',
+            wrapperClassName: '',
+        },
+        render: (p) => {
+            const [data, setData] = React.useState<UploadCSVData | null>(null);
+
+            return (
+                <div className="space-y-4 w-full">
+                    <UploadCSV
+                        name="csv-demo"
+                        label={p.label || undefined}
+                        icon={p.icon || 'upload'}
+                        normalizeKeys={p.normalizeKeys}
+                        removeEmptyFields={p.removeEmptyFields}
+                        delimiter={p.delimiter || undefined}
+                        className={p.className || undefined}
+                        wrapperClassName={p.wrapperClassName || undefined}
+                        onDataLoaded={setData}
+                        onClear={() => setData(null)}
+                    />
+                    <DataPreview data={data} labels={previewLabels} />
+                </div>
+            );
+        },
+    }), [previewLabels, propsConfig, t.playground.defaultLabel]);
+
+    usePlayground(playground, t.playground.title);
 
     return (
         <PageLayout
-            title="UploadCSV"
-            description="Single-file CSV or TSV uploader with drag-and-drop, PapaParse integration and preview-friendly parsed output delivered through onDataLoaded."
+            title={t.page.title}
+            description={t.page.description}
         >
             <Section
-                title="Basic CSV upload"
-                description="Drop a CSV or TSV file onto the zone or click to browse. After parsing, the component switches into a loaded state and exposes rows, headers and the original File through onDataLoaded."
+                title={t.sections.basicUpload.title}
+                description={t.sections.basicUpload.description}
                 preview={
                     <div className="space-y-4 w-full">
                         <UploadCSV
                             name="csv-basic"
-                            label="Drag or click to upload CSV"
+                            label={t.labels.basicLabel}
                             onDataLoaded={setParsed}
                             onClear={() => setParsed(null)}
                         />
-                        <DataPreview data={parsed} />
+                        <DataPreview data={parsed} labels={previewLabels} />
                     </div>
                 }
                 code={`import { useState } from 'react';
@@ -172,9 +190,9 @@ function MyPage() {
             />
 
             <Section
-                title="Normalized keys + empty field removal"
-                description="normalizeKeys transforms header names before they are exposed in fields and row objects. removeEmptyFields strips entries whose value is empty string or null from each parsed row."
-                preview={<NormalizeSection />}
+                title={t.sections.normalizedKeys.title}
+                description={t.sections.normalizedKeys.description}
+                preview={<NormalizeSection label={t.labels.normalizeLabel} labels={previewLabels} />}
                 code={`<UploadCSV
   name="import"
   normalizeKeys
@@ -187,9 +205,9 @@ function MyPage() {
             />
 
             <Section
-                title="Custom field transform"
-                description="Use onParseField to intercept each parsed [key, value] pair. Return a modified pair to keep it, or undefined to drop that field from the final row object."
-                preview={<TransformSection />}
+                title={t.sections.customFieldTransform.title}
+                description={t.sections.customFieldTransform.description}
+                preview={<TransformSection label={t.labels.transformLabel} labels={previewLabels} />}
                 code={`<UploadCSV
   name="import"
   onParseField={([key, value]) => {
@@ -202,13 +220,13 @@ function MyPage() {
             />
 
             <Section
-                title="Custom delimiter"
-                description="Pass delimiter when the file does not use PapaParse auto-detection reliably, for example semicolon-separated exports from spreadsheet tools."
+                title={t.sections.customDelimiter.title}
+                description={t.sections.customDelimiter.description}
                 preview={
                     <div className="space-y-4 w-full">
                         <UploadCSV
                             name="csv-semicolon"
-                            label="Upload semicolon-separated CSV"
+                            label={t.labels.delimiterLabel}
                             delimiter=";"
                             onDataLoaded={() => undefined}
                         />
@@ -222,7 +240,7 @@ function MyPage() {
 />`}
             />
 
-            <PropDocsTable props={PROPS_CONFIG} />
+            <PropDocsTable props={propsConfig} title={t.propsDocs.title} />
         </PageLayout>
     );
 }

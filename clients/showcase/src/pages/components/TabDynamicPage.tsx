@@ -5,64 +5,69 @@ import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
 import { usePlayground } from '../../docs-kit/playground';
 import type { PropDef, PlaygroundConfig } from '../../docs-kit/playground';
-
-const TAB_DYNAMIC_PROPS: PropDef[] = [
-    { name: 'name', type: 'string', required: true, description: 'Array field name in the Form record', control: 'text' },
-    { name: 'children', type: 'ReactNode | (record) => ReactNode', required: true, description: 'Fields rendered inside the active tab' },
-    { name: 'onChange', type: 'FieldOnChange', description: 'Custom change handler called by Form context' },
-    { name: 'onAdd', type: '(value: any[]) => void', description: 'Called after adding a tab' },
-    { name: 'onRemove', type: '(index: number) => void', description: 'Called after removing a tab' },
-    { name: 'label', type: 'string', default: '"Tab"', description: 'Tab label prefix or converter template', control: 'text' },
-    { name: 'min', type: 'number', default: '1', description: 'Minimum number of tabs', control: 'number', min: 0, max: 5 },
-    { name: 'max', type: 'number', description: 'Maximum number of tabs', control: 'number', min: 1, max: 8 },
-    { name: 'activeIndex', type: 'number', default: '0', description: 'Initial active tab', control: 'number', min: 0, max: 4 },
-    { name: 'title', type: 'string', description: 'Heading above the tabs', control: 'text' },
-    { name: 'readOnly', type: 'boolean', default: 'false', description: 'Hides add/remove actions', control: 'boolean' },
-    { name: 'tabPosition', type: 'TabPosition', default: '"default"', description: 'Tab layout position', control: 'select', options: ['default', 'top', 'bottom', 'left', 'right'] },
-];
-
-const PLAYGROUND: PlaygroundConfig = {
-    props: TAB_DYNAMIC_PROPS,
-    showFormRecord: true,
-    defaultProps: {
-        name: 'sections',
-        label: 'Section',
-        min: 1,
-        max: 4,
-        activeIndex: 0,
-        title: 'Dynamic sections',
-        readOnly: false,
-        tabPosition: 'default',
-    },
-    render: (p, onValuesChange) => (
-        <Form appearance="empty" defaultValues={{ [p.name || 'sections']: [{ title: 'Intro' }] }} onChange={onValuesChange}>
-            <TabDynamic
-                name={p.name || 'sections'}
-                label={p.label || 'Section'}
-                min={p.min}
-                max={p.max}
-                activeIndex={p.activeIndex}
-                title={p.title || undefined}
-                readOnly={p.readOnly}
-                tabPosition={p.tabPosition || 'default'}
-            >
-                <Input name="title" label="Title" />
-            </TabDynamic>
-        </Form>
-    ),
-};
+import { useShowcaseCommonI18n, useShowcaseTabDynamicI18n } from '../../showcase/i18n';
 
 export default function TabDynamicPage() {
-    usePlayground(PLAYGROUND, 'TabDynamic');
+    const common = useShowcaseCommonI18n();
+    const t = useShowcaseTabDynamicI18n();
+
+    const tabDynamicProps = React.useMemo<PropDef[]>(() => [
+        { name: 'name', type: 'string', required: true, description: t.propsDocs.items.name.description, control: 'text' },
+        { name: 'children', type: 'ReactNode | (record) => ReactNode', required: true, description: t.propsDocs.items.children.description },
+        { name: 'onChange', type: 'FieldOnChange', description: t.propsDocs.items.onChange.description },
+        { name: 'onAdd', type: '(value: any[]) => void', description: t.propsDocs.items.onAdd.description },
+        { name: 'onRemove', type: '(index: number) => void', description: t.propsDocs.items.onRemove.description },
+        { name: 'label', type: 'string', default: '"Tab"', description: t.propsDocs.items.label.description, control: 'text' },
+        { name: 'min', type: 'number', default: '1', description: t.propsDocs.items.min.description, control: 'number', min: 0, max: 5 },
+        { name: 'max', type: 'number', description: t.propsDocs.items.max.description, control: 'number', min: 1, max: 8 },
+        { name: 'activeIndex', type: 'number', default: '0', description: t.propsDocs.items.activeIndex.description, control: 'number', min: 0, max: 4 },
+        { name: 'title', type: 'string', description: t.propsDocs.items.title.description, control: 'text' },
+        { name: 'readOnly', type: 'boolean', default: 'false', description: t.propsDocs.items.readOnly.description, control: 'boolean' },
+        { name: 'tabPosition', type: 'TabPosition', default: '"default"', description: t.propsDocs.items.tabPosition.description, control: 'select', options: ['default', 'top', 'bottom', 'left', 'right'] },
+    ], [t]);
+
+    const playground = React.useMemo<PlaygroundConfig>(() => ({
+        props: tabDynamicProps,
+        showFormRecord: true,
+        defaultProps: {
+            name: 'sections',
+            label: t.labels.section,
+            min: 1,
+            max: 4,
+            activeIndex: 0,
+            title: t.labels.dynamicSections,
+            readOnly: false,
+            tabPosition: 'default',
+        },
+        render: (p, onValuesChange) => (
+            <Form appearance="empty" defaultValues={{ [p.name || 'sections']: [{ title: t.labels.intro }] }} onChange={onValuesChange}>
+                <TabDynamic
+                    name={p.name || 'sections'}
+                    label={p.label || t.labels.section}
+                    min={p.min}
+                    max={p.max}
+                    activeIndex={p.activeIndex}
+                    title={p.title || undefined}
+                    readOnly={p.readOnly}
+                    tabPosition={p.tabPosition || 'default'}
+                >
+                    <Input name="title" label={t.labels.title} />
+                </TabDynamic>
+            </Form>
+        ),
+    }), [t, tabDynamicProps]);
+
+    usePlayground(playground, t.playground.title);
 
     return (
-        <PageLayout title="TabDynamic" description="Dynamic tabbed array editor for repeated form sections.">
+        <PageLayout title={t.page.title} description={t.page.description}>
             <Section
-                title="Editable tabs"
+                title={t.sections.editableTabs.title}
+                description={t.sections.editableTabs.description}
                 preview={
-                    <Form appearance="empty" defaultValues={{ sections: [{ title: 'Intro' }] }}>
-                        <TabDynamic name="sections" label="Section" title="Dynamic sections">
-                            <Input name="title" label="Title" />
+                    <Form appearance="empty" defaultValues={{ sections: [{ title: t.labels.intro }] }}>
+                        <TabDynamic name="sections" label={t.labels.section} title={t.labels.dynamicSections}>
+                            <Input name="title" label={t.labels.title} />
                         </TabDynamic>
                     </Form>
                 }
@@ -75,7 +80,7 @@ export default function TabDynamicPage() {
 </Form>`}
             />
 
-            <PropDocsTable props={TAB_DYNAMIC_PROPS} />
+            <PropDocsTable props={tabDynamicProps} title={common.sections.props} />
         </PageLayout>
     );
 }

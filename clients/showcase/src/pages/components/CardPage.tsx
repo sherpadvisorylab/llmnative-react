@@ -1,6 +1,7 @@
 ﻿import React from 'react';
 import { Card } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
+import { useShowcaseCardI18n } from '../../showcase/i18n';
 import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
 import { usePlayground } from '../../docs-kit/playground';
@@ -62,14 +63,15 @@ const PLAYGROUND: PlaygroundConfig = {
 
 export default function CardPage() {
     usePlayground(PLAYGROUND, 'Card');
+    const t = useShowcaseCardI18n();
 
     return (
         <PageLayout
-            title="Card"
-            description="Versatile container with optional header, body, footer and built-in loader overlay."
+            title={t.page.title}
+            description={t.page.description}
         >
             <Section
-                title="Basic card"
+                title={t.sections.basic.title}
                 preview={
                     <Card wrapperClassName="w-full max-w-sm">
                         Card body content goes here.
@@ -81,7 +83,7 @@ export default function CardPage() {
             />
 
             <Section
-                title="With header and footer"
+                title={t.sections.headerFooter.title}
                 preview={
                     <Card
                         wrapperClassName="w-full max-w-sm"
@@ -102,7 +104,7 @@ export default function CardPage() {
             />
 
             <Section
-                title="Card grid"
+                title={t.sections.grid.title}
                 preview={
                     <div className="grid grid-cols-3 gap-3 w-full">
                         {[
@@ -126,8 +128,8 @@ export default function CardPage() {
             />
 
             <Section
-                title="Card with loader"
-                description="Pass loading to overlay a spinner while data is being fetched."
+                title={t.sections.loader.title}
+                description={t.sections.loader.description}
                 preview={
                     <Card wrapperClassName="w-full max-w-sm" title="User profile" loading={true}>
                         <div className="flex items-center justify-center min-h-[60px] text-xs text-muted-foreground">

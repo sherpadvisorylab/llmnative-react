@@ -2,34 +2,38 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
-
-const variantPages = [
-    {
-        title: 'UploadImage',
-        path: '/components/upload/image',
-        description: 'Inline thumbnail grid with hover overlay for preview, crop and removal. Supports single or multiple images.',
-    },
-    {
-        title: 'UploadDocument',
-        path: '/components/upload/document',
-        description: 'File list with name, size and progress bar. Accepts any file type via the accept filter.',
-    },
-    {
-        title: 'UploadCSV',
-        path: '/components/upload/csv',
-        description: 'Drag-and-drop CSV parser. Delivers typed rows and field names to onDataLoaded. Works standalone without a Form.',
-    },
-];
+import { useShowcaseCommonI18n, useShowcaseUploadI18n } from '../../showcase/i18n';
 
 export default function UploadPage() {
+    const common = useShowcaseCommonI18n();
+    const t = useShowcaseUploadI18n();
+
+    const variantPages = [
+        {
+            title: t.variants.image.title,
+            path: '/components/upload/image',
+            description: t.variants.image.description,
+        },
+        {
+            title: t.variants.document.title,
+            path: '/components/upload/document',
+            description: t.variants.document.description,
+        },
+        {
+            title: t.variants.csv.title,
+            path: '/components/upload/csv',
+            description: t.variants.csv.description,
+        },
+    ];
+
     return (
         <PageLayout
-            title="Upload"
-            description="Three specialised upload fields for images, documents and CSV data. Each variant manages local preview, file binding and optional cloud storage independently."
+            title={t.page.title}
+            description={t.page.description}
         >
             <Section
-                title="Variants"
-                description="Choose the variant that matches the file type. All three extend FormFieldProps and bind their result to the enclosing Form record via the name prop."
+                title={common.sections.variants}
+                description={t.sections.variants.description}
                 preview={
                     <div className="grid gap-3 md:grid-cols-3">
                         {variantPages.map((page) => (
@@ -56,7 +60,7 @@ export default function UploadPage() {
   <UploadDocument name="attachments" label="Attachments" multiple accept=".pdf,.docx" />
 </Form>
 
-// CSV parser — standalone, no Form needed
+// CSV parser - standalone, no Form needed
 <UploadCSV
   name="import"
   label="Drop CSV here"
@@ -66,11 +70,11 @@ export default function UploadPage() {
             />
 
             <Section
-                title="Cloud storage"
-                description="Register a StorageProvider in App and pass storagePath on UploadImage or UploadDocument to stream files to Firebase Storage or Supabase Storage instead of keeping them as local base64."
+                title={t.sections.cloudStorage.title}
+                description={t.sections.cloudStorage.description}
                 preview={
                     <div className="alert alert-info text-sm w-full">
-                        The showcase runs offline — storagePath demos require a configured StorageProvider.
+                        {t.labels.storageNotice}
                     </div>
                 }
                 code={`import { App } from '@llmnative/react';

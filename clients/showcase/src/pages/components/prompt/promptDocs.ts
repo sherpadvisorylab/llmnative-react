@@ -1,116 +1,72 @@
 import type { PlaygroundConfig, PropDef } from '../../../docs-kit/playground';
+import type { I18nDict } from '@llmnative/react';
 
-export const PROMPT_SHARED_PROPS: PropDef[] = [
-    { name: 'name', type: 'string', required: true, description: 'Field name used as form key', control: 'text', group: 'Shared' },
-    { name: 'label', type: 'string', description: 'Field label shown above the component', control: 'text', group: 'Shared' },
-    { name: 'required', type: 'boolean', default: 'false', description: 'Marks the active textarea as required', control: 'boolean', group: 'Shared' },
+type PromptSharedCopy = I18nDict['showcase']['promptShared'];
+
+export const createPromptSharedProps = (t: PromptSharedCopy): PropDef[] => [
+    { name: 'name', type: 'string', required: true, description: t.propsDocs.items.name.description, control: 'text', group: t.propsDocs.groups.shared },
+    { name: 'label', type: 'string', description: t.propsDocs.items.label.description, control: 'text', group: t.propsDocs.groups.shared },
+    { name: 'required', type: 'boolean', default: t.propsDocs.items.required.default, description: t.propsDocs.items.required.description, control: 'boolean', group: t.propsDocs.groups.shared },
     {
         name: 'defaultValue',
         type: 'PromptDefaultValue',
-        description: 'Initial prompt metadata: template text, enabled flag and AI settings (model, role, language, voice, style, temperature).',
+        description: t.propsDocs.items.defaultValue.description,
         control: 'json',
         rows: 10,
-        group: 'Shared',
+        group: t.propsDocs.groups.shared,
         shortcuts: [
-            { label: 'summary', value: { value: 'Write a concise project summary for {projectName}.', enabled: true, role: '', language: 'English', voice: '', style: 'concise', model: '', temperature: 0.7 }, help: 'Summary prompt with live execution enabled.' },
-            { label: 'email', value: { value: 'Draft a short follow-up email for {customerName} from {company}.', enabled: true, role: '', language: 'English', voice: 'friendly', style: 'concise', model: '', temperature: 0.5 }, help: 'Customer follow-up prompt.' },
-            { label: 'plain', value: { value: 'A short human-written summary.', enabled: false, role: '', language: 'English', voice: '', style: '', model: '', temperature: 0.7 }, help: 'Stored text without prompt mode.' },
+            { label: t.playground.shortcuts.summary.label, value: { value: t.playground.defaults.conciseProjectSummary, enabled: true, role: '', language: t.playground.defaults.english, voice: '', style: t.playground.defaults.concise, model: '', temperature: 0.7 }, help: t.playground.shortcuts.summary.help },
+            { label: t.playground.shortcuts.email.label, value: { value: t.playground.defaults.followUpEmail, enabled: true, role: '', language: t.playground.defaults.english, voice: t.playground.defaults.friendly, style: t.playground.defaults.concise, model: '', temperature: 0.5 }, help: t.playground.shortcuts.email.help },
+            { label: t.playground.shortcuts.plain.label, value: { value: t.playground.defaults.shortHumanSummary, enabled: false, role: '', language: t.playground.defaults.english, voice: '', style: '', model: '', temperature: 0.7 }, help: t.playground.shortcuts.plain.help },
         ],
-        typeDetails: `{
-  value?: string;
-  enabled?: boolean;
-  role?: string;
-  language?: string;
-  voice?: string;
-  style?: string;
-  model?: string;
-  temperature?: number;
-}`,
+        typeDetails: t.propsDocs.items.defaultValue.typeDetails,
     },
-    { name: 'rows', type: 'number', description: 'Textarea max rows before scrolling', control: 'number', min: 2, max: 14, group: 'Shared' },
-    { name: 'before', type: 'ReactNode', description: 'Content rendered before the prompt block', control: 'text', group: 'Shared' },
-    { name: 'after', type: 'ReactNode', description: 'Content rendered after the prompt block', control: 'text', group: 'Shared' },
-    { name: 'onChange', type: 'FieldOnChange', description: 'Custom change handler called by Form context', group: 'Shared' },
-    { name: 'className', type: 'string', description: 'CSS classes passed to the active textarea', control: 'text', group: 'Shared' },
-    { name: 'wrapperClassName', type: 'string', description: 'CSS classes passed to the outer wrapper', control: 'text', group: 'Shared' },
-    { name: 'inheritWrapperClassName', type: 'boolean', default: 'true', description: 'When true the field inherits the wrapperClassName from the parent Form context', control: 'boolean', group: 'Shared' },
+    { name: 'rows', type: 'number', description: t.propsDocs.items.rows.description, control: 'number', min: 2, max: 14, group: t.propsDocs.groups.shared },
+    { name: 'before', type: 'ReactNode', description: t.propsDocs.items.before.description, control: 'text', group: t.propsDocs.groups.shared },
+    { name: 'after', type: 'ReactNode', description: t.propsDocs.items.after.description, control: 'text', group: t.propsDocs.groups.shared },
+    { name: 'onChange', type: 'FieldOnChange', description: t.propsDocs.items.onChange.description, group: t.propsDocs.groups.shared },
+    { name: 'className', type: 'string', description: t.propsDocs.items.className.description, control: 'text', group: t.propsDocs.groups.shared },
+    { name: 'wrapperClassName', type: 'string', description: t.propsDocs.items.wrapperClassName.description, control: 'text', group: t.propsDocs.groups.shared },
+    { name: 'inheritWrapperClassName', type: 'boolean', default: t.propsDocs.items.inheritWrapperClassName.default, description: t.propsDocs.items.inheritWrapperClassName.description, control: 'boolean', group: t.propsDocs.groups.shared },
 ];
 
-export const PROMPT_EDITOR_PROPS: PropDef[] = [
-    { name: 'mode', type: '"edit"', default: '"edit"', description: 'Authors and stores the prompt template. Exposes an enabled Switch to toggle prompt metadata on/off.', group: 'Specific' },
-    { name: 'renderAIUnavailable', type: '({ mode, providerId, reason, configured }) => ReactNode', description: 'Custom inline renderer shown when no AI provider is configured.', group: 'Specific' },
+export const createPromptEditorProps = (t: PromptSharedCopy): PropDef[] => [
+    { name: 'mode', type: '"edit"', default: t.propsDocs.items.editorMode.default, description: t.propsDocs.items.editorMode.description, group: t.propsDocs.groups.specific },
+    { name: 'renderAIUnavailable', type: '({ mode, providerId, reason, configured }) => ReactNode', description: t.propsDocs.items.renderAIUnavailableEdit.description, group: t.propsDocs.groups.specific },
 ];
 
-export const PROMPT_LIVE_PROPS: PropDef[] = [
-    { name: 'mode', type: '"run"', default: '"run"', description: 'Executes the stored template against the active form record and writes the result back to the same field.', group: 'Specific' },
-    { name: 'onRunPrompt', type: '(prompt, options, data?) => Promise<string>', description: 'Optional custom executor. When provided it is called before the default AI provider. Useful for testing, mocking or custom AI wiring.', group: 'Specific' },
+export const createPromptLiveProps = (t: PromptSharedCopy): PropDef[] => [
+    { name: 'mode', type: '"run"', default: t.propsDocs.items.runMode.default, description: t.propsDocs.items.runMode.description, group: t.propsDocs.groups.specific },
+    { name: 'onRunPrompt', type: '(prompt, options, data?) => Promise<string>', description: t.propsDocs.items.onRunPrompt.description, group: t.propsDocs.groups.specific },
     {
         name: 'variables',
         type: 'PromptVariables',
-        description: 'External key→value pairs injected into the template at preview and run time. Keys match {placeholder} tokens. Merged with form record values — variables take precedence on collision.',
+        description: t.propsDocs.items.variables.description,
         control: 'json',
         rows: 5,
-        group: 'Specific',
+        group: t.propsDocs.groups.specific,
         shortcuts: [
-            { label: 'none', value: null, help: 'No external variables — only the form record is used.' },
-            { label: 'product', value: { product: 'Atlas Console', industry: 'DevOps' }, help: 'Product-context variables.' },
-            { label: 'customer', value: { customerName: 'Acme Corp', country: 'Italy' }, help: 'Customer-context variables.' },
+            { label: t.playground.shortcuts.none.label, value: null, help: t.playground.shortcuts.none.help },
+            { label: t.playground.shortcuts.product.label, value: { product: t.playground.defaults.atlasConsole, industry: 'DevOps' }, help: t.playground.shortcuts.product.help },
+            { label: t.playground.shortcuts.customer.label, value: { customerName: 'Acme Corp', country: 'Italy' }, help: t.playground.shortcuts.customer.help },
         ],
-        typeDetails: `Record<string, unknown>`,
+        typeDetails: t.propsDocs.items.variables.typeDetails,
     },
-    {
-        name: 'commands',
-        type: 'PromptCommand[]',
-        description: 'Slash commands shown via the / button in the run-mode footer. Selecting a command calls its handler with the current textarea value and replaces it with the returned string.',
-        group: 'Specific',
-        typeDetails: `{
-  name: string;
-  description?: string;
-  icon?: string;
-  handler?: (currentValue: string) => string | Promise<string>;
-}[]`,
-    },
-    {
-        name: 'attachments',
-        type: 'boolean',
-        default: 'false',
-        description: 'Enables the paperclip button in the footer bar. Attached files appear as previews above the result textarea and are forwarded as multimodal inputs to vision-capable AI providers (OpenAI images, Anthropic images + PDFs, Gemini all file types).',
-        control: 'boolean',
-        group: 'Specific',
-    },
-    {
-        name: 'actions',
-        type: 'PromptAction[]',
-        description: 'Custom icon buttons in the run-mode footer bar. A tokenUsage key activates the built-in token usage popup after each run, without needing custom popup content.',
-        group: 'Specific',
-        typeDetails: `{
-  key: string;
-  icon: string;
-  label?: string;
-  content?: ReactNode;
-}[]`,
-    },
-    {
-        name: 'statusItems',
-        type: 'PromptStatusItem[]',
-        description: "Named items shown in the status strip below the footer after each run. Built-in keys: 'tokensIn', 'tokensOut', 'contextPercent', 'model', 'duration'. Custom items accept a { key, render } object.",
-        group: 'Specific',
-        typeDetails: `('tokensIn' | 'tokensOut' | 'contextPercent' | 'model' | 'duration' | { key: string; render: (stats: PromptRunStats) => ReactNode })[]`,
-    },
-    { name: 'renderAIUnavailable', type: '({ mode, providerId, reason, configured }) => ReactNode', description: 'Custom renderer for the unavailable notice shown when no AI provider is configured.', group: 'Specific' },
-    { name: 'renderFallback', type: '(props) => ReactNode', description: 'Custom renderer shown when prompt mode is disabled (enabled=false) — replaces the default plain textarea.', group: 'Specific' },
+    { name: 'commands', type: 'PromptCommand[]', description: t.propsDocs.items.commands.description, group: t.propsDocs.groups.specific, typeDetails: t.propsDocs.items.commands.typeDetails },
+    { name: 'attachments', type: 'boolean', default: t.propsDocs.items.attachments.default, description: t.propsDocs.items.attachments.description, control: 'boolean', group: t.propsDocs.groups.specific },
+    { name: 'actions', type: 'PromptAction[]', description: t.propsDocs.items.actions.description, group: t.propsDocs.groups.specific, typeDetails: t.propsDocs.items.actions.typeDetails },
+    { name: 'statusItems', type: 'PromptStatusItem[]', description: t.propsDocs.items.statusItems.description, group: t.propsDocs.groups.specific, typeDetails: t.propsDocs.items.statusItems.typeDetails },
+    { name: 'renderAIUnavailable', type: '({ mode, providerId, reason, configured }) => ReactNode', description: t.propsDocs.items.renderAIUnavailableRun.description, group: t.propsDocs.groups.specific },
+    { name: 'renderFallback', type: '(props) => ReactNode', description: t.propsDocs.items.renderFallbackRun.description, group: t.propsDocs.groups.specific },
 ];
 
-export const PROMPT_PLAIN_PROPS: PropDef[] = [
-    { name: 'mode', type: '"run"', default: '"run"', description: 'Plain fallback still uses run mode but with defaultValue.enabled = false.', group: 'Specific' },
-    { name: 'renderFallback', type: '(props) => ReactNode', description: 'Custom renderer shown when prompt mode is disabled.', group: 'Specific' },
-];
-
-export const PROMPT_AVAILABILITY_PROPS: PropDef[] = [
-    { name: 'renderAIUnavailable', type: '({ mode, providerId, reason, configured }) => ReactNode', description: 'Custom inline renderer used when AI execution is unavailable because the selected provider is missing or not configured.', group: 'Shared' },
+export const createPromptPlainProps = (t: PromptSharedCopy): PropDef[] => [
+    { name: 'mode', type: '"run"', default: t.propsDocs.items.plainMode.default, description: t.propsDocs.items.plainMode.description, group: t.propsDocs.groups.specific },
+    { name: 'renderFallback', type: '(props) => ReactNode', description: t.propsDocs.items.renderFallbackPlain.description, group: t.propsDocs.groups.specific },
 ];
 
 export const executePromptPreview = async (
+    t: PromptSharedCopy,
     prompt: string,
     config: Record<string, unknown>,
     data?: Record<string, unknown>,
@@ -119,23 +75,33 @@ export const executePromptPreview = async (
         ? Object.entries(data).reduce(
             (acc, [k, v]) => acc.replace(new RegExp(`\\{${k}\\}`, 'g'), String(v ?? '')),
             prompt,
-          )
+        )
         : prompt;
-    const temperature = typeof config.temperature === 'number' ? config.temperature.toFixed(1) : 'default';
-    const lang = config.language || 'default';
-    const style = config.style || 'default';
+    const temperature = typeof config.temperature === 'number' ? config.temperature.toFixed(1) : t.playground.mockAi.defaultValue;
+    const lang = String(config.language || t.playground.mockAi.defaultValue);
+    const style = String(config.style || t.playground.mockAi.defaultValue);
 
     return [
-        `[Mock AI — language: ${lang} · style: ${style} · temp: ${temperature}]`,
+        t.playground.mockAi.header
+            .replace('{language}', lang)
+            .replace('{style}', style)
+            .replace('{temperature}', temperature),
         '',
         resolved,
     ].join('\n');
 };
 
-export const createPromptPlaygroundDefaults = (mode: 'edit' | 'run' | 'plain') => {
+export const createPromptPlaygroundDefaults = (
+    t: PromptSharedCopy,
+    mode: 'edit' | 'run' | 'plain',
+) => {
     const shared = {
         name: 'summary',
-        label: mode === 'edit' ? 'Summary prompt' : mode === 'plain' ? 'Summary' : 'AI summary',
+        label: mode === 'edit'
+            ? t.playground.defaults.summaryPromptLabel
+            : mode === 'plain'
+                ? t.playground.defaults.summaryLabel
+                : t.playground.defaults.aiSummaryLabel,
         required: false,
         rows: mode === 'plain' ? 4 : 6,
         before: '',
@@ -149,10 +115,10 @@ export const createPromptPlaygroundDefaults = (mode: 'edit' | 'run' | 'plain') =
             ...shared,
             mode: 'run',
             defaultValue: {
-                value: 'A short human-written summary.',
+                value: t.playground.defaults.shortHumanSummary,
                 enabled: false,
                 role: '',
-                language: 'English',
+                language: t.playground.defaults.english,
                 voice: '',
                 style: '',
                 model: '',
@@ -165,12 +131,12 @@ export const createPromptPlaygroundDefaults = (mode: 'edit' | 'run' | 'plain') =
         ...shared,
         mode,
         defaultValue: {
-            value: 'Write a concise project summary for {projectName}.',
+            value: t.playground.defaults.conciseProjectSummary,
             enabled: true,
             role: '',
-            language: 'English',
+            language: t.playground.defaults.english,
             voice: '',
-            style: 'concise',
+            style: t.playground.defaults.concise,
             model: '',
             temperature: 0.7,
         },
@@ -179,7 +145,7 @@ export const createPromptPlaygroundDefaults = (mode: 'edit' | 'run' | 'plain') =
     if (mode === 'run') {
         return {
             ...base,
-            variables: { projectName: 'Atlas Console' },
+            variables: { projectName: t.playground.defaults.atlasConsole },
             attachments: false,
         };
     }
@@ -187,8 +153,11 @@ export const createPromptPlaygroundDefaults = (mode: 'edit' | 'run' | 'plain') =
     return base;
 };
 
-export const createPromptPlaygroundSeed = (defaultValue: Record<string, unknown> | undefined) => ({
-    projectName: 'Atlas Console',
+export const createPromptPlaygroundSeed = (
+    t: PromptSharedCopy,
+    defaultValue: Record<string, unknown> | undefined,
+) => ({
+    projectName: t.playground.defaults.atlasConsole,
     summary: {
         value: defaultValue?.enabled ? '' : (defaultValue?.value || ''),
         prompt: {
@@ -205,20 +174,22 @@ export const createPromptPlaygroundSeed = (defaultValue: Record<string, unknown>
 });
 
 export const sharedPromptPlaygroundProps = (
+    t: PromptSharedCopy,
     specificProps: PropDef[],
-): PropDef[] => [...specificProps, ...PROMPT_SHARED_PROPS];
+): PropDef[] => [...specificProps, ...createPromptSharedProps(t)];
 
 export type PromptPlaygroundMode = 'edit' | 'run' | 'plain';
 
 export const createPromptPlayground = (
+    t: PromptSharedCopy,
     mode: PromptPlaygroundMode,
     render: PlaygroundConfig['render'],
     specificProps: PropDef[],
 ): PlaygroundConfig => ({
-    props: sharedPromptPlaygroundProps(specificProps),
+    props: sharedPromptPlaygroundProps(t, specificProps),
     showFormRecord: true,
     size: '2xl',
     layout: 'split',
-    defaultProps: createPromptPlaygroundDefaults(mode),
+    defaultProps: createPromptPlaygroundDefaults(t, mode),
     render,
 });

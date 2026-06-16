@@ -1,6 +1,7 @@
 import React from 'react';
 import { Badge } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
+import { useShowcaseBadgeI18n } from '../../showcase/i18n';
 import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
 import { usePlayground } from '../../docs-kit/playground';
@@ -38,15 +39,16 @@ const PLAYGROUND: PlaygroundConfig = {
 
 export default function BadgePage() {
     usePlayground(PLAYGROUND, 'Badge');
+    const t = useShowcaseBadgeI18n();
 
     return (
         <PageLayout
-            title="Badge"
-            description="Inline labels for status, counters and categories. When children is a React element, Badge enters overlay mode and positions indicators on that element."
+            title={t.page.title}
+            description={t.page.description}
         >
             <Section
-                title="Color variants"
-                description="Inline badges use text or inline React content as children."
+                title={t.sections.colorVariants.title}
+                description={t.sections.colorVariants.description}
                 preview={
                     <div className="flex flex-wrap gap-2">
                         {TYPES.map((type) => (
@@ -63,8 +65,8 @@ export default function BadgePage() {
             />
 
             <Section
-                title="Overlay: after top-right"
-                description="Pass a React element as children with after to show a badge top-right."
+                title={t.sections.overlayAfter.title}
+                description={t.sections.overlayAfter.description}
                 preview={
                     <div className="flex flex-wrap items-center gap-10">
                         <Badge variant="danger" after={5}>
@@ -84,8 +86,8 @@ export default function BadgePage() {
             />
 
             <Section
-                title="Overlay: before top-left"
-                description="Use before instead to place the badge top-left."
+                title={t.sections.overlayBefore.title}
+                description={t.sections.overlayBefore.description}
                 preview={
                     <div className="flex flex-wrap items-center gap-10">
                         <Badge variant="danger" before={5}>
@@ -102,8 +104,8 @@ export default function BadgePage() {
             />
 
             <Section
-                title="Overlay: both corners"
-                description="Both before and after coexist: top-left and top-right simultaneously."
+                title={t.sections.overlayBoth.title}
+                description={t.sections.overlayBoth.description}
                 preview={
                     <div className="flex flex-wrap items-center gap-10">
                         <Badge variant="danger" before={2} after={7}>
@@ -120,8 +122,8 @@ export default function BadgePage() {
             />
 
             <Section
-                title="Overlay: dot"
-                description="No before or after renders a small dot indicator top-right."
+                title={t.sections.overlayDot.title}
+                description={t.sections.overlayDot.description}
                 preview={
                     <div className="flex flex-wrap items-center gap-10">
                         <Badge variant="danger">
@@ -141,8 +143,8 @@ export default function BadgePage() {
             />
 
             <Section
-                title="Inline with before/after"
-                description="In inline mode, before and after render outside the badge span."
+                title={t.sections.inlineMode.title}
+                description={t.sections.inlineMode.description}
                 preview={
                     <div className="flex flex-wrap items-center gap-4 text-sm">
                         <span>Pending orders <Badge variant="warning">12</Badge></span>

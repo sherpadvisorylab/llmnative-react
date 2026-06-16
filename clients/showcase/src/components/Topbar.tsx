@@ -1,8 +1,9 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { useThemeController, Badge, LocaleSwitcher, useI18n } from '@llmnative/react';
+import { useThemeController, Badge, LocaleSwitcher } from '@llmnative/react';
 import Icon from './Icon';
 import { usePlaygroundContext } from '../docs-kit/playground';
+import { useShowcaseCommonI18n } from '../showcase/i18n';
 
 interface TopbarProps {
     onOpenThemePanel: () => void;
@@ -18,14 +19,14 @@ const activeLinkClass = ({ isActive }: { isActive: boolean }) =>
 export default function Topbar({ onOpenThemePanel }: TopbarProps) {
     const { resolvedMode, toggleMode } = useThemeController();
     const { config, openPlayground } = usePlaygroundContext();
-    const t = useI18n('showcase');
+    const t = useShowcaseCommonI18n();
 
     const TOP_NAV = [
-        { label: t.navDocs,       path: '/docs' },
-        { label: t.navComponents, path: '/components' },
-        { label: t.navProviders,  path: '/providers' },
-        { label: t.navExamples,   path: '/examples' },
-        { label: t.navBenchmark,  path: '/benchmark' },
+        { label: t.nav.docs,       path: '/docs' },
+        { label: t.nav.components, path: '/components' },
+        { label: t.nav.providers,  path: '/providers' },
+        { label: t.nav.examples,   path: '/examples' },
+        { label: t.nav.benchmark,  path: '/benchmark' },
     ];
 
     return (
@@ -53,10 +54,10 @@ export default function Topbar({ onOpenThemePanel }: TopbarProps) {
                     <button
                         onClick={openPlayground}
                         className="flex items-center gap-1.5 px-3 h-8 rounded-md text-sm font-medium border border-primary/40 text-primary hover:bg-primary/10 transition-colors cursor-pointer"
-                        title={t.playgroundOpen}
+                        title={t.playground.open}
                     >
                         <Icon name="play" size={13} />
-                        {t.playgroundButton}
+                        {t.playground.button}
                     </button>
                 )}
                 {/* Locale switcher */}

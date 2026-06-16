@@ -8,7 +8,9 @@ import {
     Select,
     String as TextField,
 } from '@llmnative/react';
+import type { I18nDict } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
+import { useShowcaseGridDbI18n, useShowcaseGridI18n } from '../../showcase/i18n';
 import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
 import { usePlayground } from '../../docs-kit/playground';
@@ -27,6 +29,9 @@ type UserRecord = {
     team: string;
     city: string;
 };
+
+type ShowcaseGridI18n = I18nDict['showcase']['grid'];
+type ShowcaseGridDbI18n = I18nDict['showcase']['gridDb'];
 
 // ─── Seed data ────────────────────────────────────────────────────────────────
 
@@ -59,30 +64,36 @@ const statusClass = (status: string) =>
 const roleClass = (role: string) =>
     role === 'admin' ? 'bg-primary' : role === 'editor' ? 'bg-info' : 'bg-secondary';
 
-const baseColumns = [
-    { key: 'name', label: 'Name', sortable: true },
-    { key: 'email', label: 'Email', sortable: true, render: 'email' as const },
-    { key: 'role', label: 'Role', sortable: true },
-    { key: 'status', label: 'Status', sortable: true },
-    { key: 'team', label: 'Team', sortable: true },
+const getRoleLabel = (t: ShowcaseGridI18n, role: string) =>
+    role === 'admin' ? t.values.roles.admin : role === 'editor' ? t.values.roles.editor : role === 'viewer' ? t.values.roles.viewer : role;
+
+const getStatusLabel = (t: ShowcaseGridI18n, status: string) =>
+    status === 'active' ? t.values.statuses.active : status === 'review' ? t.values.statuses.review : status === 'inactive' ? t.values.statuses.inactive : status;
+
+const getBaseColumns = (t: ShowcaseGridI18n) => [
+    { key: 'name', label: t.labels.name, sortable: true },
+    { key: 'email', label: t.labels.email, sortable: true, render: 'email' as const },
+    { key: 'role', label: t.labels.role, sortable: true },
+    { key: 'status', label: t.labels.status, sortable: true },
+    { key: 'team', label: t.labels.team, sortable: true },
 ];
 
-const displayColumns = [
-    { key: 'name', label: 'Name', sortable: true },
-    { key: 'email', label: 'Email', sortable: true },
+const getDisplayColumns = (t: ShowcaseGridI18n) => [
+    { key: 'name', label: t.labels.name, sortable: true },
+    { key: 'email', label: t.labels.email, sortable: true },
     {
         key: 'role',
-        label: 'Role',
+        label: t.labels.role,
         sortable: true,
-        render: ({ value }: { value: string }) => <Badge className={roleClass(value)}>{value}</Badge>,
+        render: ({ value }: { value: string }) => <Badge className={roleClass(value)}>{getRoleLabel(t, value)}</Badge>,
     },
     {
         key: 'status',
-        label: 'Status',
+        label: t.labels.status,
         sortable: true,
-        render: ({ value }: { value: string }) => <Badge className={statusClass(value)}>{value}</Badge>,
+        render: ({ value }: { value: string }) => <Badge className={statusClass(value)}>{getStatusLabel(t, value)}</Badge>,
     },
-    { key: 'team', label: 'Team', sortable: true },
+    { key: 'team', label: t.labels.team, sortable: true },
 ];
 
 // ─── Playground helpers ───────────────────────────────────────────────────────
@@ -131,33 +142,33 @@ const resolvePlaygroundNode = <TCtx,>(value: unknown) => {
 
 // ─── Form used inside modal CRUD actions ──────────────────────────────────────
 
-function GridUserForm() {
+function GridUserForm({ t }: { t: ShowcaseGridI18n }) {
     return (
         <>
-            <TextField name="name" label="Name" required />
-            <Email name="email" label="Email" required />
+            <TextField name="name" label={t.labels.name} required />
+            <Email name="email" label={t.labels.email} required />
             <Select
                 name="role"
-                label="Role"
+                label={t.labels.role}
                 required
                 options={[
-                    { value: 'admin', label: 'Admin' },
-                    { value: 'editor', label: 'Editor' },
-                    { value: 'viewer', label: 'Viewer' },
+                    { value: 'admin', label: t.values.roles.admin },
+                    { value: 'editor', label: t.values.roles.editor },
+                    { value: 'viewer', label: t.values.roles.viewer },
                 ]}
             />
             <Select
                 name="status"
-                label="Status"
+                label={t.labels.status}
                 required
                 options={[
-                    { value: 'active', label: 'Active' },
-                    { value: 'review', label: 'Review' },
-                    { value: 'inactive', label: 'Inactive' },
+                    { value: 'active', label: t.values.statuses.active },
+                    { value: 'review', label: t.values.statuses.review },
+                    { value: 'inactive', label: t.values.statuses.inactive },
                 ]}
             />
-            <TextField name="team" label="Team" required />
-            <TextField name="city" label="City" required />
+            <TextField name="team" label={t.labels.team} required />
+            <TextField name="city" label={t.labels.city} required />
         </>
     );
 }
@@ -213,36 +224,36 @@ type GridDbDocSurface = {
     audit: unknown;
 };
 
-const GRID_DB_PROP_DOCS = definePropDocs<GridDbDocSurface>()([
+const createGridDbPropDocs = (gridT: ShowcaseGridI18n, dbT: ShowcaseGridDbI18n) => definePropDocs<GridDbDocSurface>()([
     // ── GridDB-specific ───────────────────────────────────────────────────────
     {
         name: 'path',
         type: 'string',
         required: true,
-        category: 'GridDB',
-        description: 'DataProvider collection path. Use with fromUrl={false} (default).',
+        category: dbT.propsDocs.categories.gridDb,
+        description: dbT.propsDocs.items.path.description,
     },
     {
         name: 'fromUrl',
         type: 'boolean',
         default: 'false',
-        category: 'GridDB',
-        description: 'When true, derive the collection path from the current route pathname instead of path. fromUrl always wins: path is ignored when fromUrl is set. Mutually exclusive with path at the type level.',
+        category: dbT.propsDocs.categories.gridDb,
+        description: dbT.propsDocs.items.fromUrl.description,
     },
     {
         name: 'recordId',
         type: 'keyof TRecord | ((record: TRecord) => string)',
         default: '"_key"',
-        category: 'GridDB',
-        description: 'Identity resolver used for selection, edit state and mutation paths. Pass a field name or an arrow function.',
+        category: dbT.propsDocs.categories.gridDb,
+        description: dbT.propsDocs.items.recordId.description,
         shape: `keyof TRecord\n| ((record: TRecord) => string)`,
     },
     {
         name: 'where',
         type: 'WhereClause',
         default: '{}',
-        category: 'GridDB',
-        description: 'Provider-side filter applied before records are streamed. e.g. {"status":"active"}',
+        category: dbT.propsDocs.categories.gridDb,
+        description: `${dbT.propsDocs.items.where.description} e.g. {"status":"active"}`,
         shape: `{
   [field: string]:
     | string | number | boolean | null
@@ -262,26 +273,26 @@ const GRID_DB_PROP_DOCS = definePropDocs<GridDbDocSurface>()([
         name: 'order',
         type: 'OrderClause',
         default: '{}',
-        category: 'GridDB',
-        description: 'Provider-side ordering applied before records are streamed. e.g. {"name":"asc"}',
+        category: dbT.propsDocs.categories.gridDb,
+        description: `${dbT.propsDocs.items.order.description} e.g. {"name":"asc"}`,
         shape: `{ [field: string]: "asc" | "desc" }`,
     },
     {
         name: 'fieldMap',
         type: 'Record<string, string>',
         default: '{}',
-        category: 'GridDB',
-        description: 'Remap provider field names to UI field names. e.g. {"fullName":"name"} maps provider "name" to "fullName".',
+        category: dbT.propsDocs.categories.gridDb,
+        description: `${dbT.propsDocs.items.fieldMap.description} e.g. {"fullName":"name"} maps provider "name" to "fullName".`,
         shape: `{ [targetField: string]: string }`,
-        example: `// Map provider field "name" â†’ UI field "fullName"
+        example: `// Map provider field "name" -> UI field "fullName"
 fieldMap={{ fullName: "name" }}`,
     },
     // ── Shared ────────────────────────────────────────────────────────────────
     {
         name: 'columns',
         type: 'GridColumn<TRecord>[]',
-        category: 'Shared',
-        description: 'Column definitions. Each item needs key and label; sortable and render are optional. Omit for auto-inferred columns.',
+        category: dbT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.columns.description,
         shape: `Array<{
   key: keyof TRecord | string
   label: string
@@ -302,8 +313,8 @@ fieldMap={{ fullName: "name" }}`,
     {
         name: 'actions',
         type: '("add" | "edit" | "delete")[] | Record<string, GridAction>',
-        category: 'Shared',
-        description: 'Action catalog. Pass an array shorthand ["add","edit","delete"] or a declarative object for custom modal, route and external actions.',
+        category: dbT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.actions.description,
         shape: `// Shorthand
 ("add" | "edit" | "delete")[]
 
@@ -325,8 +336,8 @@ Record<string, false | {
     {
         name: 'form',
         type: 'ReactElement | ((ctx) => ReactNode)',
-        category: 'Shared',
-        description: 'Add/edit form rendered inside the modal. Grid wraps it in Form automatically.',
+        category: dbT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.form.description,
         shape: `ReactElement | ((ctx: {
   actionKey: string
   record?: TRecord
@@ -339,23 +350,23 @@ Record<string, false | {
         name: 'view',
         type: '"table" | "gallery"',
         default: '"table"',
-        category: 'Shared',
-        description: 'Visual surface: table rows or gallery cards.',
+        category: dbT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.view.description,
     },
     {
         name: 'sortable',
         type: 'boolean | OrderConfig',
         default: 'true',
-        category: 'Shared',
-        description: 'Enable client-side header sorting or set an initial sort via OrderConfig.',
+        category: dbT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.sortable.description,
         shape: `boolean | { [field: string]: "asc" | "desc" }`,
     },
     {
         name: 'pagination',
         type: 'PaginationParams',
         default: '{ limit: 4, align: "end" }',
-        category: 'Shared',
-        description: 'Pagination forwarded to Table or Gallery.',
+        category: dbT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.pagination.description,
         shape: `{
   limit?: number
   align?: "start" | "center" | "end"
@@ -366,8 +377,8 @@ Record<string, false | {
         name: 'selection',
         type: 'false | "single" | "multiple" | GridSelectionConfig<TRecord>',
         default: 'false',
-        category: 'Shared',
-        description: 'Row selection mode. Use the string shorthand or an object form with defaultKeys and onChange.',
+        category: dbT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.selection.description,
         shape: `"single" | "multiple"
 | {
   mode: "single" | "multiple"
@@ -379,29 +390,29 @@ Record<string, false | {
         name: 'groupBy',
         type: 'string | string[]',
         default: '',
-        category: 'Shared',
-        description: 'Group rows/cards by a field. Works for both table and gallery layouts.',
+        category: dbT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.groupBy.description,
     },
     {
         name: 'reorderable',
         type: 'boolean',
         default: 'false',
-        category: 'Shared',
-        description: 'Enable row drag & drop reorder. Disables client sorting while active.',
+        category: dbT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.reorderable.description,
     },
     {
         name: 'title',
         type: 'ReactNode',
         default: '',
-        category: 'Shared',
-        description: 'Card header title.',
+        category: dbT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.title.description,
     },
     {
         name: 'header',
         type: 'ReactNode | ((ctx) => ReactNode)',
         default: 'false',
-        category: 'Shared',
-        description: 'Full header override. Receives GridHeaderContext when a function.',
+        category: dbT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.header.description,
         shape: `ReactNode | ((ctx: {
   title?: ReactNode
   records: TRecord[]
@@ -413,8 +424,8 @@ Record<string, false | {
         name: 'footer',
         type: 'ReactNode | ((ctx) => ReactNode)',
         default: 'false',
-        category: 'Shared',
-        description: 'Footer override. Receives GridFooterContext when a function.',
+        category: dbT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.footer.description,
         shape: `ReactNode | ((ctx: {
   records: TRecord[]
   selection: GridSelectionState<TRecord>
@@ -425,54 +436,54 @@ Record<string, false | {
         name: 'loading',
         type: 'boolean',
         default: 'false',
-        category: 'Shared',
-        description: 'Show a loading overlay on the card.',
+        category: dbT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.loading.description,
     },
     {
         name: 'sticky',
         type: '"top" | "bottom"',
         default: '',
-        category: 'Shared',
-        description: 'Stick the card to the top or bottom of the scroll container.',
+        category: dbT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.sticky.description,
     },
     {
         name: 'wrapperClassName',
         type: 'string',
         default: '',
-        category: 'Shared',
-        description: 'CSS class on the outer card wrapper.',
+        category: dbT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.wrapperClassName.description,
     },
     {
         name: 'before',
         type: 'ReactNode',
-        category: 'Shared',
-        description: 'Content rendered above the table/gallery body.',
+        category: dbT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.before.description,
     },
     {
         name: 'after',
         type: 'ReactNode',
-        category: 'Shared',
-        description: 'Content rendered below the table/gallery body.',
+        category: dbT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.after.description,
     },
     {
         name: 'onRowClick',
         type: '(record: TRecord) => void',
         default: 'false',
-        category: 'Shared',
-        description: 'Called with the full record on row/card click.',
+        category: dbT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.onRowClick.description,
     },
     {
         name: 'editDeepLink',
         type: 'boolean',
         default: 'false',
-        category: 'Shared',
-        description: 'Sync edit modal to URL hash (#edit/{key}).',
+        category: dbT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.editDeepLink.description,
     },
     {
         name: 'onSave',
         type: 'GridMutationSaveHandler<TRecord>',
-        category: 'Shared',
-        description: 'Override save path or implement custom persistence for create/update.',
+        category: dbT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.onSave.description,
         shape: `(args: {
   record?: TRecord
   action: "create" | "update"
@@ -482,8 +493,8 @@ Record<string, false | {
     {
         name: 'onDelete',
         type: 'GridMutationDeleteHandler<TRecord>',
-        category: 'Shared',
-        description: 'Override delete path before the provider removes the record.',
+        category: dbT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.onDelete.description,
         shape: `(args: {
   record?: TRecord
 }) => Promise<string | undefined>`,
@@ -491,8 +502,8 @@ Record<string, false | {
     {
         name: 'onComplete',
         type: 'GridAfterActionHandler<TRecord>',
-        category: 'Shared',
-        description: 'Post-action hook. Return false to keep the modal open.',
+        category: dbT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.onComplete.description,
         shape: `(args: {
   record?: TRecord
   action: "create" | "update" | "delete"
@@ -502,186 +513,188 @@ Record<string, false | {
         name: 'audit',
         type: 'boolean',
         default: 'false',
-        category: 'Shared',
-        description: 'Enable form-level audit logging during modal saves.',
+        category: dbT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.audit.description,
     },
 ]);
 
 // ─── Playground prop definitions ──────────────────────────────────────────────
 
-const GRID_DB_SPECIFIC_PROPS: PropDef[] = [
+const createGridDbSpecificProps = (dbT: ShowcaseGridDbI18n): PropDef[] => [
     {
-        group: 'GridDB',
+        group: dbT.playground.groups.gridDb,
         name: 'path',
         type: 'string',
         required: true,
-        description: 'DataProvider collection path.',
+        description: dbT.playground.props.path.description,
         control: 'text',
         readOnly: true,
         default: GRID_SOURCE_PATH,
     },
     {
-        group: 'GridDB',
+        group: dbT.playground.groups.gridDb,
         name: 'fromUrl',
         type: 'boolean',
         default: 'false',
-        description: `Derive the collection path from the current route pathname. fromUrl always wins over path. In this playground the URL resolves to "${FROM_URL_PATH}" (different dataset).`,
+        description: `${dbT.playground.props.fromUrl.description} "${FROM_URL_PATH}".`,
         control: 'boolean',
     },
     {
-        group: 'GridDB',
+        group: dbT.playground.groups.gridDb,
         name: 'recordId',
         type: 'keyof TRecord | ((record) => string)',
         default: '"_key"',
-        description: 'Record identity resolver.',
+        description: dbT.playground.props.recordId.description,
         control: 'textarea',
         textareaMode: 'text',
         rows: 2,
         shortcuts: [
-            { label: '_key', value: '_key' },
-            { label: 'id', value: 'id' },
-            { label: 'fn', value: 'record => record.id', help: 'Arrow function.' },
+            { label: dbT.playground.props.recordId.shortcuts.nativeKey.label, value: '_key', help: dbT.playground.props.recordId.shortcuts.nativeKey.help },
+            { label: dbT.playground.props.recordId.shortcuts.explicitId.label, value: 'id', help: dbT.playground.props.recordId.shortcuts.explicitId.help },
+            { label: dbT.playground.props.recordId.shortcuts.functionId.label, value: 'record => record.id', help: dbT.playground.props.recordId.shortcuts.functionId.help },
         ],
     },
     {
-        group: 'GridDB',
+        group: dbT.playground.groups.gridDb,
         name: 'where',
         type: 'WhereClause',
         default: '{}',
-        description: 'Provider-side filter applied before records are streamed. e.g. {"status":"active"}',
+        description: dbT.playground.props.where.description,
         control: 'json',
         rows: 4,
         shortcuts: [
-            { label: 'empty', value: {}, help: 'No filter.' },
-            { label: 'active', value: { status: 'active' } },
-            { label: 'admins', value: { role: 'admin' } },
+            { label: dbT.playground.props.where.shortcuts.empty.label, value: {}, help: dbT.playground.props.where.shortcuts.empty.help },
+            { label: dbT.playground.props.where.shortcuts.active.label, value: { status: 'active' }, help: dbT.playground.props.where.shortcuts.active.help },
+            { label: dbT.playground.props.where.shortcuts.admins.label, value: { role: 'admin' }, help: dbT.playground.props.where.shortcuts.admins.help },
         ],
     },
     {
-        group: 'GridDB',
+        group: dbT.playground.groups.gridDb,
         name: 'order',
         type: 'OrderClause',
         default: '{}',
-        description: 'Provider-side ordering applied before records are streamed. e.g. {"name":"asc"}',
+        description: dbT.playground.props.order.description,
         control: 'json',
         rows: 4,
         shortcuts: [
-            { label: 'none', value: {}, help: 'Provider default order.' },
-            { label: 'name asc', value: { name: 'asc' } },
-            { label: 'email desc', value: { email: 'desc' } },
+            { label: dbT.playground.props.order.shortcuts.none.label, value: {}, help: dbT.playground.props.order.shortcuts.none.help },
+            { label: dbT.playground.props.order.shortcuts.nameAsc.label, value: { name: 'asc' }, help: dbT.playground.props.order.shortcuts.nameAsc.help },
+            { label: dbT.playground.props.order.shortcuts.emailDesc.label, value: { email: 'desc' }, help: dbT.playground.props.order.shortcuts.emailDesc.help },
         ],
     },
     {
-        group: 'GridDB',
+        group: dbT.playground.groups.gridDb,
         name: 'fieldMap',
         type: 'Record<string, string>',
         default: '{}',
-        description: 'Remap provider field names to UI field names. e.g. {"fullName":"name"} maps provider "name" to "fullName".',
+        description: dbT.playground.props.fieldMap.description,
         control: 'json',
         rows: 4,
         shortcuts: [
-            { label: 'empty', value: {}, help: 'No remapping.' },
-            { label: 'fullName', value: { fullName: 'name' } },
+            { label: dbT.playground.props.fieldMap.shortcuts.empty.label, value: {}, help: dbT.playground.props.fieldMap.shortcuts.empty.help },
+            { label: dbT.playground.props.fieldMap.shortcuts.fullName.label, value: { fullName: 'name' }, help: dbT.playground.props.fieldMap.shortcuts.fullName.help },
         ],
     },
 ];
 
-const SHARED_PROPS: PropDef[] = [
+const createSharedProps = (gridT: ShowcaseGridI18n, dbT: ShowcaseGridDbI18n): PropDef[] => [
     {
-        group: 'Shared', name: 'columns', type: 'GridColumn<TRecord>[]',
-        description: 'Column definitions. Each item needs key and label; sortable and render are optional. Omit for auto-inferred columns.',
+        group: dbT.playground.groups.shared, name: 'columns', type: 'GridColumn<TRecord>[]',
+        description: gridT.playground.props.columns.description,
         control: 'json', rows: 6,
         shortcuts: [
-            { label: 'auto', value: null, help: 'Infer columns from record shape.' },
+            { label: gridT.playground.props.columns.shortcuts?.infer?.label ?? 'auto', value: null, help: gridT.playground.props.columns.shortcuts?.infer?.help ?? '' },
             { label: 'base', value: [
-                { key: 'name', label: 'Name', sortable: true },
-                { key: 'email', label: 'Email', sortable: true, render: 'email' },
-                { key: 'role', label: 'Role', sortable: true },
-                { key: 'status', label: 'Status', sortable: true },
-            ], help: 'Standard column set.' },
+                { key: 'name', label: gridT.labels.name, sortable: true },
+                { key: 'email', label: gridT.labels.email, sortable: true, render: 'email' },
+                { key: 'role', label: gridT.labels.role, sortable: true },
+                { key: 'status', label: gridT.labels.status, sortable: true },
+            ], help: gridT.playground.props.columns.shortcuts?.base?.help ?? '' },
         ],
     },
     {
-        group: 'Shared', name: 'actions', type: '("add"|"edit"|"delete")[] | Record<string, GridAction>',
-        description: 'Action catalog. Pass an array shorthand ["add","edit","delete"] or a declarative object for custom modal, route and external actions.',
+        group: dbT.playground.groups.shared, name: 'actions', type: '("add"|"edit"|"delete")[] | Record<string, GridAction>',
+        description: gridT.playground.props.actions.description,
         control: 'json', rows: 6,
         shortcuts: [
-            { label: 'none', value: {}, help: 'No actions.' },
-            { label: 'crud', value: ['add', 'edit', 'delete'], help: 'Standard CRUD shorthand.' },
-            { label: 'custom', value: { preview: { kind: 'modal', label: 'Preview', icon: 'eye' } }, help: 'Custom modal action.' },
+            { label: gridT.playground.props.actions.shortcuts?.none?.label ?? 'none', value: {}, help: gridT.playground.props.actions.shortcuts?.none?.help ?? '' },
+            { label: gridT.playground.props.actions.shortcuts?.crud?.label ?? 'crud', value: ['add', 'edit', 'delete'], help: gridT.playground.props.actions.shortcuts?.crud?.help ?? '' },
+            { label: gridT.playground.props.actions.shortcuts?.custom?.label ?? 'custom', value: { preview: { kind: 'modal', label: gridT.actions.preview, icon: 'eye' } }, help: gridT.playground.props.actions.shortcuts?.custom?.help ?? '' },
         ],
     },
-    { group: 'Shared', name: 'form', type: 'ReactElement | ((ctx) => ReactNode)', description: 'Add/edit form rendered inside the modal. Grid wraps it in Form automatically.', readOnly: true },
-    { group: 'Shared', name: 'view', type: '"table" | "gallery"', default: '"table"', description: 'Visual surface: table rows or gallery cards.', control: 'select', options: ['table', 'gallery'] },
+    { group: dbT.playground.groups.shared, name: 'form', type: 'ReactElement | ((ctx) => ReactNode)', description: gridT.playground.props.form.description, readOnly: true },
+    { group: dbT.playground.groups.shared, name: 'view', type: '"table" | "gallery"', default: '"table"', description: gridT.playground.props.view.description, control: 'select', options: ['table', 'gallery'] },
     {
-        group: 'Shared', name: 'sortable', type: 'boolean | OrderConfig', default: 'true',
-        description: 'Enable client-side header sorting or set an initial sort via OrderConfig.',
+        group: dbT.playground.groups.shared, name: 'sortable', type: 'boolean | OrderConfig', default: 'true',
+        description: gridT.playground.props.sortable.description,
         control: 'json', rows: 2,
         shortcuts: [
-            { label: 'true', value: true },
-            { label: 'false', value: false },
-            { label: 'name asc', value: { name: 'asc' }, help: 'Start sorted by name ascending.' },
+            { label: gridT.playground.props.sortable.shortcuts?.true?.label ?? 'true', value: true, help: gridT.playground.props.sortable.shortcuts?.true?.help ?? '' },
+            { label: gridT.playground.props.sortable.shortcuts?.false?.label ?? 'false', value: false, help: gridT.playground.props.sortable.shortcuts?.false?.help ?? '' },
+            { label: gridT.playground.props.sortable.shortcuts?.nameAsc?.label ?? 'name asc', value: { name: 'asc' }, help: gridT.playground.props.sortable.shortcuts?.nameAsc?.help ?? '' },
         ],
     },
     {
-        group: 'Shared', name: 'pagination', type: 'PaginationParams', default: '{"limit":4,"align":"end"}',
-        description: 'Pagination forwarded to Table or Gallery.',
+        group: dbT.playground.groups.shared, name: 'pagination', type: 'PaginationParams', default: '{"limit":4,"align":"end"}',
+        description: gridT.playground.props.pagination.description,
         control: 'json', rows: 3,
         shortcuts: [
-            { label: 'default', value: { limit: 4, align: 'end' } },
-            { label: 'compact', value: { limit: 2, align: 'center' } },
+            { label: gridT.playground.props.pagination.shortcuts?.default?.label ?? 'default', value: { limit: 4, align: 'end' }, help: gridT.playground.props.pagination.shortcuts?.default?.help ?? '' },
+            { label: gridT.playground.props.pagination.shortcuts?.compact?.label ?? 'compact', value: { limit: 2, align: 'center' }, help: gridT.playground.props.pagination.shortcuts?.compact?.help ?? '' },
         ],
     },
     {
-        group: 'Shared', name: 'selection', type: 'false | "single" | "multiple" | GridSelectionConfig<TRecord>', default: 'false',
-        description: 'Row selection mode. onChange is wired automatically in the playground.',
+        group: dbT.playground.groups.shared, name: 'selection', type: 'false | "single" | "multiple" | GridSelectionConfig<TRecord>', default: 'false',
+        description: gridT.playground.props.selection.description,
         control: 'json', rows: 3,
         shortcuts: [
-            { label: 'off', value: false },
-            { label: 'single', value: 'single' },
-            { label: 'multiple', value: 'multiple' },
-            { label: 'defaultKeys', value: { mode: 'multiple', defaultKeys: ['u1', 'u5'] }, help: 'Pre-select u1 and u5.' },
+            { label: gridT.playground.props.selection.shortcuts?.off?.label ?? 'off', value: false, help: gridT.playground.props.selection.shortcuts?.off?.help ?? '' },
+            { label: gridT.playground.props.selection.shortcuts?.single?.label ?? 'single', value: 'single', help: gridT.playground.props.selection.shortcuts?.single?.help ?? '' },
+            { label: gridT.playground.props.selection.shortcuts?.multiple?.label ?? 'multiple', value: 'multiple', help: gridT.playground.props.selection.shortcuts?.multiple?.help ?? '' },
+            { label: gridT.playground.props.selection.shortcuts?.defaultKeys?.label ?? 'defaultKeys', value: { mode: 'multiple', defaultKeys: ['u1', 'u5'] }, help: gridT.playground.props.selection.shortcuts?.defaultKeys?.help ?? '' },
         ],
     },
     {
-        group: 'Shared', name: 'groupBy', type: 'string | string[]', default: '',
-        description: 'Group rows/cards by a field. Works for both table and gallery layouts.',
-        control: 'textarea', textareaMode: 'text', rows: 1, placeholder: 'e.g. role',
+        group: dbT.playground.groups.shared, name: 'groupBy', type: 'string | string[]', default: '',
+        description: gridT.playground.props.groupBy.description,
+        control: 'textarea', textareaMode: 'text', rows: 1, placeholder: gridT.playground.props.groupBy.placeholder ?? 'e.g. role',
         shortcuts: [
-            { label: 'off', value: '' }, { label: 'role', value: 'role' },
-            { label: 'status', value: 'status' }, { label: 'team', value: 'team' },
+            { label: gridT.playground.props.groupBy.shortcuts?.off?.label ?? 'off', value: '', help: gridT.playground.props.groupBy.shortcuts?.off?.help ?? '' },
+            { label: gridT.playground.props.groupBy.shortcuts?.role?.label ?? 'role', value: 'role', help: gridT.playground.props.groupBy.shortcuts?.role?.help ?? '' },
+            { label: gridT.playground.props.groupBy.shortcuts?.status?.label ?? 'status', value: 'status', help: gridT.playground.props.groupBy.shortcuts?.status?.help ?? '' },
+            { label: gridT.playground.props.groupBy.shortcuts?.team?.label ?? 'team', value: 'team', help: gridT.playground.props.groupBy.shortcuts?.team?.help ?? '' },
         ],
     },
-    { group: 'Shared', name: 'reorderable', type: 'boolean', default: 'false', description: 'Enable row drag & drop reorder. Disables client sorting while active.', control: 'json', rows: 1, shortcuts: [{ label: 'false', value: false }, { label: 'true', value: true }] },
-    { group: 'Shared', name: 'title', type: 'ReactNode', default: '"Team members"', description: 'Card header title.', control: 'text' },
+    { group: dbT.playground.groups.shared, name: 'reorderable', type: 'boolean', default: 'false', description: gridT.playground.props.reorderable.description, control: 'json', rows: 1, shortcuts: [{ label: gridT.playground.props.reorderable.shortcuts?.false?.label ?? 'false', value: false, help: gridT.playground.props.reorderable.shortcuts?.false?.help ?? '' }, { label: gridT.playground.props.reorderable.shortcuts?.true?.label ?? 'true', value: true, help: gridT.playground.props.reorderable.shortcuts?.true?.help ?? '' }] },
+    { group: dbT.playground.groups.shared, name: 'title', type: 'ReactNode', default: `"${dbT.labels.teamMembers}"`, description: gridT.playground.props.title.description, control: 'text' },
     {
-        group: 'Shared', name: 'header', type: 'ReactNode | ((ctx) => ReactNode)', default: 'false',
-        description: 'Full header override. Receives GridHeaderContext when a function.',
+        group: dbT.playground.groups.shared, name: 'header', type: 'ReactNode | ((ctx) => ReactNode)', default: 'false',
+        description: gridT.playground.props.header.description,
         control: 'textarea', textareaMode: 'text', rows: 2,
-        shortcuts: [{ label: 'false', value: 'false' }, { label: 'fn', value: 'ctx => `${ctx.title} Â· ${ctx.records.length} records`' }],
+        shortcuts: [{ label: gridT.playground.props.header.shortcuts?.false?.label ?? 'false', value: 'false', help: gridT.playground.props.header.shortcuts?.false?.help ?? '' }, { label: gridT.playground.props.header.shortcuts?.fn?.label ?? 'fn', value: 'ctx => `${ctx.title} · ${ctx.records.length} records`', help: gridT.playground.props.header.shortcuts?.fn?.help ?? '' }],
     },
     {
-        group: 'Shared', name: 'footer', type: 'ReactNode | ((ctx) => ReactNode)', default: 'false',
-        description: 'Footer override. Receives GridFooterContext when a function.',
+        group: dbT.playground.groups.shared, name: 'footer', type: 'ReactNode | ((ctx) => ReactNode)', default: 'false',
+        description: gridT.playground.props.footer.description,
         control: 'textarea', textareaMode: 'text', rows: 2,
-        shortcuts: [{ label: 'false', value: 'false' }, { label: 'fn', value: 'ctx => `${ctx.records.length} records loaded`' }],
+        shortcuts: [{ label: gridT.playground.props.footer.shortcuts?.false?.label ?? 'false', value: 'false', help: gridT.playground.props.footer.shortcuts?.false?.help ?? '' }, { label: gridT.playground.props.footer.shortcuts?.fn?.label ?? 'fn', value: 'ctx => `${ctx.records.length} records loaded`', help: gridT.playground.props.footer.shortcuts?.fn?.help ?? '' }],
     },
-    { group: 'Shared', name: 'loading', type: 'boolean', default: 'false', description: 'Show a loading overlay on the card.', control: 'boolean' },
-    { group: 'Shared', name: 'sticky', type: '"top" | "bottom"', default: '', description: 'Stick the card to the top or bottom of the scroll container.', control: 'select', options: ['', 'top', 'bottom'] },
-    { group: 'Shared', name: 'wrapperClassName', type: 'string', default: '', description: 'CSS class on the outer card wrapper.', control: 'text' },
-    { group: 'Shared', name: 'before', type: 'ReactNode', description: 'Content rendered above the table/gallery body.', control: 'textarea', rows: 2 },
-    { group: 'Shared', name: 'after', type: 'ReactNode', description: 'Content rendered below the table/gallery body.', control: 'textarea', rows: 2 },
-    { group: 'Shared', name: 'onRowClick', type: '(record) => void', default: 'false', description: 'Called with the full record on row/card click.', control: 'boolean' },
-    { group: 'Shared', name: 'editDeepLink', type: 'boolean', default: 'false', description: 'Sync edit modal to URL hash (#edit/{key}).', control: 'boolean' },
-    { group: 'Shared', name: 'onSave', type: 'GridMutationSaveHandler<TRecord>', description: 'Override save path or implement custom persistence for create/update.', readOnly: true },
-    { group: 'Shared', name: 'onDelete', type: 'GridMutationDeleteHandler<TRecord>', description: 'Override delete path before the provider removes the record.', readOnly: true },
-    { group: 'Shared', name: 'onComplete', type: 'GridAfterActionHandler<TRecord>', description: 'Post-action hook. Return false to keep the modal open.', readOnly: true },
-    { group: 'Shared', name: 'audit', type: 'boolean', default: 'false', description: 'Enable form-level audit logging during modal saves.', control: 'boolean' },
+    { group: dbT.playground.groups.shared, name: 'loading', type: 'boolean', default: 'false', description: gridT.playground.props.loading.description, control: 'boolean' },
+    { group: dbT.playground.groups.shared, name: 'sticky', type: '"top" | "bottom"', default: '', description: gridT.playground.props.sticky.description, control: 'select', options: ['', 'top', 'bottom'] },
+    { group: dbT.playground.groups.shared, name: 'wrapperClassName', type: 'string', default: '', description: gridT.playground.props.wrapperClassName.description, control: 'text' },
+    { group: dbT.playground.groups.shared, name: 'before', type: 'ReactNode', description: gridT.playground.props.before.description, control: 'textarea', rows: 2 },
+    { group: dbT.playground.groups.shared, name: 'after', type: 'ReactNode', description: gridT.playground.props.after.description, control: 'textarea', rows: 2 },
+    { group: dbT.playground.groups.shared, name: 'onRowClick', type: '(record) => void', default: 'false', description: gridT.playground.props.onRowClick.description, control: 'boolean' },
+    { group: dbT.playground.groups.shared, name: 'editDeepLink', type: 'boolean', default: 'false', description: gridT.playground.props.editDeepLink.description, control: 'boolean' },
+    { group: dbT.playground.groups.shared, name: 'onSave', type: 'GridMutationSaveHandler<TRecord>', description: gridT.playground.props.onSave.description, readOnly: true },
+    { group: dbT.playground.groups.shared, name: 'onDelete', type: 'GridMutationDeleteHandler<TRecord>', description: gridT.playground.props.onDelete.description, readOnly: true },
+    { group: dbT.playground.groups.shared, name: 'onComplete', type: 'GridAfterActionHandler<TRecord>', description: gridT.playground.props.onComplete.description, readOnly: true },
+    { group: dbT.playground.groups.shared, name: 'audit', type: 'boolean', default: 'false', description: gridT.playground.props.audit.description, control: 'boolean' },
 ];
 
 // ─── Playground preview component ────────────────────────────────────────────
 
-function GridDbPlaygroundPreview({ p }: { p: Record<string, any> }) {
+function GridDbPlaygroundPreview({ p, gridT, dbT }: { p: Record<string, any>; gridT: ShowcaseGridI18n; dbT: ShowcaseGridDbI18n }) {
     const [selectionKeys, setSelectionKeys] = React.useState<string[]>([]);
     const [selectedRecords, setSelectedRecords] = React.useState<UserRecord[]>([]);
     const [clickedRecord, setClickedRecord] = React.useState<UserRecord | null>(null);
@@ -772,7 +785,7 @@ function GridDbPlaygroundPreview({ p }: { p: Record<string, any> }) {
                 fieldMap={fieldMap}
                 recordId={recordId as any}
                 columns={resolvedColumns as any}
-                title={p.title ?? 'Team members'}
+                title={p.title ?? dbT.labels.teamMembers}
                 header={resolvedHeaderNode}
                 footer={resolvedFooterNode}
                 view={p.view}
@@ -781,7 +794,7 @@ function GridDbPlaygroundPreview({ p }: { p: Record<string, any> }) {
                 wrapperClassName={typeof p.wrapperClassName === 'string' ? p.wrapperClassName : ''}
                 before={resolvedPreNode}
                 after={resolvedPostNode}
-                form={hasActions ? <GridUserForm /> : undefined}
+                form={hasActions ? <GridUserForm t={gridT} /> : undefined}
                 actions={actions as any}
                 selection={resolvedSelection}
                 onRowClick={p.onRowClick ? (record) => setClickedRecord(record as UserRecord) : undefined}
@@ -797,7 +810,7 @@ function GridDbPlaygroundPreview({ p }: { p: Record<string, any> }) {
                     {selectionMode !== false && (
                         <div className="rounded-md border bg-muted/40 p-3">
                             <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                selection.onChange payload
+                                {gridT.selection.payloadTitle}
                             </div>
                             <pre className="overflow-auto whitespace-pre-wrap break-all text-xs text-foreground">
                                 {JSON.stringify({
@@ -811,7 +824,7 @@ function GridDbPlaygroundPreview({ p }: { p: Record<string, any> }) {
                     {p.onRowClick && (
                         <div className="rounded-md border bg-muted/40 p-3">
                             <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                onRowClick payload
+                                {gridT.playground.rowClickPayload}
                             </div>
                             <pre className="overflow-auto whitespace-pre-wrap break-all text-xs text-foreground">
                                 {JSON.stringify(clickedRecord ?? null, null, 2)}
@@ -826,7 +839,7 @@ function GridDbPlaygroundPreview({ p }: { p: Record<string, any> }) {
 
 // ─── Playground config ────────────────────────────────────────────────────────
 
-const PLAYGROUND: PlaygroundConfig = {
+const createPlayground = (gridT: ShowcaseGridI18n, dbT: ShowcaseGridDbI18n): PlaygroundConfig => ({
     size: 'fullscreen',
     layout: 'split',
     mockSeed: {
@@ -834,15 +847,15 @@ const PLAYGROUND: PlaygroundConfig = {
         [FROM_URL_PATH]: Object.fromEntries(Object.entries(FROM_URL_USERS).map(([k, v]) => [k, { ...v }])),
     },
     props: [
-        ...GRID_DB_SPECIFIC_PROPS,
-        ...SHARED_PROPS,
+        ...createGridDbSpecificProps(dbT),
+        ...createSharedProps(gridT, dbT),
     ],
     defaultProps: {
         path: GRID_SOURCE_PATH,
         fromUrl: false,
         recordId: '_key',
         view: 'table',
-        columns: baseColumns,
+        columns: getBaseColumns(gridT),
         actions: ['add', 'edit', 'delete'],
         selection: false,
         sortable: true,
@@ -856,7 +869,7 @@ const PLAYGROUND: PlaygroundConfig = {
         wrapperClassName: '',
         pre: '',
         post: '',
-        title: 'Team members',
+        title: dbT.labels.teamMembers,
         header: false,
         footer: false,
         onRowClick: false,
@@ -866,20 +879,20 @@ const PLAYGROUND: PlaygroundConfig = {
     },
     render: (p) => (
         <WithMock>
-            <GridDbPlaygroundPreview p={p} />
+            <GridDbPlaygroundPreview p={p} gridT={gridT} dbT={dbT} />
         </WithMock>
     ),
-};
+});
 
 // ─── Section previews ─────────────────────────────────────────────────────────
 
-function BasicUsagePreview() {
+function BasicUsagePreview({ gridT }: { gridT: ShowcaseGridI18n }) {
     const provider = React.useMemo(() => new MockDataProvider({ [GRID_SOURCE_PATH]: Object.fromEntries(Object.entries(USERS).map(([k, v]) => [k, { ...v }])) }), []);
     return (
         <WithMock provider={provider}>
             <GridDB
                 path={GRID_SOURCE_PATH}
-                columns={displayColumns as any}
+                columns={getDisplayColumns(gridT) as any}
                 sortable={{ name: 'asc' } as any}
                 wrapperClassName="w-full"
                 pagination={{ limit: 4, align: 'end', sticky: false }}
@@ -888,13 +901,13 @@ function BasicUsagePreview() {
     );
 }
 
-function FilterPreview() {
+function FilterPreview({ gridT }: { gridT: ShowcaseGridI18n }) {
     const provider = React.useMemo(() => new MockDataProvider({ [GRID_SOURCE_PATH]: Object.fromEntries(Object.entries(USERS).map(([k, v]) => [k, { ...v }])) }), []);
     return (
         <WithMock provider={provider}>
             <GridDB
                 path={GRID_SOURCE_PATH}
-                columns={displayColumns as any}
+                columns={getDisplayColumns(gridT) as any}
                 where={{ status: 'active' }}
                 wrapperClassName="w-full"
                 pagination={{ limit: 4, align: 'end', sticky: false }}
@@ -903,13 +916,13 @@ function FilterPreview() {
     );
 }
 
-function OrderPreview() {
+function OrderPreview({ gridT }: { gridT: ShowcaseGridI18n }) {
     const provider = React.useMemo(() => new MockDataProvider({ [GRID_SOURCE_PATH]: Object.fromEntries(Object.entries(USERS).map(([k, v]) => [k, { ...v }])) }), []);
     return (
         <WithMock provider={provider}>
             <GridDB
                 path={GRID_SOURCE_PATH}
-                columns={displayColumns as any}
+                columns={getDisplayColumns(gridT) as any}
                 order={{ name: 'asc' }}
                 wrapperClassName="w-full"
                 pagination={{ limit: 4, align: 'end', sticky: false }}
@@ -918,12 +931,12 @@ function OrderPreview() {
     );
 }
 
-function FromUrlPreview() {
+function FromUrlPreview({ gridT }: { gridT: ShowcaseGridI18n }) {
     return (
         <WithMock>
             <GridDB
                 fromUrl
-                columns={displayColumns as any}
+                columns={getDisplayColumns(gridT) as any}
                 wrapperClassName="w-full"
                 pagination={{ limit: 4, align: 'end', sticky: false }}
             />
@@ -931,13 +944,13 @@ function FromUrlPreview() {
     );
 }
 
-function GroupingPreview() {
+function GroupingPreview({ gridT }: { gridT: ShowcaseGridI18n }) {
     const provider = React.useMemo(() => new MockDataProvider({ [GRID_SOURCE_PATH]: Object.fromEntries(Object.entries(USERS).map(([k, v]) => [k, { ...v }])) }), []);
     return (
         <WithMock provider={provider}>
             <GridDB
                 path={GRID_SOURCE_PATH}
-                columns={displayColumns as any}
+                columns={getDisplayColumns(gridT) as any}
                 sortable={{ role: 'asc' } as any}
                 groupBy="role"
                 wrapperClassName="w-full"
@@ -950,18 +963,23 @@ function GroupingPreview() {
 // ─── Page export ──────────────────────────────────────────────────────────────
 
 export default function GridDbPage() {
-    usePlayground(PLAYGROUND, 'GridDB');
+    const gridT = useShowcaseGridI18n() as ShowcaseGridI18n;
+    const dbT = useShowcaseGridDbI18n() as ShowcaseGridDbI18n;
+    const playground = React.useMemo(() => createPlayground(gridT, dbT), [gridT, dbT]);
+    const propDocs = React.useMemo(() => createGridDbPropDocs(gridT, dbT), [gridT, dbT]);
+
+    usePlayground(playground, 'GridDB');
 
     return (
         <PageLayout
-            title="GridDB"
-            description="Provider-backed variant of Grid. Subscribes to a DataProvider path and streams real-time updates automatically. Supports provider-side filtering (where), sorting (order) and field remapping (fieldMap) so the grid never over-fetches."
+            title={dbT.page.title}
+            description={dbT.page.description}
         >
             {/* Basic usage */}
             <Section
-                title="Basic usage"
-                description="The shortest valid GridDB. Provide a path and let Grid subscribe to the collection and infer columns from the incoming records."
-                preview={<BasicUsagePreview />}
+                title={dbT.sections.basicUsage.title}
+                description={dbT.sections.basicUsage.description}
+                preview={<BasicUsagePreview gridT={gridT} />}
                 code={`<GridDB
   path="/showcase/grid/users"
   columns={[
@@ -978,9 +996,9 @@ export default function GridDbPage() {
 
             {/* Provider-side filter */}
             <Section
-                title="Provider-side filter"
-                description="where filters records at the provider level before they reach the component — no over-fetch. The example below shows only active teammates."
-                preview={<FilterPreview />}
+                title={dbT.sections.providerFilter.title}
+                description={dbT.sections.providerFilter.description}
+                preview={<FilterPreview gridT={gridT} />}
                 code={`<GridDB
   path="/showcase/grid/users"
   columns={columns}
@@ -991,9 +1009,9 @@ export default function GridDbPage() {
 
             {/* Provider-side order */}
             <Section
-                title="Provider-side order"
-                description="order sorts records at the provider level. The example below sorts teammates by name ascending before the component receives them."
-                preview={<OrderPreview />}
+                title={dbT.sections.providerOrder.title}
+                description={dbT.sections.providerOrder.description}
+                preview={<OrderPreview gridT={gridT} />}
                 code={`<GridDB
   path="/showcase/grid/users"
   columns={columns}
@@ -1004,9 +1022,9 @@ export default function GridDbPage() {
 
             {/* fromUrl */}
             <Section
-                title="fromUrl — route-driven path"
-                description={`fromUrl tells GridDB to resolve the collection path from the current route pathname instead of a hardcoded path. fromUrl always wins: path is ignored when fromUrl is set. This preview reads from "${FROM_URL_PATH}" (the current page URL).`}
-                preview={<FromUrlPreview />}
+                title={dbT.sections.fromUrl.title}
+                description={`${dbT.sections.fromUrl.description} "${FROM_URL_PATH}".`}
+                preview={<FromUrlPreview gridT={gridT} />}
                 code={`// Route: /products/catalog
 // GridDB subscribes to "/products/catalog" automatically
 <GridDB
@@ -1018,9 +1036,9 @@ export default function GridDbPage() {
 
             {/* Grouping */}
             <Section
-                title="Grouping"
-                description="groupBy separates rows under section headers. Works for both table and gallery layouts. Provider-side order is combined with client-side grouping in this example."
-                preview={<GroupingPreview />}
+                title={dbT.sections.grouping.title}
+                description={dbT.sections.grouping.description}
+                preview={<GroupingPreview gridT={gridT} />}
                 code={`<GridDB
   path="/showcase/grid/users"
   columns={columns}
@@ -1030,7 +1048,7 @@ export default function GridDbPage() {
 />`}
             />
 
-            <PropDocsTable props={GRID_DB_PROP_DOCS} />
+            <PropDocsTable props={propDocs} />
         </PageLayout>
     );
 }

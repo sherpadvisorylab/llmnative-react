@@ -5,6 +5,7 @@ import Section from '../../../docs-kit/page/Section';
 import PropDocsTable from '../../../docs-kit/docs/PropDocsTable';
 import { usePlayground } from '../../../docs-kit/playground';
 import type { PropDef, PlaygroundConfig } from '../../../docs-kit/playground';
+import { useShowcaseCommonI18n, useShowcaseLoadingButtonI18n } from '../../../showcase/i18n';
 
 const VARIANTS = [
     'primary', 'secondary', 'success', 'danger', 'warning', 'info',
@@ -15,9 +16,9 @@ const PROPS: PropDef[] = [
     { name: 'label', type: 'string | ReactNode', description: 'Visible label while idle', control: 'text' },
     { name: 'icon', type: 'string', description: 'Icon shown while idle', control: 'icon' },
     { name: 'onClick', type: '(e, setMessage?) => Promise<unknown>', description: 'Async handler. Button disables itself until the promise resolves. Use setMessage to update the label mid-flight.' },
-    { name: 'loadingLabel', type: 'string | ReactNode', description: 'Label shown while loading. Defaults to label + "…"', control: 'text' },
+    { name: 'loadingLabel', type: 'string | ReactNode', description: 'Label shown while loading. Defaults to label + "..."', control: 'text' },
     { name: 'loading', type: 'boolean', default: 'false', description: 'Controlled loading state from outside (e.g. form submit in progress)', control: 'boolean' },
-    { name: 'variant', type: '"primary" | "secondary" | … | "outline-*"', description: 'Semantic color variant', control: 'select', options: [...VARIANTS] },
+    { name: 'variant', type: '"primary" | "secondary" | ... | "outline-*"', description: 'Semantic color variant', control: 'select', options: [...VARIANTS] },
     { name: 'className', type: 'string', description: 'Raw CSS class override', control: 'text' },
     { name: 'disabled', type: 'boolean', default: 'false', description: 'Disables the button permanently (regardless of loading)', control: 'boolean' },
     { name: 'badge', type: 'ReactNode | BadgeDescriptor', description: 'Badge shown while idle (hidden during loading)', control: 'json' },
@@ -54,16 +55,18 @@ const PLAYGROUND: PlaygroundConfig = {
 
 export default function LoadingButtonPage() {
     usePlayground(PLAYGROUND, 'LoadingButton');
+    const common = useShowcaseCommonI18n();
+    const t = useShowcaseLoadingButtonI18n();
     const [result, setResult] = useState<string | null>(null);
 
     return (
         <PageLayout
-            title="LoadingButton"
-            description="Async button that disables itself while work is pending. Supports streaming label updates mid-flight via setMessage."
+            title={t.page.title}
+            description={t.page.description}
         >
             <Section
-                title="Async save"
-                description="Pass an async onClick. The button spins and blocks re-click until the promise resolves."
+                title={t.sections.asyncSave.title}
+                description={t.sections.asyncSave.description}
                 preview={
                     <div className="flex items-center gap-4 pt-2">
                         <LoadingButton
@@ -88,22 +91,22 @@ export default function LoadingButtonPage() {
             />
 
             <Section
-                title="Custom loading label"
-                description="loadingLabel replaces the default 'Save…' while the spinner is active."
+                title={t.sections.customLabel.title}
+                description={t.sections.customLabel.description}
                 preview={
                     <div className="flex flex-wrap gap-3">
                         <LoadingButton
                             variant="primary"
                             icon="upload"
                             label="Upload"
-                            loadingLabel="Uploading…"
+                            loadingLabel="Uploading..."
                             onClick={async () => { await new Promise((r) => setTimeout(r, 2000)); }}
                         />
                         <LoadingButton
                             variant="outline-secondary"
                             icon="refresh-cw"
                             label="Sync"
-                            loadingLabel="Syncing data…"
+                            loadingLabel="Syncing data..."
                             onClick={async () => { await new Promise((r) => setTimeout(r, 2000)); }}
                         />
                     </div>
@@ -112,25 +115,25 @@ export default function LoadingButtonPage() {
     variant="primary"
     icon="upload"
     label="Upload"
-    loadingLabel="Uploading…"
+    loadingLabel="Uploading..."
     onClick={async () => { await uploadFile(); }}
 />`}
             />
 
             <Section
-                title="Streaming label via setMessage"
-                description="The second argument of onClick is setMessage — call it any time during the async work to update the loading label live. Useful for multi-step operations."
+                title={t.sections.streaming.title}
+                description={t.sections.streaming.description}
                 preview={
                     <LoadingButton
                         variant="primary"
                         icon="zap"
                         label="Run pipeline"
                         onClick={async (_e, setMessage) => {
-                            setMessage?.({ message: 'Step 1 of 3…' });
+                            setMessage?.({ message: 'Step 1 of 3...' });
                             await new Promise((r) => setTimeout(r, 900));
-                            setMessage?.({ message: 'Step 2 of 3…' });
+                            setMessage?.({ message: 'Step 2 of 3...' });
                             await new Promise((r) => setTimeout(r, 900));
-                            setMessage?.({ message: 'Finishing…' });
+                            setMessage?.({ message: 'Finishing...' });
                             await new Promise((r) => setTimeout(r, 600));
                         }}
                     />
@@ -140,19 +143,19 @@ export default function LoadingButtonPage() {
     icon="zap"
     label="Run pipeline"
     onClick={async (_e, setMessage) => {
-        setMessage?.({ message: 'Step 1 of 3…' });
+        setMessage?.({ message: 'Step 1 of 3...' });
         await runStep1();
-        setMessage?.({ message: 'Step 2 of 3…' });
+        setMessage?.({ message: 'Step 2 of 3...' });
         await runStep2();
-        setMessage?.({ message: 'Finishing…' });
+        setMessage?.({ message: 'Finishing...' });
         await runStep3();
     }}
 />`}
             />
 
             <Section
-                title="Disabled state"
-                description="disabled keeps the button permanently inactive regardless of the loading cycle."
+                title={t.sections.disabled.title}
+                description={t.sections.disabled.description}
                 preview={
                     <div className="flex flex-wrap gap-3">
                         <LoadingButton variant="primary" icon="save" label="Save" disabled />
@@ -163,8 +166,8 @@ export default function LoadingButtonPage() {
             />
 
             <Section
-                title="Controlled loading (loading)"
-                description="loading lets a parent component control the loading state externally — useful when the button is part of a larger form submit flow."
+                title={t.sections.controlled.title}
+                description={t.sections.controlled.description}
                 preview={
                     <div className="flex items-center gap-4">
                         <LoadingButton
@@ -200,8 +203,8 @@ export default function LoadingButtonPage() {
             />
 
             <Section
-                title="Color variants"
-                description="LoadingButton supports the same variant tokens as ActionButton."
+                title={common.sections.variants}
+                description={t.sections.variants.description}
                 preview={
                     <div className="flex flex-wrap gap-2">
                         {VARIANTS.map((v) => (

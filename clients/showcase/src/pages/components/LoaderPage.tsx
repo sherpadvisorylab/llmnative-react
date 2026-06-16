@@ -1,6 +1,7 @@
 ﻿import React, { useState } from 'react';
 import { Loader, LoadingButton } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
+import { useShowcaseLoaderI18n } from '../../showcase/i18n';
 import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
 import { usePlayground } from '../../docs-kit/playground';
@@ -39,17 +40,18 @@ const PLAYGROUND: PlaygroundConfig = {
 
 export default function LoaderPage() {
     usePlayground(PLAYGROUND, 'Loader');
+    const t = useShowcaseLoaderI18n();
     const [show, setShow] = useState(false);
 
     return (
         <PageLayout
-            title="Loader"
-            description="Overlay spinner that wraps any content. When show=true, a blurred backdrop with a themed spinner is rendered on top of children — the content remains in the DOM and is revealed instantly when the loader is dismissed."
+            title={t.page.title}
+            description={t.page.description}
         >
             {/* ── Show / hide ── */}
             <Section
-                title="Show / hide"
-                description="Toggle show to overlay or reveal the wrapped content. The content is always mounted — no layout shift when the loader disappears."
+                title={t.sections.showHide.title}
+                description={t.sections.showHide.description}
                 preview={
                     <div className="space-y-4 w-full max-w-sm">
                         <button
@@ -76,8 +78,8 @@ const [loading, setLoading] = useState(true);
 
             {/* ── Custom icon and message ── */}
             <Section
-                title="Custom icon and message"
-                description="Override the theme defaults per-instance with icon, title, and description. The icon value is a class name — any icon supported by the configured icon provider works."
+                title={t.sections.custom.title}
+                description={t.sections.custom.description}
                 preview={
                     <div className="flex flex-wrap gap-6">
                         <Loader show title="Saving…" description="Please wait" icon="custom-loader">
@@ -111,8 +113,8 @@ const [loading, setLoading] = useState(true);
 
             {/* ── Card integration ── */}
             <Section
-                title="Card integration"
-                description="Card exposes a showLoader prop as a convenience shorthand — it wraps the card body in a Loader automatically."
+                title={t.sections.card.title}
+                description={t.sections.card.description}
                 preview={null}
                 code={`import { Card } from '@llmnative/react';
 
@@ -125,8 +127,8 @@ const [loading, setLoading] = useState(true);
 
             {/* ── Other loading indicators ── */}
             <Section
-                title="Other loading indicators in the framework"
-                description="@llmnative/react ships additional loading patterns for different contexts."
+                title={t.sections.other.title}
+                description={t.sections.other.description}
                 preview={
                     <div className="space-y-6">
                         {/* CSS spinner */}

@@ -2,34 +2,38 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import PageLayout from '../../../showcase/page';
 import Section from '../../../docs-kit/page/Section';
-
-const variantPages = [
-    {
-        title: 'PromptEdit',
-        path: '/components/prompt/editor',
-        description: 'Author and maintain the stored prompt template with a dedicated edit surface.',
-    },
-    {
-        title: 'PromptRun',
-        path: '/components/prompt/live',
-        description: 'Execute the stored prompt against the active form record and write the generated result back into the same field.',
-    },
-    {
-        title: 'PromptPlain',
-        path: '/components/prompt/plain',
-        description: 'Plain fallback surface used when prompt mode is disabled and the field behaves like a normal textarea.',
-    },
-];
+import { useShowcaseCommonI18n, useShowcasePromptI18n } from '../../../showcase/i18n';
 
 export default function PromptIndexPage() {
+    const common = useShowcaseCommonI18n();
+    const t = useShowcasePromptI18n();
+
+    const variantPages = [
+        {
+            title: t.variants.editor.title,
+            path: '/components/prompt/editor',
+            description: t.variants.editor.description,
+        },
+        {
+            title: t.variants.live.title,
+            path: '/components/prompt/live',
+            description: t.variants.live.description,
+        },
+        {
+            title: t.variants.plain.title,
+            path: '/components/prompt/plain',
+            description: t.variants.plain.description,
+        },
+    ];
+
     return (
         <PageLayout
-            title="Prompt"
-            description="Prompt-aware textarea field that can store literal text or an AI prompt configuration, and optionally execute it against the current form record."
+            title={t.page.title}
+            description={t.page.description}
         >
             <Section
-                title="Modes"
-                description="The mode prop selects the surface. edit (default) is for authoring the prompt template. run shows execution controls, AI availability state, and writes the result back into the field."
+                title={common.sections.variants}
+                description={t.sections.modes.description}
                 preview={
                     <div className="grid gap-3 md:grid-cols-3">
                         {variantPages.map((page) => (

@@ -1,6 +1,7 @@
 ﻿import React from 'react';
 import { Brand } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
+import { useShowcaseBrandI18n } from '../../showcase/i18n';
 import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
 import { usePlayground } from '../../docs-kit/playground';
@@ -38,11 +39,12 @@ const PLAYGROUND: PlaygroundConfig = {
 
 export default function BrandPage() {
     usePlayground(PLAYGROUND, 'Brand');
+    const t = useShowcaseBrandI18n();
 
     return (
-        <PageLayout title="Brand" description="Application brand block with optional router link, logo and text label.">
+        <PageLayout title={t.page.title} description={t.page.description}>
             <Section
-                title="Logo and label"
+                title={t.sections.logoLabel.title}
                 preview={<Brand url="/" logo={LOGO} label="@llmnative/react" width={32} height={32} />}
                 code={`import { Brand } from '@llmnative/react';
 

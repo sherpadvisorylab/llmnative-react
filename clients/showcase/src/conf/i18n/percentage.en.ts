@@ -1,0 +1,68 @@
+import { defineLocaleMessages } from '@llmnative/react';
+
+export default defineLocaleMessages({
+    showcase: {
+        percentage: {
+            page: {
+                title: 'Percentage',
+                description: 'Progress indicator rendered as a horizontal bar or circular meter, with min/max normalization and theme-aware colors.',
+            },
+            sections: {
+                bars: { title: 'Bar meters', description: 'Use bars for dense dashboards and table detail panels. value is normalized between min and max.' },
+                circles: { title: 'Circular meters', description: 'Use circles for summary metrics where the percentage is the primary visual signal.' },
+                normalization: { title: 'Min/max normalization', description: 'The displayed percent is calculated from (value - min) / (max - min), then clamped between 0 and 100.' },
+                variants: { title: 'Color variants and slots', description: 'variant controls the fill. trackVariant controls the track. before/after can add surrounding context.' },
+            },
+            labels: {
+                completion: 'Completion',
+                storage: 'Storage',
+                budgetUsed: 'Budget used',
+                risk: 'Risk',
+                quality: 'Quality',
+                coverage: 'Coverage',
+                noText: 'No text',
+                revenueTarget: 'Revenue target: 75 of 150',
+                temperatureRange: 'Temperature range: 30 in 20-40',
+                clampedAboveMax: 'Clamped above max',
+            },
+            propsDocs: { items: {
+                value: { description: 'Current value before min/max normalization.' },
+                max: { description: 'Maximum value mapped to 100%.' },
+                min: { description: 'Minimum value mapped to 0%.' },
+                appearance: { description: 'Progress shape.' },
+                variant: { description: 'Progress fill color.' },
+                trackVariant: { description: 'Track/background color.' },
+                thickness: { description: 'Bar height or circle stroke width.' },
+                showText: { description: 'Show the normalized percentage text.' },
+                size: { description: 'Bar width percentage or circle size in pixels.' },
+                fontSize: { description: 'Percentage text size in pixels.' },
+                label: { description: 'Label above the percentage.' },
+                before: { description: 'Content before the control.' },
+                after: { description: 'Content after the control.' },
+                className: { description: 'CSS classes on the rendered meter.' },
+                wrapperClassName: { description: 'CSS classes on the wrapper.' },
+            } },
+            playground: {
+                title: 'Percentage',
+                defaultLabel: 'Completion',
+                props: {
+                    value: { description: 'Current value before min/max normalization.' },
+                    max: { description: 'Maximum value mapped to 100%.' },
+                    min: { description: 'Minimum value mapped to 0%.' },
+                    appearance: { description: 'Progress shape.' },
+                    variant: { description: 'Progress fill color.' },
+                    trackVariant: { description: 'Track/background color.' },
+                    thickness: { description: 'Bar height or circle stroke width.' },
+                    showText: { description: 'Show the normalized percentage text.' },
+                    size: { description: 'Bar width percentage or circle size in pixels.' },
+                    fontSize: { description: 'Percentage text size in pixels.' },
+                    label: { description: 'Label above the percentage.' },
+                    before: { description: 'Content before the control.' },
+                    after: { description: 'Content after the control.' },
+                    className: { description: 'CSS classes on the rendered meter.' },
+                    wrapperClassName: { description: 'CSS classes on the wrapper.' },
+                },
+            },
+        },
+    },
+});

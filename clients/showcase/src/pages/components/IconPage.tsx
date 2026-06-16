@@ -7,6 +7,7 @@ import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
 import { usePlayground } from '../../docs-kit/playground';
 import type { PropDef, PlaygroundConfig } from '../../docs-kit/playground';
+import { useShowcaseCommonI18n, useShowcaseIconI18n } from '../../showcase/i18n';
 
 // ─── icon catalogs ────────────────────────────────────────────────────────────
 
@@ -109,19 +110,21 @@ function ProviderSwitcher({ value, onChange }: { value: string; onChange: (id: s
 
 export default function IconPage() {
     usePlayground(PLAYGROUND, 'Icon');
+    const common = useShowcaseCommonI18n();
+    const t = useShowcaseIconI18n();
 
     const { providerId, setProvider } = useIconController();
     const [phosphorWeight, setPhosphorWeight] = React.useState<PhosphorWeight>('regular');
 
     return (
         <PageLayout
-            title="Icon"
-            description="Provider-backed icon renderer. The active icon library is configured globally on App and can be switched at runtime. Built-in providers: lucide (default), phosphor."
+            title={t.page.title}
+            description={t.page.description}
         >
             {/* ── Basic usage ── */}
             <Section
-                title="Basic usage"
-                description="Render any icon by name. The active provider resolves the name to its component."
+                title={common.sections.basicUsage}
+                description={t.sections.basicUsage.description}
                 preview={
                     <div className="flex flex-wrap items-center gap-6 text-foreground">
                         <Icon name="search" size={20} />
@@ -144,8 +147,8 @@ export default function IconPage() {
 
             {/* ── Icon catalog ── */}
             <Section
-                title="Icon catalog"
-                description={`Common icon names supported by all built-in providers. Active provider: ${providerId}.`}
+                title={t.sections.catalog.title}
+                description={t.sections.catalog.description.replace('{providerId}', providerId)}
                 preview={
                     <div className="w-full">
                         <div className="mb-4 flex items-center gap-3">
@@ -172,8 +175,8 @@ export default function IconPage() {
 
             {/* ── Sizes ── */}
             <Section
-                title="Sizes"
-                description="The size prop sets width and height in pixels. Default is 16."
+                title={common.sections.sizes}
+                description={t.sections.sizes.description}
                 preview={
                     <div className="flex flex-wrap items-end gap-6 text-foreground">
                         {SIZES.map((s) => (
@@ -195,8 +198,8 @@ export default function IconPage() {
 
             {/* ── Colors ── */}
             <Section
-                title="Colors via className"
-                description="Icons inherit the CSS text color. Use any Tailwind text-* utility."
+                title={t.sections.colors.title}
+                description={t.sections.colors.description}
                 preview={
                     <div className="flex flex-wrap items-center gap-5">
                         {COLORS.map(({ label, className }) => (
@@ -217,8 +220,8 @@ export default function IconPage() {
 
             {/* ── Providers comparison ── */}
             <Section
-                title="Built-in providers: lucide vs phosphor"
-                description="lucide is the default. phosphor is built-in. Both resolve the same icon names."
+                title={t.sections.providers.title}
+                description={t.sections.providers.description}
                 preview={
                     <div className="w-full overflow-x-auto">
                         <table className="w-full text-sm">
@@ -261,8 +264,8 @@ const ph = new PhosphorIconProvider();
 
             {/* ── Phosphor weights ── */}
             <Section
-                title="Phosphor weight variants"
-                description="Pass weight directly on Icon — no need to re-instantiate the provider. Supported values: thin, light, regular (default), bold, fill, duotone."
+                title={t.sections.phosphor.title}
+                description={t.sections.phosphor.description}
                 preview={
                     <div className="w-full">
                         <div className="mb-4 flex flex-wrap gap-1">
@@ -308,8 +311,8 @@ const ph = new PhosphorIconProvider();
 
             {/* ── App-level config ── */}
             <Section
-                title="App-level configuration"
-                description="The icon provider is set once on App and inherited via context. It can be changed at runtime with useIconController."
+                title={t.sections.appConfig.title}
+                description={t.sections.appConfig.description}
                 preview={
                     <div className="flex flex-col gap-3">
                         <div className="flex items-center gap-2 text-sm">
@@ -348,8 +351,8 @@ setProvider('phosphor');`}
 
             {/* ── Aliases ── */}
             <Section
-                title="Aliases"
-                description="Map your own semantic names to provider-specific names. Configured once at App level, works with any provider."
+                title={t.sections.aliases.title}
+                description={t.sections.aliases.description}
                 preview={
                     <div className="flex flex-wrap items-center gap-6 text-foreground">
                         {[
@@ -382,8 +385,8 @@ setProvider('phosphor');`}
 
             {/* ── Accessibility ── */}
             <Section
-                title="Accessibility"
-                description="Icons without label are aria-hidden (decorative). Provide label when the icon conveys meaning without adjacent text."
+                title={t.sections.a11y.title}
+                description={t.sections.a11y.description}
                 preview={
                     <div className="flex flex-col gap-3">
                         <div className="flex items-center gap-3">
@@ -407,8 +410,8 @@ setProvider('phosphor');`}
 
             {/* ── Custom provider ── */}
             <Section
-                title="Custom provider"
-                description="Implement IconProviderAdapter to integrate any icon library."
+                title={t.sections.customProvider.title}
+                description={t.sections.customProvider.description}
                 preview={
                     <div className="rounded-md border border-dashed px-4 py-3 text-sm text-muted-foreground">
                         Provide your own class - see code snippet.

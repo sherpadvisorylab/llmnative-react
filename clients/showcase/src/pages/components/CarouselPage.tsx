@@ -1,6 +1,7 @@
 import React from 'react';
 import { Carousel } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
+import { useShowcaseCarouselI18n } from '../../showcase/i18n';
 import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
 import { usePlayground } from '../../docs-kit/playground';
@@ -62,11 +63,12 @@ const PLAYGROUND: PlaygroundConfig = {
 
 export default function CarouselPage() {
     usePlayground(PLAYGROUND, 'Carousel');
+    const t = useShowcaseCarouselI18n();
 
     return (
-        <PageLayout title="Carousel" description="Image carousel wrapper with indicators, controls and caption support.">
+        <PageLayout title={t.page.title} description={t.page.description}>
             <Section
-                title="Slides with captions"
+                title={t.sections.slides.title}
                 preview={<Carousel showIndicators showControls showCaption>{slides}</Carousel>}
                 code={`import { Carousel } from '@llmnative/react';
 

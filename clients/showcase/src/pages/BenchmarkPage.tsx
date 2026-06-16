@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Badge } from '@llmnative/react';
 import PageLayout from '../showcase/page';
+import { useShowcaseBenchmarkI18n } from '../showcase/i18n';
 
 // Token counts pre-computed with the GPT-4 cl100k_base tokenizer (gpt-tokenizer package).
 // To regenerate after changing a snippet:
@@ -16,8 +17,6 @@ const TOKEN_COUNTS: Record<string, number> = {
     AUTH_FRAMEWORK: 195,
     AUTH_VANILLA: 480,
 };
-
-// Code snippets
 
 const CRUD_FRAMEWORK = `\
 import { Grid } from '@llmnative/react'
@@ -444,132 +443,80 @@ interface Scenario {
     tokenKey: string;
 }
 
-const SCENARIOS: Scenario[] = [
-    {
-        title: 'CRUD Grid with realtime + pagination',
-        description:
-            'Provider-backed CRUD grid with realtime updates, built-in add/edit/delete actions, ' +
-            'sorting and pagination.',
-        tags: ['Grid', 'Form', 'Modal', 'Firebase'],
-        fwLabel: '@llmnative/react',
-        vnLabel: 'React + Firebase',
-        demoPath: '/components/grid',
-        framework: CRUD_FRAMEWORK,
-        vanilla: CRUD_VANILLA,
-        tokenKey: 'CRUD',
-    },
-    {
-        title: 'Form with validation + load/save',
-        description:
-            'Provider-backed form that loads an existing record when needed, validates input ' +
-            'and saves through the active data adapter.',
-        tags: ['Form', 'Input', 'Select', 'Validation'],
-        fwLabel: '@llmnative/react',
-        vnLabel: 'React + Firebase',
-        demoPath: '/components/form',
-        framework: FORM_FRAMEWORK,
-        vanilla: FORM_VANILLA,
-        tokenKey: 'FORM',
-    },
-    {
-        title: 'Switch data backend',
-        description:
-            'Change the data source for the entire app - mock, Firebase RTDB, ' +
-            'Firestore or Supabase - without touching a single component.',
-        tags: ['DataProvider', 'Ports & Adapters'],
-        fwLabel: 'Config change (1 line)',
-        vnLabel: 'DIY abstraction layer',
-        vnNote: 'A careful developer would build a DataService adapter (~60 lines). ' +
-                'The framework ships the same abstraction pre-built and pre-wired to Grid, Form and Select.',
-        demoPath: '/providers',
-        framework: PROVIDER_FRAMEWORK,
-        vanilla: PROVIDER_VANILLA,
-        tokenKey: 'PROVIDER',
-    },
-    {
-        title: 'Google Auth + protected route',
-        description:
-            'Wire Google sign-in once, access the user profile anywhere, ' +
-            'and gate page content off provider auth state.',
-        tags: ['Auth', 'Google', 'Protected route'],
-        fwLabel: '@llmnative/react',
-        vnLabel: '@react-oauth/google',
-        vnNote: 'Uses the standard @react-oauth/google library - the fairest vanilla comparison, ' +
-                'not raw GIS boilerplate.',
-        demoPath: '/components/auth',
-        framework: AUTH_FRAMEWORK,
-        vanilla: AUTH_VANILLA,
-        tokenKey: 'AUTH',
-    },
-];
-
-function TokenPill({ count }: { count: number }) {
+function TokenPill({ count, label }: { count: number; label: string }) {
     return (
-        <span className="inline-flex items-center text-xs font-mono font-medium bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
-            {count.toLocaleString()} tokens
+        <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 font-mono text-xs font-medium text-muted-foreground">
+            {count.toLocaleString()} {label}
         </span>
     );
 }
 
-function SavingsPill({ pct }: { pct: number }) {
+function SavingsPill({ pct, label }: { pct: number; label: string }) {
     return (
-        <span className="inline-flex items-center gap-1 text-xs font-semibold bg-success/15 text-success px-2.5 py-1 rounded-full">
+        <span className="inline-flex items-center gap-1 rounded-full bg-success/15 px-2.5 py-1 text-xs font-semibold text-success">
             <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
                 <path d="M2 6L5 3L8 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            {pct}% fewer tokens
+            {pct}% {label}
         </span>
     );
 }
 
-function ScenarioCard({ s }: { s: Scenario }) {
-    const fw = TOKEN_COUNTS[`${s.tokenKey}_FRAMEWORK`] ?? 0;
-    const vn = TOKEN_COUNTS[`${s.tokenKey}_VANILLA`] ?? 0;
+function ScenarioCard({
+    scenario,
+    seeLiveLabel,
+    tokenLabel,
+    fewerTokensLabel,
+}: {
+    scenario: Scenario;
+    seeLiveLabel: string;
+    tokenLabel: string;
+    fewerTokensLabel: string;
+}) {
+    const fw = TOKEN_COUNTS[`${scenario.tokenKey}_FRAMEWORK`] ?? 0;
+    const vn = TOKEN_COUNTS[`${scenario.tokenKey}_VANILLA`] ?? 0;
     const pct = Math.round((1 - fw / vn) * 100);
 
     return (
-        <div className="rounded-xl border bg-card overflow-hidden shadow-sm">
-            <div className="px-5 py-4 border-b bg-card flex items-start justify-between gap-4 flex-wrap">
+        <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
+            <div className="flex flex-wrap items-start justify-between gap-4 border-b bg-card px-5 py-4">
                 <div className="min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="font-semibold text-foreground">{s.title}</h3>
-                        {s.demoPath && (
-                            <Link
-                                to={s.demoPath}
-                                className="text-xs text-primary hover:underline shrink-0"
-                            >
-                                See live {'->'}
+                    <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="font-semibold text-foreground">{scenario.title}</h3>
+                        {scenario.demoPath && (
+                            <Link to={scenario.demoPath} className="shrink-0 text-xs text-primary hover:underline">
+                                {seeLiveLabel} {'->'}
                             </Link>
                         )}
                     </div>
-                    <p className="text-sm text-muted-foreground mt-0.5 leading-relaxed">{s.description}</p>
-                    <div className="flex gap-1.5 mt-2.5 flex-wrap">
-                        {s.tags.map(t => (
-                            <Badge key={t}>{t}</Badge>
+                    <p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">{scenario.description}</p>
+                    <div className="mt-2.5 flex flex-wrap gap-1.5">
+                        {scenario.tags.map((tag) => (
+                            <Badge key={tag}>{tag}</Badge>
                         ))}
                     </div>
                 </div>
-                <SavingsPill pct={pct} />
+                <SavingsPill pct={pct} label={fewerTokensLabel} />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 divide-y divide-border lg:divide-y-0 lg:divide-x">
-                <div className="p-4 flex flex-col gap-2">
+            <div className="grid grid-cols-1 divide-y divide-border lg:grid-cols-2 lg:divide-x lg:divide-y-0">
+                <div className="flex flex-1 flex-col gap-2 p-4">
                     <div className="flex items-center justify-between">
-                        <span className="text-xs font-semibold text-success">{s.fwLabel}</span>
-                        <TokenPill count={fw} />
+                        <span className="text-xs font-semibold text-success">{scenario.fwLabel}</span>
+                        <TokenPill count={fw} label={tokenLabel} />
                     </div>
-                    <pre className="text-xs font-mono bg-muted/40 rounded-lg p-3 overflow-auto max-h-72 leading-relaxed whitespace-pre flex-1">{s.framework}</pre>
+                    <pre className="max-h-72 flex-1 overflow-auto whitespace-pre rounded-lg bg-muted/40 p-3 font-mono text-xs leading-relaxed">{scenario.framework}</pre>
                 </div>
 
-                <div className="p-4 flex flex-col gap-2">
+                <div className="flex flex-1 flex-col gap-2 p-4">
                     <div className="flex items-center justify-between">
-                        <span className="text-xs font-semibold text-muted-foreground">{s.vnLabel}</span>
-                        <TokenPill count={vn} />
+                        <span className="text-xs font-semibold text-muted-foreground">{scenario.vnLabel}</span>
+                        <TokenPill count={vn} label={tokenLabel} />
                     </div>
-                    {s.vnNote && (
-                        <p className="text-xs text-muted-foreground italic leading-relaxed">{s.vnNote}</p>
+                    {scenario.vnNote && (
+                        <p className="text-xs italic leading-relaxed text-muted-foreground">{scenario.vnNote}</p>
                     )}
-                    <pre className="text-xs font-mono bg-muted/40 rounded-lg p-3 overflow-auto max-h-72 leading-relaxed whitespace-pre flex-1">{s.vanilla}</pre>
+                    <pre className="max-h-72 flex-1 overflow-auto whitespace-pre rounded-lg bg-muted/40 p-3 font-mono text-xs leading-relaxed">{scenario.vanilla}</pre>
                 </div>
             </div>
         </div>
@@ -577,84 +524,133 @@ function ScenarioCard({ s }: { s: Scenario }) {
 }
 
 export default function BenchmarkPage() {
-    const totalFw = SCENARIOS.reduce((n, s) => n + (TOKEN_COUNTS[`${s.tokenKey}_FRAMEWORK`] ?? 0), 0);
-    const totalVn = SCENARIOS.reduce((n, s) => n + (TOKEN_COUNTS[`${s.tokenKey}_VANILLA`] ?? 0), 0);
+    const t = useShowcaseBenchmarkI18n();
+
+    const scenarios = React.useMemo<Scenario[]>(() => ([
+        {
+            title: t.scenarios.crud.title,
+            description: t.scenarios.crud.description,
+            tags: [t.scenarios.crud.tags.grid, t.scenarios.crud.tags.form, t.scenarios.crud.tags.modal, t.scenarios.crud.tags.firebase],
+            fwLabel: t.scenarios.crud.frameworkLabel,
+            vnLabel: t.scenarios.crud.vanillaLabel,
+            demoPath: '/components/grid',
+            framework: CRUD_FRAMEWORK,
+            vanilla: CRUD_VANILLA,
+            tokenKey: 'CRUD',
+        },
+        {
+            title: t.scenarios.form.title,
+            description: t.scenarios.form.description,
+            tags: [t.scenarios.form.tags.form, t.scenarios.form.tags.input, t.scenarios.form.tags.select, t.scenarios.form.tags.validation],
+            fwLabel: t.scenarios.form.frameworkLabel,
+            vnLabel: t.scenarios.form.vanillaLabel,
+            demoPath: '/components/form',
+            framework: FORM_FRAMEWORK,
+            vanilla: FORM_VANILLA,
+            tokenKey: 'FORM',
+        },
+        {
+            title: t.scenarios.provider.title,
+            description: t.scenarios.provider.description,
+            tags: [t.scenarios.provider.tags.dataProvider, t.scenarios.provider.tags.portsAdapters],
+            fwLabel: t.scenarios.provider.frameworkLabel,
+            vnLabel: t.scenarios.provider.vanillaLabel,
+            vnNote: t.scenarios.provider.vanillaNote,
+            demoPath: '/providers',
+            framework: PROVIDER_FRAMEWORK,
+            vanilla: PROVIDER_VANILLA,
+            tokenKey: 'PROVIDER',
+        },
+        {
+            title: t.scenarios.auth.title,
+            description: t.scenarios.auth.description,
+            tags: [t.scenarios.auth.tags.auth, t.scenarios.auth.tags.google, t.scenarios.auth.tags.protectedRoute],
+            fwLabel: t.scenarios.auth.frameworkLabel,
+            vnLabel: t.scenarios.auth.vanillaLabel,
+            vnNote: t.scenarios.auth.vanillaNote,
+            demoPath: '/components/auth',
+            framework: AUTH_FRAMEWORK,
+            vanilla: AUTH_VANILLA,
+            tokenKey: 'AUTH',
+        },
+    ]), [t]);
+
+    const totalFw = scenarios.reduce((n, s) => n + (TOKEN_COUNTS[`${s.tokenKey}_FRAMEWORK`] ?? 0), 0);
+    const totalVn = scenarios.reduce((n, s) => n + (TOKEN_COUNTS[`${s.tokenKey}_VANILLA`] ?? 0), 0);
     const totalPct = Math.round((1 - totalFw / totalVn) * 100);
     const saved = totalVn - totalFw;
 
     return (
-        <PageLayout
-            title="Token Benchmark"
-            description="How much less code - and how many fewer tokens - an AI needs to express the same app behavior using @llmnative/react vs plain React."
-        >
-            <div className="text-sm text-muted-foreground bg-muted/40 rounded-lg px-4 py-3 mb-8 leading-relaxed space-y-1.5">
+        <PageLayout title={t.page.title} description={t.page.description}>
+            <div className="mb-8 space-y-1.5 rounded-lg bg-muted/40 px-4 py-3 text-sm leading-relaxed text-muted-foreground">
                 <p>
-                    <span className="font-medium text-foreground">Token counting</span>
-                    {' '}uses the{' '}
-                    <code className="font-mono text-xs bg-muted px-1 py-0.5 rounded">gpt-tokenizer</code>
-                    {' '}library (GPT-4 cl100k_base tokenizer). Other models tokenize slightly differently;
-                    {' '}the relative difference between columns is what matters, not the absolute numbers.
+                    <span className="font-medium text-foreground">{t.methodology.tokenCountingTitle}</span>{' '}
+                    {t.methodology.tokenCountingBodyBefore}{' '}
+                    <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">{t.methodology.tokenCountingLib}</code>{' '}
+                    {t.methodology.tokenCountingBodyAfter}
                 </p>
                 <p>
-                    <span className="font-medium text-foreground">Fair comparisons</span>
-                    {' '} - each vanilla column uses best-in-class libraries and patterns
-                    {' '}(for example <code className="font-mono text-xs bg-muted px-1 py-0.5 rounded">@react-oauth/google</code> for auth,
-                    {' '}and a proper DataService abstraction for the provider switch scenario),
-                    {' '}not hand-rolled boilerplate.
-                    {' '}The goal is to measure the framework&apos;s API compression, not to cherry-pick bad vanilla code.
+                    <span className="font-medium text-foreground">{t.methodology.fairComparisonsTitle}</span>{' '}
+                    {t.methodology.fairComparisonsBodyBefore}{' '}
+                    (<code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">{t.methodology.fairComparisonsLib}</code>{' '}
+                    {t.methodology.fairComparisonsBodyMiddle}){' '}
+                    {t.methodology.fairComparisonsBodyAfter}
                 </p>
                 <p>
-                    <span className="font-medium text-foreground">Representative snippets</span>
-                    {' '} - each column shows the core implementation shape for that scenario, not every surrounding app concern
-                    {' '}(routing, styling and deployment setup are intentionally omitted from both sides).
+                    <span className="font-medium text-foreground">{t.methodology.representativeSnippetsTitle}</span>{' '}
+                    {t.methodology.representativeSnippetsBody}
                 </p>
             </div>
 
-            <div className="rounded-xl border bg-card px-6 py-5 mb-8 flex flex-col sm:flex-row items-start sm:items-center gap-6">
+            <div className="mb-8 flex flex-col items-start gap-6 rounded-xl border bg-card px-6 py-5 sm:flex-row sm:items-center">
                 <div className="flex-1">
-                    <p className="text-sm text-muted-foreground">Across all 4 scenarios</p>
-                    <p className="text-3xl font-bold text-foreground mt-1">
+                    <p className="text-sm text-muted-foreground">{t.labels.acrossAllScenarios}</p>
+                    <p className="mt-1 text-3xl font-bold text-foreground">
                         {totalPct}%
-                        <span className="text-base font-normal text-muted-foreground ml-2">fewer tokens</span>
+                        <span className="ml-2 text-base font-normal text-muted-foreground">{t.labels.fewerTokens}</span>
                     </p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        {totalFw.toLocaleString()} tokens with @llmnative/react
-                        {' '}vs {totalVn.toLocaleString()} tokens with plain React
-                        {' '}- a saving of {saved.toLocaleString()} tokens
+                    <p className="mt-1 text-sm text-muted-foreground">
+                        {totalFw.toLocaleString()} {t.labels.tokens} with @llmnative/react vs {totalVn.toLocaleString()} {t.labels.tokens} with {t.labels.plainReact} - {t.labels.savingOf} {saved.toLocaleString()} {t.labels.tokens}
                     </p>
                 </div>
-                <div className="grid grid-cols-2 gap-4 shrink-0">
+                <div className="grid shrink-0 grid-cols-2 gap-4">
                     <div className="text-center">
                         <p className="text-2xl font-bold text-success">{totalFw.toLocaleString()}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">@llmnative/react</p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">{t.summary.frameworkLabel}</p>
                     </div>
                     <div className="text-center">
                         <p className="text-2xl font-bold text-muted-foreground">{totalVn.toLocaleString()}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">Plain React</p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">{t.summary.vanillaLabel}</p>
                     </div>
                 </div>
             </div>
 
             <div className="space-y-6">
-                {SCENARIOS.map(s => (
-                    <ScenarioCard key={s.title} s={s} />
+                {scenarios.map((scenario) => (
+                    <ScenarioCard
+                        key={scenario.title}
+                        scenario={scenario}
+                        seeLiveLabel={t.labels.seeLive}
+                        tokenLabel={t.labels.tokens}
+                        fewerTokensLabel={t.labels.fewerTokens}
+                    />
                 ))}
             </div>
 
             <div className="mt-10 rounded-xl border bg-card px-6 py-5">
-                <h2 className="font-semibold text-foreground mb-3">Why fewer tokens matter</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-muted-foreground">
+                <h2 className="mb-3 font-semibold text-foreground">{t.labels.whyFewerTokensMatter}</h2>
+                <div className="grid grid-cols-1 gap-4 text-sm text-muted-foreground sm:grid-cols-3">
                     <div>
-                        <p className="font-medium text-foreground mb-1">Faster generation</p>
-                        <p>An AI agent that writes 80% less code per feature completes tasks proportionally faster and stays within context limits longer.</p>
+                        <p className="mb-1 font-medium text-foreground">{t.why.fasterGeneration.title}</p>
+                        <p>{t.why.fasterGeneration.description}</p>
                     </div>
                     <div>
-                        <p className="font-medium text-foreground mb-1">Lower cost</p>
-                        <p>Every AI API call is billed per token. Fewer output tokens per feature means lower cost per feature - at scale the difference is significant.</p>
+                        <p className="mb-1 font-medium text-foreground">{t.why.lowerCost.title}</p>
+                        <p>{t.why.lowerCost.description}</p>
                     </div>
                     <div>
-                        <p className="font-medium text-foreground mb-1">Higher reliability</p>
-                        <p>Less code means less surface area for hallucinations, import errors and state bugs. The framework owns the boilerplate; the AI owns the intent.</p>
+                        <p className="mb-1 font-medium text-foreground">{t.why.higherReliability.title}</p>
+                        <p>{t.why.higherReliability.description}</p>
                     </div>
                 </div>
             </div>

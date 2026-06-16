@@ -5,6 +5,7 @@ import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
 import { usePlayground } from '../../docs-kit/playground';
 import type { PropDef, PlaygroundConfig } from '../../docs-kit/playground';
+import { useShowcaseCodeI18n } from '../../showcase/i18n';
 
 const LANGUAGES = [
     'markup',
@@ -102,16 +103,17 @@ const PLAYGROUND: PlaygroundConfig = {
 
 export default function CodePage() {
     usePlayground(PLAYGROUND, 'Code');
+    const t = useShowcaseCodeI18n();
     const [activeTheme, setActiveTheme] = useState<string>('tomorrow');
 
     return (
         <PageLayout
-            title="Code"
-            description="Syntax highlighted code block powered by Prism, with optional copy action, language loading and theme selection."
+            title={t.page.title}
+            description={t.page.description}
         >
             <Section
-                title="TSX block"
-                description="Use Code for examples, snippets and generated source previews."
+                title={t.sections.tsx.title}
+                description={t.sections.tsx.description}
                 preview={
                     <div className="w-full">
                         <Code language="tsx" theme="tomorrow" className="rounded-md border border-border p-4 text-sm">
@@ -127,8 +129,8 @@ export default function CodePage() {
             />
 
             <Section
-                title="Languages"
-                description="The component lazy-loads the Prism grammar for the selected language."
+                title={t.sections.languages.title}
+                description={t.sections.languages.description}
                 preview={
                     <div className="grid gap-4 lg:grid-cols-2">
                         <Code language="json" theme="tomorrow" className="rounded-md border border-border p-4 text-sm">
@@ -144,8 +146,8 @@ export default function CodePage() {
             />
 
             <Section
-                title="Themes and copy"
-                description="Click a theme to preview it. showCopy controls the clipboard button."
+                title={t.sections.themesCopy.title}
+                description={t.sections.themesCopy.description}
                 preview={
                     <div className="space-y-4 w-full">
                         <div className="flex flex-wrap gap-2">
@@ -174,8 +176,8 @@ export default function CodePage() {
             />
 
             <Section
-                title="Slots and wrapper"
-                description="pre and post sit outside the code block as left and right side adornments. wrapperClassName and className let the block fit inside richer documentation layouts."
+                title={t.sections.slotsWrapper.title}
+                description={t.sections.slotsWrapper.description}
                 preview={
                     <Code
                         language="tsx"

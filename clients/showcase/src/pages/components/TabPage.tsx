@@ -5,69 +5,64 @@ import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
 import { usePlayground } from '../../docs-kit/playground';
 import type { PropDef, PlaygroundConfig } from '../../docs-kit/playground';
+import { useShowcaseTabI18n } from '../../showcase/i18n';
 
 const POSITIONS = ['default', 'top', 'left', 'right', 'bottom'] as const;
 
-const POSITION_NOTES: Record<string, string> = {
-    default: 'Classic underline tabs (nav-tabs). Best for primary content sections.',
-    top: 'Pill tabs at the top (nav-pills). Good for filters or sub-views.',
-    left: 'Vertical pills on the left. Ideal for settings pages.',
-    right: 'Vertical pills on the right.',
-    bottom: 'Pills below the content.',
-};
-
-const TAB_PROPS: PropDef[] = [
-    { name: 'children', type: 'ReactNode', required: true, description: 'TabItem children' },
-    { name: 'defaultIndex', type: 'number', default: '0', description: 'Index of the initially active tab', control: 'number', min: 0 },
-    { name: 'layout', type: '"default" | "top" | "left" | "right" | "bottom"', default: '"default"', description: 'Layout position of the tab navigation', control: 'select', options: ['default', 'top', 'left', 'right', 'bottom'] },
-    { name: 'before', type: 'ReactNode', description: 'Content rendered immediately before the tab container' },
-    { name: 'after', type: 'ReactNode', description: 'Content rendered immediately after the tab container' },
-    { name: 'motion', type: 'MotionReference', description: 'Named motion preset or inline MotionProps override applied to each tab pane on activation' },
-    { name: 'className', type: 'string', description: 'Additional CSS classes on the Tab root', control: 'text' },
-    { name: 'wrapperClassName', type: 'string', description: 'CSS classes on the outer wrapper', control: 'text' },
-];
-
-const TABITEM_PROPS: PropDef[] = [
-    { name: 'label', type: 'ReactNode', required: true, description: 'Tab trigger label' },
-    { name: 'children', type: 'ReactNode', required: true, description: 'Tab panel content' },
-];
-
-const PLAYGROUND: PlaygroundConfig = {
-    size: 'lg',
-    props: TAB_PROPS,
-    defaultProps: { layout: 'default', defaultIndex: 0, className: '', wrapperClassName: '' },
-    render: (p) => (
-        <Tab
-            layout={p.layout}
-            defaultIndex={p.defaultIndex}
-            className={p.className || undefined}
-            wrapperClassName={p.wrapperClassName || undefined}
-        >
-            <TabItem label="General">General settings content.</TabItem>
-            <TabItem label="Advanced">Advanced options content.</TabItem>
-            <TabItem label="Permissions">Permission management.</TabItem>
-        </Tab>
-    ),
-};
-
 export default function TabPage() {
-    usePlayground(PLAYGROUND, 'Tab');
+    const t = useShowcaseTabI18n();
+
+    const tabProps = React.useMemo<PropDef[]>(() => [
+        { name: 'children', type: 'ReactNode', required: true, description: t.propsDocs.tab.items.children.description },
+        { name: 'defaultIndex', type: 'number', default: '0', description: t.propsDocs.tab.items.defaultIndex.description, control: 'number', min: 0 },
+        { name: 'layout', type: '"default" | "top" | "left" | "right" | "bottom"', default: '"default"', description: t.propsDocs.tab.items.layout.description, control: 'select', options: ['default', 'top', 'left', 'right', 'bottom'] },
+        { name: 'before', type: 'ReactNode', description: t.propsDocs.tab.items.before.description },
+        { name: 'after', type: 'ReactNode', description: t.propsDocs.tab.items.after.description },
+        { name: 'motion', type: 'MotionReference', description: t.propsDocs.tab.items.motion.description },
+        { name: 'className', type: 'string', description: t.propsDocs.tab.items.className.description, control: 'text' },
+        { name: 'wrapperClassName', type: 'string', description: t.propsDocs.tab.items.wrapperClassName.description, control: 'text' },
+    ], [t]);
+
+    const tabItemProps = React.useMemo<PropDef[]>(() => [
+        { name: 'label', type: 'ReactNode', required: true, description: t.propsDocs.tabItem.items.label.description },
+        { name: 'children', type: 'ReactNode', required: true, description: t.propsDocs.tabItem.items.children.description },
+    ], [t]);
+
+    const playground = React.useMemo<PlaygroundConfig>(() => ({
+        size: 'lg',
+        props: tabProps,
+        defaultProps: { layout: 'default', defaultIndex: 0, className: '', wrapperClassName: '' },
+        render: (p) => (
+            <Tab
+                layout={p.layout}
+                defaultIndex={p.defaultIndex}
+                className={p.className || undefined}
+                wrapperClassName={p.wrapperClassName || undefined}
+            >
+                <TabItem label={t.labels.general}>{t.labels.generalSettingsContent}</TabItem>
+                <TabItem label={t.labels.advanced}>{t.labels.advancedOptionsContent}</TabItem>
+                <TabItem label={t.labels.permissions}>{t.labels.permissionManagementContent}</TabItem>
+            </Tab>
+        ),
+    }), [t, tabProps]);
+
+    usePlayground(playground, t.playground.title);
 
     return (
         <PageLayout
-            title="Tab"
-            description="Tab navigation with five layout positions. Renders as classic underline tabs or pill-style depending on layout."
+            title={t.page.title}
+            description={t.page.description}
         >
             {POSITIONS.map((pos) => (
                 <Section
                     key={pos}
-                    title={`layout="${pos}"`}
-                    description={POSITION_NOTES[pos]}
+                    title={t.examples.layouts.items[pos].title}
+                    description={t.examples.layouts.items[pos].description}
                     preview={
                         <Tab layout={pos}>
-                            <TabItem label="General">Content of the General tab.</TabItem>
-                            <TabItem label="Advanced">Content of the Advanced tab.</TabItem>
-                            <TabItem label="Permissions">Content of the Permissions tab.</TabItem>
+                            <TabItem label={t.labels.general}>{t.labels.generalTabContent}</TabItem>
+                            <TabItem label={t.labels.advanced}>{t.labels.advancedTabContent}</TabItem>
+                            <TabItem label={t.labels.permissions}>{t.labels.permissionsTabContent}</TabItem>
                         </Tab>
                     }
                     code={`import { Tab, TabItem } from '@llmnative/react';
@@ -80,8 +75,8 @@ export default function TabPage() {
                 />
             ))}
 
-            <PropDocsTable props={TAB_PROPS} title="Tab props" />
-            <PropDocsTable props={TABITEM_PROPS} title="TabItem props" />
+            <PropDocsTable props={tabProps} title={t.propsDocs.tabTitle} />
+            <PropDocsTable props={tabItemProps} title={t.propsDocs.tabItemTitle} />
 
         </PageLayout>
     );

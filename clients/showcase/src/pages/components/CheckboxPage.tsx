@@ -1,6 +1,7 @@
 ﻿import React from 'react';
 import { Checkbox, Form } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
+import { useShowcaseCheckboxI18n } from '../../showcase/i18n';
 import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
 import { usePlayground } from '../../docs-kit/playground';
@@ -46,11 +47,12 @@ const PLAYGROUND: PlaygroundConfig = {
 
 export default function CheckboxPage() {
     usePlayground(PLAYGROUND, 'Checkbox');
+    const t = useShowcaseCheckboxI18n();
 
     return (
-        <PageLayout title="Checkbox" description="Single checkbox field that stores a configured checked value in the Form record.">
+        <PageLayout title={t.page.title} description={t.page.description}>
             <Section
-                title="Checked value"
+                title={t.sections.checkedValue.title}
                 preview={
                     <Form appearance="empty" defaultValues={{ accepted: 'yes' }}>
                         <Checkbox name="accepted" label="Accepted" valueChecked="yes" />

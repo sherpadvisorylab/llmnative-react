@@ -5,6 +5,7 @@ import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
 import { usePlayground } from '../../docs-kit/playground';
 import type { PropDef, PlaygroundConfig } from '../../docs-kit/playground';
+import { useShowcaseFormI18n } from '../../showcase/i18n';
 
 const ROLES = [
     { label: 'Admin',  value: 'admin'  },
@@ -128,16 +129,17 @@ const PLAYGROUND: PlaygroundConfig = {
 
 export default function FormPage() {
     usePlayground(PLAYGROUND, 'Form');
+    const t = useShowcaseFormI18n();
 
     return (
         <PageLayout
-            title="Form widget"
-            description="Full CRUD form: loads a record from the DataProvider, validates, saves and optionally deletes. Wrap fields as children - the Form wires everything automatically via React context."
+            title={t.page.title}
+            description={t.page.description}
         >
             {/* ── New record ── */}
             <Section
-                title="New record (keyGenerator)"
-                description="Pass path (collection) + keyGenerator to create a new record. No DB read is performed. Save calls set() at path/generatedKey."
+                title={t.sections.newRecord.title}
+                description={t.sections.newRecord.description}
                 preview={
                     <WithMock>
                         <div className="w-full max-w-lg">
@@ -179,8 +181,8 @@ const mockProvider = new MockDataProvider();
 
             {/* ── Edit existing record ── */}
             <Section
-                title="Edit existing record"
-                description="Pass path (full record path including key) with no defaultValues. The Form reads the record on mount, pre-fills the fields, and saves back to the same path."
+                title={t.sections.editExisting.title}
+                description={t.sections.editExisting.description}
                 preview={
                     <WithMock>
                         <div className="w-full max-w-lg">
@@ -209,11 +211,11 @@ const mockProvider = new MockDataProvider();
 
             {/* ── Lifecycle hooks ── */}
             <Section
-                title="Lifecycle hooks"
-                description="onLoad transforms data after reading. onSave transforms before writing. onComplete runs after every action."
+                title={t.sections.lifecycleHooks.title}
+                description={t.sections.lifecycleHooks.description}
                 preview={
                     <div className="text-sm text-muted-foreground italic p-4">
-                        Code example - hooks are not visually distinct from a standard form.
+                        {t.sections.lifecycleHooksNote}
                     </div>
                 }
                 code={`<Form
@@ -233,8 +235,8 @@ const mockProvider = new MockDataProvider();
 
             {/* ── Nested fields ── */}
             <Section
-                title="Nested objects and arrays"
-                description="Dot notation maps to nested object keys. Array index notation maps to array elements."
+                title={t.sections.nestedObjects.title}
+                description={t.sections.nestedObjects.description}
                 preview={
                     <WithMock>
                         <div className="w-full max-w-lg">

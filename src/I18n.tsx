@@ -147,9 +147,28 @@ export interface I18nDict {
     };
 }
 
-export type DeepPartial<T> = { [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K] };
+type DeepPartial<T> = { [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K] };
+export type I18nLocale = DeepPartial<I18nDict>;
 
-export type I18nTranslations = Partial<Record<string, DeepPartial<I18nDict>>>;
+type DotNestedKeyOf<T> = T extends object
+    ? {
+        [K in Extract<keyof T, string>]:
+            T[K] extends object
+                ? `${K}` | `${K}.${DotNestedKeyOf<T[K]>}`
+                : `${K}`;
+    }[Extract<keyof T, string>]
+    : never;
+
+type PathValue<T, P extends string> =
+    P extends `${infer K}.${infer Rest}`
+        ? K extends keyof T
+            ? PathValue<T[K], Rest>
+            : never
+        : P extends keyof T
+            ? T[P]
+            : never;
+
+export type I18nTranslations = Partial<Record<string, I18nLocale>>;
 
 export interface I18nConfig {
     locale?:       string;
@@ -161,6 +180,15 @@ export interface I18nController {
     locale:           string;
     availableLocales: string[];
     setLocale:        (locale: string) => void;
+    registerTranslations: (locale: string, translations: I18nLocale) => void;
+}
+
+export function defineLocaleMessages<T extends I18nLocale>(locale: T): T {
+    return locale;
+}
+
+export function createTranslations<T extends I18nTranslations>(translations: T): T {
+    return translations;
 }
 
 // ---------------------------------------------------------------------------
@@ -176,14 +204,22 @@ export function interpolate(template: string, vars: Record<string, string | numb
 // ---------------------------------------------------------------------------
 
 function deepMerge(base: I18nDict, patch: DeepPartial<I18nDict>): I18nDict {
-    const result = { ...base } as unknown as Record<string, Record<string, string>>;
-    for (const ns of Object.keys(patch) as (keyof I18nDict)[]) {
-        const patchNs = patch[ns];
-        if (patchNs && typeof patchNs === 'object') {
-            result[ns] = { ...(base[ns] as Record<string, string>), ...patchNs };
+    const isObject = (value: unknown): value is Record<string, unknown> =>
+        typeof value === 'object' && value !== null && !Array.isArray(value);
+
+    const mergeObjects = (baseValue: unknown, patchValue: unknown): unknown => {
+        if (!isObject(baseValue) || !isObject(patchValue)) return patchValue ?? baseValue;
+
+        const merged: Record<string, unknown> = { ...baseValue };
+        for (const key of Object.keys(patchValue)) {
+            merged[key] = key in merged
+                ? mergeObjects(merged[key], patchValue[key])
+                : patchValue[key];
         }
-    }
-    return result as unknown as I18nDict;
+        return merged;
+    };
+
+    return mergeObjects(base, patch) as I18nDict;
 }
 
 // ---------------------------------------------------------------------------
@@ -216,10 +252,15 @@ interface I18nProviderProps {
 }
 
 export const I18nProvider = ({ children, config }: I18nProviderProps) => {
+    const [runtimeTranslations, setRuntimeTranslations] = useState<I18nTranslations>({});
+
     const availableLocales = useMemo<string[]>(() => {
-        const keys = Object.keys(config?.translations ?? {});
-        return ['en', ...keys.filter((k) => k !== 'en')];
-    }, [config?.translations]);
+        const keys = [
+            ...Object.keys(config?.translations ?? {}),
+            ...Object.keys(runtimeTranslations),
+        ];
+        return Array.from(new Set(['en', ...keys.filter((k) => k !== 'en')]));
+    }, [config?.translations, runtimeTranslations]);
 
     const [locale, setLocaleState] = useState<string>(() => {
         const cookie = readLocaleCookie();
@@ -228,18 +269,38 @@ export const I18nProvider = ({ children, config }: I18nProviderProps) => {
     });
 
     const dict = useMemo<I18nDict>(() => {
-        const patch = config?.translations?.[locale];
-        return patch ? deepMerge(en, patch) : en;
-    }, [locale, config?.translations]);
+        const configPatch = config?.translations?.[locale];
+        const runtimePatch = runtimeTranslations[locale];
+
+        let merged = en;
+        if (configPatch) merged = deepMerge(merged, configPatch);
+        if (runtimePatch) merged = deepMerge(merged, runtimePatch);
+
+        return merged;
+    }, [locale, config?.translations, runtimeTranslations]);
 
     const setLocale = useCallback((next: string) => {
         writeLocaleCookie(next);
         setLocaleState(next);
     }, []);
 
+    const registerTranslations = useCallback((targetLocale: string, translations: I18nLocale) => {
+        setRuntimeTranslations((current) => {
+            const previous = current[targetLocale];
+            const nextLocaleTranslations = previous
+                ? deepMerge(previous as I18nDict, translations)
+                : translations;
+
+            return {
+                ...current,
+                [targetLocale]: nextLocaleTranslations,
+            };
+        });
+    }, []);
+
     const controller = useMemo<I18nController>(
-        () => ({ dict, locale, availableLocales, setLocale }),
-        [dict, locale, availableLocales, setLocale],
+        () => ({ dict, locale, availableLocales, setLocale, registerTranslations }),
+        [dict, locale, availableLocales, setLocale, registerTranslations],
     );
 
     return <I18nContext.Provider value={controller}>{children}</I18nContext.Provider>;
@@ -252,9 +313,13 @@ export const I18nProvider = ({ children, config }: I18nProviderProps) => {
 // ---------------------------------------------------------------------------
 
 export function useI18n(): I18nController;
-export function useI18n<K extends keyof I18nDict>(namespace: K): I18nDict[K];
-export function useI18n<K extends keyof I18nDict>(namespace?: K): I18nController | I18nDict[K] {
+export function useI18n<P extends DotNestedKeyOf<I18nDict>>(namespace: P): PathValue<I18nDict, P>;
+export function useI18n<P extends DotNestedKeyOf<I18nDict>>(namespace?: P): I18nController | PathValue<I18nDict, P> {
     const ctx = useContext(I18nContext);
     if (!ctx) throw new Error('useI18n must be used inside <App> or <I18nProvider>.');
-    return namespace !== undefined ? ctx.dict[namespace] : ctx;
+    if (namespace === undefined) return ctx;
+
+    return namespace
+        .split('.')
+        .reduce<unknown>((acc, key) => (acc as Record<string, unknown>)?.[key], ctx.dict) as PathValue<I18nDict, P>;
 }

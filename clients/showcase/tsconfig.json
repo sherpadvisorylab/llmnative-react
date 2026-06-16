@@ -14,7 +14,7 @@
     "strict": true,
     "paths": {
       "@/*": ["./src/*"],
-      "@llmnative/react": ["../../dist/types/src/index.d.ts"]
+      "@llmnative/react": ["../../src/index.ts"]
     }
   },
   "include": ["src"]

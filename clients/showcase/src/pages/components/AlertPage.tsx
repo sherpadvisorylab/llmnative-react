@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Alert } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
+import { useShowcaseAlertI18n, useShowcaseCommonI18n } from '../../showcase/i18n';
 import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
 import { usePlayground } from '../../docs-kit/playground';
@@ -56,16 +57,18 @@ const PLAYGROUND: PlaygroundConfig = {
 
 export default function AlertPage() {
     usePlayground(PLAYGROUND, 'Alert');
+    const common = useShowcaseCommonI18n();
+    const t = useShowcaseAlertI18n();
     const [visible, setVisible] = useState(true);
 
     return (
         <PageLayout
-            title="Alert"
-            description="Contextual feedback messages for the user. Supports icons, auto-dismiss timeout and fixed positioning."
+            title={t.page.title}
+            description={t.page.description}
         >
             <Section
-                title="Variants"
-                description="Each type has preset colors and an icon."
+                title={common.sections.variants}
+                description={t.sections.variants.description}
                 preview={
                     <div className="flex flex-col gap-2 w-full">
                         {TYPES.map((type) => (
@@ -84,8 +87,8 @@ export default function AlertPage() {
             />
 
             <Section
-                title="Appearance"
-                description="appearance=&quot;text&quot; renders a compact inline indicator - no background, no border, width fits content. Ideal for status feedback next to buttons."
+                title={t.sections.appearance.title}
+                description={t.sections.appearance.description}
                 preview={
                     <div className="flex flex-col gap-3 w-full">
                         <div className="flex flex-col gap-2">
@@ -107,14 +110,14 @@ export default function AlertPage() {
             />
 
             <Section
-                title="Without icon"
+                title={t.sections.withoutIcon.title}
                 preview={<Alert variant="info" icon={false}>Alert without icon</Alert>}
                 code={`<Alert variant="info" icon={false}>Alert without icon</Alert>`}
             />
 
             <Section
-                title="Auto-dismiss"
-                description="The alert closes automatically after the specified timeout (ms)."
+                title={t.sections.autoDismiss.title}
+                description={t.sections.autoDismiss.description}
                 preview={
                     <div className="flex flex-col gap-2 w-full">
                         {visible ? (
@@ -138,8 +141,8 @@ export default function AlertPage() {
             />
 
             <Section
-                title="Placement modes"
-                description="placement controls where the alert renders: inline (default, in normal document flow) or fixed (viewport-pinned via portal above all content)."
+                title={t.sections.placement.title}
+                description={t.sections.placement.description}
                 preview={
                     <div className="space-y-3">
                         <Alert variant="info" icon={false}>

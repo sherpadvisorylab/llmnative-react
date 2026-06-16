@@ -1,149 +1,147 @@
-﻿import React from 'react';
+import React from 'react';
 import { Checklist, Form } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
 import { usePlayground } from '../../docs-kit/playground';
 import type { PropDef, PlaygroundConfig } from '../../docs-kit/playground';
+import { useShowcaseChecklistI18n } from '../../showcase/i18n';
 
-const TAGS = [
-    { label: 'React', value: 'react' },
-    { label: 'TypeScript', value: 'typescript' },
-    { label: 'Firebase', value: 'firebase' },
-    { label: 'Tailwind', value: 'tailwind' },
-    { label: 'Node.js', value: 'nodejs' },
-];
+export default function ChecklistPage() {
+    const t = useShowcaseChecklistI18n();
 
-const PERMISSIONS = [
-    { label: 'Read', value: 'read' },
-    { label: 'Write', value: 'write' },
-    { label: 'Delete', value: 'delete' },
-    { label: 'Admin', value: 'admin' },
-];
+    const tags = React.useMemo(() => [
+        { label: t.labels.react, value: 'react' },
+        { label: t.labels.typeScript, value: 'typescript' },
+        { label: t.labels.firebase, value: 'firebase' },
+        { label: t.labels.tailwind, value: 'tailwind' },
+        { label: t.labels.nodeJs, value: 'nodejs' },
+    ], [t]);
 
-const CHECKLIST_PROPS: PropDef[] = [
-    { name: 'name', type: 'string', required: true, description: 'Field name used as form key; stores selected values as an array', control: 'text' },
-    { name: 'label', type: 'string', description: 'Group label above the checkboxes', control: 'text' },
-    { name: 'title', type: 'string', description: 'Native title attribute on each checkbox input', control: 'text' },
-    { name: 'options', type: 'Option[] | string[] | number[]', description: 'Static checkbox options', control: 'json', rows: 6, shortcuts: [
-        { label: 'tags', value: TAGS, help: 'Technology checklist.' },
-        { label: 'permissions', value: PERMISSIONS, help: 'Permission checklist.' },
-        { label: 'simple', value: ['one', 'two', 'three'], help: 'Simple string values.' },
-    ], typeDetails: `Array<{ label: string; value: string }> | string[] | number[]` },
-    {
-        name: 'optionsSource',
-        type: 'ChecklistDbConfig',
-        description: 'DataProvider path used to fetch checkbox options',
-        typeDetails: `{
+    const permissions = React.useMemo(() => [
+        { label: t.labels.read, value: 'read' },
+        { label: t.labels.write, value: 'write' },
+        { label: t.labels.delete, value: 'delete' },
+        { label: t.labels.admin, value: 'admin' },
+    ], [t]);
+
+    const checklistProps = React.useMemo<PropDef[]>(() => [
+        { name: 'name', type: 'string', required: true, description: t.propsDocs.items.name.description, control: 'text' },
+        { name: 'label', type: 'string', description: t.propsDocs.items.label.description, control: 'text' },
+        { name: 'title', type: 'string', description: t.propsDocs.items.title.description, control: 'text' },
+        { name: 'options', type: 'Option[] | string[] | number[]', description: t.propsDocs.items.options.description, control: 'json', rows: 6, shortcuts: [
+            { label: 'tags', value: tags, help: 'Technology checklist.' },
+            { label: 'permissions', value: permissions, help: 'Permission checklist.' },
+            { label: 'simple', value: ['one', 'two', 'three'], help: 'Simple string values.' },
+        ], typeDetails: `Array<{ label: string; value: string }> | string[] | number[]` },
+        {
+            name: 'optionsSource',
+            type: 'ChecklistDbConfig',
+            description: t.propsDocs.items.optionsSource.description,
+            typeDetails: `{
   path?: string;
   fieldMap?: Record<string, string>;
   where?: Record<string, unknown>;
   order?: { field: string; dir: 'asc' | 'desc' };
 }`,
-        control: 'text',
-        readOnly: true,
-        help: 'This playground uses a MockDataProvider. Edit the records in Mock database below to change the options returned by this path.',
-    },
-    { name: 'required', type: 'boolean', default: 'false', description: 'Marks the field as required', control: 'boolean' },
-    { name: 'disabled', type: 'boolean', default: 'false', description: 'Disables all checkboxes', control: 'boolean' },
-    { name: 'readOnlyAfterSet', type: 'boolean', default: 'false', description: 'Field becomes read-only (disabled) once a value has been set', control: 'boolean' },
-    { name: 'defaultValue', type: 'string[] | string', description: 'Initial selected values', control: 'json', rows: 3, shortcuts: [
-        { label: 'single', value: 'react', help: 'Single default selection.' },
-        { label: 'multi', value: ['react', 'typescript'], help: 'Multiple defaults.' },
-        { label: 'empty', value: [], help: 'No default selections.' },
-    ] },
-    { name: 'feedback', type: 'string', description: 'Validation feedback message shown below the list', control: 'text' },
-    { name: 'validator', type: '(value: FieldValue) => string | undefined', description: 'Custom validation function; return an error string to block submission, undefined to pass' },
-    { name: 'order', type: 'OrderConfig', description: 'Sort order for options (default: label asc)', control: 'json', rows: 4, shortcuts: [
-        { label: 'label asc', value: { field: 'label', dir: 'asc' }, help: 'Sort by label ascending.' },
-        { label: 'label desc', value: { field: 'label', dir: 'desc' }, help: 'Sort by label descending.' },
-        { label: 'value asc', value: { field: 'value', dir: 'asc' }, help: 'Sort by value ascending.' },
-    ], typeDetails: `{
+            control: 'text',
+            readOnly: true,
+            help: t.propsDocs.items.optionsSource.help,
+        },
+        { name: 'required', type: 'boolean', default: 'false', description: t.propsDocs.items.required.description, control: 'boolean' },
+        { name: 'disabled', type: 'boolean', default: 'false', description: t.propsDocs.items.disabled.description, control: 'boolean' },
+        { name: 'readOnlyAfterSet', type: 'boolean', default: 'false', description: t.propsDocs.items.readOnlyAfterSet.description, control: 'boolean' },
+        { name: 'defaultValue', type: 'string[] | string', description: t.propsDocs.items.defaultValue.description, control: 'json', rows: 3, shortcuts: [
+            { label: 'single', value: 'react', help: 'Single default selection.' },
+            { label: 'multi', value: ['react', 'typescript'], help: 'Multiple defaults.' },
+            { label: 'empty', value: [], help: 'No default selections.' },
+        ] },
+        { name: 'feedback', type: 'string', description: t.propsDocs.items.feedback.description, control: 'text' },
+        { name: 'validator', type: '(value: FieldValue) => string | undefined', description: t.propsDocs.items.validator.description },
+        { name: 'order', type: 'OrderConfig', description: t.propsDocs.items.order.description, control: 'json', rows: 4, shortcuts: [
+            { label: 'label asc', value: { field: 'label', dir: 'asc' }, help: 'Sort by label ascending.' },
+            { label: 'label desc', value: { field: 'label', dir: 'desc' }, help: 'Sort by label descending.' },
+            { label: 'value asc', value: { field: 'value', dir: 'asc' }, help: 'Sort by value ascending.' },
+        ], typeDetails: `{
   field: 'label' | 'value';
   dir: 'asc' | 'desc';
 }` },
-    { name: 'before', type: 'ReactNode', description: 'Content rendered before the checklist inside an input group', control: 'text' },
-    { name: 'after', type: 'ReactNode', description: 'Content rendered after the checklist inside an input group', control: 'text' },
-    { name: 'onChange', type: 'FieldOnChange', description: 'Custom change handler called by the Form context' },
-    { name: 'itemClassName', type: 'string', description: 'CSS classes applied to each individual checkbox wrapper', control: 'text' },
-    { name: 'className', type: 'string', description: 'CSS classes on the checklist root', control: 'text' },
-    { name: 'wrapperClassName', type: 'string', description: 'CSS classes on the outer wrapper', control: 'text' },
-];
+        { name: 'before', type: 'ReactNode', description: t.propsDocs.items.before.description, control: 'text' },
+        { name: 'after', type: 'ReactNode', description: t.propsDocs.items.after.description, control: 'text' },
+        { name: 'onChange', type: 'FieldOnChange', description: t.propsDocs.items.onChange.description },
+        { name: 'itemClassName', type: 'string', description: t.propsDocs.items.itemClassName.description, control: 'text' },
+        { name: 'className', type: 'string', description: t.propsDocs.items.className.description, control: 'text' },
+        { name: 'wrapperClassName', type: 'string', description: t.propsDocs.items.wrapperClassName.description, control: 'text' },
+    ], [permissions, t, tags]);
 
-const PLAYGROUND: PlaygroundConfig = {
-    size: 'lg',
-    showFormRecord: true,
-    props: CHECKLIST_PROPS,
-    mockSeed: {
-        '/showcase/tags': {
-            react: { label: 'React', value: 'react' },
-            typescript: { label: 'TypeScript', value: 'typescript' },
-            firebase: { label: 'Firebase', value: 'firebase' },
+    const playground = React.useMemo<PlaygroundConfig>(() => ({
+        size: 'lg',
+        showFormRecord: true,
+        props: checklistProps,
+        mockSeed: {
+            '/showcase/tags': {
+                react: { label: t.labels.react, value: 'react' },
+                typescript: { label: t.labels.typeScript, value: 'typescript' },
+                firebase: { label: t.labels.firebase, value: 'firebase' },
+            },
         },
-    },
-    defaultProps: {
-        name: 'tags',
-        label: 'Technologies',
-        title: 'Select technologies',
-        options: TAGS,
-        optionsSource: '/showcase/tags',
-        required: false,
-        disabled: false,
-        readOnlyAfterSet: false,
-        defaultValue: ['react', 'typescript'],
-        feedback: '',
-        order: {
-            field: 'label',
-            dir: 'asc',
+        defaultProps: {
+            name: 'tags',
+            label: t.labels.technologies,
+            title: t.labels.selectTechnologies,
+            options: tags,
+            optionsSource: '/showcase/tags',
+            required: false,
+            disabled: false,
+            readOnlyAfterSet: false,
+            defaultValue: ['react', 'typescript'],
+            feedback: '',
+            order: { field: 'label', dir: 'asc' },
+            before: '',
+            after: '',
+            itemClassName: '',
+            className: '',
+            wrapperClassName: '',
         },
-        before: '',
-        after: '',
-        itemClassName: '',
-        className: '',
-        wrapperClassName: '',
-    },
-    render: (p, onValuesChange) => (
-        <Form appearance="empty" onChange={onValuesChange}>
-            <Checklist
-                name={p.name || 'tags'}
-                label={p.label}
-                title={p.title || undefined}
-                options={Array.isArray(p.options) ? p.options : []}
-                optionsSource={typeof p.optionsSource === 'string' && p.optionsSource ? { path: p.optionsSource } : (p.optionsSource && typeof p.optionsSource === 'object' ? p.optionsSource : undefined)}
-                required={p.required}
-                disabled={p.disabled}
-                readOnlyAfterSet={p.readOnlyAfterSet}
-                defaultValue={p.defaultValue}
-                feedback={p.feedback || undefined}
-                order={p.order && typeof p.order === 'object' ? p.order : undefined}
-                before={p.before || undefined}
-                after={p.after || undefined}
-                itemClassName={p.itemClassName || undefined}
-                className={p.className || undefined}
-                wrapperClassName={p.wrapperClassName || undefined}
-            />
-        </Form>
-    ),
-};
+        render: (p, onValuesChange) => (
+            <Form appearance="empty" onChange={onValuesChange}>
+                <Checklist
+                    name={p.name || 'tags'}
+                    label={p.label}
+                    title={p.title || undefined}
+                    options={Array.isArray(p.options) ? p.options : []}
+                    optionsSource={typeof p.optionsSource === 'string' && p.optionsSource ? { path: p.optionsSource } : (p.optionsSource && typeof p.optionsSource === 'object' ? p.optionsSource : undefined)}
+                    required={p.required}
+                    disabled={p.disabled}
+                    readOnlyAfterSet={p.readOnlyAfterSet}
+                    defaultValue={p.defaultValue}
+                    feedback={p.feedback || undefined}
+                    order={p.order && typeof p.order === 'object' ? p.order : undefined}
+                    before={p.before || undefined}
+                    after={p.after || undefined}
+                    itemClassName={p.itemClassName || undefined}
+                    className={p.className || undefined}
+                    wrapperClassName={p.wrapperClassName || undefined}
+                />
+            </Form>
+        ),
+    }), [checklistProps, t, tags]);
 
-export default function ChecklistPage() {
-    usePlayground(PLAYGROUND, 'Checklist');
+    usePlayground(playground, t.playground.title);
 
     return (
-        <PageLayout
-            title="Checklist"
-            description="Vertical list of checkboxes for multi-select. Selected values are stored as an array in the form record."
-        >
-            <Section bare
-                title="Basic checklist"
-                description="Renders a checkbox for each option. Pre-selected values come from the Form's defaultValues."
-                preview={
+        <PageLayout title={t.page.title} description={t.page.description}>
+            <Section
+                bare
+                title={t.sections.basic.title}
+                description={t.sections.basic.description}
+                preview={(
                     <div className="w-full max-w-md">
                         <Form appearance="empty" defaultValues={{ tags: ['react', 'typescript'] }}>
-                            <Checklist name="tags" label="Technologies" options={TAGS} />
+                            <Checklist name="tags" label={t.labels.technologies} options={tags} />
                         </Form>
                     </div>
-                }
+                )}
                 code={`import { Checklist, Form } from '@llmnative/react';
 
 <Form defaultValues={{ tags: ['react', 'typescript'] }}>
@@ -159,16 +157,17 @@ export default function ChecklistPage() {
 </Form>`}
             />
 
-            <Section bare
-                title="Permissions checklist"
-                description="Common pattern for role/permission configuration."
-                preview={
+            <Section
+                bare
+                title={t.sections.permissions.title}
+                description={t.sections.permissions.description}
+                preview={(
                     <div className="w-full max-w-md">
                         <Form appearance="empty" defaultValues={{ permissions: ['read', 'write'] }}>
-                            <Checklist name="permissions" label="Permissions" options={PERMISSIONS} />
+                            <Checklist name="permissions" label={t.labels.permissions} options={permissions} />
                         </Form>
                     </div>
-                }
+                )}
                 code={`<Form defaultValues={{ permissions: ['read', 'write'] }}>
     <Checklist
         name="permissions"
@@ -183,23 +182,24 @@ export default function ChecklistPage() {
 </Form>`}
             />
 
-            <Section bare
-                title="Required and disabled"
-                preview={
+            <Section
+                bare
+                title={t.sections.requiredDisabled.title}
+                preview={(
                     <div className="w-full max-w-md flex gap-8">
                         <Form appearance="empty">
-                            <Checklist name="tags" label="Required" options={TAGS.slice(0, 3)} required />
+                            <Checklist name="tags" label={t.labels.required} options={tags.slice(0, 3)} required />
                         </Form>
                         <Form appearance="empty" defaultValues={{ tags: ['react'] }}>
-                            <Checklist name="tags" label="Disabled" options={TAGS.slice(0, 3)} disabled />
+                            <Checklist name="tags" label={t.labels.disabled} options={tags.slice(0, 3)} disabled />
                         </Form>
                     </div>
-                }
+                )}
                 code={`<Checklist name="tags" label="Required" options={options} required />
 <Checklist name="tags" label="Disabled" options={options} disabled />`}
             />
 
-            <PropDocsTable props={CHECKLIST_PROPS} />
+            <PropDocsTable props={checklistProps} title={t.propsDocs.title} />
         </PageLayout>
     );
 }

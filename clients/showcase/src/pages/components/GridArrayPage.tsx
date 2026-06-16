@@ -8,7 +8,9 @@ import {
     Select,
     String as TextField,
 } from '@llmnative/react';
+import type { I18nDict } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
+import { useShowcaseGridArrayI18n, useShowcaseGridI18n } from '../../showcase/i18n';
 import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
 import { usePlayground } from '../../docs-kit/playground';
@@ -27,6 +29,9 @@ type UserRecord = {
     team: string;
     city: string;
 };
+
+type ShowcaseGridI18n = I18nDict['showcase']['grid'];
+type ShowcaseGridArrayI18n = I18nDict['showcase']['gridArray'];
 
 // ─── Seed data ────────────────────────────────────────────────────────────────
 
@@ -52,32 +57,38 @@ const statusClass = (status: string) =>
 const roleClass = (role: string) =>
     role === 'admin' ? 'bg-primary' : role === 'editor' ? 'bg-info' : 'bg-secondary';
 
-const baseColumns = [
-    { key: 'name', label: 'Name', sortable: true },
-    { key: 'email', label: 'Email', sortable: true, render: 'email' as const },
-    { key: 'role', label: 'Role', sortable: true },
-    { key: 'status', label: 'Status', sortable: true },
-    { key: 'team', label: 'Team', sortable: true },
+const getRoleLabel = (t: ShowcaseGridI18n, role: string) =>
+    role === 'admin' ? t.values.roles.admin : role === 'editor' ? t.values.roles.editor : role === 'viewer' ? t.values.roles.viewer : role;
+
+const getStatusLabel = (t: ShowcaseGridI18n, status: string) =>
+    status === 'active' ? t.values.statuses.active : status === 'review' ? t.values.statuses.review : status === 'inactive' ? t.values.statuses.inactive : status;
+
+const getBaseColumns = (t: ShowcaseGridI18n) => [
+    { key: 'name', label: t.labels.name, sortable: true },
+    { key: 'email', label: t.labels.email, sortable: true, render: 'email' as const },
+    { key: 'role', label: t.labels.role, sortable: true },
+    { key: 'status', label: t.labels.status, sortable: true },
+    { key: 'team', label: t.labels.team, sortable: true },
 ];
 
 // ─── Static column sets for section examples ─────────────────────────────────
 
-const displayColumns = [
-    { key: 'name', label: 'Name', sortable: true },
-    { key: 'email', label: 'Email', sortable: true },
+const getDisplayColumns = (t: ShowcaseGridI18n) => [
+    { key: 'name', label: t.labels.name, sortable: true },
+    { key: 'email', label: t.labels.email, sortable: true },
     {
         key: 'role',
-        label: 'Role',
+        label: t.labels.role,
         sortable: true,
-        render: ({ value }: { value: string }) => <Badge className={roleClass(value)}>{value}</Badge>,
+        render: ({ value }: { value: string }) => <Badge className={roleClass(value)}>{getRoleLabel(t, value)}</Badge>,
     },
     {
         key: 'status',
-        label: 'Status',
+        label: t.labels.status,
         sortable: true,
-        render: ({ value }: { value: string }) => <Badge className={statusClass(value)}>{value}</Badge>,
+        render: ({ value }: { value: string }) => <Badge className={statusClass(value)}>{getStatusLabel(t, value)}</Badge>,
     },
-    { key: 'team', label: 'Team', sortable: true },
+    { key: 'team', label: t.labels.team, sortable: true },
 ];
 
 // ─── Playground helpers ───────────────────────────────────────────────────────
@@ -126,33 +137,33 @@ const resolvePlaygroundNode = <TCtx,>(value: unknown) => {
 
 // ─── Form used inside modal CRUD actions ──────────────────────────────────────
 
-function GridUserForm() {
+function GridUserForm({ t }: { t: ShowcaseGridI18n }) {
     return (
         <>
-            <TextField name="name" label="Name" required />
-            <Email name="email" label="Email" required />
+            <TextField name="name" label={t.labels.name} required />
+            <Email name="email" label={t.labels.email} required />
             <Select
                 name="role"
-                label="Role"
+                label={t.labels.role}
                 required
                 options={[
-                    { value: 'admin', label: 'Admin' },
-                    { value: 'editor', label: 'Editor' },
-                    { value: 'viewer', label: 'Viewer' },
+                    { value: 'admin', label: t.values.roles.admin },
+                    { value: 'editor', label: t.values.roles.editor },
+                    { value: 'viewer', label: t.values.roles.viewer },
                 ]}
             />
             <Select
                 name="status"
-                label="Status"
+                label={t.labels.status}
                 required
                 options={[
-                    { value: 'active', label: 'Active' },
-                    { value: 'review', label: 'Review' },
-                    { value: 'inactive', label: 'Inactive' },
+                    { value: 'active', label: t.values.statuses.active },
+                    { value: 'review', label: t.values.statuses.review },
+                    { value: 'inactive', label: t.values.statuses.inactive },
                 ]}
             />
-            <TextField name="team" label="Team" required />
-            <TextField name="city" label="City" required />
+            <TextField name="team" label={t.labels.team} required />
+            <TextField name="city" label={t.labels.city} required />
         </>
     );
 }
@@ -202,28 +213,28 @@ type GridArrayDocSurface = {
     audit: unknown;
 };
 
-const GRID_ARRAY_PROP_DOCS = definePropDocs<GridArrayDocSurface>()([
+const createGridArrayPropDocs = (gridT: ShowcaseGridI18n, arrayT: ShowcaseGridArrayI18n) => definePropDocs<GridArrayDocSurface>()([
     // ── GridArray-specific ────────────────────────────────────────────────────
     {
         name: 'records',
         type: 'TRecord[]',
         required: true,
-        category: 'GridArray',
-        description: `Caller-owned record array. GridArray renders from this snapshot and does not subscribe to any provider. In the playground the records come from the Mock database below (path: ${GRID_SOURCE_PATH}).`,
+        category: arrayT.propsDocs.categories.gridArray,
+        description: `${arrayT.propsDocs.items.records.description} (${GRID_SOURCE_PATH}).`,
     },
     {
         name: 'recordId',
         type: 'keyof TRecord | ((record: TRecord) => string)',
         default: '"_key"',
-        category: 'GridArray',
-        description: 'Identity resolver used for selection, edit state and mutation paths. Pass a field name or an arrow function.',
+        category: arrayT.propsDocs.categories.gridArray,
+        description: arrayT.propsDocs.items.recordId.description,
         shape: `keyof TRecord\n| ((record: TRecord) => string)`,
     },
     {
         name: 'onLoad',
         type: '(records: TRecord[]) => TRecord[] | Promise<TRecord[]>',
-        category: 'GridArray',
-        description: 'Transform records before display. Runs synchronously or asynchronously after the caller passes them in.',
+        category: arrayT.propsDocs.categories.gridArray,
+        description: arrayT.propsDocs.items.onLoad.description,
         shape: `(records: TRecord[]) => TRecord[] | Promise<TRecord[]>`,
         example: `// Uppercase names before display
 onLoad={(records) =>
@@ -234,8 +245,8 @@ onLoad={(records) =>
     {
         name: 'columns',
         type: 'GridColumn<TRecord>[]',
-        category: 'Shared',
-        description: 'Column definitions. Each item needs key and label; sortable and render are optional. Omit for auto-inferred columns.',
+        category: arrayT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.columns.description,
         shape: `Array<{
   key: keyof TRecord | string
   label: string
@@ -256,8 +267,8 @@ onLoad={(records) =>
     {
         name: 'actions',
         type: '("add" | "edit" | "delete")[] | Record<string, GridAction>',
-        category: 'Shared',
-        description: 'Action catalog. Pass an array shorthand ["add","edit","delete"] or a declarative object for custom modal, route and external actions.',
+        category: arrayT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.actions.description,
         shape: `// Shorthand
 ("add" | "edit" | "delete")[]
 
@@ -279,8 +290,8 @@ Record<string, false | {
     {
         name: 'form',
         type: 'ReactElement | ((ctx) => ReactNode)',
-        category: 'Shared',
-        description: 'Add/edit form rendered inside the modal. Grid wraps it in Form automatically.',
+        category: arrayT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.form.description,
         shape: `ReactElement | ((ctx: {
   actionKey: string
   record?: TRecord
@@ -293,23 +304,23 @@ Record<string, false | {
         name: 'view',
         type: '"table" | "gallery"',
         default: '"table"',
-        category: 'Shared',
-        description: 'Visual surface: table rows or gallery cards.',
+        category: arrayT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.view.description,
     },
     {
         name: 'sortable',
         type: 'boolean | OrderConfig',
         default: 'true',
-        category: 'Shared',
-        description: 'Enable client-side header sorting or set an initial sort via OrderConfig.',
+        category: arrayT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.sortable.description,
         shape: `boolean | { [field: string]: "asc" | "desc" }`,
     },
     {
         name: 'pagination',
         type: 'PaginationParams',
         default: '{ limit: 4, align: "end" }',
-        category: 'Shared',
-        description: 'Pagination forwarded to Table or Gallery.',
+        category: arrayT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.pagination.description,
         shape: `{
   limit?: number
   align?: "start" | "center" | "end"
@@ -320,8 +331,8 @@ Record<string, false | {
         name: 'selection',
         type: 'false | "single" | "multiple" | GridSelectionConfig<TRecord>',
         default: 'false',
-        category: 'Shared',
-        description: 'Row selection mode. Use the string shorthand or an object form with defaultKeys and onChange.',
+        category: arrayT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.selection.description,
         shape: `"single" | "multiple"
 | {
   mode: "single" | "multiple"
@@ -333,29 +344,29 @@ Record<string, false | {
         name: 'groupBy',
         type: 'string | string[]',
         default: '',
-        category: 'Shared',
-        description: 'Group rows/cards by a field. Works for both table and gallery layouts.',
+        category: arrayT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.groupBy.description,
     },
     {
         name: 'reorderable',
         type: 'boolean',
         default: 'false',
-        category: 'Shared',
-        description: 'Enable row drag & drop reorder. Disables client sorting while active.',
+        category: arrayT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.reorderable.description,
     },
     {
         name: 'title',
         type: 'ReactNode',
         default: '',
-        category: 'Shared',
-        description: 'Card header title.',
+        category: arrayT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.title.description,
     },
     {
         name: 'header',
         type: 'ReactNode | ((ctx) => ReactNode)',
         default: 'false',
-        category: 'Shared',
-        description: 'Full header override. Receives GridHeaderContext when a function.',
+        category: arrayT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.header.description,
         shape: `ReactNode | ((ctx: {
   title?: ReactNode
   records: TRecord[]
@@ -367,8 +378,8 @@ Record<string, false | {
         name: 'footer',
         type: 'ReactNode | ((ctx) => ReactNode)',
         default: 'false',
-        category: 'Shared',
-        description: 'Footer override. Receives GridFooterContext when a function.',
+        category: arrayT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.footer.description,
         shape: `ReactNode | ((ctx: {
   records: TRecord[]
   selection: GridSelectionState<TRecord>
@@ -379,54 +390,54 @@ Record<string, false | {
         name: 'loading',
         type: 'boolean',
         default: 'false',
-        category: 'Shared',
-        description: 'Show a loading overlay on the card.',
+        category: arrayT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.loading.description,
     },
     {
         name: 'sticky',
         type: '"top" | "bottom"',
         default: '',
-        category: 'Shared',
-        description: 'Stick the card to the top or bottom of the scroll container.',
+        category: arrayT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.sticky.description,
     },
     {
         name: 'wrapperClassName',
         type: 'string',
         default: '',
-        category: 'Shared',
-        description: 'CSS class on the outer card wrapper.',
+        category: arrayT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.wrapperClassName.description,
     },
     {
         name: 'before',
         type: 'ReactNode',
-        category: 'Shared',
-        description: 'Content rendered above the table/gallery body.',
+        category: arrayT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.before.description,
     },
     {
         name: 'after',
         type: 'ReactNode',
-        category: 'Shared',
-        description: 'Content rendered below the table/gallery body.',
+        category: arrayT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.after.description,
     },
     {
         name: 'onRowClick',
         type: '(record: TRecord) => void',
         default: 'false',
-        category: 'Shared',
-        description: 'Called with the full record on row/card click.',
+        category: arrayT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.onRowClick.description,
     },
     {
         name: 'editDeepLink',
         type: 'boolean',
         default: 'false',
-        category: 'Shared',
-        description: 'Sync edit modal to URL hash (#edit/{key}).',
+        category: arrayT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.editDeepLink.description,
     },
     {
         name: 'onSave',
         type: 'GridMutationSaveHandler<TRecord>',
-        category: 'Shared',
-        description: 'Override save path or implement custom persistence for create/update.',
+        category: arrayT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.onSave.description,
         shape: `(args: {
   record?: TRecord
   action: "create" | "update"
@@ -436,8 +447,8 @@ Record<string, false | {
     {
         name: 'onDelete',
         type: 'GridMutationDeleteHandler<TRecord>',
-        category: 'Shared',
-        description: 'Override delete path before the provider removes the record.',
+        category: arrayT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.onDelete.description,
         shape: `(args: {
   record?: TRecord
 }) => Promise<string | undefined>`,
@@ -445,8 +456,8 @@ Record<string, false | {
     {
         name: 'onComplete',
         type: 'GridAfterActionHandler<TRecord>',
-        category: 'Shared',
-        description: 'Post-action hook. Return false to keep the modal open.',
+        category: arrayT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.onComplete.description,
         shape: `(args: {
   record?: TRecord
   action: "create" | "update" | "delete"
@@ -456,142 +467,152 @@ Record<string, false | {
         name: 'audit',
         type: 'boolean',
         default: 'false',
-        category: 'Shared',
-        description: 'Enable form-level audit logging during modal saves.',
+        category: arrayT.propsDocs.categories.shared,
+        description: gridT.propsDocs.items.audit.description,
     },
 ]);
 
 // ─── Playground prop definitions ──────────────────────────────────────────────
 
-const GRID_ARRAY_SPECIFIC_PROPS: PropDef[] = [
+const createGridArraySpecificProps = (arrayT: ShowcaseGridArrayI18n): PropDef[] => [
     {
-        group: 'GridArray',
+        group: arrayT.playground.groups.gridArray,
         name: 'records',
         type: 'TRecord[]',
         required: true,
-        description: `Caller-owned record array. In this playground the records come from the Mock database (see the accordion below) — edit it to see the grid update live. Path: ${GRID_SOURCE_PATH}`,
+        description: `${arrayT.playground.props.records.description} ${GRID_SOURCE_PATH}`,
         readOnly: true,
     },
     {
-        group: 'GridArray',
+        group: arrayT.playground.groups.gridArray,
         name: 'recordId',
         type: 'keyof TRecord | ((record) => string)',
         default: '"_key"',
-        description: 'Record identity resolver. Pass a field name like "_key" or an arrow function.',
+        description: arrayT.playground.props.recordId.description,
         control: 'textarea',
         textareaMode: 'text',
         rows: 2,
         shortcuts: [
-            { label: '_key', value: '_key', help: 'Use the provider/native key field.' },
-            { label: 'id', value: 'id', help: 'Use the explicit id field.' },
-            { label: 'fn', value: 'record => record.id', help: 'Arrow function returning the id field.' },
+            { label: arrayT.playground.props.recordId.shortcuts.nativeKey.label, value: '_key', help: arrayT.playground.props.recordId.shortcuts.nativeKey.help },
+            { label: arrayT.playground.props.recordId.shortcuts.explicitId.label, value: 'id', help: arrayT.playground.props.recordId.shortcuts.explicitId.help },
+            { label: arrayT.playground.props.recordId.shortcuts.functionId.label, value: 'record => record.id', help: arrayT.playground.props.recordId.shortcuts.functionId.help },
         ],
     },
     {
-        group: 'GridArray',
+        group: arrayT.playground.groups.gridArray,
         name: 'onLoad',
         type: '(records: TRecord[]) => TRecord[] | Promise<TRecord[]>',
-        description: 'Transform records before display. Handled internally by the playground.',
+        description: arrayT.playground.props.onLoad.description,
         readOnly: true,
     },
 ];
 
-const SHARED_PROPS: PropDef[] = [
+const createSharedProps = (gridT: ShowcaseGridI18n, arrayT: ShowcaseGridArrayI18n): PropDef[] => [
     {
-        group: 'Shared', name: 'columns', type: 'GridColumn<TRecord>[]',
-        description: 'Column definitions. Each item needs key and label; sortable and render are optional. Omit for auto-inferred columns.',
+        group: arrayT.playground.groups.shared, name: 'columns', type: 'GridColumn<TRecord>[]',
+        description: gridT.playground.props.columns.description,
         control: 'json', rows: 6,
         shortcuts: [
-            { label: 'auto', value: null, help: 'Infer columns from record shape.' },
+            { label: gridT.playground.props.columns.shortcuts?.infer?.label ?? 'auto', value: null, help: gridT.playground.props.columns.shortcuts?.infer?.help ?? '' },
             { label: 'base', value: [
-                { key: 'name', label: 'Name', sortable: true },
-                { key: 'email', label: 'Email', sortable: true, render: 'email' },
-                { key: 'role', label: 'Role', sortable: true },
-                { key: 'status', label: 'Status', sortable: true },
-            ], help: 'Standard column set.' },
+                { key: 'name', label: gridT.labels.name, sortable: true },
+                { key: 'email', label: gridT.labels.email, sortable: true, render: 'email' },
+                { key: 'role', label: gridT.labels.role, sortable: true },
+                { key: 'status', label: gridT.labels.status, sortable: true },
+            ], help: gridT.playground.props.columns.shortcuts?.base?.help ?? '' },
         ],
     },
     {
-        group: 'Shared', name: 'actions', type: '("add"|"edit"|"delete")[] | Record<string, GridAction>',
-        description: 'Action catalog. Pass an array shorthand ["add","edit","delete"] or a declarative object for custom modal, route and external actions.',
+        group: arrayT.playground.groups.shared, name: 'actions', type: '("add"|"edit"|"delete")[] | Record<string, GridAction>',
+        description: gridT.playground.props.actions.description,
         control: 'json', rows: 6,
         shortcuts: [
-            { label: 'none', value: {}, help: 'No actions.' },
-            { label: 'crud', value: ['add', 'edit', 'delete'], help: 'Standard CRUD shorthand.' },
-            { label: 'custom', value: { preview: { kind: 'modal', label: 'Preview', icon: 'eye' } }, help: 'Custom modal action.' },
+            { label: gridT.playground.props.actions.shortcuts?.none?.label ?? 'none', value: {}, help: gridT.playground.props.actions.shortcuts?.none?.help ?? '' },
+            { label: gridT.playground.props.actions.shortcuts?.crud?.label ?? 'crud', value: ['add', 'edit', 'delete'], help: gridT.playground.props.actions.shortcuts?.crud?.help ?? '' },
+            { label: gridT.playground.props.actions.shortcuts?.custom?.label ?? 'custom', value: { preview: { kind: 'modal', label: gridT.actions.preview, icon: 'eye' } }, help: gridT.playground.props.actions.shortcuts?.custom?.help ?? '' },
         ],
     },
-    { group: 'Shared', name: 'form', type: 'ReactElement | ((ctx) => ReactNode)', description: 'Add/edit form rendered inside the modal. Grid wraps it in Form automatically.', readOnly: true },
-    { group: 'Shared', name: 'view', type: '"table" | "gallery"', default: '"table"', description: 'Visual surface: table rows or gallery cards.', control: 'select', options: ['table', 'gallery'] },
+    { group: arrayT.playground.groups.shared, name: 'form', type: 'ReactElement | ((ctx) => ReactNode)', description: gridT.playground.props.form.description, readOnly: true },
+    { group: arrayT.playground.groups.shared, name: 'view', type: '"table" | "gallery"', default: '"table"', description: gridT.playground.props.view.description, control: 'select', options: ['table', 'gallery'] },
     {
-        group: 'Shared', name: 'sortable', type: 'boolean | OrderConfig', default: 'true',
-        description: 'Enable client-side header sorting or set an initial sort via OrderConfig.',
+        group: arrayT.playground.groups.shared, name: 'sortable', type: 'boolean | OrderConfig', default: 'true',
+        description: gridT.playground.props.sortable.description,
         control: 'json', rows: 2,
         shortcuts: [
-            { label: 'true', value: true },
-            { label: 'false', value: false },
-            { label: 'name asc', value: { name: 'asc' }, help: 'Start sorted by name ascending.' },
+            { label: gridT.playground.props.sortable.shortcuts?.true?.label ?? 'true', value: true, help: gridT.playground.props.sortable.shortcuts?.true?.help ?? '' },
+            { label: gridT.playground.props.sortable.shortcuts?.false?.label ?? 'false', value: false, help: gridT.playground.props.sortable.shortcuts?.false?.help ?? '' },
+            { label: gridT.playground.props.sortable.shortcuts?.nameAsc?.label ?? 'name asc', value: { name: 'asc' }, help: gridT.playground.props.sortable.shortcuts?.nameAsc?.help ?? '' },
         ],
     },
     {
-        group: 'Shared', name: 'pagination', type: 'PaginationParams', default: '{"limit":4,"align":"end"}',
-        description: 'Pagination forwarded to Table or Gallery.',
+        group: arrayT.playground.groups.shared, name: 'pagination', type: 'PaginationParams', default: '{"limit":4,"align":"end"}',
+        description: gridT.playground.props.pagination.description,
         control: 'json', rows: 3,
         shortcuts: [
-            { label: 'default', value: { limit: 4, align: 'end' } },
-            { label: 'compact', value: { limit: 2, align: 'center' } },
+            { label: gridT.playground.props.pagination.shortcuts?.default?.label ?? 'default', value: { limit: 4, align: 'end' }, help: gridT.playground.props.pagination.shortcuts?.default?.help ?? '' },
+            { label: gridT.playground.props.pagination.shortcuts?.compact?.label ?? 'compact', value: { limit: 2, align: 'center' }, help: gridT.playground.props.pagination.shortcuts?.compact?.help ?? '' },
         ],
     },
     {
-        group: 'Shared', name: 'selection', type: 'false | "single" | "multiple" | GridSelectionConfig<TRecord>', default: 'false',
-        description: 'Row selection mode. onChange is wired automatically in the playground.',
+        group: arrayT.playground.groups.shared, name: 'selection', type: 'false | "single" | "multiple" | GridSelectionConfig<TRecord>', default: 'false',
+        description: gridT.playground.props.selection.description,
         control: 'json', rows: 3,
         shortcuts: [
-            { label: 'off', value: false },
-            { label: 'single', value: 'single' },
-            { label: 'multiple', value: 'multiple' },
-            { label: 'defaultKeys', value: { mode: 'multiple', defaultKeys: ['u1', 'u5'] }, help: 'Pre-select u1 and u5.' },
+            { label: gridT.playground.props.selection.shortcuts?.off?.label ?? 'off', value: false, help: gridT.playground.props.selection.shortcuts?.off?.help ?? '' },
+            { label: gridT.playground.props.selection.shortcuts?.single?.label ?? 'single', value: 'single', help: gridT.playground.props.selection.shortcuts?.single?.help ?? '' },
+            { label: gridT.playground.props.selection.shortcuts?.multiple?.label ?? 'multiple', value: 'multiple', help: gridT.playground.props.selection.shortcuts?.multiple?.help ?? '' },
+            { label: gridT.playground.props.selection.shortcuts?.multiKeys?.label ?? 'defaultKeys', value: { mode: 'multiple', defaultKeys: ['u1', 'u5'] }, help: gridT.playground.props.selection.shortcuts?.multiKeys?.help ?? '' },
         ],
     },
     {
-        group: 'Shared', name: 'groupBy', type: 'string | string[]', default: '',
-        description: 'Group rows/cards by a field. Works for both table and gallery layouts.',
-        control: 'textarea', textareaMode: 'text', rows: 1, placeholder: 'e.g. role',
+        group: arrayT.playground.groups.shared, name: 'groupBy', type: 'string | string[]', default: '',
+        description: gridT.playground.props.groupBy.description,
+        control: 'textarea', textareaMode: 'text', rows: 1, placeholder: gridT.playground.props.groupBy.placeholder,
         shortcuts: [
-            { label: 'off', value: '' }, { label: 'role', value: 'role' },
-            { label: 'status', value: 'status' }, { label: 'team', value: 'team' },
+            { label: gridT.playground.props.groupBy.shortcuts?.off?.label ?? 'off', value: '', help: gridT.playground.props.groupBy.shortcuts?.off?.help ?? '' },
+            { label: gridT.playground.props.groupBy.shortcuts?.role?.label ?? 'role', value: 'role', help: gridT.playground.props.groupBy.shortcuts?.role?.help ?? '' },
+            { label: gridT.playground.props.groupBy.shortcuts?.status?.label ?? 'status', value: 'status', help: gridT.playground.props.groupBy.shortcuts?.status?.help ?? '' },
+            { label: gridT.playground.props.groupBy.shortcuts?.team?.label ?? 'team', value: 'team', help: gridT.playground.props.groupBy.shortcuts?.team?.help ?? '' },
         ],
     },
-    { group: 'Shared', name: 'reorderable', type: 'boolean', default: 'false', description: 'Enable row drag & drop reorder. Disables client sorting while active.', control: 'json', rows: 1, shortcuts: [{ label: 'false', value: false }, { label: 'true', value: true }] },
-    { group: 'Shared', name: 'title', type: 'ReactNode', default: '"Team members"', description: 'Card header title.', control: 'text' },
+    { group: arrayT.playground.groups.shared, name: 'reorderable', type: 'boolean', default: 'false', description: gridT.playground.props.reorderable.description, control: 'json', rows: 1, shortcuts: [{ label: gridT.playground.props.reorderable.shortcuts?.false?.label ?? 'false', value: false, help: gridT.playground.props.reorderable.shortcuts?.false?.help ?? '' }, { label: gridT.playground.props.reorderable.shortcuts?.true?.label ?? 'true', value: true, help: gridT.playground.props.reorderable.shortcuts?.true?.help ?? '' }] },
+    { group: arrayT.playground.groups.shared, name: 'title', type: 'ReactNode', default: JSON.stringify(arrayT.labels.teamMembers), description: gridT.playground.props.title.description, control: 'text' },
     {
-        group: 'Shared', name: 'header', type: 'ReactNode | ((ctx) => ReactNode)', default: 'false',
-        description: 'Full header override. Receives GridHeaderContext when a function.',
+        group: arrayT.playground.groups.shared, name: 'header', type: 'ReactNode | ((ctx) => ReactNode)', default: 'false',
+        description: gridT.playground.props.header.description,
         control: 'textarea', textareaMode: 'text', rows: 2,
-        shortcuts: [{ label: 'false', value: 'false' }, { label: 'fn', value: 'ctx => `${ctx.title} Â· ${ctx.records.length} records`' }],
+        shortcuts: [{ label: gridT.playground.props.header.shortcuts?.false?.label ?? 'false', value: 'false', help: gridT.playground.props.header.shortcuts?.false?.help ?? '' }, { label: gridT.playground.props.header.shortcuts?.fn?.label ?? 'fn', value: 'ctx => `${ctx.title} · ${ctx.records.length} records`', help: gridT.playground.props.header.shortcuts?.fn?.help ?? '' }],
     },
     {
-        group: 'Shared', name: 'footer', type: 'ReactNode | ((ctx) => ReactNode)', default: 'false',
-        description: 'Footer override. Receives GridFooterContext when a function.',
+        group: arrayT.playground.groups.shared, name: 'footer', type: 'ReactNode | ((ctx) => ReactNode)', default: 'false',
+        description: gridT.playground.props.footer.description,
         control: 'textarea', textareaMode: 'text', rows: 2,
-        shortcuts: [{ label: 'false', value: 'false' }, { label: 'fn', value: 'ctx => `${ctx.records.length} records loaded`' }],
+        shortcuts: [{ label: gridT.playground.props.footer.shortcuts?.false?.label ?? 'false', value: 'false', help: gridT.playground.props.footer.shortcuts?.false?.help ?? '' }, { label: gridT.playground.props.footer.shortcuts?.fn?.label ?? 'fn', value: 'ctx => `${ctx.records.length} records loaded`', help: gridT.playground.props.footer.shortcuts?.fn?.help ?? '' }],
     },
-    { group: 'Shared', name: 'loading', type: 'boolean', default: 'false', description: 'Show a loading overlay on the card.', control: 'boolean' },
-    { group: 'Shared', name: 'sticky', type: '"top" | "bottom"', default: '', description: 'Stick the card to the top or bottom of the scroll container.', control: 'select', options: ['', 'top', 'bottom'] },
-    { group: 'Shared', name: 'wrapperClassName', type: 'string', default: '', description: 'CSS class on the outer card wrapper.', control: 'text' },
-    { group: 'Shared', name: 'before', type: 'ReactNode', description: 'Content rendered above the table/gallery body.', control: 'textarea', rows: 2 },
-    { group: 'Shared', name: 'after', type: 'ReactNode', description: 'Content rendered below the table/gallery body.', control: 'textarea', rows: 2 },
-    { group: 'Shared', name: 'onRowClick', type: '(record) => void', default: 'false', description: 'Called with the full record on row/card click.', control: 'boolean' },
-    { group: 'Shared', name: 'editDeepLink', type: 'boolean', default: 'false', description: 'Sync edit modal to URL hash (#edit/{key}).', control: 'boolean' },
-    { group: 'Shared', name: 'onSave', type: 'GridMutationSaveHandler<TRecord>', description: 'Override save path or implement custom persistence for create/update.', readOnly: true },
-    { group: 'Shared', name: 'onDelete', type: 'GridMutationDeleteHandler<TRecord>', description: 'Override delete path before the provider removes the record.', readOnly: true },
-    { group: 'Shared', name: 'onComplete', type: 'GridAfterActionHandler<TRecord>', description: 'Post-action hook. Return false to keep the modal open.', readOnly: true },
-    { group: 'Shared', name: 'audit', type: 'boolean', default: 'false', description: 'Enable form-level audit logging during modal saves.', control: 'boolean' },
+    { group: arrayT.playground.groups.shared, name: 'loading', type: 'boolean', default: 'false', description: gridT.playground.props.loading.description, control: 'boolean' },
+    { group: arrayT.playground.groups.shared, name: 'sticky', type: '"top" | "bottom"', default: '', description: gridT.playground.props.sticky.description, control: 'select', options: ['', 'top', 'bottom'] },
+    { group: arrayT.playground.groups.shared, name: 'wrapperClassName', type: 'string', default: '', description: gridT.playground.props.wrapperClassName.description, control: 'text' },
+    { group: arrayT.playground.groups.shared, name: 'before', type: 'ReactNode', description: gridT.playground.props.before.description, control: 'textarea', rows: 2 },
+    { group: arrayT.playground.groups.shared, name: 'after', type: 'ReactNode', description: gridT.playground.props.after.description, control: 'textarea', rows: 2 },
+    { group: arrayT.playground.groups.shared, name: 'onRowClick', type: '(record) => void', default: 'false', description: gridT.playground.props.onRowClick.description, control: 'boolean' },
+    { group: arrayT.playground.groups.shared, name: 'editDeepLink', type: 'boolean', default: 'false', description: gridT.playground.props.editDeepLink.description, control: 'boolean' },
+    { group: arrayT.playground.groups.shared, name: 'onSave', type: 'GridMutationSaveHandler<TRecord>', description: gridT.playground.props.onSave.description, readOnly: true },
+    { group: arrayT.playground.groups.shared, name: 'onDelete', type: 'GridMutationDeleteHandler<TRecord>', description: gridT.playground.props.onDelete.description, readOnly: true },
+    { group: arrayT.playground.groups.shared, name: 'onComplete', type: 'GridAfterActionHandler<TRecord>', description: gridT.playground.props.onComplete.description, readOnly: true },
+    { group: arrayT.playground.groups.shared, name: 'audit', type: 'boolean', default: 'false', description: gridT.playground.props.audit.description, control: 'boolean' },
 ];
 
 // ─── Playground preview component ────────────────────────────────────────────
 
-function GridArrayPlaygroundPreview({ p }: { p: Record<string, any> }) {
+function GridArrayPlaygroundPreview({
+    p,
+    gridT,
+    arrayT,
+}: {
+    p: Record<string, any>;
+    gridT: ShowcaseGridI18n;
+    arrayT: ShowcaseGridArrayI18n;
+}) {
     const [selectionKeys, setSelectionKeys] = React.useState<string[]>([]);
     const [selectedRecords, setSelectedRecords] = React.useState<UserRecord[]>([]);
     const [clickedRecord, setClickedRecord] = React.useState<UserRecord | null>(null);
@@ -675,7 +696,7 @@ function GridArrayPlaygroundPreview({ p }: { p: Record<string, any> }) {
                 records={arrayRecords as any}
                 recordId={recordId as any}
                 columns={resolvedColumns as any}
-                title={p.title ?? 'Team members'}
+                title={p.title ?? arrayT.labels.teamMembers}
                 header={resolvedHeaderNode}
                 footer={resolvedFooterNode}
                 view={p.view}
@@ -684,7 +705,7 @@ function GridArrayPlaygroundPreview({ p }: { p: Record<string, any> }) {
                 wrapperClassName={typeof p.wrapperClassName === 'string' ? p.wrapperClassName : ''}
                 before={resolvedPreNode}
                 after={resolvedPostNode}
-                form={hasActions ? <GridUserForm /> : undefined}
+                form={hasActions ? <GridUserForm t={gridT} /> : undefined}
                 actions={actions as any}
                 selection={resolvedSelection}
                 onRowClick={p.onRowClick ? (record) => setClickedRecord(record as UserRecord) : undefined}
@@ -719,7 +740,7 @@ function GridArrayPlaygroundPreview({ p }: { p: Record<string, any> }) {
                     {selectionMode !== false && (
                         <div className="rounded-md border bg-muted/40 p-3">
                             <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                selection.onChange payload
+                                {gridT.selection.payloadTitle}
                             </div>
                             <pre className="overflow-auto whitespace-pre-wrap break-all text-xs text-foreground">
                                 {JSON.stringify({
@@ -733,7 +754,7 @@ function GridArrayPlaygroundPreview({ p }: { p: Record<string, any> }) {
                     {p.onRowClick && (
                         <div className="rounded-md border bg-muted/40 p-3">
                             <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                onRowClick payload
+                                {gridT.playground.rowClickPayload}
                             </div>
                             <pre className="overflow-auto whitespace-pre-wrap break-all text-xs text-foreground">
                                 {JSON.stringify(clickedRecord ?? null, null, 2)}
@@ -748,20 +769,20 @@ function GridArrayPlaygroundPreview({ p }: { p: Record<string, any> }) {
 
 // ─── Playground config ────────────────────────────────────────────────────────
 
-const PLAYGROUND: PlaygroundConfig = {
+const createPlayground = (gridT: ShowcaseGridI18n, arrayT: ShowcaseGridArrayI18n): PlaygroundConfig => ({
     size: 'fullscreen',
     layout: 'split',
     mockSeed: {
         [GRID_SOURCE_PATH]: Object.fromEntries(Object.entries(USERS).map(([k, v]) => [k, { ...v }])),
     },
     props: [
-        ...GRID_ARRAY_SPECIFIC_PROPS,
-        ...SHARED_PROPS,
+        ...createGridArraySpecificProps(arrayT),
+        ...createSharedProps(gridT, arrayT),
     ],
     defaultProps: {
         recordId: '_key',
         view: 'table',
-        columns: baseColumns,
+        columns: getBaseColumns(gridT),
         actions: ['add', 'edit', 'delete'],
         selection: false,
         sortable: true,
@@ -772,7 +793,7 @@ const PLAYGROUND: PlaygroundConfig = {
         wrapperClassName: '',
         pre: '',
         post: '',
-        title: 'Team members',
+        title: arrayT.labels.teamMembers,
         header: false,
         footer: false,
         onRowClick: false,
@@ -782,53 +803,51 @@ const PLAYGROUND: PlaygroundConfig = {
     },
     render: (p) => (
         <WithMock>
-            <GridArrayPlaygroundPreview p={p} />
+            <GridArrayPlaygroundPreview p={p} gridT={gridT} arrayT={arrayT} />
         </WithMock>
     ),
-};
+});
 
 // ─── Selection section previews ───────────────────────────────────────────────
 
-function SingleSelectionPreview() {
+function SingleSelectionPreview({ gridT }: { gridT: ShowcaseGridI18n }) {
     const [clickedKey, setClickedKey] = React.useState('');
     return (
         <div className="space-y-3 w-full">
             <GridArray
                 records={toArrayRecords()}
                 recordId="_key"
-                title="Choose one option"
+                title={gridT.selection.chooseOneTitle}
                 wrapperClassName="w-full"
                 selection={{ mode: 'single', onChange: (s) => setClickedKey(s.keys[0] || '') }}
                 pagination={{ limit: 4, align: 'end', sticky: false }}
             />
             <div className="text-xs text-muted-foreground">
-                Active key: <span className="font-mono">{clickedKey || 'none'}</span>
+                {gridT.labels.activeKey}: <span className="font-mono">{clickedKey || gridT.labels.none}</span>
             </div>
         </div>
     );
 }
 
-function MultipleSelectionPreview() {
+function MultipleSelectionPreview({ gridT }: { gridT: ShowcaseGridI18n }) {
     const [selectedKeys, setSelectedKeys] = React.useState<string[]>([]);
-    const [selectedRecords, setSelectedRecords] = React.useState<UserRecord[]>([]);
     return (
         <div className="space-y-3 w-full">
             <GridArray
                 records={toArrayRecords()}
                 recordId="_key"
-                title="Bulk selection"
+                title={gridT.selection.bulkTitle}
                 wrapperClassName="w-full"
                 selection={{
                     mode: 'multiple',
                     onChange: (s) => {
                         setSelectedKeys(s.keys);
-                        setSelectedRecords(s.records as UserRecord[]);
                     },
                 }}
                 pagination={{ limit: 4, align: 'end', sticky: false }}
             />
             <div className="text-xs text-muted-foreground">
-                Selected: <span className="font-mono">{selectedKeys.length > 0 ? selectedKeys.join(', ') : 'none'}</span>
+                {gridT.labels.selectedCount}: <span className="font-mono">{selectedKeys.length > 0 ? selectedKeys.join(', ') : gridT.labels.none}</span>
             </div>
         </div>
     );
@@ -837,22 +856,27 @@ function MultipleSelectionPreview() {
 // ─── Page export ──────────────────────────────────────────────────────────────
 
 export default function GridArrayPage() {
-    usePlayground(PLAYGROUND, 'GridArray');
+    const gridT = useShowcaseGridI18n() as ShowcaseGridI18n;
+    const arrayT = useShowcaseGridArrayI18n() as ShowcaseGridArrayI18n;
+    const playground = React.useMemo(() => createPlayground(gridT, arrayT), [gridT, arrayT]);
+    const propDocs = React.useMemo(() => createGridArrayPropDocs(gridT, arrayT), [gridT, arrayT]);
+
+    usePlayground(playground, 'GridArray');
 
     return (
         <PageLayout
-            title="GridArray"
-            description="In-memory variant of Grid. Pass a caller-owned record array directly — no provider subscription, no network round-trip. Ideal for computed data, local state or small datasets that live entirely in the frontend."
+            title={arrayT.page.title}
+            description={arrayT.page.description}
         >
             {/* Basic usage */}
             <Section
-                title="Basic usage"
-                description="The shortest valid GridArray. Pass a records array and let Grid infer columns from the record shape. sortable and pagination are explicit here to keep the example contained."
+                title={arrayT.sections.basicUsage.title}
+                description={arrayT.sections.basicUsage.description}
                 preview={(
                     <GridArray
                         records={toArrayRecords()}
                         recordId="_key"
-                        columns={displayColumns as any}
+                        columns={getDisplayColumns(gridT) as any}
                         sortable={{ name: 'asc' } as any}
                         wrapperClassName="w-full"
                         pagination={{ limit: 4, align: 'end', sticky: false }}
@@ -878,13 +902,13 @@ export default function GridArrayPage() {
 
             {/* onLoad transform */}
             <Section
-                title="onLoad transform"
-                description="Use onLoad to normalize or enrich records before display. The transform runs once on each render cycle and supports async — Grid shows a spinner while the Promise resolves."
+                title={arrayT.sections.onLoadTransform.title}
+                description={arrayT.sections.onLoadTransform.description}
                 preview={(
                     <GridArray
                         records={toArrayRecords()}
                         recordId="_key"
-                        columns={displayColumns as any}
+                        columns={getDisplayColumns(gridT) as any}
                         wrapperClassName="w-full"
                         onLoad={(records) =>
                             records.map((r) => ({
@@ -913,13 +937,13 @@ export default function GridArrayPage() {
 
             {/* Grouping */}
             <Section
-                title="Grouping"
-                description="groupBy separates rows under collapsible section headers. It works for both table and gallery layouts and can accept a single field or an array for multi-level grouping."
+                title={arrayT.sections.grouping.title}
+                description={arrayT.sections.grouping.description}
                 preview={(
                     <GridArray
                         records={toArrayRecords()}
                         recordId="_key"
-                        columns={displayColumns as any}
+                        columns={getDisplayColumns(gridT) as any}
                         sortable={{ role: 'asc' } as any}
                         groupBy="role"
                         wrapperClassName="w-full"
@@ -938,18 +962,18 @@ export default function GridArrayPage() {
 
             {/* Selection */}
             <Section
-                title="Selection"
-                description="selection enables row checkboxes or radio buttons. Use the string shorthand for UI-only selection, or the object form to receive onChange callbacks and pre-select rows via defaultKeys."
+                title={arrayT.sections.selection.title}
+                description={arrayT.sections.selection.description}
                 bare
                 preview={(
                     <div className="space-y-6 w-full">
                         <div>
-                            <div className="mb-2 text-sm font-medium text-foreground">Single selection</div>
-                            <SingleSelectionPreview />
+                            <div className="mb-2 text-sm font-medium text-foreground">{arrayT.labels.singleSelection}</div>
+                            <SingleSelectionPreview gridT={gridT} />
                         </div>
                         <div>
-                            <div className="mb-2 text-sm font-medium text-foreground">Multiple selection</div>
-                            <MultipleSelectionPreview />
+                            <div className="mb-2 text-sm font-medium text-foreground">{arrayT.labels.multipleSelection}</div>
+                            <MultipleSelectionPreview gridT={gridT} />
                         </div>
                     </div>
                 )}
@@ -977,7 +1001,7 @@ export default function GridArrayPage() {
 />`}
             />
 
-            <PropDocsTable props={GRID_ARRAY_PROP_DOCS} />
+            <PropDocsTable props={propDocs} />
         </PageLayout>
     );
 }

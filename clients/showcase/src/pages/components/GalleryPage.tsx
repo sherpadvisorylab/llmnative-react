@@ -6,6 +6,7 @@ import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
 import { usePlayground } from '../../docs-kit/playground';
 import type { PropDef, PlaygroundConfig } from '../../docs-kit/playground';
+import { useShowcaseGalleryI18n } from '../../showcase/i18n';
 
 type GalleryAsset = {
     _key: string;
@@ -16,32 +17,7 @@ type GalleryAsset = {
     accent: string;
 };
 
-const ASSETS: GalleryAsset[] = [
-    { _key: 'hero', name: 'Brand Hero', category: 'Brand', status: 'ready', color: '2563eb', accent: '38bdf8' },
-    { _key: 'social', name: 'Brand Social', category: 'Brand', status: 'ready', color: '059669', accent: 'a7f3d0' },
-    { _key: 'iconset', name: 'Brand Icon Set', category: 'Brand', status: 'review', color: '4f46e5', accent: 'c4b5fd' },
-    { _key: 'launch', name: 'Campaign Launch', category: 'Campaign', status: 'review', color: 'dc2626', accent: 'fecaca' },
-    { _key: 'banner', name: 'Campaign Banner', category: 'Campaign', status: 'ready', color: 'c2410c', accent: 'fed7aa' },
-    { _key: 'guide', name: 'Docs Guide', category: 'Docs', status: 'draft', color: '475569', accent: 'cbd5e1' },
-];
-
-function svgAsset(name: string, color: string, accent: string) {
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="320" height="220" viewBox="0 0 320 220"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#${color}"/><stop offset="1" stop-color="#111827"/></linearGradient></defs><rect width="320" height="220" rx="18" fill="url(#g)"/><circle cx="256" cy="54" r="34" fill="#${accent}" opacity=".36"/><rect x="22" y="24" width="170" height="10" rx="5" fill="#fff" opacity=".22"/><rect x="22" y="164" width="220" height="16" rx="8" fill="#fff" opacity=".18"/><rect x="22" y="188" width="148" height="10" rx="5" fill="#fff" opacity=".26"/><text x="22" y="118" font-family="Arial" font-size="24" font-weight="700" fill="white">${name}</text></svg>`;
-    return `data:image/svg+xml,${encodeURIComponent(svg)}`;
-}
-
-const body = ASSETS.map((asset) => ({
-    ...asset,
-    img: <img src={svgAsset(asset.name, asset.color, asset.accent)} alt={asset.name} />,
-})) as unknown as GalleryRecord[];
-
 const GALLERY_PLAYGROUND_PATH = '/gallery-assets';
-
-const GALLERY_PLAYGROUND_SEED = {
-    [GALLERY_PLAYGROUND_PATH]: Object.fromEntries(
-        ASSETS.map(({ _key, ...record }) => [_key, record])
-    ),
-};
 
 const GALLERY_SELECTION_STATE_TYPE = `{
   keys: string[];
@@ -50,106 +26,51 @@ const GALLERY_SELECTION_STATE_TYPE = `{
   hasSelection: boolean;
 }`;
 
-const GALLERY_PROPS: PropDef[] = [
-    { name: 'records', type: 'GalleryRecord[]', description: 'Records containing img or thumbnail data', control: 'json', readOnly: true },
-    { name: 'header', type: 'ReactNode', description: 'Header content above gallery', control: 'text' },
-    { name: 'footer', type: 'ReactNode', description: 'Footer content below gallery', control: 'text' },
-    { name: 'sortable', type: 'boolean | OrderConfig', description: 'Gallery has no sortable header UI, but you can pass an OrderConfig object to sort the incoming record set before rendering.', control: 'json', rows: 4, shortcuts: [
-        { label: 'false', value: false, help: 'Disable client sorting.' },
-        { label: 'name asc', value: { field: 'name', dir: 'asc' }, help: 'Sort by name ascending.' },
-        { label: 'status desc', value: { field: 'status', dir: 'desc' }, help: 'Sort by status descending.' },
-    ], typeDetails: `boolean | {
-  field: string;
-  dir: "asc" | "desc";
-}` },
-    { name: 'overlays', type: 'GalleryOverlay[]', description: 'Overlay rules based on position and record filters', control: 'json', rows: 8, shortcuts: [
-        { label: 'none', value: [], help: 'No overlays.' },
-        { label: 'status', value: [
-            { position: 'topRight', badge: { content: 'new', type: 'primary' }, className: 'uppercase' },
-            { position: 'bottomRight', badge: { content: 'review', type: 'warning' }, when: { status: 'review' } },
-        ], help: 'Status-oriented overlays.' },
-        { label: 'brand', value: [
-            { position: 'bottomLeft', badge: { content: 'brand', type: 'success' }, when: { category: 'Brand' } },
-        ], help: 'Category-based brand badge.' },
-    ], typeDetails: `Array<{
-  position: "topLeft" | "topRight" | "bottomLeft" | "bottomRight";
-  badge: ReactNode | { content: ReactNode; type?: string };
-  when?: Record<string, unknown>;
-  className?: string;
-}>` },
-    { name: 'onRowClick', type: '(record: GalleryRecord) => void', description: 'Called when the user clicks a record card.' },
-    {
-        name: 'onSelectionChange',
-        type: 'GallerySelectionChangeHandler',
-        description: 'Called whenever selected items change. When provided, selection checkboxes appear automatically.',
-        shape: `type GallerySelectionChangeHandler = (
-  selection: GallerySelectionState
-) => void
+const ASSET_DEFS = [
+    { _key: 'hero', nameKey: 'hero', categoryKey: 'brand', statusKey: 'ready', color: '2563eb', accent: '38bdf8' },
+    { _key: 'social', nameKey: 'social', categoryKey: 'brand', statusKey: 'ready', color: '059669', accent: 'a7f3d0' },
+    { _key: 'iconset', nameKey: 'iconset', categoryKey: 'brand', statusKey: 'review', color: '4f46e5', accent: 'c4b5fd' },
+    { _key: 'launch', nameKey: 'launch', categoryKey: 'campaign', statusKey: 'review', color: 'dc2626', accent: 'fecaca' },
+    { _key: 'banner', nameKey: 'banner', categoryKey: 'campaign', statusKey: 'ready', color: 'c2410c', accent: 'fed7aa' },
+    { _key: 'guide', nameKey: 'guide', categoryKey: 'docs', statusKey: 'draft', color: '475569', accent: 'cbd5e1' },
+] as const;
 
-type GallerySelectionState = ${GALLERY_SELECTION_STATE_TYPE}`,
-    },
-    { name: 'selectedKeys', type: 'string[]', description: 'Controlled selection state shared with external bulk commands.' },
-    { name: 'pagination', type: 'PaginationParams', description: 'Shared pagination config', control: 'json', rows: 6, shortcuts: [
-        { label: 'default', value: { page: 1, limit: 4, maxPageButtons: 5, align: 'center', sticky: false, scrollToTopOnChange: false, scrollBehavior: 'smooth' }, help: 'Centered default pagination.' },
-        { label: 'compact', value: { page: 1, limit: 2, maxPageButtons: 3, align: 'start', sticky: false, scrollToTopOnChange: false, scrollBehavior: 'smooth' }, help: 'Smaller pages and nav.' },
-        { label: 'sticky', value: { page: 1, limit: 4, maxPageButtons: 5, align: 'center', sticky: 'bottom', scrollToTopOnChange: false, scrollBehavior: 'smooth' }, help: 'Sticky bottom controls.' },
-    ] },
-    { name: 'gap', type: '0 | 1 | 2 | 3 | 4 | 5', description: 'Item padding size', control: 'number', min: 0, max: 5 },
-    { name: 'columns', type: '1 | 2 | 3 | 4 | 6', description: 'Columns per row', control: 'select', options: ['1', '2', '3', '4', '6'] },
-    {
-        name: 'groupBy',
-        type: 'string | string[]',
-        description: 'Group cards by a field name. Records with the same field value are rendered inside the same section. Pass an array for multi-level grouping.',
-        control: 'textarea',
-        textareaMode: 'text',
-        rows: 1,
-        placeholder: 'e.g. category or ["category","status"]',
-        shortcuts: [
-            { label: 'off', value: '', help: 'No grouping.' },
-            { label: 'category', value: 'category', help: 'Group by category.' },
-            { label: 'status', value: 'status', help: 'Group by status.' },
-            { label: 'cat+status', value: ['category', 'status'], help: 'Multi-level: category then status.' },
-        ],
-    },
-    { name: 'scrollToTopOnChange', type: 'boolean', description: 'Scroll the gallery back to the top when the page changes', control: 'boolean' },
-    { name: 'scrollBehavior', type: '"auto" | "instant" | "smooth"', description: 'Scroll behavior used when scrolling to top on page change', control: 'select', options: ['auto', 'instant', 'smooth'] },
-    { name: 'className', type: 'string', description: 'Class applied to the inner flex-column wrapper', control: 'text' },
-    { name: 'wrapperClassName', type: 'string', description: 'Class applied to the outermost wrapper element', control: 'text' },
-    { name: 'scrollClassName', type: 'string', description: 'Class applied to the scrollable body container', control: 'text' },
-    { name: 'headerClassName', type: 'string', description: 'Class applied to the header container', control: 'text' },
-    { name: 'bodyClassName', type: 'string', description: 'Class applied to the flex-wrap items container', control: 'text' },
-    { name: 'footerClassName', type: 'string', description: 'Class applied to the footer container', control: 'text' },
-    { name: 'selectedClassName', type: 'string', description: 'Class applied to the selected item', control: 'text' },
-    { name: 'before', type: 'ReactNode', description: 'Content rendered to the left of the gallery' },
-    { name: 'after', type: 'ReactNode', description: 'Content rendered to the right of the gallery' },
-];
+function svgAsset(name: string, color: string, accent: string) {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="320" height="220" viewBox="0 0 320 220"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#${color}"/><stop offset="1" stop-color="#111827"/></linearGradient></defs><rect width="320" height="220" rx="18" fill="url(#g)"/><circle cx="256" cy="54" r="34" fill="#${accent}" opacity=".36"/><rect x="22" y="24" width="170" height="10" rx="5" fill="#fff" opacity=".22"/><rect x="22" y="164" width="220" height="16" rx="8" fill="#fff" opacity=".18"/><rect x="22" y="188" width="148" height="10" rx="5" fill="#fff" opacity=".26"/><text x="22" y="118" font-family="Arial" font-size="24" font-weight="700" fill="white">${name}</text></svg>`;
+    return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+}
 
-const PLAYGROUND: PlaygroundConfig = {
-    props: GALLERY_PROPS,
-    size: 'fullscreen',
-    layout: 'split',
-    mockSeed: GALLERY_PLAYGROUND_SEED,
-    defaultProps: {
-        header: 'Assets',
-        footer: '',
-        sortable: { field: 'name', dir: 'asc' },
-        overlays: [
-            { position: 'topRight', badge: { content: 'new', type: 'primary' }, className: 'uppercase' },
-            { position: 'bottomLeft', badge: { content: 'brand', type: 'success' }, when: { category: 'Brand' } },
-            { position: 'bottomRight', badge: { content: 'review', type: 'warning' }, when: { status: 'review' } },
-        ],
-        pagination: { page: 1, limit: 4, maxPageButtons: 5, align: 'center', sticky: false, scrollToTopOnChange: false, scrollBehavior: 'smooth' },
-        gap: 2,
-        columns: '2',
-        groupBy: '',
-        selectedClassName: '',
-    },
-    render: (p) => <GalleryPlaygroundPreview p={p} />,
-};
+type GalleryI18n = ReturnType<typeof useShowcaseGalleryI18n>;
 
-function GalleryPlaygroundPreview({ p }: { p: Record<string, any> }) {
+function buildAssets(t: GalleryI18n): GalleryAsset[] {
+    return ASSET_DEFS.map((asset) => ({
+        _key: asset._key,
+        name: t.values.assetNames[asset.nameKey],
+        category: t.values.categories[asset.categoryKey],
+        status: asset.statusKey,
+        color: asset.color,
+        accent: asset.accent,
+    }));
+}
+
+function toGalleryRecords(assets: GalleryAsset[]) {
+    return assets.map((asset) => ({
+        ...asset,
+        img: <img src={svgAsset(asset.name, asset.color, asset.accent)} alt={asset.name} />,
+    })) as unknown as GalleryRecord[];
+}
+
+function GalleryPlaygroundPreview({
+    p,
+    t,
+    seedAssets,
+}: {
+    p: Record<string, any>;
+    t: GalleryI18n;
+    seedAssets: GalleryAsset[];
+}) {
     const provider = useDataProvider();
-    const [sourceAssets, setSourceAssets] = React.useState<Array<Record<string, any>>>(ASSETS);
+    const [sourceAssets, setSourceAssets] = React.useState<Array<Record<string, any>>>(seedAssets);
     const [selectionEnabled, setSelectionEnabled] = React.useState(false);
     const [playgroundSelectedKeys, setPlaygroundSelectedKeys] = React.useState<string[]>([]);
     const [selectionPayload, setSelectionPayload] = React.useState<{ keys: string[]; records: string[]; hasSelection: boolean } | null>(null);
@@ -171,7 +92,7 @@ function GalleryPlaygroundPreview({ p }: { p: Record<string, any> }) {
             const trimmed = val.trim();
             if (!trimmed) return undefined;
             if (trimmed.startsWith('[')) {
-                try { return JSON.parse(trimmed) as string[]; } catch { /* fall through */ }
+                try { return JSON.parse(trimmed) as string[]; } catch { }
             }
             return trimmed;
         }
@@ -183,12 +104,12 @@ function GalleryPlaygroundPreview({ p }: { p: Record<string, any> }) {
             <div className="rounded-md border bg-muted/30 p-3">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                        <div className="text-sm font-medium">Multi checkbox</div>
-                        <div className="text-xs text-muted-foreground">Enable selection to inspect the onSelectionChange payload live in the gallery preview.</div>
+                        <div className="text-sm font-medium">{t.labels.multiCheckbox}</div>
+                        <div className="text-xs text-muted-foreground">{t.labels.enableSelectionHelp}</div>
                     </div>
                     <ActionButton
                         className={`${selectionEnabled ? buttonPrimaryClass : buttonOutlineSecondaryClass} btn-sm`}
-                        label={selectionEnabled ? 'Disable multi checkbox' : 'Enable multi checkbox'}
+                        label={selectionEnabled ? t.labels.disableMultiCheckbox : t.labels.enableMultiCheckbox}
                         onClick={() => {
                             setSelectionEnabled((current) => {
                                 const next = !current;
@@ -211,7 +132,7 @@ function GalleryPlaygroundPreview({ p }: { p: Record<string, any> }) {
                     setPlaygroundSelectedKeys(selection.keys);
                     setSelectionPayload({
                         keys: selection.keys,
-                        records: selection.records.map((record) => String(record._key || record.name || 'record')),
+                        records: selection.records.map((record) => String(record._key || record.name || t.labels.record)),
                         hasSelection: selection.hasSelection,
                     });
                 }) : undefined}
@@ -222,7 +143,7 @@ function GalleryPlaygroundPreview({ p }: { p: Record<string, any> }) {
                 selectedClassName={p.selectedClassName || undefined}
             />
             <div className="rounded-md border bg-muted/40 p-3">
-                <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">onSelectionChange payload</div>
+                <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t.labels.onSelectionPayload}</div>
                 <pre className="overflow-auto whitespace-pre-wrap break-all text-xs text-foreground">
                     {selectionEnabled
                         ? JSON.stringify(selectionPayload ?? {
@@ -230,7 +151,7 @@ function GalleryPlaygroundPreview({ p }: { p: Record<string, any> }) {
                             records: [],
                             hasSelection: playgroundSelectedKeys.length > 0,
                         }, null, 2)
-                        : 'Enable multi checkbox above, then select cards to see the callback payload here.'}
+                        : t.labels.payloadEmptyHint}
                 </pre>
             </div>
         </div>
@@ -238,26 +159,131 @@ function GalleryPlaygroundPreview({ p }: { p: Record<string, any> }) {
 }
 
 export default function GalleryPage() {
-    usePlayground(PLAYGROUND, 'Gallery');
+    const t = useShowcaseGalleryI18n();
+
+    const assets = React.useMemo(() => buildAssets(t), [t]);
+    const body = React.useMemo(() => toGalleryRecords(assets), [assets]);
+
+    const galleryProps = React.useMemo<PropDef[]>(() => [
+        { name: 'records', type: 'GalleryRecord[]', description: t.propsDocs.items.records.description, control: 'json', readOnly: true },
+        { name: 'header', type: 'ReactNode', description: t.propsDocs.items.header.description, control: 'text' },
+        { name: 'footer', type: 'ReactNode', description: t.propsDocs.items.footer.description, control: 'text' },
+        { name: 'sortable', type: 'boolean | OrderConfig', description: t.propsDocs.items.sortable.description, control: 'json', rows: 4, shortcuts: [
+            { label: t.propsDocs.items.sortable.shortcuts?.false.label || 'false', value: false, help: t.propsDocs.items.sortable.shortcuts?.false.help },
+            { label: t.propsDocs.items.sortable.shortcuts?.nameAsc.label || 'name asc', value: { field: 'name', dir: 'asc' }, help: t.propsDocs.items.sortable.shortcuts?.nameAsc.help },
+            { label: t.propsDocs.items.sortable.shortcuts?.statusDesc.label || 'status desc', value: { field: 'status', dir: 'desc' }, help: t.propsDocs.items.sortable.shortcuts?.statusDesc.help },
+        ], typeDetails: `boolean | {
+  field: string;
+  dir: "asc" | "desc";
+}` },
+        { name: 'overlays', type: 'GalleryOverlay[]', description: t.propsDocs.items.overlays.description, control: 'json', rows: 8, shortcuts: [
+            { label: t.propsDocs.items.overlays.shortcuts?.none.label || 'none', value: [], help: t.propsDocs.items.overlays.shortcuts?.none.help },
+            { label: t.propsDocs.items.overlays.shortcuts?.status.label || 'status', value: [
+                { position: 'topRight', badge: { content: t.labels.newBadge, type: 'primary' }, className: 'uppercase' },
+                { position: 'bottomRight', badge: { content: t.labels.reviewBadge, type: 'warning' }, when: { status: 'review' } },
+            ], help: t.propsDocs.items.overlays.shortcuts?.status.help },
+            { label: t.propsDocs.items.overlays.shortcuts?.brand.label || 'brand', value: [
+                { position: 'bottomLeft', badge: { content: t.labels.brandBadge, type: 'success' }, when: { category: t.values.categories.brand } },
+            ], help: t.propsDocs.items.overlays.shortcuts?.brand.help },
+        ], typeDetails: `Array<{
+  position: "topLeft" | "topRight" | "bottomLeft" | "bottomRight";
+  badge: ReactNode | { content: ReactNode; type?: string };
+  when?: Record<string, unknown>;
+  className?: string;
+}>` },
+        { name: 'onRowClick', type: '(record: GalleryRecord) => void', description: t.propsDocs.items.onRowClick.description },
+        {
+            name: 'onSelectionChange',
+            type: 'GallerySelectionChangeHandler',
+            description: t.propsDocs.items.onSelectionChange.description,
+            shape: `type GallerySelectionChangeHandler = (
+  selection: GallerySelectionState
+) => void
+
+type GallerySelectionState = ${GALLERY_SELECTION_STATE_TYPE}`,
+        },
+        { name: 'selectedKeys', type: 'string[]', description: t.propsDocs.items.selectedKeys.description },
+        { name: 'pagination', type: 'PaginationParams', description: t.propsDocs.items.pagination.description, control: 'json', rows: 6, shortcuts: [
+            { label: t.propsDocs.items.pagination.shortcuts?.default.label || 'default', value: { page: 1, limit: 4, maxPageButtons: 5, align: 'center', sticky: false, scrollToTopOnChange: false, scrollBehavior: 'smooth' }, help: t.propsDocs.items.pagination.shortcuts?.default.help },
+            { label: t.propsDocs.items.pagination.shortcuts?.compact.label || 'compact', value: { page: 1, limit: 2, maxPageButtons: 3, align: 'start', sticky: false, scrollToTopOnChange: false, scrollBehavior: 'smooth' }, help: t.propsDocs.items.pagination.shortcuts?.compact.help },
+            { label: t.propsDocs.items.pagination.shortcuts?.sticky.label || 'sticky', value: { page: 1, limit: 4, maxPageButtons: 5, align: 'center', sticky: 'bottom', scrollToTopOnChange: false, scrollBehavior: 'smooth' }, help: t.propsDocs.items.pagination.shortcuts?.sticky.help },
+        ] },
+        { name: 'gap', type: '0 | 1 | 2 | 3 | 4 | 5', description: t.propsDocs.items.gap.description, control: 'number', min: 0, max: 5 },
+        { name: 'columns', type: '1 | 2 | 3 | 4 | 6', description: t.propsDocs.items.columns.description, control: 'select', options: ['1', '2', '3', '4', '6'] },
+        {
+            name: 'groupBy',
+            type: 'string | string[]',
+            description: t.propsDocs.items.groupBy.description,
+            control: 'textarea',
+            textareaMode: 'text',
+            rows: 1,
+            placeholder: t.propsDocs.items.groupBy.placeholder,
+            shortcuts: [
+                { label: t.propsDocs.items.groupBy.shortcuts?.off.label || 'off', value: '', help: t.propsDocs.items.groupBy.shortcuts?.off.help },
+                { label: t.propsDocs.items.groupBy.shortcuts?.category.label || 'category', value: 'category', help: t.propsDocs.items.groupBy.shortcuts?.category.help },
+                { label: t.propsDocs.items.groupBy.shortcuts?.status.label || 'status', value: 'status', help: t.propsDocs.items.groupBy.shortcuts?.status.help },
+                { label: t.propsDocs.items.groupBy.shortcuts?.catStatus.label || 'cat+status', value: ['category', 'status'], help: t.propsDocs.items.groupBy.shortcuts?.catStatus.help },
+            ],
+        },
+        { name: 'scrollToTopOnChange', type: 'boolean', description: t.propsDocs.items.scrollToTopOnChange.description, control: 'boolean' },
+        { name: 'scrollBehavior', type: '"auto" | "instant" | "smooth"', description: t.propsDocs.items.scrollBehavior.description, control: 'select', options: ['auto', 'instant', 'smooth'] },
+        { name: 'className', type: 'string', description: t.propsDocs.items.className.description, control: 'text' },
+        { name: 'wrapperClassName', type: 'string', description: t.propsDocs.items.wrapperClassName.description, control: 'text' },
+        { name: 'scrollClassName', type: 'string', description: t.propsDocs.items.scrollClassName.description, control: 'text' },
+        { name: 'headerClassName', type: 'string', description: t.propsDocs.items.headerClassName.description, control: 'text' },
+        { name: 'bodyClassName', type: 'string', description: t.propsDocs.items.bodyClassName.description, control: 'text' },
+        { name: 'footerClassName', type: 'string', description: t.propsDocs.items.footerClassName.description, control: 'text' },
+        { name: 'selectedClassName', type: 'string', description: t.propsDocs.items.selectedClassName.description, control: 'text' },
+        { name: 'before', type: 'ReactNode', description: t.propsDocs.items.before.description },
+        { name: 'after', type: 'ReactNode', description: t.propsDocs.items.after.description },
+    ], [t]);
+
+    const playground = React.useMemo<PlaygroundConfig>(() => ({
+        props: galleryProps,
+        size: 'fullscreen',
+        layout: 'split',
+        mockSeed: {
+            [GALLERY_PLAYGROUND_PATH]: Object.fromEntries(assets.map(({ _key, ...record }) => [_key, record])),
+        },
+        defaultProps: {
+            header: t.labels.assets,
+            footer: '',
+            sortable: { field: 'name', dir: 'asc' },
+            overlays: [
+                { position: 'topRight', badge: { content: t.labels.newBadge, type: 'primary' }, className: 'uppercase' },
+                { position: 'bottomLeft', badge: { content: t.labels.brandBadge, type: 'success' }, when: { category: t.values.categories.brand } },
+                { position: 'bottomRight', badge: { content: t.labels.reviewBadge, type: 'warning' }, when: { status: 'review' } },
+            ],
+            pagination: { page: 1, limit: 4, maxPageButtons: 5, align: 'center', sticky: false, scrollToTopOnChange: false, scrollBehavior: 'smooth' },
+            gap: 2,
+            columns: '2',
+            groupBy: '',
+            selectedClassName: '',
+        },
+        render: (p) => <GalleryPlaygroundPreview p={p} t={t} seedAssets={assets} />,
+    }), [assets, galleryProps, t]);
+
+    usePlayground(playground, t.playground.title);
+
     const [selected, setSelected] = React.useState<string>('');
     const [selectedKeys, setSelectedKeys] = React.useState<string[]>([]);
-    const [selectedRecords, setSelectedRecords] = React.useState(body.slice(0, 0));
+    const [selectedRecords, setSelectedRecords] = React.useState<GalleryRecord[]>([]);
     const [exportOpen, setExportOpen] = React.useState(false);
 
     return (
-        <PageLayout title="Gallery" description="Visual record gallery with shared sorting support, overlays, selection and pagination.">
+        <PageLayout title={t.page.title} description={t.page.description}>
             <Section
-                title="Sorted gallery"
-                description="Gallery accepts the same sortable contract as Grid and Table. It sorts incoming records before rendering, without needing a header UI."
+                title={t.sections.sortedGallery.title}
+                description={t.sections.sortedGallery.description}
                 preview={
                     <Gallery
                         records={body}
-                        header="Assets"
+                        header={t.labels.assets}
                         sortable={{ field: 'name', dir: 'asc' }}
                         overlays={[
-                            { position: 'topRight', badge: { content: 'new', type: 'primary' }, className: 'uppercase' },
-                            { position: 'bottomLeft', badge: { content: 'brand', type: 'success' }, when: { category: 'Brand' } },
-                            { position: 'bottomRight', badge: { content: 'review', type: 'warning' }, when: { status: 'review' } },
+                            { position: 'topRight', badge: { content: t.labels.newBadge, type: 'primary' }, className: 'uppercase' },
+                            { position: 'bottomLeft', badge: { content: t.labels.brandBadge, type: 'success' }, when: { category: t.values.categories.brand } },
+                            { position: 'bottomRight', badge: { content: t.labels.reviewBadge, type: 'warning' }, when: { status: 'review' } },
                         ]}
                         pagination={{ limit: 4, align: 'center', sticky: false }}
                         columns={2}
@@ -277,19 +303,19 @@ export default function GalleryPage() {
             />
 
             <Section
-                title="Record click"
-                description="onClick now receives the clicked record, so consumers can use record._key directly."
+                title={t.sections.recordClick.title}
+                description={t.sections.recordClick.description}
                 preview={
                     <div className="space-y-3">
                         <Gallery
                             records={body.slice(0, 4)}
-                            header="Selectable assets"
+                            header={t.labels.selectableAssets}
                             onRowClick={(record) => setSelected(record._key || '')}
                             selectedClassName="ring-2 ring-primary rounded-lg"
                             columns={2}
                         />
                         <div className="text-xs text-muted-foreground">
-                            Selected key: <span className="font-mono">{selected || 'none'}</span>
+                            {t.labels.selectedKey}: <span className="font-mono">{selected || t.labels.none}</span>
                         </div>
                     </div>
                 }
@@ -303,8 +329,8 @@ export default function GalleryPage() {
             />
 
             <Section
-                title="Bulk selection"
-                description="Gallery now mirrors Table semantics: selectedKeys controls selection, and onSelectionChange exposes the selected records. External bulk commands stay outside the component."
+                title={t.sections.bulkSelection.title}
+                description={t.sections.bulkSelection.description}
                 preview={
                     <div className="space-y-3">
                         <Gallery
@@ -312,18 +338,18 @@ export default function GalleryPage() {
                             header={(
                                 <div className="flex items-center justify-between gap-3 rounded-md border px-3 py-2 text-sm">
                                     <span className="text-muted-foreground">
-                                        {selectedKeys.length ? `${selectedKeys.length} selected` : 'Select assets to enable external bulk commands'}
+                                        {selectedKeys.length ? `${selectedKeys.length} ${t.labels.selectedCount}` : t.labels.selectAssetsToEnableBulk}
                                     </span>
                                     <div className="flex items-center gap-2">
                                         <ActionButton
                                             className={`${buttonOutlineSecondaryClass} btn-sm`}
-                                            label="Export"
+                                            label={t.labels.export}
                                             disabled={!selectedKeys.length}
                                             onClick={() => setExportOpen(true)}
                                         />
                                         <ActionButton
                                             className={`${buttonOutlineSecondaryClass} btn-sm`}
-                                            label="Clear"
+                                            label={t.labels.clear}
                                             disabled={!selectedKeys.length}
                                             onClick={() => {
                                                 setSelectedKeys([]);
@@ -342,7 +368,7 @@ export default function GalleryPage() {
                         />
                         {exportOpen && (
                             <Modal
-                                title="Selected gallery items"
+                                title={t.labels.selectedGalleryItems}
                                 size="lg"
                                 onClose={() => setExportOpen(false)}
                             >
@@ -383,12 +409,12 @@ const [exportOpen, setExportOpen] = useState(false);
             />
 
             <Section
-                title="Grouped and paged"
-                description="Pass a field name to groupBy to group cards into labelled sections. Pairing it with sortable on the same field clusters records naturally. Pass an array for multi-level grouping."
+                title={t.sections.groupedPaged.title}
+                description={t.sections.groupedPaged.description}
                 preview={
                     <Gallery
                         records={body}
-                        header="Assets by category"
+                        header={t.labels.assetsByCategory}
                         sortable={{ field: 'category', dir: 'asc' }}
                         groupBy="category"
                         pagination={{ limit: 3, align: 'center', sticky: false }}
@@ -412,7 +438,7 @@ const [exportOpen, setExportOpen] = useState(false);
 />`}
             />
 
-            <PropDocsTable props={GALLERY_PROPS} />
+            <PropDocsTable props={galleryProps} title={t.propsDocs.title} />
         </PageLayout>
     );
 }

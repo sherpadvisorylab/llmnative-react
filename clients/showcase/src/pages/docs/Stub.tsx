@@ -1,5 +1,6 @@
 import React from 'react';
 import { PageLayout } from '../../docs-kit/page';
+import { useShowcaseCommonI18n } from '../../showcase/i18n';
 
 interface StubProps {
     title: string;
@@ -7,13 +8,14 @@ interface StubProps {
 }
 
 export default function Stub({ title, description }: StubProps) {
+    const t = useShowcaseCommonI18n();
     return (
         <PageLayout
             title={title}
-            description={description ?? 'This page is coming soon.'}
+            description={description ?? t.stub.comingSoon}
         >
             <div className="alert alert-secondary">
-                🚧 This section is under construction. Check back soon.
+                {t.stub.underConstruction}
             </div>
         </PageLayout>
     );

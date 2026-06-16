@@ -1,20 +1,18 @@
 import React from 'react';
 import { AIProvider, createAIProviderRegistry, Form, Prompt, PromptMode, PromptUtils } from '@llmnative/react';
-import type { PromptCommand, PromptAction, PromptStatusItem } from '@llmnative/react';
 import PageLayout from '../../../showcase/page';
 import Section from '../../../docs-kit/page/Section';
 import PropDocsTable from '../../../docs-kit/docs/PropDocsTable';
 import type { PlaygroundConfig } from '../../../docs-kit/playground';
 import { usePlayground } from '../../../docs-kit/playground';
 import {
+    createPromptLiveProps,
     createPromptPlayground,
     createPromptPlaygroundSeed,
+    createPromptSharedProps,
     executePromptPreview,
-    PROMPT_LIVE_PROPS,
-    PROMPT_SHARED_PROPS,
 } from './promptDocs';
-
-// ── Playground AI provider picker ────────────────────────────────────────────
+import { useShowcasePromptLiveI18n, useShowcasePromptSharedI18n } from '../../../showcase/i18n';
 
 const PLAYGROUND_PROVIDER_OPTIONS = ['openai', 'openrouter', 'opencode', 'openai-compatible', 'deepseek', 'gemini', 'anthropic', 'mistral'] as const;
 
@@ -61,9 +59,7 @@ function PromptRunPlaygroundPreview({
         <AIProvider registry={registry} defaultKey={providerId}>
             <Form
                 appearance="empty"
-                defaultValues={createPromptPlaygroundSeed(
-                    props.defaultValue as Record<string, unknown> | undefined
-                )}
+                defaultValues={createPromptPlaygroundSeed((props.__sharedCopy as never), props.defaultValue as Record<string, unknown> | undefined)}
                 onChange={onValuesChange}
             >
                 <Prompt
@@ -85,92 +81,96 @@ function PromptRunPlaygroundPreview({
     );
 }
 
-const BASE_PLAYGROUND = createPromptPlayground(
-    'run',
-    (p, onValuesChange) => (
-        <PromptRunPlaygroundPreview props={p} onValuesChange={onValuesChange} />
-    ),
-    PROMPT_LIVE_PROPS,
-);
-
-const PLAYGROUND: PlaygroundConfig = {
-    ...BASE_PLAYGROUND,
-    defaultProps: {
-        ...BASE_PLAYGROUND.defaultProps,
-        playgroundAIProvider: 'openai',
-        playgroundApiKey: '',
-        playgroundCompatibleBaseUrl: 'https://api.openai.com/v1',
-    },
-    inspectorSections: [
-        {
-            label: 'AI provider',
-            icon: 'stars',
-            render: (props, onUpdateProp) => (
-                <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">
-                        Pick a provider and paste an API key to wire the playground directly into the built-in AI registry. Leave the key empty to see the unavailable state.
-                    </p>
-                    <div className="flex overflow-hidden rounded-md border border-input bg-background shadow-sm">
-                        <select
-                            className="min-w-36 border-r border-input bg-muted/30 px-3 py-2 text-sm text-foreground outline-none"
-                            value={typeof props.playgroundAIProvider === 'string' ? props.playgroundAIProvider : 'openai'}
-                            onChange={(event) => onUpdateProp('playgroundAIProvider', event.target.value)}
-                        >
-                            {PLAYGROUND_PROVIDER_OPTIONS.map((provider) => (
-                                <option key={provider} value={provider}>
-                                    {provider}
-                                </option>
-                            ))}
-                        </select>
-                        <input
-                            type="password"
-                            className="w-full bg-background px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground"
-                            value={typeof props.playgroundApiKey === 'string' ? props.playgroundApiKey : ''}
-                            placeholder="Paste API key for the selected provider"
-                            onChange={(event) => onUpdateProp('playgroundApiKey', event.target.value)}
-                        />
-                    </div>
-                    {props.playgroundAIProvider === 'openai-compatible' && (
-                        <input
-                            type="url"
-                            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm outline-none placeholder:text-muted-foreground"
-                            value={typeof props.playgroundCompatibleBaseUrl === 'string' ? props.playgroundCompatibleBaseUrl : ''}
-                            placeholder="Base URL for the OpenAI-compatible endpoint"
-                            onChange={(event) => onUpdateProp('playgroundCompatibleBaseUrl', event.target.value)}
-                        />
-                    )}
-                </div>
-            ),
-        },
-    ],
-};
-
-// ── Page ─────────────────────────────────────────────────────────────────────
-
 export default function PromptLivePage() {
-    usePlayground(PLAYGROUND, 'PromptRun');
+    const t = useShowcasePromptLiveI18n();
+    const shared = useShowcasePromptSharedI18n();
+    const liveProps = React.useMemo(() => createPromptLiveProps(shared), [shared]);
+    const sharedProps = React.useMemo(() => createPromptSharedProps(shared), [shared]);
+    const runPreview = React.useCallback(
+        (prompt: string, config: Record<string, unknown>, data?: Record<string, unknown>) => executePromptPreview(shared, prompt, config, data),
+        [shared],
+    );
+
+    const basePlayground = React.useMemo(() => createPromptPlayground(
+        shared,
+        'run',
+        (p, onValuesChange) => (
+            <PromptRunPlaygroundPreview props={{ ...p, __sharedCopy: shared }} onValuesChange={onValuesChange} />
+        ),
+        liveProps,
+    ), [liveProps, shared]);
+
+    const playground = React.useMemo<PlaygroundConfig>(() => ({
+        ...basePlayground,
+        defaultProps: {
+            ...basePlayground.defaultProps,
+            playgroundAIProvider: 'openai',
+            playgroundApiKey: '',
+            playgroundCompatibleBaseUrl: 'https://api.openai.com/v1',
+        },
+        inspectorSections: [
+            {
+                label: shared.playground.inspector.providerLabel,
+                icon: 'stars',
+                render: (props, onUpdateProp) => (
+                    <div className="space-y-2">
+                        <p className="text-sm text-muted-foreground">
+                            {shared.playground.inspector.providerDescription}
+                        </p>
+                        <div className="flex overflow-hidden rounded-md border border-input bg-background shadow-sm">
+                            <select
+                                className="min-w-36 border-r border-input bg-muted/30 px-3 py-2 text-sm text-foreground outline-none"
+                                value={typeof props.playgroundAIProvider === 'string' ? props.playgroundAIProvider : 'openai'}
+                                onChange={(event) => onUpdateProp('playgroundAIProvider', event.target.value)}
+                            >
+                                {PLAYGROUND_PROVIDER_OPTIONS.map((provider) => (
+                                    <option key={provider} value={provider}>
+                                        {provider}
+                                    </option>
+                                ))}
+                            </select>
+                            <input
+                                type="password"
+                                className="w-full bg-background px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground"
+                                value={typeof props.playgroundApiKey === 'string' ? props.playgroundApiKey : ''}
+                                placeholder={shared.playground.inspector.apiKeyPlaceholder}
+                                onChange={(event) => onUpdateProp('playgroundApiKey', event.target.value)}
+                            />
+                        </div>
+                        {props.playgroundAIProvider === 'openai-compatible' && (
+                            <input
+                                type="url"
+                                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm outline-none placeholder:text-muted-foreground"
+                                value={typeof props.playgroundCompatibleBaseUrl === 'string' ? props.playgroundCompatibleBaseUrl : ''}
+                                placeholder={shared.playground.inspector.compatibleBaseUrlPlaceholder}
+                                onChange={(event) => onUpdateProp('playgroundCompatibleBaseUrl', event.target.value)}
+                            />
+                        )}
+                    </div>
+                ),
+            },
+        ],
+    }), [basePlayground, shared]);
+
+    usePlayground(playground, t.playground.title);
 
     return (
-        <PageLayout
-            title="PromptRun"
-            description="Execute the stored prompt against the active form record and write the generated result back into the same field."
-        >
-            {/* ── AI unavailable notice ── */}
+        <PageLayout title={t.page.title} description={t.page.description}>
             <Section
-                title="AI unavailable notice"
-                description="When no AI provider is configured the component shows an inline warning in the footer bar and disables the Run button. The edit gear is still accessible."
+                title={t.sections.aiUnavailableNotice.title}
+                description={t.sections.aiUnavailableNotice.description}
                 bare
                 preview={(
                     <Form
                         appearance="empty"
                         defaultValues={{
-                            projectName: 'Northwind Revamp',
+                            projectName: t.labels.northwindRevamp,
                             summary: {
                                 value: '',
                                 prompt: {
                                     enabled: 'on',
-                                    value: 'Write a concise launch summary for {projectName}.',
-                                    language: 'English',
+                                    value: t.labels.conciseLaunchSummary,
+                                    language: shared.playground.defaults.english,
                                 },
                             },
                         }}
@@ -178,13 +178,13 @@ export default function PromptLivePage() {
                         <div className="max-w-3xl">
                             <Prompt
                                 name="summary"
-                                label="Summary"
+                                label={t.labels.summary}
                                 mode={PromptMode.RUN}
                                 rows={4}
                                 defaultValue={{
-                                    value: 'Write a concise launch summary for {projectName}.',
+                                    value: t.labels.conciseLaunchSummary,
                                     enabled: true,
-                                    language: 'English',
+                                    language: shared.playground.defaults.english,
                                 }}
                             />
                         </div>
@@ -218,23 +218,22 @@ export default function PromptLivePage() {
 </Form>`}
             />
 
-            {/* ── Run against form context ── */}
             <Section
-                title="Run against form context"
-                description="onRunPrompt wires a custom executor — here a local mock — so the full run flow is visible without a real AI key. The form record is passed as data and {placeholders} are resolved automatically."
+                title={t.sections.runAgainstFormContext.title}
+                description={t.sections.runAgainstFormContext.description}
                 bare
                 preview={(
                     <Form
                         appearance="empty"
                         defaultValues={{
-                            projectName: 'Northwind Revamp',
+                            projectName: t.labels.northwindRevamp,
                             summary: {
                                 value: '',
                                 prompt: {
                                     enabled: 'on',
-                                    value: 'Write a concise launch summary for {projectName}.',
-                                    language: 'English',
-                                    style: 'concise',
+                                    value: t.labels.conciseLaunchSummary,
+                                    language: shared.playground.defaults.english,
+                                    style: shared.playground.defaults.concise,
                                     temperature: 0.6,
                                 },
                             },
@@ -243,18 +242,18 @@ export default function PromptLivePage() {
                         <div className="max-w-3xl">
                             <Prompt
                                 name="summary"
-                                label="Summary"
+                                label={t.labels.summary}
                                 mode={PromptMode.RUN}
                                 rows={5}
-                                variables={{ projectName: 'Northwind Revamp' }}
+                                variables={{ projectName: t.labels.northwindRevamp }}
                                 defaultValue={{
-                                    value: 'Write a concise launch summary for {projectName}.',
+                                    value: t.labels.conciseLaunchSummary,
                                     enabled: true,
-                                    language: 'English',
-                                    style: 'concise',
+                                    language: shared.playground.defaults.english,
+                                    style: shared.playground.defaults.concise,
                                     temperature: 0.6,
                                 }}
-                                onRunPrompt={executePromptPreview}
+                                onRunPrompt={runPreview}
                             />
                         </div>
                     </Form>
@@ -262,453 +261,215 @@ export default function PromptLivePage() {
                 code={`const myRunner = async (prompt, options, data) => {
   const response = await ai.complete({ prompt, ...options, data });
   return response.text;
-};
-
-<Form appearance="empty" defaultValues={{ projectName: 'Northwind Revamp', ... }}>
-  <Prompt
-    name="summary"
-    label="Summary"
-    mode={PromptMode.RUN}
-    rows={5}
-    variables={{ projectName: 'Northwind Revamp' }}
-    defaultValue={{
-      value: 'Write a concise launch summary for {projectName}.',
-      enabled: true,
-      language: 'English',
-      style: 'concise',
-      temperature: 0.6,
-    }}
-    onRunPrompt={myRunner}
-  />
-</Form>`}
+};`}
             />
 
-            {/* ── Variables — resolved preview ── */}
             <Section
-                title="Variables — resolved preview"
-                description="Pass variables to inject external values into the template. In edit mode, the eye icon in the footer bar reveals a read-only preview showing the prompt as it will be sent to the AI — with all {placeholders} resolved."
+                title={t.sections.variablesResolvedPreview.title}
+                description={t.sections.variablesResolvedPreview.description}
                 bare
                 preview={(
-                    <Form
-                        appearance="empty"
-                        defaultValues={{
-                            tagline: {
-                                value: '',
-                                prompt: {
-                                    enabled: 'on',
-                                    value: 'Write a punchy one-line tagline for {product}, a {industry} platform. Keep it under 10 words.',
-                                    language: 'English',
-                                    style: 'bold',
-                                },
-                            },
-                        }}
-                    >
+                    <Form appearance="empty">
                         <div className="max-w-3xl">
                             <Prompt
                                 name="tagline"
-                                label="Tagline"
+                                label={t.labels.tagline}
                                 mode={PromptMode.RUN}
                                 rows={4}
-                                variables={{ product: 'Atlas Console', industry: 'DevOps' }}
+                                variables={{ product: t.labels.atlasConsole, industry: 'DevOps' }}
                                 defaultValue={{
-                                    value: 'Write a punchy one-line tagline for {product}, a {industry} platform. Keep it under 10 words.',
+                                    value: t.labels.punchyTagline,
                                     enabled: true,
-                                    language: 'English',
+                                    language: shared.playground.defaults.english,
                                     style: 'bold',
                                 }}
-                                onRunPrompt={executePromptPreview}
+                                onRunPrompt={runPreview}
                             />
                         </div>
                     </Form>
                 )}
-                code={`<Prompt
-  name="tagline"
-  label="Tagline"
-  mode={PromptMode.RUN}
-  variables={{ product: 'Atlas Console', industry: 'DevOps' }}
-  defaultValue={{
-    value: 'Write a punchy one-line tagline for {product}, a {industry} platform.',
-    enabled: true,
-    language: 'English',
-    style: 'bold',
-  }}
-  onRunPrompt={myRunner}
-/>`}
+                code={`<Prompt name="tagline" mode={PromptMode.RUN} variables={{ product: 'Atlas Console', industry: 'DevOps' }} />`}
             />
 
-            {/* ── Edit mode settings ── */}
             <Section
-                title="Edit mode — settings toolbar"
-                description="Click the gear icon (top-right on hover) to enter edit mode. The footer bar exposes model, role, language, voice, style and temperature controls — all stored in the form record under the prompt key."
+                title={t.sections.editModeSettingsToolbar.title}
+                description={t.sections.editModeSettingsToolbar.description}
                 bare
                 preview={(
-                    <Form
-                        appearance="empty"
-                        defaultValues={{
-                            projectName: 'Atlas Console',
-                            bio: {
-                                value: '',
-                                prompt: {
-                                    enabled: 'on',
-                                    value: 'Write a short product description for {projectName}. Highlight the key differentiators.',
-                                    language: 'English',
-                                    style: 'professional',
-                                    voice: 'Informative',
-                                    temperature: 0.7,
-                                },
-                            },
-                        }}
-                    >
+                    <Form appearance="empty">
                         <div className="max-w-3xl">
                             <Prompt
                                 name="bio"
-                                label="Product description"
+                                label={t.labels.productDescription}
                                 mode={PromptMode.RUN}
                                 rows={5}
                                 defaultValue={{
-                                    value: 'Write a short product description for {projectName}. Highlight the key differentiators.',
+                                    value: t.labels.shortProductDescription,
                                     enabled: true,
-                                    language: 'English',
+                                    language: shared.playground.defaults.english,
                                     style: 'professional',
                                     voice: 'Informative',
                                     temperature: 0.7,
                                 }}
-                                onRunPrompt={executePromptPreview}
+                                onRunPrompt={runPreview}
                             />
                         </div>
                     </Form>
                 )}
-                code={`// Hover the prompt → gear icon (top-right) → click to enter edit mode.
-// The footer bar shows: model selector + role / language / voice / style / temperature icon dropdowns.
-// All values are stored under name + ".prompt.*" in the form record.
-
-<Prompt
-  name="bio"
-  label="Product description"
-  mode={PromptMode.RUN}
-  defaultValue={{
-    value: 'Write a short product description for {projectName}.',
-    enabled: true,
-    language: 'English',
-    style: 'professional',
-    voice: 'Informative',
-    temperature: 0.7,
-  }}
-  onRunPrompt={myRunner}
-/>`}
+                code={`<Prompt name="bio" mode={PromptMode.RUN} />`}
             />
 
-            {/* ── Multiple prompts in a form ── */}
             <Section
-                title="Multiple prompts in a form"
-                description="Each Prompt field owns an independent template and AI settings, stored under its form key. Run each one separately — they share the same form record but never overwrite each other."
+                title={t.sections.multiplePromptsInForm.title}
+                description={t.sections.multiplePromptsInForm.description}
                 bare
                 preview={(
-                    <Form
-                        appearance="empty"
-                        defaultValues={{
-                            projectName: 'Atlas Console',
-                            summary: {
-                                value: '',
-                                prompt: {
-                                    enabled: 'on',
-                                    value: 'Write a concise summary for {projectName}.',
-                                    language: 'English',
-                                    style: 'concise',
-                                },
-                            },
-                            tagline: {
-                                value: '',
-                                prompt: {
-                                    enabled: 'on',
-                                    value: 'Write a punchy one-line tagline for {projectName}.',
-                                    style: 'bold',
-                                },
-                            },
-                        }}
-                    >
+                    <Form appearance="empty" defaultValues={{ projectName: t.labels.atlasConsole }}>
                         <div className="max-w-3xl space-y-4">
                             <Prompt
                                 name="summary"
-                                label="Summary"
+                                label={t.labels.summary}
                                 mode={PromptMode.RUN}
                                 rows={4}
-                                defaultValue={{
-                                    value: 'Write a concise summary for {projectName}.',
-                                    enabled: true,
-                                    language: 'English',
-                                    style: 'concise',
-                                }}
-                                onRunPrompt={executePromptPreview}
+                                defaultValue={{ value: t.labels.conciseProjectSummary, enabled: true, language: shared.playground.defaults.english, style: shared.playground.defaults.concise }}
+                                onRunPrompt={runPreview}
                             />
                             <Prompt
                                 name="tagline"
-                                label="Tagline"
+                                label={t.labels.tagline}
                                 mode={PromptMode.RUN}
                                 rows={3}
-                                defaultValue={{
-                                    value: 'Write a punchy one-line tagline for {projectName}.',
-                                    enabled: true,
-                                    style: 'bold',
-                                }}
-                                onRunPrompt={executePromptPreview}
+                                defaultValue={{ value: t.labels.punchyTagline, enabled: true, style: 'bold' }}
+                                onRunPrompt={runPreview}
                             />
                         </div>
                     </Form>
                 )}
-                code={`<Form appearance="empty" defaultValues={{ projectName: 'Atlas Console', ... }}>
-  <Prompt
-    name="summary"
-    label="Summary"
-    mode={PromptMode.RUN}
-    defaultValue={{ value: 'Write a concise summary for {projectName}.', enabled: true, style: 'concise' }}
-    onRunPrompt={myRunner}
-  />
-  <Prompt
-    name="tagline"
-    label="Tagline"
-    mode={PromptMode.RUN}
-    defaultValue={{ value: 'Write a punchy one-line tagline for {projectName}.', enabled: true, style: 'bold' }}
-    onRunPrompt={myRunner}
-  />
-</Form>`}
+                code={`<Form appearance="empty"><Prompt name="summary" /><Prompt name="tagline" /></Form>`}
             />
 
-            {/* ── Custom unavailable notice ── */}
             <Section
-                title="Custom unavailable notice"
-                description="renderAIUnavailable replaces the default unavailable notice on the right side of the footer bar with your own UI — useful for linking to a settings page or showing a branded message."
+                title={t.sections.customUnavailableNotice.title}
+                description={t.sections.customUnavailableNotice.description}
                 bare
                 preview={(
-                    <Form
-                        appearance="empty"
-                        defaultValues={{
-                            notes: {
-                                value: '',
-                                prompt: {
-                                    enabled: 'on',
-                                    value: 'Summarise the key points from this meeting.',
-                                },
-                            },
-                        }}
-                    >
+                    <Form appearance="empty">
                         <div className="max-w-3xl">
                             <Prompt
                                 name="notes"
-                                label="Meeting notes"
+                                label={t.labels.meetingNotes}
                                 mode={PromptMode.RUN}
                                 rows={4}
-                                defaultValue={{
-                                    value: 'Summarise the key points from this meeting.',
-                                    enabled: true,
-                                }}
+                                defaultValue={{ value: t.labels.meetingSummary, enabled: true }}
                                 renderAIUnavailable={({ reason }) => (
                                     <div className="flex items-center gap-2 rounded-lg border border-dashed border-warning/60 bg-warning/5 px-3 py-2 text-xs text-warning">
-                                        <span>⚠</span>
-                                        <span>{reason || 'Connect an AI provider to enable one-click summarisation.'}</span>
+                                        <span>!</span>
+                                        <span>{reason || t.labels.customUnavailableFallback}</span>
                                     </div>
                                 )}
                             />
                         </div>
                     </Form>
                 )}
-                code={`<Prompt
-  name="notes"
-  label="Meeting notes"
-  mode={PromptMode.RUN}
-  defaultValue={{ value: 'Summarise the key points from this meeting.', enabled: true }}
-  renderAIUnavailable={({ reason }) => (
-    <div className="flex items-center gap-2 rounded-lg border border-dashed border-warning/60 bg-warning/5 px-3 py-2 text-xs text-warning">
-      <span>⚠</span>
-      <span>{reason || 'Connect an AI provider to enable one-click summarisation.'}</span>
-    </div>
-  )}
-/>`}
+                code={`<Prompt name="notes" mode={PromptMode.RUN} renderAIUnavailable={({ reason }) => <div>{reason}</div>} />`}
             />
 
-            {/* ── Slash commands ── */}
             <Section
-                title="Slash commands"
-                description="Pass commands to enable /command shortcuts in the result textarea. Type / or click the slash icon in the footer bar to see available commands. Selecting one calls its handler with the current field value."
+                title={t.sections.slashCommands.title}
+                description={t.sections.slashCommands.description}
                 bare
                 preview={(
-                    <Form
-                        appearance="empty"
-                        defaultValues={{
-                            projectName: 'Atlas Console',
-                            copy: {
-                                value: 'Our platform helps DevOps teams ship faster with zero-config CI/CD pipelines and real-time observability.',
-                                prompt: {
-                                    enabled: 'on',
-                                    value: 'Describe our DevOps platform in 2 sentences. Focus on speed and reliability.',
-                                },
-                            },
-                        }}
-                    >
+                    <Form appearance="empty">
                         <div className="max-w-3xl">
                             <Prompt
                                 name="copy"
-                                label="Marketing copy"
+                                label={t.labels.marketingCopy}
                                 mode={PromptMode.RUN}
                                 rows={5}
                                 commands={[
-                                    { name: 'translate', description: 'Wrap for translation to English', icon: 'languages', handler: (v) => `Translate the following to English:\n\n${v}` },
-                                    { name: 'shorten', description: 'Ask AI to shorten the text', icon: 'minimize-2', handler: (v) => `Shorten to 1 sentence:\n\n${v}` },
+                                    { name: 'translate', description: 'Translate to English', icon: 'languages', handler: (v) => `Translate the following to English:\n\n${v}` },
+                                    { name: 'shorten', description: 'Shorten text', icon: 'minimize-2', handler: (v) => `Shorten to 1 sentence:\n\n${v}` },
                                     { name: 'bulletpoints', description: 'Convert to bullet points', icon: 'list', handler: (v) => `Convert to 3 bullet points:\n\n${v}` },
                                 ]}
-                                defaultValue={{ value: 'Describe our DevOps platform in 2 sentences. Focus on speed and reliability.', enabled: true }}
-                                onRunPrompt={executePromptPreview}
+                                defaultValue={{ value: t.labels.devopsPlatformDescription, enabled: true }}
+                                onRunPrompt={runPreview}
                             />
                         </div>
                     </Form>
                 )}
-                code={`import type { PromptCommand } from '@llmnative/react';
-
-const COMMANDS: PromptCommand[] = [
-  { name: 'translate', description: 'Wrap for translation', icon: 'languages',
-    handler: (v) => \`Translate the following to English:\\n\\n\${v}\` },
-  { name: 'shorten', description: 'Ask AI to shorten', icon: 'minimize-2',
-    handler: (v) => \`Shorten to 1 sentence:\\n\\n\${v}\` },
-  { name: 'bulletpoints', description: 'Convert to bullets', icon: 'list',
-    handler: (v) => \`Convert to 3 bullet points:\\n\\n\${v}\` },
-];
-
-<Prompt
-  name="copy"
-  label="Marketing copy"
-  mode={PromptMode.RUN}
-  commands={COMMANDS}
-  onRunPrompt={myRunner}
-/>`}
+                code={`<Prompt name="copy" mode={PromptMode.RUN} commands={COMMANDS} />`}
             />
 
-            {/* ── Attachments ── */}
             <Section
-                title="Attachments"
-                description="Set attachments to enable the paperclip button in the footer bar. Selected files appear as image thumbnails or document cards above the result textarea and can be removed individually."
+                title={t.sections.attachments.title}
+                description={t.sections.attachments.description}
                 bare
                 preview={(
-                    <Form
-                        appearance="empty"
-                        defaultValues={{ report: { value: '', prompt: { enabled: 'on', value: 'Summarise the attached document.' } } }}
-                    >
+                    <Form appearance="empty">
                         <div className="max-w-3xl">
                             <Prompt
                                 name="report"
-                                label="Document summary"
+                                label={t.labels.documentSummary}
                                 mode={PromptMode.RUN}
                                 rows={4}
                                 attachments
-                                defaultValue={{ value: 'Summarise the attached document.', enabled: true }}
-                                onRunPrompt={executePromptPreview}
+                                defaultValue={{ value: t.labels.attachedDocumentSummary, enabled: true }}
+                                onRunPrompt={runPreview}
                             />
                         </div>
                     </Form>
                 )}
-                code={`<Prompt
-  name="report"
-  label="Document summary"
-  mode={PromptMode.RUN}
-  attachments
-  defaultValue={{ value: 'Summarise the attached document.', enabled: true }}
-  onRunPrompt={myRunner}
-/>`}
+                code={`<Prompt name="report" mode={PromptMode.RUN} attachments />`}
             />
 
-            {/* ── Multimodal inputs ── */}
             <Section
-                title="Multimodal inputs"
-                description="When attachments is enabled and a compatible provider is selected, attached files are forwarded directly to the AI model alongside the prompt. OpenAI-compatible providers currently accept images as base64 image_url parts; Anthropic receives images and PDFs as typed source blocks; Gemini accepts images, PDFs, audio and video as inline_data."
-                code={`// Images — OpenAI, Anthropic, Gemini
-// PDFs — Anthropic, Gemini
-// Audio / Video — Gemini
-
-<Prompt
-  name="analysis"
-  label="Document analysis"
-  mode={PromptMode.RUN}
-  attachments
-  defaultValue={{
-    value: 'Analyse the attached file and summarise the key findings.',
-    enabled: true,
-    model: 'anthropic/claude-sonnet-4-6',
-  }}
-/>
-
-// The AIRequestOptions forwarded to onRunPrompt now includes attachments:
-// onRunPrompt(prompt, { model, language, ..., attachments: [{ mimeType, base64, name }] }, data)`}
+                title={t.sections.multimodalInputs.title}
+                description={t.sections.multimodalInputs.description}
+                code={`<Prompt name="analysis" mode={PromptMode.RUN} attachments />`}
             />
 
-            {/* ── Status items ── */}
             <Section
-                title="Status items — token usage"
-                description="statusItems adds a strip below the footer bar that populates after each run. Built-in named items: tokensIn, tokensOut, contextPercent, model, duration. Add a custom action with the tokenUsage key for a detailed popup panel."
+                title={t.sections.statusItems.title}
+                description={t.sections.statusItems.description}
                 bare
                 preview={(
-                    <Form
-                        appearance="empty"
-                        defaultValues={{
-                            projectName: 'Atlas Console',
-                            summary: { value: '', prompt: { enabled: 'on', value: 'Write a concise summary for {projectName}.', language: 'English' } },
-                        }}
-                    >
+                    <Form appearance="empty">
                         <div className="max-w-3xl">
                             <Prompt
                                 name="summary"
-                                label="Summary"
+                                label={t.labels.summary}
                                 mode={PromptMode.RUN}
                                 rows={5}
                                 statusItems={['tokensIn', 'tokensOut', 'contextPercent', 'duration']}
                                 actions={[{ key: 'tokenUsage', icon: 'bar-chart-2', label: 'Token details' }]}
-                                defaultValue={{ value: 'Write a concise summary for {projectName}.', enabled: true, language: 'English' }}
-                                onRunPrompt={executePromptPreview}
+                                defaultValue={{ value: t.labels.conciseProjectSummary, enabled: true, language: shared.playground.defaults.english }}
+                                onRunPrompt={runPreview}
                             />
                         </div>
                     </Form>
                 )}
-                code={`import type { PromptStatusItem, PromptAction } from '@llmnative/react';
-
-const STATUS: PromptStatusItem[] = ['tokensIn', 'tokensOut', 'contextPercent', 'duration'];
-
-const ACTIONS: PromptAction[] = [
-  { key: 'tokenUsage', icon: 'bar-chart-2', label: 'Token details' },
-];
-
-<Prompt
-  name="summary"
-  mode={PromptMode.RUN}
-  statusItems={STATUS}
-  actions={ACTIONS}
-  onRunPrompt={myRunner}
-/>`}
+                code={`<Prompt name="summary" mode={PromptMode.RUN} statusItems={STATUS} actions={ACTIONS} />`}
             />
 
-            {/* ── PromptUtils API ── */}
             <Section
-                title="PromptUtils — client-side utilities"
-                description="PromptUtils provides browser-safe helpers for token estimation, context window lookup, cost estimation and file-to-attachment conversion — no server required."
+                title={t.sections.promptUtils.title}
+                description={t.sections.promptUtils.description}
                 preview={(
                     <div className="rounded-xl border border-input bg-muted/20 p-4 text-sm font-mono space-y-1 text-foreground">
-                        <p><span className="text-muted-foreground">// token count (heuristic: chars / 4)</span></p>
-                        <p>PromptUtils.countTokens(<span className="text-primary">"Hello world"</span>) <span className="text-muted-foreground">→ {PromptUtils.countTokens("Hello world")}</span></p>
-                        <p className="pt-1"><span className="text-muted-foreground">// context window lookup</span></p>
-                        <p>PromptUtils.modelContextWindow(<span className="text-primary">"openai/gpt-4o"</span>) <span className="text-muted-foreground">→ {PromptUtils.modelContextWindow("openai/gpt-4o")?.toLocaleString()}</span></p>
-                        <p className="pt-1"><span className="text-muted-foreground">// context usage %</span></p>
-                        <p>PromptUtils.contextPercent(<span className="text-primary">5000</span>, <span className="text-primary">"openai/gpt-4o"</span>) <span className="text-muted-foreground">→ {PromptUtils.contextPercent(5000, "openai/gpt-4o").toFixed(2)}%</span></p>
-                        <p className="pt-1"><span className="text-muted-foreground">// cost estimate in USD</span></p>
-                        <p>PromptUtils.estimateCost(<span className="text-primary">500</span>, <span className="text-primary">200</span>, <span className="text-primary">"openai/gpt-4o"</span>) <span className="text-muted-foreground">→ ${PromptUtils.estimateCost(500, 200, "openai/gpt-4o").toFixed(6)}</span></p>
+                        <p><span className="text-muted-foreground">{t.labels.tokenCountComment}</span></p>
+                        <p>PromptUtils.countTokens(<span className="text-primary">"Hello world"</span>) <span className="text-muted-foreground">→ {PromptUtils.countTokens('Hello world')}</span></p>
+                        <p className="pt-1"><span className="text-muted-foreground">{t.labels.contextWindowComment}</span></p>
+                        <p>PromptUtils.modelContextWindow(<span className="text-primary">"openai/gpt-4o"</span>) <span className="text-muted-foreground">→ {PromptUtils.modelContextWindow('openai/gpt-4o')?.toLocaleString()}</span></p>
+                        <p className="pt-1"><span className="text-muted-foreground">{t.labels.contextUsageComment}</span></p>
+                        <p>PromptUtils.contextPercent(<span className="text-primary">5000</span>, <span className="text-primary">"openai/gpt-4o"</span>) <span className="text-muted-foreground">→ {PromptUtils.contextPercent(5000, 'openai/gpt-4o').toFixed(2)}%</span></p>
+                        <p className="pt-1"><span className="text-muted-foreground">{t.labels.costEstimateComment}</span></p>
+                        <p>PromptUtils.estimateCost(<span className="text-primary">500</span>, <span className="text-primary">200</span>, <span className="text-primary">"openai/gpt-4o"</span>) <span className="text-muted-foreground">→ ${PromptUtils.estimateCost(500, 200, 'openai/gpt-4o').toFixed(6)}</span></p>
                     </div>
                 )}
-                code={`import { PromptUtils } from '@llmnative/react';
-
-PromptUtils.countTokens(text)                        // chars / 4
-PromptUtils.modelContextWindow("openai/gpt-4o")      // 128000
-PromptUtils.contextPercent(5000, "openai/gpt-4o")    // 3.91
-PromptUtils.estimateCost(500, 200, "openai/gpt-4o")  // 0.00325
-await PromptUtils.fileToAttachment(file)             // { mimeType, base64, name }`}
+                code={`import { PromptUtils } from '@llmnative/react';`}
             />
 
-            <PropDocsTable props={[...PROMPT_LIVE_PROPS, ...PROMPT_SHARED_PROPS]} />
+            <PropDocsTable props={[...liveProps, ...sharedProps]} title={t.propsDocs.title} />
         </PageLayout>
     );
 }

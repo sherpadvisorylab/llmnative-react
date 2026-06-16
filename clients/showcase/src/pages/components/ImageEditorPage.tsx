@@ -1,71 +1,76 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ImageEditor } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
 import type { PropDef } from '../../docs-kit/playground';
+import { useShowcaseImageEditorI18n } from '../../showcase/i18n';
 
-// SVG data URLs fail with tui-image-editor (fabric.js crossOrigin: 'Anonymous' quirk).
-// We generate a real PNG via the Canvas API at component init time instead.
-function makeSamplePng(): string {
+function makeSamplePng(title: string, subtitle: string): string {
     const c = document.createElement('canvas');
-    c.width = 700; c.height = 500;
+    c.width = 700;
+    c.height = 500;
     const ctx = c.getContext('2d');
     if (!ctx) return '';
-    // Gradient background
+
     const grad = ctx.createLinearGradient(0, 0, 700, 500);
     grad.addColorStop(0, '#2563eb');
     grad.addColorStop(1, '#7c3aed');
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, 700, 500);
-    // Yellow circle
+
     ctx.fillStyle = '#facc15';
     ctx.beginPath();
     ctx.arc(560, 100, 80, 0, Math.PI * 2);
     ctx.fill();
-    // Dark wave
+
     ctx.fillStyle = '#0f172a';
     ctx.beginPath();
-    ctx.moveTo(0, 350); ctx.lineTo(150, 220); ctx.lineTo(290, 320);
-    ctx.lineTo(430, 160); ctx.lineTo(590, 280); ctx.lineTo(700, 210);
-    ctx.lineTo(700, 500); ctx.lineTo(0, 500);
+    ctx.moveTo(0, 350);
+    ctx.lineTo(150, 220);
+    ctx.lineTo(290, 320);
+    ctx.lineTo(430, 160);
+    ctx.lineTo(590, 280);
+    ctx.lineTo(700, 210);
+    ctx.lineTo(700, 500);
+    ctx.lineTo(0, 500);
     ctx.closePath();
     ctx.fill();
-    // Text
+
     ctx.fillStyle = 'white';
     ctx.font = 'bold 36px Arial, sans-serif';
-    ctx.fillText('Sample', 40, 90);
+    ctx.fillText(title, 40, 90);
     ctx.font = '18px Arial, sans-serif';
     ctx.fillStyle = 'rgba(255,255,255,0.8)';
-    ctx.fillText('Sample - edit this image', 40, 130);
+    ctx.fillText(subtitle, 40, 130);
     return c.toDataURL('image/png');
 }
 
-const PROPS_CONFIG: PropDef[] = [
-    { name: 'src', type: 'string', required: true, description: 'URL or data URL of the image to edit.' },
-    { name: 'title', type: 'string', description: 'Title shown in the modal header (only when mode="modal").', default: '"Image Editor"' },
-    { name: 'width', type: 'number', description: 'Max CSS width of the canvas in pixels.', default: '700' },
-    { name: 'height', type: 'number', description: 'Max CSS height of the canvas in pixels.', default: '500' },
-    { name: 'mode', type: '"modal" | "inline"', description: 'Render inside a modal overlay ("modal") or inline on the page ("inline").', default: '"inline"' },
-    { name: 'onImageLoad', type: '() => void', description: 'Callback fired when the image finishes loading into the editor.' },
-    { name: 'onClose', type: '() => void', description: 'Callback fired when the user closes the modal (modal=true only).' },
-    { name: 'onSave', type: '(dataUrl: string) => void | Promise<void>', description: 'Callback fired when the user clicks Save. Receives the edited image as a data URL.' },
-];
-
 export default function ImageEditorPage() {
-    const [sampleImage] = useState(makeSamplePng);
+    const t = useShowcaseImageEditorI18n();
+    const sampleImage = useMemo(
+        () => makeSamplePng(t.labels.sampleTitle, t.labels.sampleSubtitle),
+        [t.labels.sampleSubtitle, t.labels.sampleTitle],
+    );
+    const propsConfig = useMemo<PropDef[]>(() => ([
+        { name: 'src', type: 'string', required: true, description: t.propsDocs.items.src.description },
+        { name: 'title', type: 'string', description: t.propsDocs.items.title.description, default: t.propsDocs.items.title.default },
+        { name: 'width', type: 'number', description: t.propsDocs.items.width.description, default: t.propsDocs.items.width.default },
+        { name: 'height', type: 'number', description: t.propsDocs.items.height.description, default: t.propsDocs.items.height.default },
+        { name: 'mode', type: '"modal" | "inline"', description: t.propsDocs.items.mode.description, default: t.propsDocs.items.mode.default },
+        { name: 'onImageLoad', type: '() => void', description: t.propsDocs.items.onImageLoad.description },
+        { name: 'onClose', type: '() => void', description: t.propsDocs.items.onClose.description },
+        { name: 'onSave', type: '(dataUrl: string) => void | Promise<void>', description: t.propsDocs.items.onSave.description },
+    ]), [t]);
     const [modalOpen, setModalOpen] = useState(false);
     const [savedDataUrl, setSavedDataUrl] = useState<string | null>(null);
 
     return (
-        <PageLayout
-            title="ImageEditor"
-            description="Full-featured image editing widget powered by tui-image-editor. Supports crop, flip, rotate, free drawing, shapes, text and zoom. Available inline or inside a modal."
-        >
+        <PageLayout title={t.page.title} description={t.page.description}>
             <Section
-                title="Inline editor"
-                description="Drop the editor directly on the page. The toolbar appears at the top; the canvas fills the width."
-                preview={
+                title={t.sections.inlineEditor.title}
+                description={t.sections.inlineEditor.description}
+                preview={(
                     <div className="w-full">
                         <ImageEditor
                             src={sampleImage}
@@ -75,17 +80,17 @@ export default function ImageEditorPage() {
                         />
                         {savedDataUrl && (
                             <div className="mt-4">
-                                <p className="text-sm text-muted-foreground mb-2">Last saved output:</p>
+                                <p className="mb-2 text-sm text-muted-foreground">{t.labels.lastSavedOutput}</p>
                                 <img
                                     src={savedDataUrl}
-                                    alt="Saved result"
+                                    alt={t.labels.savedResultAlt}
                                     className="max-w-full rounded border border-border"
                                     style={{ maxHeight: 200 }}
                                 />
                             </div>
                         )}
                     </div>
-                }
+                )}
                 code={`import { ImageEditor } from '@llmnative/react';
 
 <ImageEditor
@@ -97,20 +102,17 @@ export default function ImageEditorPage() {
             />
 
             <Section
-                title="Modal editor"
-                description='Pass mode="modal" to open the editor in a full-screen overlay. The title and toolbar are merged into a single clean header row. onClose is called when the user dismisses it.'
-                preview={
+                title={t.sections.modalEditor.title}
+                description={t.sections.modalEditor.description}
+                preview={(
                     <div className="w-full">
-                        <button
-                            className="btn btn-primary"
-                            onClick={() => setModalOpen(true)}
-                        >
-                            Open editor in modal
+                        <button className="btn btn-primary" onClick={() => setModalOpen(true)}>
+                            {t.labels.openEditorInModal}
                         </button>
                         {modalOpen && (
                             <ImageEditor
                                 src={sampleImage}
-                                title="Edit photo"
+                                title={t.labels.editPhoto}
                                 mode="modal"
                                 width={700}
                                 height={480}
@@ -123,16 +125,16 @@ export default function ImageEditorPage() {
                         )}
                         {savedDataUrl && (
                             <div className="mt-4">
-                                <p className="text-sm text-muted-foreground mb-2">Saved result:</p>
+                                <p className="mb-2 text-sm text-muted-foreground">{t.labels.savedResult}</p>
                                 <img
                                     src={savedDataUrl}
-                                    alt="Saved"
+                                    alt={t.labels.savedAlt}
                                     className="max-w-xs rounded border border-border"
                                 />
                             </div>
                         )}
                     </div>
-                }
+                )}
                 code={`import { ImageEditor } from '@llmnative/react';
 import { useState } from 'react';
 
@@ -156,7 +158,7 @@ const [open, setOpen] = useState(false);
 )}`}
             />
 
-            <PropDocsTable props={PROPS_CONFIG} />
+            <PropDocsTable props={propsConfig} title={t.propsDocs.title} />
         </PageLayout>
     );
 }

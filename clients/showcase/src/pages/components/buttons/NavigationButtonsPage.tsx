@@ -3,6 +3,7 @@ import { BackLink, GoSite, ReferSite } from '@llmnative/react';
 import PageLayout from '../../../showcase/page';
 import Section from '../../../docs-kit/page/Section';
 import PropDocsTable from '../../../docs-kit/docs/PropDocsTable';
+import { useShowcaseNavigationButtonsI18n } from '../../../showcase/i18n';
 
 const PROPS = [
     { name: 'label', type: 'string', description: 'Visible label' },
@@ -14,10 +15,12 @@ const PROPS = [
 ];
 
 export default function NavigationButtonsPage() {
+    const t = useShowcaseNavigationButtonsI18n();
+
     return (
-        <PageLayout title="Navigation Buttons" description="Back navigation and external reference helpers.">
+        <PageLayout title={t.page.title} description={t.page.description}>
             <Section
-                title="Navigation helpers"
+                title={t.sections.helpers.title}
                 preview={
                     <div className="flex flex-wrap items-center gap-4">
                         <BackLink className="border border-secondary-foreground/30 bg-transparent text-secondary-foreground hover:bg-secondary" />

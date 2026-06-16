@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { ActionButton, Badge, Modal, Table, buttonOutlineSecondaryClass, buttonPrimaryClass, useDataProvider } from '@llmnative/react';
 import type { RecordProps } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
@@ -6,75 +6,9 @@ import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
 import { usePlayground } from '../../docs-kit/playground';
 import type { PropDef, PlaygroundConfig } from '../../docs-kit/playground';
-
-const ROWS = [
-    { _key: 'u1', name: 'Alice Johnson', role: 'Admin', status: 'active', team: 'Platform' },
-    { _key: 'u2', name: 'Mark Williams', role: 'Editor', status: 'active', team: 'Marketing' },
-    { _key: 'u3', name: 'Sara Green', role: 'Viewer', status: 'inactive', team: 'Support' },
-    { _key: 'u4', name: 'Luke Black', role: 'Editor', status: 'active', team: 'Product' },
-    { _key: 'u5', name: 'Julia Brown', role: 'Admin', status: 'inactive', team: 'Operations' },
-    { _key: 'u6', name: 'Noah White', role: 'Viewer', status: 'active', team: 'Support' },
-    { _key: 'u7', name: 'Emma Stone', role: 'Editor', status: 'review', team: 'Content' },
-    { _key: 'u8', name: 'Chris Miller', role: 'Admin', status: 'active', team: 'Platform' },
-];
-
-const header = [
-    { key: 'name', label: 'Name' },
-    { key: 'role', label: 'Role' },
-    { key: 'status', label: 'Status' },
-    { key: 'team', label: 'Team', sort: false },
-];
-
-const plainBody = ROWS.map((row) => ({ ...row }));
-
-const tableBody = (ROWS.map((row) => ({
-    ...row,
-    status: (
-        <Badge
-            className={
-                row.status === 'active'
-                    ? 'bg-success'
-                    : row.status === 'review'
-                        ? 'bg-warning'
-                        : 'bg-secondary'
-            }
-        >
-            {row.status}
-        </Badge>
-    ),
-}))) as unknown as RecordProps[];
-
-const responsiveHeader = [
-    { key: 'name', label: 'Name' },
-    { key: 'role', label: 'Role' },
-    { key: 'status', label: 'Status' },
-    { key: 'team', label: 'Team' },
-    { key: 'location', label: 'Location' },
-    { key: 'timezone', label: 'Timezone' },
-];
-
-const responsiveBody = ROWS.map((row, index) => ({
-    ...row,
-    location: ['Milan office', 'Berlin hub', 'Remote Europe', 'Madrid office'][index % 4],
-    timezone: ['CET', 'UTC', 'GMT+1', 'EST'][index % 4],
-}));
-
-const scrollBody = Array.from({ length: 18 }, (_, index) => {
-    const row = ROWS[index % ROWS.length];
-    return {
-        ...row,
-        _key: `${row._key}-${index + 1}`,
-        team: `${row.team} ${index + 1}`,
-    };
-});
+import { useShowcaseTableI18n } from '../../showcase/i18n';
 
 const TABLE_PLAYGROUND_PATH = '/table-rows';
-
-const TABLE_PLAYGROUND_SEED = {
-    [TABLE_PLAYGROUND_PATH]: Object.fromEntries(
-        ROWS.map(({ _key, ...record }) => [_key, record])
-    ),
-};
 
 const TABLE_HEADER_PROP_TYPE = `{
   key: string;
@@ -106,126 +40,73 @@ const TABLE_REORDER_META_TYPE = `{
   record: RecordProps;
 }`;
 
-const TABLE_PROPS: PropDef[] = [
-    { name: 'columns', type: 'TableHeaderProp[]', description: 'Optional column definitions. Each item describes a table column and can override sorting locally.', shape: `type TableHeaderProp = ${TABLE_HEADER_PROP_TYPE}`, example: `columns={[
-  { key: 'name', label: 'Name' },
-  { key: 'role', label: 'Role' },
-  { key: 'status', label: 'Status' },
-  { key: 'team', label: 'Team', sort: false },
-]}` },
-    { name: 'records', type: 'RecordArray', description: 'Array of row records to render.' },
-    { name: 'onReorder', type: 'TableReorderHandler', description: 'Called after a drag reorder with the full reordered record set and the moved row metadata. When provided, drag and drop is enabled automatically.', shape: `type TableReorderHandler = (
-  reorderedRecords: RecordArray,
-  meta: TableReorderMeta
-) => void
+const ROW_DEFS = [
+    { _key: 'u1', name: 'Alice Johnson', roleKey: 'admin', statusKey: 'active', teamKey: 'platform' },
+    { _key: 'u2', name: 'Mark Williams', roleKey: 'editor', statusKey: 'active', teamKey: 'marketing' },
+    { _key: 'u3', name: 'Sara Green', roleKey: 'viewer', statusKey: 'inactive', teamKey: 'support' },
+    { _key: 'u4', name: 'Luke Black', roleKey: 'editor', statusKey: 'active', teamKey: 'product' },
+    { _key: 'u5', name: 'Julia Brown', roleKey: 'admin', statusKey: 'inactive', teamKey: 'operations' },
+    { _key: 'u6', name: 'Noah White', roleKey: 'viewer', statusKey: 'active', teamKey: 'support' },
+    { _key: 'u7', name: 'Emma Stone', roleKey: 'editor', statusKey: 'review', teamKey: 'content' },
+    { _key: 'u8', name: 'Chris Miller', roleKey: 'admin', statusKey: 'active', teamKey: 'platform' },
+] as const;
 
-type TableReorderMeta = ${TABLE_REORDER_META_TYPE}`, example: `onReorder={(reorderedRecords, meta) => {
-  setRows(reorderedRecords);
-  console.log(meta.fromIndex, meta.toIndex);
-}}` },
-    { name: 'selectedKeys', type: 'string[]', description: 'Controlled selection state. When you provide it together with onSelectionChange, the table renders multi-select checkboxes.' },
-    { name: 'onSelectionChange', type: 'TableSelectionChangeHandler', description: 'Called whenever selected rows change. When provided, the selection checkbox column appears automatically.', shape: `type TableSelectionChangeHandler = (
-  selection: TableSelectionState
-) => void
+const LOCATION_KEYS = ['milanOffice', 'berlinHub', 'remoteEurope', 'madridOffice'] as const;
+const TIMEZONES = ['CET', 'UTC', 'GMT+1', 'EST'] as const;
 
-type TableSelectionState = ${TABLE_SELECTION_STATE_TYPE}`, example: `onSelectionChange={(selection) => {
-  setSelectedKeys(selection.keys);
-  setSelectedRecords(selection.records);
-}}` },
-    { name: 'selection', type: '"single" | "multiple"', default: '"multiple"', description: 'Selection mode. "multiple" renders checkboxes; "single" renders radio buttons. Only visible when onSelectionChange or selectedKeys is provided.', control: 'select', options: ['single', 'multiple'] },
-    { name: 'sortable', type: 'boolean | OrderConfig', default: 'false', description: 'Enables header sorting. Pass an OrderConfig object to set the initial client-side sort without a separate order prop.', control: 'json', rows: 4, shortcuts: [
-        { label: 'false', value: false, help: 'Disable sorting.' },
-        { label: 'name asc', value: { field: 'name', dir: 'asc' }, help: 'Start sorted by name ascending.' },
-        { label: 'status desc', value: { field: 'status', dir: 'desc' }, help: 'Start sorted by status descending.' },
-    ], typeDetails: `boolean | {
-  field: string;
-  dir: 'asc' | 'desc';
-}`, example: `sortable={{ field: 'name', dir: 'asc' }}` },
-    { name: 'onRowClick', type: '(record) => void', description: 'Called with the clicked record.' },
-    { name: 'activeKey', type: 'string | null', description: 'Controlled active row key. When provided, the component uses this value instead of its internal click-tracked state to apply selectedClassName to the matching row.' },
-    { name: 'pagination', type: PAGINATION_PARAMS_TYPE, description: 'Shared pagination configuration. Default align is "end", so controls are right-aligned unless overridden.', control: 'json', rows: 6, shortcuts: [
-        { label: 'default', value: { limit: 4, align: 'end', sticky: false }, help: 'Right-aligned default pagination.' },
-        { label: 'compact', value: { limit: 2, align: 'center', sticky: false }, help: 'Smaller pages, centered controls.' },
-        { label: 'sticky', value: { limit: 4, align: 'end', sticky: true }, help: 'Sticky footer pagination.' },
-    ], typeDetails: PAGINATION_PARAMS_TYPE, example: `pagination={{ limit: 4, align: 'end', sticky: false }}` },
-    {
-        name: 'groupBy',
-        type: 'string | string[]',
-        description: 'Group rows by a field name. Inserts a separator header row when the field value changes. Works alongside sorting — rows cluster naturally when sorted by the same field. Pass an array for multi-level grouping.',
-        control: 'textarea',
-        textareaMode: 'text',
-        rows: 1,
-        placeholder: 'e.g. role or ["role","status"]',
-        shortcuts: [
-            { label: 'off', value: '', help: 'No grouping.' },
-            { label: 'role', value: 'role', help: 'Group by role.' },
-            { label: 'status', value: 'status', help: 'Group by status.' },
-            { label: 'team', value: 'team', help: 'Group by team.' },
-            { label: 'role+status', value: ['role', 'status'], help: 'Multi-level: role then status.' },
-        ],
-    },
-    { name: 'footer', type: 'ReactNode', description: 'Footer row or content rendered inside tfoot.', control: 'text' },
-    { name: 'renderCell', type: '(record: RecordProps, key: string, absoluteIndex: number) => ReactNode', description: 'Custom cell renderer. When provided it replaces the default field-value resolution for every cell. Receives the full record, the column key and the absolute row index across pages.' },
-    { name: 'before', type: 'ReactNode', description: 'Content rendered to the left of the table, vertically centered and stretching to the full table height. Use it for contextual actions, toolbars or status panels.' },
-    { name: 'after', type: 'ReactNode', description: 'Content rendered to the right of the table, vertically centered and stretching to the full table height.' },
-    { name: 'selectedClassName', type: 'string', description: 'Class applied to the active row after click.', control: 'text' },
-    { name: 'wrapperClassName', type: 'string', description: 'CSS class applied to the outer responsive wrapper. Use it for width and horizontal overflow behavior.', control: 'text' },
-    { name: 'heightClassName', type: 'string', description: 'Tailwind height or max-height class for the inner viewport. When set, the table enables internal vertical scrolling automatically.', control: 'text' },
-    { name: 'scrollClassName', type: 'string', description: 'Additional CSS class applied to the inner viewport. Use it as an addon for overflow styling or fine-grained tweaks.', control: 'text' },
-    { name: 'className', type: 'string', description: 'CSS classes applied to the table element.', control: 'text' },
-    { name: 'headerClassName', type: 'string', description: 'CSS classes applied to thead.', control: 'text' },
-    { name: 'bodyClassName', type: 'string', description: 'CSS classes applied to tbody.', control: 'text' },
-    { name: 'footerClassName', type: 'string', description: 'CSS classes applied to tfoot.', control: 'text' },
-];
+type TableI18n = ReturnType<typeof useShowcaseTableI18n>;
+type TableRoleKey = keyof TableI18n['values']['roles'];
+type TableStatusKey = keyof TableI18n['values']['statuses'];
+type TableTeamKey = keyof TableI18n['values']['teams'];
+type TableLocationKey = keyof TableI18n['values']['locations'];
 
-const PLAYGROUND: PlaygroundConfig = {
-    size: 'fullscreen',
-    layout: 'split',
-    mockSeed: TABLE_PLAYGROUND_SEED,
-    props: TABLE_PROPS,
-    defaultProps: {
-        sortable: { field: 'name', dir: 'asc' },
-        pagination: { limit: 4, align: 'end', sticky: false },
-        groupBy: '',
-        footer: '8 team members',
-        selectedClassName: '',
-        wrapperClassName: '',
-        heightClassName: '',
-        scrollClassName: '',
-        className: '',
-        headerClassName: '',
-        bodyClassName: '',
-        footerClassName: '',
-    },
-    render: (p) => <TablePlaygroundPreview p={p} />,
+type TableRow = {
+    _key: string;
+    name: string;
+    role: string;
+    status: string;
+    team: string;
 };
 
-function TablePlaygroundPreview({ p }: { p: Record<string, any> }) {
-    const provider = useDataProvider();
-    const [sourceRows, setSourceRows] = React.useState<Array<Record<string, any>>>(ROWS);
-    const [playgroundRows, setPlaygroundRows] = React.useState(tableBody);
-    const [multiEnabled, setMultiEnabled] = React.useState(false);
-    const [dragEnabled, setDragEnabled] = React.useState(false);
-    const [playgroundSelectedKeys, setPlaygroundSelectedKeys] = React.useState<string[]>([]);
-    const [selectionPayload, setSelectionPayload] = React.useState<{ keys: string[]; records: string[]; hasSelection: boolean } | null>(null);
-    const [reorderPayload, setReorderPayload] = React.useState<{ keys: string[]; fromIndex: number | null; toIndex: number | null }>({
-        keys: tableBody.map((record) => String(record._key || '')),
-        fromIndex: null,
-        toIndex: null,
-    });
+function buildRows(t: TableI18n): TableRow[] {
+    return ROW_DEFS.map((row) => ({
+        _key: row._key,
+        name: row.name,
+        role: t.values.roles[row.roleKey as TableRoleKey],
+        status: t.values.statuses[row.statusKey as TableStatusKey],
+        team: t.values.teams[row.teamKey as TableTeamKey],
+    }));
+}
 
-    React.useEffect(() => {
-        return provider.subscribe(TABLE_PLAYGROUND_PATH, setSourceRows);
-    }, [provider]);
+function buildHeader(t: TableI18n) {
+    return [
+        { key: 'name', label: t.labels.name },
+        { key: 'role', label: t.labels.role },
+        { key: 'status', label: t.labels.status },
+        { key: 'team', label: t.labels.team, sort: false },
+    ];
+}
 
-    const mapRows = React.useCallback((rows: Array<Record<string, any>>) => rows.map((row) => ({
+function buildResponsiveHeader(t: TableI18n) {
+    return [
+        { key: 'name', label: t.labels.name },
+        { key: 'role', label: t.labels.role },
+        { key: 'status', label: t.labels.status },
+        { key: 'team', label: t.labels.team },
+        { key: 'location', label: t.labels.location },
+        { key: 'timezone', label: t.labels.timezone },
+    ];
+}
+
+function toTableBody(rows: TableRow[]) {
+    return rows.map((row) => ({
         ...row,
         status: (
             <Badge
                 className={
-                    row.status === 'active'
+                    row.status === 'active' || row.status === 'attivo' || row.status === 'aktiv'
                         ? 'bg-success'
-                        : row.status === 'review'
+                        : row.status === 'review' || row.status === 'pruefung'
                             ? 'bg-warning'
                             : 'bg-secondary'
                 }
@@ -233,29 +114,79 @@ function TablePlaygroundPreview({ p }: { p: Record<string, any> }) {
                 {row.status}
             </Badge>
         ),
-    })), []);
+    })) as unknown as RecordProps[];
+}
+
+function buildResponsiveBody(rows: TableRow[], t: TableI18n) {
+    return rows.map((row, index) => ({
+        ...row,
+        location: t.values.locations[LOCATION_KEYS[index % LOCATION_KEYS.length] as TableLocationKey],
+        timezone: TIMEZONES[index % TIMEZONES.length],
+    }));
+}
+
+function buildScrollBody(rows: TableRow[]) {
+    return Array.from({ length: 18 }, (_, index) => {
+        const row = rows[index % rows.length];
+        return {
+            ...row,
+            _key: `${row._key}-${index + 1}`,
+            team: `${row.team} ${index + 1}`,
+        };
+    });
+}
+
+function TablePlaygroundPreview({
+    p,
+    t,
+    seedRows,
+    header,
+}: {
+    p: Record<string, any>;
+    t: TableI18n;
+    seedRows: TableRow[];
+    header: Array<{ key: string; label: string; sort?: boolean }>;
+}) {
+    const provider = useDataProvider();
+    const [sourceRows, setSourceRows] = React.useState<Array<Record<string, any>>>(seedRows);
+    const [playgroundRows, setPlaygroundRows] = React.useState<RecordProps[]>(toTableBody(seedRows));
+    const [multiEnabled, setMultiEnabled] = React.useState(false);
+    const [dragEnabled, setDragEnabled] = React.useState(false);
+    const [playgroundSelectedKeys, setPlaygroundSelectedKeys] = React.useState<string[]>([]);
+    const [selectionPayload, setSelectionPayload] = React.useState<{ keys: string[]; records: string[]; hasSelection: boolean } | null>(null);
+    const [reorderPayload, setReorderPayload] = React.useState<{ keys: string[]; fromIndex: number | null; toIndex: number | null }>({
+        keys: toTableBody(seedRows).map((record) => String(record._key || '')),
+        fromIndex: null,
+        toIndex: null,
+    });
+
+    React.useEffect(() => provider.subscribe(TABLE_PLAYGROUND_PATH, setSourceRows), [provider]);
 
     React.useEffect(() => {
-        const mappedRows = mapRows(sourceRows);
-        setPlaygroundRows(mappedRows as unknown as RecordProps[]);
+        const mappedRows = toTableBody(sourceRows as TableRow[]);
+        setPlaygroundRows(mappedRows);
         setPlaygroundSelectedKeys([]);
         setSelectionPayload(null);
         setReorderPayload({
-            keys: (mappedRows as Array<Record<string, unknown>>).map((record) => String(record._key || '')),
+            keys: mappedRows.map((record) => String(record._key || '')),
             fromIndex: null,
             toIndex: null,
         });
-    }, [mapRows, sourceRows]);
+    }, [sourceRows]);
 
     const groupBy: string | string[] | undefined = (() => {
-        const val = p.groupBy;
-        if (!val) return undefined;
-        if (Array.isArray(val)) return (val as string[]).length > 0 ? val as string[] : undefined;
-        if (typeof val === 'string') {
-            const trimmed = val.trim();
+        const value = p.groupBy;
+        if (!value) return undefined;
+        if (Array.isArray(value)) return value.length > 0 ? value as string[] : undefined;
+        if (typeof value === 'string') {
+            const trimmed = value.trim();
             if (!trimmed) return undefined;
             if (trimmed.startsWith('[')) {
-                try { return JSON.parse(trimmed) as string[]; } catch { /* fall through */ }
+                try {
+                    return JSON.parse(trimmed) as string[];
+                } catch {
+                    return trimmed;
+                }
             }
             return trimmed;
         }
@@ -268,12 +199,12 @@ function TablePlaygroundPreview({ p }: { p: Record<string, any> }) {
                 <div className="rounded-md border bg-muted/30 p-3">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                         <div>
-                            <div className="text-sm font-medium">Multi checkbox</div>
-                            <div className="text-xs text-muted-foreground">Enable controlled multi-selection and inspect the onSelectionChange payload live.</div>
+                            <div className="text-sm font-medium">{t.labels.multiCheckbox}</div>
+                            <div className="text-xs text-muted-foreground">{t.labels.multiCheckboxHelp}</div>
                         </div>
                         <ActionButton
                             className={`${multiEnabled ? buttonPrimaryClass : buttonOutlineSecondaryClass} btn-sm`}
-                            label={multiEnabled ? 'Disable multi checkbox' : 'Enable multi checkbox'}
+                            label={multiEnabled ? t.labels.disableMultiCheckbox : t.labels.enableMultiCheckbox}
                             onClick={() => {
                                 setMultiEnabled((current) => {
                                     const next = !current;
@@ -288,17 +219,17 @@ function TablePlaygroundPreview({ p }: { p: Record<string, any> }) {
                 <div className="rounded-md border bg-muted/30 p-3">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                         <div>
-                            <div className="text-sm font-medium">Drag reorder</div>
-                            <div className="text-xs text-muted-foreground">Enable row drag and drop, then inspect the reordered record set and movement metadata. While drag is active, sorting is suspended so manual order stays visible.</div>
+                            <div className="text-sm font-medium">{t.labels.dragReorder}</div>
+                            <div className="text-xs text-muted-foreground">{t.labels.dragReorderHelp}</div>
                         </div>
                         <ActionButton
                             className={`${dragEnabled ? buttonPrimaryClass : buttonOutlineSecondaryClass} btn-sm`}
-                            label={dragEnabled ? 'Disable drag' : 'Enable drag'}
+                            label={dragEnabled ? t.labels.disableDrag : t.labels.enableDrag}
                             onClick={() => {
                                 setDragEnabled((current) => {
                                     const next = !current;
                                     setReorderPayload({
-                                        keys: playgroundRows.map((record) => record._key || ''),
+                                        keys: playgroundRows.map((record) => String(record._key || '')),
                                         fromIndex: null,
                                         toIndex: null,
                                     });
@@ -317,7 +248,7 @@ function TablePlaygroundPreview({ p }: { p: Record<string, any> }) {
                     setPlaygroundSelectedKeys(selection.keys);
                     setSelectionPayload({
                         keys: selection.keys,
-                        records: selection.records.map((record) => String(record._key || record.name || 'record')),
+                        records: selection.records.map((record) => String(record._key || record.name || t.labels.record)),
                         hasSelection: selection.hasSelection,
                     });
                 }) : undefined}
@@ -350,7 +281,7 @@ function TablePlaygroundPreview({ p }: { p: Record<string, any> }) {
             />
             <div className="grid gap-3 xl:grid-cols-2">
                 <div className="rounded-md border bg-muted/40 p-3">
-                    <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">onSelectionChange payload</div>
+                    <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t.labels.onSelectionPayload}</div>
                     <pre className="overflow-auto whitespace-pre-wrap break-all text-xs text-foreground">
                         {multiEnabled
                             ? JSON.stringify(selectionPayload ?? {
@@ -358,15 +289,15 @@ function TablePlaygroundPreview({ p }: { p: Record<string, any> }) {
                                 records: [],
                                 hasSelection: playgroundSelectedKeys.length > 0,
                             }, null, 2)
-                            : 'Enable multi checkbox above, then select rows to see the callback payload here.'}
+                            : t.labels.selectionPayloadHint}
                     </pre>
                 </div>
                 <div className="rounded-md border bg-muted/40 p-3">
-                    <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">onReorder payload</div>
+                    <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t.labels.onReorderPayload}</div>
                     <pre className="overflow-auto whitespace-pre-wrap break-all text-xs text-foreground">
                         {dragEnabled
                             ? JSON.stringify(reorderPayload, null, 2)
-                            : 'Enable drag above, then move rows to inspect the reordered record set and drag metadata.'}
+                            : t.labels.reorderPayloadHint}
                     </pre>
                 </div>
             </div>
@@ -375,27 +306,174 @@ function TablePlaygroundPreview({ p }: { p: Record<string, any> }) {
 }
 
 export default function TablePage() {
-    usePlayground(PLAYGROUND, 'Table');
-    const [selected, setSelected] = React.useState<string>('');
+    const t = useShowcaseTableI18n();
+
+    const rows = React.useMemo(() => buildRows(t), [t]);
+    const header = React.useMemo(() => buildHeader(t), [t]);
+    const responsiveHeader = React.useMemo(() => buildResponsiveHeader(t), [t]);
+    const plainBody = React.useMemo(() => rows.map((row) => ({ ...row })), [rows]);
+    const tableBody = React.useMemo(() => toTableBody(rows), [rows]);
+    const responsiveBody = React.useMemo(() => buildResponsiveBody(rows, t), [rows, t]);
+    const scrollBody = React.useMemo(() => buildScrollBody(rows), [rows]);
+
+    const tableProps = React.useMemo<PropDef[]>(() => [
+        {
+            name: 'columns',
+            type: 'TableHeaderProp[]',
+            description: t.propsDocs.items.columns.description,
+            shape: `type TableHeaderProp = ${TABLE_HEADER_PROP_TYPE}`,
+            example: `columns={[
+  { key: 'name', label: 'Name' },
+  { key: 'role', label: 'Role' },
+  { key: 'status', label: 'Status' },
+  { key: 'team', label: 'Team', sort: false },
+]}`,
+        },
+        { name: 'records', type: 'RecordArray', description: t.propsDocs.items.records.description },
+        {
+            name: 'onReorder',
+            type: 'TableReorderHandler',
+            description: t.propsDocs.items.onReorder.description,
+            shape: `type TableReorderHandler = (
+  reorderedRecords: RecordArray,
+  meta: TableReorderMeta
+) => void
+
+type TableReorderMeta = ${TABLE_REORDER_META_TYPE}`,
+            example: `onReorder={(reorderedRecords, meta) => {
+  setRows(reorderedRecords);
+  console.log(meta.fromIndex, meta.toIndex);
+}}`,
+        },
+        { name: 'selectedKeys', type: 'string[]', description: t.propsDocs.items.selectedKeys.description },
+        {
+            name: 'onSelectionChange',
+            type: 'TableSelectionChangeHandler',
+            description: t.propsDocs.items.onSelectionChange.description,
+            shape: `type TableSelectionChangeHandler = (
+  selection: TableSelectionState
+) => void
+
+type TableSelectionState = ${TABLE_SELECTION_STATE_TYPE}`,
+            example: `onSelectionChange={(selection) => {
+  setSelectedKeys(selection.keys);
+  setSelectedRecords(selection.records);
+}}`,
+        },
+        {
+            name: 'selection',
+            type: '"single" | "multiple"',
+            default: '"multiple"',
+            description: t.propsDocs.items.selection.description,
+            control: 'select',
+            options: ['single', 'multiple'],
+        },
+        {
+            name: 'sortable',
+            type: 'boolean | OrderConfig',
+            default: 'false',
+            description: t.propsDocs.items.sortable.description,
+            control: 'json',
+            rows: 4,
+            shortcuts: [
+                { label: t.propsDocs.items.sortable.shortcuts?.false.label || 'false', value: false, help: t.propsDocs.items.sortable.shortcuts?.false.help },
+                { label: t.propsDocs.items.sortable.shortcuts?.nameAsc.label || 'name asc', value: { field: 'name', dir: 'asc' }, help: t.propsDocs.items.sortable.shortcuts?.nameAsc.help },
+                { label: t.propsDocs.items.sortable.shortcuts?.statusDesc.label || 'status desc', value: { field: 'status', dir: 'desc' }, help: t.propsDocs.items.sortable.shortcuts?.statusDesc.help },
+            ],
+            typeDetails: `boolean | {
+  field: string;
+  dir: 'asc' | 'desc';
+}`,
+            example: `sortable={{ field: 'name', dir: 'asc' }}`,
+        },
+        { name: 'onRowClick', type: '(record) => void', description: t.propsDocs.items.onRowClick.description },
+        { name: 'activeKey', type: 'string | null', description: t.propsDocs.items.activeKey.description },
+        {
+            name: 'pagination',
+            type: PAGINATION_PARAMS_TYPE,
+            description: t.propsDocs.items.pagination.description,
+            control: 'json',
+            rows: 6,
+            shortcuts: [
+                { label: t.propsDocs.items.pagination.shortcuts?.default.label || 'default', value: { limit: 4, align: 'end', sticky: false }, help: t.propsDocs.items.pagination.shortcuts?.default.help },
+                { label: t.propsDocs.items.pagination.shortcuts?.compact.label || 'compact', value: { limit: 2, align: 'center', sticky: false }, help: t.propsDocs.items.pagination.shortcuts?.compact.help },
+                { label: t.propsDocs.items.pagination.shortcuts?.sticky.label || 'sticky', value: { limit: 4, align: 'end', sticky: true }, help: t.propsDocs.items.pagination.shortcuts?.sticky.help },
+            ],
+            typeDetails: PAGINATION_PARAMS_TYPE,
+            example: `pagination={{ limit: 4, align: 'end', sticky: false }}`,
+        },
+        {
+            name: 'groupBy',
+            type: 'string | string[]',
+            description: t.propsDocs.items.groupBy.description,
+            control: 'textarea',
+            textareaMode: 'text',
+            rows: 1,
+            placeholder: t.propsDocs.items.groupBy.placeholder,
+            shortcuts: [
+                { label: t.propsDocs.items.groupBy.shortcuts?.off.label || 'off', value: '', help: t.propsDocs.items.groupBy.shortcuts?.off.help },
+                { label: t.propsDocs.items.groupBy.shortcuts?.role.label || 'role', value: 'role', help: t.propsDocs.items.groupBy.shortcuts?.role.help },
+                { label: t.propsDocs.items.groupBy.shortcuts?.status.label || 'status', value: 'status', help: t.propsDocs.items.groupBy.shortcuts?.status.help },
+                { label: t.propsDocs.items.groupBy.shortcuts?.team.label || 'team', value: 'team', help: t.propsDocs.items.groupBy.shortcuts?.team.help },
+                { label: t.propsDocs.items.groupBy.shortcuts?.roleStatus.label || 'role+status', value: ['role', 'status'], help: t.propsDocs.items.groupBy.shortcuts?.roleStatus.help },
+            ],
+        },
+        { name: 'footer', type: 'ReactNode', description: t.propsDocs.items.footer.description, control: 'text' },
+        { name: 'renderCell', type: '(record: RecordProps, key: string, absoluteIndex: number) => ReactNode', description: t.propsDocs.items.renderCell.description },
+        { name: 'before', type: 'ReactNode', description: t.propsDocs.items.before.description },
+        { name: 'after', type: 'ReactNode', description: t.propsDocs.items.after.description },
+        { name: 'selectedClassName', type: 'string', description: t.propsDocs.items.selectedClassName.description, control: 'text' },
+        { name: 'wrapperClassName', type: 'string', description: t.propsDocs.items.wrapperClassName.description, control: 'text' },
+        { name: 'heightClassName', type: 'string', description: t.propsDocs.items.heightClassName.description, control: 'text' },
+        { name: 'scrollClassName', type: 'string', description: t.propsDocs.items.scrollClassName.description, control: 'text' },
+        { name: 'className', type: 'string', description: t.propsDocs.items.className.description, control: 'text' },
+        { name: 'headerClassName', type: 'string', description: t.propsDocs.items.headerClassName.description, control: 'text' },
+        { name: 'bodyClassName', type: 'string', description: t.propsDocs.items.bodyClassName.description, control: 'text' },
+        { name: 'footerClassName', type: 'string', description: t.propsDocs.items.footerClassName.description, control: 'text' },
+    ], [t]);
+
+    const playground = React.useMemo<PlaygroundConfig>(() => ({
+        size: 'fullscreen',
+        layout: 'split',
+        mockSeed: {
+            [TABLE_PLAYGROUND_PATH]: Object.fromEntries(rows.map(({ _key, ...record }) => [_key, record])),
+        },
+        props: tableProps,
+        defaultProps: {
+            sortable: { field: 'name', dir: 'asc' },
+            pagination: { limit: 4, align: 'end', sticky: false },
+            groupBy: '',
+            footer: t.playground.defaultFooter,
+            selectedClassName: '',
+            wrapperClassName: '',
+            heightClassName: '',
+            scrollClassName: '',
+            className: '',
+            headerClassName: '',
+            bodyClassName: '',
+            footerClassName: '',
+        },
+        render: (p) => <TablePlaygroundPreview p={p} t={t} seedRows={rows} header={header} />,
+    }), [header, rows, t, tableProps]);
+
+    usePlayground(playground, t.playground.title);
+
+    const [selected, setSelected] = React.useState('');
     const [reorderedRows, setReorderedRows] = React.useState<RecordProps[]>(plainBody);
     const [bulkKeys, setBulkKeys] = React.useState<string[]>([]);
     const [bulkRecords, setBulkRecords] = React.useState<RecordProps[]>([]);
     const [exportOpen, setExportOpen] = React.useState(false);
 
+    React.useEffect(() => {
+        setReorderedRows(plainBody);
+    }, [plainBody]);
+
     return (
-        <PageLayout
-            title="Table"
-            description="Presentational data table with internal header sorting, optional pagination, drag reorder, bulk selection and stable row selection by record."
-        >
+        <PageLayout title={t.page.title} description={t.page.description}>
             <Section
-                title="Basic table"
-                description="The default table is plain and predictable: no sorting, no row click behavior and no selected state. It stretches to the available container width."
-                preview={
-                    <Table
-                        columns={header}
-                        records={plainBody.slice(0, 4)}
-                    />
-                }
+                title={t.sections.basicTable.title}
+                description={t.sections.basicTable.description}
+                preview={<Table columns={header} records={plainBody.slice(0, 4)} />}
                 code={`<Table
   columns={[
     { key: 'name', label: 'Name' },
@@ -408,8 +486,8 @@ export default function TablePage() {
             />
 
             <Section
-                title="Sortable columns"
-                description="Enable sorting once with sortable. Columns inherit that default unless a specific header opts out with sort: false, so the difference is visible without repeating sort: true everywhere."
+                title={t.sections.sortableColumns.title}
+                description={t.sections.sortableColumns.description}
                 preview={
                     <Table
                         columns={header}
@@ -437,8 +515,8 @@ export default function TablePage() {
             />
 
             <Section
-                title="Responsive width"
-                description="A solid Tailwind or shadcn pattern is: full-width wrapper with horizontal overflow, then a table that keeps at least its own minimum readable width. This avoids squeezing columns into unusable layouts."
+                title={t.sections.responsiveWidth.title}
+                description={t.sections.responsiveWidth.description}
                 preview={
                     <div className="w-full max-w-3xl">
                         <Table
@@ -467,8 +545,8 @@ export default function TablePage() {
             />
 
             <Section
-                title="Internal scroll"
-                description="If you want a fixed-height viewport with vertical scrolling inside the table area, declare a height or max-height class directly. The table enables internal scrolling automatically, and scrollClassName stays available only for extra tweaks."
+                title={t.sections.internalScroll.title}
+                description={t.sections.internalScroll.description}
                 preview={
                     <Table
                         columns={header}
@@ -486,8 +564,8 @@ export default function TablePage() {
             />
 
             <Section
-                title="Auto headers"
-                description="When you omit columns, Table derives them from the first record. If sortable is true, those generated columns are sortable by default."
+                title={t.sections.autoHeaders.title}
+                description={t.sections.autoHeaders.description}
                 preview={
                     <Table
                         records={plainBody}
@@ -503,8 +581,8 @@ export default function TablePage() {
             />
 
             <Section
-                title="Record click"
-                description="onRowClick receives the whole record, so selection stays correct even after sorting or pagination. Consumers can use record._key directly."
+                title={t.sections.recordClick.title}
+                description={t.sections.recordClick.description}
                 preview={
                     <div className="space-y-3">
                         <Table
@@ -516,7 +594,7 @@ export default function TablePage() {
                             pagination={{ limit: 4, align: 'start', sticky: false }}
                         />
                         <div className="text-xs text-muted-foreground">
-                            Selected key: <span className="font-mono">{selected || 'none'}</span>
+                            {t.labels.selectedKey}: <span className="font-mono">{selected || t.labels.none}</span>
                         </div>
                     </div>
                 }
@@ -533,8 +611,8 @@ export default function TablePage() {
             />
 
             <Section
-                title="Bulk selection"
-                description="onSelectionChange is enough to turn on the checkbox column. Commands stay outside the component: here they are rendered through the table's before slot, and Export opens a modal with the selected records JSON."
+                title={t.sections.bulkSelection.title}
+                description={t.sections.bulkSelection.description}
                 preview={
                     <div className="space-y-3">
                         <Table
@@ -543,18 +621,18 @@ export default function TablePage() {
                             before={(
                                 <div className="flex items-center justify-between gap-3 rounded-md border px-3 py-2 text-sm">
                                     <span className="text-muted-foreground">
-                                        {bulkKeys.length ? `${bulkKeys.length} selected` : 'Select rows to enable external bulk commands'}
+                                        {bulkKeys.length ? `${bulkKeys.length} ${t.labels.selected}` : t.labels.selectRowsToEnableBulk}
                                     </span>
                                     <div className="flex items-center gap-2">
                                         <ActionButton
                                             className={`${buttonOutlineSecondaryClass} btn-sm`}
-                                            label="Export"
+                                            label={t.labels.export}
                                             disabled={!bulkKeys.length}
                                             onClick={() => setExportOpen(true)}
                                         />
                                         <ActionButton
                                             className={`${buttonOutlineSecondaryClass} btn-sm`}
-                                            label="Clear"
+                                            label={t.labels.clear}
                                             disabled={!bulkKeys.length}
                                             onClick={() => {
                                                 setBulkKeys([]);
@@ -572,14 +650,10 @@ export default function TablePage() {
                             }}
                         />
                         <div className="text-xs text-muted-foreground">
-                            Selected keys: <span className="font-mono">{bulkKeys.length ? bulkKeys.join(', ') : 'none'}</span>
+                            {t.labels.selectedKeys}: <span className="font-mono">{bulkKeys.length ? bulkKeys.join(', ') : t.labels.none}</span>
                         </div>
                         {exportOpen && (
-                            <Modal
-                                title="Selected records"
-                                size="lg"
-                                onClose={() => setExportOpen(false)}
-                            >
+                            <Modal title={t.labels.selectedRecords} size="lg" onClose={() => setExportOpen(false)}>
                                 <pre className="overflow-auto rounded-md bg-muted p-3 text-xs">
                                     {JSON.stringify(bulkRecords, null, 2)}
                                 </pre>
@@ -614,8 +688,8 @@ const [exportOpen, setExportOpen] = useState(false);
           label="Clear"
           disabled={!selectedKeys.length}
           onClick={() => {
-          setSelectedKeys([]);
-          setSelectedRecords([]);
+            setSelectedKeys([]);
+            setSelectedRecords([]);
           }}
         />
       </div>
@@ -627,38 +701,30 @@ const [exportOpen, setExportOpen] = useState(false);
     setSelectedKeys(selection.keys);
     setSelectedRecords(selection.records);
   }}
-/>
-
-{exportOpen && (
-  <Modal title="Selected records" onClose={() => setExportOpen(false)}>
-    <pre className="overflow-auto rounded-md bg-muted p-3 text-xs">
-      {JSON.stringify(selectedRecords, null, 2)}
-    </pre>
-  </Modal>
-)}`}
+/>`}
             />
 
             <Section
-                title="Drag reorder"
-                description="Provide onReorder to make rows draggable. The callback receives the new ordered records, which is the right place to persist the change."
+                title={t.sections.dragReorder.title}
+                description={t.sections.dragReorder.description}
                 preview={
                     <div className="w-full space-y-3">
                         <div className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900">
-                            <div className="font-medium">Note</div>
+                            <div className="font-medium">{t.labels.note}</div>
                             <div className="mt-1 text-xs leading-relaxed">
-                                Manual reorder and sorting should not drive the same table view together.
-                                If <code>onReorder</code> is combined with sortable sorting, manual reorder wins, sorting is ignored, and the component logs a warning.
+                                {t.labels.dragSortWarningTitle}{' '}
+                                {t.labels.dragSortWarningBody}
                             </div>
                         </div>
                         <Table
                             columns={header}
                             records={reorderedRows}
                             onReorder={(reorderedRecords) => setReorderedRows(reorderedRecords)}
-                            after={
+                            after={(
                                 <div className="text-xs text-muted-foreground">
-                                    Current order: {reorderedRows.map((row) => row._key).join(', ')}
+                                    {t.labels.currentOrder}: {reorderedRows.map((row) => row._key).join(', ')}
                                 </div>
-                            }
+                            )}
                         />
                     </div>
                 }
@@ -672,8 +738,8 @@ const [exportOpen, setExportOpen] = useState(false);
             />
 
             <Section
-                title="Footer and paging"
-                description="Footer content lives in tfoot and pagination stays delegated to the shared Pagination component. Use pagination.align to place controls on the left, center or right."
+                title={t.sections.footerAndPaging.title}
+                description={t.sections.footerAndPaging.description}
                 preview={
                     <Table
                         columns={header}
@@ -683,7 +749,7 @@ const [exportOpen, setExportOpen] = useState(false);
                         footer={(
                             <tr>
                                 <td colSpan={header.length} className="text-sm text-muted-foreground">
-                                    8 team members across 6 teams
+                                    {t.labels.footerSummary}
                                 </td>
                             </tr>
                         )}
@@ -703,8 +769,8 @@ const [exportOpen, setExportOpen] = useState(false);
             />
 
             <Section
-                title="Grouped rows"
-                description="Pass a field name to groupBy to insert a separator header row between groups. Grouping pairs naturally with sorting on the same field — rows cluster automatically. Pass an array for multi-level grouping."
+                title={t.sections.groupedRows.title}
+                description={t.sections.groupedRows.description}
                 preview={
                     <Table
                         columns={header}
@@ -731,7 +797,7 @@ const [exportOpen, setExportOpen] = useState(false);
 />`}
             />
 
-            <PropDocsTable props={TABLE_PROPS} />
+            <PropDocsTable props={tableProps} title={t.propsDocs.title} />
         </PageLayout>
     );
 }

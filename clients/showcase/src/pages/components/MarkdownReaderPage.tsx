@@ -5,90 +5,60 @@ import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
 import { usePlayground } from '../../docs-kit/playground';
 import type { PropDef, PlaygroundConfig } from '../../docs-kit/playground';
-
-const SAMPLE_MARKDOWN = `# MarkdownReader
-
-Render repository-friendly Markdown with @llmnative/react styling.
-
-## Features
-
-- GitHub Flavored Markdown
-- Heading anchors
-- Internal link interception
-- Copyable code blocks
-
-| Feature | Status |
-| --- | --- |
-| Tables | Supported |
-| Task lists | Supported |
-
-- [x] Render docs
-- [ ] Wire wiki-style pages
-
-> Markdown stays readable for humans and AI, while the app renders it as themed UI.
-
-\`\`\`tsx
-<MarkdownReader content={markdown} />
-\`\`\`
-
-Continue to [Quick start](/docs/quick-start).`;
-
-const PROPS_CONFIG: PropDef[] = [
-    { name: 'content', type: 'string', required: true, description: 'Markdown string to render' },
-    { name: 'metadata', type: 'PageMetadataState', description: 'SEO metadata injected via Head component', typeDetails: `{
-  title?: string;
-  description?: string;
-}` },
-    { name: 'onInternalLinkClick', type: '(href: string, event: React.MouseEvent<HTMLAnchorElement>) => void', description: 'Intercepts clicks on internal links (relative paths). Use to navigate with React Router.' },
-    { name: 'components', type: 'Components', description: 'Custom react-markdown component overrides merged on top of the built-in themed renderers (h1–h4, p, ul, ol, table, a, pre, code, …).' },
-    { name: 'className', type: 'string', description: 'Additional CSS classes on the prose wrapper', control: 'text' },
-    { name: 'wrapperClassName', type: 'string', description: 'Additional CSS classes on the outermost div (applied alongside className)', control: 'text' },
-];
-
-const PLAYGROUND: PlaygroundConfig = {
-    size: 'lg',
-    props: PROPS_CONFIG,
-    defaultProps: {
-        content: SAMPLE_MARKDOWN,
-        className: '',
-    },
-    render: (p) => (
-        <MarkdownReader
-            content={p.content}
-            className={p.className || undefined}
-        />
-    ),
-};
+import { useShowcaseMarkdownReaderI18n } from '../../showcase/i18n';
 
 export default function MarkdownReaderPage() {
-    usePlayground(PLAYGROUND, 'Markdown Reader');
+    const t = useShowcaseMarkdownReaderI18n();
     const [lastNavigation, setLastNavigation] = useState<string | null>(null);
 
+    const propsConfig = React.useMemo<PropDef[]>(() => ([
+        { name: 'content', type: 'string', required: true, description: t.propsDocs.items.content.description },
+        { name: 'metadata', type: 'PageMetadataState', description: t.propsDocs.items.metadata.description, typeDetails: t.propsDocs.items.metadata.typeDetails },
+        { name: 'onInternalLinkClick', type: '(href: string, event: React.MouseEvent<HTMLAnchorElement>) => void', description: t.propsDocs.items.onInternalLinkClick.description },
+        { name: 'components', type: 'Components', description: t.propsDocs.items.components.description },
+        { name: 'className', type: 'string', description: t.propsDocs.items.className.description, control: 'text' },
+        { name: 'wrapperClassName', type: 'string', description: t.propsDocs.items.wrapperClassName.description, control: 'text' },
+    ]), [t]);
+
+    const playground = React.useMemo<PlaygroundConfig>(() => ({
+        size: 'lg',
+        props: propsConfig,
+        defaultProps: {
+            content: t.demo.content,
+            className: '',
+        },
+        render: (p) => (
+            <MarkdownReader
+                content={p.content}
+                className={p.className || undefined}
+            />
+        ),
+    }), [propsConfig, t.demo.content]);
+
+    usePlayground(playground, t.playground.title);
+
     return (
-        <PageLayout
-            title="MarkdownReader"
-            description="Render Markdown with @llmnative/react styling, GFM support, code copy and internal link handling."
-        >
+        <PageLayout title={t.page.title} description={t.page.description}>
             <Section
-                title="Rendered markdown"
-                description="The same Markdown string can be read in the repo and rendered in the app."
-                preview={
+                title={t.sections.renderedMarkdown.title}
+                description={t.sections.renderedMarkdown.description}
+                preview={(
                     <div className="w-full">
                         <MarkdownReader
-                            content={SAMPLE_MARKDOWN}
+                            content={t.demo.content}
                             metadata={{
-                                title: 'MarkdownReader',
-                                description: 'Render Markdown with GFM support and themed components.',
+                                title: t.demo.metadataTitle,
+                                description: t.demo.metadataDescription,
                             }}
                             onInternalLinkClick={(href) => setLastNavigation(href)}
                         />
                         {lastNavigation && (
                             <div className="alert alert-info mt-4 text-sm">
-                                Internal navigation intercepted: {lastNavigation}
+                                {t.labels.internalNavigationIntercepted} {lastNavigation}
                             </div>
                         )}
                     </div>
-                }
+                )}
                 code={`import { MarkdownReader } from '@llmnative/react';
 
 <MarkdownReader
@@ -101,8 +71,7 @@ export default function MarkdownReaderPage() {
 />`}
             />
 
-            <PropDocsTable props={PROPS_CONFIG} />
-
+            <PropDocsTable props={propsConfig} title={t.propsDocs.title} />
         </PageLayout>
     );
 }

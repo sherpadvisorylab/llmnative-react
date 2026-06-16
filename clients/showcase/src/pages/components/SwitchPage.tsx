@@ -1,61 +1,64 @@
-﻿import React from 'react';
+import React from 'react';
 import { Form, Switch } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
 import { usePlayground } from '../../docs-kit/playground';
 import type { PropDef, PlaygroundConfig } from '../../docs-kit/playground';
-
-const SWITCH_PROPS: PropDef[] = [
-    { name: 'name', type: 'string', required: true, description: 'Field name used as form key', control: 'text' },
-    { name: 'label', type: 'string', description: 'Label next to the switch', control: 'text' },
-    { name: 'title', type: 'string', description: 'Native title attribute', control: 'text' },
-    { name: 'ariaLabel', type: 'string', description: 'Accessible label for the switch input (used when no visible label is provided)', control: 'text' },
-    { name: 'inheritWrapperClassName', type: 'boolean', default: 'true', description: 'When false, ignores the wrapperClassName inherited from the parent Form context', control: 'boolean' },
-    { name: 'required', type: 'boolean', default: 'false', description: 'Marks field as required', control: 'boolean' },
-    { name: 'valueChecked', type: 'string | number', default: '"on"', description: 'Value saved when enabled', control: 'text' },
-    { name: 'defaultValue', type: 'string | number', description: 'Initial enabled value', control: 'text' },
-    { name: 'before', type: 'ReactNode', description: 'Content before the switch', control: 'text' },
-    { name: 'after', type: 'ReactNode', description: 'Content after the switch', control: 'text' },
-    { name: 'onChange', type: 'FieldOnChange', description: 'Custom change handler called by Form context' },
-    { name: 'className', type: 'string', description: 'CSS classes on checkbox input', control: 'text' },
-    { name: 'wrapperClassName', type: 'string', description: 'CSS classes on wrapper', control: 'text' },
-];
-
-const PLAYGROUND: PlaygroundConfig = {
-    props: SWITCH_PROPS,
-    showFormRecord: true,
-    defaultProps: {
-        name: 'published',
-        label: 'Published',
-        title: 'Toggle published state',
-        required: false,
-        valueChecked: 'yes',
-        defaultValue: 'yes',
-        before: '',
-        after: '',
-        className: '',
-        wrapperClassName: '',
-    },
-    render: (p, onValuesChange) => (
-        <Form appearance="empty" onChange={onValuesChange}>
-            <Switch name="published" {...p} />
-        </Form>
-    ),
-};
+import { useShowcaseSwitchI18n } from '../../showcase/i18n';
 
 export default function SwitchPage() {
-    usePlayground(PLAYGROUND, 'Switch');
+    const t = useShowcaseSwitchI18n();
+
+    const switchProps = React.useMemo<PropDef[]>(() => [
+        { name: 'name', type: 'string', required: true, description: t.propsDocs.items.name.description, control: 'text' },
+        { name: 'label', type: 'string', description: t.propsDocs.items.label.description, control: 'text' },
+        { name: 'title', type: 'string', description: t.propsDocs.items.title.description, control: 'text' },
+        { name: 'ariaLabel', type: 'string', description: t.propsDocs.items.ariaLabel.description, control: 'text' },
+        { name: 'inheritWrapperClassName', type: 'boolean', default: 'true', description: t.propsDocs.items.inheritWrapperClassName.description, control: 'boolean' },
+        { name: 'required', type: 'boolean', default: 'false', description: t.propsDocs.items.required.description, control: 'boolean' },
+        { name: 'valueChecked', type: 'string | number', default: '"on"', description: t.propsDocs.items.valueChecked.description, control: 'text' },
+        { name: 'defaultValue', type: 'string | number', description: t.propsDocs.items.defaultValue.description, control: 'text' },
+        { name: 'before', type: 'ReactNode', description: t.propsDocs.items.before.description, control: 'text' },
+        { name: 'after', type: 'ReactNode', description: t.propsDocs.items.after.description, control: 'text' },
+        { name: 'onChange', type: 'FieldOnChange', description: t.propsDocs.items.onChange.description },
+        { name: 'className', type: 'string', description: t.propsDocs.items.className.description, control: 'text' },
+        { name: 'wrapperClassName', type: 'string', description: t.propsDocs.items.wrapperClassName.description, control: 'text' },
+    ], [t]);
+
+    const playground = React.useMemo<PlaygroundConfig>(() => ({
+        props: switchProps,
+        showFormRecord: true,
+        defaultProps: {
+            name: 'published',
+            label: t.labels.published,
+            title: t.labels.togglePublishedState,
+            required: false,
+            valueChecked: 'yes',
+            defaultValue: 'yes',
+            before: '',
+            after: '',
+            className: '',
+            wrapperClassName: '',
+        },
+        render: (p, onValuesChange) => (
+            <Form appearance="empty" onChange={onValuesChange}>
+                <Switch name="published" {...p} />
+            </Form>
+        ),
+    }), [switchProps, t]);
+
+    usePlayground(playground, t.playground.title);
 
     return (
-        <PageLayout title="Switch" description="Switch-styled checkbox using the same value contract as Checkbox.">
+        <PageLayout title={t.page.title} description={t.page.description}>
             <Section
-                title="Boolean-like toggle"
-                preview={
+                title={t.sections.booleanToggle.title}
+                preview={(
                     <Form appearance="empty" defaultValues={{ published: 'yes' }}>
-                        <Switch name="published" label="Published" valueChecked="yes" />
+                        <Switch name="published" label={t.labels.published} valueChecked="yes" />
                     </Form>
-                }
+                )}
                 code={`import { Form, Switch } from '@llmnative/react';
 
 <Form defaultValues={{ published: 'yes' }}>
@@ -63,7 +66,7 @@ export default function SwitchPage() {
 </Form>`}
             />
 
-            <PropDocsTable props={SWITCH_PROPS} />
+            <PropDocsTable props={switchProps} title={t.propsDocs.title} />
         </PageLayout>
     );
 }

@@ -1,37 +1,21 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ModalYesNo, ActionButton } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
 import { usePlayground } from '../../docs-kit/playground';
 import type { PropDef, PlaygroundConfig } from '../../docs-kit/playground';
-
-const PROPS_CONFIG: PropDef[] = [
-    { name: 'children', type: 'ReactNode', required: true, description: 'Confirmation message shown in the body', control: 'text' },
-    { name: 'title', type: 'ReactNode', description: 'Dialog title', control: 'text' },
-    { name: 'onYes', type: '(e) => Promise<boolean>', description: 'Called when the user clicks Yes. Modal closes automatically after the handler resolves.' },
-    { name: 'onNo', type: '(e) => Promise<boolean>', description: 'Called when the user clicks No. Modal closes automatically after the handler resolves.' },
-    { name: 'onClose', type: '() => void', description: 'Called when the modal is dismissed via the X button or backdrop' },
-];
-
-const PLAYGROUND: PlaygroundConfig = {
-    size: 'lg',
-    props: PROPS_CONFIG,
-    defaultProps: {
-        children: 'Are you sure you want to delete this record? This action cannot be undone.',
-        title: 'Confirm deletion',
-    },
-    render: (p) => <ModalYesNoPlaygroundDemo props={p} />,
-};
+import { useShowcaseModalYesNoI18n } from '../../showcase/i18n';
 
 function ModalYesNoPlaygroundDemo({ props: p }: { props: Record<string, any> }) {
     const [open, setOpen] = useState(false);
     const [result, setResult] = useState<string | null>(null);
+    const t = useShowcaseModalYesNoI18n();
 
     return (
         <div className="flex flex-col items-start gap-3">
             <ActionButton
-                label="Open ModalYesNo"
+                label={t.demo.openButton}
                 className="btn-outline-secondary"
                 onClick={() => { setResult(null); setOpen(true); }}
             />
@@ -39,8 +23,8 @@ function ModalYesNoPlaygroundDemo({ props: p }: { props: Record<string, any> }) 
             {open && (
                 <ModalYesNo
                     title={p.title || undefined}
-                    onYes={async () => { setResult('You clicked Yes.'); setOpen(false); return true; }}
-                    onNo={async () => { setResult('You clicked No.'); setOpen(false); return true; }}
+                    onYes={async () => { setResult(t.demo.yesResult); setOpen(false); return true; }}
+                    onNo={async () => { setResult(t.demo.noResult); setOpen(false); return true; }}
                     onClose={() => setOpen(false)}
                 >
                     <p className="text-sm">{p.children}</p>
@@ -51,37 +35,55 @@ function ModalYesNoPlaygroundDemo({ props: p }: { props: Record<string, any> }) 
 }
 
 export default function ModalYesNoPage() {
-    usePlayground(PLAYGROUND, 'ModalYesNo');
+    const t = useShowcaseModalYesNoI18n();
+
+    const propsConfig: PropDef[] = useMemo(() => ([
+        { name: 'children', type: 'ReactNode', required: true, description: t.propsDocs.items.children.description, control: 'text' },
+        { name: 'title', type: 'ReactNode', description: t.propsDocs.items.title.description, control: 'text' },
+        { name: 'onYes', type: '(e) => Promise<boolean>', description: t.propsDocs.items.onYes.description },
+        { name: 'onNo', type: '(e) => Promise<boolean>', description: t.propsDocs.items.onNo.description },
+        { name: 'onClose', type: '() => void', description: t.propsDocs.items.onClose.description },
+    ]), [t]);
+
+    const playground: PlaygroundConfig = useMemo(() => ({
+        size: 'lg',
+        props: propsConfig,
+        defaultProps: {
+            children: t.demo.defaultBody,
+            title: t.demo.defaultTitle,
+        },
+        render: (p) => <ModalYesNoPlaygroundDemo props={p} />,
+    }), [propsConfig, t]);
+
+    usePlayground(playground, t.page.title);
+
     const [open, setOpen] = useState(false);
     const [result, setResult] = useState<string | null>(null);
 
     return (
         <PageLayout
-            title="ModalYesNo"
-            description="Confirmation dialog with Yes and No buttons. Both handlers close the modal automatically after they resolve."
+            title={t.page.title}
+            description={t.page.description}
         >
             <Section
-                title="Destructive confirmation"
-                description="Use ModalYesNo before any irreversible action - delete, reset, publish. The Yes handler runs the action; No cancels. Both close the modal when their async handler resolves."
+                title={t.sections.destructiveConfirmation.title}
+                description={t.sections.destructiveConfirmation.description}
                 preview={
                     <div className="flex flex-col items-start gap-3">
                         <ActionButton
-                            label="Delete record"
+                            label={t.demo.deleteRecordButton}
                             className="btn-danger"
                             onClick={() => { setResult(null); setOpen(true); }}
                         />
                         {result && <p className="text-sm font-medium">{result}</p>}
                         {open && (
                             <ModalYesNo
-                                title="Confirm deletion"
-                                onYes={async () => { setResult('Confirmed - record deleted.'); setOpen(false); return true; }}
-                                onNo={async () => { setResult('Cancelled - nothing was deleted.'); setOpen(false); return true; }}
+                                title={t.demo.defaultTitle}
+                                onYes={async () => { setResult(t.demo.confirmedResult); setOpen(false); return true; }}
+                                onNo={async () => { setResult(t.demo.cancelledResult); setOpen(false); return true; }}
                                 onClose={() => setOpen(false)}
                             >
-                                <p className="text-sm">
-                                    Are you sure you want to delete <strong>user_042</strong>?
-                                    This action cannot be undone.
-                                </p>
+                                <p className="text-sm">{t.demo.destructiveQuestion}</p>
                             </ModalYesNo>
                         )}
                     </div>
@@ -107,7 +109,7 @@ const [open, setOpen] = useState(false);
 )}`}
             />
 
-            <PropDocsTable props={PROPS_CONFIG} />
+            <PropDocsTable props={propsConfig} />
         </PageLayout>
     );
 }

@@ -1,44 +1,11 @@
-﻿import React from 'react';
+import React from 'react';
 import { DataProvider, Dropdown, DropdownDivider, DropdownHeader, DropdownItem, MockDataProvider, useDataProvider } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
 import { usePlayground } from '../../docs-kit/playground';
 import type { PropDef, PlaygroundConfig } from '../../docs-kit/playground';
-
-const DROPDOWN_PROPS: PropDef[] = [
-    { name: 'children', type: 'ReactNode', required: true, description: 'Dropdown menu content' },
-    { name: 'trigger', type: 'string | ReactNode | TriggerConfig', required: true, description: 'Button content or icon/text config', control: 'text', typeDetails: `string | ReactNode | {
-  icon?: string;
-  text?: string;
-}` },
-    { name: 'badge', type: 'ReactNode | BadgeConfig', description: 'Badge displayed on the toggle', control: 'json', rows: 4, shortcuts: [
-        { label: 'none', value: null, help: 'No badge on the toggle.' },
-        { label: 'count', value: { content: '3', variant: 'danger' }, help: 'Numeric danger badge.' },
-        { label: 'live', value: { content: 'live', variant: 'success' }, help: 'Status badge.' },
-    ], typeDetails: `ReactNode | {
-  content: ReactNode;
-  variant?: string;
-}` },
-    { name: 'header', type: 'ReactNode', description: 'Header content above menu items', control: 'text' },
-    { name: 'footer', type: 'ReactNode', description: 'Footer content below menu items', control: 'text' },
-    { name: 'defaultOpen', type: 'boolean', default: 'false', description: 'Starts the uncontrolled dropdown open on first render', control: 'boolean' },
-    { name: 'open', type: 'boolean', description: 'Controlled open state. When provided the component becomes fully controlled; pair with onOpenChange.' },
-    { name: 'onOpenChange', type: '(open: boolean) => void', description: 'Callback fired when the open state changes in controlled mode.' },
-    { name: 'staticOpen', type: 'boolean', default: 'false', description: 'Renders the menu as a static always-visible panel without the toggle button', control: 'boolean' },
-    { name: 'placement', type: '"auto" | "top" | "bottom"', default: '"bottom"', description: 'Vertical placement of the menu panel relative to the toggle. "auto" detects available space.', control: 'select', options: ['auto', 'top', 'bottom'] },
-    { name: 'position', type: '"start" | "end"', default: 'none', description: 'Menu alignment. Empty means no forced horizontal alignment.', control: 'select', options: ['', 'start', 'end'] },
-    { name: 'before', type: 'ReactNode', description: 'Content rendered to the left of the dropdown', control: 'text' },
-    { name: 'after', type: 'ReactNode', description: 'Content rendered to the right of the dropdown', control: 'text' },
-    { name: 'wrapperClassName', type: 'string', description: 'CSS classes on wrapper', control: 'text' },
-    { name: 'className', type: 'string', description: 'CSS classes on dropdown root', control: 'text' },
-    { name: 'triggerClassName', type: 'string', description: 'CSS classes on toggle button', control: 'text' },
-    { name: 'badgeClassName', type: 'string', description: 'CSS classes on badge', control: 'text' },
-    { name: 'menuClassName', type: 'string', description: 'CSS classes on the menu panel', control: 'text' },
-    { name: 'headerClassName', type: 'string', description: 'CSS classes on header wrapper', control: 'text' },
-    { name: 'footerClassName', type: 'string', description: 'CSS classes on footer wrapper', control: 'text' },
-    { name: 'motion', type: 'MotionReference', description: 'Override the open animation. Accepts a named preset string, a MotionEffect object, or false to disable animation.' },
-];
+import { useShowcaseCommonI18n, useShowcaseDropdownI18n } from '../../showcase/i18n';
 
 type DropdownMockItem = {
     type?: 'item' | 'header' | 'divider';
@@ -47,20 +14,14 @@ type DropdownMockItem = {
     url?: string;
 };
 
-const DROPDOWN_ITEMS_SEED: Record<string, DropdownMockItem> = {
-    header: { type: 'header', label: 'Record actions' },
-    edit: { type: 'item', label: 'Edit', icon: 'edit' },
-    duplicate: { type: 'item', label: 'Duplicate', icon: 'copy' },
-    divider: { type: 'divider' },
-    delete: { type: 'item', label: 'Delete', icon: 'trash' },
-};
-
-const PLAYGROUND_SEED = {
-    '/dropdown-items': DROPDOWN_ITEMS_SEED,
-};
-
-function WithDropdownMock({ children }: { children: React.ReactNode }) {
-    const provider = React.useMemo(() => new MockDataProvider(PLAYGROUND_SEED), []);
+function WithDropdownMock({
+    children,
+    seed,
+}: {
+    children: React.ReactNode;
+    seed: Record<string, Record<string, DropdownMockItem>>;
+}) {
+    const provider = React.useMemo(() => new MockDataProvider(seed), [seed]);
 
     return (
         <DataProvider registry={{ default: provider }} defaultKey="default">
@@ -69,7 +30,13 @@ function WithDropdownMock({ children }: { children: React.ReactNode }) {
     );
 }
 
-function DropdownItemsFromMock({ path }: { path: string }) {
+function DropdownItemsFromMock({
+    path,
+    emptyStateLabel,
+}: {
+    path: string;
+    emptyStateLabel: string;
+}) {
     const provider = useDataProvider();
     const [records, setRecords] = React.useState<Array<DropdownMockItem & { _key?: string; _index?: number }>>([]);
 
@@ -78,7 +45,7 @@ function DropdownItemsFromMock({ path }: { path: string }) {
     }, [path, provider]);
 
     if (records.length === 0) {
-        return <DropdownHeader>No dropdown items</DropdownHeader>;
+        return <DropdownHeader>{emptyStateLabel}</DropdownHeader>;
     }
 
     return (
@@ -104,71 +71,140 @@ function DropdownItemsFromMock({ path }: { path: string }) {
     );
 }
 
-const PLAYGROUND: PlaygroundConfig = {
-    props: DROPDOWN_PROPS,
-    mockSeed: PLAYGROUND_SEED,
-    defaultProps: {
-        itemsPath: '/dropdown-items',
-        trigger: 'Actions',
-        badge: { content: '3', variant: 'danger' },
-        before: '',
-        after: '',
-        header: 'Menu',
-        footer: 'Footer',
-        defaultOpen: false,
-        staticOpen: false,
-        placement: 'bottom',
-        position: '',
-        wrapperClassName: '',
-        className: '',
-        triggerClassName: '',
-        badgeClassName: '',
-        menuClassName: '',
-        headerClassName: '',
-        footerClassName: '',
-    },
-    render: (p) => (
-        <Dropdown
-            key={`${p.defaultOpen}-${p.staticOpen}-${p.itemsPath}`}
-            trigger={p.trigger || 'Actions'}
-            badge={p.badge || undefined}
-            header={p.header || undefined}
-            footer={p.footer || undefined}
-            defaultOpen={p.defaultOpen}
-            staticOpen={p.staticOpen}
-            placement={p.placement || undefined}
-            position={p.position || undefined}
-            before={p.before || undefined}
-            after={p.after || undefined}
-            wrapperClassName={p.wrapperClassName || undefined}
-            className={p.className || undefined}
-            triggerClassName={p.triggerClassName || undefined}
-            badgeClassName={p.badgeClassName || undefined}
-            menuClassName={p.menuClassName || undefined}
-            headerClassName={p.headerClassName || undefined}
-            footerClassName={p.footerClassName || undefined}
-        >
-            <DropdownItemsFromMock path={p.itemsPath || '/dropdown-items'} />
-        </Dropdown>
-    ),
-};
-
 export default function DropdownPage() {
-    usePlayground(PLAYGROUND, 'Dropdown');
+    const common = useShowcaseCommonI18n();
+    const t = useShowcaseDropdownI18n();
+
+    const dropdownItemsSeed = React.useMemo<Record<string, DropdownMockItem>>(() => ({
+        header: { type: 'header', label: t.labels.recordActions },
+        edit: { type: 'item', label: t.labels.edit, icon: 'edit' },
+        duplicate: { type: 'item', label: t.labels.duplicate, icon: 'copy' },
+        divider: { type: 'divider' },
+        delete: { type: 'item', label: t.labels.delete, icon: 'trash' },
+    }), [t]);
+
+    const playgroundSeed = React.useMemo(
+        () => ({
+            '/dropdown-items': dropdownItemsSeed,
+        }),
+        [dropdownItemsSeed],
+    );
+
+    const dropdownProps = React.useMemo<PropDef[]>(() => [
+        { name: 'children', type: 'ReactNode', required: true, description: t.propsDocs.items.children.description },
+        {
+            name: 'trigger',
+            type: 'string | ReactNode | TriggerConfig',
+            required: true,
+            description: t.propsDocs.items.trigger.description,
+            control: 'text',
+            typeDetails: `string | ReactNode | {
+  icon?: string;
+  text?: string;
+}`,
+        },
+        {
+            name: 'badge',
+            type: 'ReactNode | BadgeConfig',
+            description: t.propsDocs.items.badge.description,
+            control: 'json',
+            rows: 4,
+            shortcuts: [
+                { label: t.propsDocs.items.badge.shortcuts?.none.label || 'none', value: null, help: t.propsDocs.items.badge.shortcuts?.none.help },
+                { label: t.propsDocs.items.badge.shortcuts?.count.label || 'count', value: { content: '3', variant: 'danger' }, help: t.propsDocs.items.badge.shortcuts?.count.help },
+                { label: t.propsDocs.items.badge.shortcuts?.live.label || 'live', value: { content: t.labels.liveBadge, variant: 'success' }, help: t.propsDocs.items.badge.shortcuts?.live.help },
+            ],
+            typeDetails: `ReactNode | {
+  content: ReactNode;
+  variant?: string;
+}`,
+        },
+        { name: 'header', type: 'ReactNode', description: t.propsDocs.items.header.description, control: 'text' },
+        { name: 'footer', type: 'ReactNode', description: t.propsDocs.items.footer.description, control: 'text' },
+        { name: 'defaultOpen', type: 'boolean', default: 'false', description: t.propsDocs.items.defaultOpen.description, control: 'boolean' },
+        { name: 'open', type: 'boolean', description: t.propsDocs.items.open.description },
+        { name: 'onOpenChange', type: '(open: boolean) => void', description: t.propsDocs.items.onOpenChange.description },
+        { name: 'staticOpen', type: 'boolean', default: 'false', description: t.propsDocs.items.staticOpen.description, control: 'boolean' },
+        { name: 'placement', type: '"auto" | "top" | "bottom"', default: '"bottom"', description: t.propsDocs.items.placement.description, control: 'select', options: ['auto', 'top', 'bottom'] },
+        { name: 'position', type: '"start" | "end"', default: 'none', description: t.propsDocs.items.position.description, control: 'select', options: ['', 'start', 'end'] },
+        { name: 'before', type: 'ReactNode', description: t.propsDocs.items.before.description, control: 'text' },
+        { name: 'after', type: 'ReactNode', description: t.propsDocs.items.after.description, control: 'text' },
+        { name: 'wrapperClassName', type: 'string', description: t.propsDocs.items.wrapperClassName.description, control: 'text' },
+        { name: 'className', type: 'string', description: t.propsDocs.items.className.description, control: 'text' },
+        { name: 'triggerClassName', type: 'string', description: t.propsDocs.items.triggerClassName.description, control: 'text' },
+        { name: 'badgeClassName', type: 'string', description: t.propsDocs.items.badgeClassName.description, control: 'text' },
+        { name: 'menuClassName', type: 'string', description: t.propsDocs.items.menuClassName.description, control: 'text' },
+        { name: 'headerClassName', type: 'string', description: t.propsDocs.items.headerClassName.description, control: 'text' },
+        { name: 'footerClassName', type: 'string', description: t.propsDocs.items.footerClassName.description, control: 'text' },
+        { name: 'motion', type: 'MotionReference', description: t.propsDocs.items.motion.description },
+    ], [t]);
+
+    const playground = React.useMemo<PlaygroundConfig>(() => ({
+        props: dropdownProps,
+        mockSeed: playgroundSeed,
+        defaultProps: {
+            itemsPath: '/dropdown-items',
+            trigger: t.labels.actions,
+            badge: { content: '3', variant: 'danger' },
+            before: '',
+            after: '',
+            header: t.labels.menu,
+            footer: t.labels.footer,
+            defaultOpen: false,
+            staticOpen: false,
+            placement: 'bottom',
+            position: '',
+            wrapperClassName: '',
+            className: '',
+            triggerClassName: '',
+            badgeClassName: '',
+            menuClassName: '',
+            headerClassName: '',
+            footerClassName: '',
+        },
+        render: (p) => (
+            <WithDropdownMock seed={playgroundSeed}>
+                <Dropdown
+                    key={`${p.defaultOpen}-${p.staticOpen}-${p.itemsPath}`}
+                    trigger={p.trigger || t.labels.actions}
+                    badge={p.badge || undefined}
+                    header={p.header || undefined}
+                    footer={p.footer || undefined}
+                    defaultOpen={p.defaultOpen}
+                    staticOpen={p.staticOpen}
+                    placement={p.placement || undefined}
+                    position={p.position || undefined}
+                    before={p.before || undefined}
+                    after={p.after || undefined}
+                    wrapperClassName={p.wrapperClassName || undefined}
+                    className={p.className || undefined}
+                    triggerClassName={p.triggerClassName || undefined}
+                    badgeClassName={p.badgeClassName || undefined}
+                    menuClassName={p.menuClassName || undefined}
+                    headerClassName={p.headerClassName || undefined}
+                    footerClassName={p.footerClassName || undefined}
+                >
+                    <DropdownItemsFromMock path={p.itemsPath || '/dropdown-items'} emptyStateLabel={t.labels.emptyStateNoItems} />
+                </Dropdown>
+            </WithDropdownMock>
+        ),
+    }), [dropdownProps, playgroundSeed, t]);
+
+    usePlayground(playground, t.playground.title);
 
     return (
-        <PageLayout title="Dropdown" description="Composed dropdown menu with toggle, badge, header, footer and item helpers.">
+        <PageLayout title={t.page.title} description={t.page.description}>
             <Section
-                title="Action menu"
-                description="Use DropdownItem for commands. Internal clicks keep the dropdown open by default; clicking outside or toggling the button closes it."
+                title={t.sections.actionMenu.title}
+                description={t.sections.actionMenu.description}
                 preview={
                     <div className="min-h-48 pt-3 pr-3">
-                        <Dropdown trigger="Actions" header="Menu">
-                            <DropdownHeader>Record actions</DropdownHeader>
-                            <DropdownItem icon="edit">Edit</DropdownItem>
-                            <DropdownItem icon="copy">Duplicate</DropdownItem>
+                        <Dropdown trigger={t.labels.actions} header={t.labels.menu}>
+                            <DropdownHeader>{t.labels.recordActions}</DropdownHeader>
+                            <DropdownItem icon="edit">{t.labels.edit}</DropdownItem>
+                            <DropdownItem icon="copy">{t.labels.duplicate}</DropdownItem>
                             <DropdownDivider />
-                            <DropdownItem icon="trash">Delete</DropdownItem>
+                            <DropdownItem icon="trash">{t.labels.delete}</DropdownItem>
                         </Dropdown>
                     </div>
                 }
@@ -184,13 +220,13 @@ export default function DropdownPage() {
             />
 
             <Section
-                title="Data-driven items"
-                description="The playground uses the mock database at /dropdown-items. Edit that collection to change labels, icons, dividers and links without changing component code."
+                title={t.sections.dataDrivenItems.title}
+                description={t.sections.dataDrivenItems.description}
                 preview={
                     <div className="min-h-56 pt-3 pr-4">
-                        <WithDropdownMock>
-                            <Dropdown trigger="Data menu" header="From mock DB" defaultOpen>
-                                <DropdownItemsFromMock path="/dropdown-items" />
+                        <WithDropdownMock seed={playgroundSeed}>
+                            <Dropdown trigger={t.labels.dataMenu} header={t.labels.fromMockDb} defaultOpen>
+                                <DropdownItemsFromMock path="/dropdown-items" emptyStateLabel={t.labels.emptyStateNoItems} />
                             </Dropdown>
                         </WithDropdownMock>
                     </div>
@@ -228,20 +264,20 @@ function DropdownItemsFromMock({ path }) {
             />
 
             <Section
-                title="Toggle badge"
-                description="Badges use the shared overlay Badge behavior. Pass badge as a number/string or as { content, variant } for semantic colors."
+                title={t.sections.toggleBadge.title}
+                description={t.sections.toggleBadge.description}
                 preview={
                     <div className="min-h-48 pt-3 pr-4">
                         <Dropdown
-                            trigger={{ icon: 'bell', text: 'Notifications' }}
+                            trigger={{ icon: 'bell', text: t.labels.notifications }}
                             badge={{ content: 8, variant: 'danger' }}
-                            header="Notifications"
+                            header={t.labels.notifications}
                             position="start"
                         >
-                            <DropdownItem icon="mail">New message</DropdownItem>
-                            <DropdownItem icon="calendar">Calendar invite</DropdownItem>
+                            <DropdownItem icon="mail">{t.labels.newMessage}</DropdownItem>
+                            <DropdownItem icon="calendar">{t.labels.calendarInvite}</DropdownItem>
                             <DropdownDivider />
-                            <DropdownItem icon="check">Mark all as read</DropdownItem>
+                            <DropdownItem icon="check">{t.labels.markAllAsRead}</DropdownItem>
                         </Dropdown>
                     </div>
                 }
@@ -261,19 +297,19 @@ function DropdownItemsFromMock({ path }) {
             />
 
             <Section
-                title="Menu alignment (position)"
-                description='Use position="end" to align the menu to the right edge of the toggle (useful in toolbars and tight layouts). Optional text badge on the toggle.'
+                title={t.sections.menuAlignment.title}
+                description={t.sections.menuAlignment.description}
                 preview={
                     <div className="flex min-h-48 justify-end pt-3 pr-4">
                         <Dropdown
-                            trigger={{ icon: 'settings', text: 'Settings' }}
-                            badge={{ content: 'new', variant: 'success' }}
-                            header="Preferences"
+                            trigger={{ icon: 'settings', text: t.labels.settings }}
+                            badge={{ content: t.labels.newBadge, variant: 'success' }}
+                            header={t.labels.preferences}
                             position="end"
                         >
-                            <DropdownItem icon="user">Profile</DropdownItem>
-                            <DropdownItem icon="shield">Security</DropdownItem>
-                            <DropdownItem icon="moon">Theme</DropdownItem>
+                            <DropdownItem icon="user">{t.labels.profile}</DropdownItem>
+                            <DropdownItem icon="shield">{t.labels.security}</DropdownItem>
+                            <DropdownItem icon="moon">{t.labels.theme}</DropdownItem>
                         </Dropdown>
                     </div>
                 }
@@ -292,19 +328,19 @@ function DropdownItemsFromMock({ path }) {
             />
 
             <Section
-                title="Header and footer"
-                description="Header and footer frame grouped actions without becoming menu items."
+                title={t.sections.headerFooter.title}
+                description={t.sections.headerFooter.description}
                 preview={
                     <div className="min-h-52 pt-3 pr-3">
                         <Dropdown
-                            trigger="Workspace"
-                            header={<span>Current workspace</span>}
-                            footer={<button type="button" className="btn btn-link">Manage workspaces</button>}
+                            trigger={t.labels.workspace}
+                            header={<span>{t.labels.currentWorkspace}</span>}
+                            footer={<button type="button" className="btn btn-link">{t.labels.manageWorkspaces}</button>}
                         >
-                            <DropdownHeader>Switch to</DropdownHeader>
-                            <DropdownItem icon="package">Design system</DropdownItem>
-                            <DropdownItem icon="database">Data platform</DropdownItem>
-                            <DropdownItem icon="terminal">Developer tools</DropdownItem>
+                            <DropdownHeader>{t.labels.switchTo}</DropdownHeader>
+                            <DropdownItem icon="package">{t.labels.designSystem}</DropdownItem>
+                            <DropdownItem icon="database">{t.labels.dataPlatform}</DropdownItem>
+                            <DropdownItem icon="terminal">{t.labels.developerTools}</DropdownItem>
                         </Dropdown>
                     </div>
                 }
@@ -323,26 +359,26 @@ function DropdownItemsFromMock({ path }) {
             />
 
             <Section
-                title="Interactive content"
-                description="Internal controls can be used without closing the dropdown. The menu still closes when the user clicks outside."
+                title={t.sections.interactiveContent.title}
+                description={t.sections.interactiveContent.description}
                 preview={
                     <div className="min-h-56 pt-3 pr-3">
-                        <Dropdown trigger="Filters" header="Filter records" defaultOpen>
-                            <DropdownHeader>Status</DropdownHeader>
+                        <Dropdown trigger={t.labels.filters} header={t.labels.filterRecords} defaultOpen>
+                            <DropdownHeader>{t.labels.status}</DropdownHeader>
                             <DropdownItem>
                                 <label className="flex items-center gap-2">
                                     <input type="checkbox" className="h-4 w-4 accent-primary" defaultChecked />
-                                    Active
+                                    {t.labels.active}
                                 </label>
                             </DropdownItem>
                             <DropdownItem>
                                 <label className="flex items-center gap-2">
                                     <input type="checkbox" className="h-4 w-4 accent-primary" />
-                                    Archived
+                                    {t.labels.archived}
                                 </label>
                             </DropdownItem>
                             <DropdownDivider />
-                            <DropdownItem icon="refresh">Reset filters</DropdownItem>
+                            <DropdownItem icon="refresh">{t.labels.resetFilters}</DropdownItem>
                         </Dropdown>
                     </div>
                 }
@@ -368,13 +404,13 @@ function DropdownItemsFromMock({ path }) {
             />
 
             <Section
-                title="Static menu"
-                description="Set staticOpen to render the menu panel directly, without a toggle button. Use this when the dropdown content is part of the page instead of a transient popup."
+                title={t.sections.staticMenu.title}
+                description={t.sections.staticMenu.description}
                 preview={
-                    <Dropdown staticOpen header="Quick actions" footer={<button type="button" className="btn btn-link">View all</button>}>
-                        <DropdownItem icon="plus">Create record</DropdownItem>
-                        <DropdownItem icon="upload">Import data</DropdownItem>
-                        <DropdownItem icon="download">Export report</DropdownItem>
+                    <Dropdown staticOpen header={t.labels.quickActions} footer={<button type="button" className="btn btn-link">{t.labels.viewAll}</button>}>
+                        <DropdownItem icon="plus">{t.labels.createRecord}</DropdownItem>
+                        <DropdownItem icon="upload">{t.labels.importData}</DropdownItem>
+                        <DropdownItem icon="download">{t.labels.exportReport}</DropdownItem>
                     </Dropdown>
                 }
                 code={`import { Dropdown, DropdownItem } from '@llmnative/react';
@@ -386,7 +422,7 @@ function DropdownItemsFromMock({ path }) {
 </Dropdown>`}
             />
 
-            <PropDocsTable props={DROPDOWN_PROPS} />
+            <PropDocsTable props={dropdownProps} title={common.sections.props} />
         </PageLayout>
     );
 }

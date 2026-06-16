@@ -5,67 +5,74 @@ import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
 import { usePlayground } from '../../docs-kit/playground';
 import type { PropDef, PlaygroundConfig } from '../../docs-kit/playground';
-
-const ITEMS = Array.from({ length: 50 }, (_, i) => ({ id: i + 1, label: `Record #${i + 1}` }));
-
-const PROPS_CONFIG: PropDef[] = [
-    { name: 'records', type: 'T[]', required: true, description: 'Full dataset to paginate' },
-    { name: 'children', type: '(records: T[], offset: number) => ReactNode', required: true, description: 'Render function receiving current page records and offset' },
-    { name: 'page', type: 'number', default: '1', description: 'Initial active page (1-based). Passed once at mount; internal state drives subsequent navigation.' },
-    { name: 'limit', type: 'number', default: 'records.length', description: 'Number of items per page', control: 'number', min: 1, step: 1 },
-    { name: 'maxPageButtons', type: 'number', default: '5', description: 'Max number of visible page buttons', control: 'number', min: 3, max: 10 },
-    { name: 'sticky', type: 'boolean', default: 'true', description: 'Fix pagination bar at viewport bottom', control: 'boolean' },
-    { name: 'align', type: '"start" | "center" | "end"', default: '"end"', description: 'Horizontal alignment of the pagination controls', control: 'select', options: ['start', 'center', 'end'] },
-    { name: 'scrollToTopOnChange', type: 'boolean', default: 'false', description: 'Scroll to top of page when page changes', control: 'boolean' },
-    { name: 'scrollBehavior', type: 'ScrollBehavior', description: 'scrollIntoView behavior used when scrollToTopOnChange is enabled', control: 'select', options: ['auto', 'smooth', 'instant'] },
-    { name: 'appendTo', type: 'HTMLElement | null', description: 'Portal target for the pagination bar' },
-    { name: 'before', type: 'ReactNode', description: 'Content rendered inside the pagination wrapper, before the page-button nav bar' },
-    { name: 'after', type: 'ReactNode', description: 'Content rendered inside the pagination wrapper, after the page-button nav bar' },
-    { name: 'wrapperClassName', type: 'string', description: 'CSS classes applied to the outermost wrapper element', control: 'text' },
-    { name: 'className', type: 'string', description: 'CSS classes applied to the nav element containing the page buttons', control: 'text' },
-];
-
-const PLAYGROUND: PlaygroundConfig = {
-    size: 'lg',
-    props: PROPS_CONFIG,
-    defaultProps: { limit: 8, maxPageButtons: 5, sticky: false, align: 'end', scrollToTopOnChange: false },
-    render: (p) => (
-        <Pagination
-            records={ITEMS}
-            limit={p.limit}
-            maxPageButtons={p.maxPageButtons}
-            sticky={p.sticky}
-            align={p.align}
-            scrollToTopOnChange={p.scrollToTopOnChange}
-        >
-            {(pageRecords) => (
-                <div className="grid grid-cols-4 gap-2 mb-2">
-                    {(pageRecords as typeof ITEMS).map((item) => (
-                        <div key={item.id} className="card p-2 text-xs text-center">{item.label}</div>
-                    ))}
-                </div>
-            )}
-        </Pagination>
-    ),
-};
+import { useShowcaseCommonI18n, useShowcasePaginationI18n } from '../../showcase/i18n';
 
 export default function PaginationPage() {
-    usePlayground(PLAYGROUND, 'Pagination');
+    const common = useShowcaseCommonI18n();
+    const t = useShowcasePaginationI18n();
+
+    const items = React.useMemo(
+        () => Array.from({ length: 50 }, (_, i) => ({ id: i + 1, label: `${t.labels.recordPrefix} #${i + 1}` })),
+        [t.labels.recordPrefix],
+    );
+
+    const propsConfig = React.useMemo<PropDef[]>(() => [
+        { name: 'records', type: 'T[]', required: true, description: t.propsDocs.items.records.description },
+        { name: 'children', type: '(records: T[], offset: number) => ReactNode', required: true, description: t.propsDocs.items.children.description },
+        { name: 'page', type: 'number', default: '1', description: t.propsDocs.items.page.description },
+        { name: 'limit', type: 'number', default: 'records.length', description: t.playground.props.limit.description, control: 'number', min: 1, step: 1 },
+        { name: 'maxPageButtons', type: 'number', default: '5', description: t.playground.props.maxPageButtons.description, control: 'number', min: 3, max: 10 },
+        { name: 'sticky', type: 'boolean', default: 'true', description: t.playground.props.sticky.description, control: 'boolean' },
+        { name: 'align', type: '"start" | "center" | "end"', default: '"end"', description: t.playground.props.align.description, control: 'select', options: ['start', 'center', 'end'] },
+        { name: 'scrollToTopOnChange', type: 'boolean', default: 'false', description: t.playground.props.scrollToTopOnChange.description, control: 'boolean' },
+        { name: 'scrollBehavior', type: 'ScrollBehavior', description: t.propsDocs.items.scrollBehavior.description, control: 'select', options: ['auto', 'smooth', 'instant'] },
+        { name: 'appendTo', type: 'HTMLElement | null', description: t.propsDocs.items.appendTo.description },
+        { name: 'before', type: 'ReactNode', description: t.propsDocs.items.before.description },
+        { name: 'after', type: 'ReactNode', description: t.propsDocs.items.after.description },
+        { name: 'wrapperClassName', type: 'string', description: t.propsDocs.items.wrapperClassName.description, control: 'text' },
+        { name: 'className', type: 'string', description: t.propsDocs.items.className.description, control: 'text' },
+    ], [t]);
+
+    const playground = React.useMemo<PlaygroundConfig>(() => ({
+        size: 'lg',
+        props: propsConfig,
+        defaultProps: { limit: 8, maxPageButtons: 5, sticky: false, align: 'end', scrollToTopOnChange: false },
+        render: (p) => (
+            <Pagination
+                records={items}
+                limit={p.limit}
+                maxPageButtons={p.maxPageButtons}
+                sticky={p.sticky}
+                align={p.align}
+                scrollToTopOnChange={p.scrollToTopOnChange}
+            >
+                {(pageRecords) => (
+                    <div className="mb-2 grid grid-cols-4 gap-2">
+                        {(pageRecords as typeof items).map((item) => (
+                            <div key={item.id} className="card p-2 text-center text-xs">{item.label}</div>
+                        ))}
+                    </div>
+                )}
+            </Pagination>
+        ),
+    }), [items, propsConfig]);
+
+    usePlayground(playground, t.playground.title);
 
     return (
         <PageLayout
-            title="Pagination"
-            description="Page navigation with first/prev/next/last controls and a configurable page window. Used automatically by Grid."
+            title={t.page.title}
+            description={t.page.description}
         >
             <Section
-                title="Interactive pagination — 50 records, 8 per page"
-                description="Click the page controls to navigate through the dataset."
+                title={t.sections.interactive.title}
+                description={t.sections.interactive.description}
                 preview={
-                    <Pagination records={ITEMS} limit={8} align="end">
+                    <Pagination records={items} limit={8} align="end">
                         {(pageRecords) => (
-                            <div className="grid grid-cols-4 gap-2 mb-2">
-                                {(pageRecords as typeof ITEMS).map((item) => (
-                                    <div key={item.id} className="card p-2 text-xs text-center">{item.label}</div>
+                            <div className="mb-2 grid grid-cols-4 gap-2">
+                                {(pageRecords as typeof items).map((item) => (
+                                    <div key={item.id} className="card p-2 text-center text-xs">{item.label}</div>
                                 ))}
                             </div>
                         )}
@@ -85,14 +92,15 @@ export default function PaginationPage() {
             />
 
             <Section
-                title="Sticky pagination bar"
-                description="When sticky=true the pagination bar floats at the bottom of the viewport with a blur backdrop. This is the default behaviour in Grid."
+                title={t.sections.sticky.title}
+                description={t.sections.sticky.description}
                 preview={
                     <div className="alert alert-info text-sm">
-                        <code className="font-mono">sticky</code> renders the nav bar with{' '}
-                        <code className="font-mono">position: fixed; bottom: 0</code> and a{' '}
-                        <code className="font-mono">backdrop-filter: blur(10px)</code> so it floats
-                        above content without fully obscuring it.
+                        <code className="font-mono">sticky</code> {t.labels.stickyPreviewLead}{' '}
+                        <code className="font-mono">position: fixed; bottom: 0</code>{' '}
+                        {t.labels.stickyPreviewMiddle}{' '}
+                        <code className="font-mono">backdrop-filter: blur(10px)</code>{' '}
+                        {t.labels.stickyPreviewEnd}
                     </div>
                 }
                 code={`<Pagination
@@ -106,8 +114,7 @@ export default function PaginationPage() {
 </Pagination>`}
             />
 
-            <PropDocsTable props={PROPS_CONFIG} />
-
+            <PropDocsTable props={propsConfig} title={common.sections.props} />
         </PageLayout>
     );
 }

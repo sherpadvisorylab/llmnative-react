@@ -5,6 +5,7 @@ import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
 import type { PropDef } from '../../docs-kit/playground';
+import { useShowcaseFormValidationI18n } from '../../showcase/i18n';
 
 // ── Shared mock setup ──────────────────────────────────────────────────────────
 
@@ -118,15 +119,17 @@ export default function FormValidationPage() {
     const [openPosition, setOpenPosition] = useState<ModalPosition | null>(null);
     const formRef = useRef<FormRef>(null);
 
+    const t = useShowcaseFormValidationI18n();
+
     return (
         <PageLayout
-            title="Form - Validation"
-            description="The Form widget collects all invalid fields in a single pass before blocking submit. Required fields and custom validators are both supported. Errors appear inline under each field; they clear as soon as the user starts typing. Clicking Save always clears the previous state immediately before re-validating."
+            title={t.page.title}
+            description={t.page.description}
         >
             {/* ── 1. Create mode - required + validators + notification ─── */}
             <Section
-                title="Create mode - required fields & validators"
-                description="Click Save without filling anything: all required fields highlight simultaneously. The footer shows a warning notification next to the Save button - it persists until you fix the errors and submit again. Once all fields are valid the notification switches to a success confirmation that auto-dismisses."
+                title={t.sections.createMode.title}
+                description={t.sections.createMode.description}
                 preview={
                     <WithMock>
                         <div className="w-full max-w-lg">
@@ -178,8 +181,8 @@ const validatePassword = (v: any) => {
 
             {/* ── 2. Edit mode - save + delete ─────────────────────────── */}
             <Section
-                title="Edit mode - save & delete"
-                description="Pass defaultValues that include a _key field to signal edit mode. The Form sees _key in defaultValues and sets isNewRecord = false, rendering both Save and Delete buttons. path is the collection; the record's _key is appended for writes."
+                title={t.sections.editMode.title}
+                description={t.sections.editMode.description}
                 preview={
                     <WithMock>
                         <div className="w-full max-w-lg">
@@ -224,12 +227,12 @@ const validatePassword = (v: any) => {
 
             {/* ── 3. Long form - scroll to first error ─────────────────── */}
             <Section
-                title="Long form - scroll to first error"
-                description="When a form is taller than the viewport, the form automatically scrolls to the first invalid field and focuses it after a failed submit. Scroll to the bottom of this form and click Save - the page jumps back to the first missing field."
+                title={t.sections.longForm.title}
+                description={t.sections.longForm.description}
                 preview={
                     <div className="w-full max-w-lg">
                         <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 mb-4">
-                            <strong>How to try it:</strong> scroll past all fields to the Save button, then click it. The page scrolls back to the first invalid field.
+                            {t.sections.longFormHowToTry}
                         </div>
                         <WithMock>
                             <Form
@@ -295,8 +298,8 @@ const validatePassword = (v: any) => {
 
             {/* ── 4. Form inside modal - all positions ─────────────────── */}
             <Section
-                title="Form inside modal"
-                description="A validated form can live inside a Modal at any position. The modal's Save button delegates to the form's internal handleSave: validation runs, errors appear inline, and the modal closes only when all fields are valid."
+                title={t.sections.insideModal.title}
+                description={t.sections.insideModal.description}
                 preview={
                     <WithMock>
                         <div className="flex flex-wrap gap-2 justify-center py-4">

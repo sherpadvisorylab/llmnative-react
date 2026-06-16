@@ -1,10 +1,11 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Image, Modal, Icon, useImage } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
 import { usePlayground } from '../../docs-kit/playground';
 import type { PropDef, PlaygroundConfig } from '../../docs-kit/playground';
+import { useShowcaseImageI18n } from '../../showcase/i18n';
 
 function makeLandscapeSvg(label: string, bg: string, accent: string) {
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360"><rect width="640" height="360" fill="${bg}"/><circle cx="510" cy="88" r="72" fill="${accent}"/><path d="M0 260 130 155 250 235 370 115 520 215 640 150V360H0z" fill="#0f172a"/><rect x="40" y="38" width="200" height="14" rx="7" fill="#ffffff44"/><text x="40" y="76" font-family="Arial" font-size="30" font-weight="700" fill="white">${label}</text></svg>`;
@@ -21,50 +22,28 @@ const SAMPLE_LANDSCAPE_ALT = makeLandscapeSvg('Campaign hero', '#059669', '#a7f3
 const SAMPLE_PORTRAIT = makePortraitSvg('Portrait', '#7c3aed', '#ddd6fe');
 
 const SRC_PRESETS: Record<string, string> = {
-    landscape:       SAMPLE_LANDSCAPE,
+    landscape: SAMPLE_LANDSCAPE,
     'landscape-alt': SAMPLE_LANDSCAPE_ALT,
-    portrait:        SAMPLE_PORTRAIT,
-    empty:           '',
+    portrait: SAMPLE_PORTRAIT,
+    empty: '',
 };
 
-const IMAGE_PROPS: PropDef[] = [
-    { name: 'src', type: 'string', required: true, group: 'Core', description: 'Image source URL or one of the sample presets used in the playground', control: 'select', options: ['landscape', 'landscape-alt', 'portrait', 'empty'] },
-    { name: 'label', type: 'string', group: 'Core', description: 'Alt text shown to screen readers and on broken images', control: 'text' },
-    { name: 'title', type: 'string', group: 'Core', description: 'Native title attribute — shown as tooltip on hover', control: 'text' },
-    { name: 'placeholder', type: 'string', group: 'Core', description: 'Fallback image shown when src is empty or not yet resolved.', control: 'text', help: 'URL (https://…) · path relativo (/img/x.png) · data URI SVG (data:image/svg+xml,…) · base64 (data:image/png;base64,…). Vuoto = placeholder del tema.' },
-    { name: 'width', type: 'number', group: 'Dimensions', description: 'Display width in pixels', control: 'number', min: 40, max: 640 },
-    { name: 'height', type: 'number', group: 'Dimensions', description: 'Display height in pixels', control: 'number', min: 40, max: 600 },
-    { name: 'fit', type: '"cover" | "contain" | "fill" | "scale-down" | "none"', group: 'Dimensions', description: 'How the image fills its box — maps to CSS object-fit', control: 'select', options: ['cover', 'contain', 'fill', 'scale-down', 'none'] },
-    { name: 'position', type: 'string', group: 'Dimensions', description: 'Anchor point of the image inside the box — maps to CSS object-position', control: 'select', options: ['center', 'top', 'bottom', 'left', 'right', 'top left', 'top right', 'bottom left', 'bottom right'] },
-    { name: 'feedback', type: 'ReactNode', group: 'Slots', description: 'Caption or feedback text rendered below the image', control: 'text' },
-    { name: 'before', type: 'ReactNode', group: 'Slots', description: 'Content rendered to the left of the image', control: 'text' },
-    { name: 'after', type: 'ReactNode', group: 'Slots', description: 'Content rendered to the right of the image', control: 'text' },
-    { name: 'srcset', type: 'string', group: 'Responsive', description: 'Native HTML srcset attribute — comma-separated list of image candidate strings for responsive image selection by the browser', control: 'text' },
-    { name: 'sizes', type: 'string', group: 'Responsive', description: 'Native HTML sizes attribute — media-condition / width descriptor pairs that tell the browser which srcset candidate to use at each viewport width', control: 'text' },
-    { name: 'className', type: 'string', group: 'Styling', description: 'CSS classes applied to the <img> element', control: 'text' },
-    { name: 'wrapperClassName', type: 'string', group: 'Styling', description: 'CSS classes applied to the outer wrapper', control: 'text' },
-];
-
-// Playground-only controls — used by ImageExportPanel to demonstrate useImage/srcset, not Image component props
-const PLAYGROUND_EXTRA_PROPS: PropDef[] = [
-    { name: 'responsive', type: 'boolean', group: 'Export demo', description: 'Adds srcset to the export output (`toHtml` / `toJson`). Does not change the visual preview.', control: 'boolean' },
-    { name: 'srcsetMode', type: '"width" | "density"', group: 'Export demo', description: 'srcset strategy for the export demo.', control: 'select', options: ['width', 'density'], hidden: (p) => !p.responsive },
-    { name: 'sizesPreset', type: 'string', group: 'Export demo', description: 'sizes attribute preset for width-mode srcset export.', control: 'select', options: ['Hero — occupa tutta la larghezza', 'Articolo — colonna di testo (max 900px)', 'Card — griglia 2 colonne', 'Card — griglia 3 colonne', 'Thumbnail — elemento piccolo'], hidden: (p) => !p.responsive || p.srcsetMode === 'density' },
-];
-
-// Filename used in export when src is a playground preset (not a real file)
 const SRC_FILENAMES: Record<string, string> = {
-    landscape:       'landscape.jpg',
+    landscape: 'landscape.jpg',
     'landscape-alt': 'landscape-alt.jpg',
-    portrait:        'portrait.jpg',
-    empty:           'image.jpg',
+    portrait: 'portrait.jpg',
+    empty: 'image.jpg',
 };
 
 const SRCSET_WIDTHS = [400, 800, 1600];
 
 type ExportMode = 'json' | 'html';
+type ImageI18n = ReturnType<typeof useShowcaseImageI18n>;
 
-function ImageExportPanel(p: Record<string, any>) {
+function ImageExportPanel({
+    t,
+    ...p
+}: Record<string, any> & { t: ImageI18n }) {
     const PREVIEW_WIDTH = 320;
     const w = Number(p.width) || PREVIEW_WIDTH;
     const h = Number(p.height) || PREVIEW_WIDTH;
@@ -76,24 +55,24 @@ function ImageExportPanel(p: Record<string, any>) {
     const resolvedSrc = SRC_PRESETS[p.src] ?? p.src ?? undefined;
     const exportFilename = SRC_FILENAMES[p.src] ?? (p.src ? `${p.src}.jpg` : 'image.jpg');
 
-    const SIZES_MAP: Record<string, string> = {
-        'Hero — occupa tutta la larghezza':      '100vw',
-        'Articolo — colonna di testo (max 900px)': '(max-width: 900px) 100vw, 900px',
-        'Card — griglia 2 colonne':              '(max-width: 640px) 100vw, 50vw',
-        'Card — griglia 3 colonne':              '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw',
-        'Thumbnail — elemento piccolo':          '(max-width: 640px) 50vw, 200px',
+    const sizesMap: Record<string, string> = {
+        [t.playground.presets.heroFullWidth]: '100vw',
+        [t.playground.presets.articleTextColumn]: '(max-width: 900px) 100vw, 900px',
+        [t.playground.presets.cardTwoColumns]: '(max-width: 640px) 100vw, 50vw',
+        [t.playground.presets.cardThreeColumns]: '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw',
+        [t.playground.presets.thumbnailSmall]: '(max-width: 640px) 50vw, 200px',
     };
-    const sizesAttr = SIZES_MAP[p.sizesPreset] ?? '(max-width: 640px) 100vw, 50vw';
+    const sizesAttr = sizesMap[p.sizesPreset] ?? sizesMap[t.playground.presets.cardTwoColumns];
 
     const img = useImage({
-        src:      exportFilename,
-        alt:      p.label || 'Image',
-        title:    p.title   || undefined,
-        width:    Number(p.width)  || undefined,
-        height:   Number(p.height) || undefined,
-        fit:      (p.fit      || undefined) as any,
+        src: exportFilename,
+        alt: p.label || t.labels.image,
+        title: p.title || undefined,
+        width: Number(p.width) || undefined,
+        height: Number(p.height) || undefined,
+        fit: (p.fit || undefined) as any,
         position: (p.position || undefined) as any,
-        loading:  'lazy',
+        loading: 'lazy',
     });
 
     const srcsetCfg = p.responsive
@@ -138,30 +117,30 @@ function ImageExportPanel(p: Record<string, any>) {
             {p.responsive && (
                 <p className="mt-2 text-center text-xs text-muted-foreground">
                     {p.srcsetMode === 'density'
-                        ? <>srcset density attivo — l'export include <code className="font-mono">1x / 2x / 3x</code> (<code className="font-mono">@2x</code> / <code className="font-mono">@3x</code>)</>
-                        : <>srcset width attivo — l'export include <code className="font-mono">400w / 800w / 1600w</code></>
+                        ? <>{t.labels.srcsetDensityActive} <code className="font-mono">1x / 2x / 3x</code> (<code className="font-mono">@2x</code> / <code className="font-mono">@3x</code>)</>
+                        : <>{t.labels.srcsetWidthActive} <code className="font-mono">400w / 800w / 1600w</code></>
                     }
                 </p>
             )}
-            <div className="flex gap-2 mt-3 justify-center">
+            <div className="mt-3 flex justify-center gap-2">
                 <button className="btn btn-sm btn-outline-secondary flex items-center gap-1.5" onClick={() => openExport('json')}>
-                    <Icon name="code" size={13} /> toJSON
+                    <Icon name="code" size={13} /> {t.playground.export.jsonButton}
                 </button>
                 <button className="btn btn-sm btn-outline-primary flex items-center gap-1.5" onClick={() => openExport('html')}>
-                    <Icon name="file" size={13} /> toHTML
+                    <Icon name="file" size={13} /> {t.playground.export.htmlButton}
                 </button>
             </div>
 
             {modal?.open && (
                 <Modal
-                    title={modal.mode === 'json' ? 'Image Params — JSON' : 'Image Tag — HTML'}
+                    title={modal.mode === 'json' ? t.labels.imageParamsJson : t.labels.imageTagHtml}
                     size="md"
                     position="center"
                     onClose={() => setModal(null)}
                     footer={
-                        <div className="flex items-center justify-between w-full">
-                            <span className="text-xs text-muted-foreground font-mono">
-                                {modal.mode === 'json' ? 'ImageParams (JSON)' : '<img> tag (HTML)'}
+                        <div className="flex w-full items-center justify-between">
+                            <span className="font-mono text-xs text-muted-foreground">
+                                {modal.mode === 'json' ? t.labels.imageParamsJsonShort : t.labels.imageTagHtmlShort}
                             </span>
                             <div className="flex gap-2">
                                 <button
@@ -169,10 +148,10 @@ function ImageExportPanel(p: Record<string, any>) {
                                     onClick={handleCopy}
                                 >
                                     <Icon name={copied ? 'check' : 'copy'} size={13} />
-                                    {copied ? 'Copiato!' : 'Copia'}
+                                    {copied ? t.labels.copied : t.labels.copy}
                                 </button>
                                 <button className="btn btn-sm btn-outline-secondary" onClick={() => setModal(null)}>
-                                    Chiudi
+                                    {t.labels.close}
                                 </button>
                             </div>
                         </div>
@@ -181,7 +160,7 @@ function ImageExportPanel(p: Record<string, any>) {
                     <textarea
                         readOnly
                         value={modal.content}
-                        className="w-full rounded-md border bg-muted p-3 font-mono text-xs resize-none focus:outline-none focus:ring-2 focus:ring-ring"
+                        className="w-full resize-none rounded-md border bg-muted p-3 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-ring"
                         rows={modal.mode === 'json' ? 18 : 12}
                         onClick={(e) => (e.target as HTMLTextAreaElement).select()}
                     />
@@ -191,49 +170,78 @@ function ImageExportPanel(p: Record<string, any>) {
     );
 }
 
-const PLAYGROUND: PlaygroundConfig = {
-    size: 'xl',
-    layout: 'split',
-    props: [...IMAGE_PROPS, ...PLAYGROUND_EXTRA_PROPS],
-    defaultProps: {
-        src: 'landscape',
-        label: 'Sample landscape illustration',
-        title: 'Hover tooltip',
-        placeholder: '',
-        width: 320,
-        height: 320,
-        fit: 'cover',
-        position: 'center',
-        feedback: 'Caption rendered below the image',
-        before: '',
-        after: '',
-        responsive: false,
-        srcsetMode: 'width',
-        sizesPreset: 'Card — griglia 2 colonne',
-        className: 'rounded-lg border',
-        wrapperClassName: '',
-    },
-    render: (p) => <ImageExportPanel {...p} />,
-};
-
 export default function ImagePage() {
-    usePlayground(PLAYGROUND, 'Image');
+    const t = useShowcaseImageI18n();
+
+    const imageProps = React.useMemo<PropDef[]>(() => [
+        { name: 'src', type: 'string', required: true, group: 'Core', description: t.propsDocs.items.src.description, control: 'select', options: ['landscape', 'landscape-alt', 'portrait', 'empty'] },
+        { name: 'label', type: 'string', group: 'Core', description: t.propsDocs.items.label.description, control: 'text' },
+        { name: 'title', type: 'string', group: 'Core', description: t.propsDocs.items.title.description, control: 'text' },
+        { name: 'placeholder', type: 'string', group: 'Core', description: t.propsDocs.items.placeholder.description, control: 'text', help: t.propsDocs.items.placeholder.help },
+        { name: 'width', type: 'number', group: 'Dimensions', description: t.propsDocs.items.width.description, control: 'number', min: 40, max: 640 },
+        { name: 'height', type: 'number', group: 'Dimensions', description: t.propsDocs.items.height.description, control: 'number', min: 40, max: 600 },
+        { name: 'fit', type: '"cover" | "contain" | "fill" | "scale-down" | "none"', group: 'Dimensions', description: t.propsDocs.items.fit.description, control: 'select', options: ['cover', 'contain', 'fill', 'scale-down', 'none'] },
+        { name: 'position', type: 'string', group: 'Dimensions', description: t.propsDocs.items.position.description, control: 'select', options: ['center', 'top', 'bottom', 'left', 'right', 'top left', 'top right', 'bottom left', 'bottom right'] },
+        { name: 'feedback', type: 'ReactNode', group: 'Slots', description: t.propsDocs.items.feedback.description, control: 'text' },
+        { name: 'before', type: 'ReactNode', group: 'Slots', description: t.propsDocs.items.before.description, control: 'text' },
+        { name: 'after', type: 'ReactNode', group: 'Slots', description: t.propsDocs.items.after.description, control: 'text' },
+        { name: 'srcset', type: 'string', group: 'Responsive', description: t.propsDocs.items.srcset.description, control: 'text' },
+        { name: 'sizes', type: 'string', group: 'Responsive', description: t.propsDocs.items.sizes.description, control: 'text' },
+        { name: 'className', type: 'string', group: 'Styling', description: t.propsDocs.items.className.description, control: 'text' },
+        { name: 'wrapperClassName', type: 'string', group: 'Styling', description: t.propsDocs.items.wrapperClassName.description, control: 'text' },
+    ], [t]);
+
+    const playgroundExtraProps = React.useMemo<PropDef[]>(() => [
+        { name: 'responsive', type: 'boolean', group: 'Export demo', description: t.playground.props.responsive.description, control: 'boolean' },
+        { name: 'srcsetMode', type: '"width" | "density"', group: 'Export demo', description: t.playground.props.srcsetMode.description, control: 'select', options: ['width', 'density'], hidden: (p) => !p.responsive },
+        { name: 'sizesPreset', type: 'string', group: 'Export demo', description: t.playground.props.sizesPreset.description, control: 'select', options: [
+            t.playground.presets.heroFullWidth,
+            t.playground.presets.articleTextColumn,
+            t.playground.presets.cardTwoColumns,
+            t.playground.presets.cardThreeColumns,
+            t.playground.presets.thumbnailSmall,
+        ], hidden: (p) => !p.responsive || p.srcsetMode === 'density' },
+    ], [t]);
+
+    const playground = React.useMemo<PlaygroundConfig>(() => ({
+        size: 'xl',
+        layout: 'split',
+        props: [...imageProps, ...playgroundExtraProps],
+        defaultProps: {
+            src: 'landscape',
+            label: t.labels.sampleLandscapeIllustration,
+            title: t.labels.hoverTooltip,
+            placeholder: '',
+            width: 320,
+            height: 320,
+            fit: 'cover',
+            position: 'center',
+            feedback: t.labels.captionRenderedBelow,
+            before: '',
+            after: '',
+            responsive: false,
+            srcsetMode: 'width',
+            sizesPreset: t.playground.presets.cardTwoColumns,
+            className: 'rounded-lg border',
+            wrapperClassName: '',
+        },
+        render: (p) => <ImageExportPanel {...p} t={t} />,
+    }), [imageProps, playgroundExtraProps, t]);
+
+    usePlayground(playground, t.playground.title);
 
     return (
-        <PageLayout
-            title="Image"
-            description="Themed image wrapper with placeholder fallback, before/after content slots and optional feedback caption."
-        >
+        <PageLayout title={t.page.title} description={t.page.description}>
             <Section
-                title="Basic image"
-                description="Pass any URL or data URI to src. className is applied to the img element so you can use Tailwind utilities for rounded corners, borders and max-width directly."
-                preview={
+                title={t.sections.basic.title}
+                description={t.sections.basic.description}
+                preview={(
                     <Image
                         src={SAMPLE_LANDSCAPE}
-                        label="Landscape illustration"
+                        label={t.labels.landscapeIllustration}
                         className="rounded-xl border max-w-md w-full"
                     />
-                }
+                )}
                 code={`import { Image } from '@llmnative/react';
 
 <Image
@@ -244,35 +252,31 @@ export default function ImagePage() {
             />
 
             <Section
-                title="Feedback caption"
-                description="The feedback prop renders any ReactNode below the image inside the wrapper. Use it for captions, alt descriptions or status messages."
-                preview={
-                    <div className="flex flex-col sm:flex-row gap-6 items-start">
+                title={t.sections.feedbackCaption.title}
+                description={t.sections.feedbackCaption.description}
+                preview={(
+                    <div className="flex flex-col items-start gap-6 sm:flex-row">
                         <Image
                             src={SAMPLE_LANDSCAPE}
-                            label="Hero banner"
+                            label={t.labels.heroBanner}
                             feedback="Hero banner - 1280 x 720 px"
                             className="rounded-lg border object-cover max-w-xs w-full"
                         />
                         <Image
                             src={SAMPLE_LANDSCAPE_ALT}
-                            label="Campaign hero"
-                            feedback={
-                                <span className="flex items-center gap-1 text-success font-medium">
-                                    ✓ Approved
-                                </span>
-                            }
+                            label={t.labels.campaignHero}
+                            feedback={<span className="flex items-center gap-1 font-medium text-success">✓ {t.labels.approved}</span>}
                             className="rounded-lg border object-cover max-w-xs w-full"
                         />
                     </div>
-                }
+                )}
                 code={`import { Image } from '@llmnative/react';
 
 // plain text caption
 <Image
     src={bannerUrl}
     label="Hero banner"
-    feedback="Hero banner — 1280 x 720 px"
+    feedback="Hero banner - 1280 x 720 px"
     className="rounded-lg border max-w-xs w-full"
 />
 
@@ -286,29 +290,29 @@ export default function ImagePage() {
             />
 
             <Section
-                title="Placeholder fallback"
-                description="When src is empty or not yet resolved, Image renders the placeholder. The default is the theme placeholder image; pass your own via the placeholder prop."
-                preview={
-                    <div className="flex flex-wrap gap-6 items-start">
+                title={t.sections.placeholderFallback.title}
+                description={t.sections.placeholderFallback.description}
+                preview={(
+                    <div className="flex flex-wrap items-start gap-6">
                         <div className="flex flex-col gap-1">
-                            <span className="text-xs text-muted-foreground mb-1">No src — theme default</span>
+                            <span className="mb-1 text-xs text-muted-foreground">{t.labels.noSrcThemeDefault}</span>
                             <Image
                                 src=""
-                                label="Missing image"
-                                className="rounded-lg border w-48 h-28 object-cover"
+                                label={t.labels.missingImage}
+                                className="h-28 w-48 rounded-lg border object-cover"
                             />
                         </div>
                         <div className="flex flex-col gap-1">
-                            <span className="text-xs text-muted-foreground mb-1">Custom placeholder</span>
+                            <span className="mb-1 text-xs text-muted-foreground">{t.labels.customPlaceholder}</span>
                             <Image
                                 src=""
                                 placeholder={makePortraitSvg('Placeholder', '#475569', '#cbd5e1')}
-                                label="Custom placeholder"
-                                className="rounded-lg border w-48 h-28 object-cover"
+                                label={t.labels.customPlaceholder}
+                                className="h-28 w-48 rounded-lg border object-cover"
                             />
                         </div>
                     </div>
-                }
+                )}
                 code={`import { Image } from '@llmnative/react';
 
 // theme default placeholder
@@ -324,42 +328,42 @@ export default function ImagePage() {
             />
 
             <Section
-                title="Before / after slots"
-                description="before renders to the left of the image, after to the right — both vertically centred. Use them for labels, action buttons or metadata beside the image. feedback still appears below."
-                preview={
-                    <div className="flex flex-col gap-6 w-full">
+                title={t.sections.beforeAfter.title}
+                description={t.sections.beforeAfter.description}
+                preview={(
+                    <div className="flex w-full flex-col gap-6">
                         <Image
                             src={SAMPLE_LANDSCAPE}
-                            label="Hero banner"
-                            before={
+                            label={t.labels.heroBanner}
+                            before={(
                                 <div className="flex flex-col items-end gap-1 text-right">
-                                    <span className="font-semibold text-sm whitespace-nowrap">Hero banner</span>
-                                    <span className="badge badge-info">ready</span>
+                                    <span className="whitespace-nowrap text-sm font-semibold">{t.labels.heroBannerShort}</span>
+                                    <span className="badge badge-info">{t.labels.ready}</span>
                                 </div>
-                            }
-                            after={
+                            )}
+                            after={(
                                 <div className="flex flex-col gap-1">
                                     <span className="badge badge-secondary whitespace-nowrap">1280 x 720</span>
                                     <span className="badge badge-light">SVG</span>
                                 </div>
-                            }
-                            feedback="Used in the spring launch email."
-                            className="rounded-lg border object-cover w-64"
+                            )}
+                            feedback={t.labels.usedInSpringLaunchEmail}
+                            className="w-64 rounded-lg border object-cover"
                         />
                         <Image
                             src={SAMPLE_PORTRAIT}
-                            label="Portrait"
-                            before={<span className="text-xs text-muted-foreground whitespace-nowrap">2 / 8</span>}
-                            after={
-                                <div className="flex flex-col gap-1 items-start">
+                            label={t.labels.portrait}
+                            before={<span className="whitespace-nowrap text-xs text-muted-foreground">2 / 8</span>}
+                            after={(
+                                <div className="flex items-start flex-col gap-1">
                                     <span className="badge badge-secondary whitespace-nowrap">360 x 480</span>
-                                    <span className="badge badge-light">Portrait</span>
+                                    <span className="badge badge-light">{t.labels.portrait}</span>
                                 </div>
-                            }
-                            className="rounded-lg border object-cover w-32"
+                            )}
+                            className="w-32 rounded-lg border object-cover"
                         />
                     </div>
-                }
+                )}
                 code={`import { Image } from '@llmnative/react';
 
 // before = left, after = right, both vertically centred
@@ -384,10 +388,10 @@ export default function ImagePage() {
             />
 
             <Section
-                title="Fit modes"
-                description="The fit prop maps to CSS object-fit and controls how the image fills its box when width and height are both set. Use cover to crop-fill, contain to letterbox, fill to stretch, scale-down to never upscale, or none to use the image's natural size."
-                preview={
-                    <div className="flex flex-wrap gap-6 items-start">
+                title={t.sections.fitModes.title}
+                description={t.sections.fitModes.description}
+                preview={(
+                    <div className="flex flex-wrap items-start gap-6">
                         {(['cover', 'contain', 'fill', 'scale-down', 'none'] as const).map((mode) => (
                             <div key={mode} className="flex flex-col items-center gap-2">
                                 <Image
@@ -398,38 +402,38 @@ export default function ImagePage() {
                                     fit={mode}
                                     className="rounded-lg border bg-muted"
                                 />
-                                <span className="text-xs font-mono text-muted-foreground">{mode}</span>
+                                <span className="font-mono text-xs text-muted-foreground">{mode}</span>
                             </div>
                         ))}
                     </div>
-                }
+                )}
                 code={`import { Image } from '@llmnative/react';
 
-// cover  — crops to fill the box, no empty space (default for thumbnails)
+// cover  - crops to fill the box, no empty space (default for thumbnails)
 <Image src={url} width={160} height={160} fit="cover" className="rounded-lg border" />
 
-// contain — letterboxes inside the box, full image always visible
+// contain - letterboxes inside the box, full image always visible
 <Image src={url} width={160} height={160} fit="contain" className="rounded-lg border bg-muted" />
 
-// fill — stretches to fill exactly, distorts aspect ratio
+// fill - stretches to fill exactly, distorts aspect ratio
 <Image src={url} width={160} height={160} fit="fill" className="rounded-lg border" />
 
-// scale-down — like contain but never upscales beyond natural size
+// scale-down - like contain but never upscales beyond natural size
 <Image src={url} width={160} height={160} fit="scale-down" className="rounded-lg border bg-muted" />
 
-// none — renders at natural image size, ignores width/height box
+// none - renders at natural image size, ignores width/height box
 <Image src={url} width={160} height={160} fit="none" className="rounded-lg border" />`}
             />
 
             <Section
-                title="Fixed dimensions"
-                description="Pass width and height to set the display size. Use fit to control how the image content fills that box."
-                preview={
-                    <div className="flex flex-wrap gap-4 items-end">
+                title={t.sections.fixedDimensions.title}
+                description={t.sections.fixedDimensions.description}
+                preview={(
+                    <div className="flex flex-wrap items-end gap-4">
                         <div className="flex flex-col items-center gap-1">
                             <Image
                                 src={SAMPLE_LANDSCAPE}
-                                label="Thumbnail"
+                                label={t.labels.thumbnail}
                                 width={120}
                                 height={120}
                                 fit="cover"
@@ -440,7 +444,7 @@ export default function ImagePage() {
                         <div className="flex flex-col items-center gap-1">
                             <Image
                                 src={SAMPLE_LANDSCAPE}
-                                label="Card"
+                                label={t.labels.card}
                                 width={240}
                                 height={135}
                                 fit="cover"
@@ -451,7 +455,7 @@ export default function ImagePage() {
                         <div className="flex flex-col items-center gap-1">
                             <Image
                                 src={SAMPLE_LANDSCAPE}
-                                label="Preview"
+                                label={t.labels.preview}
                                 width={360}
                                 height={202}
                                 fit="cover"
@@ -460,13 +464,13 @@ export default function ImagePage() {
                             />
                         </div>
                     </div>
-                }
+                )}
                 code={`import { Image } from '@llmnative/react';
 
-// thumbnail — square crop
+// thumbnail - square crop
 <Image src={url} label="Thumbnail" width={120} height={120} fit="cover" className="rounded border" />
 
-// card — 16:9 crop
+// card - 16:9 crop
 <Image src={url} label="Card" width={240} height={135} fit="cover" className="rounded-lg border" />
 
 // large preview
@@ -474,13 +478,13 @@ export default function ImagePage() {
             />
 
             <Section
-                title="Style variants"
-                description="className targets the img element; wrapperClassName targets the wrapper div. Combine them to control the outer layout separately from the image styling."
-                preview={
-                    <div className="flex flex-wrap gap-6 items-start">
+                title={t.sections.styleVariants.title}
+                description={t.sections.styleVariants.description}
+                preview={(
+                    <div className="flex flex-wrap items-start gap-6">
                         <Image
                             src={SAMPLE_LANDSCAPE}
-                            label="Circle avatar"
+                            label={t.labels.circleAvatar}
                             width={96}
                             height={96}
                             fit="cover"
@@ -488,23 +492,23 @@ export default function ImagePage() {
                         />
                         <Image
                             src={SAMPLE_LANDSCAPE}
-                            label="Grayscale"
+                            label={t.labels.grayscale}
                             width={200}
                             height={120}
                             fit="cover"
                             className="rounded-lg border grayscale hover:grayscale-0 transition-all duration-300"
-                            feedback={<span className="text-xs text-muted-foreground">Hover to colorize</span>}
+                            feedback={<span className="text-xs text-muted-foreground">{t.labels.hoverToColorize}</span>}
                         />
                         <Image
                             src={SAMPLE_LANDSCAPE_ALT}
-                            label="Shadow"
+                            label={t.labels.shadow}
                             width={200}
                             height={120}
                             fit="cover"
                             className="rounded-xl shadow-xl"
                         />
                     </div>
-                }
+                )}
                 code={`import { Image } from '@llmnative/react';
 
 // circle avatar
@@ -518,112 +522,116 @@ export default function ImagePage() {
             />
 
             <Section
-                title="useImage — HTML responsive con srcset"
-                description="useImage(config) restituisce un helper con .toHtml(srcset?) che genera un tag <img> completo e SEO-ottimizzato come stringa. Non ridimensiona le immagini: presuppone che le varianti di file esistano già sul server con la naming convention generata."
-                preview={
-                    <div className="flex flex-col gap-8 w-full">
-                        {/* Density mode */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
+                title={t.sections.useImageHtml.title}
+                description={t.sections.useImageHtml.description}
+                preview={(
+                    <div className="flex w-full flex-col gap-8">
+                        <div className="grid grid-cols-1 items-start gap-4 sm:grid-cols-2">
                             <div className="flex flex-col gap-2">
-                                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Immagine — density 1x / 2x / 3x</span>
+                                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t.labels.imageDensityTitle}</span>
                                 <Image
                                     src={SAMPLE_LANDSCAPE}
-                                    label="Hero banner"
-                                    width={280} height={157} fit="cover"
+                                    label={t.labels.heroBanner}
+                                    width={280}
+                                    height={157}
+                                    fit="cover"
                                     className="rounded-lg border"
                                     feedback={<span className="text-xs text-muted-foreground">hero.jpg · hero@2x.jpg · hero@3x.jpg</span>}
                                 />
                             </div>
                             <div className="flex flex-col gap-2">
-                                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Tag HTML generato</span>
-                                <pre className="rounded-lg border bg-muted p-3 text-xs overflow-x-auto whitespace-pre h-full">{
+                                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t.labels.generatedHtmlTag}</span>
+                                <pre className="h-full overflow-x-auto whitespace-pre rounded-lg border bg-muted p-3 text-xs">{
                                     useImage({ src: 'hero.jpg', alt: 'Hero banner', width: 400, height: 225, loading: 'lazy' })
                                         .toHtml({ mode: 'density', densities: [1, 2, 3] })
                                 }</pre>
                             </div>
                         </div>
-                        {/* Width mode */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
+                        <div className="grid grid-cols-1 items-start gap-4 sm:grid-cols-2">
                             <div className="flex flex-col gap-2">
-                                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Immagine — width 400w / 800w / 1200w (LCP)</span>
+                                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t.labels.imageWidthTitle}</span>
                                 <Image
                                     src={SAMPLE_LANDSCAPE_ALT}
-                                    label="Campaign hero"
-                                    width={280} height={157} fit="cover"
+                                    label={t.labels.campaignHero}
+                                    width={280}
+                                    height={157}
+                                    fit="cover"
                                     className="rounded-lg border"
                                     feedback={<span className="text-xs text-muted-foreground">photo-400w.jpg · photo-800w.jpg · photo-1200w.jpg</span>}
                                 />
                             </div>
                             <div className="flex flex-col gap-2">
-                                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Tag HTML generato (priority=LCP)</span>
-                                <pre className="rounded-lg border bg-muted p-3 text-xs overflow-x-auto whitespace-pre h-full">{
+                                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t.labels.generatedHtmlLcp}</span>
+                                <pre className="h-full overflow-x-auto whitespace-pre rounded-lg border bg-muted p-3 text-xs">{
                                     useImage({ src: 'photo.jpg', alt: 'Campaign hero', width: 800, height: 450, priority: true })
                                         .toHtml({ mode: 'width', widths: [400, 800, 1200], sizes: '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 800px' })
                                 }</pre>
                             </div>
                         </div>
                     </div>
-                }
+                )}
                 code={`import { useImage } from '@llmnative/react';
 
-// Density mode — fixed-size images (logo, avatar, icon)
+// Density mode - fixed-size images (logo, avatar, icon)
 // Files expected: hero.jpg  hero@2x.jpg  hero@3x.jpg
 const img = useImage({ src: 'hero.jpg', alt: 'Hero banner', width: 400, height: 225, loading: 'lazy' });
 img.toHtml({ mode: 'density', densities: [1, 2, 3] });
 
-// Width mode — responsive images (hero, card, content)
+// Width mode - responsive images (hero, card, content)
 // Files expected: photo-400w.jpg  photo-800w.jpg  photo-1200w.jpg
-// priority: true â†' fetchpriority="high" + loading="eager"  (LCP image)
+// priority: true -> fetchpriority="high" + loading="eager"  (LCP image)
 const hero = useImage({ src: 'photo.jpg', alt: 'Campaign hero', width: 800, height: 450, priority: true });
 hero.toHtml({ mode: 'width', widths: [400, 800, 1200], sizes: '(max-width: 640px) 100vw, 800px' });
 
-// Custom suffix override: img.jpg â†' img-2x.jpg instead of img@2x.jpg
+// Custom suffix override: img.jpg -> img-2x.jpg instead of img@2x.jpg
 const logo = useImage({ src: 'img.jpg', alt: 'Img' });
 logo.toHtml({ mode: 'density', densities: [1, 2], suffix: (d) => d === 1 ? '' : \`-\${d}x\` });`}
             />
 
             <Section
-                title="useImage — JSON dei parametri"
-                description="useImage(config).toJson(srcset?) restituisce un JSON con tutti gli attributi img. Utile per CMS headless, server-side rendering o quando serve passare i metadati separati dall'HTML. .params(srcset?) restituisce l'oggetto grezzo."
-                preview={
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start w-full">
+                title={t.sections.useImageJson.title}
+                description={t.sections.useImageJson.description}
+                preview={(
+                    <div className="grid w-full grid-cols-1 items-start gap-4 sm:grid-cols-2">
                         <div className="flex flex-col gap-2">
-                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Immagine di riferimento</span>
+                            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t.labels.referenceImage}</span>
                             <Image
                                 src={SAMPLE_LANDSCAPE}
-                                label="Card image"
-                                width={280} height={157} fit="cover"
+                                label={t.labels.cardImage}
+                                width={280}
+                                height={157}
+                                fit="cover"
                                 className="rounded-lg border"
                                 feedback={<span className="text-xs text-muted-foreground">card.jpg · 640x360 · fit: cover</span>}
                             />
-                            <div className="flex flex-col gap-2">
-                                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mt-2">â†' HTML</span>
-                                <pre className="rounded-lg border bg-muted p-3 text-xs overflow-x-auto whitespace-pre">{
+                            <div className="mt-2 flex flex-col gap-2">
+                                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t.labels.htmlArrow}</span>
+                                <pre className="overflow-x-auto whitespace-pre rounded-lg border bg-muted p-3 text-xs">{
                                     useImage({ src: 'card.jpg', alt: 'Card image', width: 640, height: 360, fit: 'cover', loading: 'lazy' })
                                         .toHtml({ mode: 'width', widths: [320, 640, 1280], sizes: '(max-width: 768px) 100vw, 640px' })
                                 }</pre>
                             </div>
                         </div>
                         <div className="flex flex-col gap-2">
-                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">â†' JSON params</span>
-                            <pre className="rounded-lg border bg-muted p-3 text-xs overflow-x-auto whitespace-pre">{
+                            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t.labels.jsonParamsArrow}</span>
+                            <pre className="overflow-x-auto whitespace-pre rounded-lg border bg-muted p-3 text-xs">{
                                 useImage({ src: 'card.jpg', alt: 'Card image', width: 640, height: 360, fit: 'cover', loading: 'lazy' })
                                     .toJson({ mode: 'width', widths: [320, 640, 1280], sizes: '(max-width: 768px) 100vw, 640px' })
                             }</pre>
                         </div>
                     </div>
-                }
+                )}
                 code={`import { useImage } from '@llmnative/react';
 
 const img = useImage({ src: 'card.jpg', alt: 'Card image', width: 640, height: 360, fit: 'cover', loading: 'lazy' });
 const srcset = { mode: 'width', widths: [320, 640, 1280], sizes: '(max-width: 768px) 100vw, 640px' };
 
 const html   = img.toHtml(srcset);   // <img ...> HTML string
-const json   = img.toJson(srcset);   // JSON string — for CMS / SSR / metadata
-const params = img.params(srcset);   // ImageParams object — for custom serialisation`}
+const json   = img.toJson(srcset);   // JSON string - for CMS / SSR / metadata
+const params = img.params(srcset);   // ImageParams object - for custom serialisation`}
             />
 
-            <PropDocsTable props={IMAGE_PROPS} />
+            <PropDocsTable props={imageProps} title={t.propsDocs.title} />
         </PageLayout>
     );
 }

@@ -15,74 +15,18 @@ import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
 import type { PropDef } from '../../docs-kit/playground';
+import { useShowcaseMotionI18n } from '../../showcase/i18n';
 
 type MotionPreset = 'none' | 'subtle' | 'standard' | 'expressive';
 type ModalPreviewPosition = 'center' | 'right';
 type MotionIntent = 'press' | 'open' | 'enter' | 'modalCenter' | 'modalSide';
-
-const NOTIFICATIONS = [
-    { title: 'Motion registry reloaded', url: '/components/motion', time: 'Just now', icon: 'settings' },
-    { title: 'Modal preview uses theme fallback', url: '/components/modal', time: '2 minutes ago', icon: 'fullscreen' },
-    { title: 'Reduced motion still respects OS settings', url: '/docs/motion', time: '10 minutes ago', icon: 'warning' },
-];
-
-const MOTION_DOCS: PropDef[] = [
-    {
-        name: 'motion',
-        type: 'MotionReference | false',
-        description: 'Local override supported by ActionButton, LoadingButton, Dropdown, Modal and Tab. Pass false to disable the component motion.',
-        typeDetails: `type MotionReference = string | MotionEffect | false`,
-        example: `<Modal motion="slideFromRight" />
-<ActionButton label="Save" motion={false} />`,
-    },
-    {
-        name: 'theme.<Component>.motion',
-        type: 'Record<string, MotionReference>',
-        description: 'Theme-level mapping from semantic component states to named effects in the motion registry.',
-        example: `Modal: {
-  motion: {
-    center: 'fade',
-    right: 'slideFromRight',
-    backdrop: 'fade',
-  },
-}`,
-    },
-    {
-        name: 'transition',
-        type: 'MotionTransition',
-        description: 'Duration, easing, delay and property list used by a motion effect.',
-        typeDetails: `{
-  duration?: number;
-  easing?: string;
-  delay?: number;
-  properties?: string[];
-}`,
-    },
-    {
-        name: 'reducedMotion',
-        type: '"respect-user" | "always" | "never"',
-        description: 'Controls how the effect behaves when the user enables reduced motion at OS level.',
-        example: `motion={{
-  from: { opacity: 0 },
-  to: { opacity: 1 },
-  reducedMotion: 'respect-user',
-}}`,
-    },
-];
-
-const PRESET_COPY: Record<MotionPreset, string> = {
-    none: 'Disables decorative motion and is useful as a quick reduced-motion proxy during visual QA.',
-    subtle: 'Quiet and fast. Better for dense dashboards, admin panels and operational workflows.',
-    standard: 'Uses the current theme registry as-is. This is the production default you are shipping today.',
-    expressive: 'Longer travel and stronger feedback. Useful for demos, hero interactions and more visual products.',
-};
 
 const createEffect = (
     from: React.CSSProperties,
     to: React.CSSProperties,
     duration: number,
     properties: string[],
-    easing = 'cubic-bezier(0.2, 0, 0, 1)'
+    easing = 'cubic-bezier(0.2, 0, 0, 1)',
 ): MotionEffect => ({
     from: from as unknown as MotionEffect['from'],
     to: to as unknown as MotionEffect['to'],
@@ -139,20 +83,27 @@ function getPresetMotion(preset: MotionPreset, intent: MotionIntent): MotionRefe
 function RegistryEffectCard({
     name,
     details,
+    durationUnit,
+    reducedMotionSeparator,
 }: {
     name: string;
     details: ReturnType<typeof resolveMotionEffect>;
+    durationUnit: string;
+    reducedMotionSeparator: string;
 }) {
     return (
         <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
             <div className="flex items-center justify-between gap-3">
                 <h4 className="text-sm font-semibold text-foreground">{name}</h4>
                 <span className="rounded-full bg-secondary px-2 py-1 text-xs text-secondary-foreground">
-                    {details.transition.duration}ms
+                    {details.transition.duration}
+                    {durationUnit}
                 </span>
             </div>
             <p className="mt-2 text-xs text-muted-foreground">
-                {details.transition.properties.join(', ')} • {details.reducedMotion}
+                {details.transition.properties.join(', ')}
+                {reducedMotionSeparator}
+                {details.reducedMotion}
             </p>
             <div className="mt-4 overflow-hidden rounded-lg border border-border bg-muted/40 p-3">
                 <div
@@ -193,16 +144,59 @@ function MotionPresetButton({
 }
 
 export default function MotionPage() {
+    const t = useShowcaseMotionI18n();
     const { theme, themes, applyTheme } = useThemeController();
     const [preset, setPreset] = React.useState<MotionPreset>('standard');
     const [modalPosition, setModalPosition] = React.useState<ModalPreviewPosition | null>(null);
     const activeTheme = themes[theme] ?? themes.default;
+
+    const notifications = React.useMemo(() => ([
+        { title: t.notifications.registryReloaded.title, url: '/components/motion', time: t.notifications.registryReloaded.time, icon: 'settings' },
+        { title: t.notifications.modalThemeFallback.title, url: '/components/modal', time: t.notifications.modalThemeFallback.time, icon: 'fullscreen' },
+        { title: t.notifications.reducedMotionRespected.title, url: '/docs/motion', time: t.notifications.reducedMotionRespected.time, icon: 'warning' },
+    ]), [t]);
+
+    const motionDocs = React.useMemo<PropDef[]>(() => [
+        {
+            name: 'motion',
+            type: 'MotionReference | false',
+            description: t.propsDocs.items.motion.description,
+            typeDetails: t.propsDocs.items.motion.typeDetails,
+            example: t.propsDocs.items.motion.example,
+        },
+        {
+            name: 'theme.<Component>.motion',
+            type: 'Record<string, MotionReference>',
+            description: t.propsDocs.items.themeMotion.description,
+            example: t.propsDocs.items.themeMotion.example,
+        },
+        {
+            name: 'transition',
+            type: 'MotionTransition',
+            description: t.propsDocs.items.transition.description,
+            typeDetails: t.propsDocs.items.transition.typeDetails,
+        },
+        {
+            name: 'reducedMotion',
+            type: '"respect-user" | "always" | "never"',
+            description: t.propsDocs.items.reducedMotion.description,
+            example: t.propsDocs.items.reducedMotion.example,
+        },
+    ], [t]);
+
+    const presetCopy: Record<MotionPreset, string> = React.useMemo(() => ({
+        none: t.presets.none,
+        subtle: t.presets.subtle,
+        standard: t.presets.standard,
+        expressive: t.presets.expressive,
+    }), [t]);
+
     const registryEntries = React.useMemo(
         () => Object.keys(activeTheme.motion).map((key) => ({
             key,
             details: resolveMotionEffect(key, activeTheme.motion, key),
         })),
-        [activeTheme.motion]
+        [activeTheme.motion],
     );
 
     const pressMotion = React.useMemo(() => getPresetMotion(preset, 'press'), [preset]);
@@ -213,17 +207,17 @@ export default function MotionPage() {
 
     return (
         <PageLayout
-            title="Motion"
-            description="Interactive playground for the theme-driven motion registry, local component overrides and current coverage across the framework."
+            title={t.page.title}
+            description={t.page.description}
         >
             <Section
-                title="Preset controls"
-                description="Switch between built-in themes, then preview how no-motion, subtle, standard and expressive settings feel on top of the current registry."
+                title={t.sections.presetControls.title}
+                description={t.sections.presetControls.description}
                 preview={(
                     <div className="space-y-6">
                         <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
                             <div className="flex flex-wrap items-center gap-2">
-                                <span className="mr-2 text-sm font-medium text-foreground">Theme</span>
+                                <span className="mr-2 text-sm font-medium text-foreground">{t.labels.theme}</span>
                                 {Object.keys(themes).map((themeId) => (
                                     <MotionPresetButton
                                         key={themeId}
@@ -234,7 +228,7 @@ export default function MotionPage() {
                                 ))}
                             </div>
                             <div className="mt-4 flex flex-wrap items-center gap-2">
-                                <span className="mr-2 text-sm font-medium text-foreground">Motion preset</span>
+                                <span className="mr-2 text-sm font-medium text-foreground">{t.labels.motionPreset}</span>
                                 {(['none', 'subtle', 'standard', 'expressive'] as MotionPreset[]).map((presetId) => (
                                     <MotionPresetButton
                                         key={presetId}
@@ -244,12 +238,18 @@ export default function MotionPage() {
                                     />
                                 ))}
                             </div>
-                            <p className="mt-4 text-sm text-muted-foreground">{PRESET_COPY[preset]}</p>
+                            <p className="mt-4 text-sm text-muted-foreground">{presetCopy[preset]}</p>
                         </div>
 
                         <div className="grid gap-4 lg:grid-cols-3">
                             {registryEntries.map(({ key, details }) => (
-                                <RegistryEffectCard key={key} name={key} details={details} />
+                                <RegistryEffectCard
+                                    key={key}
+                                    name={key}
+                                    details={details}
+                                    durationUnit={t.labels.durationUnit}
+                                    reducedMotionSeparator={t.labels.reducedMotionSeparator}
+                                />
                             ))}
                         </div>
                     </div>
@@ -271,32 +271,30 @@ export default function MotionPage() {
             />
 
             <Section
-                title="Press and open states"
-                description="These controls use local motion overrides derived from the selected preset, so you can compare intensity without changing the underlying theme."
+                title={t.sections.pressAndOpenStates.title}
+                description={t.sections.pressAndOpenStates.description}
                 preview={(
                     <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
                         <div className="space-y-4 rounded-2xl border border-border bg-card p-5 shadow-sm">
                             <div className="flex flex-wrap gap-3">
-                                <ActionButton label="Save draft" icon="floppy-disk" motion={pressMotion} />
-                                <ActionButton label="Publish" icon="caret-right" motion={pressMotion} />
-                                <ActionButton label="No motion" icon="pause" motion={false} />
+                                <ActionButton label={t.labels.saveDraft} icon="floppy-disk" motion={pressMotion} />
+                                <ActionButton label={t.labels.publish} icon="caret-right" motion={pressMotion} />
+                                <ActionButton label={t.labels.noMotion} icon="pause" motion={false} />
                             </div>
-                            <p className="text-sm text-muted-foreground">
-                                Press states currently cover <code>ActionButton</code>, <code>LoadingButton</code> and dropdown toggles.
-                            </p>
+                            <p className="text-sm text-muted-foreground">{t.labels.pressCoverage}</p>
                         </div>
 
                         <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
                             <Dropdown
                                 motion={openMotion}
                                 position="end"
-                                trigger={{ icon: 'settings', text: 'Open menu' }}
-                                header="Motion aware"
-                                footer="Local override active"
+                                trigger={{ icon: 'settings', text: t.labels.openMenu }}
+                                header={t.labels.motionAware}
+                                footer={t.labels.localOverrideActive}
                             >
-                                <DropdownItem icon="sliders-horizontal">Current preset: {preset}</DropdownItem>
-                                <DropdownItem icon="palette">Current theme: {theme}</DropdownItem>
-                                <DropdownItem icon="gauge">Effect: local {preset}</DropdownItem>
+                                <DropdownItem icon="sliders-horizontal">{t.labels.currentPreset}: {preset}</DropdownItem>
+                                <DropdownItem icon="palette">{t.labels.currentTheme}: {theme}</DropdownItem>
+                                <DropdownItem icon="gauge">{t.labels.effectLocal}: local {preset}</DropdownItem>
                             </Dropdown>
                         </div>
                     </div>
@@ -307,41 +305,41 @@ export default function MotionPage() {
             />
 
             <Section
-                title="Modal and tab transitions"
-                description="Use the same preset across centered dialogs, side panels and tab content transitions to validate consistency before promoting an effect into the theme."
+                title={t.sections.modalAndTabTransitions.title}
+                description={t.sections.modalAndTabTransitions.description}
                 preview={(
                     <div className="space-y-5">
                         <div className="flex flex-wrap gap-3 rounded-2xl border border-border bg-card p-5 shadow-sm">
-                            <ActionButton label="Center dialog" icon="app-window" motion={pressMotion} onClick={() => setModalPosition('center')} />
-                            <ActionButton label="Right panel" icon="fullscreen" motion={pressMotion} onClick={() => setModalPosition('right')} />
-                            <ActionButton label="Notifications" icon="bell" motion={pressMotion} onClick={() => {}} />
+                            <ActionButton label={t.labels.centerDialog} icon="app-window" motion={pressMotion} onClick={() => setModalPosition('center')} />
+                            <ActionButton label={t.labels.rightPanel} icon="fullscreen" motion={pressMotion} onClick={() => setModalPosition('right')} />
+                            <ActionButton label={t.labels.notifications} icon="bell" motion={pressMotion} onClick={() => {}} />
                         </div>
 
                         <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
                             <Tab motion={enterMotion}>
-                                <TabItem label="Buttons">
+                                <TabItem label={t.labels.buttons}>
                                     <div className="space-y-3 text-sm text-muted-foreground">
-                                        <p>Tabs currently animate their active pane with <code>fadeUp</code> at theme level.</p>
-                                        <p>The playground can replace it locally to compare subtle vs expressive transitions.</p>
+                                        <p>{t.tabContent.buttons.paragraph1}</p>
+                                        <p>{t.tabContent.buttons.paragraph2}</p>
                                     </div>
                                 </TabItem>
-                                <TabItem label="Accessibility">
+                                <TabItem label={t.labels.accessibility}>
                                     <div className="space-y-3 text-sm text-muted-foreground">
-                                        <p><code>none</code> is useful to sanity-check layouts without decorative motion.</p>
-                                        <p>OS-level <code>prefers-reduced-motion</code> still wins whenever an effect uses <code>respect-user</code>.</p>
+                                        <p>{t.tabContent.accessibility.paragraph1}</p>
+                                        <p>{t.tabContent.accessibility.paragraph2}</p>
                                     </div>
                                 </TabItem>
-                                <TabItem label="Pending gap">
+                                <TabItem label={t.labels.pendingGap}>
                                     <div className="space-y-3 text-sm text-muted-foreground">
-                                        <p><code>Notifications</code> already inherit dropdown motion from the theme.</p>
-                                        <p>Dedicated toast-level polish is still the remaining CR-027 gap after this page.</p>
+                                        <p>{t.tabContent.pendingGap.paragraph1}</p>
+                                        <p>{t.tabContent.pendingGap.paragraph2}</p>
                                     </div>
                                 </TabItem>
                             </Tab>
                         </div>
 
                         <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-                            <Notifications badge={3} items={NOTIFICATIONS} />
+                            <Notifications badge={3} items={notifications} />
                         </div>
                     </div>
                 )}
@@ -352,14 +350,11 @@ export default function MotionPage() {
             />
 
             <Section
-                title="Shared API"
-                description="These are the knobs you are exercising in this playground: named registry entries in the theme plus local component overrides."
+                title={t.sections.sharedApi.title}
+                description={t.sections.sharedApi.description}
                 preview={(
                     <div className="rounded-2xl border border-border bg-card p-5 shadow-sm text-sm text-muted-foreground">
-                        <p>
-                            The page is intentionally split between theme-level reality and local playground overrides.
-                            This makes it useful today, even though the global preset system is not yet modelled as a first-class runtime API.
-                        </p>
+                        <p>{t.labels.sharedApiPreview}</p>
                     </div>
                 )}
                 code={`const motion = {
@@ -372,14 +367,12 @@ export default function MotionPage() {
 };`}
             />
 
-            <PropDocsTable props={MOTION_DOCS} title="Motion API surface" />
+            <PropDocsTable props={motionDocs} title={t.propsDocs.title} />
 
             {modalPosition && (
                 <Modal
-                    title={modalPosition === 'center' ? 'Center dialog preview' : 'Right panel preview'}
-                    header={modalPosition === 'center'
-                        ? 'Standard dialog shell with local motion override.'
-                        : 'Edge panel using a custom motion preset on top of the current theme.'}
+                    title={modalPosition === 'center' ? t.labels.centerDialogPreview : t.labels.rightPanelPreview}
+                    header={modalPosition === 'center' ? t.labels.centerDialogHeader : t.labels.rightPanelHeader}
                     position={modalPosition}
                     size="lg"
                     motion={modalPosition === 'center' ? modalCenterMotion : modalSideMotion}
@@ -391,14 +384,12 @@ export default function MotionPage() {
                 >
                     <div className="space-y-3 text-sm text-muted-foreground">
                         <p>
-                            Active theme: <strong className="text-foreground">{theme}</strong>
+                            {t.labels.activeTheme}: <strong className="text-foreground">{theme}</strong>
                         </p>
                         <p>
-                            Active playground preset: <strong className="text-foreground">{preset}</strong>
+                            {t.labels.activePlaygroundPreset}: <strong className="text-foreground">{preset}</strong>
                         </p>
-                        <p>
-                            This preview is intentionally local: it helps compare motion intensity without mutating the global theme registry.
-                        </p>
+                        <p>{t.labels.previewNotice}</p>
                     </div>
                 </Modal>
             )}
