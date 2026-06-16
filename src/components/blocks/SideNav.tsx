@@ -233,19 +233,21 @@ function NavGroup({
     const singleGroup = group.key === 'General';
     return (
         <div className="mb-1">
-            <div
-                style={{ height: expanded && !singleGroup ? undefined : '1px' }}
-                className={expanded && !singleGroup
-                    ? 'px-2 pb-0.5 pt-3 first:pt-1'
-                    : 'mx-2 my-2 bg-border/40'
-                }
-            >
-                {expanded && !singleGroup && (
-                    <span className="text-[10.5px] font-semibold uppercase tracking-widest text-muted-foreground/50 select-none">
-                        {group.key}
-                    </span>
-                )}
-            </div>
+            {!singleGroup && (
+                <div
+                    style={{ height: expanded ? undefined : '1px' }}
+                    className={expanded
+                        ? 'px-2 pb-0.5 pt-3 first:pt-1'
+                        : 'mx-2 my-2 bg-border/40'
+                    }
+                >
+                    {expanded && (
+                        <span className="text-[10.5px] font-semibold uppercase tracking-widest text-muted-foreground/50 select-none">
+                            {group.key}
+                        </span>
+                    )}
+                </div>
+            )}
             <div className="space-y-0.5">
                 {group.items.map(item => (
                     <NavItem
@@ -343,10 +345,10 @@ export default function SideNav({
                     width: isExpanded ? W_EXPANDED : W_COLLAPSED,
                     transition: 'width 220ms cubic-bezier(0.4,0,0.2,1)',
                     position: collapsed ? 'absolute' : 'sticky',
-                    top: '3.5rem',
+                    top: 0,
                     zIndex: collapsed && hovered ? 50 : 10,
                     boxShadow: collapsed && hovered ? '4px 0 24px rgba(0,0,0,0.10)' : 'none',
-                    height: 'calc(100vh - 3.5rem)',
+                    height: '100%',
                     overflowX: 'hidden',
                     overflowY: 'auto',
                 }}
