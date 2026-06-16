@@ -2,8 +2,6 @@ import React from 'react';
 import { useI18n } from '../../I18n';
 import Icon from './Icon';
 
-// Human-readable labels for the most common locale codes.
-// Consumers can override via the `labels` prop.
 const DEFAULT_LABELS: Record<string, string> = {
     en: 'English',
     it: 'Italiano',
@@ -27,30 +25,35 @@ export interface LocaleSwitcherProps {
     label?: string;
     /** Override display names for locale codes. Merged with built-in defaults. */
     labels?: Record<string, string>;
+    /** 'code' shows abbreviated codes (EN, IT). 'full' shows the full language name. Default: 'code'. */
+    appearance?: 'code' | 'full';
     className?: string;
 }
 
-const LocaleSwitcher = ({ icon = 'Globe', label, labels, className = '' }: LocaleSwitcherProps) => {
+const LocaleSwitcher = ({ icon = 'Globe', label, labels, appearance = 'code', className = '' }: LocaleSwitcherProps) => {
     const { locale, availableLocales, setLocale } = useI18n();
 
     if (availableLocales.length <= 1) return null;
 
     const resolvedLabels = { ...DEFAULT_LABELS, ...labels };
 
+    const getOptionLabel = (loc: string) =>
+        appearance === 'code' ? loc.toUpperCase() : (resolvedLabels[loc] ?? loc.toUpperCase());
+
     return (
-        <div className={`d-flex align-items-center gap-2 ${className}`.trim()}>
+        <div className={`flex items-center gap-1.5 ${className}`.trim()}>
             <Icon name={icon} size={16} aria-hidden />
-            {label && <span className="small">{label}</span>}
+            {label && <span className="text-sm">{label}</span>}
             <select
                 value={locale}
                 onChange={(e) => setLocale(e.target.value)}
-                className="form-select form-select-sm"
-                style={{ width: 'auto', minWidth: '6rem' }}
+                className="cursor-pointer rounded border border-border bg-transparent py-0.5 pl-1 pr-5 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                style={{ width: 'auto' }}
                 aria-label={label ?? 'Select language'}
             >
                 {availableLocales.map((loc) => (
                     <option key={loc} value={loc}>
-                        {resolvedLabels[loc] ?? loc.toUpperCase()}
+                        {getOptionLabel(loc)}
                     </option>
                 ))}
             </select>
