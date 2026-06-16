@@ -25,10 +25,17 @@ import '@llmnative/react/dist/index.css'
 ```tsx
 <App
   providers={{
-    firebase: { config: firebaseConfig },
+    firebase: {                        // FirebaseConfig — tutte le chiavi flat
+      apiKey, authDomain, databaseURL, projectId,
+      storageBucket, messagingSenderId, appId,
+    },
     supabase: { url, anonKey },
-    google: { oAuth2: { clientId } },
+    google: { clientId, scope },       // flat — NON { oAuth2: { clientId } }
     mock: { data: mockData },
+    ai: {                              // AIConfig — NON una prop separata di <App>
+      openaiApiKey, geminiApiKey, anthropicApiKey,
+      deepSeekApiKey, mistralApiKey, openRouterApiKey,
+    },
     services: {
       data:        'dbRealtime',      // DataDriverName
       storage:     'firestorage',     // StorageDriverName | null
@@ -241,12 +248,18 @@ export class RestDataProvider implements DataProviderAdapter {
 
 ### Input
 ```tsx
-<Input name="x" label="..." required inputType="number" min={0} max={100} step={0.01} />
-<Input.TextArea name="x" rows={4} />
-<Input.Checkbox name="x" valueChecked="yes" />
+<Input name="x" label="..." required />               // text (default)
+<Input.Number  name="price" min={0} max={100} step={0.01} />
+<Input.Email   name="email" />
+<Input.Password name="pwd" />
+<Input.Date    name="date" />
+<Input.TextArea name="bio" rows={4} />
+<Input.Checkbox name="active" valueChecked="yes" />
+<Input.Color   name="color" />
 ```
-`inputType`: `text`(default) `number` `email` `password` `color` `date` `time` `datetime-local` `week` `month`
-`name`(req) `label` `required` `disabled` `placeholder` `min` `max` `step` `validator:(v)=>string|undefined`
+`InputProps`: `name`(req) `label` `required` `disabled` `placeholder` `min` `max` `step` `validator:(v)=>string|undefined`
+
+**NOTA**: `inputType` NON è una prop pubblica — usa i sub-componenti `Input.Number`, `Input.Email` ecc.
 
 ### Select
 ```tsx
@@ -419,6 +432,14 @@ export class RestDataProvider implements DataProviderAdapter {
 <Search onQueryChange={(e) => setQ(e.target.value)} />
 <Notifications />
 <Carousel images={[...]} />
+
+// Menu — renderizza una sezione del menuConfig passato ad <App>
+<Menu menuKey="main" />            // 'main' o qualsiasi chiave definita in MenuConfig
+<Menu menuKey="topbar" className="nav flex-row gap-2" />
+// NON usare context= — la prop si chiama menuKey
+
+// AuthButton — login/logout con il provider auth configurato
+<AuthButton />
 ```
 
 ---
@@ -565,17 +586,77 @@ seo.getGoogleTrendsData(keyword)              // Google Trends
 
 ---
 
-## Struttura scaffold (npx create)
+## Scaffold (npx create)
 
+```bash
+npx @llmnative/react create
+npx @llmnative/react create --yes --provider=mock --template=admin
+```
+
+Flag disponibili: `--name` `--provider=firebase|supabase|mock|custom` `--ai-provider` `--icon-provider` `--theme` `--template=blank|admin|crm|inventory|project`
+
+**5 template disponibili:**
+| Template | Pagine incluse | Uso tipico |
+|---|---|---|
+| `blank` | home | App vuota — massima libertà |
+| `admin` | home, users, roles, settings | Dashboard admin/backoffice |
+| `crm` | home, companies, contacts, deals | CRM |
+| `inventory` | home + gestione inventario | Magazzino |
+| `project` | home + gestione progetti | PM tool |
+
+**Struttura generata in-place nella current directory:**
 ```
 src/
-  index.tsx          ← App entry: <App providers=... menuConfig=... importPage=... />
-  conf/menu.ts       ← menuConfig: array di voci nav con path, label, icon, children
-  layouts/           ← wrapper per aree dell'app (con sidebar, header)
-  pages/             ← componenti pagina (una per route nel menu)
-  components/        ← componenti custom
-  styles/globals.css ← @import '@llmnative/react/dist/index.css' + override
+  index.tsx          ← App entry
+  vite-env.d.ts
+  conf/
+    app.ts           ← providers config letta da .env (VITE_PROVIDER, VITE_AI_PROVIDER...)
+    menu.ts          ← MenuConfig con path, title, icon, page, layout
+  data/
+    mockData.ts      ← dati fake per MockDataProvider
+  layouts/
+    Default.tsx      ← layout wrapper (header + sidebar + main + footer)
+  sections/
+    Header.tsx / Sidebar.tsx / PageHeader.tsx / Footer.tsx / PreLoader.tsx
+  pages/
+    home/HomePage.tsx
+    [altre pagine dal template scelto]
+  styles/
+    globals.css      ← @import '@llmnative/react/dist/index.css' + Tailwind override
+.env                 ← VITE_PROVIDER, VITE_THEME, chiavi API (non committare)
+.env.example         ← stessa struttura, valori vuoti (committare)
+vite.config.ts / tsconfig.json / postcss.config.js / index.html
 ```
+
+**Pattern conf/app.ts** (auto-generato, leggere per capire come funziona):
+```ts
+import type { AppProvidersConfig } from '@llmnative/react'
+import { mockData } from '../data/mockData'
+const env = import.meta.env
+
+export const providers: AppProvidersConfig = {
+  mock: { data: mockData },
+  ai: { openaiApiKey: env.VITE_OPENAI_API_KEY ?? '' },  // AI dentro providers, non prop <App>
+  services: { data: 'mock', auth: 'googleAuth' },
+}
+```
+
+---
+
+## Gotchas — pitfall frequenti
+
+| Errore | Causa | Fix |
+|---|---|---|
+| `aiConfig` prop non esiste su `<App>` | La config AI va dentro `providers.ai`, NON come prop separata | `providers={{ ai: { openaiApiKey } }}` |
+| `inputType` non è una prop di `Input` | `InputProps` omette il type interno | Usa `<Input.Number>`, `<Input.Email>`, `<Input.Date>` ecc. |
+| `Menu context=` non esiste | La prop si chiama `menuKey` | `<Menu menuKey="main" />` |
+| `SignInButton` non esiste | Rinominato | `<AuthButton />` |
+| `firebase: { config: ... }` errato | FirebaseConfig è flat | `firebase: { apiKey, authDomain, databaseURL, ... }` |
+| `google: { oAuth2: { clientId } }` errato | GoogleProviderConfig è flat | `google: { clientId, scope }` |
+| `children` su `Grid` | Grid non accetta children | Usa `form={<Fields />}` per il form inline |
+| `recordId` su `Form` | Prop non esiste | La chiave del record viene da URL automaticamente |
+| `MenuConfig` non importabile | Era type interno | Ora esportato: `import type { MenuConfig } from '@llmnative/react'` |
+| `GridCellContext` non importabile | Mancava dall'index | Ora esportato: `import type { GridCellContext } from '@llmnative/react'` |
 
 ---
 
