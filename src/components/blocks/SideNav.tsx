@@ -42,6 +42,11 @@ export interface SideNavProps {
     showIcons?: boolean;
     /** Label for the collapse toggle button */
     collapseLabel?: string;
+    /**
+     * Embedded mode — renders only the nav items without the sidebar shell
+     * (no sticky wrapper, no collapse button). Use inside drawers or panels.
+     */
+    embedded?: boolean;
 }
 
 interface GroupDef {
@@ -265,6 +270,7 @@ export default function SideNav({
     defaultCollapsed = false,
     showIcons = true,
     collapseLabel = 'Collapse',
+    embedded = false,
 }: SideNavProps) {
     const { pathname } = useLocation();
     const menuItems = useMenu(menuKey ?? '');
@@ -311,6 +317,24 @@ export default function SideNav({
     if (resolvedItems.length === 0) return null;
 
     const groups = buildGroups(resolvedItems);
+
+    // Embedded mode: plain nav list, no wrapper shell, always fully expanded
+    if (embedded) {
+        return (
+            <nav className="px-1.5 py-2">
+                {groups.map(group => (
+                    <NavGroup
+                        key={group.key}
+                        group={group}
+                        expanded={true}
+                        openItems={openItems}
+                        showIcons={showIcons}
+                        onToggle={toggleItem}
+                    />
+                ))}
+            </nav>
+        );
+    }
 
     return (
         <div style={{ width: collapsed ? W_COLLAPSED : W_EXPANDED, transition: 'width 220ms cubic-bezier(0.4,0,0.2,1)', flexShrink: 0, position: 'relative' }}>
