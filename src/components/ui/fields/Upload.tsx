@@ -115,37 +115,42 @@ export const useFileUploadCore = ({
                 const dataUri = `data:${file.type};base64,${base64}`;
                 updateFile(file.name, { base64, progress: 80 });
 
-                if (storage && uploadPath) {
+                if (srcsetWidths?.length) {
+                    // Generate variants locally first, then upload if storage is available
                     try {
-                        if (srcsetWidths?.length) {
-                            const variants = await resizeVariants(dataUri, srcsetWidths);
-                            const uploaded: Array<{ src: string; width: number }> = [];
-                            for (const v of variants) {
+                        const variants = await resizeVariants(dataUri, srcsetWidths);
+                        const resolved: Array<{ src: string; width: number }> = [];
+                        for (const v of variants) {
+                            if (storage && uploadPath) {
                                 const baseName = file.name.replace(/\.[^/.]+$/, '');
                                 const ext      = file.name.split('.').pop() ?? 'jpg';
                                 const url = await storage.upload(v.src, `${uploadPath}/${baseName}_${v.width}w.${ext}`);
-                                if (url) uploaded.push({ src: url, width: v.width });
-                            }
-                            if (uploaded.length > 0) {
-                                updateFile(file.name, {
-                                    url:    uploaded.at(-1)!.src,
-                                    srcset: uploaded.map(v => `${v.src} ${v.width}w`).join(', '),
-                                    sizes:  '(max-width: 640px) 100vw, 800px',
-                                    progress: 100,
-                                });
-                                return;
-                            }
-                        } else {
-                            const url = await storage.upload(dataUri, `${uploadPath}/${file.name}`);
-                            if (url) {
-                                updateFile(file.name, { url, progress: 100 });
-                                return;
+                                resolved.push({ src: url ?? v.src, width: v.width });
+                            } else {
+                                resolved.push({ src: v.src, width: v.width });
                             }
                         }
-                    } catch { /* fall through to base64 fallback */ }
+                        if (resolved.length > 0) {
+                            updateFile(file.name, {
+                                url:    resolved.at(-1)!.src,
+                                srcset: resolved.map(v => `${v.src} ${v.width}w`).join(', '),
+                                sizes:  '(max-width: 640px) 100vw, 800px',
+                                progress: 100,
+                            });
+                            return;
+                        }
+                    } catch { /* fall through to fallback */ }
+                } else if (storage && uploadPath) {
+                    try {
+                        const url = await storage.upload(dataUri, `${uploadPath}/${file.name}`);
+                        if (url) {
+                            updateFile(file.name, { url, progress: 100 });
+                            return;
+                        }
+                    } catch { /* fall through to fallback */ }
                 }
 
-                // Fallback: no storage or upload failed — keep base64 only
+                // Fallback: keep base64 only
                 updateFile(file.name, { progress: 100 });
             };
 

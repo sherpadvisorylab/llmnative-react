@@ -563,9 +563,12 @@ const RichTextInner = ({
     const [, rerenderOnSelection] = React.useReducer(n => n + 1, 0);
     const docInputRef = useRef<HTMLInputElement>(null);
 
-    const resolvedSrcsetWidths = imageUpload
-        ? (imageUpload.srcsetWidths ?? [400, 800])
-        : undefined;
+    // Always default to [400, 800] so the Insert-image dialog shows variant previews
+    // even without a StorageProvider (variants are generated as local blob URLs).
+    // Pass imageUpload={{ srcsetWidths: [] }} to disable entirely.
+    const resolvedSrcsetWidths = imageUpload?.srcsetWidths !== undefined
+        ? imageUpload.srcsetWidths
+        : [400, 800];
 
     const imgCore = useFileUploadCore({
         uploadPath: imageUpload?.path,
