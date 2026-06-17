@@ -7,6 +7,11 @@ import { Label, FieldError, fieldFeedbackClass } from './Input';
 import { cn } from '../../../libs/cn';
 import Icon from '../Icon';
 import { useFileUploadCore, type FileProps } from './Upload';
+import { useStorageProvider } from '../../../providers/storage/StorageProviderContext'; // CR-042
+import { resizeToVariants, uploadVariants, buildSrcset } from '../../../libs/imageVariants';
+import Modal from '../Modal';
+import ImageDisplay from '../Image';
+const LazyImageEditor = React.lazy(() => import('../../widgets/ImageEditor'));
 
 // ── LAZY MODULE LOADER ────────────────────────────────────────────────────────
 // TipTap (~400 KB) is only fetched when a RichText field is actually mounted.
@@ -88,6 +93,25 @@ export interface RichTextImageUploadConfig {
     maxBytes?: number;
 }
 
+export interface RichTextDocumentUploadConfig {
+    /**
+     * Storage path prefix for uploaded documents.
+     * Requires a StorageProvider ancestor.
+     * Example: "/content/posts/attachments"
+     */
+    path?: string;
+    /**
+     * Accepted MIME types / file extensions for the document file picker.
+     * Default: ".pdf,.doc,.docx,.txt,.csv"
+     */
+    accept?: string;
+    /**
+     * Maximum file size in bytes.
+     * Default: 20_971_520 (20 MB)
+     */
+    maxBytes?: number;
+}
+
 export interface RichTextProps extends FormFieldProps {
     placeholder?: string;
     disabled?: boolean;
@@ -109,6 +133,11 @@ export interface RichTextProps extends FormFieldProps {
      * Pass an object to enable uploads; omit to keep images as base64 data URIs.
      */
     imageUpload?: RichTextImageUploadConfig;
+    /**
+     * Document upload behaviour for the documentUpload toolbar command.
+     * Pass an object to enable cloud storage uploads; omit to use data URI fallback.
+     */
+    documentUpload?: RichTextDocumentUploadConfig;
     /** @deprecated Use imageUpload.path instead. */
     uploadPath?: string;
     id?: string;
@@ -376,129 +405,288 @@ const RichTextStatusBar = ({ editor, config }: { editor: Editor; config: StatusB
 
 // ── IMAGE INSERT / EDIT DIALOG ────────────────────────────────────────────────
 
-type ImageDialogState =
-    | { mode: 'insert'; fileProps: FileProps; preview: string; defaultAlt: string }
-    | { mode: 'edit';   pos: number; attrs: Record<string, unknown> };
+type InsertSlideItem = { fileProps: FileProps; preview: string; defaultAlt: string };
+type EditDialogState = { pos: number; attrs: Record<string, unknown> };
+interface ImageDialogValues { alt: string; href: string; target: string; enabled: boolean }
 
-interface ImageDialogValues { alt: string; href: string; target: string }
+// Shared variant thumbnails strip
+const VariantStrip = ({ srcset }: { srcset: string }) => {
+    const variants = srcset.split(',').map(s => s.trim()).map(part => {
+        const [src, widthStr] = part.split(' ');
+        return { src, width: parseInt(widthStr, 10) };
+    }).filter(v => v.src && !isNaN(v.width));
+    if (!variants.length) return null;
+    return (
+        <div className="flex flex-col gap-1.5">
+            <p className="text-xs font-medium text-muted-foreground">
+                Responsive variants <span className="font-normal opacity-60">({variants.length} generated)</span>
+            </p>
+            <div className="flex gap-1.5">
+                {variants.map(v => (
+                    <a key={v.width} href={v.src} target="_blank" rel="noopener noreferrer"
+                       className="group relative flex-1 overflow-hidden rounded border border-border"
+                       style={{ backgroundImage: 'repeating-conic-gradient(#e4e4e4 0% 25%, #f5f5f5 0% 50%)', backgroundSize: '8px 8px' }}>
+                        <img src={v.src} alt={`${v.width}w`} className="h-12 w-full object-contain transition-opacity group-hover:opacity-80" />
+                        <span className="absolute bottom-0.5 left-0.5 rounded bg-black/60 px-1 py-0.5 text-[9px] font-mono leading-none text-white">
+                            {v.width}px
+                        </span>
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100">
+                            <div className="rounded-md bg-black/60 p-1">
+                                <Icon name="external-link" size={11} className="text-white" />
+                            </div>
+                        </div>
+                    </a>
+                ))}
+            </div>
+        </div>
+    );
+};
 
-const ImageInsertDialog = ({
+// Slider dialog for insert mode — shows all selected images, one at a time with nav
+const ImageInsertSlider = ({
+    items,
+    onInsertAll,
+    onCropSave,
+    onCancel,
+}: {
+    items: InsertSlideItem[];
+    onInsertAll: (values: ImageDialogValues[]) => void;
+    onCropSave: (idx: number, dataUrl: string) => void;
+    onCancel: () => void;
+}) => {
+    const [idx, setIdx] = useState(0);
+    const [perImage, setPerImage] = useState<ImageDialogValues[]>(() =>
+        items.map(it => ({ alt: it.defaultAlt, href: '', target: '_blank', enabled: true }))
+    );
+    const [showCrop, setShowCrop] = useState(false);
+    const altRef = useRef<HTMLInputElement>(null);
+    useEffect(() => { altRef.current?.focus(); }, [idx]);
+
+    // Extend perImage when more files finish uploading after the dialog opened
+    useEffect(() => {
+        setPerImage(prev => {
+            if (items.length <= prev.length) return prev;
+            const extra = items.slice(prev.length).map(it => ({ alt: it.defaultAlt, href: '', target: '_blank', enabled: true }));
+            return [...prev, ...extra];
+        });
+    }, [items.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    const total        = items.length;
+    const item         = items[idx] ?? items[0];
+    const vals         = perImage[idx] ?? { alt: '', href: '', target: '_blank', enabled: true };
+    const enabledCount = perImage.filter(v => v.enabled).length;
+
+    const update = (patch: Partial<ImageDialogValues>) =>
+        setPerImage(prev => prev.map((v, i) => i === idx ? { ...v, ...patch } : v));
+
+    return (
+        <>
+        <Modal
+            title={total === 1 ? 'Insert image' : 'Insert images'}
+            onClose={onCancel}
+            size="md"
+            footer={
+                <div className="flex w-full items-center justify-between">
+                    <label className="flex cursor-pointer select-none items-center gap-2 text-sm">
+                        <input type="checkbox" checked={vals.enabled}
+                            onChange={e => update({ enabled: e.target.checked })}
+                            className="h-4 w-4 rounded accent-primary" />
+                        Include
+                    </label>
+                    <div className="flex gap-2">
+                        <button type="button" onClick={onCancel}
+                            className="h-8 rounded-md px-3 text-sm transition-colors hover:bg-muted">
+                            Cancel
+                        </button>
+                        <button type="button" onClick={() => onInsertAll(perImage)} disabled={enabledCount === 0}
+                            className="h-8 rounded-md bg-primary px-3 text-sm text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50">
+                            {total === 1 ? 'Insert' : `Insert (${enabledCount})`}
+                        </button>
+                    </div>
+                </div>
+            }
+        >
+            {/* Thumbnail strip + counter nav */}
+            {total > 1 && (
+                <div className="mb-3 flex items-center justify-between gap-3">
+                    <div className="flex gap-1.5 overflow-x-auto pb-0.5">
+                        {items.map((it, i) => (
+                            <button key={i} type="button" onClick={() => setIdx(i)}
+                                title={it.fileProps.fileName}
+                                className={cn(
+                                    'relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-md border-2 transition-all',
+                                    i === idx ? 'border-primary shadow' : 'border-transparent opacity-50 hover:opacity-90',
+                                    !perImage[i]?.enabled && 'opacity-20 grayscale',
+                                )}>
+                                <img src={it.preview} alt="" className="h-full w-full object-cover" />
+                            </button>
+                        ))}
+                    </div>
+                    <div className="flex flex-shrink-0 items-center gap-0.5">
+                        <button type="button" onClick={() => setIdx(i => Math.max(0, i - 1))} disabled={idx === 0}
+                            className="flex h-7 w-7 items-center justify-center rounded hover:bg-muted disabled:opacity-30">
+                            <Icon name="chevron-left" size={14} />
+                        </button>
+                        <span className="w-10 text-center text-xs tabular-nums text-muted-foreground">{idx + 1} / {total}</span>
+                        <button type="button" onClick={() => setIdx(i => Math.min(items.length - 1, i + 1))} disabled={idx >= items.length - 1}
+                            className="flex h-7 w-7 items-center justify-center rounded hover:bg-muted disabled:opacity-30">
+                            <Icon name="chevron-right" size={14} />
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Main preview */}
+            <div
+                className={cn(
+                    'group relative flex min-h-[160px] items-center justify-center overflow-hidden rounded-lg transition-opacity',
+                    '[background-image:repeating-conic-gradient(#e4e4e4_0%_25%,#f5f5f5_0%_50%)]',
+                    'dark:[background-image:repeating-conic-gradient(#2a2a2a_0%_25%,#343434_0%_50%)]',
+                    '[background-size:16px_16px]',
+                    !vals.enabled && 'opacity-40',
+                )}
+            >
+                <img src={item.preview} alt="" className="max-h-[160px] max-w-full object-contain" />
+
+                {/* Icon controls — appear on hover, grouped top-right */}
+                <div className="absolute right-2 top-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                    <a
+                        href={item.preview}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Open original"
+                        className="flex h-7 w-7 items-center justify-center rounded-md bg-black/60 text-white backdrop-blur-sm transition-colors hover:bg-black/80"
+                    >
+                        <Icon name="external-link" size={13} />
+                    </a>
+                    <button
+                        type="button"
+                        title="Crop"
+                        onClick={() => setShowCrop(true)}
+                        className="flex h-7 w-7 items-center justify-center rounded-md bg-black/60 text-white backdrop-blur-sm transition-colors hover:bg-black/80"
+                    >
+                        <Icon name="crop" size={13} />
+                    </button>
+                </div>
+            </div>
+            <p className="mt-1.5 truncate font-mono text-xs text-muted-foreground">{item.fileProps.fileName}</p>
+
+            {item.fileProps.srcset && <VariantStrip srcset={item.fileProps.srcset} />}
+
+            <div className="mt-3 flex flex-col gap-1">
+                <label className="text-xs font-medium text-muted-foreground">
+                    Alt text <span className="font-normal opacity-60">(accessibility &amp; SEO)</span>
+                </label>
+                <input ref={altRef} type="text" value={vals.alt}
+                    onChange={e => update({ alt: e.target.value })}
+                    placeholder="E.g. Team photo at company retreat"
+                    className="h-8 rounded-md border border-input bg-background px-2.5 text-sm outline-none focus:ring-1 focus:ring-ring"
+                />
+            </div>
+
+            <div className="mt-2 flex flex-col gap-1">
+                <label className="text-xs font-medium text-muted-foreground">
+                    Link URL <span className="font-normal opacity-60">(optional)</span>
+                </label>
+                <div className="flex gap-1.5">
+                    <input type="url" value={vals.href}
+                        onChange={e => update({ href: e.target.value })}
+                        placeholder="https://..."
+                        className="h-8 min-w-0 flex-1 rounded-md border border-input bg-background px-2.5 text-sm outline-none focus:ring-1 focus:ring-ring"
+                    />
+                    <select value={vals.target} onChange={e => update({ target: e.target.value })}
+                        disabled={!vals.href}
+                        className="h-8 rounded-md border border-input bg-background px-2 text-xs outline-none focus:ring-1 focus:ring-ring disabled:opacity-40">
+                        <option value="_blank">New tab</option>
+                        <option value="_self">Same tab</option>
+                    </select>
+                </div>
+            </div>
+        </Modal>
+
+        {showCrop && (
+            <React.Suspense fallback={null}>
+                <LazyImageEditor
+                    src={item.preview}
+                    mode="modal"
+                    title={`Crop — ${item.fileProps.fileName}`}
+                    onClose={() => setShowCrop(false)}
+                    onSave={(dataUrl) => { onCropSave(idx, dataUrl); setShowCrop(false); }}
+                />
+            </React.Suspense>
+        )}
+        </>
+    );
+};
+
+// Simple modal for editing an already-inserted image
+const ImageEditDialog = ({
     state,
     onConfirm,
     onCancel,
 }: {
-    state: ImageDialogState;
+    state: EditDialogState;
     onConfirm: (values: ImageDialogValues) => void;
     onCancel: () => void;
 }) => {
-    const isInsert = state.mode === 'insert';
-    const [alt,    setAlt   ] = useState(isInsert ? state.defaultAlt : (state.attrs.alt as string ?? ''));
-    const [href,   setHref  ] = useState(isInsert ? '' : (state.attrs.href as string ?? ''));
-    const [target, setTarget] = useState(isInsert ? '_blank' : (state.attrs.target as string ?? '_blank'));
+    const [alt,    setAlt   ] = useState(state.attrs.alt    as string ?? '');
+    const [href,   setHref  ] = useState(state.attrs.href   as string ?? '');
+    const [target, setTarget] = useState(state.attrs.target as string ?? '_blank');
     const altRef = useRef<HTMLInputElement>(null);
     useEffect(() => { altRef.current?.focus(); }, []);
 
-    const confirm = () => onConfirm({ alt, href, target });
+    const src = state.attrs.src as string | undefined;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onMouseDown={onCancel}>
-            <div className="flex w-80 flex-col gap-3 rounded-lg border border-border bg-background p-4 shadow-xl"
-                 onMouseDown={e => e.stopPropagation()}>
-                <p className="text-sm font-semibold">{isInsert ? 'Insert image' : 'Edit image'}</p>
-
-                {(() => {
-                    const src = isInsert ? state.preview : (state.attrs.src as string | undefined);
-                    if (!src) return null;
-                    return (
-                        <a href={src} target="_blank" rel="noopener noreferrer" className="group relative block overflow-hidden rounded-md bg-muted/40">
-                            <img src={src} alt="" className="max-h-40 w-full object-contain transition-opacity group-hover:opacity-80" />
-                            <span className="absolute right-1.5 top-1.5 rounded bg-black/50 px-1.5 py-0.5 text-[10px] font-medium text-white opacity-0 transition-opacity group-hover:opacity-100">
-                                open original
-                            </span>
-                        </a>
-                    );
-                })()}
-
-                {/* Alt text */}
-                <div className="flex flex-col gap-1">
-                    <label className="text-xs font-medium text-muted-foreground">
-                        Alt text <span className="font-normal opacity-60">(accessibility &amp; SEO)</span>
-                    </label>
-                    <input
-                        ref={altRef}
-                        type="text"
-                        value={alt}
-                        onChange={e => setAlt(e.target.value)}
-                        onKeyDown={e => { if (e.key === 'Escape') onCancel(); }}
-                        placeholder="E.g. Team photo at company retreat"
-                        className="h-8 rounded-md border border-input bg-background px-2.5 text-sm outline-none focus:ring-1 focus:ring-ring"
-                    />
-                </div>
-
-                {/* Link URL + target */}
-                <div className="flex flex-col gap-1">
-                    <label className="text-xs font-medium text-muted-foreground">
-                        Link URL <span className="font-normal opacity-60">(optional)</span>
-                    </label>
-                    <div className="flex gap-1.5">
-                        <input
-                            type="url"
-                            value={href}
-                            onChange={e => setHref(e.target.value)}
-                            onKeyDown={e => { if (e.key === 'Escape') onCancel(); }}
-                            placeholder="https://..."
-                            className="h-8 min-w-0 flex-1 rounded-md border border-input bg-background px-2.5 text-sm outline-none focus:ring-1 focus:ring-ring"
-                        />
-                        <select
-                            value={target}
-                            onChange={e => setTarget(e.target.value)}
-                            disabled={!href}
-                            className="h-8 rounded-md border border-input bg-background px-2 text-xs outline-none focus:ring-1 focus:ring-ring disabled:opacity-40"
-                        >
-                            <option value="_blank">New tab</option>
-                            <option value="_self">Same tab</option>
-                        </select>
-                    </div>
-                </div>
-
-                {isInsert && state.fileProps.srcset && (() => {
-                    const variants = state.fileProps.srcset.split(',').map(s => s.trim()).map(part => {
-                        const [src, widthStr] = part.split(' ');
-                        return { src, width: parseInt(widthStr, 10) };
-                    }).filter(v => v.src && !isNaN(v.width));
-                    if (!variants.length) return null;
-                    return (
-                        <div className="flex flex-col gap-1.5">
-                            <p className="text-xs font-medium text-muted-foreground">
-                                Responsive variants <span className="font-normal opacity-60">({variants.length} generated)</span>
-                            </p>
-                            <div className="flex gap-1.5">
-                                {variants.map(v => (
-                                    <a key={v.width} href={v.src} target="_blank" rel="noopener noreferrer"
-                                       className="group relative flex-1 overflow-hidden rounded border border-border bg-muted/40">
-                                        <img src={v.src} alt={`${v.width}w`} className="h-12 w-full object-cover transition-opacity group-hover:opacity-70" />
-                                        <span className="absolute bottom-0.5 right-0.5 rounded bg-black/60 px-1 py-0.5 text-[10px] font-mono leading-none text-white">
-                                            {v.width}px
-                                        </span>
-                                    </a>
-                                ))}
-                            </div>
-                        </div>
-                    );
-                })()}
-
+        <Modal
+            title="Edit image"
+            onClose={onCancel}
+            size="sm"
+            footer={
                 <div className="flex justify-end gap-2">
                     <button type="button" onClick={onCancel}
                         className="h-8 rounded-md px-3 text-sm transition-colors hover:bg-muted">
                         Cancel
                     </button>
-                    <button type="button" onClick={confirm}
+                    <button type="button" onClick={() => onConfirm({ alt, href, target, enabled: true })}
                         className="h-8 rounded-md bg-primary px-3 text-sm text-primary-foreground transition-colors hover:bg-primary/90">
-                        {isInsert ? 'Insert' : 'Save'}
+                        Save
                     </button>
                 </div>
+            }
+        >
+            {src && (
+                <div className="mb-3 overflow-hidden rounded-lg bg-muted/40">
+                    <ImageDisplay src={src} fit="contain" height={140} wrapperClassName="w-full" className="w-full" />
+                </div>
+            )}
+            <div className="flex flex-col gap-1">
+                <label className="text-xs font-medium text-muted-foreground">
+                    Alt text <span className="font-normal opacity-60">(accessibility &amp; SEO)</span>
+                </label>
+                <input ref={altRef} type="text" value={alt} onChange={e => setAlt(e.target.value)}
+                    placeholder="E.g. Team photo at company retreat"
+                    className="h-8 rounded-md border border-input bg-background px-2.5 text-sm outline-none focus:ring-1 focus:ring-ring"
+                />
             </div>
-        </div>
+            <div className="mt-2 flex flex-col gap-1">
+                <label className="text-xs font-medium text-muted-foreground">
+                    Link URL <span className="font-normal opacity-60">(optional)</span>
+                </label>
+                <div className="flex gap-1.5">
+                    <input type="url" value={href} onChange={e => setHref(e.target.value)}
+                        placeholder="https://..."
+                        className="h-8 min-w-0 flex-1 rounded-md border border-input bg-background px-2.5 text-sm outline-none focus:ring-1 focus:ring-ring"
+                    />
+                    <select value={target} onChange={e => setTarget(e.target.value)}
+                        disabled={!href}
+                        className="h-8 rounded-md border border-input bg-background px-2 text-xs outline-none focus:ring-1 focus:ring-ring disabled:opacity-40">
+                        <option value="_blank">New tab</option>
+                        <option value="_self">Same tab</option>
+                    </select>
+                </div>
+            </div>
+        </Modal>
     );
 };
 
@@ -518,6 +706,7 @@ interface RichTextInnerProps {
     minHeight: number;
     maxHeight: number | undefined;
     imageUpload: RichTextImageUploadConfig | undefined;
+    documentUpload: RichTextDocumentUploadConfig | undefined;
     hasError: boolean;
     className: string | undefined;
     onEditorChange: (content: string) => void;
@@ -526,7 +715,7 @@ interface RichTextInnerProps {
 const RichTextInner = ({
     modules, name, value, outputFormat, placeholder, disabled,
     toolbar, toolbarCommands, statusBar, minHeight, maxHeight,
-    imageUpload, hasError, className, onEditorChange,
+    imageUpload, documentUpload, hasError, className, onEditorChange,
 }: RichTextInnerProps) => {
     const { useEditor, EditorContent } = modules[0];
     const { BubbleMenu }               = modules[1];
@@ -567,7 +756,8 @@ const RichTextInner = ({
 
     const [sourceMode, setSourceMode] = useState(false);
     const [sourceContent, setSourceContent] = useState('');
-    const [imgDialog, setImgDialog] = useState<ImageDialogState | null>(null);
+    const [insertQueue, setInsertQueue] = useState<InsertSlideItem[]>([]);
+    const [editDialog,  setEditDialog ] = useState<EditDialogState | null>(null);
     const [, rerenderOnSelection] = React.useReducer(n => n + 1, 0);
     const docInputRef = useRef<HTMLInputElement>(null);
 
@@ -577,6 +767,8 @@ const RichTextInner = ({
     const resolvedSrcsetWidths = imageUpload?.srcsetWidths !== undefined
         ? imageUpload.srcsetWidths
         : [400, 800];
+
+    const storage = useStorageProvider();
 
     const imgCore = useFileUploadCore({
         uploadPath: imageUpload?.path,
@@ -590,7 +782,7 @@ const RichTextInner = ({
                 .replace(/^(.)/, c => c.toUpperCase());
             // Compute preview directly — avoids getFileUrl/urlCache entirely
             const preview = fp.url || (fp.base64 ? `data:${fp.type};base64,${fp.base64}` : '');
-            setImgDialog({ mode: 'insert', fileProps: fp, preview, defaultAlt });
+            setInsertQueue(prev => [...prev, { fileProps: fp, preview, defaultAlt }]);
         },
     });
 
@@ -635,7 +827,7 @@ const RichTextInner = ({
                         const imgPos = view.posAtDOM(target, 0);
                         const node = view.state.doc.nodeAt(imgPos);
                         if (node?.type.name === 'image') {
-                            setImgDialog({ mode: 'edit', pos: imgPos, attrs: node.attrs as Record<string, unknown> });
+                            setEditDialog({ pos: imgPos, attrs: node.attrs as Record<string, unknown> });
                             return true;
                         }
                     } catch { /* ignore — posAtDOM can throw if element is outside the doc */ }
@@ -686,58 +878,124 @@ const RichTextInner = ({
         setSourceMode(s => !s);
     };
 
-    // Upload helpers — document upload uses StorageProvider directly; image upload delegates to imgCore.
-    const uploadAndInsert = async (file: File, insert: (url: string) => void) => {
-        const reader = new FileReader();
-        reader.onload = async ev => {
-            const dataUrl = ev.target?.result as string;
-            insert(dataUrl);
-        };
-        reader.readAsDataURL(file);
-    };
+    const readAsDataUrl = (file: File): Promise<string> =>
+        new Promise(resolve => {
+            const r = new FileReader();
+            r.onload = ev => resolve(ev.target?.result as string);
+            r.readAsDataURL(file);
+        });
 
-    const confirmImageDialog = ({ alt, href, target }: ImageDialogValues) => {
-        if (!editor || !imgDialog) return;
-
-        if (imgDialog.mode === 'edit') {
-            const { pos, attrs } = imgDialog;
-            setImgDialog(null);
-            const node = editor.state.doc.nodeAt(pos);
-            if (node?.type.name === 'image') {
-                const { tr } = editor.state;
-                tr.setNodeMarkup(pos, null, {
-                    ...attrs,
-                    alt:    alt    || null,
-                    href:   href   || null,
-                    target: href ? (target || '_blank') : null,
-                });
-                editor.view.dispatch(tr);
-            }
-            return;
-        }
-
-        const { fileProps, preview } = imgDialog;
-        setImgDialog(null);
-        imgCore.handleRemove(fileProps.key);
-
-        const src = fileProps.url || preview;
-        const baseAttrs = {
-            alt:    alt    || null,
-            href:   href   || null,
-            target: href ? (target || '_blank') : null,
-        };
-        const attrs = fileProps.srcset
-            ? { ...baseAttrs, src, srcset: fileProps.srcset, sizes: fileProps.sizes ?? '(max-width: 640px) 100vw, 800px', loading: 'lazy', decoding: 'async' }
-            : { ...baseAttrs, src };
-        editor.chain().focus().insertContent({ type: 'image', attrs }).run();
-    };
-
-    const handleDocFile = (file: File) => {
+    const handleDocFiles = async (files: File[]) => {
         if (!editor) return;
-        uploadAndInsert(file, url =>
-            editor.chain().focus().setLink({ href: url }).insertContent(file.name).run()
-        );
+        const maxBytes = documentUpload?.maxBytes ?? 20_971_520;
+        for (const file of files) {
+            if (file.size > maxBytes) {
+                alert(`"${file.name}" exceeds the ${Math.round(maxBytes / 1_048_576)} MB limit.`);
+                continue;
+            }
+            let url: string;
+            if (storage && documentUpload?.path) {
+                try {
+                    const uploaded = await storage.upload(file, `${documentUpload.path}/${file.name}`);
+                    url = uploaded ?? await readAsDataUrl(file);
+                } catch {
+                    url = await readAsDataUrl(file);
+                }
+            } else {
+                url = await readAsDataUrl(file);
+            }
+            const sizeLabel = file.size < 1_048_576
+                ? `${Math.round(file.size / 1024)} KB`
+                : `${(file.size / 1_048_576).toFixed(1)} MB`;
+            editor.chain().focus()
+                .insertContent([
+                    {
+                        type: 'text',
+                        marks: [{ type: 'link', attrs: { href: url, target: '_blank', rel: 'noopener noreferrer' } }],
+                        text: `📎 ${file.name} (${sizeLabel})`,
+                    },
+                    { type: 'text', text: ' ' },
+                ])
+                .run();
+        }
     };
+
+    const handleInsertAll = (values: ImageDialogValues[]) => {
+        if (!editor) return;
+        const nodes: object[] = [];
+        values.forEach(({ alt, href, target, enabled }, i) => {
+            if (!enabled) return;
+            const item = insertQueue[i];
+            if (!item) return;
+            imgCore.handleRemove(item.fileProps.key);
+            const src = item.fileProps.url || item.preview;
+            const base = {
+                alt:    alt    || null,
+                href:   href   || null,
+                target: href ? (target || '_blank') : null,
+            };
+            const attrs = item.fileProps.srcset
+                ? { ...base, src, srcset: item.fileProps.srcset, sizes: item.fileProps.sizes ?? '(max-width: 640px) 100vw, 800px', loading: 'lazy', decoding: 'async' }
+                : { ...base, src };
+            nodes.push({ type: 'image', attrs });
+        });
+        if (nodes.length) editor.chain().focus().insertContent(nodes).run();
+        setInsertQueue([]);
+    };
+
+    const handleUpdateInsertItem = (idx: number, updates: Partial<InsertSlideItem>) => {
+        setInsertQueue(prev => prev.map((item, i) => i === idx ? { ...item, ...updates } : item));
+    };
+
+    const handleCropItem = useCallback(async (cropIdx: number, dataUrl: string) => {
+        // Read fileName before the async gap, using functional updater
+        let fileName = 'image.jpg';
+        setInsertQueue(prev => {
+            fileName = prev[cropIdx]?.fileProps.fileName ?? 'image.jpg';
+            return prev.map((it, i) =>
+                i === cropIdx
+                    ? { ...it, preview: dataUrl, fileProps: { ...it.fileProps, url: dataUrl, srcset: '', sizes: '' } }
+                    : it
+            );
+        });
+
+        if (!resolvedSrcsetWidths.length) return;
+        try {
+            const { variants, naturalWidth } = await resizeToVariants(dataUrl, resolvedSrcsetWidths);
+            const resizedEntries = storage && imageUpload?.path
+                ? await uploadVariants(variants, storage, imageUpload.path, fileName)
+                : variants.map(v => ({ url: v.localUrl, width: v.width }));
+            // Convert the cropped dataUrl → blob URL: data URIs contain commas that break
+            // both srcset string parsing and VariantStrip's split(',') parser
+            const originalBlob = await fetch(dataUrl).then(r => r.blob());
+            const originalLocalUrl = URL.createObjectURL(originalBlob);
+            const allEntries = [...resizedEntries, { url: originalLocalUrl, width: naturalWidth }];
+            const newSrcset = buildSrcset(allEntries);
+            setInsertQueue(prev => prev.map((it, i) =>
+                i === cropIdx
+                    ? { ...it, fileProps: { ...it.fileProps, srcset: newSrcset, sizes: '(max-width: 640px) 100vw, 800px' } }
+                    : it
+            ));
+        } catch { /* variants not critical, preview is already updated */ }
+    }, [resolvedSrcsetWidths, storage, imageUpload?.path]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    const handleEditConfirm = ({ alt, href, target }: ImageDialogValues) => {
+        if (!editor || !editDialog) return;
+        const { pos, attrs } = editDialog;
+        setEditDialog(null);
+        const node = editor.state.doc.nodeAt(pos);
+        if (node?.type.name === 'image') {
+            const { tr } = editor.state;
+            tr.setNodeMarkup(pos, null, {
+                ...attrs,
+                alt:    alt    || null,
+                href:   href   || null,
+                target: href ? (target || '_blank') : null,
+            });
+            editor.view.dispatch(tr);
+        }
+    };
+
 
     // Floating toolbar commands exclude upload/source (they need separate triggers).
     const floatingCommands = toolbarCommands.filter(
@@ -746,11 +1004,22 @@ const RichTextInner = ({
 
     return (
         <>
-        {imgDialog && (
-            <ImageInsertDialog
-                state={imgDialog}
-                onConfirm={confirmImageDialog}
-                onCancel={() => setImgDialog(null)}
+        {insertQueue.length > 0 && (
+            <ImageInsertSlider
+                items={insertQueue}
+                onInsertAll={handleInsertAll}
+                onCropSave={handleCropItem}
+                onCancel={() => {
+                    insertQueue.forEach(item => imgCore.handleRemove(item.fileProps.key));
+                    setInsertQueue([]);
+                }}
+            />
+        )}
+        {editDialog && (
+            <ImageEditDialog
+                state={editDialog}
+                onConfirm={handleEditConfirm}
+                onCancel={() => setEditDialog(null)}
             />
         )}
         <div
@@ -851,13 +1120,13 @@ const RichTextInner = ({
                 <textarea
                     aria-label={`${name} source`}
                     className="w-full resize-none bg-background px-3 py-2 font-mono text-xs text-foreground outline-none"
-                    style={{ minHeight, maxHeight, overflowY: maxHeight ? 'auto' : undefined }}
+                    style={{ minHeight: editorContentMinHeight, maxHeight, overflowY: 'auto' }}
                     value={sourceContent}
                     onChange={e => setSourceContent(e.target.value)}
                 />
             ) : (
                 <div
-                    style={{ minHeight, maxHeight, overflowY: maxHeight ? 'auto' : undefined }}
+                    style={{ maxHeight, overflowY: maxHeight ? 'auto' : undefined }}
                     className={cn(
                         'w-full px-3 py-2 text-sm',
                         '[&_.ProseMirror]:outline-none',
@@ -890,13 +1159,15 @@ const RichTextInner = ({
             <input
                 ref={imgCore.fileInputRef}
                 type="file"
+                multiple
                 accept={imageUpload?.accept ?? 'image/*'}
                 className="hidden"
                 onChange={e => {
                     const maxBytes = imageUpload?.maxBytes ?? 10_485_760;
-                    const file = e.target.files?.[0];
-                    if (file && file.size > maxBytes) {
-                        alert(`Image exceeds the ${Math.round(maxBytes / 1_048_576)} MB limit.`);
+                    const files = Array.from(e.target.files ?? []);
+                    const oversized = files.find(f => f.size > maxBytes);
+                    if (oversized) {
+                        alert(`"${oversized.name}" exceeds the ${Math.round(maxBytes / 1_048_576)} MB limit.`);
                         e.target.value = '';
                         return;
                     }
@@ -906,11 +1177,12 @@ const RichTextInner = ({
             <input
                 ref={docInputRef}
                 type="file"
-                accept=".pdf,.doc,.docx,.txt,.csv"
+                multiple
+                accept={documentUpload?.accept ?? '.pdf,.doc,.docx,.txt,.csv'}
                 className="hidden"
                 onChange={e => {
-                    const f = e.target.files?.[0];
-                    if (f) handleDocFile(f);
+                    const files = Array.from(e.target.files ?? []);
+                    if (files.length) void handleDocFiles(files);
                     e.target.value = '';
                 }}
             />
@@ -937,6 +1209,7 @@ export const RichText = ({
     minHeight         = 120,
     maxHeight         = undefined,
     imageUpload       = undefined,
+    documentUpload    = undefined,
     uploadPath        = undefined,
     id                = undefined,
     labelClassName    = undefined,
@@ -1001,6 +1274,7 @@ export const RichText = ({
                     minHeight={minHeight}
                     maxHeight={maxHeight}
                     imageUpload={resolvedImageUpload}
+                    documentUpload={documentUpload}
                     hasError={!!error}
                     className={className}
                     onEditorChange={handleEditorChange}

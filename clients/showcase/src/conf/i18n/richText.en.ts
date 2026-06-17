@@ -69,6 +69,7 @@ export default defineLocaleMessages({
                     minHeight: { description: 'Minimum editor height in pixels. Default: 120.' },
                     maxHeight: { description: 'Maximum editor height in pixels. Content scrolls internally beyond this value.' },
                     imageUpload: { description: 'Image upload config object: { path, srcsetWidths, accept, maxBytes }. Pass to enable the imageUpload toolbar command. Omit to keep images as base64 data URIs.' },
+                    documentUpload: { description: 'Document upload config object: { path, accept, maxBytes }. Pass to enable the documentUpload toolbar command and upload files to storage. Omit to use data URI fallback. Inserted as a clickable file chip with filename and size.' },
                     uploadPath: { description: '@deprecated — use imageUpload.path instead.' },
                     feedback: { description: 'Helper text rendered below the editor.' },
                     defaultValue: { description: 'Initial value when used outside a Form context.' },

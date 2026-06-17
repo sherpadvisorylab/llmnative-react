@@ -3,6 +3,7 @@ import { useI18n } from "../../I18n";
 import Modal from "../ui/Modal";
 import {LoadingButton} from "../ui/Buttons";
 import Icon from "../ui/Icon";
+import { cn } from "../../libs/cn";
 
 type ImageEditorProps = {
     src: string;
@@ -232,6 +233,13 @@ const ImageEditor = ({
     const handleSave = async () => {
         const editor = imageEditorInst.current;
         if (!editor) return;
+        // Apply any active crop selection before exporting
+        try {
+            const cropRect = editor.getCropzoneRect?.() as { left: number; top: number; width: number; height: number } | null;
+            if (cropRect && cropRect.width > 0 && cropRect.height > 0) {
+                await editor.crop(cropRect);
+            }
+        } catch { /* not in crop mode or crop not active */ }
         await onSave?.(editor.toDataURL());
     };
 
@@ -321,17 +329,28 @@ const ImageEditor = ({
 
     const Canvas = (
         <div
-            ref={rootEl}
-            className="flex justify-center"
-            style={{
-                transform: `scale(${zoom})`,
-                transformOrigin: 'top center',
-                display: 'inline-block',
-                userSelect: 'none',
-                width: '100%',
-                height: (height * zoom) + 'px',
-            }}
-        />
+            className={cn(
+                'flex w-full items-center justify-center overflow-auto pt-3',
+                '[background-image:repeating-conic-gradient(#e4e4e4_0%_25%,#f5f5f5_0%_50%)]',
+                'dark:[background-image:repeating-conic-gradient(#2a2a2a_0%_25%,#343434_0%_50%)]',
+                '[background-size:16px_16px]',
+            )}
+            style={{ minHeight: (height * zoom) + 'px' }}
+        >
+            {/* Override TUI's default opaque background so the checkerboard shows through */}
+            <style>{`.tui-image-editor,.tui-image-editor canvas{background:transparent!important}`}</style>
+            <div
+                ref={rootEl}
+                style={{
+                    transform: `scale(${zoom})`,
+                    transformOrigin: 'center center',
+                    display: 'inline-block',
+                    userSelect: 'none',
+                    width: width + 'px',
+                    height: (height * zoom) + 'px',
+                }}
+            />
+        </div>
     );
 
     if (mode === "modal") {
@@ -339,8 +358,7 @@ const ImageEditor = ({
             <Modal
                 size="xl"
                 header={ModalHeader}
-                className="bg-secondary"
-                bodyClassName="overflow-hidden"
+                bodyClassName="overflow-hidden p-0"
                 onClose={handleClose}
                 footer={false}
             >

@@ -33,7 +33,7 @@ const GridSystemPage = lazyPage(() => import('../pages/components/GridSystemPage
 const IconPage = lazyPage(() => import('../pages/components/IconPage'));
 const ImagePage = lazyPage(() => import('../pages/components/ImagePage'));
 const ImageAvatarPage = lazyPage(() => import('../pages/components/ImageAvatarPage'));
-const ImageUrlPage = lazyPage(() => import('../pages/components/ImageUrlPage'));
+const ImageFieldPage = lazyPage(() => import('../pages/components/ImageFieldPage'));
 const LayoutBuilderPage = lazyPage(() => import('../pages/components/LayoutBuilderPage'));
 const ListGroupPage = lazyPage(() => import('../pages/components/ListGroupPage'));
 const MenuPage = lazyPage(() => import('../pages/components/MenuPage'));
@@ -200,7 +200,7 @@ export const menu = {
         { path: '/components/autocomplete', title: 'Autocomplete', page: AutocompletePage, group: 'Form fields' },
         { path: '/components/checkbox', title: 'Checkbox', page: CheckboxPage, group: 'Form fields' },
         { path: '/components/checklist', title: 'Checklist', page: ChecklistPage, group: 'Form fields' },
-        { path: '/components/image-url', title: 'ImageUrl', page: ImageUrlPage, group: 'Form fields' },
+        { path: '/components/image-field', title: 'ImageField', page: ImageFieldPage, group: 'Form fields' },
         { path: '/components/input', title: 'Input', page: InputPage, group: 'Form fields' },
         { path: '/components/list-group', title: 'ListGroup', page: ListGroupPage, group: 'Form fields' },
         { path: '/components/select', title: 'Select', page: SelectPage, group: 'Form fields' },

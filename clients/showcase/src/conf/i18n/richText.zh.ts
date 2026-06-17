@@ -42,6 +42,7 @@ export default defineLocaleMessages({
                     minHeight: { description: '编辑器最小高度（像素）。' },
                     maxHeight: { description: '最大高度（像素）。' },
                     imageUpload: { description: '图片上传配置对象：{ path, srcsetWidths, accept, maxBytes }。传入以启用 imageUpload 命令。省略则将图片保留为 base64 data URI。' },
+                    documentUpload: { description: '文档上传配置对象：{ path, accept, maxBytes }。传入以启用 documentUpload 命令。以可点击的文件名+大小徽章形式插入。' },
                     uploadPath: { description: '@deprecated — 请改用 imageUpload.path。' },
                     feedback: { description: '编辑器下方的帮助文本。' },
                     defaultValue: { description: '在 Form 上下文之外使用时的初始值。' },

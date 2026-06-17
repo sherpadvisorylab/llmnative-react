@@ -42,6 +42,7 @@ export default defineLocaleMessages({
                     minHeight: { description: 'الحد الأدنى لارتفاع المحرر بالبكسل.' },
                     maxHeight: { description: 'الحد الأقصى للارتفاع بالبكسل.' },
                     imageUpload: { description: 'كائن إعداد رفع الصور: { path, srcsetWidths, accept, maxBytes }. مرره لتفعيل أمر imageUpload. احذفه للاحتفاظ بالصور كـ data URI بترميز base64.' },
+                    documentUpload: { description: 'كائن إعداد رفع المستندات: { path, accept, maxBytes }. مرره لتفعيل أمر documentUpload. يُدرج كرابط قابل للنقر مع اسم الملف وحجمه.' },
                     uploadPath: { description: '@deprecated — استخدم imageUpload.path بدلاً من ذلك.' },
                     feedback: { description: 'نص المساعدة أسفل المحرر.' },
                     defaultValue: { description: 'القيمة الأولية خارج سياق النموذج.' },

@@ -284,18 +284,18 @@ const ModalDefault = ({
                     <div className={pos.bodyClassName}>{children}</div>
                     {showFooter && <div className={pos.footerClassName}>
                         {footer}
-                        {onSave && <LoadingButton
+                        {!footer && onSave && <LoadingButton
                             className="btn-primary"
                             label={dict.save}
                             onClick={async (e) => {
                                 e.preventDefault();
-                                
+
                                 if (await onSave(e)) {
                                     handleClose()
                                 }
                             }}
                         />}
-                        {onDelete && <LoadingButton
+                        {!footer && onDelete && <LoadingButton
                             className="btn-danger"
                             label={dict.delete}
                             onClick={async (e) => {
@@ -304,7 +304,7 @@ const ModalDefault = ({
                                 handleClose()
                             }}
                         />}
-                        {showCancel && onClose && <ActionButton
+                        {!footer && showCancel && onClose && <ActionButton
                             className="btn-link"
                             label={dict.cancel}
                             onClick={handleClose}

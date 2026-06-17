@@ -12,7 +12,7 @@ import Icon from "../Icon";
 import { FormFieldProps, FieldOnChange, useFormContext, useFieldValidation } from "../../widgets/Form";
 import { FieldError } from "./Input";
 import { useStorageProvider } from "../../../providers/storage/StorageProviderContext";
-import { resizeVariants } from "../../../libs/imageBuilder";
+import { resizeToVariants, uploadVariants, buildSrcset } from "../../../libs/imageVariants";
 
 export interface FileProps {
     key: string;
@@ -116,28 +116,24 @@ export const useFileUploadCore = ({
                 updateFile(file.name, { base64, progress: 80 });
 
                 if (srcsetWidths?.length) {
-                    // Generate variants locally first, then upload if storage is available
                     try {
-                        const variants = await resizeVariants(dataUri, srcsetWidths);
-                        const resolved: Array<{ src: string; width: number }> = [];
-                        for (const v of variants) {
-                            if (storage && uploadPath) {
-                                const baseName = file.name.replace(/\.[^/.]+$/, '');
-                                const ext      = file.name.split('.').pop() ?? 'jpg';
-                                const url = await storage.upload(v.src, `${uploadPath}/${baseName}_${v.width}w.${ext}`);
-                                resolved.push({ src: url ?? v.src, width: v.width });
-                            } else {
-                                // Convert data URI → blob URL: data URIs contain commas which
-                                // break srcset string parsing (format: "url1 400w, url2 800w")
-                                const blob = await fetch(v.src).then(r => r.blob());
-                                resolved.push({ src: URL.createObjectURL(blob), width: v.width });
-                            }
-                        }
-                        if (resolved.length > 0) {
+                        const { variants, naturalWidth } = await resizeToVariants(dataUri, srcsetWidths);
+                        // Upload or convert resized variants
+                        const resizedEntries = storage && uploadPath
+                            ? await uploadVariants(variants, storage, uploadPath, file.name)
+                            : variants.map(v => ({ url: v.localUrl, width: v.width }));
+                        // Handle original (full-size): upload with _Xw suffix or convert to blob URL
+                        const ext = file.name.split('.').pop() ?? 'jpg';
+                        const baseName = file.name.replace(/\.[^/.]+$/, '');
+                        const originalUrl = storage && uploadPath
+                            ? ((await storage.upload(dataUri, `${uploadPath}/${baseName}_${naturalWidth}w.${ext}`)) ?? dataUri)
+                            : URL.createObjectURL(await fetch(dataUri).then(r => r.blob()));
+                        const allEntries = [...resizedEntries, { url: originalUrl, width: naturalWidth }];
+                        if (allEntries.length > 0) {
                             updateFile(file.name, {
-                                url:    resolved.at(-1)!.src,
-                                srcset: resolved.map(v => `${v.src} ${v.width}w`).join(', '),
-                                sizes:  '(max-width: 640px) 100vw, 800px',
+                                url:      originalUrl,
+                                srcset:   buildSrcset(allEntries),
+                                sizes:    '(max-width: 640px) 100vw, 800px',
                                 progress: 100,
                             });
                             return;

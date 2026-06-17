@@ -45,6 +45,11 @@ export interface SideNavProps {
     /** Optional content rendered in the footer alongside the collapse button. */
     footer?: React.ReactNode;
     /**
+     * Optional content rendered in a pinned header at the top of the sidebar.
+     * Hidden when empty (default).
+     */
+    header?: React.ReactNode;
+    /**
      * Embedded mode — renders only the nav items without the sidebar shell
      * (no sticky wrapper, no collapse button). Use inside drawers or panels.
      */
@@ -275,6 +280,7 @@ export default function SideNav({
     showIcons = true,
     showCollapseButton = true,
     footer,
+    header,
     embedded = false,
 }: SideNavProps) {
     const { pathname } = useLocation();
@@ -353,12 +359,22 @@ export default function SideNav({
                     boxShadow: collapsed && hovered ? '4px 0 24px rgba(0,0,0,0.10)' : 'none',
                     height: '100%',
                     overflowX: 'hidden',
-                    overflowY: 'auto',
+                    overflowY: 'hidden',
                 }}
                 className="flex flex-col border-r bg-background"
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
             >
+                {header && (
+                    <div className="shrink-0 border-b px-1.5 py-2" style={{
+                        opacity: isExpanded ? 1 : 0,
+                        maxWidth: isExpanded ? '100%' : '0px',
+                        overflow: 'hidden',
+                        transition: 'opacity 150ms ease, max-width 200ms ease',
+                    }}>
+                        {header}
+                    </div>
+                )}
                 <nav className="flex-1 overflow-y-auto overflow-x-hidden px-1.5 py-2">
                     {groups.map(group => (
                         <NavGroup

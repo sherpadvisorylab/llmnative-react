@@ -41,7 +41,7 @@ export * from './ui/fields/Select';
 export * from './ui/fields/Upload';
 export * from './ui/fields/Crop';
 export * from './ui/fields/UploadCSV';
-export * from './ui/fields/ImageUrl';
+export * from './ui/fields/ImageField';
 export * from './ui/fields/RichText';
 
 export { default as Menu } from './blocks/Menu';

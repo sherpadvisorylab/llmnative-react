@@ -42,6 +42,7 @@ export default defineLocaleMessages({
                     minHeight: { description: 'Минимальная высота редактора в пикселях.' },
                     maxHeight: { description: 'Максимальная высота в пикселях.' },
                     imageUpload: { description: 'Объект конфигурации загрузки изображений: { path, srcsetWidths, accept, maxBytes }. Передайте для активации команды imageUpload. Опустите, чтобы хранить изображения как base64 data URI.' },
+                    documentUpload: { description: 'Объект конфигурации загрузки документов: { path, accept, maxBytes }. Передайте для активации команды documentUpload. Вставляется как кликабельный чип с именем и размером файла.' },
                     uploadPath: { description: '@deprecated — используйте imageUpload.path.' },
                     feedback: { description: 'Вспомогательный текст под редактором.' },
                     defaultValue: { description: 'Начальное значение вне контекста формы.' },

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Form, RichText, StorageProvider } from '@llmnative/react';
-import type { StorageProviderAdapter, RichTextImageUploadConfig, ToolbarCommand, StatusBarConfig } from '@llmnative/react';
+import type { StorageProviderAdapter, RichTextImageUploadConfig, RichTextDocumentUploadConfig, ToolbarCommand, StatusBarConfig } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
@@ -139,6 +139,37 @@ imageUpload={{
                 { label: 'full',   value: { path: '/uploads/posts', srcsetWidths: [400, 800, 1200], accept: 'image/*', maxBytes: 10485760 }, help: 'Three breakpoints + explicit MIME filter and 10 MB cap.' },
             ],
         },
+        {
+            name: 'documentUpload',
+            type: 'RichTextDocumentUploadConfig',
+            description: t.propsDocs.items.documentUpload.description,
+            control: 'json',
+            textareaMode: 'json',
+            rows: 4,
+            shape: `{
+  path?:     string  // storage path prefix — requires StorageProvider
+  accept?:   string  // MIME filter — default: ".pdf,.doc,.docx,.txt,.csv"
+  maxBytes?: number  // max file size in bytes — default: 20_971_520 (20 MB)
+}`,
+            example: `// Basic — uploads to /uploads/docs with default file types
+documentUpload={{ path: '/uploads/docs' }}
+
+// PDFs only, 10 MB cap
+documentUpload={{ path: '/uploads/docs', accept: '.pdf', maxBytes: 10485760 }}
+
+// Full control
+documentUpload={{
+  path:     '/uploads/docs',
+  accept:   '.pdf,.doc,.docx,.txt,.csv',
+  maxBytes: 20971520,
+}}`,
+            shortcuts: [
+                { label: 'off',      value: null,                                                                       help: 'No document upload button.' },
+                { label: 'basic',    value: { path: '/uploads/docs' },                                                  help: 'Upload to /uploads/docs with default MIME filter and 20 MB cap.' },
+                { label: 'pdf only', value: { path: '/uploads/docs', accept: '.pdf', maxBytes: 10485760 },              help: 'PDFs only, 10 MB cap.' },
+                { label: 'full',     value: { path: '/uploads/docs', accept: '.pdf,.doc,.docx,.txt,.csv', maxBytes: 20971520 }, help: 'All default formats, explicit 20 MB cap.' },
+            ],
+        },
         { name: 'feedback', type: 'string', description: t.propsDocs.items.feedback.description, control: 'text' },
         { name: 'defaultValue', type: 'string', description: t.propsDocs.items.defaultValue.description, control: 'textarea', rows: 3 },
         { name: 'validator', type: '(value: FieldValue) => string | undefined', description: t.propsDocs.items.validator.description },
@@ -167,6 +198,7 @@ imageUpload={{
             minHeight: 160,
             maxHeight: null,
             imageUpload: null,
+            documentUpload: null,
             feedback: '',
             placeholder: t.labels.startTyping,
             before: '',
@@ -175,8 +207,9 @@ imageUpload={{
             wrapperClassName: '',
         },
         render: (p, onValuesChange) => {
-            const imageUpload  = p.imageUpload as RichTextImageUploadConfig | null;
-            const statusBar    = p.statusBar as boolean | StatusBarConfig;
+            const imageUpload    = p.imageUpload    as RichTextImageUploadConfig    | null;
+            const documentUpload = p.documentUpload as RichTextDocumentUploadConfig | null;
+            const statusBar      = p.statusBar as boolean | StatusBarConfig;
             const toolbarCmds  = p.toolbarCommands as ToolbarCommand[] | null;
             // select options use JSON-quoted strings (e.g. '"fixed"') — strip outer quotes
             const unquote = (v: unknown) => String(v).replace(/^"|"$/g, '');
@@ -198,6 +231,7 @@ imageUpload={{
                         minHeight={p.minHeight as number}
                         maxHeight={(p.maxHeight as number) || undefined}
                         imageUpload={imageUpload ?? undefined}
+                        documentUpload={documentUpload ?? undefined}
                         feedback={(p.feedback as string) || undefined}
                         placeholder={(p.placeholder as string) || undefined}
                         before={(p.before as string) || undefined}
@@ -207,7 +241,7 @@ imageUpload={{
                     />
                 </Form>
             );
-            return imageUpload?.path ? (
+            return (imageUpload?.path || documentUpload?.path) ? (
                 <StorageProvider registry={{ demo: demoStorage }} defaultKey="demo">
                     {editor}
                 </StorageProvider>

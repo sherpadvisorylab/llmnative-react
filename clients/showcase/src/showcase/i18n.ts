@@ -90,3 +90,4 @@ export const useShowcasePromptPlainI18n = () => useShowcaseSlice('promptPlain');
 export const useShowcaseFormI18n = () => useShowcaseSlice('form');
 export const useShowcaseFormValidationI18n = () => useShowcaseSlice('formValidation');
 export const useShowcaseRichTextI18n = () => useShowcaseSlice('richText');
+export const useShowcaseImageFieldI18n = () => useShowcaseSlice('imageField');
