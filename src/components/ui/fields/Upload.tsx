@@ -127,7 +127,10 @@ export const useFileUploadCore = ({
                                 const url = await storage.upload(v.src, `${uploadPath}/${baseName}_${v.width}w.${ext}`);
                                 resolved.push({ src: url ?? v.src, width: v.width });
                             } else {
-                                resolved.push({ src: v.src, width: v.width });
+                                // Convert data URI → blob URL: data URIs contain commas which
+                                // break srcset string parsing (format: "url1 400w, url2 800w")
+                                const blob = await fetch(v.src).then(r => r.blob());
+                                resolved.push({ src: URL.createObjectURL(blob), width: v.width });
                             }
                         }
                         if (resolved.length > 0) {

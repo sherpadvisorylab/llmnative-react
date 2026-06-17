@@ -408,7 +408,15 @@ const ImageInsertDialog = ({
 
                 {(() => {
                     const src = isInsert ? state.preview : (state.attrs.src as string | undefined);
-                    return src ? <img src={src} alt="" className="max-h-40 w-full rounded-md bg-muted/40 object-contain" /> : null;
+                    if (!src) return null;
+                    return (
+                        <a href={src} target="_blank" rel="noopener noreferrer" className="group relative block overflow-hidden rounded-md bg-muted/40">
+                            <img src={src} alt="" className="max-h-40 w-full object-contain transition-opacity group-hover:opacity-80" />
+                            <span className="absolute right-1.5 top-1.5 rounded bg-black/50 px-1.5 py-0.5 text-[10px] font-medium text-white opacity-0 transition-opacity group-hover:opacity-100">
+                                open original
+                            </span>
+                        </a>
+                    );
                 })()}
 
                 {/* Alt text */}
