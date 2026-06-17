@@ -62,6 +62,32 @@ export interface StatusBarConfig {
     charCount?: boolean;
 }
 
+export interface RichTextImageUploadConfig {
+    /**
+     * Storage path prefix for uploaded images.
+     * Requires a StorageProvider ancestor.
+     * Example: "/content/posts/hero"
+     */
+    path?: string;
+    /**
+     * Pixel widths to generate as responsive srcset variants.
+     * Each width produces a canvas-resized copy stored as <name>_<width>w.<ext>.
+     * Pass [] to disable srcset generation entirely.
+     * Default: [400, 800]
+     */
+    srcsetWidths?: number[];
+    /**
+     * Accepted MIME types for the image file picker.
+     * Default: "image/*"
+     */
+    accept?: string;
+    /**
+     * Maximum file size in bytes.
+     * Default: 10_485_760 (10 MB)
+     */
+    maxBytes?: number;
+}
+
 export interface RichTextProps extends FormFieldProps {
     placeholder?: string;
     disabled?: boolean;
@@ -78,7 +104,12 @@ export interface RichTextProps extends FormFieldProps {
     minHeight?: number;
     /** Maximum editor height in px; content scrolls beyond this. */
     maxHeight?: number;
-    /** StorageProvider path used by imageUpload and documentUpload toolbar commands. */
+    /**
+     * Image upload behaviour for the imageUpload toolbar command.
+     * Pass an object to enable uploads; omit to keep images as base64 data URIs.
+     */
+    imageUpload?: RichTextImageUploadConfig;
+    /** @deprecated Use imageUpload.path instead. */
     uploadPath?: string;
     id?: string;
     labelClassName?: string;
@@ -422,11 +453,31 @@ const ImageInsertDialog = ({
                     </div>
                 </div>
 
-                {isInsert && (state.fileProps.srcset || (state.fileProps.url && state.fileProps.url !== state.preview)) && (
-                    <p className="text-xs text-muted-foreground">
-                        Responsive variants uploaded automatically.
-                    </p>
-                )}
+                {isInsert && state.fileProps.srcset && (() => {
+                    const variants = state.fileProps.srcset.split(',').map(s => s.trim()).map(part => {
+                        const [src, widthStr] = part.split(' ');
+                        return { src, width: parseInt(widthStr, 10) };
+                    }).filter(v => v.src && !isNaN(v.width));
+                    if (!variants.length) return null;
+                    return (
+                        <div className="flex flex-col gap-1.5">
+                            <p className="text-xs font-medium text-muted-foreground">
+                                Responsive variants <span className="font-normal opacity-60">({variants.length} generated)</span>
+                            </p>
+                            <div className="flex gap-1.5">
+                                {variants.map(v => (
+                                    <a key={v.width} href={v.src} target="_blank" rel="noopener noreferrer"
+                                       className="group relative flex-1 overflow-hidden rounded border border-border bg-muted/40">
+                                        <img src={v.src} alt={`${v.width}w`} className="h-12 w-full object-cover transition-opacity group-hover:opacity-70" />
+                                        <span className="absolute bottom-0.5 right-0.5 rounded bg-black/60 px-1 py-0.5 text-[10px] font-mono leading-none text-white">
+                                            {v.width}px
+                                        </span>
+                                    </a>
+                                ))}
+                            </div>
+                        </div>
+                    );
+                })()}
 
                 <div className="flex justify-end gap-2">
                     <button type="button" onClick={onCancel}
@@ -458,7 +509,7 @@ interface RichTextInnerProps {
     statusBar: StatusBarConfig | false;
     minHeight: number;
     maxHeight: number | undefined;
-    uploadPath: string | undefined;
+    imageUpload: RichTextImageUploadConfig | undefined;
     hasError: boolean;
     className: string | undefined;
     onEditorChange: (content: string) => void;
@@ -467,7 +518,7 @@ interface RichTextInnerProps {
 const RichTextInner = ({
     modules, name, value, outputFormat, placeholder, disabled,
     toolbar, toolbarCommands, statusBar, minHeight, maxHeight,
-    uploadPath, hasError, className, onEditorChange,
+    imageUpload, hasError, className, onEditorChange,
 }: RichTextInnerProps) => {
     const { useEditor, EditorContent } = modules[0];
     const { BubbleMenu }               = modules[1];
@@ -512,9 +563,13 @@ const RichTextInner = ({
     const [, rerenderOnSelection] = React.useReducer(n => n + 1, 0);
     const docInputRef = useRef<HTMLInputElement>(null);
 
+    const resolvedSrcsetWidths = imageUpload
+        ? (imageUpload.srcsetWidths ?? [400, 800])
+        : undefined;
+
     const imgCore = useFileUploadCore({
-        uploadPath,
-        srcsetWidths: [400, 800],
+        uploadPath: imageUpload?.path,
+        srcsetWidths: resolvedSrcsetWidths,
         onFileReady: (fp) => {
             const defaultAlt = fp.fileName
                 .replace(/\.[^/.]+$/, '')
@@ -824,9 +879,18 @@ const RichTextInner = ({
             <input
                 ref={imgCore.fileInputRef}
                 type="file"
-                accept="image/*"
+                accept={imageUpload?.accept ?? 'image/*'}
                 className="hidden"
-                onChange={imgCore.handleUploadChange}
+                onChange={e => {
+                    const maxBytes = imageUpload?.maxBytes ?? 10_485_760;
+                    const file = e.target.files?.[0];
+                    if (file && file.size > maxBytes) {
+                        alert(`Image exceeds the ${Math.round(maxBytes / 1_048_576)} MB limit.`);
+                        e.target.value = '';
+                        return;
+                    }
+                    imgCore.handleUploadChange(e);
+                }}
             />
             <input
                 ref={docInputRef}
@@ -861,6 +925,7 @@ export const RichText = ({
     statusBar         = false,
     minHeight         = 120,
     maxHeight         = undefined,
+    imageUpload       = undefined,
     uploadPath        = undefined,
     id                = undefined,
     labelClassName    = undefined,
@@ -897,6 +962,8 @@ export const RichText = ({
     );
 
     const resolvedStatusBar = statusBar === false ? false : resolveStatusBarConfig(statusBar);
+    const resolvedImageUpload: RichTextImageUploadConfig | undefined =
+        imageUpload ?? (uploadPath ? { path: uploadPath } : undefined);
 
     return (
         <Wrapper className={formWrapClass}>
@@ -922,7 +989,7 @@ export const RichText = ({
                     statusBar={resolvedStatusBar}
                     minHeight={minHeight}
                     maxHeight={maxHeight}
-                    uploadPath={uploadPath}
+                    imageUpload={resolvedImageUpload}
                     hasError={!!error}
                     className={className}
                     onEditorChange={handleEditorChange}

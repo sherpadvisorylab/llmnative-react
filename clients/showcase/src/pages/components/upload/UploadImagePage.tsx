@@ -60,11 +60,16 @@ function VariantsGrid({ variants, uploadPath }: { variants: SrcsetVariant[]; upl
             </p>
             <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${count}, 1fr)` }}>
                 {variants.map(v => (
-                    <div key={v.width} className="space-y-1.5">
-                        <img src={v.src} alt={v.fileName} className="w-full rounded-md bg-muted/40 object-cover aspect-video" />
+                    <a key={v.width} href={v.src} target="_blank" rel="noopener noreferrer" className="space-y-1.5 group block">
+                        <div className="relative overflow-hidden rounded-md bg-muted/40">
+                            <img src={v.src} alt={v.fileName} className="w-full object-cover aspect-video transition-opacity group-hover:opacity-80" />
+                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <span className="bg-black/60 text-white text-xs px-2 py-1 rounded">open</span>
+                            </div>
+                        </div>
                         <p className="text-xs font-mono text-foreground break-all">{v.fileName}</p>
                         <p className="text-xs text-muted-foreground">{v.width}px wide</p>
-                    </div>
+                    </a>
                 ))}
             </div>
         </div>
@@ -167,7 +172,12 @@ export default function UploadImagePage() {
         { name: 'max', type: 'number', default: t.propsDocs.items.max.default, description: t.propsDocs.items.max.description, control: 'number', min: 1, max: 20 },
         { name: 'required', type: 'boolean', default: t.propsDocs.items.required.default, description: t.propsDocs.items.required.description, control: 'boolean' },
         { name: 'uploadPath', type: 'string', description: t.propsDocs.items.uploadPath.description, control: 'text' },
-        { name: 'srcsetWidths', type: 'number[]', description: t.propsDocs.items.srcsetWidths.description, control: 'text' },
+        { name: 'srcsetWidths', type: 'number[]', description: t.propsDocs.items.srcsetWidths.description, control: 'textarea', shortcuts: [
+            { label: 'off', value: '', help: 'No srcset variants generated.' },
+            { label: '400, 800', value: '400, 800', help: 'Two breakpoints: mobile (400px) and tablet/desktop (800px).' },
+            { label: '400, 800, 1200', value: '400, 800, 1200', help: 'Three breakpoints including full-width desktop (1200px).' },
+            { label: '2x retina', value: '800, 1600', help: 'Retina-ready pair: 1× (800px) and 2× (1600px).' },
+        ] },
         { name: 'onChange', type: 'FieldOnChange', description: t.propsDocs.items.onChange.description },
         { name: 'before', type: 'ReactNode', description: t.propsDocs.items.before.description },
         { name: 'after', type: 'ReactNode', description: t.propsDocs.items.after.description },
