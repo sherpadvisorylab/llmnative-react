@@ -175,9 +175,15 @@ imageUpload={{
             wrapperClassName: '',
         },
         render: (p, onValuesChange) => {
-            const imageUpload = p.imageUpload as RichTextImageUploadConfig | null;
-            const statusBar   = p.statusBar as boolean | StatusBarConfig;
-            const toolbarCmds = p.toolbarCommands as ToolbarCommand[] | null;
+            const imageUpload  = p.imageUpload as RichTextImageUploadConfig | null;
+            const statusBar    = p.statusBar as boolean | StatusBarConfig;
+            const toolbarCmds  = p.toolbarCommands as ToolbarCommand[] | null;
+            // select options use JSON-quoted strings (e.g. '"fixed"') — strip outer quotes
+            const unquote = (v: unknown) => String(v).replace(/^"|"$/g, '');
+            const toolbarVal   = unquote(p.toolbar);
+            const toolbar: 'fixed' | 'floating' | false =
+                toolbarVal === 'false' ? false : toolbarVal as 'fixed' | 'floating';
+            const outputFormat = unquote(p.outputFormat) as 'html' | 'json' | 'text';
             const editor = (
                 <Form appearance="empty" onChange={onValuesChange}>
                     <RichText
@@ -185,9 +191,9 @@ imageUpload={{
                         label={(p.label as string) || undefined}
                         required={p.required as boolean}
                         disabled={p.disabled as boolean}
-                        toolbar={p.toolbar === 'false' ? false : p.toolbar as 'fixed' | 'floating'}
+                        toolbar={toolbar}
                         toolbarCommands={toolbarCmds ?? undefined}
-                        outputFormat={p.outputFormat as 'html' | 'json' | 'text'}
+                        outputFormat={outputFormat}
                         statusBar={statusBar}
                         minHeight={p.minHeight as number}
                         maxHeight={(p.maxHeight as number) || undefined}
