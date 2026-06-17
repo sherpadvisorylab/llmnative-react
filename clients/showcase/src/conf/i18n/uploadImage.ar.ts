@@ -24,12 +24,17 @@ export default defineLocaleMessages({
                     title: 'مرشح accept',
                     description: 'يقيد منتقي الملفات بأنواع MIME محددة. يفرض المتصفح هذا المرشح داخل منتقي الملفات الأصلي.',
                 },
+                responsiveSrcset: {
+                    title: 'صور متجاوبة (srcset)',
+                    description: 'مرر generateSrcset مع uploadPath لتوليد نسخ مقاس 400w و 800w تلقائيا عبر canvas. يُرفع كل نسخة بلاحقة _400w / _800w في اسم الملف. تُحفظ قيم srcset و sizes الناتجة في سجل Form مع الرابط الأصلي جاهزة لوسم <img>. تستخدم العرض التوضيحي تخزينا وهميا في الذاكرة.',
+                },
             },
             labels: {
                 avatar: 'الصورة الرمزية',
                 galleryMax: 'المعرض (حد اقصى 6)',
                 coverPhotoEditable: 'صورة الغلاف (قابلة للتحرير)',
                 pngOnly: 'PNG فقط',
+                heroImage: 'الصورة الرئيسية',
             },
             propsDocs: {
                 title: 'خصائص UploadImage',
@@ -48,6 +53,8 @@ export default defineLocaleMessages({
                     after: { description: 'محتوى يعرض بعد شبكة الصور داخل الغلاف الخارجي' },
                     className: { description: 'فئات CSS على الحاوية الداخلية' },
                     wrapperClassName: { description: 'فئات CSS على الغلاف الخارجي' },
+                    uploadPath: { description: 'بادئة مسار التخزين للملفات المرفوعة. يتطلب عنصر StorageProvider سلف. مع generateSrcset تُحفظ كل نسخة عرض كـ <uploadPath>/<name>_400w.<ext>.' },
+                    generateSrcset: { description: 'ينشئ ويرفع نسخ مقاس 400w و 800w بتقليص canvas. يملأ srcset و sizes في كل إدخال FileProps. يتطلب uploadPath و StorageProvider.', default: 'false' },
                 },
             },
             playground: {

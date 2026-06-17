@@ -24,12 +24,17 @@ export default defineLocaleMessages({
                     title: 'Фильтр accept',
                     description: 'Ограничивает выбор файлов определенными MIME-типами. Браузер применяет этот фильтр в стандартном окне выбора файлов.',
                 },
+                responsiveSrcset: {
+                    title: 'Адаптивные изображения (srcset)',
+                    description: 'Передайте generateSrcset вместе с uploadPath, чтобы компонент автоматически создавал canvas-масштабированные варианты 400w и 800w. Каждый вариант сохраняется в хранилище с суффиксом _400w / _800w в имени файла. Итоговые значения srcset и sizes сохраняются в записи Form рядом с исходным URL. Демо использует in-memory mock хранилище.',
+                },
             },
             labels: {
                 avatar: 'Аватар',
                 galleryMax: 'Галерея (макс. 6)',
                 coverPhotoEditable: 'Фото обложки (редактируемое)',
                 pngOnly: 'Только PNG',
+                heroImage: 'Главное изображение',
             },
             propsDocs: {
                 title: 'Свойства UploadImage',
@@ -48,6 +53,8 @@ export default defineLocaleMessages({
                     after: { description: 'Контент, отображаемый после сетки изображений внутри внешнего wrapper' },
                     className: { description: 'CSS-классы внутреннего контейнера' },
                     wrapperClassName: { description: 'CSS-классы внешнего wrapper' },
+                    uploadPath: { description: 'Префикс пути хранилища для загружаемых файлов. Требует StorageProvider-предка. При generateSrcset каждый вариант ширины сохраняется как <uploadPath>/<name>_400w.<ext>.' },
+                    generateSrcset: { description: 'Создаёт и загружает canvas-масштабированные варианты 400w и 800w. Заполняет srcset и sizes в каждой записи FileProps. Требует uploadPath и StorageProvider.', default: 'false' },
                 },
             },
             playground: {

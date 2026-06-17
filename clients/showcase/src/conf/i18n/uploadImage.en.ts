@@ -24,12 +24,17 @@ export default defineLocaleMessages({
                     title: 'Accept filter',
                     description: 'Restrict the file picker to specific MIME types. The browser enforces the filter in the native file chooser.',
                 },
+                responsiveSrcset: {
+                    title: 'Responsive images (srcset)',
+                    description: 'Pass generateSrcset together with an uploadPath to auto-generate canvas-resized 400w and 800w variants. Each variant is uploaded to storage with a _400w / _800w filename suffix. The resulting srcset and sizes strings land in the Form record alongside the original URL — ready to drop into an <img> tag. The demo below uses an in-memory mock storage so uploads are visible without a cloud backend.',
+                },
             },
             labels: {
                 avatar: 'Avatar',
                 galleryMax: 'Gallery (max 6)',
                 coverPhotoEditable: 'Cover photo (editable)',
                 pngOnly: 'PNG only',
+                heroImage: 'Hero image',
             },
             propsDocs: {
                 title: 'UploadImage props',
@@ -48,6 +53,8 @@ export default defineLocaleMessages({
                     after: { description: 'Content rendered after the image grid, inside the outer wrapper' },
                     className: { description: 'CSS classes on the inner container' },
                     wrapperClassName: { description: 'CSS classes on the outer wrapper' },
+                    uploadPath: { description: 'Storage path prefix for uploaded files. Requires a StorageProvider ancestor. When generateSrcset is also set, each width variant is stored at <uploadPath>/<name>_400w.<ext>.' },
+                    generateSrcset: { description: 'Generate and upload 400w and 800w canvas-resized variants. Populates srcset and sizes on each FileProps entry. Requires uploadPath and a StorageProvider.', default: 'false' },
                 },
             },
             playground: {

@@ -24,12 +24,17 @@ export default defineLocaleMessages({
                     title: 'Filtro accept',
                     description: 'Limita il selettore file a specifici tipi MIME. Il browser applica il filtro nel selettore file nativo.',
                 },
+                responsiveSrcset: {
+                    title: 'Immagini responsive (srcset)',
+                    description: 'Passa generateSrcset insieme a uploadPath per far generare al componente varianti canvas-ridimensionate a 400w e 800w. Ogni variante viene caricata nello storage con suffisso _400w / _800w nel nome file. I valori srcset e sizes risultanti vengono salvati nel Form record insieme all\'URL originale, pronti per un tag <img>. La demo usa uno storage in-memory, quindi gli upload sono visibili senza un backend cloud.',
+                },
             },
             labels: {
                 avatar: 'Avatar',
                 galleryMax: 'Gallery (max 6)',
                 coverPhotoEditable: 'Foto copertina (modificabile)',
                 pngOnly: 'Solo PNG',
+                heroImage: 'Immagine hero',
             },
             propsDocs: {
                 title: 'Props di UploadImage',
@@ -48,6 +53,8 @@ export default defineLocaleMessages({
                     after: { description: 'Contenuto renderizzato dopo la griglia immagini, dentro il wrapper esterno' },
                     className: { description: 'Classi CSS sul contenitore interno' },
                     wrapperClassName: { description: 'Classi CSS sul wrapper esterno' },
+                    uploadPath: { description: 'Prefisso del percorso storage per i file caricati. Richiede un antenato StorageProvider. Con generateSrcset attivo, ogni variante e salvata come <uploadPath>/<nome>_400w.<ext>.' },
+                    generateSrcset: { description: 'Genera e carica varianti canvas-ridimensionate a 400w e 800w. Popola srcset e sizes in ogni entry FileProps del Form record. Richiede uploadPath e un StorageProvider.', default: 'false' },
                 },
             },
             playground: {

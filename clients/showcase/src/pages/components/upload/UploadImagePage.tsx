@@ -1,11 +1,32 @@
 import React from 'react';
-import { Form, UploadImage } from '@llmnative/react';
+import { Form, UploadImage, StorageProvider } from '@llmnative/react';
+import type { StorageProviderAdapter } from '@llmnative/react';
 import PageLayout from '../../../showcase/page';
 import Section from '../../../docs-kit/page/Section';
 import PropDocsTable from '../../../docs-kit/docs/PropDocsTable';
 import { usePlayground } from '../../../docs-kit/playground';
 import type { PropDef, PlaygroundConfig } from '../../../docs-kit/playground';
 import { useShowcaseUploadImageI18n } from '../../../showcase/i18n';
+
+const demoStorage: StorageProviderAdapter = {
+    upload: async (file: string | File | Blob) => {
+        if (typeof file === 'string') return file;
+        return URL.createObjectURL(file as Blob);
+    },
+    createUpload: (_file: string | File | Blob, _path: string) => ({
+        url: Promise.resolve(undefined),
+        pause: () => {},
+        resume: () => {},
+        cancel: () => {},
+    }),
+    rename: async () => false,
+    move: async () => 0,
+    getURL: async () => undefined,
+    getFileInfo: async () => undefined,
+    download: async () => undefined,
+    delete: async () => 0,
+    list: async () => [],
+};
 
 export default function UploadImagePage() {
     const t = useShowcaseUploadImageI18n();
@@ -20,6 +41,8 @@ export default function UploadImagePage() {
         { name: 'accept', type: 'string', default: t.propsDocs.items.accept.default, description: t.propsDocs.items.accept.description, control: 'text' },
         { name: 'max', type: 'number', default: t.propsDocs.items.max.default, description: t.propsDocs.items.max.description, control: 'number', min: 1, max: 20 },
         { name: 'required', type: 'boolean', default: t.propsDocs.items.required.default, description: t.propsDocs.items.required.description, control: 'boolean' },
+        { name: 'uploadPath', type: 'string', description: t.propsDocs.items.uploadPath.description, control: 'text' },
+        { name: 'generateSrcset', type: 'boolean', default: t.propsDocs.items.generateSrcset.default, description: t.propsDocs.items.generateSrcset.description, control: 'boolean' },
         { name: 'onChange', type: 'FieldOnChange', description: t.propsDocs.items.onChange.description },
         { name: 'before', type: 'ReactNode', description: t.propsDocs.items.before.description },
         { name: 'after', type: 'ReactNode', description: t.propsDocs.items.after.description },
@@ -40,25 +63,31 @@ export default function UploadImagePage() {
             accept: 'image/*',
             max: 10,
             required: false,
+            uploadPath: '/uploads/demo',
+            generateSrcset: false,
             className: '',
             wrapperClassName: '',
         },
         render: (p, onValuesChange) => (
-            <Form appearance="empty" onChange={onValuesChange}>
-                <UploadImage
-                    name="images"
-                    label={p.label || undefined}
-                    multiple={p.multiple}
-                    editable={p.editable}
-                    previewWidth={Number(p.previewWidth)}
-                    previewHeight={Number(p.previewHeight)}
-                    accept={p.accept || 'image/*'}
-                    max={Number(p.max)}
-                    required={p.required}
-                    className={p.className || undefined}
-                    wrapperClassName={p.wrapperClassName || undefined}
-                />
-            </Form>
+            <StorageProvider registry={{ demo: demoStorage }} defaultKey="demo">
+                <Form appearance="empty" onChange={onValuesChange}>
+                    <UploadImage
+                        name="images"
+                        label={p.label || undefined}
+                        multiple={p.multiple}
+                        editable={p.editable}
+                        previewWidth={Number(p.previewWidth)}
+                        previewHeight={Number(p.previewHeight)}
+                        accept={p.accept || 'image/*'}
+                        max={Number(p.max)}
+                        required={p.required}
+                        uploadPath={p.uploadPath || undefined}
+                        generateSrcset={p.generateSrcset}
+                        className={p.className || undefined}
+                        wrapperClassName={p.wrapperClassName || undefined}
+                    />
+                </Form>
+            </StorageProvider>
         ),
     }), [propsConfig, t.playground.defaultLabel]);
 
@@ -179,6 +208,52 @@ export default function UploadImagePage() {
     previewWidth={88}
   />
 </Form>`}
+            />
+
+            <Section
+                title={t.sections.responsiveSrcset.title}
+                description={t.sections.responsiveSrcset.description}
+                preview={
+                    <div className="w-full max-w-sm">
+                        <StorageProvider registry={{ demo: demoStorage }} defaultKey="demo">
+                            <Form appearance="empty">
+                                <UploadImage
+                                    name="hero"
+                                    label={t.labels.heroImage}
+                                    uploadPath="/uploads/hero"
+                                    generateSrcset
+                                    previewHeight={112}
+                                    previewWidth={112}
+                                />
+                            </Form>
+                        </StorageProvider>
+                    </div>
+                }
+                code={`import { Form, UploadImage, StorageProvider } from '@llmnative/react';
+import { FirebaseStorageProvider } from '@llmnative/react';
+
+const storage = new FirebaseStorageProvider({ bucket: 'my-app.appspot.com' });
+
+<StorageProvider registry={{ cloud: storage }} defaultKey="cloud">
+  <Form appearance="empty">
+    <UploadImage
+      name="hero"
+      label="Hero image"
+      uploadPath="/uploads/hero"
+      generateSrcset
+      previewHeight={112}
+      previewWidth={112}
+    />
+  </Form>
+</StorageProvider>
+
+// Form record entry after upload:
+// {
+//   fileName: 'photo.jpg',
+//   url: 'https://cdn.example.com/uploads/hero/photo.jpg',
+//   srcset: 'https://cdn.../photo_400w.jpg 400w, https://cdn.../photo_800w.jpg 800w',
+//   sizes: '(max-width: 640px) 100vw, 800px',
+// }`}
             />
 
             <PropDocsTable props={propsConfig} title={t.propsDocs.title} />

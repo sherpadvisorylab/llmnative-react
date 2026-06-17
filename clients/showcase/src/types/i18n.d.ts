@@ -1622,12 +1622,14 @@ interface ShowcaseUploadImageI18n {
         multipleImages: ShowcasePageSectionCopy;
         editableCrop: ShowcasePageSectionCopy;
         acceptFilter: ShowcasePageSectionCopy;
+        responsiveSrcset: ShowcasePageSectionCopy;
     };
     labels: {
         avatar: string;
         galleryMax: string;
         coverPhotoEditable: string;
         pngOnly: string;
+        heroImage: string;
     };
     propsDocs: {
         title: string;

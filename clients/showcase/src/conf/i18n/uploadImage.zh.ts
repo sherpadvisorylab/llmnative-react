@@ -24,12 +24,17 @@ export default defineLocaleMessages({
                     title: 'accept 过滤',
                     description: '将文件选择器限制为特定 MIME 类型。浏览器会在原生文件选择器中强制执行该过滤条件。',
                 },
+                responsiveSrcset: {
+                    title: '响应式图片（srcset）',
+                    description: '同时传入 generateSrcset 和 uploadPath，组件会自动生成 canvas 缩放的 400w 和 800w 变体。每个变体以 _400w / _800w 后缀上传到存储。生成的 srcset 和 sizes 字符串与原始 URL 一起保存在 Form 记录中，可直接用于 <img> 标签。演示使用内存模拟存储。',
+                },
             },
             labels: {
                 avatar: '头像',
                 galleryMax: '图库（最多 6 张）',
                 coverPhotoEditable: '封面图（可编辑）',
                 pngOnly: '仅 PNG',
+                heroImage: '主图',
             },
             propsDocs: {
                 title: 'UploadImage 属性',
@@ -48,6 +53,8 @@ export default defineLocaleMessages({
                     after: { description: '渲染在图片网格之后、外层 wrapper 内部的内容' },
                     className: { description: '内部容器上的 CSS 类' },
                     wrapperClassName: { description: '外层 wrapper 上的 CSS 类' },
+                    uploadPath: { description: '上传文件的存储路径前缀。需要 StorageProvider 祖先组件。当同时设置 generateSrcset 时，每个宽度变体保存为 <uploadPath>/<name>_400w.<ext>。' },
+                    generateSrcset: { description: '生成并上传 canvas 缩放的 400w 和 800w 变体。在每个 FileProps 条目中填充 srcset 和 sizes。需要 uploadPath 和 StorageProvider。', default: 'false' },
                 },
             },
             playground: {
