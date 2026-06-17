@@ -54,7 +54,7 @@ export default defineLocaleMessages({
                     className: { description: 'CSS-классы внутреннего контейнера' },
                     wrapperClassName: { description: 'CSS-классы внешнего wrapper' },
                     uploadPath: { description: 'Префикс пути хранилища для загружаемых файлов. Требует StorageProvider-предка. При generateSrcset каждый вариант ширины сохраняется как <uploadPath>/<name>_400w.<ext>.' },
-                    generateSrcset: { description: 'Создаёт и загружает canvas-масштабированные варианты 400w и 800w. Заполняет srcset и sizes в каждой записи FileProps. Требует uploadPath и StorageProvider.', default: 'false' },
+                    srcsetWidths: { description: 'Массив пиксельных ширин для адаптивных вариантов (например, [400, 800]). Каждый вариант сохраняется как <имя>_<ширина>w.<расш> и заполняет srcset/sizes в записи Form. Требует uploadPath и StorageProvider.' },
                 },
             },
             playground: {

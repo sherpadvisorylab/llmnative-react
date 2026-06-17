@@ -39,21 +39,45 @@ const demoStorage: StorageProviderAdapter = {
 
 interface SrcsetVariant { src: string; width: number; fileName: string; }
 
+function parseSrcsetVariants(file: FileProps): SrcsetVariant[] {
+    if (!file.srcset) return [];
+    const baseName = file.fileName.replace(/\.[^/.]+$/, '');
+    const ext = file.fileName.split('.').pop() ?? 'jpg';
+    return file.srcset.split(',').map((s: string) => s.trim()).map((part: string) => {
+        const [src, widthStr] = part.split(' ');
+        const width = parseInt(widthStr, 10);
+        return { src, width, fileName: `${baseName}_${width}w.${ext}` };
+    });
+}
+
+function VariantsGrid({ variants, uploadPath }: { variants: SrcsetVariant[]; uploadPath?: string }) {
+    const count = variants.length;
+    return (
+        <div className="rounded-lg border border-border p-4 space-y-3">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                {count} variant{count !== 1 ? 's' : ''} uploaded to{' '}
+                <code className="font-mono">{uploadPath ?? '/uploads'}/</code>
+            </p>
+            <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${count}, 1fr)` }}>
+                {variants.map(v => (
+                    <div key={v.width} className="space-y-1.5">
+                        <img src={v.src} alt={v.fileName} className="w-full rounded-md bg-muted/40 object-cover aspect-video" />
+                        <p className="text-xs font-mono text-foreground break-all">{v.fileName}</p>
+                        <p className="text-xs text-muted-foreground">{v.width}px wide</p>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
 function SrcsetDemo({ label }: { label: string }) {
     const [variants, setVariants] = React.useState<SrcsetVariant[]>([]);
 
     const handleChange = React.useCallback(({ value }: { value: unknown }) => {
         const files = value as FileProps[] | undefined;
         if (!files?.length) { setVariants([]); return; }
-        const file = files[0];
-        if (!file.srcset) return;
-        const baseName = file.fileName.replace(/\.[^/.]+$/, '');
-        const ext = file.fileName.split('.').pop() ?? 'jpg';
-        const parsed: SrcsetVariant[] = file.srcset.split(',').map((s: string) => s.trim()).map((part: string) => {
-            const [src, widthStr] = part.split(' ');
-            const width = parseInt(widthStr, 10);
-            return { src, width, fileName: `${baseName}_${width}w.${ext}` };
-        });
+        const parsed = parseSrcsetVariants(files[0]);
         setVariants(parsed);
     }, []);
 
@@ -65,37 +89,69 @@ function SrcsetDemo({ label }: { label: string }) {
                         name="hero"
                         label={label}
                         uploadPath="/uploads/hero"
-                        generateSrcset
+                        srcsetWidths={[400, 800]}
                         onChange={handleChange}
                         previewHeight={112}
                         previewWidth={112}
                     />
                 </Form>
             </StorageProvider>
-
-            {variants.length > 0 && (
-                <div className="rounded-lg border border-border p-4 space-y-3">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        Generated variants — {variants.length} files uploaded to <code className="font-mono">/uploads/hero/</code>
-                    </p>
-                    <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${variants.length}, 1fr)` }}>
-                        {variants.map(v => (
-                            <div key={v.width} className="space-y-1.5">
-                                <img
-                                    src={v.src}
-                                    alt={v.fileName}
-                                    className="w-full rounded-md bg-muted/40 object-cover aspect-video"
-                                />
-                                <p className="text-xs font-mono text-foreground break-all">{v.fileName}</p>
-                                <p className="text-xs text-muted-foreground">{v.width}px wide</p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
+            {variants.length > 0 && <VariantsGrid variants={variants} uploadPath="/uploads/hero" />}
         </div>
     );
 }
+
+const PlaygroundRenderer = React.memo(function PlaygroundRenderer({
+    p,
+    onValuesChange,
+}: {
+    p: Record<string, unknown>;
+    onValuesChange: (values: Record<string, unknown>) => void;
+}) {
+    const [variants, setVariants] = React.useState<SrcsetVariant[]>([]);
+
+    const srcsetWidths = React.useMemo(() => {
+        const raw = (p.srcsetWidths as string)?.trim();
+        if (!raw) return undefined;
+        const parsed = raw.split(',').map((s: string) => parseInt(s.trim(), 10)).filter((n: number) => !isNaN(n) && n > 0);
+        return parsed.length ? parsed : undefined;
+    }, [p.srcsetWidths]);
+
+    const handleImageChange = React.useCallback(({ value }: { value: unknown }) => {
+        const files = value as FileProps[] | undefined;
+        if (!files?.length) { setVariants([]); return; }
+        const parsed = parseSrcsetVariants(files[0]);
+        setVariants(parsed);
+    }, []);
+
+    return (
+        <div className="space-y-4">
+            <StorageProvider registry={{ demo: demoStorage }} defaultKey="demo">
+                <Form appearance="empty" onChange={onValuesChange}>
+                    <UploadImage
+                        name="images"
+                        label={(p.label as string) || undefined}
+                        multiple={p.multiple as boolean}
+                        editable={p.editable as boolean}
+                        previewWidth={Number(p.previewWidth)}
+                        previewHeight={Number(p.previewHeight)}
+                        accept={(p.accept as string) || 'image/*'}
+                        max={Number(p.max)}
+                        required={p.required as boolean}
+                        uploadPath={(p.uploadPath as string) || undefined}
+                        srcsetWidths={srcsetWidths}
+                        onChange={srcsetWidths ? handleImageChange : undefined}
+                        className={(p.className as string) || undefined}
+                        wrapperClassName={(p.wrapperClassName as string) || undefined}
+                    />
+                </Form>
+            </StorageProvider>
+            {variants.length > 0 && srcsetWidths && (
+                <VariantsGrid variants={variants} uploadPath={(p.uploadPath as string) || '/uploads/demo'} />
+            )}
+        </div>
+    );
+});
 
 export default function UploadImagePage() {
     const t = useShowcaseUploadImageI18n();
@@ -111,7 +167,7 @@ export default function UploadImagePage() {
         { name: 'max', type: 'number', default: t.propsDocs.items.max.default, description: t.propsDocs.items.max.description, control: 'number', min: 1, max: 20 },
         { name: 'required', type: 'boolean', default: t.propsDocs.items.required.default, description: t.propsDocs.items.required.description, control: 'boolean' },
         { name: 'uploadPath', type: 'string', description: t.propsDocs.items.uploadPath.description, control: 'text' },
-        { name: 'generateSrcset', type: 'boolean', default: t.propsDocs.items.generateSrcset.default, description: t.propsDocs.items.generateSrcset.description, control: 'boolean' },
+        { name: 'srcsetWidths', type: 'number[]', description: t.propsDocs.items.srcsetWidths.description, control: 'text' },
         { name: 'onChange', type: 'FieldOnChange', description: t.propsDocs.items.onChange.description },
         { name: 'before', type: 'ReactNode', description: t.propsDocs.items.before.description },
         { name: 'after', type: 'ReactNode', description: t.propsDocs.items.after.description },
@@ -133,30 +189,12 @@ export default function UploadImagePage() {
             max: 10,
             required: false,
             uploadPath: '/uploads/demo',
-            generateSrcset: false,
+            srcsetWidths: '',
             className: '',
             wrapperClassName: '',
         },
         render: (p, onValuesChange) => (
-            <StorageProvider registry={{ demo: demoStorage }} defaultKey="demo">
-                <Form appearance="empty" onChange={onValuesChange}>
-                    <UploadImage
-                        name="images"
-                        label={p.label || undefined}
-                        multiple={p.multiple}
-                        editable={p.editable}
-                        previewWidth={Number(p.previewWidth)}
-                        previewHeight={Number(p.previewHeight)}
-                        accept={p.accept || 'image/*'}
-                        max={Number(p.max)}
-                        required={p.required}
-                        uploadPath={p.uploadPath || undefined}
-                        generateSrcset={p.generateSrcset}
-                        className={p.className || undefined}
-                        wrapperClassName={p.wrapperClassName || undefined}
-                    />
-                </Form>
-            </StorageProvider>
+            <PlaygroundRenderer p={p} onValuesChange={onValuesChange} />
         ),
     }), [propsConfig, t.playground.defaultLabel]);
 
@@ -296,7 +334,7 @@ const storage = new FirebaseStorageProvider({ bucket: 'my-app.appspot.com' });
       name="hero"
       label="Hero image"
       uploadPath="/uploads/hero"
-      generateSrcset
+      srcsetWidths={[400, 800]}
       previewHeight={112}
       previewWidth={112}
     />
@@ -306,7 +344,7 @@ const storage = new FirebaseStorageProvider({ bucket: 'my-app.appspot.com' });
 // Form record entry after upload:
 // {
 //   fileName: 'photo.jpg',
-//   url: 'https://cdn.example.com/uploads/hero/photo.jpg',
+//   url: 'https://cdn.example.com/uploads/hero/photo_800w.jpg',
 //   srcset: 'https://cdn.../photo_400w.jpg 400w, https://cdn.../photo_800w.jpg 800w',
 //   sizes: '(max-width: 640px) 100vw, 800px',
 // }`}

@@ -23,7 +23,7 @@ export interface FileProps {
     url: string;
     base64?: string;
     variants: Record<string, any>; /* CR-042: heterogeneous crop/scale variant objects */
-    srcset?: string;   // width-based srcset string, populated when generateSrcset is true
+    srcset?: string;   // width-based srcset string, populated when srcsetWidths is set
     sizes?: string;    // CSS sizes attribute for srcset
 }
 
@@ -38,10 +38,12 @@ export interface UseFileUploadCoreOptions {
     /** StorageProvider path. When set with a storage provider, files are auto-uploaded. */
     uploadPath?: string;
     /**
-     * When true and uploadPath is set, generates responsive width variants
-     * (400w, 800w) before uploading and populates file.srcset / file.sizes.
+     * Pixel widths for responsive image variants. When set with uploadPath, generates
+     * canvas-resized variants at each width and populates file.srcset / file.sizes.
+     * Each variant is stored as <name>_<width>w.<ext>. Default: undefined (no variants).
+     * Example: [400, 800] produces _400w and _800w files.
      */
-    generateSrcset?: boolean;
+    srcsetWidths?: number[];
     /** Initial file list (e.g. from a form record on load). */
     initialFiles?: FileProps[];
 }
@@ -50,7 +52,7 @@ export const useFileUploadCore = ({
     onFilesChange,
     onFileReady,
     uploadPath,
-    generateSrcset = false,
+    srcsetWidths,
     initialFiles,
 }: UseFileUploadCoreOptions) => {
     const [files, setFiles] = useState<FileProps[]>(initialFiles ?? []);
@@ -115,8 +117,8 @@ export const useFileUploadCore = ({
 
                 if (storage && uploadPath) {
                     try {
-                        if (generateSrcset) {
-                            const variants = await resizeVariants(dataUri, [400, 800]);
+                        if (srcsetWidths?.length) {
+                            const variants = await resizeVariants(dataUri, srcsetWidths);
                             const uploaded: Array<{ src: string; width: number }> = [];
                             for (const v of variants) {
                                 const baseName = file.name.replace(/\.[^/.]+$/, '');
@@ -151,7 +153,7 @@ export const useFileUploadCore = ({
         });
 
         if (fileInputRef.current) fileInputRef.current.value = '';
-    }, [storage, uploadPath, generateSrcset, updateFile]);
+    }, [storage, uploadPath, srcsetWidths, updateFile]);
 
     const handleUploadChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         handleFiles(Array.from(e.target.files ?? []));
@@ -177,7 +179,7 @@ const useFileUpload = (
     onChange?: FieldOnChange,
     wrapperClassName?: string,
     uploadPath?: string,
-    generateSrcset?: boolean,
+    srcsetWidths?: number[],
 ) => {
     const { value, handleChange, formWrapClass } = useFormContext({ name, onChange, wrapperClassName });
     const [currentFile, setCurrentFile] = useState<FileProps | null>(null);
@@ -186,7 +188,7 @@ const useFileUpload = (
         initialFiles:   Array.isArray(value) ? (value as FileProps[]) : [],
         onFilesChange:  (files) => handleChange({ target: { name, value: files } }),
         uploadPath,
-        generateSrcset,
+        srcsetWidths,
     });
 
     const handleSave = (updates: Partial<FileProps>) => {
@@ -219,8 +221,8 @@ export interface UploadDocumentProps extends FormFieldProps {
 export interface UploadImageProps extends UploadDocumentProps {
     previewHeight?: number;
     previewWidth?: number;
-    /** When true and uploadPath is set, generates 400w/800w srcset variants. */
-    generateSrcset?: boolean;
+    /** Pixel widths for responsive variants. Set with uploadPath to generate <name>_400w.jpg etc. and populate srcset/sizes in the Form record. */
+    srcsetWidths?: number[];
 }
 
 interface FileEditorProps {
@@ -445,7 +447,7 @@ export const UploadImage = ({
     previewHeight    = 100,
     previewWidth     = 100,
     uploadPath       = undefined,
-    generateSrcset   = false,
+    srcsetWidths     = undefined,
     before           = undefined,
     after            = undefined,
     wrapperClassName = undefined,
@@ -455,7 +457,7 @@ export const UploadImage = ({
         files, currentFile, fileInputRef, formWrapClass,
         handleUploadChange, handleUpload, handleRemove,
         handleSave, handleEdit, handleClose,
-    } = useFileUpload(name, onChange, wrapperClassName, uploadPath, generateSrcset);
+    } = useFileUpload(name, onChange, wrapperClassName, uploadPath, srcsetWidths);
     const error = useFieldValidation(name, { required, label });
     const dict  = useI18n('upload');
 

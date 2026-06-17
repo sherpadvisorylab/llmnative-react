@@ -54,7 +54,7 @@ export default defineLocaleMessages({
                     className: { description: '内部容器上的 CSS 类' },
                     wrapperClassName: { description: '外层 wrapper 上的 CSS 类' },
                     uploadPath: { description: '上传文件的存储路径前缀。需要 StorageProvider 祖先组件。当同时设置 generateSrcset 时，每个宽度变体保存为 <uploadPath>/<name>_400w.<ext>。' },
-                    generateSrcset: { description: '生成并上传 canvas 缩放的 400w 和 800w 变体。在每个 FileProps 条目中填充 srcset 和 sizes。需要 uploadPath 和 StorageProvider。', default: 'false' },
+                    srcsetWidths: { description: '响应式变体的像素宽度数组（如 [400, 800]）。每个变体保存为 <name>_<width>w.<ext>，并填充 Form 记录中的 srcset 和 sizes。需要 uploadPath 和 StorageProvider。' },
                 },
             },
             playground: {

@@ -54,7 +54,7 @@ export default defineLocaleMessages({
                     className: { description: 'فئات CSS على الحاوية الداخلية' },
                     wrapperClassName: { description: 'فئات CSS على الغلاف الخارجي' },
                     uploadPath: { description: 'بادئة مسار التخزين للملفات المرفوعة. يتطلب عنصر StorageProvider سلف. مع generateSrcset تُحفظ كل نسخة عرض كـ <uploadPath>/<name>_400w.<ext>.' },
-                    generateSrcset: { description: 'ينشئ ويرفع نسخ مقاس 400w و 800w بتقليص canvas. يملأ srcset و sizes في كل إدخال FileProps. يتطلب uploadPath و StorageProvider.', default: 'false' },
+                    srcsetWidths: { description: 'مصفوفة من عرض البكسل للنسخ المتجاوبة (مثل [400, 800]). تُحفظ كل نسخة كـ <name>_<width>w.<ext> وتملأ srcset و sizes في سجل Form. يتطلب uploadPath و StorageProvider.' },
                 },
             },
             playground: {

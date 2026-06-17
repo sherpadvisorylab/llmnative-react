@@ -514,7 +514,7 @@ const RichTextInner = ({
 
     const imgCore = useFileUploadCore({
         uploadPath,
-        generateSrcset: true,
+        srcsetWidths: [400, 800],
         onFileReady: (fp) => {
             const defaultAlt = fp.fileName
                 .replace(/\.[^/.]+$/, '')

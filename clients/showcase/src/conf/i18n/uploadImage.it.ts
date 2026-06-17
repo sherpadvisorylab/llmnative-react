@@ -54,7 +54,7 @@ export default defineLocaleMessages({
                     className: { description: 'Classi CSS sul contenitore interno' },
                     wrapperClassName: { description: 'Classi CSS sul wrapper esterno' },
                     uploadPath: { description: 'Prefisso del percorso storage per i file caricati. Richiede un antenato StorageProvider. Con generateSrcset attivo, ogni variante e salvata come <uploadPath>/<nome>_400w.<ext>.' },
-                    generateSrcset: { description: 'Genera e carica varianti canvas-ridimensionate a 400w e 800w. Popola srcset e sizes in ogni entry FileProps del Form record. Richiede uploadPath e un StorageProvider.', default: 'false' },
+                    srcsetWidths: { description: 'Array di larghezze in pixel per le varianti responsive (es. [400, 800]). Ogni variante e salvata come <nome>_<larghezza>w.<ext> e popola srcset/sizes nel Form record. Richiede uploadPath e un StorageProvider.' },
                 },
             },
             playground: {
