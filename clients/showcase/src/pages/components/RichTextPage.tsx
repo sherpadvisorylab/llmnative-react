@@ -63,11 +63,53 @@ export default function RichTextPage() {
             control: 'select',
             options: ['"html"', '"json"', '"text"'],
         },
-        { name: 'statusBar', type: 'boolean | StatusBarConfig', default: 'false', description: t.propsDocs.items.statusBar.description, control: 'boolean' },
+        {
+            name: 'statusBar',
+            type: 'boolean | StatusBarConfig',
+            default: 'false',
+            description: t.propsDocs.items.statusBar.description,
+            control: 'boolean',
+            shape: `{
+  tagBreadcrumb?: boolean   // DOM ancestor path at cursor — default: true
+  wordCount?:     boolean   // word count — default: true
+  charCount?:     boolean   // character count — default: false
+}`,
+            example: `// Defaults (tag breadcrumb + word count)
+statusBar={true}
+
+// Fine-grained control
+statusBar={{ tagBreadcrumb: true, wordCount: true, charCount: true }}`,
+        },
         { name: 'minHeight', type: 'number', default: '120', description: t.propsDocs.items.minHeight.description, control: 'number', min: 80, max: 600 },
         { name: 'maxHeight', type: 'number', description: t.propsDocs.items.maxHeight.description, control: 'number', min: 120, max: 1200 },
         { name: 'uploadPath', type: 'string', description: t.propsDocs.items.uploadPath.description, control: 'text' },
-        { name: 'imageUpload', type: 'RichTextImageUploadConfig', description: t.propsDocs.items.imageUpload.description },
+        {
+            name: 'imageUpload',
+            type: 'RichTextImageUploadConfig',
+            description: t.propsDocs.items.imageUpload.description,
+            shape: `{
+  path?:         string     // storage path prefix — requires StorageProvider
+  srcsetWidths?: number[]   // responsive variant widths — default: [400, 800]
+  accept?:       string     // MIME filter — default: "image/*"
+  maxBytes?:     number     // max file size in bytes — default: 10_485_760
+}`,
+            example: `// Basic — uploads to /uploads/posts, generates 400w + 800w variants
+imageUpload={{ path: '/uploads/posts' }}
+
+// Custom widths (retina pair)
+imageUpload={{ path: '/uploads/posts', srcsetWidths: [800, 1600] }}
+
+// Disable srcset generation
+imageUpload={{ path: '/uploads/posts', srcsetWidths: [] }}
+
+// Full control
+imageUpload={{
+  path:        '/uploads/posts',
+  srcsetWidths: [400, 800, 1200],
+  accept:      'image/webp,image/jpeg',
+  maxBytes:    5_242_880,  // 5 MB
+}}`,
+        },
         { name: 'feedback', type: 'string', description: t.propsDocs.items.feedback.description, control: 'text' },
         { name: 'defaultValue', type: 'string', description: t.propsDocs.items.defaultValue.description, control: 'textarea', rows: 3 },
         { name: 'validator', type: '(value: FieldValue) => string | undefined', description: t.propsDocs.items.validator.description },
