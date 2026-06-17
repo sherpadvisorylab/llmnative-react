@@ -1882,6 +1882,7 @@ interface ShowcaseRichTextI18n {
         statusBar: ShowcasePageSectionCopy;
         outputFormats: ShowcasePageSectionCopy;
         disabledState: ShowcasePageSectionCopy;
+        imageUpload: ShowcasePageSectionCopy;
     };
     labels: {
         articleBody: string;
@@ -1890,6 +1891,7 @@ interface ShowcaseRichTextI18n {
         notes: string;
         content: string;
         startTyping: string;
+        postContent: string;
     };
     propsDocs: {
         title: string;

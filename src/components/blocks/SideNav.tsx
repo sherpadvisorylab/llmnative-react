@@ -40,8 +40,10 @@ export interface SideNavProps {
     defaultCollapsed?: boolean;
     /** Show icon slot. Default true. */
     showIcons?: boolean;
-    /** Label for the collapse toggle button */
-    collapseLabel?: string;
+    /** Show collapse/expand toggle button in the footer. Default true. */
+    showCollapseButton?: boolean;
+    /** Optional content rendered in the footer alongside the collapse button. */
+    footer?: React.ReactNode;
     /**
      * Embedded mode — renders only the nav items without the sidebar shell
      * (no sticky wrapper, no collapse button). Use inside drawers or panels.
@@ -271,7 +273,8 @@ export default function SideNav({
     items: itemsProp,
     defaultCollapsed = false,
     showIcons = true,
-    collapseLabel = 'Collapse',
+    showCollapseButton = true,
+    footer,
     embedded = false,
 }: SideNavProps) {
     const { pathname } = useLocation();
@@ -368,20 +371,31 @@ export default function SideNav({
                         />
                     ))}
                 </nav>
-                <div className="shrink-0 border-t px-1.5 py-2">
-                    <button
-                        onClick={() => { setCollapsed(c => !c); setHovered(false); }}
-                        title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-                        className={`flex items-center gap-2.5 w-full rounded-md px-2 py-[7px] text-sm transition-colors text-muted-foreground hover:text-foreground hover:bg-accent ${!isExpanded ? 'justify-center' : ''}`}
-                    >
-                        <span className="shrink-0 flex items-center justify-center w-[18px] h-[18px]">
-                            <Icon name={collapsed ? 'chevrons-right' : 'chevrons-left'} size={16} />
-                        </span>
-                        <span style={{ opacity: isExpanded ? 1 : 0, maxWidth: isExpanded ? '200px' : '0px', overflow: 'hidden', whiteSpace: 'nowrap', transition: 'opacity 150ms ease, max-width 200ms ease' }}>
-                            {collapseLabel}
-                        </span>
-                    </button>
-                </div>
+                {(showCollapseButton || footer) && (
+                    <div className="shrink-0 border-t px-1.5 py-2 flex items-center gap-1">
+                        {showCollapseButton && (
+                            <button
+                                onClick={() => { setCollapsed(c => !c); setHovered(false); }}
+                                title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                                className="shrink-0 flex items-center justify-center rounded-md w-8 h-8 transition-colors text-muted-foreground hover:text-foreground hover:bg-accent"
+                            >
+                                <Icon name={collapsed ? 'chevrons-right' : 'chevrons-left'} size={16} />
+                            </button>
+                        )}
+                        {footer && (
+                            <div style={{
+                                flex: 1,
+                                minWidth: 0,
+                                opacity: isExpanded ? 1 : 0,
+                                maxWidth: isExpanded ? '100%' : '0px',
+                                overflow: 'hidden',
+                                transition: 'opacity 150ms ease, max-width 200ms ease',
+                            }}>
+                                {footer}
+                            </div>
+                        )}
+                    </div>
+                )}
             </aside>
         </div>
     );

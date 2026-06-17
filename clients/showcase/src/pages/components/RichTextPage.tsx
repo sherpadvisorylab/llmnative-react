@@ -1,11 +1,42 @@
 import React from 'react';
 import { Form, RichText } from '@llmnative/react';
+import { StorageProvider } from '@llmnative/react';
+import type { StorageProviderAdapter } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
 import { usePlayground } from '../../docs-kit/playground';
 import type { PropDef, PlaygroundConfig } from '../../docs-kit/playground';
 import { useShowcaseRichTextI18n } from '../../showcase/i18n';
+
+function dataUriToBlobUrl(dataUri: string): string {
+    const [header, base64] = dataUri.split(',');
+    const mimeType = header.split(':')[1]?.split(';')[0] ?? 'application/octet-stream';
+    const bytes = atob(base64);
+    const arr = new Uint8Array(bytes.length);
+    for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+    return URL.createObjectURL(new Blob([arr], { type: mimeType }));
+}
+
+const demoStorage: StorageProviderAdapter = {
+    upload: async (file: string | File | Blob) => {
+        if (typeof file === 'string') return dataUriToBlobUrl(file);
+        return URL.createObjectURL(file as Blob);
+    },
+    createUpload: (_file: string | File | Blob, _path: string) => ({
+        url: Promise.resolve(undefined),
+        pause: () => {},
+        resume: () => {},
+        cancel: () => {},
+    }),
+    rename: async () => false,
+    move: async () => 0,
+    getURL: async () => undefined,
+    getFileInfo: async () => undefined,
+    download: async () => undefined,
+    delete: async () => 0,
+    list: async () => [],
+};
 
 export default function RichTextPage() {
     const t = useShowcaseRichTextI18n();
@@ -36,6 +67,7 @@ export default function RichTextPage() {
         { name: 'minHeight', type: 'number', default: '120', description: t.propsDocs.items.minHeight.description, control: 'number', min: 80, max: 600 },
         { name: 'maxHeight', type: 'number', description: t.propsDocs.items.maxHeight.description, control: 'number', min: 120, max: 1200 },
         { name: 'uploadPath', type: 'string', description: t.propsDocs.items.uploadPath.description, control: 'text' },
+        { name: 'imageUpload', type: 'RichTextImageUploadConfig', description: t.propsDocs.items.imageUpload.description },
         { name: 'feedback', type: 'string', description: t.propsDocs.items.feedback.description, control: 'text' },
         { name: 'defaultValue', type: 'string', description: t.propsDocs.items.defaultValue.description, control: 'textarea', rows: 3 },
         { name: 'validator', type: '(value: FieldValue) => string | undefined', description: t.propsDocs.items.validator.description },
@@ -291,6 +323,50 @@ export default function RichTextPage() {
                 code={`<Form defaultValues={{ description: '<p>Read-only content.</p>' }}>
   <RichText name="description" disabled toolbar={false} />
 </Form>`}
+            />
+
+            <Section
+                title={t.sections.imageUpload.title}
+                description={t.sections.imageUpload.description}
+                preview={(
+                    <StorageProvider registry={{ demo: demoStorage }} defaultKey="demo">
+                        <Form appearance="empty">
+                            <RichText
+                                name="post"
+                                label={t.labels.postContent}
+                                imageUpload={{
+                                    path: '/uploads/posts',
+                                    srcsetWidths: [400, 800],
+                                }}
+                                minHeight={120}
+                            />
+                        </Form>
+                    </StorageProvider>
+                )}
+                code={`import { Form, RichText, StorageProvider } from '@llmnative/react';
+import { FirebaseStorageProvider } from '@llmnative/react';
+
+const storage = new FirebaseStorageProvider({ bucket: 'my-app.appspot.com' });
+
+<StorageProvider registry={{ cloud: storage }} defaultKey="cloud">
+  <Form>
+    <RichText
+      name="post"
+      label="Post content"
+      imageUpload={{
+        path: '/uploads/posts',
+        srcsetWidths: [400, 800],   // generates _400w and _800w variants
+        accept: 'image/*',
+        maxBytes: 10_485_760,       // 10 MB
+      }}
+    />
+  </Form>
+</StorageProvider>
+
+// Resulting <img> in HTML output:
+// <img src="…_800w.jpg"
+//      srcset="…_400w.jpg 400w, …_800w.jpg 800w"
+//      sizes="(max-width: 640px) 100vw, 800px" />`}
             />
 
             <PropDocsTable props={richTextProps} title={t.propsDocs.title} />
