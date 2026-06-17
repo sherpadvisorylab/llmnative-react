@@ -1,6 +1,6 @@
 import React from 'react';
 import { Form, UploadImage, StorageProvider } from '@llmnative/react';
-import type { StorageProviderAdapter } from '@llmnative/react';
+import type { StorageProviderAdapter, FileProps } from '@llmnative/react';
 import PageLayout from '../../../showcase/page';
 import Section from '../../../docs-kit/page/Section';
 import PropDocsTable from '../../../docs-kit/docs/PropDocsTable';
@@ -8,9 +8,18 @@ import { usePlayground } from '../../../docs-kit/playground';
 import type { PropDef, PlaygroundConfig } from '../../../docs-kit/playground';
 import { useShowcaseUploadImageI18n } from '../../../showcase/i18n';
 
+function dataUriToBlobUrl(dataUri: string): string {
+    const [header, base64] = dataUri.split(',');
+    const mimeType = header.split(':')[1]?.split(';')[0] ?? 'application/octet-stream';
+    const bytes = atob(base64);
+    const arr = new Uint8Array(bytes.length);
+    for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+    return URL.createObjectURL(new Blob([arr], { type: mimeType }));
+}
+
 const demoStorage: StorageProviderAdapter = {
     upload: async (file: string | File | Blob) => {
-        if (typeof file === 'string') return file;
+        if (typeof file === 'string') return dataUriToBlobUrl(file);
         return URL.createObjectURL(file as Blob);
     },
     createUpload: (_file: string | File | Blob, _path: string) => ({
@@ -27,6 +36,64 @@ const demoStorage: StorageProviderAdapter = {
     delete: async () => 0,
     list: async () => [],
 };
+
+interface SrcsetVariant { src: string; width: number; fileName: string; }
+
+function SrcsetDemo({ label }: { label: string }) {
+    const [variants, setVariants] = React.useState<SrcsetVariant[]>([]);
+
+    const handleChange = React.useCallback((values: Record<string, unknown>) => {
+        const files = values['hero'] as FileProps[] | undefined;
+        if (!files?.length || !files[0].srcset) { setVariants([]); return; }
+        const file = files[0];
+        const baseName = file.fileName.replace(/\.[^/.]+$/, '');
+        const ext = file.fileName.split('.').pop() ?? 'jpg';
+        const parsed: SrcsetVariant[] = file.srcset.split(',').map((s: string) => s.trim()).map((part: string) => {
+            const [src, widthStr] = part.split(' ');
+            const width = parseInt(widthStr, 10);
+            return { src, width, fileName: `${baseName}_${width}w.${ext}` };
+        });
+        setVariants(parsed);
+    }, []);
+
+    return (
+        <div className="w-full max-w-xl space-y-4">
+            <StorageProvider registry={{ demo: demoStorage }} defaultKey="demo">
+                <Form appearance="empty" onChange={handleChange}>
+                    <UploadImage
+                        name="hero"
+                        label={label}
+                        uploadPath="/uploads/hero"
+                        generateSrcset
+                        previewHeight={112}
+                        previewWidth={112}
+                    />
+                </Form>
+            </StorageProvider>
+
+            {variants.length > 0 && (
+                <div className="rounded-lg border border-border p-4 space-y-3">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        Generated variants — {variants.length} files uploaded to <code className="font-mono">/uploads/hero/</code>
+                    </p>
+                    <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${variants.length}, 1fr)` }}>
+                        {variants.map(v => (
+                            <div key={v.width} className="space-y-1.5">
+                                <img
+                                    src={v.src}
+                                    alt={v.fileName}
+                                    className="w-full rounded-md bg-muted/40 object-cover aspect-video"
+                                />
+                                <p className="text-xs font-mono text-foreground break-all">{v.fileName}</p>
+                                <p className="text-xs text-muted-foreground">{v.width}px wide</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
 
 export default function UploadImagePage() {
     const t = useShowcaseUploadImageI18n();
@@ -214,20 +281,7 @@ export default function UploadImagePage() {
                 title={t.sections.responsiveSrcset.title}
                 description={t.sections.responsiveSrcset.description}
                 preview={
-                    <div className="w-full max-w-sm">
-                        <StorageProvider registry={{ demo: demoStorage }} defaultKey="demo">
-                            <Form appearance="empty">
-                                <UploadImage
-                                    name="hero"
-                                    label={t.labels.heroImage}
-                                    uploadPath="/uploads/hero"
-                                    generateSrcset
-                                    previewHeight={112}
-                                    previewWidth={112}
-                                />
-                            </Form>
-                        </StorageProvider>
-                    </div>
+                    <SrcsetDemo label={t.labels.heroImage} />
                 }
                 code={`import { Form, UploadImage, StorageProvider } from '@llmnative/react';
 import { FirebaseStorageProvider } from '@llmnative/react';
