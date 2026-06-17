@@ -1,7 +1,6 @@
 import React from 'react';
-import { Form, RichText } from '@llmnative/react';
-import { StorageProvider } from '@llmnative/react';
-import type { StorageProviderAdapter } from '@llmnative/react';
+import { Form, RichText, StorageProvider } from '@llmnative/react';
+import type { StorageProviderAdapter, RichTextImageUploadConfig, ToolbarCommand, StatusBarConfig } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
@@ -56,6 +55,20 @@ export default function RichTextPage() {
             options: ['"fixed"', '"floating"', 'false'],
         },
         {
+            name: 'toolbarCommands',
+            type: 'ToolbarCommand[]',
+            description: t.propsDocs.items.toolbarCommands.description,
+            control: 'json',
+            textareaMode: 'json',
+            rows: 4,
+            shortcuts: [
+                { label: 'all', value: null, help: 'Default — all available commands.' },
+                { label: 'minimal', value: ['bold', 'italic', 'underline', '|', 'bulletList', '|', 'undo', 'redo'] },
+                { label: 'writing', value: ['bold', 'italic', 'underline', 'strike', '|', 'headings', '|', 'bulletList', 'orderedList', '|', 'blockquote', '|', 'link', '|', 'undo', 'redo', 'clearFormat'] },
+                { label: 'full+upload', value: ['bold', 'italic', 'underline', 'strike', '|', 'headings', '|', 'bulletList', 'orderedList', '|', 'blockquote', 'code', 'codeBlock', '|', 'link', '|', 'imageUpload', 'documentUpload', '|', 'table', '|', 'sourceCode', '|', 'undo', 'redo', 'clearFormat'] },
+            ],
+        },
+        {
             name: 'outputFormat',
             type: '"html" | "json" | "text"',
             default: '"html"',
@@ -68,7 +81,9 @@ export default function RichTextPage() {
             type: 'boolean | StatusBarConfig',
             default: 'false',
             description: t.propsDocs.items.statusBar.description,
-            control: 'boolean',
+            control: 'json',
+            textareaMode: 'json',
+            rows: 3,
             shape: `{
   tagBreadcrumb?: boolean   // DOM ancestor path at cursor — default: true
   wordCount?:     boolean   // word count — default: true
@@ -79,6 +94,11 @@ statusBar={true}
 
 // Fine-grained control
 statusBar={{ tagBreadcrumb: true, wordCount: true, charCount: true }}`,
+            shortcuts: [
+                { label: 'off',    value: false, help: 'No status bar.' },
+                { label: 'on',     value: true,  help: 'Default: tag breadcrumb + word count.' },
+                { label: 'full',   value: { tagBreadcrumb: true, wordCount: true, charCount: true }, help: 'All three indicators.' },
+            ],
         },
         { name: 'minHeight', type: 'number', default: '120', description: t.propsDocs.items.minHeight.description, control: 'number', min: 80, max: 600 },
         { name: 'maxHeight', type: 'number', description: t.propsDocs.items.maxHeight.description, control: 'number', min: 120, max: 1200 },
@@ -87,6 +107,9 @@ statusBar={{ tagBreadcrumb: true, wordCount: true, charCount: true }}`,
             name: 'imageUpload',
             type: 'RichTextImageUploadConfig',
             description: t.propsDocs.items.imageUpload.description,
+            control: 'json',
+            textareaMode: 'json',
+            rows: 4,
             shape: `{
   path?:         string     // storage path prefix — requires StorageProvider
   srcsetWidths?: number[]   // responsive variant widths — default: [400, 800]
@@ -107,8 +130,14 @@ imageUpload={{
   path:        '/uploads/posts',
   srcsetWidths: [400, 800, 1200],
   accept:      'image/webp,image/jpeg',
-  maxBytes:    5_242_880,  // 5 MB
+  maxBytes:    5_242_880,
 }}`,
+            shortcuts: [
+                { label: 'off',    value: null, help: 'No upload — images stored as base64 data URIs.' },
+                { label: 'basic',  value: { path: '/uploads/posts' }, help: 'Uploads to storage, srcset [400, 800] by default.' },
+                { label: 'retina', value: { path: '/uploads/posts', srcsetWidths: [800, 1600] }, help: 'Retina-ready pair: 1× (800px) and 2× (1600px).' },
+                { label: 'full',   value: { path: '/uploads/posts', srcsetWidths: [400, 800, 1200], accept: 'image/*', maxBytes: 10485760 }, help: 'Three breakpoints + explicit MIME filter and 10 MB cap.' },
+            ],
         },
         { name: 'feedback', type: 'string', description: t.propsDocs.items.feedback.description, control: 'text' },
         { name: 'defaultValue', type: 'string', description: t.propsDocs.items.defaultValue.description, control: 'textarea', rows: 3 },
@@ -132,9 +161,12 @@ imageUpload={{
             required: false,
             disabled: false,
             toolbar: '"fixed"',
+            toolbarCommands: null,
             outputFormat: '"html"',
             statusBar: false,
             minHeight: 160,
+            maxHeight: null,
+            imageUpload: null,
             feedback: '',
             placeholder: t.labels.startTyping,
             before: '',
@@ -142,26 +174,39 @@ imageUpload={{
             className: '',
             wrapperClassName: '',
         },
-        render: (p, onValuesChange) => (
-            <Form appearance="empty" onChange={onValuesChange}>
-                <RichText
-                    name={p.name}
-                    label={p.label}
-                    required={p.required}
-                    disabled={p.disabled}
-                    toolbar={p.toolbar === 'false' ? false : p.toolbar as 'fixed' | 'floating'}
-                    outputFormat={p.outputFormat as 'html' | 'json' | 'text'}
-                    statusBar={p.statusBar}
-                    minHeight={p.minHeight}
-                    feedback={p.feedback || undefined}
-                    placeholder={p.placeholder || undefined}
-                    before={p.before || undefined}
-                    after={p.after || undefined}
-                    className={p.className || undefined}
-                    wrapperClassName={p.wrapperClassName || undefined}
-                />
-            </Form>
-        ),
+        render: (p, onValuesChange) => {
+            const imageUpload = p.imageUpload as RichTextImageUploadConfig | null;
+            const statusBar   = p.statusBar as boolean | StatusBarConfig;
+            const toolbarCmds = p.toolbarCommands as ToolbarCommand[] | null;
+            const editor = (
+                <Form appearance="empty" onChange={onValuesChange}>
+                    <RichText
+                        name={p.name as string}
+                        label={(p.label as string) || undefined}
+                        required={p.required as boolean}
+                        disabled={p.disabled as boolean}
+                        toolbar={p.toolbar === 'false' ? false : p.toolbar as 'fixed' | 'floating'}
+                        toolbarCommands={toolbarCmds ?? undefined}
+                        outputFormat={p.outputFormat as 'html' | 'json' | 'text'}
+                        statusBar={statusBar}
+                        minHeight={p.minHeight as number}
+                        maxHeight={(p.maxHeight as number) || undefined}
+                        imageUpload={imageUpload ?? undefined}
+                        feedback={(p.feedback as string) || undefined}
+                        placeholder={(p.placeholder as string) || undefined}
+                        before={(p.before as string) || undefined}
+                        after={(p.after as string) || undefined}
+                        className={(p.className as string) || undefined}
+                        wrapperClassName={(p.wrapperClassName as string) || undefined}
+                    />
+                </Form>
+            );
+            return imageUpload?.path ? (
+                <StorageProvider registry={{ demo: demoStorage }} defaultKey="demo">
+                    {editor}
+                </StorageProvider>
+            ) : editor;
+        },
     }), [t, richTextProps]);
 
     usePlayground(playground, t.playground.title);
