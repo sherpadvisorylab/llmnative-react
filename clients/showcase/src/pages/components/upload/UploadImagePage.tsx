@@ -42,10 +42,11 @@ interface SrcsetVariant { src: string; width: number; fileName: string; }
 function SrcsetDemo({ label }: { label: string }) {
     const [variants, setVariants] = React.useState<SrcsetVariant[]>([]);
 
-    const handleChange = React.useCallback((values: Record<string, unknown>) => {
-        const files = values['hero'] as FileProps[] | undefined;
-        if (!files?.length || !files[0].srcset) { setVariants([]); return; }
+    const handleChange = React.useCallback(({ value }: { value: unknown }) => {
+        const files = value as FileProps[] | undefined;
+        if (!files?.length) { setVariants([]); return; }
         const file = files[0];
+        if (!file.srcset) return;
         const baseName = file.fileName.replace(/\.[^/.]+$/, '');
         const ext = file.fileName.split('.').pop() ?? 'jpg';
         const parsed: SrcsetVariant[] = file.srcset.split(',').map((s: string) => s.trim()).map((part: string) => {
@@ -59,12 +60,13 @@ function SrcsetDemo({ label }: { label: string }) {
     return (
         <div className="w-full max-w-xl space-y-4">
             <StorageProvider registry={{ demo: demoStorage }} defaultKey="demo">
-                <Form appearance="empty" onChange={handleChange}>
+                <Form appearance="empty">
                     <UploadImage
                         name="hero"
                         label={label}
                         uploadPath="/uploads/hero"
                         generateSrcset
+                        onChange={handleChange}
                         previewHeight={112}
                         previewWidth={112}
                     />
