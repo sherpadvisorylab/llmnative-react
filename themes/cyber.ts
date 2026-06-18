@@ -135,12 +135,12 @@ export const components: Theme = {
         },
         Table: {
             wrapperClassName: '',
-            className: 'table-striped',
+            className: '',
             headerClassName: '',
             bodyClassName: '',
             footerClassName: '',
             scrollClassName: 'overflow-x-auto',
-            selectedClassName: 'table-info',
+            selectedClassName: 'bg-primary/10',
         },
         Gallery: {
             wrapperClassName: '',
@@ -178,12 +178,12 @@ export const components: Theme = {
     },
     Table: {
         wrapperClassName: '',
-        className: 'table-striped',
+        className: '',
         headerClassName: '',
         bodyClassName: '',
         footerClassName: '',
         scrollClassName: 'overflow-x-auto',
-        selectedClassName: 'table-info',
+        selectedClassName: 'bg-primary/10',
     },
     Gallery: {
         wrapperClassName: '',
@@ -199,7 +199,7 @@ export const components: Theme = {
     Pagination: {
         wrapperClassName: '',
         className: '',
-        stickyClassName: 'fixed-bottom mx-5',
+        stickyClassName: 'fixed bottom-0 left-0 right-0 mx-5',
         scrollToTop: false,
         scrollBehavior: 'auto',
         maxItems: 5,
@@ -306,7 +306,7 @@ export const components: Theme = {
         Dropdown: {
             className: '',
             triggerClassName: 'btn btn-link',
-            menuClassName: 'mt-1 fs-11px w-300px pt-1',
+            menuClassName: 'mt-1 text-[11px] w-[300px] pt-1',
         },
     },
     Select: {

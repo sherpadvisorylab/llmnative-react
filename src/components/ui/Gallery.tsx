@@ -428,7 +428,7 @@ const Gallery = ({
                         {(pageRecords) => (
                             <div className="p-3">
                                 <div
-                                    className={"flex flex-wrap text-center items-center row-cols-" + numCols + " " + (bodyClassName || theme.Gallery.bodyClassName)}
+                                    className={"flex flex-wrap text-center items-center " + (bodyClassName || theme.Gallery.bodyClassName)}
                                     style={{ gap: itemGap }}
                                 >
                                     {pageRecords.map((record) => (
@@ -438,7 +438,7 @@ const Gallery = ({
                                                     <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                                                         {record.groupName}
                                                     </h3>
-                                                    <div className={cn("flex flex-wrap items-center", "row-cols-" + numCols)} style={{ gap: itemGap }}>
+                                                    <div className={cn("flex flex-wrap items-center")} style={{ gap: itemGap }}>
                                                         {record.items.map(({ item, index }) => renderItem(index, item))}
                                                     </div>
                                                 </section>

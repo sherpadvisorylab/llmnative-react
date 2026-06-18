@@ -109,7 +109,7 @@ const Repeat = ({
     const addButton = useMemo(() => {
         if (readOnly) return null;
         if (!maxItems || components.length < maxItems) {
-            return <ActionButton wrapperClassName='text-end' icon='plus' label={label ? undefined : 'Add'} onClick={handleAdd} />
+            return <ActionButton wrapperClassName='text-right' icon='plus' label={label ? undefined : 'Add'} onClick={handleAdd} />
         }
         return null;
     }, [readOnly, maxItems, components.length]);

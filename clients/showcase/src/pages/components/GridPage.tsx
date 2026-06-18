@@ -836,7 +836,7 @@ function ActionsPreview({ provider }: { provider: MockDataProvider }) {
             key: 'actions',
             label: '',
             sortable: false,
-            className: 'text-end',
+            className: 'text-right',
             render: ({ record, runAction }: { record: RecordProps; runAction: (actionKey: string) => void }) => (
                 <div className="flex justify-end">
                     <ActionButton

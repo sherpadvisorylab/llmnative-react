@@ -15,7 +15,7 @@
 | P1 — Zero React.memo | **0%** | ⬜ deferred (prerequisiti non soddisfatti) |
 | P2 — Dead code bundle | **100%** | ✅ completato |
 | P3 — Barrel exports | **70%** | 🔄 parziale |
-| P4 — Dipendenze pesanti | **0%** | ⬜ da fare |
+| P4 — Dipendenze pesanti | **25%** | 🔄 parziale |
 | P5 — Grid inline callbacks | **0%** | ⬜ da fare (latent) |
 | P6 — GridDB rest spread | **0%** | ⬜ da fare (solo se P1) |
 | **Totale** | **~45%** | |
@@ -145,9 +145,9 @@ Analisi del codice ha rivelato che `Table.tsx` usa il pattern anti-memo `useStat
 
 | Dipendenza | Usata da | Taglio bundle | Stato |
 |---|---|---|---|
-| `prismjs` | Code component | ~40 KB gzipped | ⬜ da fare |
+| `prismjs` | Code component | ~40 KB gzipped | ✅ lazy → core + languages + theme CSS all dynamically imported in useEffect |
 | `react-markdown` + remark/rehype | MarkdownReader | ~50 KB gzipped | ⬜ da fare |
-| `tui-image-editor` | ImageEditor | ~100 KB gzipped | ⬜ da fare |
+| `tui-image-editor` | ImageEditor | ~100 KB gzipped | ✅ lazy → split into separate chunk (ImageEditorImpl-*) |
 | `papaparse` | UploadCSV | ~10 KB | ⬜ da fare |
 
 Tutte sono già **external** nel vite.config (non incluse nel bundle della library), ma installate come dipendenze obbligatorie. Fix: spostare in `peerDependenciesMeta.optional`.

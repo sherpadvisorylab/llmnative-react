@@ -247,19 +247,12 @@ export default function ImageAvatarPage() {
                             <ImageAvatar src="" title={t.labels.noSrc} width={64} className="rounded-full border" />
                             <span className="text-xs text-muted-foreground">{t.labels.srcEmpty}</span>
                         </div>
-                        <div className="flex flex-col items-center gap-2">
-                            <ImageAvatar src="https://broken.invalid/avatar.jpg" title={t.labels.brokenUrl} width={64} className="rounded-full border" />
-                            <span className="text-xs text-muted-foreground">{t.labels.brokenUrlShort}</span>
-                        </div>
                     </div>
                 }
                 code={`import { ImageAvatar } from '@llmnative/react';
 
 // empty src -> theme placeholder
-<ImageAvatar src="" title="No image" width={64} className="rounded-full border" />
-
-// broken URL -> onError -> theme placeholder
-<ImageAvatar src="https://broken.invalid/avatar.jpg" title="User" width={64} className="rounded-full border" />`}
+<ImageAvatar src="" title="No image" width={64} className="rounded-full border" />`}
             />
 
             <Section

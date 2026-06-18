@@ -44,6 +44,7 @@ const ICON_MAP: Record<string, string> = {
     '/components/autocomplete':    'text-search',
     '/components/checkbox':        'square-check',
     '/components/checklist':       'list-checks',
+    '/components/code-editor':     'file-code',
     '/components/image-field':      'image-plus',
     '/components/input':           'type',
     '/components/list-group':      'list',

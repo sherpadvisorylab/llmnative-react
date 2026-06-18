@@ -630,7 +630,7 @@ const ImageInsertSlider = ({
                                 title={it.fileProps.fileName}
                                 className={cn(
                                     'relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-md border-2 transition-all',
-                                    i === idx ? 'border-primary shadow' : 'border-transparent opacity-50 hover:opacity-90',
+                                    i === idx ? 'border-primary shadow-md' : 'border-transparent opacity-50 hover:opacity-90',
                                     !perImage[i]?.enabled && 'opacity-20 grayscale',
                                 )}>
                                 <img src={it.preview} alt="" className="h-full w-full object-cover" />

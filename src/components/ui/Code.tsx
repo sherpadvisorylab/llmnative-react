@@ -126,6 +126,14 @@ async function loadPrismLanguage(language: PrismLanguage, loaded = new Set<strin
   loaded.add(language);
 }
 
+let prismStylesLoaded = false;
+
+async function ensurePrismStyles() {
+  if (prismStylesLoaded) return;
+  prismStylesLoaded = true;
+  await import('../../styles/prism-themes.css');
+}
+
 const Code = ({
   language,
   children,
@@ -149,6 +157,9 @@ const Code = ({
     let cancelled = false;
 
     const loadAndHighlight = async () => {
+      // Load theme styles first (lazy, once)
+      await ensurePrismStyles();
+
       // Load core first - language packs need Prism in scope to extend it.
       // Set manual=true before the first import so Prism skips its auto-highlightAll().
       if (!(window as any).Prism?.highlightElement) {

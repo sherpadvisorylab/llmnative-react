@@ -590,7 +590,7 @@ type TableSelectionState = ${TABLE_SELECTION_STATE_TYPE}`,
                             records={tableBody}
                             sortable
                             onRowClick={(record) => setSelected(record._key || '')}
-                            selectedClassName="table-info"
+                            selectedClassName="bg-primary/10"
                             pagination={{ limit: 4, align: 'start', sticky: false }}
                         />
                         <div className="text-xs text-muted-foreground">
@@ -605,7 +605,7 @@ type TableSelectionState = ${TABLE_SELECTION_STATE_TYPE}`,
   records={body}
   sortable
   onRowClick={(record) => setSelected(record._key || '')}
-  selectedClassName="table-info"
+  selectedClassName="bg-primary/10"
   pagination={{ limit: 4, align: 'start', sticky: false }}
 />`}
             />

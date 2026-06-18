@@ -23,7 +23,7 @@ export default function Header({ onMenuToggle }: HeaderProps) {
             <Brand label="scaffold-ai-check" />
 
             <div className="flex-1">
-                <Menu context="header" className="nav flex-row gap-2" />
+                <Menu context="header" className="flex flex-row gap-2" />
             </div>
 
             <div className="flex items-center gap-2">

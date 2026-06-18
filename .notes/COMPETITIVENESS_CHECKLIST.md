@@ -158,7 +158,7 @@ This is where gaps that the market expects are closed.
 ### P3.3 — Bundle optimization
 
 - [ ] **tui-image-editor** → evaluate a lighter alternative
-- [ ] **prismjs** → dynamic import or tree-shaking
+- [x] **prismjs** → dynamic import (core + languages + theme CSS all lazy-loaded in `Code.tsx` useEffect)
 - [ ] **Analyse bundle** with `vite-bundle-visualizer`
 
 ### P3.4 — Dead code / legacy

@@ -39,7 +39,7 @@
 | [CR-026](#cr-026--authbutton-provider-agnostic--dropboxauthprovider) | AuthButton provider-agnostic + DropboxAuthProvider | Alta | CR-002b, CR-023 | ✅ |
 | [CR-027](#cr-027--motion-system-e-interazioni-animate) | Motion system e interazioni animate | Media | CR-017, CR-022 | 🔄 |
 | [CR-028](#cr-028--stato-configurazione-provider) | Stato configurazione provider | Alta | CR-002, CR-023, CR-026 | ✅ |
-| [CR-029](#cr-029--internationalization-i18n-del-framework) | Internationalization i18n del framework | Alta | CR-017, CR-019 | ⬜ |
+| [CR-029](#cr-029--internationalization-i18n-del-framework) | Internationalization i18n del framework | Alta | CR-017, CR-019 | 🔄 |
 | [CR-030](#cr-030--self-contained-typed-themes) | Self-contained typed themes | Alta | CR-017, CR-027 | ✅ |
 | [CR-031](#cr-031--sidebar-block-del-framework) | Sidebar block del framework | Media | CR-007, CR-017 | ⬜ |
 | [CR-032](#cr-032--firebaseauthprovider) | FirebaseAuthProvider (email/password + anonymous) | Alta | CR-002b, CR-023 | ✅ |
@@ -311,7 +311,7 @@ export interface ProviderAdapterBase {
 
 ## CR-029 — Internationalization i18n del framework
 
-**Stato:** ✅ done
+**Stato:** 🔄 in progress
 **Branch:** `modernize/cr-029-i18n`  
 **Priorità:** Alta  
 **Dipende da:** CR-017, CR-019  
@@ -471,7 +471,7 @@ Non esiste merge implicito tra temi built-in. L'unica patch opzionale dell'app �
 
 ## CR-031 — Sidebar block del framework
 
-**Stato:** ✅ done
+**Stato:** ✅ done — implementato come `SideNav` in `src/components/blocks/SideNav.tsx`
 **Branch:** `modernize`  
 **Priorità:** Media  
 **Dipende da:** CR-007, CR-017  

@@ -74,7 +74,6 @@ const ImageEditor = ({
         const initEditor = async () => {
             const [{ default: TuiImageEditor }] = await Promise.all([
                 import('tui-image-editor'),
-                // @ts-expect-error - CSS module not in TS declarations, loaded as side-effect
                 import('tui-image-editor/dist/tui-image-editor.css'),
             ]);
 

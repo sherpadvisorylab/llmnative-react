@@ -289,11 +289,11 @@ function Table({
             {before && <div className="table-before flex shrink-0 items-center self-stretch">{before}</div>}
             <div ref={paginationNavRef} className={"min-w-0 flex-1 overflow-x-auto " + (wrapperClassName || theme.Table.wrapperClassName)}>
                 <div className={viewportClass}>
-                    <table className={"w-full min-w-full text-left text-sm " + (className || theme.Table.className)}>
-                    <thead className={headerClassName || theme.Table.headerClassName}>
+                    <table className={"w-full min-w-full text-left text-sm border-collapse " + (className || theme.Table.className)}>
+                    <thead className={"border-b " + (headerClassName || theme.Table.headerClassName)}>
                         <tr>
                             {showSelection && (
-                                <th style={{ width: '1%', whiteSpace: 'nowrap' }}>
+                                <th className="px-3 py-2 font-semibold text-muted-foreground" style={{ width: '1%', whiteSpace: 'nowrap' }}>
                                     {selection !== 'single' ? (
                                         <div className="th-inner py-1">
                                             <input
@@ -314,7 +314,7 @@ function Table({
                                 </th>
                             )}
                             {reorderable && (
-                                <th style={{ width: '1%', whiteSpace: 'nowrap' }}>
+                                <th className="px-3 py-2 font-semibold text-muted-foreground" style={{ width: '1%', whiteSpace: 'nowrap' }}>
                                     <div className="th-inner py-1" />
                                 </th>
                             )}
@@ -332,7 +332,7 @@ function Table({
                                         return (
                                             <th
                                                 key={hdr.key}
-                                                className={hdr.className}
+                                                className={"px-3 py-2 font-semibold text-muted-foreground" + (hdr.className ? " " + hdr.className : "")}
                                                 aria-sort={ariaSort}
                                             >
                                                 {isSortable ? (
@@ -380,7 +380,7 @@ function Table({
                                         );
                                     })()
                                 ) : (
-                                    <th key={hdr.key} style={{ width: '1%', whiteSpace: 'nowrap' }}></th>
+                                    <th key={hdr.key} className="px-3 py-2 font-semibold text-muted-foreground" style={{ width: '1%', whiteSpace: 'nowrap' }}></th>
                                 )
                             ))}
                         </tr>
@@ -427,6 +427,7 @@ function Table({
                                             <tr
                                                 draggable={reorderable}
                                                 className={[
+                                                    "odd:bg-muted/30 hover:bg-muted/20 transition-colors",
                                                     isDraggedOver ? "bg-muted/30" : "",
                                                     isActiveRow ? activeClass : "",
                                                 ].filter(Boolean).join(" ") || undefined}
@@ -478,7 +479,7 @@ function Table({
                                                 }}
                                             >
                                                 {showSelection && (
-                                                    <td style={{ width: '1%', whiteSpace: 'nowrap' }}>
+                                                    <td className="px-3 py-2 border-b border-border/50" style={{ width: '1%', whiteSpace: 'nowrap' }}>
                                                         <input
                                                             type={selection === 'single' ? 'radio' : 'checkbox'}
                                                             name={selection === 'single' ? singleSelectionGroupName : undefined}
@@ -502,7 +503,7 @@ function Table({
                                                     </td>
                                                 )}
                                                 {reorderable && (
-                                                    <td style={{ width: '1%', whiteSpace: 'nowrap' }}>
+                                                    <td className="px-3 py-2 border-b border-border/50" style={{ width: '1%', whiteSpace: 'nowrap' }}>
                                                         <button
                                                             type="button"
                                                             draggable={reorderable}
@@ -525,7 +526,7 @@ function Table({
                                                     </td>
                                                 )}
                                                 {headers.map((hdr) => (
-                                                    <td key={hdr.key}>{getFieldComponent(record, hdr.key, absoluteIndex)}</td>
+                                                    <td key={hdr.key} className="px-3 py-2 border-b border-border/50">{getFieldComponent(record, hdr.key, absoluteIndex)}</td>
                                                 ))}
                                             </tr>
                                             {renderDropIndicator(rowKey, 'after', record, absoluteIndex)}

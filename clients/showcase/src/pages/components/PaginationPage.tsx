@@ -49,7 +49,7 @@ export default function PaginationPage() {
                 {(pageRecords) => (
                     <div className="mb-2 grid grid-cols-4 gap-2">
                         {(pageRecords as typeof items).map((item) => (
-                            <div key={item.id} className="card p-2 text-center text-xs">{item.label}</div>
+                            <div key={item.id} className="p-2 text-center text-xs rounded-lg border bg-card">{item.label}</div>
                         ))}
                     </div>
                 )}
@@ -72,7 +72,7 @@ export default function PaginationPage() {
                         {(pageRecords) => (
                             <div className="mb-2 grid grid-cols-4 gap-2">
                                 {(pageRecords as typeof items).map((item) => (
-                                    <div key={item.id} className="card p-2 text-center text-xs">{item.label}</div>
+                                    <div key={item.id} className="p-2 text-center text-xs rounded-lg border bg-card">{item.label}</div>
                                 ))}
                             </div>
                         )}

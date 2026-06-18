@@ -235,7 +235,7 @@ export default function UserForm() {
   if (loading) return <div>Loading...</div>
 
   return (
-    <div className="card p-4">
+    <div className="rounded-lg border bg-card p-4">
       <button onClick={() => navigate(-1)}>Back</button>
       <form onSubmit={handleSubmit} noValidate>
         <div>

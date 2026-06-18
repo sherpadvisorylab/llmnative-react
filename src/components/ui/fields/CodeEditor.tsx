@@ -5,6 +5,7 @@ import { Label, FieldError, fieldFeedbackClass, fieldGroupClass, fieldAddonClass
 import { cn } from '../../../libs/cn';
 import { useTheme } from '../../../Theme';
 import { useEditorHeight } from '../../../libs/editorHeight';
+import Icon from '../Icon';
 
 export type CodeEditorLanguage = 'liquid' | 'html' | 'json' | 'js' | 'ts' | 'css';
 
@@ -233,7 +234,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
                 <div className={cn('min-w-0 flex-1', editorClass)}>
                     {loading && (
                         <div style={{ minHeight: height.resolvedMinHeight }} className="flex items-center justify-center">
-                            <span>Loading editor…</span>
+                            <Icon name="loader-circle" size={16} className="animate-spin text-muted-foreground" />
                         </div>
                     )}
                     <div ref={containerRef} className={cn(loading && 'hidden')} />

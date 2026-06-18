@@ -101,7 +101,7 @@ export default function CodeEditorPage() {
             wrapperClassName: '',
         },
         render: (p, onValuesChange) => (
-            <Form appearance="empty" onChange={onValuesChange}>
+            <Form key={p.defaultValue + '-' + p.language} appearance="empty" onChange={onValuesChange}>
                 <CodeEditor
                     name={p.name || 'code'}
                     label={p.label || undefined}

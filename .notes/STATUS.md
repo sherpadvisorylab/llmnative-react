@@ -56,7 +56,7 @@
 | CR-035 | Done | `SupabaseStorageProvider` (upload/delete/rename/download/list/getFileInfo/createUpload); `supabaseStorage` driver registered. Unit tests (23) present. |
 | CR-036 | Done | `SupabaseAuthProvider` (password/magic_link/oauth/anonymous, `onAuthChange`, `getAccessToken`); `supabaseAuth` driver registered. Unit tests (14) present. |
 | CR-037 | Done | `CredentialsAdapter` contract; `GoogleServiceAccountProvider` (Web Crypto JWT, scoped Google API tokens, browser-safe); `googleServiceAccount` driver registered. |
-| CR-029 | Done | `I18nProvider`, `useI18n()`, runtime translation registration, `LocaleSwitcher` and root exports are present and used by `<App>`. |
+| CR-029 | Partial | `I18nProvider`, `useI18n()`, runtime translation registration, `LocaleSwitcher` and root exports are present and used by `<App>`. String migration partially done (I18N_AUDIT.md); showcase page, docs, and tests remain. |
 | CR-042 | Done | TypeScript no-any: `any` count 101 → 6 justified exceptions (all annotated `// CR-042`). `tsc --noEmit` 0 errors. |
 
 ---
@@ -72,8 +72,8 @@
 | CR-024 | **0%** | WYSIWYG `<RichEditor>` not started. |
 | CR-025 | **0%** | `Command.tsx` (legacy `contentEditable`/`execCommand`) still present; no ContextMenu/slash command. |
 | CR-027 | **70%** | Motion system complete and tested. `Notifications`/toast motion still missing. |
-| CR-031 | **0%** | Sidebar block still in `clients/showcase/src/components/Sidebar.tsx`; `src/components/blocks/Sidebar.tsx` does not exist. |
-| CR-038 | **10%** | Public naming normalization for AI-first still pending on `Grid.layout`, `Form.aspect`, `AuthButton.aspect`. |
+| CR-031 | **100%** | `SideNav` block exists in `src/components/blocks/SideNav.tsx`, publicly exported. Showcase imports it via `import { SideNav } from '@llmnative/react'` and wraps it locally. |
+| CR-038 | **100%** | Public naming normalization for AI-first — `Grid.layout`/`Form.aspect`/`AuthButton.aspect` no longer exist in codebase. |
 | CR-039 | **0% — spec written** | WorkflowAI declarative multi-step pipeline; spec in `CHANGE_REQUESTS.md`. No implementation. |
 | CR-040 | **0% — spec written** | SchemaForm (form generation from JSON schema/factory); spec in `CHANGE_REQUESTS.md`. No implementation. |
 | CR-041 | **0% — proposal written** | SeoEnhancer (HTML filter applying technical SEO, structured report); proposal in `CHANGE_REQUESTS.md`. No implementation. |
