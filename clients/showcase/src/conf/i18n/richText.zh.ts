@@ -47,7 +47,6 @@ export default defineLocaleMessages({
                     feedback: { description: '编辑器下方的帮助文本。' },
                     defaultValue: { description: '在 Form 上下文之外使用时的初始值。' },
                     validator: { description: '自定义验证函数。' },
-                    id: { description: '编辑器元素的显式 ID。' },
                     labelClassName: { description: '应用于标签元素的 CSS 类。' },
                     className: { description: '应用于编辑器容器的 CSS 类。' },
                     wrapperClassName: { description: '应用于外部包装器的 CSS 类。' },

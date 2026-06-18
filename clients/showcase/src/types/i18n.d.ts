@@ -1851,6 +1851,28 @@ interface ShowcaseFormI18n {
     };
 }
 
+interface ShowcaseCodeEditorI18n {
+    page: { title: string; description: string; };
+    sections: {
+        basicUsage: ShowcasePageSectionCopy;
+        languageModes: ShowcasePageSectionCopy;
+        disabledState: ShowcasePageSectionCopy;
+    };
+    labels: {
+        templateBody: string;
+        jsonConfig: string;
+        script: string;
+        stylesheet: string;
+        liquidTemplate: string;
+        startCoding: string;
+    };
+    propsDocs: {
+        title: string;
+        items: Record<string, ShowcaseGridDocFieldCopy>;
+    };
+    playground: { title: string; };
+}
+
 interface ShowcaseRichTextI18n {
     page: { title: string; description: string; };
     sections: {
@@ -2405,6 +2427,7 @@ declare module '@llmnative/react' {
             form:                         ShowcaseFormI18n;
             formValidation:               ShowcaseFormValidationI18n;
             richText:                     ShowcaseRichTextI18n;
+            codeEditor:                   ShowcaseCodeEditorI18n;
         };
     }
 }

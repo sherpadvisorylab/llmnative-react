@@ -43,6 +43,7 @@ export * from './ui/fields/Crop';
 export * from './ui/fields/UploadCSV';
 export * from './ui/fields/ImageField';
 export * from './ui/fields/RichText';
+export * from './ui/fields/CodeEditor';
 
 export { default as Menu } from './blocks/Menu';
 export { default as SideNav } from './blocks/SideNav';

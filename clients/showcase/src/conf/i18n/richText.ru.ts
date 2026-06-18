@@ -47,7 +47,6 @@ export default defineLocaleMessages({
                     feedback: { description: 'Вспомогательный текст под редактором.' },
                     defaultValue: { description: 'Начальное значение вне контекста формы.' },
                     validator: { description: 'Пользовательская функция проверки.' },
-                    id: { description: 'Явный идентификатор элемента редактора.' },
                     labelClassName: { description: 'CSS-классы для элемента метки.' },
                     className: { description: 'CSS-классы для контейнера редактора.' },
                     wrapperClassName: { description: 'CSS-классы для внешней обёртки.' },

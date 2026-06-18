@@ -47,7 +47,6 @@ export default defineLocaleMessages({
                     feedback: { description: 'Hilfstext unter dem Editor.' },
                     defaultValue: { description: 'Anfangswert außerhalb des Form-Kontexts.' },
                     validator: { description: 'Benutzerdefinierte Validierungsfunktion.' },
-                    id: { description: 'Explizite ID für das Editor-Element.' },
                     labelClassName: { description: 'CSS-Klassen für das Label-Element.' },
                     className: { description: 'CSS-Klassen für den Editor-Container.' },
                     wrapperClassName: { description: 'CSS-Klassen für den äußeren Wrapper.' },

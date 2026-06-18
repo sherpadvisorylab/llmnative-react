@@ -74,7 +74,6 @@ export default defineLocaleMessages({
                     feedback: { description: 'Helper text rendered below the editor.' },
                     defaultValue: { description: 'Initial value when used outside a Form context.' },
                     validator: { description: 'Custom validation function. Return an error string to block form submission.' },
-                    id: { description: 'Explicit id for the editor element. Auto-generated when omitted.' },
                     labelClassName: { description: 'CSS classes applied to the label element.' },
                     className: { description: 'CSS classes applied to the editor container.' },
                     wrapperClassName: { description: 'CSS classes applied to the outer wrapper.' },

@@ -1,4 +1,5 @@
 export {default as path} from './path';
+export * from './editorHeight';
 export * from './converter';
 export * from './sanitizer';
 export * from './email';

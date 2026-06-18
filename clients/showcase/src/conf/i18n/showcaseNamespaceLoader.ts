@@ -65,7 +65,8 @@ export type ShowcaseNamespace =
     | 'form'
     | 'formValidation'
     | 'richText'
-    | 'imageField';
+    | 'imageField'
+    | 'codeEditor';
 
 type LocaleKey = 'en' | 'it' | 'de' | 'ru' | 'zh' | 'ar';
 type LocaleModule = { default: I18nLocale };
@@ -594,6 +595,14 @@ const dedicatedNamespaceLoaders: Partial<Record<ShowcaseNamespace, Record<Locale
         ru: () => import('./imageField.ru'),
         zh: () => import('./imageField.zh'),
         ar: () => import('./imageField.ar'),
+    },
+    codeEditor: {
+        en: () => import('./codeEditor.en'),
+        it: () => import('./codeEditor.it'),
+        de: () => import('./codeEditor.de'),
+        ru: () => import('./codeEditor.ru'),
+        zh: () => import('./codeEditor.zh'),
+        ar: () => import('./codeEditor.ar'),
     },
 };
 

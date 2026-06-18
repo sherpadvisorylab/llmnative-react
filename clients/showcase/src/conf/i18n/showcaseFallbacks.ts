@@ -63,6 +63,7 @@ import examplesOverviewEn from './examplesOverview.en';
 import benchmarkEn from './benchmark.en';
 import richTextEn from './richText.en';
 import imageFieldEn from './imageField.en';
+import codeEditorEn from './codeEditor.en';
 
 export const showcaseFallbacks = {
     common: commonEn.showcase.common,
@@ -130,4 +131,5 @@ export const showcaseFallbacks = {
     benchmark: benchmarkEn.showcase.benchmark,
     richText: richTextEn.showcase.richText,
     imageField: imageFieldEn.showcase.imageField,
+    codeEditor: codeEditorEn.showcase.codeEditor,
 } as const;

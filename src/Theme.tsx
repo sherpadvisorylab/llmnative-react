@@ -1,4 +1,4 @@
-﻿import React, {createContext, useContext, useEffect, useMemo, useState, ReactNode} from 'react';
+import React, {createContext, useContext, useEffect, useMemo, useState, ReactNode} from 'react';
 import _themeDefault, { components as defaultComponents } from '../themes/default';
 import _themeFlat from '../themes/flat';
 import _themeCyber from '../themes/cyber';
@@ -46,7 +46,7 @@ export interface ColorScale {
     ring?: string;
 }
 
-// ─── Per-component sub-interfaces ───────────────────────────────────────────
+// --- Per-component sub-interfaces -------------------------------------------
 
 export interface MenuTheme {
     wrapperClassName?: string;
@@ -68,7 +68,6 @@ export interface CardTheme {
     bodyClassName?: string;
     footerClassName?: string;
     loading?: boolean;
-    showArrow?: boolean;
 }
 
 export interface TableTheme {
@@ -259,6 +258,10 @@ export interface ThemeConfig {
         };
     };
     Code?: {
+        wrapperClassName?: string;
+        className?: string;
+    };
+    CodeEditor?: {
         wrapperClassName?: string;
         className?: string;
     };
@@ -622,3 +625,4 @@ export const useThemeController = (): ThemeController => {
     }
     return controller;
 };
+

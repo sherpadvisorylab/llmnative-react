@@ -115,6 +115,10 @@
     "vitest": "2.1"
   },
   "dependencies": {
+    "@codemirror/lang-css": "^6.3.1",
+    "@codemirror/lang-html": "^6.4.11",
+    "@codemirror/lang-javascript": "^6.2.5",
+    "@codemirror/lang-json": "^6.0.2",
     "@tiptap/extension-character-count": "^3.26.1",
     "@tiptap/extension-image": "^3.26.1",
     "@tiptap/extension-link": "^3.26.1",
@@ -125,6 +129,7 @@
     "@tiptap/starter-kit": "^3.26.1",
     "buffer": "^6.0.3",
     "clsx": "^2.1.1",
+    "codemirror": "^6.0.2",
     "papaparse": "^5.5.3",
     "prismjs": "^ 1.30.0",
     "react-markdown": "^10.1.0",

@@ -73,6 +73,7 @@ const GridPreviewPage = lazyPage(() => import('../pages/components/GridPreviewPa
 const BenchmarkPage = lazyPage(() => import('../pages/BenchmarkPage'));
 const MarkdownReaderPage = lazyPage(() => import('../pages/components/MarkdownReaderPage'));
 const ImageEditorPage = lazyPage(() => import('../pages/components/ImageEditorPage'));
+const CodeEditorPage = lazyPage(() => import('../pages/components/CodeEditorPage'));
 
 const s = (title: string, description: string): React.ComponentType =>
     () => React.createElement(Stub, { title, description });
@@ -199,6 +200,7 @@ export const menu = {
         // ── Form fields (alphabetical) ────────────────────────────────────────
         { path: '/components/autocomplete', title: 'Autocomplete', page: AutocompletePage, group: 'Form fields' },
         { path: '/components/checkbox', title: 'Checkbox', page: CheckboxPage, group: 'Form fields' },
+        { path: '/components/code-editor', title: 'CodeEditor', page: CodeEditorPage, group: 'Form fields' },
         { path: '/components/checklist', title: 'Checklist', page: ChecklistPage, group: 'Form fields' },
         { path: '/components/image-field', title: 'ImageField', page: ImageFieldPage, group: 'Form fields' },
         { path: '/components/input', title: 'Input', page: InputPage, group: 'Form fields' },

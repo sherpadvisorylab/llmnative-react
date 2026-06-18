@@ -20,6 +20,7 @@ import {Autocomplete, Checklist, Select, SelectProps} from "../components/ui/fie
 import {ImageField, ImageFieldProps} from "../components/ui/fields/ImageField";
 import {UploadDocument, UploadDocumentProps, UploadImage, UploadImageProps} from "../components/ui/fields/Upload";
 import { Prompt, PromptProps } from "../components/widgets/Prompt";
+import { CodeEditor, CodeEditorProps } from "../components/ui/fields/CodeEditor";
 
 export interface ComponentFormFieldsMap {
     string: FieldFactory<Partial<InputProps>>;
@@ -43,6 +44,7 @@ export interface ComponentFormFieldsMap {
     prompt: FieldFactory<Partial<PromptProps>>;
     imageField: FieldFactory<Partial<ImageFieldProps>>;
     menu: FieldFactory<{ defaultValue?: string }>;
+    codeEditor: FieldFactory<Partial<CodeEditorProps>>;
 }
 
 const componentFormFields: ComponentFormFieldsMap = {
@@ -152,7 +154,12 @@ const componentFormFields: ComponentFormFieldsMap = {
         __props: props,
         getDefaults: (name) => ({[name]: props.defaultValue}),
         render: ({name, label, ...rest} = {} as FieldRenderProps) => <Select key={name} name={name as string} label={label ?? name} {...props} {...rest} />
-    })
+    }),
+    codeEditor: (props = {}) => ({
+        __props: props,
+        getDefaults: (name) => ({[name]: props.defaultValue ?? ''}),
+        render: ({name, label, ...rest} = {} as FieldRenderProps) => <CodeEditor key={name ?? props.name} name={(name ?? props.name) as string} label={label ?? props.label ?? name} {...props} {...rest} />
+    }),
 };
 
 export default componentFormFields;

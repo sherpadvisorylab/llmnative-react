@@ -47,7 +47,6 @@ export default defineLocaleMessages({
                     feedback: { description: 'نص المساعدة أسفل المحرر.' },
                     defaultValue: { description: 'القيمة الأولية خارج سياق النموذج.' },
                     validator: { description: 'دالة تحقق مخصصة.' },
-                    id: { description: 'معرف صريح لعنصر المحرر.' },
                     labelClassName: { description: 'فئات CSS على عنصر التسمية.' },
                     className: { description: 'فئات CSS على حاوية المحرر.' },
                     wrapperClassName: { description: 'فئات CSS على الغلاف الخارجي.' },

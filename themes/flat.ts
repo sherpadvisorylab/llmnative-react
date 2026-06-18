@@ -1,4 +1,4 @@
-﻿import type { Theme, ThemeDefinition, ThemePresetConfig } from '../src/Theme';
+import type { Theme, ThemeDefinition, ThemePresetConfig } from '../src/Theme';
 import type { MotionRegistry } from '../src/motion';
 
 export const preset: ThemePresetConfig = {
@@ -131,7 +131,6 @@ export const components: Theme = {
             headerClassName: 'flex justify-between',
             bodyClassName: 'p-0',
             footerClassName: '',
-            showArrow: false,
             loading: false,
         },
         Table: {
@@ -140,7 +139,7 @@ export const components: Theme = {
             headerClassName: '',
             bodyClassName: '',
             footerClassName: '',
-            scrollClassName: 'fixed-table-container',
+            scrollClassName: 'overflow-x-auto',
             selectedClassName: 'table-info',
         },
         Gallery: {
@@ -178,12 +177,12 @@ export const components: Theme = {
         },
     },
     Table: {
-        wrapperClassName: 'bootstrap-table',
+        wrapperClassName: '',
         className: 'table-striped',
         headerClassName: '',
         bodyClassName: '',
         footerClassName: '',
-        scrollClassName: 'fixed-table-container',
+        scrollClassName: 'overflow-x-auto',
         selectedClassName: 'table-info',
     },
     Gallery: {
@@ -221,7 +220,6 @@ export const components: Theme = {
         bodyClassName: 'flex flex-col',
         footerClassName: '',
         loading: false,
-        showArrow: false,
     },
     Loader: {
         wrapperClassName: '',
@@ -304,7 +302,7 @@ export const components: Theme = {
         },
     },
     Notifications: {
-        wrapperClassName: 'menu-item',
+        wrapperClassName: '',
         Dropdown: {
             className: '',
             triggerClassName: 'btn btn-link',
@@ -332,25 +330,25 @@ export const components: Theme = {
     },
     Menu: {
         wrapperClassName: 'flex-1 overflow-auto p-4',
-        className: 'navbar-nav flex-col mb-auto',
+        className: 'flex flex-col mb-auto',
         headerClassName: '',
-        itemClassName: 'nav-item',
-        linkClassName: 'nav-link',
-        iconClassName: 'mr-1',
-        textClassName: 'flex-grow-1',
+        itemClassName: '',
+        linkClassName: 'flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent/50 hover:text-foreground',
+        iconClassName: 'mr-1 shrink-0',
+        textClassName: 'flex-1',
         badgeClassName: 'ml-1',
         arrowClassName: '',
-        submenuClassName: 'nav flex-col ml-4',
+        submenuClassName: 'mt-1 flex flex-col gap-1 pl-4',
     },
     Brand: {
         wrapperClassName: '',
-        className: 'brand',
-        logoClassName: 'navbar-brand',
-        labelClassName: 'navbar-text',
+        className: 'flex items-center',
+        logoClassName: 'flex items-center gap-2 font-semibold',
+        labelClassName: 'text-sm font-medium',
     },
     SignIn: {
         className: 'flex items-center',
-        avatarClass: 'avatar rounded-full mx-2',
+        avatarClass: 'mx-2 rounded-full object-cover',
     },
     Image: {
         wrapperClassName: '',
@@ -380,6 +378,10 @@ export const components: Theme = {
         wrapperClassName: '',
         className: '',
     },
+    CodeEditor: {
+        wrapperClassName: '',
+        className: '',
+    },
     Prompt: {
         wrapperClassName: '',
         className: '',
@@ -389,3 +391,4 @@ export const components: Theme = {
 const definition: ThemeDefinition = { preset, motion, components };
 
 export default definition;
+

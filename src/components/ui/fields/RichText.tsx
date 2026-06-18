@@ -3,8 +3,9 @@ import type { Editor } from '@tiptap/core';
 import { Wrapper } from '../GridSystem';
 import { FormFieldProps, useFormContext, useFieldValidation } from '../../widgets/Form';
 import type { FieldValue } from '../../../providers/data/DataProvider';
-import { Label, FieldError, fieldFeedbackClass } from './Input';
+import { Label, FieldError, fieldFeedbackClass, fieldGroupClass, fieldAddonClass } from './Input';
 import { cn } from '../../../libs/cn';
+import { useEditorHeight } from '../../../libs/editorHeight';
 import Icon from '../Icon';
 import { useFileUploadCore, type FileProps } from './Upload';
 import { useStorageProvider } from '../../../providers/storage/StorageProviderContext'; // CR-042
@@ -138,9 +139,6 @@ export interface RichTextProps extends FormFieldProps {
      * Pass an object to enable cloud storage uploads; omit to use data URI fallback.
      */
     documentUpload?: RichTextDocumentUploadConfig;
-    /** @deprecated Use imageUpload.path instead. */
-    uploadPath?: string;
-    id?: string;
     labelClassName?: string;
     validator?: (value: FieldValue) => string | undefined;
 }
@@ -943,7 +941,7 @@ const RichTextInner = ({
         },
     });
 
-    const editorContentMinHeight = minHeight - 16; // subtract py-2 (8px top + 8px bottom)
+    const height = useEditorHeight({ minHeight, maxHeight, paddingOffset: 16 });
 
     const editor = useEditor({
         extensions: [
@@ -965,7 +963,7 @@ const RichTextInner = ({
         editable: !disabled,
         editorProps: {
             attributes: {
-                style: `min-height: ${editorContentMinHeight}px`,
+                style: `min-height: ${height.adjustedMinHeight}px`,
             },
             handleClick(view, pos, event) {
                 if (event.ctrlKey || event.metaKey) {
@@ -1039,10 +1037,10 @@ const RichTextInner = ({
     // ensuring the link tooltip popup always reads a fresh href from the editor state.
     useEffect(() => {
         if (!editor) return;
-        editor.view.dom.style.minHeight = `${editorContentMinHeight}px`;
+        editor.view.dom.style.minHeight = `${height.adjustedMinHeight}px`;
         editor.on('selectionUpdate', rerenderOnSelection);
         return () => { editor.off('selectionUpdate', rerenderOnSelection); };
-    }, [editor, editorContentMinHeight]);
+    }, [editor, height.adjustedMinHeight]);
 
 
 
@@ -1322,13 +1320,13 @@ const RichTextInner = ({
                 <textarea
                     aria-label={`${name} source`}
                     className="w-full resize-none bg-background px-3 py-2 font-mono text-xs text-foreground outline-none"
-                    style={{ minHeight: editorContentMinHeight, maxHeight, overflowY: 'auto' }}
+                    style={{ minHeight: height.adjustedMinHeight, maxHeight, overflowY: 'auto' }}
                     value={sourceContent}
                     onChange={e => setSourceContent(e.target.value)}
                 />
             ) : (
                 <div
-                    style={{ maxHeight, overflowY: maxHeight ? 'auto' : undefined }}
+                    style={height.wrapperStyle}
                     className={cn(
                         'w-full px-3 py-2 text-sm',
                         '[&_.ProseMirror]:outline-none',
@@ -1413,8 +1411,6 @@ export const RichText = ({
     maxHeight         = undefined,
     imageUpload       = undefined,
     documentUpload    = undefined,
-    uploadPath        = undefined,
-    id                = undefined,
     labelClassName    = undefined,
     inheritWrapperClassName = true,
     wrapperClassName  = undefined,
@@ -1431,8 +1427,7 @@ export const RichText = ({
         inheritWrapperClassName,
     });
     const error = useFieldValidation(name, { required, label, validator });
-    const generatedId = useId();
-    const elementId = id ?? generatedId;
+    const elementId = useId();
 
     const [modules, setModules] = useState<TipTapModules | null>(_cachedModules);
 
@@ -1449,12 +1444,9 @@ export const RichText = ({
     );
 
     const resolvedStatusBar = statusBar === false ? false : resolveStatusBarConfig(statusBar);
-    const resolvedImageUpload: RichTextImageUploadConfig | undefined =
-        imageUpload ?? (uploadPath ? { path: uploadPath } : undefined);
 
     return (
         <Wrapper className={formWrapClass}>
-            {before}
             {label && (
                 <Label
                     label={label}
@@ -1463,37 +1455,50 @@ export const RichText = ({
                     className={labelClassName}
                 />
             )}
-            {modules ? (
-                <RichTextInner
-                    modules={modules}
-                    name={name}
-                    value={(value as string) ?? ''}
-                    outputFormat={outputFormat}
-                    placeholder={placeholder}
-                    disabled={disabled}
-                    toolbar={toolbar}
-                    toolbarCommands={toolbarCommands}
-                    statusBar={resolvedStatusBar}
-                    minHeight={minHeight}
-                    maxHeight={maxHeight}
-                    imageUpload={resolvedImageUpload}
-                    documentUpload={documentUpload}
-                    hasError={!!error}
-                    className={className}
-                    onEditorChange={handleEditorChange}
-                />
-            ) : (
-                <div
-                    className={cn(
-                        'rounded-md border border-input bg-muted/30 shadow-sm',
-                        error && 'border-destructive',
+            <div className={cn(before || after ? fieldGroupClass : '')}>
+                {before && (
+                    <span className={cn(fieldAddonClass, 'rounded-l-md rounded-r-none border-r-0')}>
+                        {before}
+                    </span>
+                )}
+                <div className="min-w-0 flex-1">
+                    {modules ? (
+                        <RichTextInner
+                            modules={modules}
+                            name={name}
+                            value={(value as string) ?? ''}
+                            outputFormat={outputFormat}
+                            placeholder={placeholder}
+                            disabled={disabled}
+                            toolbar={toolbar}
+                            toolbarCommands={toolbarCommands}
+                            statusBar={resolvedStatusBar}
+                            minHeight={minHeight}
+                            maxHeight={maxHeight}
+                            imageUpload={imageUpload}
+                            documentUpload={documentUpload}
+                            hasError={!!error}
+                            className={className}
+                            onEditorChange={handleEditorChange}
+                        />
+                    ) : (
+                        <div
+                            className={cn(
+                                'rounded-md border border-input bg-muted/30 shadow-sm',
+                                error && 'border-destructive',
+                            )}
+                            style={{ minHeight }}
+                            aria-busy="true"
+                            aria-label={label}
+                        />
                     )}
-                    style={{ minHeight }}
-                    aria-busy="true"
-                    aria-label={label}
-                />
-            )}
-            {after}
+                </div>
+                {after && (
+                    <span className={cn(fieldAddonClass, 'rounded-l-none rounded-r-md border-l-0')}>
+                        {after}
+                    </span>
+                )}
+            </div>
             {error
                 ? <FieldError message={error} />
                 : feedback && <div className={fieldFeedbackClass}>{feedback}</div>
