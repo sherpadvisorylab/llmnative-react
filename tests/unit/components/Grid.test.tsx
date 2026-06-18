@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
@@ -13,7 +13,7 @@ vi.mock('../../../src/providers/firebase-init', () => ({ default: vi.fn(), getSa
 vi.mock('../../../src/Theme', () => ({
     useMotionRegistry: vi.fn(() => ({})),
     useTheme: vi.fn(() => ({
-        Card:          { wrapClass: '', className: '', headerClass: '', bodyClass: '', footerClass: '', showLoader: false, showArrow: false },
+        Card:          { wrapClass: '', className: '', headerClass: '', bodyClass: '', footerClass: '', showLoader: false },
         Loader:        { wrapClass: '', className: '', icon: '', title: '', description: '' },
         Modal:         { size: 'md', position: 'center', wrapClass: '', className: '', headerClass: '', titleClass: '', bodyClass: '', footerClass: '', iconExpand: '', iconCollapse: '' },
         ActionButton:  { className: '', badgeClass: '' },
@@ -34,7 +34,7 @@ vi.mock('../../../src/Theme', () => ({
             i18n: { buttonAdd: 'Add', headerAdd: 'Add record', headerEdit: 'Edit record' },
             Table:   { wrapClass: '', className: '', headerClass: '', bodyClass: '', footerClass: '', scrollClass: '', selectedClass: '' },
             Gallery: { wrapClass: '', scrollClass: '', headerClass: '', bodyClass: '', footerClass: '', selectedClass: '', gutterSize: 0, rowCols: 3 },
-            Card:    { className: '', headerClass: '', bodyClass: '', footerClass: '', showArrow: false },
+            Card:    { className: '', headerClass: '', bodyClass: '', footerClass: '' },
             Modal:   { size: 'md', position: 'center', wrapClass: '', className: '', headerClass: '', titleClass: '', bodyClass: '', footerClass: '' },
         },
     })),
@@ -658,4 +658,5 @@ describe('Grid - event payloads', () => {
         expect(payloads).toEqual([['u1', 'u2']]);
     });
 });
+
 

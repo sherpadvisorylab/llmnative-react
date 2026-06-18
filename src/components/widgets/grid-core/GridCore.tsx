@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import { useTheme } from "../../../Theme";
 import { useI18n } from "../../../I18n";
 import { useDataProvider } from "../../../providers/data/DataProviderContext";
@@ -223,7 +223,6 @@ function GridCore<TRecord extends RecordProps>({
                 bodyClassName={theme.Grid.Card.bodyClassName}
                 footerClassName={theme.Grid.Card.footerClassName}
                 loading={loading || preparedRecordsLoading}
-                showArrow={theme.Grid.Card.showArrow}
             >
                 {view === "gallery" ? (
                     <GridGalleryView
@@ -345,4 +344,5 @@ function GridCore<TRecord extends RecordProps>({
 }
 
 export default GridCore;
+
 

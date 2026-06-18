@@ -362,6 +362,9 @@ export const useFormContext = ({name, onChange, wrapperClassName, inputType = "t
         log?: boolean;
         /** Show the inline save/delete notice banner. Defaults to `true`. */
         showNotice?: boolean;
+        /** When provided, the save/delete notice is rendered sticky at the top of this container
+         *  instead of inline in the form footer. Ideal for full-page forms outside a modal. */
+        noticeAnchorRef?: React.RefObject<HTMLElement>;
         /** Render a Back navigation button in the footer. */
         showBack?: boolean;
         /** CSS classes on the outermost wrapper element. */
@@ -471,6 +474,7 @@ export const useFormContext = ({name, onChange, wrapperClassName, inputType = "t
         onComplete = undefined,
         log = false,
         showNotice = true,
+        noticeAnchorRef = undefined,
         showBack = false,
         wrapperClassName = undefined,
         headerClassName = undefined,
@@ -680,13 +684,15 @@ export const useFormContext = ({name, onChange, wrapperClassName, inputType = "t
         const notificationEl = useMemo(() => notification ? (
             <Alert
                 variant={notification.type}
-                appearance="text"
+                appearance={noticeAnchorRef ? "default" : "text"}
+                placement={noticeAnchorRef ? "sticky" : "inline"}
+                anchorRef={noticeAnchorRef}
                 timeout={notification.type === 'success' ? 3000 : undefined}
                 onClose={notification.type === 'success' ? () => setNotification(undefined) : undefined}
             >
                 {notification.message}
             </Alert>
-        ) : null, [notification]);
+        ) : null, [notification, noticeAnchorRef]);
 
         const displayComponent = useMemo(() => {
             if(!appearance && ref) return <>{components}{notificationEl}</>;

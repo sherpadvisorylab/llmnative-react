@@ -85,7 +85,7 @@ const Image = ({
                     srcSet={srcset}
                     sizes={sizes}
                 />
-                {feedback && <div className="feedback">{feedback}</div>}
+                {feedback && <div className="mt-2 text-sm text-muted-foreground">{feedback}</div>}
             </div>
             {after && <div className="shrink-0 self-center">{after}</div>}
         </Wrapper>

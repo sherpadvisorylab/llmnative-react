@@ -285,7 +285,7 @@ const ModalDefault = ({
                     {showFooter && <div className={pos.footerClassName}>
                         {footer}
                         {!footer && onSave && <LoadingButton
-                            className="btn-primary"
+                            variant="primary"
                             label={dict.save}
                             onClick={async (e) => {
                                 e.preventDefault();
@@ -296,7 +296,7 @@ const ModalDefault = ({
                             }}
                         />}
                         {!footer && onDelete && <LoadingButton
-                            className="btn-danger"
+                            variant="danger"
                             label={dict.delete}
                             onClick={async (e) => {
                                 e.preventDefault();
@@ -305,7 +305,7 @@ const ModalDefault = ({
                             }}
                         />}
                         {!footer && showCancel && onClose && <ActionButton
-                            className="btn-link"
+                            variant="link"
                             label={dict.cancel}
                             onClick={handleClose}
                         />}
@@ -341,7 +341,7 @@ export const ModalYesNo = ({
         allowFullscreen={false}
         footer={<>
             {onYes && <LoadingButton
-                className="btn-primary"
+                variant="primary"
                 label={"Yes"}
                 onClick={async (e) => {
                     e.preventDefault();
@@ -350,7 +350,7 @@ export const ModalYesNo = ({
                 }}
             />}
             {onNo && <LoadingButton
-                className="btn-secondary"
+                variant="secondary"
                 label={"No"}
                 onClick={async (e) => {
                     e.preventDefault();
@@ -374,7 +374,7 @@ export const ModalOk = ({
         onClose={onClose}
         allowFullscreen={false}
         footer={<>
-            <ActionButton className="btn-primary" label={"Ok"} onClick={onClose} />
+            <ActionButton variant="primary" label={"Ok"} onClick={onClose} />
         </>}
     >
         {children}

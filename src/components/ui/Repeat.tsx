@@ -66,7 +66,9 @@ const Repeat = ({
                 return <></>
             case 'inline':
             return <Row className={`pl-2`}>
-                {renderChildren(index, 'col')}
+                <Col className='min-w-0'>
+                    {renderChildren(index)}
+                </Col>
                 {canRemove && (
                     <Col xs='auto' className='flex items-start justify-end pt-1'>
                         <ActionButton

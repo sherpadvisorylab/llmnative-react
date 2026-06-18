@@ -11,7 +11,7 @@ vi.mock('../../../src/providers/firebase-init', () => ({ default: vi.fn(), getSa
 vi.mock('../../../src/Theme', () => ({
     useMotionRegistry: vi.fn(() => ({})),
     useTheme: vi.fn(() => ({
-        Card:          { wrapClass: '', className: '', headerClass: '', bodyClass: '', footerClass: '', showLoader: false, showArrow: false },
+        Card:          { wrapClass: '', className: '', headerClass: '', bodyClass: '', footerClass: '', showLoader: false },
         Loader:        { wrapClass: '', className: '', icon: '', title: '', description: '' },
         Modal:         { size: 'md', position: 'center', wrapClass: '', className: '', headerClass: '', titleClass: '', bodyClass: '', footerClass: '', iconExpand: '', iconCollapse: '' },
         ActionButton:  { className: '', badgeClass: '' },
@@ -31,7 +31,7 @@ vi.mock('../../../src/Theme', () => ({
             i18n: { buttonAdd: 'Add', headerAdd: '', headerEdit: '' },
             Table:   { wrapperClass: '', className: '', headerClass: '', bodyClass: '', footerClass: '', scrollClass: '', selectedClass: '' },
             Gallery: { wrapperClass: '', scrollClass: '', headerClass: '', bodyClass: '', footerClass: '', selectedClass: '', gutterSize: 0, rowCols: 3 },
-            Card:    { className: '', headerClass: '', bodyClass: '', footerClass: '', showArrow: false },
+            Card:    { className: '', headerClass: '', bodyClass: '', footerClass: '' },
             Modal:   { size: 'md', position: 'center', wrapClass: '', className: '', headerClass: '', titleClass: '', bodyClass: '', footerClass: '' },
         },
     })),
@@ -158,6 +158,32 @@ describe('Form — save', () => {
                 expect.objectContaining({ action: 'update' })
             );
         });
+    });
+
+    it('renders the save notice as sticky when noticeAnchorRef is provided', async () => {
+        const provider = new MockDataProvider();
+        const anchorRef = React.createRef<HTMLDivElement>();
+
+        renderWithProviders(
+            <div ref={anchorRef}>
+                <Form
+                    path="/products/sticky_notice"
+                    defaultValues={{ title: 'Widget' }}
+                    noticeAnchorRef={anchorRef}
+                >
+                    <Input name="title" label="Title" />
+                </Form>
+            </div>,
+            { provider }
+        );
+
+        fireEvent.click(screen.getByRole('button', { name: /save|salva/i }));
+
+        await waitFor(() => {
+            expect(screen.getByRole('alert')).toBeInTheDocument();
+        });
+
+        expect(anchorRef.current?.querySelector('[role="alert"]')?.textContent).toContain('Record saved successfully');
     });
 });
 
@@ -298,3 +324,4 @@ describe('Form — nested dot notation', () => {
         });
     });
 });
+

@@ -9,15 +9,15 @@ interface SearchProps {
 }
 export const SearchButton = () => {
     return (
-        <div className="menu-item dropdown">
+        <div className="inline-flex">
             <Link
                 to="/#"
                 data-toggle-class="app-header-menu-search-toggled"
                 data-toggle-target=".app"
-                className="menu-link"
+                className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
             >
-                <div className="menu-icon">
-                    <Icon name="search" className="nav-icon" />
+                <div className="flex items-center justify-center">
+                    <Icon name="search" className="h-4 w-4" />
                 </div>
             </Link>
         </div>

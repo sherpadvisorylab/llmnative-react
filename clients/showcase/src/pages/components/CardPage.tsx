@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { Card } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 import { useShowcaseCardI18n } from '../../showcase/i18n';
@@ -13,7 +13,6 @@ const PROPS_CONFIG: PropDef[] = [
     { name: 'header', type: 'string | ReactNode', description: 'Custom header content (replaces or extends title)', control: 'text' },
     { name: 'footer', type: 'string | ReactNode', description: 'Footer content rendered below the body', control: 'text' },
     { name: 'loading', type: 'boolean', default: 'false', description: 'Overlay a loading spinner over the card body', control: 'boolean' },
-    { name: 'showArrow', type: 'boolean', default: 'false', description: 'Show the optional decorative card-arrow layer from the theme', control: 'boolean' },
     { name: 'headerClassName', type: 'string', description: 'Additional CSS classes for the header element', control: 'text' },
     { name: 'bodyClassName', type: 'string', description: 'Additional CSS classes for the body element', control: 'text' },
     { name: 'footerClassName', type: 'string', description: 'Additional CSS classes for the footer element', control: 'text' },
@@ -32,7 +31,6 @@ const PLAYGROUND: PlaygroundConfig = {
         header: '',
         footer: '',
         loading: false,
-        showArrow: false,
         headerClassName: '',
         bodyClassName: '',
         footerClassName: '',
@@ -47,7 +45,6 @@ const PLAYGROUND: PlaygroundConfig = {
             header={p.header || undefined}
             footer={p.footer || undefined}
             loading={p.loading}
-            showArrow={p.showArrow}
             headerClassName={p.headerClassName || undefined}
             bodyClassName={p.bodyClassName || undefined}
             footerClassName={p.footerClassName || undefined}
@@ -147,4 +144,5 @@ export default function CardPage() {
         </PageLayout>
     );
 }
+
 

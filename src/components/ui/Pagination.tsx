@@ -3,6 +3,7 @@ import { UIProps, Wrapper } from "../index";
 import { createPortal } from 'react-dom';
 import { useTheme } from '../../Theme';
 import { useI18n } from '../../I18n';
+import { cn } from '../../libs/cn';
 
 /**
  * Pagination configuration shared between `<Pagination>` and `<Grid pagination={...}>`.
@@ -116,17 +117,34 @@ const Pagination = <T,>({
 
             {records.length > pageLimit && (
                 <nav aria-label={dict.pageNavigation} className={`${className || theme.Pagination.className} flex w-full ${alignmentClass}`}>
-                    <ul className="pagination">
+                    <ul className="flex items-center gap-1">
 
-                        <li className={`page-item page-item-group-start ${disabledPrev}`}>
-                            <button onClick={() => go(1)} className="page-link">
+                        <li className="mr-2">
+                            <button
+                                type="button"
+                                onClick={() => go(1)}
+                                disabled={disabledPrev === 'disabled'}
+                                className={cn(
+                                    "inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-md border bg-background px-3 text-sm transition-colors",
+                                    disabledPrev === 'disabled'
+                                        ? "pointer-events-none opacity-40"
+                                        : "cursor-pointer hover:bg-accent hover:text-accent-foreground"
+                                )}
+                            >
                                 <span>&laquo;</span>
                             </button>
                         </li>
 
-                        <li className={`page-item ${disabledPrev}`}>
+                        <li>
                             <button
-                                className="page-link"
+                                type="button"
+                                disabled={disabledPrev === 'disabled'}
+                                className={cn(
+                                    "inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-md border bg-background px-3 text-sm transition-colors",
+                                    disabledPrev === 'disabled'
+                                        ? "pointer-events-none opacity-40"
+                                        : "cursor-pointer hover:bg-accent hover:text-accent-foreground"
+                                )}
                                 onClick={() => go(currentPage - 1)}
                             >
                                 <span>&lsaquo;</span>
@@ -134,32 +152,47 @@ const Pagination = <T,>({
                         </li>
 
                         {range.map((pageNum) => (
-                            <li
-                                key={pageNum}
-                                className={`page-item ${currentPage === pageNum ? 'active' : ''}`}
-                            >
+                            <li key={pageNum}>
                                 <button
+                                    type="button"
                                     onClick={() => go(pageNum)}
-                                    className="page-link"
+                                    className={cn(
+                                        "inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-md border bg-background px-3 text-sm transition-colors cursor-pointer hover:bg-accent hover:text-accent-foreground",
+                                        currentPage === pageNum && "border-primary bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground"
+                                    )}
                                 >
                                     {pageNum}
                                 </button>
                             </li>
                         ))}
 
-                        <li className={`page-item page-item-group-end ${disabledNext}`}>
+                        <li className="ml-2">
                             <button
-                                className="page-link"
+                                type="button"
+                                disabled={disabledNext === 'disabled'}
+                                className={cn(
+                                    "inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-md border bg-background px-3 text-sm transition-colors",
+                                    disabledNext === 'disabled'
+                                        ? "pointer-events-none opacity-40"
+                                        : "cursor-pointer hover:bg-accent hover:text-accent-foreground"
+                                )}
                                 onClick={() => go(currentPage + 1)}
                             >
                                 <span>&rsaquo;</span>
                             </button>
                         </li>
 
-                        <li className={`page-item ${disabledNext}`}>
+                        <li>
                             <button
+                                type="button"
                                 onClick={() => go(totalPages)}
-                                className="page-link"
+                                disabled={disabledNext === 'disabled'}
+                                className={cn(
+                                    "inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-md border bg-background px-3 text-sm transition-colors",
+                                    disabledNext === 'disabled'
+                                        ? "pointer-events-none opacity-40"
+                                        : "cursor-pointer hover:bg-accent hover:text-accent-foreground"
+                                )}
                             >
                                 <span>&raquo;</span>
                             </button>

@@ -12,7 +12,6 @@ type RecordSelectionPayload<TRecord> = Omit<RecordSelectionState<TRecord>, 'clea
 type UseRecordSelectionArgs<TRecord> = {
     records: TRecord[];
     selectedKeys?: string[];
-    legacySelectedKeys?: string[];
     onSelectionChange?: (selection: RecordSelectionState<TRecord>) => void;
     getRecordKey: (record: TRecord, index: number) => string;
 };
@@ -20,11 +19,10 @@ type UseRecordSelectionArgs<TRecord> = {
 export function useRecordSelection<TRecord>({
     records,
     selectedKeys,
-    legacySelectedKeys,
     onSelectionChange,
     getRecordKey,
 }: UseRecordSelectionArgs<TRecord>) {
-    const incomingSelectedKeys = selectedKeys ?? legacySelectedKeys;
+    const incomingSelectedKeys = selectedKeys;
     const isSelectionControlled = incomingSelectedKeys !== undefined && !!onSelectionChange;
     const [internalSelectedKeys, setInternalSelectedKeys] = useState<string[]>(incomingSelectedKeys ?? []);
 

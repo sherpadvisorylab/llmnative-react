@@ -7,6 +7,7 @@ import Badge, { BadgeType } from '../ui/Badge';
 import { isInteractiveElement } from '../../libs/utils';
 import Icon from '../ui/Icon';
 import type { UIProps } from '../types';
+import { cn } from '../../libs/cn';
 
 interface MenuProps extends UIProps {
   menuKey: string;
@@ -67,10 +68,13 @@ const Menu = ({
     }
 
     return (
-      <li className={`${item.active ? 'active ' : ''}${itemClassName ?? theme.Menu.itemClassName}`}>
+      <li className={cn(itemClassName ?? theme.Menu.itemClassName)}>
         <Link
           to={item.path.split("*")[0]}
-          className={linkClassName ?? theme.Menu.linkClassName}
+          className={cn(
+            linkClassName ?? theme.Menu.linkClassName,
+            item.active && "bg-primary/10 text-primary",
+          )}
           {...(hasChildren && {
 
           })}
@@ -90,15 +94,37 @@ const Menu = ({
               {badges[key].children}
             </Badge>
           )}
-          {hasChildren && <Icon name={isOpen ? 'caret-down' : 'caret-right'} />}
+          {hasChildren && (
+            <span
+              className={cn(
+                arrowClassName ?? theme.Menu.arrowClassName,
+                "ml-auto inline-flex shrink-0 items-center justify-center text-muted-foreground transition-transform duration-200",
+                isOpen && "rotate-90",
+              )}
+            >
+              <Icon name="chevron-right" size={14} />
+            </span>
+          )}
         </Link>
         {hasChildren && (
-          <div className={`collapse ${isOpen ? 'show' : ''}`}>
-            {(() => { const ListElement = as; return <ListElement className={submenuClassName ?? theme.Menu.submenuClassName}>
-              {(item.children as UseMenuItem[]).map((child, idx: number) => (
-                <MenuItem key={idx} item={child} index={idx} />
-              ))}
-            </ListElement>; })()}
+          <div
+            className={cn(
+              "grid transition-[grid-template-rows,opacity] duration-200 ease-out",
+              isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+            )}
+          >
+            <div className="min-h-0 overflow-hidden">
+              {(() => {
+                const ListElement = as;
+                return (
+                  <ListElement className={submenuClassName ?? theme.Menu.submenuClassName}>
+                    {(item.children as UseMenuItem[]).map((child, idx: number) => (
+                      <MenuItem key={idx} item={child} index={idx} />
+                    ))}
+                  </ListElement>
+                );
+              })()}
+            </div>
           </div>
         )}
       </li>

@@ -11,7 +11,7 @@ vi.mock('../../../src/providers/firebase-init', () => ({ default: vi.fn(), getSa
 vi.mock('../../../src/Theme', () => ({
     useMotionRegistry: vi.fn(() => ({})),
     useTheme: vi.fn(() => ({
-        Card:         { wrapClass: '', className: '', headerClass: '', bodyClass: '', footerClass: '', showLoader: false, showArrow: false },
+        Card:         { wrapClass: '', className: '', headerClass: '', bodyClass: '', footerClass: '', showLoader: false },
         Loader:       { wrapClass: '', className: '', icon: '', title: '', description: '' },
         Select:       { wrapClass: '', className: '' },
         Autocomplete: { wrapClass: '', className: '' },
@@ -114,3 +114,4 @@ describe('Checklist', () => {
         expect(adminCheckboxes[0].id).not.toBe(adminCheckboxes[1].id);
     });
 });
+

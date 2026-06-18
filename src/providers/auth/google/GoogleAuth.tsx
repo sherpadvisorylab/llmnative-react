@@ -60,25 +60,26 @@ const loadScript = () => {
 }
 
 const GoogleAuthFallback = () => (
-    <div className="menu-item dropdown dropdown-mobile-full" title="⚠️ Google OAuth2 config missing">
-        <Dropdown className="me-lg-3"
+    <div className="inline-flex" title="⚠️ Google OAuth2 config missing">
+        <Dropdown
+            className="lg:mr-3"
             trigger={
-                <div className="menu-img offline">
+                <div className="inline-flex">
                     <img
                         src={PLACEHOLDER_USER}
                         alt="No Config"
                         height="36"
-                        className="avatar rounded-circle ml-2"
+                        className="ml-2 rounded-full object-cover"
                     />
                 </div>
             }
         >
-            <div className="text-danger p-2 small" style={{ maxWidth: 300, whiteSpace: "normal" }}>
+            <div className="p-2 text-sm text-danger" style={{ maxWidth: 300, whiteSpace: "normal" }}>
                 ⚠️ Google Single Sign-On is not configured.<br />
                 Please make sure the <code>oAuth2.clientId</code> value is correctly set in your tenant configuration.
                 <hr className="my-2" />
                 <strong>To retrieve your <code>clientId</code>:</strong>
-                <ol className="pl-3 mb-1">
+                <ol className="mb-1 pl-3">
                     <li>Go to <a href="https://console.cloud.google.com/" target="_blank" rel="noopener noreferrer">Google Cloud Console</a></li>
                     <li>Select your project or create one</li>
                     <li>Navigate to <code>APIs & Services &gt; Credentials</code></li>

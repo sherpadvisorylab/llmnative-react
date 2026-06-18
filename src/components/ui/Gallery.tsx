@@ -156,7 +156,6 @@ const Gallery = ({
     } = useRecordSelection<GalleryRecord>({
         records: galleryRecords,
         selectedKeys,
-        legacySelectedKeys: undefined,
         onSelectionChange,
         getRecordKey,
     });
@@ -208,7 +207,7 @@ const Gallery = ({
 
         if (imgElement && React.isValidElement(imgElement)) {
             return React.cloneElement(imgElement, {
-                className: cn("img-fluid w-full rounded-lg object-cover", imgElement.props.className),
+                className: cn("block h-auto w-full max-w-full rounded-lg object-cover", imgElement.props.className),
                 style: {
                     ...(imgElement.props.style || {}),
                     aspectRatio: imgElement.props.style?.aspectRatio || "16 / 11",
@@ -223,7 +222,7 @@ const Gallery = ({
 
         return (
             <img
-                className="img-fluid w-full rounded-lg object-cover"
+                className="block h-auto w-full max-w-full rounded-lg object-cover"
                 src={
                     item.thumbnail
                         ? item.mimetype + item.thumbnail

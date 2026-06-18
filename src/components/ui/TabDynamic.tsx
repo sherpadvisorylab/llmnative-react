@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { ActionButton } from "./Buttons";
 import {converter} from "../../libs/converter";
-import { TabLayouts, TabPosition } from './Tab';
+import { getTabLayoutConfig, getTabPaneClassName, getTabTriggerClassName, TabLayouts, TabPosition } from './Tab';
 import { FieldOnChange, setFormFieldsName, useFormContext } from '../widgets/Form';
 import { RecordProps } from '../../providers/data/DataProvider';
 
@@ -88,6 +88,7 @@ const TabDynamic = ({
 
     
     const TabLayout = TabLayouts[tabPosition];
+    const config = getTabLayoutConfig(tabPosition);
 
     return (
         <div>
@@ -95,23 +96,31 @@ const TabDynamic = ({
             <TabLayout
                 menu={<>
                     {tabs?.map((label, index) => 
-                        <li key={`${name}-${index}`} className="nav-item mr-1 relative">
+                        <div key={`${name}-${index}`} className={`${config.itemClassName} relative`}>
                             <button
+                               type="button"
+                               role="tab"
+                               aria-selected={index === active}
                                onClick={() => setActive(index)}
-                               className={`nav-link ${index === active ? 'active' : ''}`}
+                               className={getTabTriggerClassName(tabPosition, index === active, !readOnly && tabs.length - 1 >= min && index === active ? 'pr-9' : undefined)}
                             >
                                 {label}
                             </button>
                             {(!readOnly && tabs.length -1 >= min && index === active) &&
-                                <ActionButton className="absolute top-0 right-0 p-0" icon="x"
+                                <ActionButton className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-current opacity-70 hover:opacity-100" icon="x"
                                               onClick={() => handleRemove(index)}/>}
-                        </li>
+                        </div>
                     )}
-                    {!readOnly && (!max || tabs.length < max) && <li key={tabs.length + 1} className="nav-item mr-1">
-                        <ActionButton className="nav-link" icon="plus" onClick={handleAdd} />
-                    </li>}
+                    {!readOnly && (!max || tabs.length < max) && <div key={tabs.length + 1} className={config.itemClassName}>
+                        <ActionButton
+                            className={getTabTriggerClassName(tabPosition, false, 'border border-dashed border-border/70 justify-center')}
+                            icon="plus"
+                            title="Add tab"
+                            onClick={handleAdd}
+                        />
+                    </div>}
                 </>}
-                content={<div className="tab-pane fade show active">
+                content={<div className={getTabPaneClassName()}>
                     {component}
                 </div>}
             />

@@ -320,7 +320,7 @@ export const Checkbox = ({
                 />
                 {label && <label className="text-sm font-medium leading-none text-foreground" htmlFor={id}>
                     {label}
-                    {required && <span className="text-danger">&nbsp;*</span>}
+                    {required && <span className="text-destructive">&nbsp;*</span>}
                 </label>}
                 {after}
             </div>
@@ -387,7 +387,7 @@ export const Switch = ({
                     {label && (
                         <span className="text-sm font-medium leading-none text-foreground">
                             {label}
-                            {required && <span className="text-danger">&nbsp;*</span>}
+                            {required && <span className="text-destructive">&nbsp;*</span>}
                         </span>
                     )}
                 </label>
@@ -406,7 +406,7 @@ export const Label = ({
 }: LabelProps) => {
     return (
         <label htmlFor={htmlFor} className={cn(fieldLabelClass, className)}>
-            {label} {required && <span className="text-danger">*</span>}
+            {label} {required && <span className="text-destructive">*</span>}
         </label>
     );
 };
@@ -539,7 +539,7 @@ export const ListGroup = ({
     className = undefined,
     itemClassName = undefined
 }: ListGroupProps) => {
-    const fullClassName = `list-group${className ? ' ' + className : ''}`;
+    const fullClassName = cn("flex flex-col divide-y divide-border rounded-md border bg-card", className);
 
     const extractText = (node: React.ReactNode): string => {
         const walk = (n: React.ReactNode): string => {
@@ -565,11 +565,14 @@ export const ListGroup = ({
                 const isActive = activeIndices?.includes(index);
                 const isDisable = disabledIndices?.includes(index);
                 const isLoading = loadingIndices?.includes(index);
-                const fullItemClass = `list-group-item pl-1 ${itemClassName ? ' ' + itemClassName : ''
-                    }${onClick ? ' list-group-item-action' : ''
-                    }${isActive ? ' active' : ''
-                    }${isDisable ? ' disabled' : ''
-                    }${isLoading ? ' loading' : ''}`;
+                const fullItemClass = cn(
+                    "flex items-center gap-2 px-3 py-2 text-sm transition-colors",
+                    onClick && "cursor-pointer hover:bg-accent hover:text-accent-foreground",
+                    isActive && "bg-primary/8 text-foreground",
+                    isDisable && "pointer-events-none opacity-50",
+                    isLoading && "animate-pulse",
+                    itemClassName
+                );
 
                 return onClick
                     ? <div

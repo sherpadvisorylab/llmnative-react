@@ -130,7 +130,6 @@ function Table({
     } = useRecordSelection<RecordProps>({
         records: rows,
         selectedKeys,
-        legacySelectedKeys: undefined,
         onSelectionChange,
         getRecordKey,
     });
@@ -238,7 +237,7 @@ function Table({
 
     const headers: TableHeaderProp[] = columns || Object.keys(sortedBody[0]).map((key) => ({ key, label: key, sort: sortingEnabled }));
     const viewportClass = [
-        "fixed-table-container",
+        "w-full",
         theme.Table.scrollClassName,
         heightClassName ? `${heightClassName} overflow-auto` : "",
         scrollClassName || "",
@@ -288,9 +287,9 @@ function Table({
     return (
         <div className="flex items-stretch gap-3">
             {before && <div className="table-before flex shrink-0 items-center self-stretch">{before}</div>}
-            <div ref={paginationNavRef} className={"table-responsive min-w-0 flex-1 " + (wrapperClassName || theme.Table.wrapperClassName)}>
+            <div ref={paginationNavRef} className={"min-w-0 flex-1 overflow-x-auto " + (wrapperClassName || theme.Table.wrapperClassName)}>
                 <div className={viewportClass}>
-                    <table className={"table " + (className || theme.Table.className)}>
+                    <table className={"w-full min-w-full text-left text-sm " + (className || theme.Table.className)}>
                     <thead className={headerClassName || theme.Table.headerClassName}>
                         <tr>
                             {showSelection && (
