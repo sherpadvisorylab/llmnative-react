@@ -424,8 +424,8 @@ Adapter opzionale:
 - [x] Integrare `<I18nProvider>` in `App.tsx`; prop `i18n?: I18nConfig` aggiunta.
 - [x] Rimossi `ThemeConfig.Form.i18n` e `ThemeConfig.Grid.i18n` (obsoleti).
 - [x] Esportare `I18nProvider`, `useI18n`, `interpolate`, tipi da `src/index.ts`.
-- [ ] Aggiungere showcase per cambio lingua.
-- [ ] Aggiungere docs i18n.
+- [x] Aggiungere showcase per cambio lingua (pagina esistente `/components/locale-switcher`).
+- [x] Aggiungere docs i18n (`docs/architecture/i18n.md`).
 - [ ] Aggiungere test per fallback, override e interpolazione.
 - [ ] `npm run test` e `npm run build` passano.
 
