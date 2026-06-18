@@ -245,7 +245,7 @@ export default function ImagePage() {
                 code={`import { Image } from '@llmnative/react';
 
 <Image
-    src={imageUrl}
+    src={imageSrc}
     label="Landscape illustration"
     className="rounded-xl border max-w-md w-full"
 />`}

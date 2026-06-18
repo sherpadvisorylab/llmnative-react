@@ -2,7 +2,7 @@ import { FieldFactory } from "../components/Component";
 import { InputProps, TextAreaProps, CheckboxProps } from "../components/ui/fields/Input";
 import { SelectProps, AutocompleteProps, ChecklistProps } from "../components/ui/fields/Select";
 import { UploadImageProps, UploadDocumentProps } from "../components/ui/fields/Upload";
-import { ImageUrlProps } from "../components/ui/fields/ImageUrl";
+import { ImageFieldProps } from "../components/ui/fields/ImageField";
 import componentFormFields from "./FormFields";
 
 type SchemaFields = Record<string, ReturnType<FieldFactory>>;
@@ -26,7 +26,7 @@ export interface ComponentFormSchemaMap {
     checklist:      (overrides?: Partial<ChecklistProps>)      => SchemaFields;
     uploadImage:    (overrides?: Partial<UploadImageProps>)    => SchemaFields;
     uploadDocument: (overrides?: Partial<UploadDocumentProps>) => SchemaFields;
-    imageUrl:       (overrides?: Partial<ImageUrlProps>)       => SchemaFields;
+    imageField:     (overrides?: Partial<ImageFieldProps>)     => SchemaFields;
 }
 
 const f = componentFormFields;
@@ -197,7 +197,7 @@ const componentFormSchema: ComponentFormSchemaMap = {
         accept:   f.string({ label: "Formati accettati",                defaultValue: overrides.accept }),
     }),
 
-    imageUrl: (overrides: Partial<ImageUrlProps> = {}) => ({
+    imageField: (overrides: Partial<ImageFieldProps> = {}) => ({
         label:    f.string({ label: "Label",    required: true, defaultValue: overrides.label }),
         required: f.switch({ label: "Obbligatorio",             defaultValue: overrides.required }),
     }),

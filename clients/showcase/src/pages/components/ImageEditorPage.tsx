@@ -94,7 +94,7 @@ export default function ImageEditorPage() {
                 code={`import { ImageEditor } from '@llmnative/react';
 
 <ImageEditor
-  src={imageUrl}
+  src={imageSrc}
   width={700}
   height={400}
   onSave={(dataUrl) => uploadToStorage(dataUrl)}
@@ -144,7 +144,7 @@ const [open, setOpen] = useState(false);
 
 {open && (
   <ImageEditor
-    src={imageUrl}
+    src={imageSrc}
     title="Edit photo"
     mode="modal"
     width={700}

@@ -4,7 +4,7 @@
 > Each item is an atomic verifiable task: ✅ done, ⬜ to do.
 >
 > Last reviewed: 2026-06-06
-> Based on `main` codebase analysis (v0.1.1 → target v1.0.0)
+> Based on `main` codebase analysis (v0.1.2 → target v1.0.0)
 
 ---
 
@@ -111,7 +111,7 @@ This is where gaps that the market expects are closed.
 
 ### P2.1 — i18n
 
-- [ ] **Create I18nProvider and `useI18n()` hook** (CR-029)
+- [x] **Create I18nProvider and `useI18n()` hook** (CR-029)
 - [ ] **Extract hardcoded strings** from public components
 - [ ] **Default `en` dictionary** + locale switching support in `<App locale="it" />`
 

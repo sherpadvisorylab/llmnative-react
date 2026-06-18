@@ -10,6 +10,7 @@ import { trimSlash } from "../../libs/utils";
 export type BreadcrumbItem = {
     label: string;
     href?: string;
+    node?: React.ReactNode;
 };
 
 export type BreadcrumbsProps = {
@@ -144,10 +145,12 @@ export const Breadcrumbs = ({
     }
 
     resolved.forEach((item, i) => {
-        const key = item.href ?? `__item-${i}`;
-        const node = item.href
-            ? <ItemLink href={item.href} label={item.label} />
-            : <ItemCurrent label={item.label} />;
+        const key = `${item.href ?? '__item'}-${i}`;
+        const node = item.node
+            ? item.node
+            : item.href
+                ? <ItemLink href={item.href} label={item.label} />
+                : <ItemCurrent label={item.label} />;
         allItems.push({ key, node });
     });
 

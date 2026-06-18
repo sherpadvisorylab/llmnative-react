@@ -61,7 +61,7 @@ import '@llmnative/react/dist/index.css'  // necessario una volta sola
 
 ```
 ui/        → primitivi stateless: Alert, Badge, Button, Card, Image, Modal, Table, Gallery, Tab, Repeat, Icon
-ui/fields/ → campi form: Input, Select, Upload, Prompt, UploadCSV
+ui/fields/ → campi form: Input, Select, Upload, UploadCSV, ImageField, RichText, Prompt
 blocks/    → composizioni: Menu, Breadcrumbs, Notifications, Search, Carousel
 widgets/   → smart (hanno stato e provider): Grid, Form, MarkdownReader, ImageEditor
 ```

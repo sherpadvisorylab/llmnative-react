@@ -1,7 +1,7 @@
 # Project status
 
 > Snapshot verified against the real codebase, not against the historical plan.
-> Last reviewed: 2026-06-08
+> Last reviewed: 2026-06-18
 
 ---
 
@@ -20,9 +20,9 @@
 | UI library | Tailwind v4 CSS runtime with Bootstrap-like compatibility layer (`@layer components`). Bootstrap utilities replaced with native Tailwind. | Broader visual regression remains manual. |
 | TypeScript | `strict: true`; `npm run build` generates bundle + declarations. CR-042 done: `any` count → 6 justified exceptions, all annotated. | No remaining structural gap. |
 | Dead code | Removed: `Helper.tsx` (1696 lines), `Blog.tsx`, `Template.tsx`, `FormEnhancer.tsx`, `AssistantAI.tsx`, `BlogPost.tsx`, `Component.tsx` dead exports, `libs/log.ts`, `libs/cache.ts`, `libs/database.ts`, `libs/storage.ts`, `libs/seo.ts`. Log logic inlined in `Form.tsx` via `useDataProvider()`. Cache logic inlined in `scrape/index.ts` via `DataProviderAdapter`. | `src/components/ui/fields/Command.tsx` still remains (CR-025). |
-| Tests | 41 files / 425 tests pass (Vitest). Suites: libs, providers (Mock, Firebase RTDB, Firestore, FirebaseStorage, Supabase, SupabaseStorage, SupabaseAuth, AIProviders, DropboxStorage), App, theme/icon, motion, auth, Form/Grid/Input/Select/Upload/Repeat/MarkdownReader/Table/Modal/Dropdown/Gallery/Buttons. GitHub Actions CI present (test + build + showcase jobs). | Firebase/Supabase integration (emulator), browser OAuth, email, Playwright E2E remain. |
-| Library build | `npm run build` passes. Output: `dist/index.js`, `dist/index.mjs`, `dist/index.css`, `dist/types`. | No structural gap. |
-| Showcase app | `clients/showcase` is a real Vite consumer. Pages: Auth, Alert, Badge, Buttons, Card, Code, Dropdown, Gallery, GridSystem, Icon, Image, ImageAvatar, Loader, Modal (incl. ModalYesNo/ModalOk sub-pages), Motion, Notifications, Pagination, Prompt, Search, Select, Autocomplete, Checklist, Upload, Form, Grid, GridArray, GridDB, MarkdownReader, Repeat, LayoutBuilder. SideNav collapsible with icon-only mode. | Stub routes remain for concrete provider demos and application examples. |
+| Tests | 45 files / 464 tests pass (Vitest). Suites: libs, providers (Mock, Firebase RTDB, Firestore, FirebaseStorage, Supabase, SupabaseStorage, SupabaseAuth, AIProviders, DropboxStorage, Gmail, Google Service Account), App, theme/icon, motion, auth, Form/Grid/Input/Select/Upload/Repeat/MarkdownReader/Table/Modal/Dropdown/Gallery/Buttons plus the public export contract and proxy runtime e2e. GitHub Actions CI present (test + build + showcase jobs). | Firebase/Supabase integration (emulator), browser OAuth and Playwright E2E remain. |
+| Library build | `npm run build` passes. Output: `dist/index.js`, `dist/index.mjs`, `dist/index.css`, `dist/types`. `ImageEditor` heavy runtime is now split into a separate lazy chunk (`dist/ImageEditorImpl-*`) instead of being forced into the root bundle. | No structural gap. |
+| Showcase app | `clients/showcase` is a real Vite consumer. Pages: Auth, Alert, Badge, Buttons, Card, Code, Dropdown, Gallery, GridSystem, Icon, Image, ImageAvatar, ImageField, ImageEditor, Loader, LocaleSwitcher, Modal (incl. ModalYesNo/ModalOk sub-pages), Motion, Notifications, Pagination, Prompt, Search, Select, Autocomplete, Checklist, Upload, Form, Grid, GridArray, GridDB, MarkdownReader, Repeat, LayoutBuilder. SideNav collapsible with icon-only mode. | Stub routes remain for concrete provider demos and application examples. |
 | Markdown docs | `AI_REFERENCE.md` and `PROMPT_TEMPLATE.md` added for LLM consumption of the full API surface. Docs with frontmatter load in showcase via `import.meta.glob`. | Operational docs (STATUS, ROADMAP, CHANGE_REQUESTS) remain maintainer-only. |
 
 ---
@@ -56,6 +56,7 @@
 | CR-035 | Done | `SupabaseStorageProvider` (upload/delete/rename/download/list/getFileInfo/createUpload); `supabaseStorage` driver registered. Unit tests (23) present. |
 | CR-036 | Done | `SupabaseAuthProvider` (password/magic_link/oauth/anonymous, `onAuthChange`, `getAccessToken`); `supabaseAuth` driver registered. Unit tests (14) present. |
 | CR-037 | Done | `CredentialsAdapter` contract; `GoogleServiceAccountProvider` (Web Crypto JWT, scoped Google API tokens, browser-safe); `googleServiceAccount` driver registered. |
+| CR-029 | Done | `I18nProvider`, `useI18n()`, runtime translation registration, `LocaleSwitcher` and root exports are present and used by `<App>`. |
 | CR-042 | Done | TypeScript no-any: `any` count 101 → 6 justified exceptions (all annotated `// CR-042`). `tsc --noEmit` 0 errors. |
 
 ---
@@ -64,16 +65,15 @@
 
 | CR | Real state | What is missing |
 |----|-----------|-----------------|
-| CR-006 | **65%** — 41 files / 425 unit tests pass. GitHub Actions CI present (test + build + showcase). Firebase/Supabase emulator integration, browser OAuth, email and Playwright E2E still absent. | E2E/Playwright tests. |
+| CR-006 | **80%** — 45 files / 464 tests pass. GitHub Actions CI present (test + build + showcase). Firebase/Supabase emulator integration, browser OAuth and Playwright E2E still absent. | Integration/E2E coverage. |
 | CR-007 | **70%** — Showcase is a real Vite consumer app with many component pages and interactive playgrounds. SideNav present. | Stub routes on concrete provider demos and application examples remain. |
 | CR-012 | **0%** — Stub routes still in showcase menu. | Replace provider/example stubs with real demos or honest placeholder pages. |
 | CR-014 | **40%** — Component API and playground much richer than May snapshot. | Public API audit, Input/Modal/Grid doc clarifications, remaining `any` patterns. |
 | CR-024 | **0%** | WYSIWYG `<RichEditor>` not started. |
 | CR-025 | **0%** | `Command.tsx` (legacy `contentEditable`/`execCommand`) still present; no ContextMenu/slash command. |
 | CR-027 | **70%** | Motion system complete and tested. `Notifications`/toast motion still missing. |
-| CR-029 | **0%** | No `I18nProvider`, `useI18n()` or framework-level dictionary. |
 | CR-031 | **0%** | Sidebar block still in `clients/showcase/src/components/Sidebar.tsx`; `src/components/blocks/Sidebar.tsx` does not exist. |
-| CR-038 | **0%** | Public naming normalization for AI-first: `Grid.layout`, `Form.aspect`, `AuthButton.aspect`, `ImageUrl.mode` inconsistent with target vocabulary. |
+| CR-038 | **10%** | Public naming normalization for AI-first still pending on `Grid.layout`, `Form.aspect`, `AuthButton.aspect`. |
 | CR-039 | **0% — spec written** | WorkflowAI declarative multi-step pipeline; spec in `CHANGE_REQUESTS.md`. No implementation. |
 | CR-040 | **0% — spec written** | SchemaForm (form generation from JSON schema/factory); spec in `CHANGE_REQUESTS.md`. No implementation. |
 | CR-041 | **0% — proposal written** | SeoEnhancer (HTML filter applying technical SEO, structured report); proposal in `CHANGE_REQUESTS.md`. No implementation. |
@@ -93,9 +93,10 @@ src/
   components/
     ui/                    # presentational primitives (Alert, Badge, Button, Card, Icon, Image,
     │                        Loader, Modal, Pagination, Table, Gallery, Tab, Repeat, GridSystem)
-    ui/fields/             # Input, Select, Upload, Prompt, UploadCSV, Command (legacy — CR-025)
+    ui/fields/             # Input, Select, Upload, ImageField, RichText, Prompt, UploadCSV,
+    │                        Command (legacy — CR-025)
     blocks/                # Brand, Menu, Breadcrumbs, Notifications, Search, Carousel, Dropdown
-    widgets/               # Form, Grid, MarkdownReader, ImageEditor
+    widgets/               # Form, Grid, MarkdownReader, ImageEditor wrapper + lazy impl chunk
     Component.tsx          # FieldAdapter pattern for schema-driven forms (cleaned up)
   providers/
     manifest.ts            # driver manifest: PROVIDER_MANIFESTS, DriverDescriptor, ServicesConfig
@@ -143,7 +144,7 @@ Main real routes:
 | Area | Routes |
 |------|--------|
 | Docs | Generated from Markdown in `docs/` via `import.meta.glob` |
-| Components | Alert, Badge, Buttons, Card, Code, Dropdown, Gallery, GridSystem, Icon, Image, ImageAvatar, Loader, Modal (+ ModalYesNo, ModalOk), Motion, Notifications, Pagination, Prompt, Search, Select, Autocomplete, Checklist, Upload, Form, Grid, GridArray, GridDB, MarkdownReader, Repeat, Auth, LayoutBuilder |
+| Components | Alert, Badge, Buttons, Card, Code, Dropdown, Gallery, GridSystem, Icon, Image, ImageAvatar, ImageField, ImageEditor, Loader, LocaleSwitcher, Modal (+ ModalYesNo, ModalOk), Motion, Notifications, Pagination, Prompt, Search, Select, Autocomplete, Checklist, Upload, Form, Grid, GridArray, GridDB, MarkdownReader, Repeat, Auth, LayoutBuilder |
 | Providers | `/providers`, `/providers/data`, `/providers/storage`, `/providers/auth`, `/providers/email`, `/providers/integrations` |
 | Examples | `/examples/ai` |
 
@@ -159,15 +160,15 @@ Main real routes:
 
 ## Verification performed
 
-Real verification performed on 2026-06-07:
+Real verification performed on 2026-06-18:
 
 | Command | Result |
 |---------|--------|
-| `npx vitest run --reporter=dot` | Passes: 39 files, 377 tests (1 pre-existing `localStorage` warning in Node e2e env). |
-| `npm run build` | Passes: Vite library build + declarations. |
+| `npm test` | Passes: 45 files, 464 tests. |
+| `npm run build` | Passes: Vite library build + declarations; `ImageEditor` emitted as a separate lazy chunk (`ImageEditorImpl-*`). |
 | `cd clients/showcase && npm run build` | Passes: Vite production build. |
-| `Get-Content package.json` | Verified current version `0.1.1`. |
-| Targeted audit of `src/`, `clients/showcase/`, `docs/`, `tests/` | Confirmed: all providers complete, dead code removed, tests green. |
+| `Get-Content package.json` | Verified current version `0.1.2`. |
+| Targeted audit of `src/`, `clients/showcase/`, `.notes/`, `tests/` | Confirmed: i18n is real, `ImageField` is the active public image field, `ImageEditor` now lazy-loads heavy runtime, tests green. |
 
 ---
 
@@ -175,7 +176,7 @@ Real verification performed on 2026-06-07:
 
 | Version | Real state |
 |---------|-----------|
-| 0.1.1 | Current version in `package.json` and verified build. |
+| 0.1.2 | Current version in `package.json` and verified build. |
 | 2.0.0-alpha | Useful roadmap label for the architectural transition (provider abstraction, manifest, theme/motion/credentials registries, all core providers complete). Not a published version. |
 | 2.0.0-rc | Not yet ready: showcase has stubs, E2E/CI absent, CR-038 naming normalization pending. |
 | 2.0.0 | Conceptual target: all CRs complete, CI green, showcase stub-free, E2E pass, published to npm. |

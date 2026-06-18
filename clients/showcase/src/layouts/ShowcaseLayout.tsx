@@ -49,9 +49,9 @@ function LayoutInner({ children }: { children?: React.ReactNode }) {
     return (
         <div className="min-h-screen bg-background text-foreground">
             <Topbar onOpenThemePanel={() => setThemePanelOpen(true)} />
-            <div className="flex h-[calc(100vh-3.5rem)]">
+            <div className="flex h-[calc(100vh-3.5rem)] min-h-0">
                 <Sidebar />
-                <main className="flex-1 overflow-auto">
+                <main className="min-w-0 min-h-0 flex-1 overflow-auto">
                     {children}
                 </main>
             </div>

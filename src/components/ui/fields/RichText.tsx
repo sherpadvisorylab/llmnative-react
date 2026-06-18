@@ -11,7 +11,7 @@ import { useStorageProvider } from '../../../providers/storage/StorageProviderCo
 import { resizeToVariants, uploadVariants, buildSrcset } from '../../../libs/imageVariants';
 import Modal from '../Modal';
 import ImageDisplay from '../Image';
-const LazyImageEditor = React.lazy(() => import('../../widgets/ImageEditor'));
+import ImageEditor from '../../widgets/ImageEditor';
 
 // ── LAZY MODULE LOADER ────────────────────────────────────────────────────────
 // TipTap (~400 KB) is only fetched when a RichText field is actually mounted.
@@ -165,6 +165,8 @@ const resolveStatusBarConfig = (raw: boolean | StatusBarConfig): StatusBarConfig
     return { tagBreadcrumb: true, wordCount: true, charCount: false, ...raw };
 };
 
+const TABLE_PICKER_DIMENSION = 8;
+
 // ── TOOLBAR BUTTON DEFINITIONS ────────────────────────────────────────────────
 
 interface ToolbarButtonDef {
@@ -188,7 +190,6 @@ const TOOLBAR_DEFS: Partial<Record<Exclude<ToolbarCommand, '|'>, ToolbarButtonDe
     code:        { icon: 'code',              label: 'Inline Code',   isActive: e => e.isActive('code'),                     execute: e => e.chain().focus().toggleCode().run() },
     codeBlock:   { icon: 'square-code',       label: 'Code Block',    isActive: e => e.isActive('codeBlock'),                 execute: e => e.chain().focus().toggleCodeBlock().run() },
     link:        { icon: 'link',              label: 'Link',          isActive: e => e.isActive('link'),                     execute: e => { if (e.isActive('link')) { e.chain().focus().unsetLink().run(); return; } const url = window.prompt('URL'); if (url) e.chain().focus().setLink({ href: url }).run(); } },
-    table:       { icon: 'table',             label: 'Insert Table',                                                          execute: e => e.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run() },
     undo:        { icon: 'undo-2',            label: 'Undo',                                                                  execute: e => e.chain().focus().undo().run() },
     redo:        { icon: 'redo-2',            label: 'Redo',                                                                  execute: e => e.chain().focus().redo().run() },
     clearFormat: { icon: 'eraser',            label: 'Clear Format',                                                          execute: e => e.chain().focus().clearNodes().unsetAllMarks().run() },
@@ -279,6 +280,120 @@ const HeadingPicker = ({ editor }: { editor: Editor }) => {
     );
 };
 
+const TableInsertPicker = ({ editor }: { editor: Editor }) => {
+    const [open, setOpen] = React.useState(false);
+    const [hoveredRows, setHoveredRows] = React.useState(3);
+    const [hoveredCols, setHoveredCols] = React.useState(3);
+    const ref = useRef<HTMLDivElement>(null);
+
+    React.useEffect(() => {
+        const close = (e: MouseEvent) => {
+            if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+        };
+        document.addEventListener('mousedown', close);
+        return () => document.removeEventListener('mousedown', close);
+    }, []);
+
+    const insertTable = (rows: number, cols: number) => {
+        editor.chain().focus().insertTable({ rows, cols, withHeaderRow: true }).run();
+        setOpen(false);
+    };
+
+    return (
+        <div ref={ref} className="relative">
+            <button
+                type="button"
+                title="Insert Table"
+                onMouseDown={(ev) => {
+                    ev.preventDefault();
+                    setOpen((value) => !value);
+                }}
+                className="inline-flex h-7 w-7 items-center justify-center rounded text-sm transition-colors hover:bg-muted"
+            >
+                <Icon name="table" size={14} />
+            </button>
+            {open && (
+                <div className="absolute left-0 top-full z-50 mt-1 rounded-md border border-border bg-background p-3 shadow-lg">
+                    <div
+                        className="grid gap-1.5"
+                        style={{
+                            gridTemplateColumns: `repeat(${TABLE_PICKER_DIMENSION}, 18px)`,
+                            width: `fit-content`,
+                        }}
+                    >
+                        {Array.from({ length: TABLE_PICKER_DIMENSION * TABLE_PICKER_DIMENSION }, (_, index) => {
+                            const row = Math.floor(index / TABLE_PICKER_DIMENSION) + 1;
+                            const col = (index % TABLE_PICKER_DIMENSION) + 1;
+                            const active = row <= hoveredRows && col <= hoveredCols;
+                            return (
+                                <button
+                                    key={`${row}-${col}`}
+                                    type="button"
+                                    aria-label={`Insert ${row} by ${col} table`}
+                                    onMouseEnter={() => {
+                                        setHoveredRows(row);
+                                        setHoveredCols(col);
+                                    }}
+                                    onFocus={() => {
+                                        setHoveredRows(row);
+                                        setHoveredCols(col);
+                                    }}
+                                    onMouseDown={(ev) => {
+                                        ev.preventDefault();
+                                        insertTable(row, col);
+                                    }}
+                                    className={cn(
+                                        'h-[18px] w-[18px] rounded-[4px] border transition-colors',
+                                        active
+                                            ? 'border-primary bg-primary/25 shadow-[inset_0_0_0_1px_rgba(59,130,246,0.35)]'
+                                            : 'border-border bg-background hover:border-primary/50 hover:bg-muted/60',
+                                    )}
+                                />
+                            );
+                        })}
+                    </div>
+                    <div className="mt-3 text-center text-xs font-medium text-muted-foreground">
+                        {hoveredRows} x {hoveredCols}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+const TableBubbleMenu = ({ editor }: { editor: Editor }) => {
+    const actions = [
+        { icon: 'rows-2', label: 'Add row above', execute: () => editor.chain().focus().addRowBefore().run() },
+        { icon: 'rows-3', label: 'Add row below', execute: () => editor.chain().focus().addRowAfter().run() },
+        { icon: 'columns-2', label: 'Add column left', execute: () => editor.chain().focus().addColumnBefore().run() },
+        { icon: 'columns-3', label: 'Add column right', execute: () => editor.chain().focus().addColumnAfter().run() },
+        { icon: 'minus-square', label: 'Delete row', execute: () => editor.chain().focus().deleteRow().run() },
+        { icon: 'rectangle-ellipsis', label: 'Delete column', execute: () => editor.chain().focus().deleteColumn().run() },
+        { icon: 'trash-2', label: 'Delete table', execute: () => editor.chain().focus().deleteTable().run() },
+    ] as const;
+
+    return (
+        <div className="flex items-center gap-0.5 rounded-md border border-border bg-background px-1 py-0.5 shadow-lg">
+            {actions.map((action, index) => (
+                <React.Fragment key={action.label}>
+                    {index > 0 && index !== 4 && <div className="mx-0.5 h-4 w-px bg-border" />}
+                    <button
+                        type="button"
+                        title={action.label}
+                        onMouseDown={(ev) => {
+                            ev.preventDefault();
+                            action.execute();
+                        }}
+                        className="inline-flex h-7 w-7 items-center justify-center rounded text-sm transition-colors hover:bg-muted"
+                    >
+                        <Icon name={action.icon} size={14} />
+                    </button>
+                </React.Fragment>
+            ))}
+        </div>
+    );
+};
+
 // ── INTERNAL: TOOLBAR ─────────────────────────────────────────────────────────
 
 interface ToolbarProps {
@@ -309,6 +424,8 @@ const RichTextToolbar = ({ editor, commands, sourceMode, onImageUpload, onDocume
             if (cmd === '|') return <div key={i} className="mx-0.5 h-4 w-px bg-border" />;
 
             if (cmd === 'headings') return <HeadingPicker key={cmd} editor={editor} />;
+
+            if (cmd === 'table') return <TableInsertPicker key={cmd} editor={editor} />;
 
             if (cmd === 'imageUpload') return (
                 <button key={cmd} type="button" title="Upload Image"
@@ -407,7 +524,7 @@ const RichTextStatusBar = ({ editor, config }: { editor: Editor; config: StatusB
 
 type InsertSlideItem = { fileProps: FileProps; preview: string; defaultAlt: string };
 type EditDialogState = { pos: number; attrs: Record<string, unknown> };
-interface ImageDialogValues { alt: string; href: string; target: string; enabled: boolean }
+interface ImageDialogValues { src?: string; alt: string; href: string; target: string; enabled: boolean }
 
 // Shared variant thumbnails strip
 const VariantStrip = ({ srcset }: { srcset: string }) => {
@@ -605,15 +722,13 @@ const ImageInsertSlider = ({
         </Modal>
 
         {showCrop && (
-            <React.Suspense fallback={null}>
-                <LazyImageEditor
-                    src={item.preview}
-                    mode="modal"
-                    title={`Crop — ${item.fileProps.fileName}`}
-                    onClose={() => setShowCrop(false)}
-                    onSave={(dataUrl) => { onCropSave(idx, dataUrl); setShowCrop(false); }}
-                />
-            </React.Suspense>
+            <ImageEditor
+                src={item.preview}
+                mode="modal"
+                title={`Crop — ${item.fileProps.fileName}`}
+                onClose={() => setShowCrop(false)}
+                onSave={(dataUrl) => { onCropSave(idx, dataUrl); setShowCrop(false); }}
+            />
         )}
         </>
     );
@@ -629,15 +744,18 @@ const ImageEditDialog = ({
     onConfirm: (values: ImageDialogValues) => void;
     onCancel: () => void;
 }) => {
-    const [alt,    setAlt   ] = useState(state.attrs.alt    as string ?? '');
-    const [href,   setHref  ] = useState(state.attrs.href   as string ?? '');
-    const [target, setTarget] = useState(state.attrs.target as string ?? '_blank');
+    const [src,      setSrc     ] = useState(state.attrs.src      as string ?? '');
+    const [alt,      setAlt     ] = useState(state.attrs.alt      as string ?? '');
+    const [href,     setHref    ] = useState(state.attrs.href     as string ?? '');
+    const [target,   setTarget  ] = useState(state.attrs.target   as string ?? '_blank');
+    const [showCrop, setShowCrop] = useState(false);
     const altRef = useRef<HTMLInputElement>(null);
     useEffect(() => { altRef.current?.focus(); }, []);
 
-    const src = state.attrs.src as string | undefined;
+    const srcset = state.attrs.srcset as string | undefined;
 
     return (
+        <>
         <Modal
             title="Edit image"
             onClose={onCancel}
@@ -648,7 +766,7 @@ const ImageEditDialog = ({
                         className="h-8 rounded-md px-3 text-sm transition-colors hover:bg-muted">
                         Cancel
                     </button>
-                    <button type="button" onClick={() => onConfirm({ alt, href, target, enabled: true })}
+                    <button type="button" onClick={() => onConfirm({ src, alt, href, target, enabled: true })}
                         className="h-8 rounded-md bg-primary px-3 text-sm text-primary-foreground transition-colors hover:bg-primary/90">
                         Save
                     </button>
@@ -656,11 +774,34 @@ const ImageEditDialog = ({
             }
         >
             {src && (
-                <div className="mb-3 overflow-hidden rounded-lg bg-muted/40">
+                <div className="group relative mb-3 overflow-hidden rounded-lg bg-muted/40">
                     <ImageDisplay src={src} fit="contain" height={140} wrapperClassName="w-full" className="w-full" />
+                    <div className="absolute right-2 top-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                        <a href={src} target="_blank" rel="noopener noreferrer" title="Open original"
+                            className="flex h-7 w-7 items-center justify-center rounded-md bg-black/60 text-white backdrop-blur-sm transition-colors hover:bg-black/80">
+                            <Icon name="external-link" size={13} />
+                        </a>
+                        <button type="button" title="Crop" onClick={() => setShowCrop(true)}
+                            className="flex h-7 w-7 items-center justify-center rounded-md bg-black/60 text-white backdrop-blur-sm transition-colors hover:bg-black/80">
+                            <Icon name="crop" size={13} />
+                        </button>
+                    </div>
                 </div>
             )}
+
+            {srcset && <VariantStrip srcset={srcset} />}
+
             <div className="flex flex-col gap-1">
+                <label className="text-xs font-medium text-muted-foreground">
+                    Image URL <span className="font-normal opacity-60">(path or https://…)</span>
+                </label>
+                <input type="url" value={src} onChange={e => setSrc(e.target.value)}
+                    placeholder="https://example.com/image.jpg"
+                    className="h-8 rounded-md border border-input bg-background px-2.5 text-sm outline-none focus:ring-1 focus:ring-ring"
+                />
+            </div>
+
+            <div className="mt-2 flex flex-col gap-1">
                 <label className="text-xs font-medium text-muted-foreground">
                     Alt text <span className="font-normal opacity-60">(accessibility &amp; SEO)</span>
                 </label>
@@ -669,6 +810,7 @@ const ImageEditDialog = ({
                     className="h-8 rounded-md border border-input bg-background px-2.5 text-sm outline-none focus:ring-1 focus:ring-ring"
                 />
             </div>
+
             <div className="mt-2 flex flex-col gap-1">
                 <label className="text-xs font-medium text-muted-foreground">
                     Link URL <span className="font-normal opacity-60">(optional)</span>
@@ -687,6 +829,17 @@ const ImageEditDialog = ({
                 </div>
             </div>
         </Modal>
+
+        {showCrop && (
+            <ImageEditor
+                src={src}
+                mode="modal"
+                title="Crop image"
+                onClose={() => setShowCrop(false)}
+                onSave={(dataUrl) => { setSrc(dataUrl); setShowCrop(false); }}
+            />
+        )}
+        </>
     );
 };
 
@@ -745,7 +898,11 @@ const RichTextInner = ({
             // CR-042 — DOMOutputSpec tuple type requires a const assertion to satisfy TS
             const imgSpec = ['img', imgAttrs] as const;
             if (href) {
-                return ['a', { href, target: target ?? '_blank', rel: 'noopener noreferrer' }, imgSpec] as unknown as readonly [string, ...unknown[]];
+                // Use data-* attributes instead of href/target so the browser
+                // never navigates when clicking the image during editing.
+                // The real href/target are restored in the serialized HTML
+                // output via onUpdate transformation.
+                return ['a', { 'data-href': href, 'data-target': target ?? '_blank', rel: 'noopener noreferrer' }, imgSpec] as unknown as readonly [string, ...unknown[]];
             }
             return imgSpec as unknown as readonly [string, ...unknown[]];
         },
@@ -827,7 +984,20 @@ const RichTextInner = ({
                         const imgPos = view.posAtDOM(target, 0);
                         const node = view.state.doc.nodeAt(imgPos);
                         if (node?.type.name === 'image') {
-                            setEditDialog({ pos: imgPos, attrs: node.attrs as Record<string, unknown> });
+                            const attrs = { ...node.attrs } as Record<string, unknown>;
+                            // When loading existing HTML (e.g. after page reload),
+                            // the href/target may be carried by the link mark rather
+                            // than the node attributes. Merge them so the edit dialog
+                            // shows the correct values.
+                            if (!attrs.href) {
+                                const linkMark = (node.marks as readonly { type: { name: string }; attrs: Record<string, unknown> }[] | undefined)
+                                    ?.find(m => m.type.name === 'link');
+                                if (linkMark) {
+                                    if (linkMark.attrs.href)   attrs.href   = linkMark.attrs.href;
+                                    if (linkMark.attrs.target) attrs.target = linkMark.attrs.target;
+                                }
+                            }
+                            setEditDialog({ pos: imgPos, attrs });
                             return true;
                         }
                     } catch { /* ignore — posAtDOM can throw if element is outside the doc */ }
@@ -839,7 +1009,9 @@ const RichTextInner = ({
             const content =
                 outputFormat === 'json' ? JSON.stringify(ed.getJSON()) :
                 outputFormat === 'text' ? ed.getText() :
-                ed.getHTML();
+                ed.getHTML()
+                    .replace(/<a([^>]*?)data-href="([^"]*?)"/g, '<a$1href="$2"')
+                    .replace(/data-target="([^"]*?)"/g, 'target="$1"');
             onEditorChange(content);
         },
     });
@@ -852,7 +1024,9 @@ const RichTextInner = ({
         const current =
             outputFormat === 'json' ? JSON.stringify(editor.getJSON()) :
             outputFormat === 'text' ? editor.getText() :
-            editor.getHTML();
+            editor.getHTML()
+                .replace(/<a([^>]*?)data-href="([^"]*?)"/g, '<a$1href="$2"')
+                .replace(/data-target="([^"]*?)"/g, 'target="$1"');
         if (value !== current) {
             editor.commands.setContent(
                 outputFormat === 'json' && value ? (JSON.parse(value) as object) : (value || ''),
@@ -869,6 +1043,8 @@ const RichTextInner = ({
         editor.on('selectionUpdate', rerenderOnSelection);
         return () => { editor.off('selectionUpdate', rerenderOnSelection); };
     }, [editor, editorContentMinHeight]);
+
+
 
     // Source mode: toggle between WYSIWYG and raw HTML textarea.
     const handleSourceToggle = () => {
@@ -979,21 +1155,37 @@ const RichTextInner = ({
         } catch { /* variants not critical, preview is already updated */ }
     }, [resolvedSrcsetWidths, storage, imageUpload?.path]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const handleEditConfirm = ({ alt, href, target }: ImageDialogValues) => {
+    const handleEditConfirm = ({ src: newSrc, alt, href, target }: ImageDialogValues) => {
         if (!editor || !editDialog) return;
         const { pos, attrs } = editDialog;
-        setEditDialog(null);
         const node = editor.state.doc.nodeAt(pos);
         if (node?.type.name === 'image') {
-            const { tr } = editor.state;
-            tr.setNodeMarkup(pos, null, {
+            const { tr, schema } = editor.state;
+            const srcChanged = newSrc !== undefined && newSrc !== attrs.src;
+            const newAttrs = {
                 ...attrs,
+                ...(srcChanged ? { src: newSrc || null, srcset: null, sizes: null } : {}),
                 alt:    alt    || null,
                 href:   href   || null,
                 target: href ? (target || '_blank') : null,
-            });
+            };
+            // Sync link mark with the href attribute so round-trip parsing
+            // (editor.getHTML → save → load → editor.setContent) preserves
+            // the link correctly via the link mark.
+            const existingMarks = node.marks ?? [];
+            const hasLinkMark = existingMarks.some(m => m.type.name === 'link');
+            let newMarks = existingMarks;
+            if (href) {
+                if (!hasLinkMark) {
+                    newMarks = [...existingMarks, schema.marks.link.create({ href, target: target || '_blank' })];
+                }
+            } else {
+                newMarks = existingMarks.filter(m => m.type.name !== 'link');
+            }
+            tr.setNodeMarkup(pos, null, newAttrs, newMarks as any);
             editor.view.dispatch(tr);
         }
+        setEditDialog(null);
     };
 
 
@@ -1115,6 +1307,16 @@ const RichTextInner = ({
                 </BubbleMenu>
             )}
 
+            {editor && !sourceMode && (
+                <BubbleMenu
+                    editor={editor}
+                    shouldShow={({ editor: ed }) => ed.isActive('table')}
+                    options={{ placement: 'top-start', offset: 8 }}
+                >
+                    <TableBubbleMenu editor={editor} />
+                </BubbleMenu>
+            )}
+
             {/* Editor area */}
             {sourceMode ? (
                 <textarea
@@ -1143,6 +1345,7 @@ const RichTextInner = ({
                         '[&_.ProseMirror_td]:border [&_.ProseMirror_td]:border-border [&_.ProseMirror_td]:px-2 [&_.ProseMirror_td]:py-1',
                         '[&_.ProseMirror_th]:border [&_.ProseMirror_th]:border-border [&_.ProseMirror_th]:bg-muted [&_.ProseMirror_th]:px-2 [&_.ProseMirror_th]:py-1 [&_.ProseMirror_th]:font-semibold',
                         '[&_.ProseMirror_a]:text-primary [&_.ProseMirror_a]:underline [&_.ProseMirror_a]:pointer-events-none',
+                        '[&_.ProseMirror_a_img]:pointer-events-auto',
                         '[&_.ProseMirror_.is-editor-empty:first-child::before]:pointer-events-none [&_.ProseMirror_.is-editor-empty:first-child::before]:float-left [&_.ProseMirror_.is-editor-empty:first-child::before]:h-0 [&_.ProseMirror_.is-editor-empty:first-child::before]:text-muted-foreground [&_.ProseMirror_.is-editor-empty:first-child::before]:content-[attr(data-placeholder)]',
                     )}
                 >

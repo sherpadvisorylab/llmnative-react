@@ -5,7 +5,7 @@ import {LoadingButton} from "../ui/Buttons";
 import Icon from "../ui/Icon";
 import { cn } from "../../libs/cn";
 
-type ImageEditorProps = {
+export type ImageEditorProps = {
     src: string;
     title?: string;
     width?: number;
@@ -94,7 +94,6 @@ const ImageEditor = ({
 
             imageEditorInst.current = editor;
 
-            // Load initial image now that the editor is ready
             if (src) {
                 editor.loadImageFromURL(src, 'Sample Image')
                     .then(() => {
@@ -139,7 +138,6 @@ const ImageEditor = ({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [width, height]);
 
-    // Reload when imageUrl changes after the editor is already initialised
     const loadImage = useCallback(() => {
         const editor = imageEditorInst.current;
         if (!src || !editor) return;
@@ -156,7 +154,6 @@ const ImageEditor = ({
     }, [src, onImageLoad]);
 
     useEffect(() => {
-        // Only fires on imageUrl changes after mount; initial load is handled inside initEditor
         if (imageEditorInst.current) loadImage();
     }, [loadImage]);
 
@@ -233,13 +230,12 @@ const ImageEditor = ({
     const handleSave = async () => {
         const editor = imageEditorInst.current;
         if (!editor) return;
-        // Apply any active crop selection before exporting
         try {
             const cropRect = editor.getCropzoneRect?.() as { left: number; top: number; width: number; height: number } | null;
             if (cropRect && cropRect.width > 0 && cropRect.height > 0) {
                 await editor.crop(cropRect);
             }
-        } catch { /* not in crop mode or crop not active */ }
+        } catch { }
         await onSave?.(editor.toDataURL());
     };
 
@@ -298,7 +294,6 @@ const ImageEditor = ({
         </>
     );
 
-    // Modal header: title + tools + save in one unified row - Modal provides the border-b
     const ModalHeader = (
         <div className="flex flex-1 min-w-0 items-center gap-0.5 overflow-x-auto">
             <span className="shrink-0 text-sm font-semibold text-foreground pr-2 mr-1">
@@ -315,7 +310,6 @@ const ImageEditor = ({
         </div>
     );
 
-    // Inline toolbar: compact row at the top with a bottom border
     const InlineToolbar = (
         <div className="flex items-center gap-0.5 border-b px-2 py-1">
             {ToolButtons}
@@ -337,7 +331,6 @@ const ImageEditor = ({
             )}
             style={{ minHeight: (height * zoom) + 'px' }}
         >
-            {/* Override TUI's default opaque background so the checkerboard shows through */}
             <style>{`.tui-image-editor,.tui-image-editor canvas{background:transparent!important}`}</style>
             <div
                 ref={rootEl}

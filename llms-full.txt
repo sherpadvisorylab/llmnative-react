@@ -291,6 +291,26 @@ export class RestDataProvider implements DataProviderAdapter {
 | `editable` | `boolean` |
 | `max` | `number` (MB) |
 
+### ImageField
+```tsx
+<ImageField
+  name="hero"
+  label="Hero image"
+  defaultValue={{ src: 'https://example.com/hero.jpg', alt: 'Hero shot' }}
+  srcsetWidths={[400, 800]}
+  uploadPath="/content/images"
+/>
+```
+
+Gestisce un oggetto `{ src, alt, srcset?, sizes? }`, preview inline, crop editor e generazione opzionale di varianti responsive.
+
+### RichText
+```tsx
+<RichText name="body" label="Article body" />
+```
+
+Editor WYSIWYG integrato con il contesto `Form`. Carica TipTap lazy solo quando il campo viene montato.
+
 ### Repeat — array dinamici
 ```tsx
 <Repeat name="items" defaultLength={3} minItems={1} maxItems={10}>
@@ -457,8 +477,10 @@ export class RestDataProvider implements DataProviderAdapter {
 
 ### ImageEditor
 ```tsx
-<ImageEditor src="..." onSave={(blob) => upload(blob)} />
+<ImageEditor src="..." onSave={(dataUrl) => save(dataUrl)} />
 ```
+
+`ImageEditor` e un singolo componente pubblico. La libreria pesante `tui-image-editor` viene importata lazy a runtime dentro il componente, quindi non viene scaricata finche l'editor non viene effettivamente montato.
 
 ### TabDynamic
 Tab con lazy loading dei contenuti — gestione dinamica aggiunta/rimozione tab.

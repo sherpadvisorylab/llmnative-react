@@ -13,8 +13,7 @@ import {
     altFromFileName,
 } from '../../../libs/imageVariants';
 import { useStorageProvider } from '../../../providers/storage/StorageProviderContext'; // CR-042
-
-const LazyImageEditor = React.lazy(() => import('../../widgets/ImageEditor'));
+import ImageEditor from '../../widgets/ImageEditor';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -302,15 +301,13 @@ export const ImageField = ({
 
             {/* ImageEditor modal (lazy-loaded) */}
             {showCrop && src && (
-                <React.Suspense fallback={null}>
-                    <LazyImageEditor
-                        src={src}
-                        mode="modal"
-                        title={`Crop — ${fileNameFromUrl(src)}`}
-                        onClose={() => setShowCrop(false)}
-                        onSave={handleCropSave}
-                    />
-                </React.Suspense>
+                <ImageEditor
+                    src={src}
+                    mode="modal"
+                    title={`Crop — ${fileNameFromUrl(src)}`}
+                    onClose={() => setShowCrop(false)}
+                    onSave={handleCropSave}
+                />
             )}
         </Wrapper>
     );

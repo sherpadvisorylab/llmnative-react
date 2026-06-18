@@ -30,7 +30,6 @@ import inputEn from './input.en';
 import switchEn from './switch.en';
 import selectEn from './select.en';
 import textAreaEn from './textArea.en';
-import imageUrlEn from './imageUrl.en';
 import autocompleteEn from './autocomplete.en';
 import checklistEn from './checklist.en';
 import imageEn from './image.en';
@@ -98,7 +97,6 @@ export const showcaseFallbacks = {
     switch: switchEn.showcase.switch,
     select: selectEn.showcase.select,
     textArea: textAreaEn.showcase.textArea,
-    imageUrl: imageUrlEn.showcase.imageUrl,
     autocomplete: autocompleteEn.showcase.autocomplete,
     checklist: checklistEn.showcase.checklist,
     image: imageEn.showcase.image,

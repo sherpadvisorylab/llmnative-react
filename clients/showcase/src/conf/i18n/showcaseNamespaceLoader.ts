@@ -36,7 +36,6 @@ export type ShowcaseNamespace =
     | 'switch'
     | 'select'
     | 'textArea'
-    | 'imageUrl'
     | 'autocomplete'
     | 'checklist'
     | 'image'
@@ -379,14 +378,6 @@ const dedicatedNamespaceLoaders: Partial<Record<ShowcaseNamespace, Record<Locale
         ru: () => import('./textArea.ru'),
         zh: () => import('./textArea.zh'),
         ar: () => import('./textArea.ar'),
-    },
-    imageUrl: {
-        en: () => import('./imageUrl.en'),
-        it: () => import('./imageUrl.it'),
-        de: () => import('./imageUrl.de'),
-        ru: () => import('./imageUrl.ru'),
-        zh: () => import('./imageUrl.zh'),
-        ar: () => import('./imageUrl.ar'),
     },
     autocomplete: {
         en: () => import('./autocomplete.en'),

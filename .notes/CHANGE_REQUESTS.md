@@ -2968,7 +2968,7 @@ Audit e migrazione di tutte le classi Bootstrap utility presenti nel JSX dei com
 
 - `src/components/blocks/`: Carousel, Notifications, Search
 - `src/components/ui/`: Gallery, Loader, Modal, Pagination, Repeat, Tab, TabDynamic, Table
-- `src/components/ui/fields/`: AssistantAI, Command, Crop, ImageUrl, Input, Prompt, Upload
+- `src/components/ui/fields/`: AssistantAI, Command, Crop, ImageField, Input, Prompt, Upload
 - `src/components/widgets/`: ImageEditor, Prompt, TabDynamic
 - `src/providers/auth/google/GoogleAuth.tsx`
 - `src/providers/storage/dropbox.tsx`
@@ -3398,7 +3398,7 @@ La codebase oggi usa parole diverse per concetti simili:
 - `Form.aspect` per scegliere `card | empty`
 - `AuthButton.aspect` per scegliere `button | avatar`
 - `AssistantAI.viewMode` per scegliere `list | carousel`
-- `ImageUrl.mode` per un comportamento che in realtà riguarda il prompt
+- Il vecchio campo immagine esponeva `mode` per un comportamento che in realtà riguardava il prompt
 
 Questo genera ambiguità sia per gli umani sia, soprattutto, per gli agenti AI.  
 Un framework AI-first deve usare un vocabolario piccolo, stabile e semanticamente netto: una parola = un concetto.
@@ -3472,7 +3472,7 @@ Confermati:
 - `Theme.mode`
 
 Da rinominare:
-- `ImageUrl.mode` → `ImageUrl.promptMode`
+- Rimuovere la vecchia semantica `mode` dal campo immagine legacy
 
 #### 5. Variant / Position / Size
 
@@ -3505,7 +3505,7 @@ Confermati:
 - `src/components/widgets/grid-core/*`
 - `src/components/widgets/Form.tsx`
 - `src/auth.tsx`
-- `src/components/ui/fields/ImageUrl.tsx`
+- `src/components/ui/fields/ImageField.tsx`
 - `src/components/ui/fields/AssistantAI.tsx`
 - `src/components/widgets/Prompt.tsx` (solo verifica semantica, non necessariamente rename)
 - `clients/showcase/src/pages/components/*`
@@ -3521,7 +3521,7 @@ Confermati:
 - [ ] Rinominare `AssistantAI.viewMode` in `AssistantAI.view`
 - [ ] Rinominare `Form.aspect` in `Form.appearance`
 - [ ] Rinominare `AuthButton.aspect` in `AuthButton.appearance`
-- [ ] Rinominare `ImageUrl.mode` in `ImageUrl.promptMode`
+- [ ] Chiudere definitivamente il debito storico del vecchio campo immagine
 - [ ] Valutare e normalizzare i valori `empty` → `plain` dove opportuno
 - [ ] Verificare che `Repeat.layout`, `Prompt.mode`, `variant`, `position`, `size` restino semanticamente coerenti
 - [ ] Aggiornare showcase, prop docs e preset playground
@@ -3928,7 +3928,7 @@ const jsonSchema = {
 ### Tipi supportati nello schema JSON
 
 Tutti i tipi del registry `Component.input.*`:
-`string`, `number`, `email`, `password`, `color`, `date`, `time`, `datetime`, `week`, `month`, `textarea`, `checkbox`, `switch`, `select`, `autocomplete`, `checklist`, `uploadImage`, `uploadDocument`, `prompt`, `imageUrl`
+`string`, `number`, `email`, `password`, `color`, `date`, `time`, `datetime`, `week`, `month`, `textarea`, `checkbox`, `switch`, `select`, `autocomplete`, `checklist`, `uploadImage`, `uploadDocument`, `prompt`, `imageField`
 
 ### Integrazione Grid
 
@@ -4577,7 +4577,7 @@ La chiave di ogni override si mappa sul `defaultValue` del suo sotto-campo speci
 
 ### Scope
 
-- Nuovo file `src/types/FormSchema.tsx` con `ComponentFormSchemaMap` e implementazione per tutti i 19 tipi di campo: `string`, `number`, `email`, `password`, `color`, `date`, `time`, `datetime`, `week`, `month`, `textarea`, `checkbox`, `switch`, `select`, `autocomplete`, `checklist`, `uploadImage`, `uploadDocument`, `imageUrl`
+- Nuovo file `src/types/FormSchema.tsx` con `ComponentFormSchemaMap` e implementazione per tutti i 19 tipi di campo: `string`, `number`, `email`, `password`, `color`, `date`, `time`, `datetime`, `week`, `month`, `textarea`, `checkbox`, `switch`, `select`, `autocomplete`, `checklist`, `uploadImage`, `uploadDocument`, `imageField`
 - `src/components/Component.tsx`: aggiunta `schema: componentFormSchema`, export di `FieldAdapter`
 - `src/components/index.ts`: export di `FieldAdapter`, `FieldFactory`, `ModelProps`, `FormTree`, `ComponentFormSchemaMap`
 

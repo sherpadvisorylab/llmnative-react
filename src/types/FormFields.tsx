@@ -17,7 +17,7 @@ import {
     Month
 } from "../components/ui/fields/Input";
 import {Autocomplete, Checklist, Select, SelectProps} from "../components/ui/fields/Select";
-import {ImageUrl, ImageUrlProps} from "../components/ui/fields/ImageUrl";
+import {ImageField, ImageFieldProps} from "../components/ui/fields/ImageField";
 import {UploadDocument, UploadDocumentProps, UploadImage, UploadImageProps} from "../components/ui/fields/Upload";
 import { Prompt, PromptProps } from "../components/widgets/Prompt";
 
@@ -41,7 +41,7 @@ export interface ComponentFormFieldsMap {
     uploadImage: FieldFactory<Partial<UploadImageProps>>;
     uploadDocument: FieldFactory<Partial<UploadDocumentProps>>;
     prompt: FieldFactory<Partial<PromptProps>>;
-    imageUrl: FieldFactory<Partial<ImageUrlProps>>;
+    imageField: FieldFactory<Partial<ImageFieldProps>>;
     menu: FieldFactory<{ defaultValue?: string }>;
 }
 
@@ -141,11 +141,11 @@ const componentFormFields: ComponentFormFieldsMap = {
         getDefaults: (name) => ({[name]: props.defaultValue}),
         render: ({name, label, ...rest} = {} as FieldRenderProps) => <Prompt key={name ?? props.name} name={(name ?? props.name) as string} label={label ?? props.label ?? name} {...props} {...rest} />
     }),
-    imageUrl: (props = {}) => {
+    imageField: (props = {}) => {
         return {
             __props: props,
             getDefaults: (name) => ({[name]: props.defaultValue}),
-            render: ({name, label, ...rest} = {} as FieldRenderProps) => <ImageUrl name={(name ?? props.name) as string} label={label ?? name} {...props} {...rest} />
+            render: ({name, label, ...rest} = {} as FieldRenderProps) => <ImageField name={(name ?? props.name) as string} label={label ?? name} {...props} {...rest} />
         }
     },
     menu: (props = {}) => ({

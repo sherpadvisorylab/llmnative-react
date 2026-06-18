@@ -1,7 +1,7 @@
 # Roadmap
 
-> Operational roadmap aligned to the codebase on 2026-05-08.
-> The full historical plan lives in `docs/CHANGE_REQUESTS.md`; the current verified status lives in `docs/STATUS.md`.
+> Operational roadmap aligned to the codebase on 2026-06-18.
+> The full historical plan lives in `.notes/CHANGE_REQUESTS.md`; the current verified status lives in `.notes/STATUS.md`.
 
 ---
 
@@ -17,28 +17,29 @@ Already implemented and verified:
 
 - Vite library build with CJS/ESM/CSS/types output.
 - `DataProvider`, `StorageProvider`, `AuthProvider`, `EmailProvider` and their contexts.
-- `FirebaseDataProvider`, `FirebaseStorageProvider`, `MockDataProvider`.
-- Supabase implementations present but partial.
+- `FirebaseDataProvider`, `FirebaseStorageProvider`, `FirestoreDataProvider`, `SupabaseDataProvider`, `SupabaseStorageProvider`, `SupabaseAuthProvider`, `MockDataProvider`.
 - App-level declarative provider config via `<App providers={{ ... }}>`.
 - Internal `RuntimeProvider` that composes runtime config and persisted global state.
 - Client-side head management via `HeadProvider`, `Head` and dedicated hooks for metadata/document/social/language/pagination/assets/PWA/schema.org.
 - Theme registry and icon registry controllable from `<App>`.
+- `I18nProvider`, `useI18n()`, locale dictionaries and `LocaleSwitcher`.
 - Tailwind v4 runtime via CSS compatibility layer.
 - Public `MarkdownReader`.
+- `ImageField` is the active public image field.
+- `ImageEditor` heavy runtime (`tui-image-editor`) now stays in a lazy chunk instead of being forced into the root bundle.
 - Vite-based showcase built on `<App providers={{ ... }}>` and Markdown docs via frontmatter.
 - Vite-first scaffold realigned to the new `providers` API.
-- Unit/component tests: 14 files, 124 passing tests.
+- Unit/component/contract tests: 45 files, 464 passing tests.
 
 Not yet complete:
 
 - Firebase/Supabase integration tests.
-- Storage/Auth/Email provider tests.
-- Component tests for Prompt.
-- Contract tests for concrete storage implementations.
-- Playwright E2E and CI.
+- Firebase/Supabase emulator integration tests.
+- Browser OAuth integration tests.
+- Playwright E2E.
 - Showcase without stubs for providers and examples.
 - Public deploy of the showcase.
-- Final component API audit and removal/isolation of legacy debt.
+- Final component API audit and removal/isolation of legacy debt (`Command`).
 
 ---
 
@@ -62,13 +63,13 @@ Goal: be able to say what works with automated tests, not just with a build.
 Tasks:
 
 - Add `Upload` tests. *(done: base component coverage)*
-- Add `Prompt` tests.
+- Keep `npm test` green as public surface evolves (`publicExports.contract.test.ts`).
 - Add `Repeat` tests. *(done: render/add/readOnly/save nested)*
 - Add storage provider tests at least on mock/fake adapter or dedicated contract. *(partial: `StorageProviderContext` covered)*
 - Add Firebase integration with emulator or explicitly mark it as manual until emulator setup.
-- Add Supabase integration only when `SupabaseDataProvider` stops logging `not fully implemented yet`.
+- Add Supabase integration coverage against a real/emulated backend.
 - Add separate scripts if needed: `test:unit`, `test:integration`, `test:e2e`.
-- Add CI.
+- Extend CI from build/unit to integration/E2E where credentials and emulators allow.
 
 ---
 
@@ -82,7 +83,7 @@ First pages to make real:
 - `/examples/nested-form`: dot notation, array/repeat and default values.
 - `/examples/dashboard`: metrics and tables from mock data.
 - `/providers/data/firebase`: real contract, config and limits.
-- `/providers/data/supabase`: honest page about partial state and REST API used.
+- `/providers/data/supabase`: honest page about real current capabilities and limits.
 - `/providers/storage`: real contract `upload/getURL/download/delete`.
 
 Acceptance:
@@ -100,7 +101,7 @@ Known issues:
 
 - `Input`: clarify `type` vs `inputType`.
 - `Select`: complete/document `placeholder`.
-- `Form`: clarify the bare variant vs `aspect`.
+- `Form`: clarify `appearance` and residual docs still mentioning `aspect`.
 - `Grid`: align docs/API on `pagination.limit` vs `pagination.perPage`.
 - `Modal`: verify actually exported props.
 - `Icon`: single `name` prop; the `icon` prop has been removed from the `Icon` component.
@@ -112,7 +113,7 @@ Known issues:
 
 Before `2.0.0-rc`:
 
-- `npm run test` passes.
+- `npm run test` passes. *(already true on 2026-06-18)*
 - `npm run build` passes.
 - `cd clients/showcase && npm run build` passes.
 - Showcase without critical stubs in main paths.

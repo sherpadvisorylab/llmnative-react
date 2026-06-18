@@ -348,7 +348,7 @@ export default function SideNav({
     }
 
     return (
-        <div style={{ width: collapsed ? W_COLLAPSED : W_EXPANDED, height: '100%', transition: 'width 220ms cubic-bezier(0.4,0,0.2,1)', flexShrink: 0, position: 'relative' }}>
+        <div className="min-h-0" style={{ width: collapsed ? W_COLLAPSED : W_EXPANDED, height: '100%', transition: 'width 220ms cubic-bezier(0.4,0,0.2,1)', flexShrink: 0, position: 'relative' }}>
             <aside
                 style={{
                     width: isExpanded ? W_EXPANDED : W_COLLAPSED,
@@ -361,7 +361,7 @@ export default function SideNav({
                     overflowX: 'hidden',
                     overflowY: 'hidden',
                 }}
-                className="flex flex-col border-r bg-background"
+                className="flex min-h-0 flex-col border-r bg-background"
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
             >
@@ -375,7 +375,7 @@ export default function SideNav({
                         {header}
                     </div>
                 )}
-                <nav className="flex-1 overflow-y-auto overflow-x-hidden px-1.5 py-2">
+                <nav className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-1.5 py-2">
                     {groups.map(group => (
                         <NavGroup
                             key={group.key}

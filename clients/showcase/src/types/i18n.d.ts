@@ -1149,26 +1149,6 @@ interface ShowcaseTextAreaI18n {
     };
 }
 
-interface ShowcaseImageUrlI18n {
-    page: { title: string; description: string; };
-    sections: {
-        imageMetadata: ShowcasePageSectionCopy;
-    };
-    labels: {
-        hero: string;
-        heroImage: string;
-        blueHeroIllustration: string;
-        squareThumbnail: string;
-    };
-    propsDocs: {
-        title: string;
-        items: Record<string, ShowcaseGridDocFieldCopy>;
-    };
-    playground: {
-        title: string;
-    };
-}
-
 interface ShowcaseAutocompleteI18n {
     page: { title: string; description: string; };
     sections: {
@@ -2396,7 +2376,6 @@ declare module '@llmnative/react' {
             switch:                       ShowcaseSwitchI18n;
             select:                       ShowcaseSelectI18n;
             textArea:                     ShowcaseTextAreaI18n;
-            imageUrl:                     ShowcaseImageUrlI18n;
             autocomplete:                 ShowcaseAutocompleteI18n;
             checklist:                    ShowcaseChecklistI18n;
             image:                        ShowcaseImageI18n;

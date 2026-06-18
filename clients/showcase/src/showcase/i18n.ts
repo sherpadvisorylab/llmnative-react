@@ -60,7 +60,6 @@ export const useShowcaseInputI18n = () => useShowcaseSlice('input');
 export const useShowcaseSwitchI18n = () => useShowcaseSlice('switch');
 export const useShowcaseSelectI18n = () => useShowcaseSlice('select');
 export const useShowcaseTextAreaI18n = () => useShowcaseSlice('textArea');
-export const useShowcaseImageUrlI18n = () => useShowcaseSlice('imageUrl');
 export const useShowcaseAutocompleteI18n = () => useShowcaseSlice('autocomplete');
 export const useShowcaseChecklistI18n = () => useShowcaseSlice('checklist');
 export const useShowcaseImageI18n = () => useShowcaseSlice('image');
