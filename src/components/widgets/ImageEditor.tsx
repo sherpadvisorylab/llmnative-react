@@ -303,7 +303,7 @@ const ImageEditor = ({
             {onSave && (
                 <>
                     <Divider />
-                    <LoadingButton className="btn-primary btn-sm ml-1" onClick={handleSave} icon="floppy-disk" label={dict.save} />
+                    <LoadingButton className="btn-primary h-8 px-3 text-xs ml-1" onClick={handleSave} icon="floppy-disk" label={dict.save} />
                 </>
             )}
         </div>
@@ -314,7 +314,7 @@ const ImageEditor = ({
             {ToolButtons}
             {onSave && (
                 <div className="ml-auto pl-2">
-                    <LoadingButton className="btn-primary btn-sm" onClick={handleSave} icon="floppy-disk" label={dict.save} />
+                    <LoadingButton className="btn-primary h-8 px-3 text-xs" onClick={handleSave} icon="floppy-disk" label={dict.save} />
                 </div>
             )}
         </div>

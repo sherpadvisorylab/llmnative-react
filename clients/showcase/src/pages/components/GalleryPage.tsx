@@ -108,7 +108,7 @@ function GalleryPlaygroundPreview({
                         <div className="text-xs text-muted-foreground">{t.labels.enableSelectionHelp}</div>
                     </div>
                     <ActionButton
-                        className={`${selectionEnabled ? buttonPrimaryClass : buttonOutlineSecondaryClass} btn-sm`}
+                        className={`${selectionEnabled ? buttonPrimaryClass : buttonOutlineSecondaryClass} h-8 px-3 text-xs`}
                         label={selectionEnabled ? t.labels.disableMultiCheckbox : t.labels.enableMultiCheckbox}
                         onClick={() => {
                             setSelectionEnabled((current) => {
@@ -342,13 +342,13 @@ type GallerySelectionState = ${GALLERY_SELECTION_STATE_TYPE}`,
                                     </span>
                                     <div className="flex items-center gap-2">
                                         <ActionButton
-                                            className={`${buttonOutlineSecondaryClass} btn-sm`}
+                                            className={`${buttonOutlineSecondaryClass} h-8 px-3 text-xs`}
                                             label={t.labels.export}
                                             disabled={!selectedKeys.length}
                                             onClick={() => setExportOpen(true)}
                                         />
                                         <ActionButton
-                                            className={`${buttonOutlineSecondaryClass} btn-sm`}
+                                            className={`${buttonOutlineSecondaryClass} h-8 px-3 text-xs`}
                                             label={t.labels.clear}
                                             disabled={!selectedKeys.length}
                                             onClick={() => {

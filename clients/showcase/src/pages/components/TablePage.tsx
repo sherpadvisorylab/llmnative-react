@@ -203,7 +203,7 @@ function TablePlaygroundPreview({
                             <div className="text-xs text-muted-foreground">{t.labels.multiCheckboxHelp}</div>
                         </div>
                         <ActionButton
-                            className={`${multiEnabled ? buttonPrimaryClass : buttonOutlineSecondaryClass} btn-sm`}
+                            className={`${multiEnabled ? buttonPrimaryClass : buttonOutlineSecondaryClass} h-8 px-3 text-xs`}
                             label={multiEnabled ? t.labels.disableMultiCheckbox : t.labels.enableMultiCheckbox}
                             onClick={() => {
                                 setMultiEnabled((current) => {
@@ -223,7 +223,7 @@ function TablePlaygroundPreview({
                             <div className="text-xs text-muted-foreground">{t.labels.dragReorderHelp}</div>
                         </div>
                         <ActionButton
-                            className={`${dragEnabled ? buttonPrimaryClass : buttonOutlineSecondaryClass} btn-sm`}
+                            className={`${dragEnabled ? buttonPrimaryClass : buttonOutlineSecondaryClass} h-8 px-3 text-xs`}
                             label={dragEnabled ? t.labels.disableDrag : t.labels.enableDrag}
                             onClick={() => {
                                 setDragEnabled((current) => {
@@ -625,13 +625,13 @@ type TableSelectionState = ${TABLE_SELECTION_STATE_TYPE}`,
                                     </span>
                                     <div className="flex items-center gap-2">
                                         <ActionButton
-                                            className={`${buttonOutlineSecondaryClass} btn-sm`}
+                                            className={`${buttonOutlineSecondaryClass} h-8 px-3 text-xs`}
                                             label={t.labels.export}
                                             disabled={!bulkKeys.length}
                                             onClick={() => setExportOpen(true)}
                                         />
                                         <ActionButton
-                                            className={`${buttonOutlineSecondaryClass} btn-sm`}
+                                            className={`${buttonOutlineSecondaryClass} h-8 px-3 text-xs`}
                                             label={t.labels.clear}
                                             disabled={!bulkKeys.length}
                                             onClick={() => {
@@ -678,13 +678,13 @@ const [exportOpen, setExportOpen] = useState(false);
       </span>
       <div className="flex items-center gap-2">
         <ActionButton
-          className={\`\${buttonOutlineSecondaryClass} btn-sm\`}
+          className={\`\${buttonOutlineSecondaryClass} h-8 px-3 text-xs\`}
           label="Export"
           disabled={!selectedKeys.length}
           onClick={() => setExportOpen(true)}
         />
         <ActionButton
-          className={\`\${buttonOutlineSecondaryClass} btn-sm\`}
+          className={\`\${buttonOutlineSecondaryClass} h-8 px-3 text-xs\`}
           label="Clear"
           disabled={!selectedKeys.length}
           onClick={() => {

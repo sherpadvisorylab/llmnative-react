@@ -123,10 +123,10 @@ function ImageExportPanel({
                 </p>
             )}
             <div className="mt-3 flex justify-center gap-2">
-                <button className="btn btn-sm btn-outline-secondary flex items-center gap-1.5" onClick={() => openExport('json')}>
+                <button className="btn btn-outline-secondary h-8 px-3 text-xs flex items-center gap-1.5" onClick={() => openExport('json')}>
                     <Icon name="code" size={13} /> {t.playground.export.jsonButton}
                 </button>
-                <button className="btn btn-sm btn-outline-primary flex items-center gap-1.5" onClick={() => openExport('html')}>
+                <button className="btn btn-outline-primary h-8 px-3 text-xs flex items-center gap-1.5" onClick={() => openExport('html')}>
                     <Icon name="file" size={13} /> {t.playground.export.htmlButton}
                 </button>
             </div>
@@ -144,13 +144,13 @@ function ImageExportPanel({
                             </span>
                             <div className="flex gap-2">
                                 <button
-                                    className="btn btn-sm btn-outline-secondary flex items-center gap-1.5"
+                                    className="btn btn-outline-secondary h-8 px-3 text-xs flex items-center gap-1.5"
                                     onClick={handleCopy}
                                 >
                                     <Icon name={copied ? 'check' : 'copy'} size={13} />
                                     {copied ? t.labels.copied : t.labels.copy}
                                 </button>
-                                <button className="btn btn-sm btn-outline-secondary" onClick={() => setModal(null)}>
+                                <button className="btn btn-outline-secondary h-8 px-3 text-xs" onClick={() => setModal(null)}>
                                     {t.labels.close}
                                 </button>
                             </div>

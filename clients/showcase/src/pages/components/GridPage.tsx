@@ -699,7 +699,7 @@ function TabbedSectionBody({ tab }: { tab: ExampleTab }) {
             </div>
             <div className="relative overflow-hidden border-t bg-muted/50">
                 <div className="absolute right-3 top-3">
-                    <ActionButton variant="secondary" className="btn-sm" label={copied ? t.labels.copied : t.labels.copy} onClick={copy} />
+                    <ActionButton variant="secondary" className="h-8 px-3 text-xs" label={copied ? t.labels.copied : t.labels.copy} onClick={copy} />
                 </div>
                 <pre className="overflow-x-auto p-5 pr-20 text-xs leading-relaxed text-foreground">
                     <code>{tab.code.trim()}</code>
