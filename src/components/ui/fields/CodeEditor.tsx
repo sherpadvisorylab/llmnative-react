@@ -6,8 +6,201 @@ import { cn } from '../../../libs/cn';
 import { useTheme } from '../../../Theme';
 import { useEditorHeight } from '../../../libs/editorHeight';
 import Icon from '../Icon';
+import type { FieldValue } from '../../../providers/data/DataProvider';
+import type { Parser, TreeCursor } from '@lezer/common';
 
 export type CodeEditorLanguage = 'liquid' | 'html' | 'json' | 'js' | 'ts' | 'css';
+
+export interface CodeSyntaxErrorDetails {
+    language: CodeEditorLanguage;
+    from: number;
+    to: number;
+    line: number;
+    column: number;
+    nodeName?: string;
+}
+
+export class CodeSyntaxError extends Error {
+    readonly language: CodeEditorLanguage;
+    readonly from: number;
+    readonly to: number;
+    readonly line: number;
+    readonly column: number;
+    readonly nodeName?: string;
+
+    constructor(message: string, details: CodeSyntaxErrorDetails) {
+        super(message);
+        this.name = 'CodeSyntaxError';
+        this.language = details.language;
+        this.from = details.from;
+        this.to = details.to;
+        this.line = details.line;
+        this.column = details.column;
+        this.nodeName = details.nodeName;
+    }
+}
+
+export interface CodeValidationResult {
+    valid: boolean;
+    error?: CodeSyntaxError;
+}
+
+type ParserFactory = () => Promise<Parser>;
+
+const parserCache: Partial<Record<Exclude<CodeEditorLanguage, 'liquid'>, Promise<Parser>>> = {};
+let liquidEnginePromise: Promise<{ parse: (source: string) => unknown }> | null = null;
+
+const getParserFactory = (language: Exclude<CodeEditorLanguage, 'liquid'>): ParserFactory => {
+    switch (language) {
+        case 'html':
+            return async () => {
+                const { html } = await import('@codemirror/lang-html');
+                return html({ matchClosingTags: true }).language.parser;
+            };
+        case 'json':
+            return async () => {
+                const { json } = await import('@codemirror/lang-json');
+                return json().language.parser;
+            };
+        case 'js':
+            return async () => {
+                const { javascript } = await import('@codemirror/lang-javascript');
+                return javascript().language.parser;
+            };
+        case 'ts':
+            return async () => {
+                const { javascript } = await import('@codemirror/lang-javascript');
+                return javascript({ typescript: true }).language.parser;
+            };
+        case 'css':
+            return async () => {
+                const { css } = await import('@codemirror/lang-css');
+                return css().language.parser;
+            };
+    }
+};
+
+const getParser = (language: Exclude<CodeEditorLanguage, 'liquid'>): Promise<Parser> => {
+    parserCache[language] ??= getParserFactory(language)();
+    return parserCache[language]!;
+};
+
+const getLiquidEngine = async (): Promise<{ parse: (source: string) => unknown }> => {
+    // Keep Liquid validation out of the initial bundle and load it only on demand.
+    liquidEnginePromise ??= import('liquidjs').then(({ Liquid }) => new Liquid({
+        strictFilters: true,
+        strictVariables: true,
+    }));
+    return liquidEnginePromise;
+};
+
+const getLineColumn = (source: string, offset: number) => {
+    let line = 1;
+    let column = 1;
+
+    for (let i = 0; i < offset && i < source.length; i++) {
+        if (source[i] === '\n') {
+            line += 1;
+            column = 1;
+        } else {
+            column += 1;
+        }
+    }
+
+    return { line, column };
+};
+
+const buildSyntaxError = (
+    code: string,
+    language: CodeEditorLanguage,
+    from: number,
+    to: number,
+    nodeName?: string,
+    label = 'Syntax error'
+) => {
+    const { line, column } = getLineColumn(code, from);
+    const suffix = nodeName ? ` near ${nodeName}` : '';
+    return new CodeSyntaxError(
+        `${label}${suffix} at line ${line}, column ${column}.`,
+        { language, from, to, line, column, nodeName }
+    );
+};
+
+const findErrorNode = (cursor: TreeCursor): { from: number; to: number; nodeName?: string } | null => {
+    do {
+        if (cursor.type.isError) {
+            return {
+                from: cursor.from,
+                to: cursor.to,
+                nodeName: cursor.name,
+            };
+        }
+    } while (cursor.next());
+
+    return null;
+};
+
+export const validateCodeSyntax = async (code: string, language: CodeEditorLanguage): Promise<void> => {
+    if (!code.trim()) return;
+
+    if (language === 'liquid') {
+        try {
+            const liquid = await getLiquidEngine();
+            liquid.parse(code);
+        } catch (error) {
+            if (error instanceof CodeSyntaxError) throw error;
+
+            const maybeToken = error && typeof error === 'object' && 'token' in error
+                ? (error as { token?: { begin?: number; end?: number; name?: string } }).token
+                : undefined;
+            const from = maybeToken?.begin ?? 0;
+            const to = maybeToken?.end ?? from;
+            const label = error instanceof Error
+                ? error.message.split(', line:')[0]
+                : 'Invalid Liquid syntax';
+
+            throw buildSyntaxError(code, language, from, to, maybeToken?.name, label);
+        }
+        return;
+    }
+
+    try {
+        const parser = await getParser(language);
+        const tree = parser.parse(code);
+        const errorNode = findErrorNode(tree.cursor());
+        if (errorNode) {
+            throw buildSyntaxError(code, language, errorNode.from, errorNode.to, errorNode.nodeName);
+        }
+    } catch (error) {
+        if (error instanceof CodeSyntaxError) throw error;
+
+        if (language === 'json' && error instanceof Error) {
+            const match = error.message.match(/position\s+(\d+)/i);
+            const offset = match ? Number(match[1]) : 0;
+            throw buildSyntaxError(code, language, offset, offset, undefined, 'Invalid JSON');
+        }
+
+        throw new CodeSyntaxError(
+            `Unable to validate ${language} code.`,
+            { language, from: 0, to: 0, line: 1, column: 1 }
+        );
+    }
+};
+
+export const getCodeValidationResult = async (
+    code: string,
+    language: CodeEditorLanguage
+): Promise<CodeValidationResult> => {
+    try {
+        await validateCodeSyntax(code, language);
+        return { valid: true };
+    } catch (error) {
+        if (error instanceof CodeSyntaxError) {
+            return { valid: false, error };
+        }
+        throw error;
+    }
+};
 
 export interface CodeEditorProps extends FormFieldProps {
     language?: CodeEditorLanguage;
@@ -19,12 +212,16 @@ export interface CodeEditorProps extends FormFieldProps {
     disabled?: boolean;
     feedback?: string;
     labelClassName?: string;
+    validateSyntax?: boolean;
+    validator?: (value: FieldValue) => string | undefined | Promise<string | undefined>;
 }
 
 const getLangLoader = (lang: CodeEditorLanguage): () => Promise<unknown> => {
     switch (lang) {
-        case 'html': case 'liquid':
+        case 'html':
             return () => import('@codemirror/lang-html').then(m => m.html());
+        case 'liquid':
+            return () => import('@codemirror/lang-liquid').then(m => m.liquid());
         case 'json':
             return () => import('@codemirror/lang-json').then(m => m.json());
         case 'js':
@@ -80,6 +277,8 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
     disabled,
     feedback,
     labelClassName,
+    validateSyntax = true,
+    validator,
     wrapperClassName,
     inheritWrapperClassName = true,
     before,
@@ -92,7 +291,26 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
     const { value, handleChange, formWrapClass } = useFormContext({
         name, onChange, defaultValue, wrapperClassName, inheritWrapperClassName,
     });
-    const error = useFieldValidation(name, { required, label });
+    const error = useFieldValidation(name, {
+        required,
+        label,
+        validator: async (fieldValue) => {
+            const nextValue = typeof fieldValue === 'string' ? fieldValue : `${fieldValue ?? ''}`;
+
+            if (validateSyntax) {
+                try {
+                    await validateCodeSyntax(nextValue, language);
+                } catch (validationError) {
+                    if (validationError instanceof CodeSyntaxError) {
+                        return validationError.message;
+                    }
+                    throw validationError;
+                }
+            }
+
+            return await validator?.(fieldValue);
+        },
+    });
 
     const containerRef = useRef<HTMLDivElement>(null);
     const viewRef = useRef<{ destroy: () => void; dom: HTMLElement; scrollDOM: HTMLElement } | null>(null);

@@ -288,6 +288,31 @@ describe('Form — required validation', () => {
         const saved = await provider.read('/items/v');
         expect(saved).toBeUndefined();
     });
+
+    it('awaits async validators and blocks submit when they return an error', async () => {
+        const provider = new MockDataProvider();
+        const validateJson = vi.fn(async (value: string) => {
+            await Promise.resolve();
+            return value.startsWith('{') ? undefined : 'Invalid JSON payload';
+        });
+
+        renderWithProviders(
+            <Form path="/items/async-validator" defaultValues={{ payload: 'oops' }}>
+                <Input name="payload" label="Payload" validator={validateJson} />
+            </Form>,
+            { provider }
+        );
+
+        fireEvent.click(screen.getByRole('button', { name: /save|salva/i }));
+
+        await waitFor(() => {
+            expect(screen.getByText('Invalid JSON payload')).toBeInTheDocument();
+        });
+
+        expect(validateJson).toHaveBeenCalledWith('oops');
+        const saved = await provider.read('/items/async-validator');
+        expect(saved).toBeUndefined();
+    });
 });
 
 // ── nested dot notation ───────────────────────────────────────────────────────

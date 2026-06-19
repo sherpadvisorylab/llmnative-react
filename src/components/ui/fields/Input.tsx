@@ -18,7 +18,7 @@ interface BaseInputProps extends FormFieldProps {
     step?: number;
     id?: string;
     labelClassName?: string;
-    validator?: (value: FieldValue) => string | undefined;
+    validator?: (value: FieldValue) => string | undefined | Promise<string | undefined>;
 }
 
 interface LabelProps {
@@ -47,7 +47,7 @@ export interface TextAreaProps extends FormFieldProps {
     textareaRef?: React.RefObject<HTMLTextAreaElement | null> | ((el: HTMLTextAreaElement | null) => void) | undefined;
     id?: string;
     labelClassName?: string;
-    validator?: (value: FieldValue) => string | undefined;
+    validator?: (value: FieldValue) => string | undefined | Promise<string | undefined>;
     onKeyDown?: React.KeyboardEventHandler<HTMLTextAreaElement>;
     onClick?: React.MouseEventHandler<HTMLTextAreaElement>;
     onBlur?: React.FocusEventHandler<HTMLTextAreaElement>;

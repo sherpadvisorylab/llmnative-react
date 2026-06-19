@@ -126,7 +126,7 @@
     interface FieldValidationConstraints {
         required?: boolean;
         label?: string;
-        validator?: (value: FieldValue) => string | undefined;
+        validator?: (value: FieldValue) => string | undefined | Promise<string | undefined>;
     }
 
     interface FormValidationContextValue {
@@ -530,7 +530,7 @@ export const useFormContext = ({name, onChange, wrapperClassName, inputType = "t
             });
         }, []);
 
-        const validateFields = useCallback((): boolean => {
+        const validateFields = useCallback(async (): Promise<boolean> => {
             const newErrors: Record<string, string> = {};
             for (const [fieldName, constraintsRef] of Object.entries(fieldRefs.current)) {
                 const { required, label, validator } = constraintsRef.current;
@@ -559,7 +559,7 @@ export const useFormContext = ({name, onChange, wrapperClassName, inputType = "t
                     }
                 }
                 if (validator) {
-                    const msg = validator(value);
+                    const msg = await validator(value);
                     if (msg) newErrors[fieldName] = msg;
                 }
             }
@@ -607,7 +607,7 @@ export const useFormContext = ({name, onChange, wrapperClassName, inputType = "t
                 setErrors({});
                 showNotice && setNotification(undefined);
             });
-            if (!validateFields()) {
+            if (!(await validateFields())) {
                 showNotice && setNotification({ message: dict.noticeRequiredFields, type: "warning" });
                 return false;
             }
