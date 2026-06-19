@@ -123,16 +123,46 @@ function mapRecordObjectToArray(
     });
 }
 
+export type MockDataProviderOptions = {
+    persist?: boolean;
+    storageKey?: string;
+};
+
 export class MockDataProvider implements DataProviderAdapter {
     private store: CollectionStore = {};
     private listeners: Map<string, ListenerSet> = new Map();
+    private persistKey: string | null;
 
-    constructor(initialData?: CollectionStore) {
-        if (initialData) {
-            for (const [rawPath, records] of Object.entries(initialData)) {
+    constructor(initialData?: CollectionStore, options?: MockDataProviderOptions) {
+        this.persistKey = options?.persist ? (options.storageKey ?? 'llmnative:mock') : null;
+
+        const seed = this.persistKey ? (this.loadStore() ?? initialData) : initialData;
+        if (seed) {
+            for (const [rawPath, records] of Object.entries(seed)) {
                 const key = rawPath.startsWith('/') ? rawPath : `/${rawPath}`;
                 this.store[key] = { ...records };
             }
+        }
+    }
+
+    private loadStore(): CollectionStore | null {
+        if (!this.persistKey || typeof window === 'undefined') return null;
+        try {
+            const raw = window.localStorage.getItem(this.persistKey);
+            if (!raw) return null;
+            const parsed = JSON.parse(raw) as CollectionStore;
+            return typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed) ? parsed : null;
+        } catch {
+            return null;
+        }
+    }
+
+    private saveStore(): void {
+        if (!this.persistKey || typeof window === 'undefined') return;
+        try {
+            window.localStorage.setItem(this.persistKey, JSON.stringify(this.store));
+        } catch {
+            // quota exceeded or private mode — ignore
         }
     }
 
@@ -197,6 +227,7 @@ export class MockDataProvider implements DataProviderAdapter {
         } else {
             this.store[collection] = { ...(data as Record<string, any>) }; // CR-042: data is RecordProps; cast needed for spread into CollectionStore
         }
+        this.saveStore();
         this.notify(collection);
     };
 
@@ -208,6 +239,7 @@ export class MockDataProvider implements DataProviderAdapter {
         } else {
             this.store[collection] = { ...col, ...(data as Record<string, any>) };
         }
+        this.saveStore();
         this.notify(collection);
     };
 
@@ -218,6 +250,7 @@ export class MockDataProvider implements DataProviderAdapter {
         } else {
             delete this.store[collection];
         }
+        this.saveStore();
         this.notify(collection);
     };
 
