@@ -1,7 +1,7 @@
 import './globals.css';
-export { default as App } from './App';
+export { default as App, AppProvider } from './App';
 export { useMenu } from './App';
-export type { AppProps, AppProvidersConfig, MenuConfig } from './App';
+export type { AppProps, AppProviderProps, AppProvidersConfig, MenuConfig } from './App';
 export type { AIConfig } from './Config';
 export type {
     ServicesConfig,

@@ -95,13 +95,28 @@ export type AppProvidersConfig = {
     };
     services?: ServicesConfig;
 };
-export type AppProps = {
+
+/**
+ * Props for AppProvider — the full framework provider stack.
+ * Vertical apps can inject their own context layer via `contextProviders`.
+ */
+export type AppProviderProps = {
+    /**
+     * A React component that wraps the entire app tree (bridge components + Routes)
+     * from inside the framework's DataProvider. Use this to inject vertical-specific
+     * context providers (auth, tenant, site selection, …) that need access to
+     * framework providers (useDataProvider, useI18n, etc.) without a singleton bridge.
+     *
+     * @example
+     * function CmsProviders({ children }) {
+     *   return <AuthProvider><TenantProvider><SiteProvider>{children}</SiteProvider></TenantProvider></AuthProvider>;
+     * }
+     * <App contextProviders={CmsProviders} ... />
+     */
+    contextProviders?: React.ComponentType<{ children: React.ReactNode }>;
     appName?: string;
     scrapeConfig?: ScrapeConfig;
     tenantsURI?: string;
-    importPage: (pagesPath: string) => Promise<{ default: React.ComponentType }>;
-    LayoutDefault?: React.ComponentType;
-    menuConfig: MenuConfig;
     providers?: AppProvidersConfig;
     /** Icon provider registry config. String shorthand selects the default provider id. */
     iconProvider?: AppIconProviderConfig;
@@ -115,6 +130,14 @@ export type AppProps = {
     /** Force debug mode in error boundaries (shows stack trace, component tree, browser context). Auto-enabled in DEV builds. */
     debug?: boolean;
 };
+
+/** Full App props: AppProviderProps + routing-specific config. */
+export type AppProps = AppProviderProps & {
+    importPage: (pagesPath: string) => Promise<{ default: React.ComponentType }>;
+    LayoutDefault?: React.ComponentType;
+    menuConfig: MenuConfig;
+};
+
 function addCustomProviders<T>(registry: Record<string, T>, custom?: Record<string, T> | T): void {
     if (!custom) return;
     const candidate = custom as Record<string, T>;
@@ -188,24 +211,93 @@ export const getContextMenu = (): string[] => {
     return Object.keys(menu);
 };
 
-function App({
-    importPage,
-    LayoutDefault = undefined,
-    scrapeConfig = undefined,
-    tenantsURI = undefined,
-    appName = "LLM Native",
-    menuConfig = {},
+/**
+ * The full framework provider stack as a standalone component.
+ *
+ * Wraps children with: ErrorBoundary → BrowserRouter → RuntimeProvider →
+ * AuthProvider → CredentialsProvider → DataProvider → StorageProvider →
+ * EmailProvider → AIProvider → IconProvider → HeadProvider → I18nProvider →
+ * ThemeProvider → [contextProviders] → children.
+ *
+ * `contextProviders` runs inside DataProvider, so vertical-specific providers
+ * mounted there can call `useDataProvider()`, `useI18n()`, etc. directly.
+ *
+ * `App` uses `AppProvider` internally. Use `AppProvider` directly only when
+ * you need the provider stack without the routing layer (e.g. tests, Storybook).
+ */
+export function AppProvider({
+    contextProviders,
     providers = {},
+    appName = 'LLM Native',
+    scrapeConfig,
+    tenantsURI,
     iconProvider,
     themeProvider,
     i18n,
     children,
     errorReportUrl,
     debug,
-}: AppProps) {
+}: AppProviderProps) {
     const registriesRef = useRef<ReturnType<typeof resolveProviderRegistries>>();
     if (!registriesRef.current) registriesRef.current = resolveProviderRegistries(providers);
     const registries = registriesRef.current;
+
+    const ContextProviders = contextProviders ?? React.Fragment;
+
+    return (
+        <ErrorBoundary fullPage reportUrl={errorReportUrl} debug={debug}>
+        <BrowserRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
+            <RuntimeProvider defaultConfig={{
+                title: appName,
+                firebase: providers.firebase,
+                google: providers.google
+                    ? {
+                        oAuth2: { clientId: providers.google.clientId, scope: providers.google.scope },
+                        serviceAccount: providers.google.serviceAccount,
+                        developerToken: providers.google.developerToken,
+                    }
+                    : undefined,
+                dropbox: providers.dropbox,
+                ai: providers.ai,
+                scrape: scrapeConfig,
+                proxy: providers.proxy,
+            }} tenantsURI={tenantsURI}>
+                <AuthProvider {...registries.auth}>
+                    <CredentialsProvider {...registries.credentials}>
+                    <DataProvider {...registries.data}>
+                        <StorageProvider {...registries.storage}>
+                            <EmailProvider {...registries.email}>
+                                <AIProvider {...registries.ai}>
+                                    <IconProvider config={iconProvider}>
+                                        <HeadProvider appName={appName}>
+                                            <I18nProvider config={i18n}>
+                                            <ThemeProvider config={themeProvider}>
+                                                <ContextProviders>
+                                                    {children}
+                                                </ContextProviders>
+                                            </ThemeProvider>
+                                            </I18nProvider>
+                                        </HeadProvider>
+                                    </IconProvider>
+                                </AIProvider>
+                            </EmailProvider>
+                        </StorageProvider>
+                    </DataProvider>
+                    </CredentialsProvider>
+                </AuthProvider>
+            </RuntimeProvider>
+        </BrowserRouter>
+        </ErrorBoundary>
+    );
+}
+
+function App({
+    importPage,
+    LayoutDefault = undefined,
+    menuConfig = {},
+    children,
+    ...providerProps
+}: AppProps) {
     setStaticMenu(menuConfig);
 
     const LayoutEmpty = ({ children }: { children: React.ReactNode }) => <>{children}</>;
@@ -246,7 +338,7 @@ function App({
                 path={item.path}
                 element={
                     <LayoutComponent>
-                        <ErrorBoundary key={item.path} reportUrl={errorReportUrl} debug={debug}>
+                        <ErrorBoundary key={item.path} reportUrl={providerProps.errorReportUrl} debug={providerProps.debug}>
                             <Suspense fallback={<PageLoader />}>
                                 <PageComponent />
                             </Suspense>
@@ -266,63 +358,25 @@ function App({
         );
 
     return (
-        <ErrorBoundary fullPage reportUrl={errorReportUrl} debug={debug}>
-        <BrowserRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
-            <RuntimeProvider defaultConfig={{
-                title: appName,
-                firebase: providers.firebase,
-                google: providers.google
-                    ? {
-                        oAuth2: { clientId: providers.google.clientId, scope: providers.google.scope },
-                        serviceAccount: providers.google.serviceAccount,
-                        developerToken: providers.google.developerToken,
-                    }
-                    : undefined,
-                dropbox: providers.dropbox,
-                ai: providers.ai,
-                scrape: scrapeConfig,
-                proxy: providers.proxy,
-            }} tenantsURI={tenantsURI}>
-                <AuthProvider {...registries.auth}>
-                    <CredentialsProvider {...registries.credentials}>
-                    <DataProvider {...registries.data}>
-                        <StorageProvider {...registries.storage}>
-                            <EmailProvider {...registries.email}>
-                                <AIProvider {...registries.ai}>
-                                    <IconProvider config={iconProvider}>
-                                        <HeadProvider appName={appName}>
-                                            <I18nProvider config={i18n}>
-                                            <ThemeProvider config={themeProvider}>
-                                                {children}
-                                                <Routes>
-                                                    <Route path={AUTH_REDIRECT_URI} element={<Authorize />}></Route>
-                                                    <>
-                                                        {renderRoutes({
-                                                            default: [{ path: "/" }], ...{
-                                                                ...menu,
-                                                                _auth: [{
-                                                                    path: "/users",
-                                                                    page: Users,
-                                                                    layout: LayoutDefault
-                                                                }]
-                                                            }
-                                                        })}
-                                                    </>
-                                                    <Route path='*' element={<NotFound />}></Route>
-                                                </Routes>
-                                            </ThemeProvider>
-                                            </I18nProvider>
-                                        </HeadProvider>
-                                    </IconProvider>
-                                </AIProvider>
-                            </EmailProvider>
-                        </StorageProvider>
-                    </DataProvider>
-                    </CredentialsProvider>
-                </AuthProvider>
-            </RuntimeProvider>
-        </BrowserRouter>
-        </ErrorBoundary>
+        <AppProvider {...providerProps}>
+            {children}
+            <Routes>
+                <Route path={AUTH_REDIRECT_URI} element={<Authorize />}></Route>
+                <>
+                    {renderRoutes({
+                        default: [{ path: "/" }], ...{
+                            ...menu,
+                            _auth: [{
+                                path: "/users",
+                                page: Users,
+                                layout: LayoutDefault
+                            }]
+                        }
+                    })}
+                </>
+                <Route path='*' element={<NotFound />}></Route>
+            </Routes>
+        </AppProvider>
     );
 }
 
