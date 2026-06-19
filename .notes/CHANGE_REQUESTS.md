@@ -23,7 +23,7 @@
 | [CR-010](#cr-010--tema-flat--tailwind--shadcnui) | Tema `flat` → Tailwind + shadcn/ui | Bassa | CR-004 | ✅ |
 | [CR-011](#cr-011--tema-cyber--tailwind--shadcnui) | Tema `cyber` → Tailwind + shadcn/ui | Bassa | CR-004 | ✅ |
 | [CR-021](#cr-021--use-case-templates) | Use case templates (crm, admin, inventory, project) | Media | CR-005, CR-017 | ✅ |
-| [CR-012](#cr-012--showcase-refactor--react-firestrap-native) | Showcase refactor — react-firestrap native | Alta | CR-004, CR-007 | ⬜ |
+| [CR-012](#cr-012--showcase-refactor--react-firestrap-native) | Showcase refactor — react-firestrap native | Alta | CR-004, CR-007 | ✅ |
 | [CR-013](#cr-013--icon-provider-system) | Icon provider system | Media | CR-004 | ✅ |
 | [CR-014](#cr-014--raffinazione-componenti--props-e-comportamenti) | Raffinazione componenti — props e comportamenti | Media | CR-007 | 🔄 |
 | [CR-015](#cr-015--vite-toolchain-framework--scaffolding) | Vite toolchain framework + scaffolding | Alta | CR-003, CR-004, CR-006 | ✅ |
@@ -34,14 +34,14 @@
 | [CR-020](#cr-020--head-management--declarative-provider-config) | Head management + declarative provider config | Alta | CR-017, CR-019 | ✅ |
 | [CR-022](#cr-022--bootstrap-utility-cleanup) | Bootstrap utility cleanup — JSX → Tailwind nativo | Media | CR-004 | ✅ |
 | [CR-023](#cr-023--driver-manifest--service-registry) | Driver manifest + service registry | Alta | CR-002, CR-002b | ✅ |
-| [CR-024](#cr-024--wysiwyg-editor-component) | WYSIWYG editor component | Alta | CR-004, CR-014 | ⬜ |
-| [CR-025](#cr-025--contextmenu-con-comandi-e-mention) | ContextMenu con comandi e @mention | Alta | CR-024 | ⬜ |
+| [CR-024](#cr-024--wysiwyg-editor-component) | WYSIWYG editor component (`RichText`) | Alta | CR-004, CR-014 | ✅ |
+| [CR-025](#cr-025--contextmenu-con-comandi-e-mention) | ContextMenu con comandi e @mention | Alta | CR-024 | 🔄 |
 | [CR-026](#cr-026--authbutton-provider-agnostic--dropboxauthprovider) | AuthButton provider-agnostic + DropboxAuthProvider | Alta | CR-002b, CR-023 | ✅ |
 | [CR-027](#cr-027--motion-system-e-interazioni-animate) | Motion system e interazioni animate | Media | CR-017, CR-022 | 🔄 |
 | [CR-028](#cr-028--stato-configurazione-provider) | Stato configurazione provider | Alta | CR-002, CR-023, CR-026 | ✅ |
 | [CR-029](#cr-029--internationalization-i18n-del-framework) | Internationalization i18n del framework | Alta | CR-017, CR-019 | ✅ |
 | [CR-030](#cr-030--self-contained-typed-themes) | Self-contained typed themes | Alta | CR-017, CR-027 | ✅ |
-| [CR-031](#cr-031--sidebar-block-del-framework) | Sidebar block del framework | Media | CR-007, CR-017 | ⬜ |
+| [CR-031](#cr-031--sidebar-block-del-framework) | Sidebar block del framework (`SideNav`) | Media | CR-007, CR-017 | ✅ |
 | [CR-032](#cr-032--firebaseauthprovider) | FirebaseAuthProvider (email/password + anonymous) | Alta | CR-002b, CR-023 | ✅ |
 | [CR-033](#cr-033--firestoredataprovider) | FirestoreDataProvider (Cloud Firestore) | Alta | CR-002, CR-023, CR-039 | ✅ |
 | [CR-034](#cr-034--supabasedataprovider-completo) | SupabaseDataProvider completo (SDK + real-time) | Alta | CR-002, CR-023 | ✅ |
@@ -52,7 +52,7 @@
 | [CR-039](#cr-039--firebase-sdk-compat--modular-v9) | Firebase SDK compat → modular v9+ | Alta | CR-002, CR-023 | ✅ |
 | [CR-042](#cr-042--typescript-no-any-eliminazione-di-tutti-gli-usi-di-any) | TypeScript no-any: eliminazione di tutti gli usi di `any` | Alta | CR-003 | ✅ done |
 | [CR-043](#cr-043--token-benchmark-page-nel-showcase) | Token Benchmark page nel showcase | Media | CR-016 | ✅ done |
-| [CR-044](#cr-044--showcase-pagine-mancanti-label-uploadcsv-crop-command) | Showcase pagine mancanti (Label, UploadCSV, Crop, Command) | Bassa | CR-007 | ⬜ |
+| [CR-044](#cr-044--showcase-pagine-mancanti-label-uploadcsv-crop-command) | Showcase pagine mancanti (Label, UploadCSV, Crop, Command) | Bassa | CR-007 | 🔄 |
 | [CR-045](#cr-045--ai-adoption-piano-di-distribuzione-e-visibilita) | AI Adoption: piano di distribuzione e visibilità | Alta | CR-001, CR-016 | ⬜ |
 | [CR-046](#cr-046--promptrun-visual-redesign--chatbot-style) | PromptRun visual redesign — chatbot style | Alta | — | ✅ |
 | [CR-047](#cr-047--prompt-extensible-toolbar-commands-attachments-actions-statusitems--promptutils-api) | Prompt extensible toolbar + PromptUtils API | Alta | CR-046 | ✅ |
@@ -469,9 +469,9 @@ Non esiste merge implicito tra temi built-in. L'unica patch opzionale dell'app �
 
 ---
 
-## CR-031 — Sidebar block del framework
+## CR-031 — Sidebar block del framework (`SideNav`)
 
-**Stato:** ✅ done — implementato come `SideNav` in `src/components/blocks/SideNav.tsx`
+**Stato:** ✅ done — implementato come `SideNav` in `src/components/blocks/SideNav.tsx`, esportato pubblicamente e usato dallo showcase.
 **Branch:** `modernize`  
 **Priorità:** Media  
 **Dipende da:** CR-007, CR-017  
@@ -1840,7 +1840,7 @@ La cartella `themes/cyber/src/` è stata eliminata. I colori del preset `cyber` 
 
 ## CR-012 — Showcase refactor — react-firestrap native
 
-**Stato:** ⬜ todo  
+**Stato:** ✅ done — il refactor è completo al 99%. L'unica menzione residua di `react-firestrap` è un commento in `.env.template`.  
 **Branch:** `modernize/cr-012-showcase-native`  
 **Priorità:** Alta  
 **Dipende da:** CR-004, CR-007  
@@ -3066,9 +3066,9 @@ providers={{
 
 ---
 
-## CR-024 — WYSIWYG editor component
+## CR-024 — WYSIWYG editor component (`RichText`)
 
-**Stato:** ⬜ todo  
+**Stato:** ✅ done — `RichText.tsx` esiste (1510 righe), usa TipTap con lazy loading, toolbar configurabile, export pubblico, pagina showcase dedicata e file i18n multilingua.  
 **Branch:** `modernize/cr-024-wysiwyg`  
 **Priorità:** Alta  
 **Dipende da:** CR-004, CR-014  
@@ -3195,7 +3195,7 @@ Il componente usa classi CSS del compatibility layer per la toolbar (`.btn`, `.b
 
 ## CR-025 — ContextMenu con comandi e @mention
 
-**Stato:** ⬜ todo  
+**Stato:** 🔄 in progress — slash commands implementati in `Prompt.tsx` (slashMatch, navigazione tastiera, filtro comandi). Manca `ContextMenu` come componente standalone e l'integrazione @mention. `Command.tsx` è legacy non esportato.  
 **Branch:** `modernize/cr-025-context-menu`  
 **Priorità:** Alta  
 **Dipende da:** CR-024  

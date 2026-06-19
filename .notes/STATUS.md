@@ -58,6 +58,10 @@
 | CR-037 | Done | `CredentialsAdapter` contract; `GoogleServiceAccountProvider` (Web Crypto JWT, scoped Google API tokens, browser-safe); `googleServiceAccount` driver registered. |
 | CR-029 | Done | `I18nProvider`, `useI18n()`, runtime translation registration, `LocaleSwitcher` and root exports are present and used by `<App>`. Docs (`docs/architecture/i18n.md`), showcase page (`/components/locale-switcher`), and 16 dedicated tests all done. All 14 files fully migrated (I18N_AUDIT.md). `npm run test` and `npm run build` pass. |
 | CR-042 | Done | TypeScript no-any: `any` count 101 → 6 justified exceptions (all annotated `// CR-042`). `tsc --noEmit` 0 errors. |
+| CR-012 | Done | Showcase refactor completo al 99%. Solo commento `.env.template` menziona ancora `react-firestrap`. |
+| CR-024 | Done | `RichText.tsx` (1510 righe) con TipTap, lazy loading, toolbar configurabile, export pubblico, pagina showcase `RichTextPage.tsx`, file i18n multilingua. |
+| CR-031 | Done | `SideNav` in `src/components/blocks/SideNav.tsx`, esportato pubblicamente e usato dallo showcase. |
+| CR-038 | Done | Public naming normalization per AI-first completata. |
 
 ---
 
@@ -65,18 +69,15 @@
 
 | CR | Real state | What is missing |
 |----|-----------|-----------------|
-| CR-006 | **80%** — 45 files / 464 tests pass. GitHub Actions CI present (test + build + showcase). Firebase/Supabase emulator integration, browser OAuth and Playwright E2E still absent. | Integration/E2E coverage. |
-| CR-007 | **70%** — Showcase is a real Vite consumer app with many component pages and interactive playgrounds. SideNav present. | Stub routes on concrete provider demos and application examples remain. |
-| CR-012 | **0%** — Stub routes still in showcase menu. | Replace provider/example stubs with real demos or honest placeholder pages. |
-| CR-014 | **40%** — Component API and playground much richer than May snapshot. | Public API audit, Input/Modal/Grid doc clarifications, remaining `any` patterns. |
-| CR-024 | **0%** | WYSIWYG `<RichEditor>` not started. |
-| CR-025 | **0%** | `Command.tsx` (legacy `contentEditable`/`execCommand`) still present; no ContextMenu/slash command. |
+| CR-006 | **85%** — 48 files / 442 unit tests + 1 E2E test. GitHub Actions CI present (test + build + showcase). Firebase/Supabase emulator integration, browser OAuth and Playwright E2E still absent. | Integration/E2E coverage. |
+| CR-007 | **70%** — Showcase is a real Vite consumer app with many component pages and interactive playgrounds. SideNav present. | 9 stub routes remain (providers: firebase/supabase/google — examples: crud/dashboard/nested-form/file-manager/google-auth). |
+| CR-014 | **50%** — Component API and playground much richer than May snapshot. | Public API audit, Input/Modal/Grid doc clarifications still open. Icon `type`/`inputType` inconsistency unresolved. |
+| CR-025 | **30%** | Slash commands implemented in `Prompt.tsx` (slashMatch, keyboard nav). ContextMenu standalone e @mention mancano. `Command.tsx` è legacy non esportato. |
 | CR-027 | **70%** | Motion system complete and tested. `Notifications`/toast motion still missing. |
-| CR-031 | **100%** | `SideNav` block exists in `src/components/blocks/SideNav.tsx`, publicly exported. Showcase imports it via `import { SideNav } from '@llmnative/react'` and wraps it locally. |
-| CR-038 | **100%** | Public naming normalization for AI-first — `Grid.layout`/`Form.aspect`/`AuthButton.aspect` no longer exist in codebase. |
 | CR-039 | **0% — spec written** | WorkflowAI declarative multi-step pipeline; spec in `CHANGE_REQUESTS.md`. No implementation. |
 | CR-040 | **0% — spec written** | SchemaForm (form generation from JSON schema/factory); spec in `CHANGE_REQUESTS.md`. No implementation. |
 | CR-041 | **0% — proposal written** | SeoEnhancer (HTML filter applying technical SEO, structured report); proposal in `CHANGE_REQUESTS.md`. No implementation. |
+| CR-044 | **25%** | UploadCSV page exists. Crop/Label pages missing. Command è dead code non esportato. |
 
 ---
 
