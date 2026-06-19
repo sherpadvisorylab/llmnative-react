@@ -101,6 +101,7 @@ const setAuths = (authServer: string, clientID: string, authResponse: IAuthRespo
 
 const Authorize = () => {
     const location = useLocation().search;
+    const common = useI18n('common');
 
     useEffect(() => {
         const query = new URLSearchParams(location);
@@ -139,7 +140,7 @@ const Authorize = () => {
             .catch((error) => console.error('Error:', error));
     }, [location]);
 
-    return <div>Loading...</div>;
+    return <div>{common.loading}</div>;
 };
 
 const refreshAccessToken = (authServer: string, clientID: string, refresh_token: string): Promise<string | null> => {
@@ -351,7 +352,7 @@ export const AuthButton = ({
                                 className="flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-left text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                                 onClick={runIntent}
                             >
-                                {label ?? 'SIGN IN'}
+                                {label ?? dict.signIn.toUpperCase()}
                             </button>
                         )}
                         {authenticated && (
@@ -366,7 +367,7 @@ export const AuthButton = ({
                                 }}
                             >
                                 {iconLogout && <Icon name={iconLogout} className="mr-2" />}
-                                LOGOUT
+                                {dict.signOut.toUpperCase()}
                             </button>
                         )}
                     </div>

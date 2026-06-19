@@ -128,13 +128,12 @@ type SlashMatchState = {
     end: number;
 };
 
-const promptLabel = "Prompt: ";
 const promptBodyClass = "space-y-2";
 const promptHeaderClass = "flex items-center justify-between gap-3";
 const promptTitleClass = "mb-0 min-w-0 text-sm font-medium leading-5 text-foreground";
 const promptActionClass = "ml-auto shrink-0";
 const getFallbackModelOptions = (): Array<{ label: string; value: string }> => [];
-const getPromptRunErrorMessage = (error: unknown) => {
+const getPromptRunErrorMessage = (error: unknown, fallback = "Prompt execution failed.") => {
     if (error instanceof Error && error.message) return error.message;
     if (typeof error === 'string') return error;
     if (error && typeof error === 'object') {
@@ -142,7 +141,7 @@ const getPromptRunErrorMessage = (error: unknown) => {
         if ('error' in error && typeof error.error === 'string') return error.error;
         if ('message' in error && typeof error.message === 'string') return error.message;
     }
-    return "Prompt execution failed.";
+    return fallback;
 };
 
 const PromptFieldHeader = ({
@@ -237,7 +236,7 @@ function usePromptAvailability(selectedModelRef?: string, customExecutorAvailabl
             provider: null,
             providerId: null,
             configured: false,
-            reason: "No AI providers are registered.",
+            reason: undefined,
         };
     }
 
@@ -347,7 +346,7 @@ const PromptEditor = ({
                 <div className={`${promptBodyClass} min-w-0 flex-1`}>
                     <PromptFieldHeader
                         htmlFor={editorId}
-                        label={promptEnabled ? promptLabel + caption : caption}
+                        label={promptEnabled ? dict.promptLabel + caption : caption}
                         required={required}
                         action={
                         <Switch
@@ -450,7 +449,7 @@ const PromptRun = ({
     const availability = usePromptAvailability(selectedModelRef, Boolean(onRunPrompt));
     const runDisabled = !availability.configured;
     const runTitle = runDisabled
-        ? (availability.reason || "AI is not configured. Prompt execution is unavailable.")
+        ? (availability.reason || dict.aiNotConfiguredRun)
         : undefined;
     const [runError, setRunError] = useState<string | null>(null);
     const customUnavailableNotice = !runError && !availability.configured
@@ -482,7 +481,7 @@ const PromptRun = ({
     const attachmentsTitle = attachmentsDisabled
         ? (!availability.configured && !onRunPrompt
             ? (availability.reason || dict.aiNotConfiguredRun)
-            : 'The selected AI provider does not support image or document attachments.')
+            : dict.attachmentsNotSupported)
         : dict.attachFiles;
 
     const getSlashMatchState = React.useCallback((text: string, caret: number): SlashMatchState | null => {
@@ -632,6 +631,7 @@ const PromptRun = ({
                 onRunPrompt,
                 resolvedProvider,
                 fileAttachments.length > 0 ? fileAttachments : undefined,
+                { noProvider: dict.noProvider, noResponse: dict.noResponse },
             );
             const durationMs = Date.now() - startMs;
             setRunError(null);
@@ -652,7 +652,7 @@ const PromptRun = ({
                 });
             }
         } catch (error) {
-            setRunError(getPromptRunErrorMessage(error));
+            setRunError(getPromptRunErrorMessage(error, dict.runFailed));
         }
     };
 
@@ -667,7 +667,7 @@ const PromptRun = ({
                     {caption && (
                         <PromptFieldHeader
                             htmlFor={fieldId}
-                            label={editing ? `Prompt: ${caption}` : caption}
+                            label={editing ? `${dict.promptLabel}${caption}` : caption}
                             required={required}
                         />
                     )}
@@ -879,7 +879,7 @@ const PromptRun = ({
                                         triggerClassName={promptModelTrigger}
                                     >
                                         <DropdownItem onClick={() => setField(name + ".prompt.model", "")}>
-                                            Default
+                                            {dict.defaultOption}
                                         </DropdownItem>
                                         {modelOptions.map((opt) => (
                                             <DropdownItem key={opt.value} onClick={() => setField(name + ".prompt.model", opt.value)}>
@@ -890,7 +890,7 @@ const PromptRun = ({
 
                                     {/* Role */}
                                     <Dropdown trigger={{ icon: "user", title: "Role" }} placement="top" position="start" triggerClassName={promptGhostIcon}>
-                                        <DropdownItem onClick={() => setField(name + ".prompt.role", "")}>Default ({promptDefaults.role})</DropdownItem>
+                                        <DropdownItem onClick={() => setField(name + ".prompt.role", "")}>{dict.defaultOption} ({promptDefaults.role})</DropdownItem>
                                         {PromptConf.getRoles().map((v) => (
                                             <DropdownItem key={v} onClick={() => setField(name + ".prompt.role", v)}>{v}</DropdownItem>
                                         ))}
@@ -898,7 +898,7 @@ const PromptRun = ({
 
                                     {/* Language */}
                                     <Dropdown trigger={{ icon: "globe", title: "Language" }} placement="top" position="start" triggerClassName={promptGhostIcon}>
-                                        <DropdownItem onClick={() => setField(name + ".prompt.language", "")}>Default ({promptDefaults.language})</DropdownItem>
+                                        <DropdownItem onClick={() => setField(name + ".prompt.language", "")}>{dict.defaultOption} ({promptDefaults.language})</DropdownItem>
                                         {PromptConf.getLangs().map((v) => (
                                             <DropdownItem key={v} onClick={() => setField(name + ".prompt.language", v)}>{v}</DropdownItem>
                                         ))}
@@ -906,7 +906,7 @@ const PromptRun = ({
 
                                     {/* Voice */}
                                     <Dropdown trigger={{ icon: "mic", title: "Voice" }} placement="top" position="start" triggerClassName={promptGhostIcon}>
-                                        <DropdownItem onClick={() => setField(name + ".prompt.voice", "")}>Default ({promptDefaults.voice})</DropdownItem>
+                                        <DropdownItem onClick={() => setField(name + ".prompt.voice", "")}>{dict.defaultOption} ({promptDefaults.voice})</DropdownItem>
                                         {PromptConf.getVoices().map((v) => (
                                             <DropdownItem key={v} onClick={() => setField(name + ".prompt.voice", v)}>{v}</DropdownItem>
                                         ))}
@@ -914,7 +914,7 @@ const PromptRun = ({
 
                                     {/* Style */}
                                     <Dropdown trigger={{ icon: "feather", title: "Style" }} placement="top" position="start" triggerClassName={promptGhostIcon}>
-                                        <DropdownItem onClick={() => setField(name + ".prompt.style", "")}>Default ({promptDefaults.style})</DropdownItem>
+                                        <DropdownItem onClick={() => setField(name + ".prompt.style", "")}>{dict.defaultOption} ({promptDefaults.style})</DropdownItem>
                                         {PromptConf.getStyles().map((v) => (
                                             <DropdownItem key={v} onClick={() => setField(name + ".prompt.style", v)}>{v}</DropdownItem>
                                         ))}
@@ -944,7 +944,7 @@ const PromptRun = ({
                                     <span className="flex min-w-0 items-center gap-1 text-xs text-warning truncate mr-1">
                                         <Icon name="triangle-alert" size={13} className="shrink-0" />
                                         <span className="truncate">
-                                            {runError ?? (availability.reason || "AI not configured")}
+                                            {runError ?? (availability.reason || dict.aiNotConfiguredShort)}
                                         </span>
                                     </span>
                                 )
@@ -983,13 +983,13 @@ const PromptRun = ({
                                 {statusItems.map((item) => {
                                     if (typeof item === 'string') {
                                         switch (item) {
-                                            case 'tokensIn': return <span key="tokensIn">↑ {runStats.tokensIn} tok</span>;
-                                            case 'tokensOut': return <span key="tokensOut">↓ {runStats.tokensOut} tok</span>;
+                                            case 'tokensIn': return <span key="tokensIn">{interpolate(dict.tokenInput, { count: runStats.tokensIn })}</span>;
+                                            case 'tokensOut': return <span key="tokensOut">{interpolate(dict.tokenOutput, { count: runStats.tokensOut })}</span>;
                                             case 'contextPercent': return runStats.contextPercent !== null
-                                                ? <span key="ctx">ctx {runStats.contextPercent.toFixed(1)}%</span>
+                                                ? <span key="ctx">{interpolate(dict.tokenContext, { percent: runStats.contextPercent.toFixed(1) })}</span>
                                                 : null;
                                             case 'model': return <span key="model" className="font-mono">{(parseAIModelRef(runStats.model)?.model || runStats.model).split('/').pop()}</span>;
-                                            case 'duration': return <span key="dur">{(runStats.durationMs / 1000).toFixed(1)}s</span>;
+                                            case 'duration': return <span key="dur">{interpolate(dict.tokenTime, { seconds: (runStats.durationMs / 1000).toFixed(1) })}</span>;
                                             default: return null;
                                         }
                                     }
@@ -1062,6 +1062,7 @@ export const runPrompt = async (
     onRunPrompt?: OnRunPrompt,
     provider?: AIProviderAdapter,
     attachments?: AIAttachment[],
+    messages?: { noProvider?: string; noResponse?: string },
 ): Promise<string> => {
     const { value: promptText, model: modelRef, ...requestOptions } = options ?? {};
 
@@ -1071,7 +1072,7 @@ export const runPrompt = async (
 
     if (!promptText) return '';
     if (!provider) {
-        throw new Error("No AI provider is available for this prompt.");
+        throw new Error(messages?.noProvider ?? "No AI provider is available for this prompt.");
     }
 
     const parsed = parseAIModelRef(modelRef);
@@ -1086,7 +1087,7 @@ export const runPrompt = async (
     });
 
     if (typeof response !== 'string' || !response.trim()) {
-        throw new Error("The AI provider returned no response.");
+        throw new Error(messages?.noResponse ?? "The AI provider returned no response.");
     }
 
     return response;

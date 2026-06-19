@@ -39,7 +39,7 @@
 | [CR-026](#cr-026--authbutton-provider-agnostic--dropboxauthprovider) | AuthButton provider-agnostic + DropboxAuthProvider | Alta | CR-002b, CR-023 | ✅ |
 | [CR-027](#cr-027--motion-system-e-interazioni-animate) | Motion system e interazioni animate | Media | CR-017, CR-022 | 🔄 |
 | [CR-028](#cr-028--stato-configurazione-provider) | Stato configurazione provider | Alta | CR-002, CR-023, CR-026 | ✅ |
-| [CR-029](#cr-029--internationalization-i18n-del-framework) | Internationalization i18n del framework | Alta | CR-017, CR-019 | 🔄 |
+| [CR-029](#cr-029--internationalization-i18n-del-framework) | Internationalization i18n del framework | Alta | CR-017, CR-019 | ✅ |
 | [CR-030](#cr-030--self-contained-typed-themes) | Self-contained typed themes | Alta | CR-017, CR-027 | ✅ |
 | [CR-031](#cr-031--sidebar-block-del-framework) | Sidebar block del framework | Media | CR-007, CR-017 | ⬜ |
 | [CR-032](#cr-032--firebaseauthprovider) | FirebaseAuthProvider (email/password + anonymous) | Alta | CR-002b, CR-023 | ✅ |
@@ -311,7 +311,7 @@ export interface ProviderAdapterBase {
 
 ## CR-029 — Internationalization i18n del framework
 
-**Stato:** 🔄 in progress
+**Stato:** ✅ done
 **Branch:** `modernize/cr-029-i18n`  
 **Priorità:** Alta  
 **Dipende da:** CR-017, CR-019  
@@ -426,8 +426,8 @@ Adapter opzionale:
 - [x] Esportare `I18nProvider`, `useI18n`, `interpolate`, tipi da `src/index.ts`.
 - [x] Aggiungere showcase per cambio lingua (pagina esistente `/components/locale-switcher`).
 - [x] Aggiungere docs i18n (`docs/architecture/i18n.md`).
-- [ ] Aggiungere test per fallback, override e interpolazione.
-- [ ] `npm run test` e `npm run build` passano.
+- [x] Aggiungere test per fallback, override e interpolazione (16 test).
+- [x] `npm run test` e `npm run build` passano.
 
 ---
 

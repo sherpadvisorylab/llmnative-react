@@ -35,7 +35,7 @@ describe('Prompt', () => {
                 name: 'Prompt ON. In PromptRun, this textarea is treated as the prompt template and can be executed against the current record. Turn OFF to skip the prompt system and use the plain fallback text instead.',
             })
         ).toBeInTheDocument();
-        expect(screen.getByText('No AI providers are registered.')).toBeInTheDocument();
+        expect(screen.getByText('AI is not configured. You can still edit and save this prompt.')).toBeInTheDocument();
     });
 
     it('toggles prompt metadata off from the switch when edit mode starts enabled', () => {
@@ -168,7 +168,7 @@ describe('Prompt', () => {
             </Form>
         );
 
-        expect(screen.getByText('No AI providers are registered.')).toBeInTheDocument();
+        expect(screen.getByText('AI not configured')).toBeInTheDocument();
         expect(screen.getByRole('button', { name: /Run/i })).toBeDisabled();
     });
 
@@ -191,7 +191,7 @@ describe('Prompt', () => {
         expect(renderAIUnavailable).toHaveBeenCalledWith({
             mode: PromptMode.EDIT,
             providerId: null,
-            reason: 'No AI providers are registered.',
+            reason: undefined,
             configured: false,
         });
     });
@@ -372,8 +372,8 @@ describe('Prompt', () => {
         fireEvent.click(screen.getByRole('button', { name: /Run/i }));
 
         await waitFor(() => {
-            expect(screen.getByText(/↑ \d+ tok/i)).toBeInTheDocument();
-            expect(screen.getByText(/↓ \d+ tok/i)).toBeInTheDocument();
+            expect(screen.getByText(/Input: \d+ tok/i)).toBeInTheDocument();
+            expect(screen.getByText(/Output: \d+ tok/i)).toBeInTheDocument();
         });
     });
 });

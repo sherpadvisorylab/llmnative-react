@@ -7,6 +7,7 @@ import rehypeSanitize from 'rehype-sanitize';
 import { cn } from '../../libs/cn';
 import { copyToClipboard } from '../../libs/utils';
 import { useHead, type PageMetadataState } from '../../Head';
+import { useI18n } from '../../I18n';
 
 type MarkdownComponents = Components;
 
@@ -48,6 +49,7 @@ const getCodeLanguage = (node: React.ReactNode): string | undefined => {
 
 function MarkdownCodeBlock({ code, language }: MarkdownCodeBlockProps) {
     const [copied, setCopied] = React.useState(false);
+    const dict = useI18n('code');
 
     const copy = () => {
         copyToClipboard(code);
@@ -59,14 +61,14 @@ function MarkdownCodeBlock({ code, language }: MarkdownCodeBlockProps) {
         <div className="relative my-4 overflow-hidden rounded-md border bg-muted/50">
             <div className="flex h-9 items-center justify-between border-b px-3">
                 <span className="text-xs font-medium text-muted-foreground">
-                    {language || 'text'}
+                    {language || dict.codeLanguageDefault}
                 </span>
                 <button
                     type="button"
                     className="rounded border bg-background px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                     onClick={copy}
                 >
-                    {copied ? 'Copied' : 'Copy'}
+                    {copied ? dict.copied : dict.copy}
                 </button>
             </div>
             <pre className="m-0 overflow-x-auto p-4 text-xs leading-relaxed">
