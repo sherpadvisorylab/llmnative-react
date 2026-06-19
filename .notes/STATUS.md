@@ -62,6 +62,7 @@
 | CR-024 | Done | `RichText.tsx` (1510 righe) con TipTap, lazy loading, toolbar configurabile, export pubblico, pagina showcase `RichTextPage.tsx`, file i18n multilingua. |
 | CR-031 | Done | `SideNav` in `src/components/blocks/SideNav.tsx`, esportato pubblicamente e usato dallo showcase. |
 | CR-038 | Done | Public naming normalization per AI-first completata. |
+| CR-044 | Done | Showcase pages for `Label`, `UploadCSV` and `Crop` are present. `Command.tsx` remains intentionally excluded as legacy code tracked by CR-025. |
 
 ---
 
@@ -77,7 +78,6 @@
 | CR-039 | **0% — spec written** | WorkflowAI declarative multi-step pipeline; spec in `CHANGE_REQUESTS.md`. No implementation. |
 | CR-040 | **0% — spec written** | SchemaForm (form generation from JSON schema/factory); spec in `CHANGE_REQUESTS.md`. No implementation. |
 | CR-041 | **0% — proposal written** | SeoEnhancer (HTML filter applying technical SEO, structured report); proposal in `CHANGE_REQUESTS.md`. No implementation. |
-| CR-044 | **25%** | UploadCSV page exists. Crop/Label pages missing. Command è dead code non esportato. |
 
 ---
 

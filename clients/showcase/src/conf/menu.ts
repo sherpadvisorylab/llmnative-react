@@ -56,9 +56,11 @@ const TabDynamicPage = lazyPage(() => import('../pages/components/TabDynamicPage
 const TablePage = lazyPage(() => import('../pages/components/TablePage'));
 const TextAreaPage = lazyPage(() => import('../pages/components/TextAreaPage'));
 const InputPage = lazyPage(() => import('../pages/components/InputPage'));
+const LabelPage = lazyPage(() => import('../pages/components/LabelPage'));
 const SelectPage = lazyPage(() => import('../pages/components/SelectPage'));
 const AutocompletePage = lazyPage(() => import('../pages/components/AutocompletePage'));
 const ChecklistPage = lazyPage(() => import('../pages/components/ChecklistPage'));
+const CropPage = lazyPage(() => import('../pages/components/CropPage'));
 const UploadPage = lazyPage(() => import('../pages/components/UploadPage'));
 const UploadImagePage = lazyPage(() => import('../pages/components/upload/UploadImagePage'));
 const UploadDocumentPage = lazyPage(() => import('../pages/components/upload/UploadDocumentPage'));
@@ -202,8 +204,10 @@ export const menu = {
         { path: '/components/checkbox', title: 'Checkbox', page: CheckboxPage, group: 'Form fields' },
         { path: '/components/code-editor', title: 'CodeEditor', page: CodeEditorPage, group: 'Form fields' },
         { path: '/components/checklist', title: 'Checklist', page: ChecklistPage, group: 'Form fields' },
+        { path: '/components/crop', title: 'Crop', page: CropPage, group: 'Form fields' },
         { path: '/components/image-field', title: 'ImageField', page: ImageFieldPage, group: 'Form fields' },
         { path: '/components/input', title: 'Input', page: InputPage, group: 'Form fields' },
+        { path: '/components/label', title: 'Label', page: LabelPage, group: 'Form fields' },
         { path: '/components/list-group', title: 'ListGroup', page: ListGroupPage, group: 'Form fields' },
         { path: '/components/select', title: 'Select', page: SelectPage, group: 'Form fields' },
         { path: '/components/switch', title: 'Switch', page: SwitchPage, group: 'Form fields' },
