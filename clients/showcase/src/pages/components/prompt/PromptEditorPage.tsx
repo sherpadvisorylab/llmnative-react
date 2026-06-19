@@ -29,7 +29,8 @@ export default function PromptEditorPage() {
                         mode={PromptMode.EDIT}
                         required={Boolean(p.required)}
                         defaultValue={p.defaultValue as Parameters<typeof Prompt>[0]['defaultValue']}
-                        rows={typeof p.rows === 'number' ? p.rows : undefined}
+                        minHeight={typeof p.minHeight === 'number' ? p.minHeight : undefined}
+                        maxHeight={typeof p.maxHeight === 'number' ? p.maxHeight : undefined}
                         before={p.before ? String(p.before) : undefined}
                         after={p.after ? String(p.after) : undefined}
                         className={typeof p.className === 'string' ? p.className : undefined}
@@ -69,7 +70,8 @@ export default function PromptEditorPage() {
                                 name="summary"
                                 label={t.labels.summary}
                                 mode={PromptMode.EDIT}
-                                rows={5}
+                                minHeight={140}
+                                maxHeight={200}
                                 defaultValue={{
                                     value: t.labels.conciseProjectSummary,
                                     enabled: true,
@@ -83,7 +85,8 @@ export default function PromptEditorPage() {
     name="summary"
     label="Summary"
     mode={PromptMode.EDIT}
-    rows={5}
+    minHeight={140}
+    maxHeight={200}
     defaultValue={{
       value: 'Write a concise project summary for {projectName}.',
       enabled: true,
@@ -110,7 +113,8 @@ export default function PromptEditorPage() {
                                 name="description"
                                 label={t.labels.descriptionField}
                                 mode={PromptMode.EDIT}
-                                rows={4}
+                                minHeight={120}
+                                maxHeight={160}
                                 defaultValue={{
                                     value: t.labels.humanWrittenDescription,
                                     enabled: false,
@@ -123,7 +127,8 @@ export default function PromptEditorPage() {
   name="description"
   label="Description"
   mode={PromptMode.EDIT}
-  rows={4}
+  minHeight={120}
+  maxHeight={160}
   defaultValue={{
     value: 'A short human-written description without AI assistance.',
     enabled: false,
@@ -152,7 +157,8 @@ export default function PromptEditorPage() {
                                 name="summary"
                                 label={t.labels.summary}
                                 mode={PromptMode.EDIT}
-                                rows={4}
+                                minHeight={120}
+                                maxHeight={160}
                                 defaultValue={{ value: t.labels.shortProjectSummary, enabled: true }}
                                 renderAIUnavailable={({ reason }) => (
                                     <div className="rounded-md border border-dashed border-muted-foreground/30 bg-muted/30 px-3 py-2 text-xs text-muted-foreground">

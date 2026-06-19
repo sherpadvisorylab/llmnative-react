@@ -121,7 +121,7 @@ const PLAYGROUND: PlaygroundConfig = {
                 <Input name="email" label="Email" type="email" />
                 <Select name="role"   label="Role"   options={ROLES} />
                 <Select name="status" label="Status" options={STATUS} />
-                <TextArea name="bio" label="Bio" rows={3} />
+                <TextArea name="bio" label="Bio" minHeight={96} />
             </Form>
         </div>
     ),
@@ -154,7 +154,7 @@ export default function FormPage() {
                                 <Input name="email" label="Email" type="email" required />
                                 <Select name="role"   label="Role"   options={ROLES}   />
                                 <Select name="status" label="Status" options={STATUS}  />
-                                <TextArea name="bio" label="Bio" rows={3} />
+                                <TextArea name="bio" label="Bio" minHeight={96} />
                             </Form>
                         </div>
                     </WithMock>
@@ -174,7 +174,7 @@ const mockProvider = new MockDataProvider();
         <Input   name="email"  label="Email" type="email" required />
         <Select  name="role"   label="Role"   options={ROLES}   />
         <Select  name="status" label="Status" options={STATUS}  />
-        <TextArea name="bio"   label="Bio" rows={3} />
+        <TextArea name="bio"   label="Bio" minHeight={96} />
     </Form>
 </DataProvider>`}
             />
@@ -195,7 +195,7 @@ const mockProvider = new MockDataProvider();
                                 <Input name="email" label="Email" type="email" />
                                 <Select name="role"   label="Role"   options={ROLES}   />
                                 <Select name="status" label="Status" options={STATUS}  />
-                                <TextArea name="bio" label="Bio" rows={3} />
+                                <TextArea name="bio" label="Bio" minHeight={96} />
                             </Form>
                         </div>
                     </WithMock>

@@ -28,7 +28,8 @@ export default function PromptPlainPage() {
                         mode={PromptMode.RUN}
                         required={Boolean(p.required)}
                         defaultValue={p.defaultValue as Parameters<typeof Prompt>[0]['defaultValue']}
-                        rows={typeof p.rows === 'number' ? p.rows : undefined}
+                        minHeight={typeof p.minHeight === 'number' ? p.minHeight : undefined}
+                        maxHeight={typeof p.maxHeight === 'number' ? p.maxHeight : undefined}
                         before={p.before ? String(p.before) : undefined}
                         after={p.after ? String(p.after) : undefined}
                         className={typeof p.className === 'string' ? p.className : undefined}
@@ -55,7 +56,8 @@ export default function PromptPlainPage() {
                                 name="summary"
                                 label={t.labels.summary}
                                 mode={PromptMode.RUN}
-                                rows={4}
+                                minHeight={120}
+                                maxHeight={160}
                                 defaultValue={{ value: t.labels.shortHumanSummary, enabled: false }}
                             />
                         </div>
@@ -75,7 +77,8 @@ export default function PromptPlainPage() {
                                 name="notes"
                                 label={t.labels.notes}
                                 mode={PromptMode.RUN}
-                                rows={4}
+                                minHeight={120}
+                                maxHeight={160}
                                 defaultValue={{ value: t.labels.followUpTwoWeeks, enabled: false }}
                                 renderFallback={({ name, label }) => (
                                     <div className="space-y-1.5">

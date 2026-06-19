@@ -271,7 +271,7 @@ const validatePassword = (v: any) => {
                                 <TextArea
                                     name="bio"
                                     label="Bio"
-                                    rows={4}
+                                    minHeight={120}
                                     validator={(v) => v && String(v).length > 500 ? 'Bio must be at most 500 characters' : undefined}
                                 />
                             </Form>

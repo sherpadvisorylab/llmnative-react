@@ -29,8 +29,8 @@ export default function TextAreaPage() {
                 { label: 'empty', value: '', help: 'Start from a blank textarea.' },
             ],
         },
-        { name: 'rows', type: 'number', description: t.propsDocs.items.rows.description, control: 'number', min: 2, max: 12 },
-        { name: 'maxRows', type: 'number', description: t.propsDocs.items.maxRows.description, control: 'number', min: 2, max: 20 },
+        { name: 'minHeight', type: 'number', description: 'Minimum textarea height in pixels. Default: 96.', control: 'number', min: 48, max: 480 },
+        { name: 'maxHeight', type: 'number', description: 'Maximum textarea height in pixels before internal scrolling.', control: 'number', min: 72, max: 960 },
         { name: 'feedback', type: 'string', description: t.propsDocs.items.feedback.description, control: 'text' },
         { name: 'before', type: 'ReactNode', description: t.propsDocs.items.before.description, control: 'text' },
         { name: 'after', type: 'ReactNode', description: t.propsDocs.items.after.description, control: 'text' },
@@ -55,8 +55,8 @@ export default function TextAreaPage() {
             disabled: false,
             readOnlyAfterSet: false,
             defaultValue: 'Follow up with the customer next week.',
-            rows: 4,
-            maxRows: undefined,
+            minHeight: 120,
+            maxHeight: undefined,
             feedback: '',
             before: '',
             after: '',
@@ -73,8 +73,8 @@ export default function TextAreaPage() {
                     disabled={p.disabled}
                     readOnlyAfterSet={p.readOnlyAfterSet}
                     defaultValue={p.defaultValue}
-                    rows={p.rows}
-                    maxRows={p.maxRows || undefined}
+                    minHeight={p.minHeight}
+                    maxHeight={p.maxHeight || undefined}
                     feedback={p.feedback || undefined}
                     before={p.before || undefined}
                     after={p.after || undefined}
@@ -93,13 +93,13 @@ export default function TextAreaPage() {
                 title={t.sections.basicTextarea.title}
                 preview={(
                     <Form appearance="empty" defaultValues={{ notes: t.labels.initialNote }}>
-                        <TextArea name="notes" label={t.labels.notes} rows={4} />
+                        <TextArea name="notes" label={t.labels.notes} minHeight={120} />
                     </Form>
                 )}
                 code={`import { Form, TextArea } from '@llmnative/react';
 
 <Form defaultValues={{ notes: 'Initial note' }}>
-  <TextArea name="notes" label="Notes" rows={4} />
+  <TextArea name="notes" label="Notes" minHeight={120} />
 </Form>`}
             />
 
@@ -112,8 +112,8 @@ export default function TextAreaPage() {
                             name="bio"
                             label={t.labels.bio}
                             placeholder={t.labels.startTyping}
-                            rows={2}
-                            maxRows={6}
+                            minHeight={80}
+                            maxHeight={160}
                         />
                     </Form>
                 )}
@@ -121,8 +121,8 @@ export default function TextAreaPage() {
   name="bio"
   label="Bio"
   placeholder="Start typing..."
-  rows={2}
-  maxRows={6}
+  minHeight={80}
+  maxHeight={160}
 />`}
             />
 
@@ -134,7 +134,7 @@ export default function TextAreaPage() {
                             name="description"
                             label={t.labels.description}
                             placeholder={t.labels.describeIssue}
-                            rows={4}
+                            minHeight={120}
                             feedback={t.labels.beSpecific}
                         />
                     </Form>
@@ -143,7 +143,7 @@ export default function TextAreaPage() {
   name="description"
   label="Description"
   placeholder="Describe the issue in detail..."
-  rows={4}
+  minHeight={120}
   feedback="Be as specific as possible."
 />`}
             />
@@ -156,11 +156,11 @@ export default function TextAreaPage() {
                             name="note"
                             label={t.labels.signedNote}
                             before={t.labels.note}
-                            rows={3}
+                            minHeight={96}
                         />
                     </Form>
                 )}
-                code={`<TextArea name="note" label="Signed note" before="Note" rows={3} />`}
+                code={`<TextArea name="note" label="Signed note" before="Note" minHeight={96} />`}
             />
 
             <PropDocsTable props={textAreaProps} title={t.propsDocs.title} />

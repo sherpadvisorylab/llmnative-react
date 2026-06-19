@@ -5,6 +5,7 @@ import { ActionButton, Icon, UIProps } from '../../..';
 import { FormFieldProps, InputType, useFormContext, useHandleDrop, useFieldValidation } from '../../widgets/Form';
 import type { FieldValue } from '../../../providers/data/DataProvider';
 import { cn } from '../../../libs/cn';
+import { useEditorHeight } from '../../../libs/editorHeight';
 
 interface BaseInputProps extends FormFieldProps {
     placeholder?: string;
@@ -41,8 +42,8 @@ export interface TextAreaProps extends FormFieldProps {
     /** When `true`, the textarea becomes read-only (disabled) once a value has been set. */
     readOnlyAfterSet?: boolean;
     disabled?: boolean;
-    rows?: number;
-    maxRows?: number;
+    minHeight?: number;
+    maxHeight?: number;
     feedback?: string;
     textareaRef?: React.RefObject<HTMLTextAreaElement | null> | ((el: HTMLTextAreaElement | null) => void) | undefined;
     id?: string;
@@ -420,8 +421,8 @@ export const TextArea = ({
     required = false,
     readOnlyAfterSet = false,
     disabled = false,
-    rows = undefined,
-    maxRows = undefined,
+    minHeight = 96,
+    maxHeight = undefined,
     textareaRef = undefined,
     before = undefined,
     after = undefined,
@@ -438,6 +439,7 @@ export const TextArea = ({
 }: TextAreaProps) => {
     const { value, handleChange, formWrapClass } = useFormContext({ name, onChange, wrapperClassName, defaultValue, inheritWrapperClassName });
     const error = useFieldValidation(name, { required, label, validator });
+    const height = useEditorHeight({ minHeight, maxHeight });
 
     const generatedId = useId();
     const elementId = id ?? generatedId;
@@ -458,39 +460,19 @@ export const TextArea = ({
     };
 
     useEffect(() => {
-        if (!maxRows || !internalRef.current) return;
+        if (!internalRef.current) return;
         const el = internalRef.current;
-        const applyResize = () => {
-            const s = getComputedStyle(el);
-            const lh = parseFloat(s.lineHeight) || parseFloat(s.fontSize) * 1.5;
-            const pt = parseFloat(s.paddingTop) || 0;
-            const pb = parseFloat(s.paddingBottom) || 0;
-            const minH = rows ? lh * rows + pt + pb : 0;
-            const maxH = lh * maxRows + pt + pb;
-            el.style.height = 'auto';
-            const h = Math.min(Math.max(el.scrollHeight, minH), maxH);
-            el.style.height = `${h}px`;
-            el.style.overflowY = el.scrollHeight > maxH ? 'auto' : 'hidden';
-        };
-        applyResize();
-        el.addEventListener('input', applyResize);
-        return () => el.removeEventListener('input', applyResize);
-    }, [maxRows, rows]);
-
-    useEffect(() => {
-        if (!maxRows || !internalRef.current) return;
-        const el = internalRef.current;
-        const s = getComputedStyle(el);
-        const lh = parseFloat(s.lineHeight) || parseFloat(s.fontSize) * 1.5;
-        const pt = parseFloat(s.paddingTop) || 0;
-        const pb = parseFloat(s.paddingBottom) || 0;
-        const minH = rows ? lh * rows + pt + pb : 0;
-        const maxH = lh * maxRows + pt + pb;
         el.style.height = 'auto';
-        const h = Math.min(Math.max(el.scrollHeight, minH), maxH);
-        el.style.height = `${h}px`;
-        el.style.overflowY = el.scrollHeight > maxH ? 'auto' : 'hidden';
-    }, [value, maxRows, rows]);
+        const nextHeight = Math.max(el.scrollHeight, height.resolvedMinHeight);
+        const cappedHeight = height.resolvedMaxHeight
+            ? Math.min(nextHeight, height.resolvedMaxHeight)
+            : nextHeight;
+
+        el.style.minHeight = `${height.resolvedMinHeight}px`;
+        el.style.maxHeight = height.resolvedMaxHeight ? `${height.resolvedMaxHeight}px` : '';
+        el.style.height = `${cappedHeight}px`;
+        el.style.overflowY = height.resolvedMaxHeight && nextHeight > height.resolvedMaxHeight ? 'auto' : 'hidden';
+    }, [value, height.resolvedMinHeight, height.resolvedMaxHeight]);
 
     return (
         <Wrapper className={formWrapClass}>
@@ -500,9 +482,8 @@ export const TextArea = ({
                 <textarea
                     id={elementId}
                     name={name}
-                    className={withFieldEdges(cn(fieldTextAreaBaseClass, maxRows && "resize-none", error && 'border-destructive focus-visible:ring-destructive/20', className), { before, after })}
+                    className={withFieldEdges(cn(fieldTextAreaBaseClass, "resize-none", error && 'border-destructive focus-visible:ring-destructive/20', className), { before, after })}
                     ref={assignRef}
-                    rows={rows}
                     placeholder={placeholder}
                     required={required}
                     disabled={disabled || (readOnlyAfterSet && !isEmpty(value))}

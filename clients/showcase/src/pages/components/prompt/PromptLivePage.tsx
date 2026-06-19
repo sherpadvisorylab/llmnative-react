@@ -68,7 +68,8 @@ function PromptRunPlaygroundPreview({
                     mode={PromptMode.RUN}
                     required={Boolean(props.required)}
                     defaultValue={props.defaultValue as Parameters<typeof Prompt>[0]['defaultValue']}
-                    rows={typeof props.rows === 'number' ? props.rows : undefined}
+                    minHeight={typeof props.minHeight === 'number' ? props.minHeight : undefined}
+                    maxHeight={typeof props.maxHeight === 'number' ? props.maxHeight : undefined}
                     before={props.before ? String(props.before) : undefined}
                     after={props.after ? String(props.after) : undefined}
                     className={typeof props.className === 'string' ? props.className : undefined}
@@ -180,7 +181,8 @@ export default function PromptLivePage() {
                                 name="summary"
                                 label={t.labels.summary}
                                 mode={PromptMode.RUN}
-                                rows={4}
+                                minHeight={120}
+                                maxHeight={160}
                                 defaultValue={{
                                     value: t.labels.conciseLaunchSummary,
                                     enabled: true,
@@ -208,7 +210,8 @@ export default function PromptLivePage() {
     name="summary"
     label="Summary"
     mode={PromptMode.RUN}
-    rows={4}
+    minHeight={120}
+    maxHeight={160}
     defaultValue={{
       value: 'Write a concise launch summary for {projectName}.',
       enabled: true,
@@ -244,7 +247,8 @@ export default function PromptLivePage() {
                                 name="summary"
                                 label={t.labels.summary}
                                 mode={PromptMode.RUN}
-                                rows={5}
+                                minHeight={140}
+                                maxHeight={200}
                                 variables={{ projectName: t.labels.northwindRevamp }}
                                 defaultValue={{
                                     value: t.labels.conciseLaunchSummary,
@@ -275,7 +279,8 @@ export default function PromptLivePage() {
                                 name="tagline"
                                 label={t.labels.tagline}
                                 mode={PromptMode.RUN}
-                                rows={4}
+                                minHeight={120}
+                                maxHeight={160}
                                 variables={{ product: t.labels.atlasConsole, industry: 'DevOps' }}
                                 defaultValue={{
                                     value: t.labels.punchyTagline,
@@ -302,7 +307,8 @@ export default function PromptLivePage() {
                                 name="bio"
                                 label={t.labels.productDescription}
                                 mode={PromptMode.RUN}
-                                rows={5}
+                                minHeight={140}
+                                maxHeight={200}
                                 defaultValue={{
                                     value: t.labels.shortProductDescription,
                                     enabled: true,
@@ -330,7 +336,8 @@ export default function PromptLivePage() {
                                 name="summary"
                                 label={t.labels.summary}
                                 mode={PromptMode.RUN}
-                                rows={4}
+                                minHeight={120}
+                                maxHeight={160}
                                 defaultValue={{ value: t.labels.conciseProjectSummary, enabled: true, language: shared.playground.defaults.english, style: shared.playground.defaults.concise }}
                                 onRunPrompt={runPreview}
                             />
@@ -338,7 +345,8 @@ export default function PromptLivePage() {
                                 name="tagline"
                                 label={t.labels.tagline}
                                 mode={PromptMode.RUN}
-                                rows={3}
+                                minHeight={96}
+                                maxHeight={140}
                                 defaultValue={{ value: t.labels.punchyTagline, enabled: true, style: 'bold' }}
                                 onRunPrompt={runPreview}
                             />
@@ -359,7 +367,8 @@ export default function PromptLivePage() {
                                 name="notes"
                                 label={t.labels.meetingNotes}
                                 mode={PromptMode.RUN}
-                                rows={4}
+                                minHeight={120}
+                                maxHeight={160}
                                 defaultValue={{ value: t.labels.meetingSummary, enabled: true }}
                                 renderAIUnavailable={({ reason }) => (
                                     <div className="flex items-center gap-2 rounded-lg border border-dashed border-warning/60 bg-warning/5 px-3 py-2 text-xs text-warning">
@@ -385,7 +394,8 @@ export default function PromptLivePage() {
                                 name="copy"
                                 label={t.labels.marketingCopy}
                                 mode={PromptMode.RUN}
-                                rows={5}
+                                minHeight={140}
+                                maxHeight={200}
                                 commands={[
                                     { name: 'translate', description: 'Translate to English', icon: 'languages', handler: (v) => `Translate the following to English:\n\n${v}` },
                                     { name: 'shorten', description: 'Shorten text', icon: 'minimize-2', handler: (v) => `Shorten to 1 sentence:\n\n${v}` },
@@ -411,7 +421,8 @@ export default function PromptLivePage() {
                                 name="report"
                                 label={t.labels.documentSummary}
                                 mode={PromptMode.RUN}
-                                rows={4}
+                                minHeight={120}
+                                maxHeight={160}
                                 attachments
                                 defaultValue={{ value: t.labels.attachedDocumentSummary, enabled: true }}
                                 onRunPrompt={runPreview}
@@ -439,7 +450,8 @@ export default function PromptLivePage() {
                                 name="summary"
                                 label={t.labels.summary}
                                 mode={PromptMode.RUN}
-                                rows={5}
+                                minHeight={140}
+                                maxHeight={200}
                                 statusItems={['tokensIn', 'tokensOut', 'contextPercent', 'duration']}
                                 actions={[{ key: 'tokenUsage', icon: 'bar-chart-2', label: 'Token details' }]}
                                 defaultValue={{ value: t.labels.conciseProjectSummary, enabled: true, language: shared.playground.defaults.english }}

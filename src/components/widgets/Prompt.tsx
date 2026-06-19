@@ -77,7 +77,8 @@ type RenderAIUnavailable = (props: {
 }) => React.ReactNode;
 
 type PromptSharedProps = FormFieldProps & {
-    rows?: number;
+    minHeight?: number;
+    maxHeight?: number;
     defaultValue?: PromptDefaultValue;
     renderAIUnavailable?: RenderAIUnavailable;
     variables?: PromptVariables;
@@ -322,7 +323,8 @@ const PromptEditor = ({
     required = false,
     onChange = undefined,
     defaultValue = undefined,
-    rows = 10,
+    minHeight = 160,
+    maxHeight = 240,
     before = undefined,
     after = undefined,
     wrapperClassName = undefined,
@@ -375,7 +377,8 @@ const PromptEditor = ({
                         required={required}
                         inheritWrapperClassName={false}
                         wrapperClassName=""
-                        maxRows={rows}
+                        minHeight={minHeight}
+                        maxHeight={maxHeight}
                     />
                     <PromptAvailabilityNotice
                         mode={PromptMode.EDIT}
@@ -400,7 +403,8 @@ const PromptRun = ({
     required,
     onChange,
     defaultValue,
-    rows = 6,
+    minHeight = 120,
+    maxHeight = 160,
     before,
     after,
     wrapperClassName,
@@ -696,7 +700,8 @@ const PromptRun = ({
                                     inheritWrapperClassName={false}
                                     wrapperClassName=""
                                     className={`${className || theme.Prompt.className} ${promptTextareaClass}`}
-                                    maxRows={rows}
+                                    minHeight={minHeight}
+                                    maxHeight={maxHeight}
                                 />
                                 {editing && hasVariableSubstitution && previewOpen && (
                                     <div className="border-t border-input px-4 py-3 bg-muted/20">
@@ -746,7 +751,8 @@ const PromptRun = ({
                                     inheritWrapperClassName={false}
                                     wrapperClassName=""
                                     className={`${className || theme.Prompt.className} ${promptTextareaClass}`}
-                                    maxRows={rows}
+                                    minHeight={minHeight}
+                                    maxHeight={maxHeight}
                                 />
                             </div>
                         </div>
@@ -1013,7 +1019,8 @@ const PromptPlainFallback = ({
     label,
     required,
     onChange,
-    rows,
+    minHeight = 96,
+    maxHeight = 120,
     before,
     after,
     wrapperClassName,
@@ -1045,7 +1052,8 @@ const PromptPlainFallback = ({
                                 required={required}
                                 inheritWrapperClassName={false}
                                 wrapperClassName=""
-                                maxRows={rows}
+                                minHeight={minHeight}
+                                maxHeight={maxHeight}
                             />
                         </div>
                     )}

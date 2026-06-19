@@ -23,7 +23,7 @@ describe('Prompt', () => {
                     name="summary"
                     label="Summary"
                     mode={PromptMode.EDIT}
-                    rows={4}
+                    minHeight={120}
                     defaultValue={{ value: 'Write a concise summary for {projectName}.', enabled: true }}
                 />
             </Form>
@@ -45,7 +45,7 @@ describe('Prompt', () => {
                     name="summary"
                     label="Summary"
                     mode={PromptMode.EDIT}
-                    rows={4}
+                    minHeight={120}
                     defaultValue={{ value: 'Write a concise summary for {projectName}.', enabled: true }}
                 />
             </Form>
@@ -90,7 +90,7 @@ describe('Prompt', () => {
                     name="summary"
                     label="Summary"
                     mode={PromptMode.RUN}
-                    rows={4}
+                    minHeight={120}
                     defaultValue={{ value: 'Write a concise summary for {projectName}.', enabled: true }}
                     onRunPrompt={async (prompt, config, data) => (
                         `${data?.projectName} | ${config.language} | ${prompt}`
@@ -117,7 +117,7 @@ describe('Prompt', () => {
                     name="summary"
                     label="Summary"
                     mode={PromptMode.RUN}
-                    rows={4}
+                    minHeight={120}
                     defaultValue={{ value: 'Human-written summary.', enabled: false }}
                 />
             </Form>
@@ -162,7 +162,7 @@ describe('Prompt', () => {
                     name="summary"
                     label="Summary"
                     mode={PromptMode.RUN}
-                    rows={4}
+                    minHeight={120}
                     defaultValue={{ value: 'Write a concise summary for {projectName}.', enabled: true }}
                 />
             </Form>
@@ -234,7 +234,7 @@ describe('Prompt', () => {
                         name="summary"
                         label="Summary"
                         mode={PromptMode.RUN}
-                        rows={4}
+                        minHeight={120}
                         defaultValue={{ value: 'Write a concise summary for {projectName}.', enabled: true }}
                     />
                 </Form>

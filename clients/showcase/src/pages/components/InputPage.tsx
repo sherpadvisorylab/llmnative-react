@@ -149,9 +149,9 @@ export default function InputPage() {
                 description={t.sections.textarea.description}
                 code={`import { TextArea } from '@llmnative/react';
 
-<TextArea name="bio" label="Bio" rows={4} placeholder="Tell us about yourself..." />`}
+<TextArea name="bio" label="Bio" minHeight={120} placeholder="Tell us about yourself..." />`}
             >
-                <TextArea name="bio" label={t.labels.bio} rows={4} placeholder={t.labels.tellUsAboutYourself} />
+                <TextArea name="bio" label={t.labels.bio} minHeight={120} placeholder={t.labels.tellUsAboutYourself} />
             </LiveForm>
 
             <LiveForm

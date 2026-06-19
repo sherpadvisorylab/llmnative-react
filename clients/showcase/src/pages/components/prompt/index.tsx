@@ -56,7 +56,8 @@ export default function PromptIndexPage() {
     name="summary"
     label="Summary"
     mode={PromptMode.EDIT}
-    rows={5}
+    minHeight={140}
+    maxHeight={200}
     defaultValue={{ value: 'Write a concise summary for {projectName}.', enabled: true }}
   />
 </Form>
