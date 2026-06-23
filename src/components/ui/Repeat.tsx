@@ -1,7 +1,6 @@
 ﻿import React, { useMemo } from 'react';
 import { ActionButton } from './Buttons';
 import { FieldOnChange, setFormFieldsName, useFormContext } from '../widgets/Form';
-import { Col, Row } from './GridSystem';
 import { RecordProps } from '../../providers/data/DataProvider';
 
 interface RepeatProps {
@@ -65,20 +64,20 @@ const Repeat = ({
             case 'vertical':
                 return <></>
             case 'inline':
-            return <Row className="mb-1">
-                <Col className='min-w-0'>
-                    {renderChildren(index)}
-                </Col>
-                {canRemove && (
-                    <Col xs='auto' className='flex items-center justify-end'>
+            return (
+                <div className="flex items-center gap-2 mb-1">
+                    <div className="flex-1 min-w-0">
+                        {renderChildren(index, '!mb-0')}
+                    </div>
+                    {canRemove && (
                         <ActionButton
-                            className="h-7 w-7 rounded-md bg-transparent p-0 text-muted-foreground hover:bg-accent hover:text-foreground"
+                            className="shrink-0 h-9 w-9 rounded-md bg-transparent p-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                             icon="x"
                             onClick={() => handleRemove(index)}
                         />
-                    </Col>
-                )}
-            </Row>
+                    )}
+                </div>
+            )
         }
     }
 

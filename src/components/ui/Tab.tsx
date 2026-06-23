@@ -36,6 +36,8 @@ interface TabProps extends MotionUIProps {
     children: React.ReactNode;
     /** 0-based index of the initially selected tab. Defaults to `0`. */
     defaultIndex?: number;
+    /** Called with the new index whenever the active tab changes. */
+    onChange?: (index: number) => void;
     /** Spatial layout of the tab bar: `"default"` (underline top), `"top"`, `"left"`, `"right"`, `"bottom"`. */
     layout?: TabPosition;
 }
@@ -176,6 +178,7 @@ const TabPane = ({
 const Tab: React.FC<TabProps> = ({
     children,
     defaultIndex = 0,
+    onChange,
     layout = "default",
     before = undefined,
     after = undefined,
@@ -184,6 +187,11 @@ const Tab: React.FC<TabProps> = ({
     motion = undefined
 }) => {
     const [active, setActive] = useState(defaultIndex);
+
+    const handleTabClick = (index: number) => {
+        setActive(index);
+        onChange?.(index);
+    };
 
     const items = Children.toArray(children)
         .filter((child): child is ReactElement<TabItemProps> =>
@@ -204,7 +212,7 @@ const Tab: React.FC<TabProps> = ({
                                 type="button"
                                 role="tab"
                                 aria-selected={index === active}
-                                onClick={() => setActive(index)}
+                                onClick={() => handleTabClick(index)}
                                 className={getTabTriggerClassName(layout, index === active)}
                             >
                                 {item.props.label}

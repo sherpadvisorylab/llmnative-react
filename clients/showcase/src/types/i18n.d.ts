@@ -1394,6 +1394,11 @@ interface ShowcaseRepeatI18n {
     page: { title: string; description: string; };
     sections: {
         repeatedFields: ShowcasePageSectionCopy;
+        inlineLayout: ShowcasePageSectionCopy;
+        multipleFields: ShowcasePageSectionCopy;
+        constraints: ShowcasePageSectionCopy;
+        readOnlyMode: ShowcasePageSectionCopy;
+        functionChildren: ShowcasePageSectionCopy;
     };
     labels: {
         items: string;
@@ -1403,8 +1408,35 @@ interface ShowcaseRepeatI18n {
         taskName: string;
         design: string;
         build: string;
+        test: string;
+        addColor: string;
+        colors: string;
+        colorName: string;
+        primary: string;
+        secondary: string;
+        accent: string;
+        socialLinks: string;
+        platform: string;
+        url: string;
+        twitter: string;
+        github: string;
+        linkedin: string;
+        languages: string;
+        language: string;
+        english: string;
+        italian: string;
+        german: string;
+        skills: string;
+        skill: string;
+        javascript: string;
+        typescript: string;
+        react: string;
+        pipelineSteps: string;
+        stepName: string;
+        command: string;
     };
     propsDocs: {
+        title: string;
         items: Record<string, ShowcaseGridDocFieldCopy>;
     };
     playground: {

@@ -308,6 +308,7 @@ export const useFormContext = ({name, onChange, wrapperClassName, inputType = "t
                     children: childChildren,
                     parentName,
                     parentKey,
+                    wrapperClassName,
                 });
             }
 
