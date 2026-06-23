@@ -62,6 +62,7 @@
 | CR-024 | Done | `RichText.tsx` (1510 righe) con TipTap, lazy loading, toolbar configurabile, export pubblico, pagina showcase `RichTextPage.tsx`, file i18n multilingua. |
 | CR-031 | Done | `SideNav` in `src/components/blocks/SideNav.tsx`, esportato pubblicamente e usato dallo showcase. |
 | CR-038 | Done | Public naming normalization per AI-first completata. |
+| CR-044 | Done | Crop, Label, UploadCSV pagine showcase tutte presenti. Command escluso volutamente (CR-025). |
 | CR-044 | Done | Showcase pages for `Label`, `UploadCSV` and `Crop` are present. `Command.tsx` remains intentionally excluded as legacy code tracked by CR-025. |
 
 ---
@@ -70,7 +71,7 @@
 
 | CR | Real state | What is missing |
 |----|-----------|-----------------|
-| CR-006 | **85%** — 48 files / 442 unit tests + 1 E2E test. GitHub Actions CI present (test + build + showcase). Firebase/Supabase emulator integration, browser OAuth and Playwright E2E still absent. | Integration/E2E coverage. |
+| CR-006 | **85%** — ~51 test files / 464+ tests. GitHub Actions CI present (test + build + showcase). Firebase/Supabase emulator integration, browser OAuth and Playwright E2E still absent. | Integration/E2E coverage. |
 | CR-007 | **70%** — Showcase is a real Vite consumer app with many component pages and interactive playgrounds. SideNav present. | 9 stub routes remain (providers: firebase/supabase/google — examples: crud/dashboard/nested-form/file-manager/google-auth). |
 | CR-014 | **50%** — Component API and playground much richer than May snapshot. | Public API audit, Input/Modal/Grid doc clarifications still open. Icon `type`/`inputType` inconsistency unresolved. |
 | CR-025 | **30%** | Slash commands implemented in `Prompt.tsx` (slashMatch, keyboard nav). ContextMenu standalone e @mention mancano. `Command.tsx` è legacy non esportato. |

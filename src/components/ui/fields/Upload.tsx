@@ -225,6 +225,8 @@ export interface UploadDocumentProps extends FormFieldProps {
 export interface UploadImageProps extends UploadDocumentProps {
     previewHeight?: number;
     previewWidth?: number;
+    /** Text shown inside the empty-state drop zone, below the upload icon. */
+    feedback?: string;
     /** Pixel widths for responsive variants. Set with uploadPath to generate <name>_400w.jpg etc. and populate srcset/sizes in the Form record. */
     srcsetWidths?: number[];
 }
@@ -247,11 +249,12 @@ interface ImagePlaceholderProps {
     multiple?: boolean;
     height: number;
     width: number;
+    feedback?: string;
 }
 
 const ImageFilePlaceholder = ({
     name, fileInputRef, accept, onUpload, onChange,
-    required = false, multiple = false, height, width,
+    required = false, multiple = false, height, width, feedback,
 }: ImagePlaceholderProps) => (
     <>
         <button
@@ -261,6 +264,11 @@ const ImageFilePlaceholder = ({
             style={{ width, height }}
         >
             <Icon name="upload" className="w-8 h-8" />
+            {feedback && (
+                <span className="mt-1.5 max-w-full px-1.5 text-center text-[10px] font-medium leading-tight whitespace-pre-wrap">
+                    {feedback}
+                </span>
+            )}
         </button>
         <input
             name={name} type="file" accept={accept}
@@ -443,6 +451,7 @@ export const UploadImage = ({
     name,
     onChange         = undefined,
     label            = undefined,
+    feedback         = undefined,
     editable         = false,
     multiple         = false,
     accept           = 'image/*',
@@ -465,7 +474,22 @@ export const UploadImage = ({
     const error = useFieldValidation(name, { required, label });
     const dict  = useI18n('upload');
 
-    const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+    const [hoveredIndex,  setHoveredIndex]  = useState<number | null>(null);
+    // Keys of images whose natural dimensions are smaller than the preview box.
+    // Those get object-contain + checkerboard; larger images get object-cover.
+    const [smallImageKeys, setSmallImageKeys] = useState<Set<string>>(new Set());
+
+    const handleImgLoad = (e: React.SyntheticEvent<HTMLImageElement>, key: string) => {
+        const el = e.currentTarget;
+        const isSmall =
+            el.naturalWidth > 0 && el.naturalHeight > 0 &&
+            (el.naturalWidth < previewWidth || el.naturalHeight < previewHeight);
+        setSmallImageKeys(prev => {
+            const next = new Set(prev);
+            if (isSmall) next.add(key); else next.delete(key);
+            return next;
+        });
+    };
 
     const ScaleBadge = ({ scales }: { scales: Record<string, FileProps> }) => {
         if (!scales) return undefined;
@@ -487,15 +511,39 @@ export const UploadImage = ({
                 {label && <Label label={label} required={required} />}
                 <div className="flex gap-2 flex-wrap">
                     {files.map((img, i) => (
-                        <div key={i} className="relative overflow-hidden rounded-lg"
+                        <div key={i} className="relative overflow-hidden rounded-lg border border-border"
                              style={{ width: previewWidth, height: previewHeight }}
                              onMouseEnter={() => setHoveredIndex(i)}
                              onMouseLeave={() => setHoveredIndex(null)}>
                             {img.progress === 100 ? (
                                 <>
+                                    {/* checkerboard shown only for images smaller than the box */}
+                                    {smallImageKeys.has(img.key) && (<>
+                                        <div className="absolute inset-0 dark:hidden" style={{
+                                            backgroundColor: '#f0f0f0',
+                                            backgroundImage:
+                                                'linear-gradient(45deg,#dcdcdc 25%,transparent 25%),' +
+                                                'linear-gradient(-45deg,#dcdcdc 25%,transparent 25%),' +
+                                                'linear-gradient(45deg,transparent 75%,#dcdcdc 75%),' +
+                                                'linear-gradient(-45deg,transparent 75%,#dcdcdc 75%)',
+                                            backgroundSize: '10px 10px',
+                                            backgroundPosition: '0 0,0 5px,5px -5px,-5px 0',
+                                        }} />
+                                        <div className="absolute inset-0 hidden dark:block" style={{
+                                            backgroundColor: '#1a1a1a',
+                                            backgroundImage:
+                                                'linear-gradient(45deg,#272727 25%,transparent 25%),' +
+                                                'linear-gradient(-45deg,#272727 25%,transparent 25%),' +
+                                                'linear-gradient(45deg,transparent 75%,#272727 75%),' +
+                                                'linear-gradient(-45deg,transparent 75%,#272727 75%)',
+                                            backgroundSize: '10px 10px',
+                                            backgroundPosition: '0 0,0 5px,5px -5px,-5px 0',
+                                        }} />
+                                    </>)}
                                     <img src={getFileUrl(img)} alt={`preview-${i}`}
-                                         className="object-cover w-full h-full rounded-lg" />
-                                    <div className="absolute inset-0 rounded-lg bg-black/55 backdrop-blur-[1px] flex flex-col items-center justify-end pb-2 gap-1 transition-opacity"
+                                         className={`absolute inset-0 w-full h-full ${smallImageKeys.has(img.key) ? 'object-contain p-1' : 'object-cover'}`}
+                                         onLoad={e => handleImgLoad(e, img.key)} />
+                                    <div className="absolute inset-0 bg-black/55 backdrop-blur-[1px] flex flex-col items-center justify-end pb-2 gap-1 transition-opacity"
                                          style={{ display: hoveredIndex === i ? 'flex' : 'none' }}>
                                         <div className="flex items-center gap-1.5">
                                             <a href={getFileUrl(img)} target="_blank" rel="noopener noreferrer"
@@ -533,6 +581,7 @@ export const UploadImage = ({
                             onUpload={handleUpload} onChange={handleUploadChange}
                             required={required} multiple={multiple}
                             height={previewHeight} width={previewWidth}
+                            feedback={feedback}
                         />
                     )}
                 </div>

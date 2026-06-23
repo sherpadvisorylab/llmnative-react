@@ -41,6 +41,13 @@ export interface I18nDict {
         saveSuccess:          string;
         deleteSuccess:        string;
         noticeRequiredFields: string;
+        noChangesToSave?:     string;
+        draftRestoreTitle?:   string;
+        draftRestoreMessage?: string;
+        draftRestoreAction?:  string;
+        draftDiscardAction?:  string;
+        draftRestoredTitle?:  string;
+        draftRestoredMessage?: string;
     };
     grid: {
         buttonAdd:     string;

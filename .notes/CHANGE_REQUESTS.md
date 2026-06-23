@@ -52,7 +52,7 @@
 | [CR-039](#cr-039--firebase-sdk-compat--modular-v9) | Firebase SDK compat → modular v9+ | Alta | CR-002, CR-023 | ✅ |
 | [CR-042](#cr-042--typescript-no-any-eliminazione-di-tutti-gli-usi-di-any) | TypeScript no-any: eliminazione di tutti gli usi di `any` | Alta | CR-003 | ✅ done |
 | [CR-043](#cr-043--token-benchmark-page-nel-showcase) | Token Benchmark page nel showcase | Media | CR-016 | ✅ done |
-| [CR-044](#cr-044--showcase-pagine-mancanti-label-uploadcsv-crop-command) | Showcase pagine mancanti (Label, UploadCSV, Crop, Command) | Bassa | CR-007 | 🔄 |
+| [CR-044](#cr-044--showcase-pagine-mancanti-label-uploadcsv-crop-command) | Showcase pagine mancanti (Label, UploadCSV, Crop, Command) | Bassa | CR-007 | ✅ |
 | [CR-045](#cr-045--ai-adoption-piano-di-distribuzione-e-visibilita) | AI Adoption: piano di distribuzione e visibilità | Alta | CR-001, CR-016 | ⬜ |
 | [CR-046](#cr-046--promptrun-visual-redesign--chatbot-style) | PromptRun visual redesign — chatbot style | Alta | — | ✅ |
 | [CR-047](#cr-047--prompt-extensible-toolbar-commands-attachments-actions-statusitems--promptutils-api) | Prompt extensible toolbar + PromptUtils API | Alta | CR-046 | ✅ |

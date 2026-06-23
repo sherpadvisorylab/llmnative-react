@@ -241,8 +241,13 @@ export const Password = (props: InputProps) => {
     />;
 };
 
-export const Color = (props: InputProps) => (
-    <Input {...props} type="color" />
+// twMerge resolves conflicts: w-10 beats w-full, p-0.5 beats px-3 py-1
+export const Color = ({ className, ...props }: InputProps) => (
+    <Input
+        {...props}
+        type="color"
+        className={cn('w-10 shrink-0 cursor-pointer p-0.5', className)}
+    />
 );
 
 export const Date = (props: InputProps) => (

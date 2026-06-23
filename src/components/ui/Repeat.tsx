@@ -65,14 +65,14 @@ const Repeat = ({
             case 'vertical':
                 return <></>
             case 'inline':
-            return <Row className={`pl-2`}>
+            return <Row className="mb-1">
                 <Col className='min-w-0'>
                     {renderChildren(index)}
                 </Col>
                 {canRemove && (
-                    <Col xs='auto' className='flex items-start justify-end pt-1'>
+                    <Col xs='auto' className='flex items-center justify-end'>
                         <ActionButton
-                            className="h-6 w-6 rounded-md bg-transparent p-0 text-muted-foreground hover:bg-accent hover:text-foreground"
+                            className="h-7 w-7 rounded-md bg-transparent p-0 text-muted-foreground hover:bg-accent hover:text-foreground"
                             icon="x"
                             onClick={() => handleRemove(index)}
                         />
@@ -109,14 +109,25 @@ const Repeat = ({
     const addButton = useMemo(() => {
         if (readOnly) return null;
         if (!maxItems || components.length < maxItems) {
-            return <ActionButton wrapperClassName='text-right' icon='plus' label={label ? undefined : 'Add'} onClick={handleAdd} />
+            return <ActionButton
+                icon='plus'
+                label={label ? undefined : 'Add'}
+                variant={label ? 'link' : 'secondary'}
+                className={label ? 'h-7 w-7 rounded-md p-0' : undefined}
+                onClick={handleAdd}
+            />
         }
         return null;
     }, [readOnly, maxItems, components.length]);
 
     return (
         <div className={className}>
-            {label && <><h6 className='flex items-center justify-between'>{label}{addButton}</h6><hr /></>}
+            {label && (
+            <div className='flex items-center justify-between mb-2'>
+                <span className='text-sm font-medium text-foreground'>{label}</span>
+                {addButton}
+            </div>
+        )}
             {components}
             {!label && addButton}
         </div>

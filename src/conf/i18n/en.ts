@@ -36,6 +36,13 @@ export const en: I18nDict = {
         saveSuccess: 'Record saved successfully',
         deleteSuccess: 'Record deleted successfully',
         noticeRequiredFields: 'Please fill in all required fields',
+        noChangesToSave: 'No changes to save',
+        draftRestoreTitle: 'Unsaved changes found',
+        draftRestoreMessage: 'A local draft is available for this form. Restore it or discard it.',
+        draftRestoreAction: 'Restore',
+        draftDiscardAction: 'Discard',
+        draftRestoredTitle: 'Draft restored',
+        draftRestoredMessage: 'The local draft has been restored. You can still discard it for a few seconds.',
     },
     grid: {
         buttonAdd: 'Add',

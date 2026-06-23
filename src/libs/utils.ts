@@ -412,7 +412,9 @@ export const render2Base64 = (arrayBuffer: ArrayBuffer): string => {
 
 export const base64ToBlob = (base64: string, type: string): Blob | undefined => {
     try {
-        const byteCharacters = atob(base64.split(',')[1]);
+        // Handle both raw base64 and data URI formats (data:type;base64,<raw>)
+        const raw = base64.includes(',') ? base64.split(',')[1] : base64;
+        const byteCharacters = atob(raw);
         const byteNumbers = new Array(byteCharacters.length);
         for (let i = 0; i < byteCharacters.length; i++) {
             byteNumbers[i] = byteCharacters.charCodeAt(i);

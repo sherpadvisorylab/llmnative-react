@@ -3,10 +3,10 @@
 
     import { useLocation } from "react-router-dom";
     import { Wrapper } from "../ui/GridSystem";
-    import { trimSlash, cleanRecord, normalizeKey } from "../../libs/utils";
+    import { trimSlash, cleanRecord, normalizeKey, safeClone } from "../../libs/utils";
     import { useDataProvider } from "../../providers/data/DataProviderContext";
     import Card from "../ui/Card";
-    import { BackLink, LoadingButton } from "../ui/Buttons";
+    import { ActionButton, BackLink, LoadingButton } from "../ui/Buttons";
     import { getGlobalVars } from "../../Global";
     import { useTheme } from "../../Theme";
     import { useI18n, interpolate } from "../../I18n";
@@ -15,6 +15,7 @@
     import {FormTree, ModelProps, buildFormFields} from "../Component";
     import Breadcrumbs from "../blocks/Breadcrumbs";
     import { UIProps } from '../';
+    import { cn } from '../../libs/cn';
 
     export type ChangeHandler =
         | React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -362,6 +363,8 @@ export const useFormContext = ({name, onChange, wrapperClassName, inputType = "t
         log?: boolean;
         /** Show the inline save/delete notice banner. Defaults to `true`. */
         showNotice?: boolean;
+        /** Persist unsaved changes locally and offer restore/discard on re-entry. Defaults to `false`. */
+        persistDraft?: boolean;
         /** When provided, the save/delete notice is rendered sticky at the top of this container
          *  instead of inline in the form footer. Ideal for full-page forms outside a modal. */
         noticeAnchorRef?: React.RefObject<HTMLElement>;
@@ -458,6 +461,27 @@ export const useFormContext = ({name, onChange, wrapperClassName, inputType = "t
         message: string;
     };
 
+    type DraftNoticeState = "restore" | "restored" | null;
+
+    const createRecordSnapshot = (value: RecordProps | undefined): string => (
+        JSON.stringify(cleanRecord(value ?? {}))
+    );
+
+    const parseDraftRecord = (raw: string | null): RecordProps | undefined => {
+        if (!raw) return undefined;
+
+        try {
+            const parsed = JSON.parse(raw) as unknown;
+            if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+                return parsed as RecordProps;
+            }
+        } catch {
+            return undefined;
+        }
+
+        return undefined;
+    };
+
     const FormData = forwardRef<FormRef, FormDefaultProps>(({
         children,
         appearance = undefined,
@@ -474,6 +498,7 @@ export const useFormContext = ({name, onChange, wrapperClassName, inputType = "t
         onComplete = undefined,
         log = false,
         showNotice = true,
+        persistDraft = false,
         noticeAnchorRef = undefined,
         showBack = false,
         wrapperClassName = undefined,
@@ -481,26 +506,118 @@ export const useFormContext = ({name, onChange, wrapperClassName, inputType = "t
         className = undefined,
         footerClassName = undefined
     }, ref) => {
+        const location = useLocation();
         const theme = useTheme("form");
         const dict = useI18n('form');
         const db = useDataProvider();
 
         const [record, setRecord] = useState<RecordProps | undefined>(defaultValues);
         const isNewRecord = !defaultValues?.[RECORD_KEY];
+        const baselineRecordRef = useRef<RecordProps>(safeClone(defaultValues ?? {}));
+        const [baselineSnapshot, setBaselineSnapshot] = useState(() => createRecordSnapshot(defaultValues));
+        const [draftNoticeState, setDraftNoticeState] = useState<DraftNoticeState>(null);
+
+        const draftStorageKey = useMemo(() => {
+            if (!persistDraft) return undefined;
+            const identity = path || `${location.pathname}${location.hash || ''}`;
+            const normalizedIdentity = normalizeKey(identity);
+            return normalizedIdentity ? `llmnative.form-draft.${normalizedIdentity}` : undefined;
+        }, [persistDraft, location.pathname, location.hash, path]);
+
+        const canSave = Boolean(onSave || path || !isNewRecord);
+        const isDirty = useMemo(
+            () => createRecordSnapshot(record) !== baselineSnapshot,
+            [record, baselineSnapshot]
+        );
+        const noChangesToSave = dict.noChangesToSave ?? 'No changes to save';
+        const draftRestoreTitle = dict.draftRestoreTitle ?? 'Unsaved changes found';
+        const draftRestoreMessage = dict.draftRestoreMessage ?? 'A local draft is available for this form. Restore it or discard it.';
+        const draftRestoreAction = dict.draftRestoreAction ?? 'Restore';
+        const draftDiscardAction = dict.draftDiscardAction ?? 'Discard';
+        const draftRestoredTitle = dict.draftRestoredTitle ?? 'Draft restored';
+        const draftRestoredMessage = dict.draftRestoredMessage ?? 'The local draft has been restored. You can still discard it for a few seconds.';
+
+        const clearDraftStorage = useCallback(() => {
+            if (!draftStorageKey || typeof localStorage === 'undefined') return;
+            localStorage.removeItem(draftStorageKey);
+        }, [draftStorageKey]);
+
+        const readStoredDraft = useCallback(() => {
+            if (!draftStorageKey || typeof localStorage === 'undefined') return undefined;
+            return parseDraftRecord(localStorage.getItem(draftStorageKey));
+        }, [draftStorageKey]);
+
+        const restoreBaselineRecord = useCallback(() => {
+            setRecord(safeClone(baselineRecordRef.current));
+        }, []);
+
+        const discardStoredDraft = useCallback(() => {
+            clearDraftStorage();
+            restoreBaselineRecord();
+            setDraftNoticeState(null);
+        }, [clearDraftStorage, restoreBaselineRecord]);
+
+        const restoreStoredDraft = useCallback(() => {
+            const storedDraft = readStoredDraft();
+            if (!storedDraft) {
+                setDraftNoticeState(null);
+                return;
+            }
+
+            setRecord(safeClone(storedDraft));
+            setDraftNoticeState("restored");
+        }, [readStoredDraft]);
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
         useEffect(()=>{
+            const nextDefaultValues = safeClone(defaultValues ?? {});
+
             if (defaultValues) {
-                setRecord({...defaultValues});
-                onLoad?.({...defaultValues});
+                setRecord(nextDefaultValues);
+                onLoad?.(safeClone(nextDefaultValues));
             }
-        }, [JSON.stringify(defaultValues)]);
+
+            baselineRecordRef.current = nextDefaultValues;
+            setBaselineSnapshot(createRecordSnapshot(nextDefaultValues));
+
+            if (!persistDraft) {
+                setDraftNoticeState(null);
+                return;
+            }
+
+            const storedDraft = readStoredDraft();
+            if (storedDraft && createRecordSnapshot(storedDraft) !== createRecordSnapshot(nextDefaultValues)) {
+                setDraftNoticeState("restore");
+                return;
+            }
+
+            setDraftNoticeState(null);
+        }, [JSON.stringify(defaultValues), persistDraft, onLoad, readStoredDraft]);
 
         const recordRef = useRef(record);
         useEffect(() => {
             recordRef.current = record;
             if (record !== undefined) onRecordChange?.(record);
-        }, [record]);
+        }, [record, onRecordChange]);
+
+        useEffect(() => {
+            if (!draftStorageKey || typeof localStorage === 'undefined' || record === undefined) return;
+
+            if (!isDirty) {
+                const storedDraft = readStoredDraft();
+                if (storedDraft && createRecordSnapshot(storedDraft) !== baselineSnapshot) {
+                    return;
+                }
+                localStorage.removeItem(draftStorageKey);
+                return;
+            }
+
+            const timer = window.setTimeout(() => {
+                localStorage.setItem(draftStorageKey, JSON.stringify(cleanRecord(record)));
+            }, 150);
+
+            return () => window.clearTimeout(timer);
+        }, [baselineSnapshot, draftStorageKey, isDirty, readStoredDraft, record]);
 
 
         const [notification, setNotification] = useState<NoticeProps | undefined>(undefined);
@@ -600,8 +717,29 @@ export const useFormContext = ({name, onChange, wrapperClassName, inputType = "t
         }, [path, keyGenerator, isNewRecord]);
 
 
+        const handleFinally = useCallback(async (action: 'create' | 'update' | 'delete') => {
+            if (log && path && db) {
+                const when = new Date().toISOString();
+                const user = getGlobalVars("user");
+                db.set(`/log/${path}/${normalizeKey(when)}`, {
+                    user: user?.email ?? 'unknown',
+                    when,
+                    action,
+                    record: recordRef.current,
+                });
+            }
+
+            notice({ message: action === 'delete' ? dict.deleteSuccess : dict.saveSuccess, type: "success" });
+
+            return (await onComplete?.({record: recordRef.current, action})) ?? true;
+        }, [log, path, onComplete, notice, dict]);
+
         const handleSave = useCallback(async (e: React.MouseEvent<HTMLElement>): Promise<boolean> => {
             e.preventDefault();
+            if (!isDirty) {
+                showNotice && setNotification({ message: noChangesToSave, type: "info" });
+                return false;
+            }
 
             flushSync(() => {
                 setErrors({});
@@ -623,8 +761,12 @@ export const useFormContext = ({name, onChange, wrapperClassName, inputType = "t
                 ?? computeSavePath(recordRef.current ?? {});
 
             recordStoragePath && await db.set(recordStoragePath, cleanRecord(recordRef.current));
+            baselineRecordRef.current = safeClone(recordRef.current ?? {});
+            setBaselineSnapshot(createRecordSnapshot(recordRef.current));
+            clearDraftStorage();
+            setDraftNoticeState(null);
             return await handleFinally(action);
-        }, [path, onSave, onComplete, showNotice, computeSavePath, validateFields, dict]);
+        }, [path, onSave, showNotice, computeSavePath, validateFields, dict, isDirty, noChangesToSave, clearDraftStorage, db, defaultValues, handleFinally, isNewRecord]);
 
         const handleDelete = useCallback(async (e: React.MouseEvent<HTMLElement>) => {
             e.preventDefault();
@@ -636,25 +778,10 @@ export const useFormContext = ({name, onChange, wrapperClassName, inputType = "t
                 ?? computeSavePath(recordRef.current ?? {});
 
             recordStoragePath && await db.remove(recordStoragePath);
+            clearDraftStorage();
+            setDraftNoticeState(null);
             return await handleFinally("delete");
-        }, [path, onDelete, onComplete, showNotice, computeSavePath]);
-
-        const handleFinally = useCallback(async (action: 'create' | 'update' | 'delete') => {
-            if (log && path && db) {
-                const when = new Date().toISOString();
-                const user = getGlobalVars("user");
-                db.set(`/log/${path}/${normalizeKey(when)}`, {
-                    user: user?.email ?? 'unknown',
-                    when,
-                    action,
-                    record: recordRef.current,
-                });
-            }
-
-            notice({ message: action === 'delete' ? dict.deleteSuccess : dict.saveSuccess, type: "success" });
-
-            return (await onComplete?.({record: recordRef.current, action})) ?? true;
-        }, [log, path, onComplete, notice, dict]);
+        }, [onDelete, computeSavePath, clearDraftStorage, db, handleFinally, showNotice]);
 
         useImperativeHandle(ref, () => ({
             handleSave: handlers?.handleSave ?? handleSave,
@@ -663,6 +790,15 @@ export const useFormContext = ({name, onChange, wrapperClassName, inputType = "t
             getRecord: handlers?.getRecord ?? (() => ({record: recordRef.current ?? {}, isNewRecord})),
             getFooter: handlers?.getFooter ?? (() => footer),
         }), [handleSave, handleDelete, handlers]);
+
+        const handleFormKeyDown = useCallback((event: React.KeyboardEvent<HTMLFormElement>) => {
+            if (event.defaultPrevented) return;
+            const isSaveShortcut = (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's';
+            if (!isSaveShortcut || !canSave || !isDirty) return;
+
+            event.preventDefault();
+            void handleSave({ preventDefault: () => undefined } as React.MouseEvent<HTMLElement>);
+        }, [canSave, handleSave, isDirty]);
 
         const validationContextValue = useMemo(() => ({
             registerField,
@@ -694,12 +830,66 @@ export const useFormContext = ({name, onChange, wrapperClassName, inputType = "t
             </Alert>
         ) : null, [notification, noticeAnchorRef]);
 
+        const draftNoticeEl = useMemo(() => {
+            if (!draftNoticeState) return null;
+
+            const title = draftNoticeState === "restore" ? draftRestoreTitle : draftRestoredTitle;
+            const message = draftNoticeState === "restore" ? draftRestoreMessage : draftRestoredMessage;
+
+            return (
+                <Alert
+                    variant={draftNoticeState === "restore" ? "warning" : "info"}
+                    timeout={draftNoticeState === "restored" ? 6000 : undefined}
+                    onClose={draftNoticeState === "restored" ? () => setDraftNoticeState(null) : undefined}
+                >
+                    <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                            <div className="font-medium">{title}</div>
+                            <div className="text-sm opacity-90">{message}</div>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-2">
+                            {draftNoticeState === "restore" ? (
+                                <>
+                                    <ActionButton
+                                        label={draftRestoreAction}
+                                        variant="warning"
+                                        onClick={() => restoreStoredDraft()}
+                                    />
+                                    <ActionButton
+                                        label={draftDiscardAction}
+                                        variant="outline-secondary"
+                                        onClick={() => discardStoredDraft()}
+                                    />
+                                </>
+                            ) : (
+                                <ActionButton
+                                    label={draftDiscardAction}
+                                    variant="outline-secondary"
+                                    onClick={() => discardStoredDraft()}
+                                />
+                            )}
+                        </div>
+                    </div>
+                </Alert>
+            );
+        }, [
+            discardStoredDraft,
+            draftDiscardAction,
+            draftNoticeState,
+            draftRestoreAction,
+            draftRestoreMessage,
+            draftRestoreTitle,
+            draftRestoredMessage,
+            draftRestoredTitle,
+            restoreStoredDraft,
+        ]);
+
         const displayComponent = useMemo(() => {
-            if(!appearance && ref) return <>{components}{notificationEl}</>;
+            if(!appearance && ref) return <>{draftNoticeEl}{components}{notificationEl}</>;
 
             switch (appearance) {
                 case "empty":
-                    return <>{components}{notificationEl}</>;
+                    return <>{draftNoticeEl}{components}{notificationEl}</>;
                 case "card":
                 default:
                     return <Card
@@ -708,8 +898,10 @@ export const useFormContext = ({name, onChange, wrapperClassName, inputType = "t
                             {footer}
                             {notificationEl}
                             {(onSave || !!path || !isNewRecord) && <LoadingButton
-                                className={theme.Form.buttonSaveClass}
+                                className={cn(theme.Form.buttonSaveClass, !isDirty && "cursor-not-allowed opacity-50")}
                                 label={dict.buttonSave}
+                                title={!isDirty ? noChangesToSave : undefined}
+                                disabled={!isDirty}
                                 onClick={e => handleSave(e)}
                             />}
                             {(onDelete || !isNewRecord) && <LoadingButton
@@ -726,14 +918,23 @@ export const useFormContext = ({name, onChange, wrapperClassName, inputType = "t
                         bodyClassName={className || theme.Form.Card.bodyClassName}
                         footerClassName={footerClassName || theme.Form.Card.footerClassName}
                     >
-                        {components}
+                        <>
+                            {draftNoticeEl}
+                            {components}
+                        </>
                     </Card>;
             }
-        }, [appearance, header, footer, onSave, onDelete, showBack, components, ref, notificationEl, dict, isNewRecord, path, handleSave, handleDelete]);
+        }, [appearance, header, footer, onSave, onDelete, showBack, components, ref, notificationEl, draftNoticeEl, dict, isNewRecord, path, handleSave, handleDelete, isDirty, noChangesToSave, theme.Form.buttonSaveClass]);
 
         return (
             <Wrapper className={wrapperClassName || theme.Form.wrapperClassName}>
-                <form ref={containerRef} noValidate onSubmit={e => e.preventDefault()}>
+                <form
+                    ref={containerRef}
+                    noValidate
+                    onSubmit={e => e.preventDefault()}
+                    onKeyDownCapture={handleFormKeyDown}
+                    onKeyDown={handleFormKeyDown}
+                >
                     {displayComponent}
                 </form>
             </Wrapper>

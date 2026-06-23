@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
 
@@ -43,6 +43,14 @@ import { Input } from '../../../src/components/ui/fields/Input';
 import { MockDataProvider } from '../../../src/providers/data/mock';
 import { renderWithProviders } from '../../helpers/renderWithProviders';
 
+beforeEach(() => {
+    localStorage.clear();
+});
+
+afterEach(() => {
+    vi.useRealTimers();
+});
+
 // ── defaultValues (FormData path — no DB read) ────────────────────────────────
 
 describe('Form — defaultValues', () => {
@@ -82,6 +90,25 @@ describe('Form — defaultValues', () => {
             </Form>
         );
         expect(screen.getByRole('button', { name: /save|salva/i })).toBeInTheDocument();
+    });
+
+    it('keeps Save disabled until the record changes', () => {
+        renderWithProviders(
+            <Form defaultValues={{ title: 'Original' }} path="/items/item_1">
+                <Input name="title" label="Title" />
+            </Form>
+        );
+
+        const saveButton = screen.getByRole('button', { name: /save|salva/i }) as HTMLButtonElement;
+        const input = screen.getByRole('textbox') as HTMLInputElement;
+
+        expect(saveButton.disabled).toBe(true);
+
+        fireEvent.change(input, { target: { name: 'title', value: 'Updated' } });
+        expect(saveButton.disabled).toBe(false);
+
+        fireEvent.change(input, { target: { name: 'title', value: 'Original' } });
+        expect(saveButton.disabled).toBe(true);
     });
 });
 
@@ -128,11 +155,12 @@ describe('Form — save', () => {
         );
 
         const saveBtn = screen.getByRole('button', { name: /save|salva/i });
+        fireEvent.change(screen.getByRole('textbox'), { target: { name: 'title', value: 'Widget updated' } });
         fireEvent.click(saveBtn);
 
         await waitFor(async () => {
             const saved = await provider.read('/products/new_id');
-            expect(saved).toMatchObject({ title: 'Widget' });
+            expect(saved).toMatchObject({ title: 'Widget updated' });
         });
     });
 
@@ -151,6 +179,8 @@ describe('Form — save', () => {
             { provider }
         );
 
+        const input = screen.getByRole('textbox') as HTMLInputElement;
+        fireEvent.change(input, { target: { name: 'name', value: 'Test updated' } });
         fireEvent.click(screen.getByRole('button', { name: /save|salva/i }));
 
         await waitFor(() => {
@@ -177,6 +207,7 @@ describe('Form — save', () => {
             { provider }
         );
 
+        fireEvent.change(screen.getByRole('textbox'), { target: { name: 'title', value: 'Widget updated' } });
         fireEvent.click(screen.getByRole('button', { name: /save|salva/i }));
 
         await waitFor(() => {
@@ -184,6 +215,83 @@ describe('Form — save', () => {
         });
 
         expect(anchorRef.current?.querySelector('[role="alert"]')?.textContent).toContain('Record saved successfully');
+    });
+
+    it('saves with Ctrl+S when a field inside the form is focused', async () => {
+        const provider = new MockDataProvider();
+
+        renderWithProviders(
+            <Form path="/products/shortcut" defaultValues={{ title: 'Widget' }}>
+                <Input name="title" label="Title" />
+            </Form>,
+            { provider }
+        );
+
+        const input = screen.getByRole('textbox') as HTMLInputElement;
+        fireEvent.change(input, { target: { name: 'title', value: 'Widget v2' } });
+        input.focus();
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /save|salva/i })).not.toBeDisabled();
+        });
+
+        fireEvent.keyDown(input, { key: 's', code: 'KeyS', ctrlKey: true, bubbles: true });
+
+        await waitFor(async () => {
+            const saved = await provider.read('/products/shortcut');
+            expect(saved).toMatchObject({ title: 'Widget v2' });
+        });
+    });
+});
+
+describe('Form — draft restore', () => {
+    it('does not persist a local draft unless explicitly enabled', async () => {
+        const initial = (
+            <Form path="/drafts/item_disabled" defaultValues={{ title: 'Original' }}>
+                <Input name="title" label="Title" />
+            </Form>
+        );
+
+        const firstRender = renderWithProviders(initial);
+        const input = screen.getByRole('textbox') as HTMLInputElement;
+        fireEvent.change(input, { target: { name: 'title', value: 'Draft value' } });
+
+        await new Promise((resolve) => setTimeout(resolve, 250));
+        firstRender.unmount();
+
+        renderWithProviders(initial);
+
+        expect(screen.queryByText(/unsaved changes found/i)).not.toBeInTheDocument();
+        expect(screen.getByDisplayValue('Original')).toBeInTheDocument();
+    });
+
+    it('offers to restore a local draft after remount and can discard it again', async () => {
+        const initial = (
+            <Form path="/drafts/item_1" defaultValues={{ title: 'Original' }} persistDraft>
+                <Input name="title" label="Title" />
+            </Form>
+        );
+
+        const firstRender = renderWithProviders(initial);
+        const input = screen.getByRole('textbox') as HTMLInputElement;
+        fireEvent.change(input, { target: { name: 'title', value: 'Draft value' } });
+
+        await new Promise((resolve) => setTimeout(resolve, 250));
+        firstRender.unmount();
+
+        renderWithProviders(initial);
+
+        expect(await screen.findByText(/unsaved changes found/i)).toBeInTheDocument();
+        fireEvent.click(screen.getByRole('button', { name: /restore/i }));
+
+        await waitFor(() => {
+            expect(screen.getByDisplayValue('Draft value')).toBeInTheDocument();
+        });
+
+        fireEvent.click(screen.getAllByRole('button', { name: /discard/i })[0]);
+
+        await waitFor(() => {
+            expect(screen.getByDisplayValue('Original')).toBeInTheDocument();
+        });
     });
 });
 
@@ -193,12 +301,13 @@ describe('Form — required validation', () => {
     it('blocks submit and shows error when a required Input is empty', async () => {
         const provider = new MockDataProvider();
         renderWithProviders(
-            <Form path="/items/x" defaultValues={{}}>
+            <Form path="/items/x" defaultValues={{ title: 'Seed' }}>
                 <Input name="title" label="Title" required />
             </Form>,
             { provider }
         );
 
+        fireEvent.change(screen.getByRole('textbox'), { target: { name: 'title', value: '' } });
         fireEvent.click(screen.getByRole('button', { name: /save|salva/i }));
 
         // Error message appears
@@ -220,24 +329,28 @@ describe('Form — required validation', () => {
             { provider }
         );
 
+        fireEvent.change(screen.getByRole('textbox'), { target: { name: 'title', value: 'Hello again' } });
         fireEvent.click(screen.getByRole('button', { name: /save|salva/i }));
 
         await waitFor(async () => {
             const saved = await provider.read('/items/y');
-            expect(saved).toMatchObject({ title: 'Hello' });
+            expect(saved).toMatchObject({ title: 'Hello again' });
         });
     });
 
     it('blocks submit and shows error for multiple required fields', async () => {
         const provider = new MockDataProvider();
         renderWithProviders(
-            <Form path="/items/z" defaultValues={{}}>
+            <Form path="/items/z" defaultValues={{ name: 'Alice', email: 'alice@example.com' }}>
                 <Input name="name"  label="Name"  required />
                 <Input name="email" label="Email" required />
             </Form>,
             { provider }
         );
 
+        const inputs = screen.getAllByRole('textbox') as HTMLInputElement[];
+        fireEvent.change(inputs[0], { target: { name: 'name', value: '' } });
+        fireEvent.change(inputs[1], { target: { name: 'email', value: '' } });
         fireEvent.click(screen.getByRole('button', { name: /save|salva/i }));
 
         await waitFor(() => {
@@ -248,11 +361,12 @@ describe('Form — required validation', () => {
 
     it('clears the error when the user fills the field after a failed submit', async () => {
         renderWithProviders(
-            <Form path="/items/clr" defaultValues={{}}>
+            <Form path="/items/clr" defaultValues={{ title: 'Seed' }}>
                 <Input name="title" label="Title" required />
             </Form>
         );
 
+        fireEvent.change(screen.getByRole('textbox'), { target: { name: 'title', value: '' } });
         fireEvent.click(screen.getByRole('button', { name: /save|salva/i }));
 
         await waitFor(() => {
@@ -273,12 +387,13 @@ describe('Form — required validation', () => {
             /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? undefined : 'Invalid email address';
 
         renderWithProviders(
-            <Form path="/items/v" defaultValues={{ email: 'not-an-email' }}>
+            <Form path="/items/v" defaultValues={{ email: 'valid@example.com' }}>
                 <Input name="email" label="Email" validator={validateEmail} />
             </Form>,
             { provider }
         );
 
+        fireEvent.change(screen.getByRole('textbox'), { target: { name: 'email', value: 'not-an-email' } });
         fireEvent.click(screen.getByRole('button', { name: /save|salva/i }));
 
         await waitFor(() => {
@@ -297,12 +412,13 @@ describe('Form — required validation', () => {
         });
 
         renderWithProviders(
-            <Form path="/items/async-validator" defaultValues={{ payload: 'oops' }}>
+            <Form path="/items/async-validator" defaultValues={{ payload: '{"ok":true}' }}>
                 <Input name="payload" label="Payload" validator={validateJson} />
             </Form>,
             { provider }
         );
 
+        fireEvent.change(screen.getByRole('textbox'), { target: { name: 'payload', value: 'oops' } });
         fireEvent.click(screen.getByRole('button', { name: /save|salva/i }));
 
         await waitFor(() => {
@@ -334,13 +450,14 @@ describe('Form — nested dot notation', () => {
         renderWithProviders(
             <Form
                 path="/orders/ord_1"
-                defaultValues={{ shipping: { country: 'IT' } }}
+                defaultValues={{ shipping: { country: 'US' } }}
             >
                 <Input name="shipping.country" label="Country" />
             </Form>,
             { provider }
         );
 
+        fireEvent.change(screen.getByRole('textbox'), { target: { name: 'shipping.country', value: 'IT' } });
         fireEvent.click(screen.getByRole('button', { name: /save|salva/i }));
 
         await waitFor(async () => {

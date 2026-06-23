@@ -25,6 +25,7 @@ const CardPage = lazyPage(() => import('../pages/components/CardPage'));
 const CarouselPage = lazyPage(() => import('../pages/components/CarouselPage'));
 const CheckboxPage = lazyPage(() => import('../pages/components/CheckboxPage'));
 const CodePage = lazyPage(() => import('../pages/components/CodePage'));
+const ContextMenuPage = lazyPage(() => import('../pages/components/ContextMenuPage'));
 const LoaderPage = lazyPage(() => import('../pages/components/LoaderPage'));
 const LocaleSwitcherPage = lazyPage(() => import('../pages/components/LocaleSwitcherPage'));
 const DropdownPage = lazyPage(() => import('../pages/components/DropdownPage'));
@@ -67,6 +68,7 @@ const UploadDocumentPage = lazyPage(() => import('../pages/components/upload/Upl
 const UploadCSVPage = lazyPage(() => import('../pages/components/upload/UploadCSVPage'));
 const FormPage = lazyPage(() => import('../pages/components/FormPage'));
 const FormValidationPage = lazyPage(() => import('../pages/components/FormValidationPage'));
+const FormDraftPage = lazyPage(() => import('../pages/components/FormDraftPage'));
 const RichTextPage = lazyPage(() => import('../pages/components/RichTextPage'));
 const GridPage = lazyPage(() => import('../pages/components/GridPage'));
 const GridArrayPage = lazyPage(() => import('../pages/components/GridArrayPage'));
@@ -195,6 +197,7 @@ export const menu = {
             page: FormPage,
             group: 'Widgets',
             children: [
+                { path: '/components/form/draft', title: 'Draft persistence', page: FormDraftPage },
                 { path: '/components/form/validation', title: 'Validation', page: FormValidationPage },
             ],
         },
@@ -203,6 +206,7 @@ export const menu = {
         { path: '/components/autocomplete', title: 'Autocomplete', page: AutocompletePage, group: 'Form fields' },
         { path: '/components/checkbox', title: 'Checkbox', page: CheckboxPage, group: 'Form fields' },
         { path: '/components/code-editor', title: 'CodeEditor', page: CodeEditorPage, group: 'Form fields' },
+        { path: '/components/context-menu', title: 'ContextMenu', page: ContextMenuPage, group: 'Form fields' },
         { path: '/components/checklist', title: 'Checklist', page: ChecklistPage, group: 'Form fields' },
         { path: '/components/crop', title: 'Crop', page: CropPage, group: 'Form fields' },
         { path: '/components/image-field', title: 'ImageField', page: ImageFieldPage, group: 'Form fields' },

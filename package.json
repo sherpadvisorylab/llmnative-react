@@ -12,6 +12,7 @@
       "import": "./dist/index.mjs",
       "require": "./dist/index.js"
     },
+    "./vite": "./src/providers/proxy/vite.ts",
     "./dist/index.css": "./dist/index.css"
   },
   "scripts": {
