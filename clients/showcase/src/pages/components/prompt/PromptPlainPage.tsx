@@ -1,5 +1,5 @@
 import React from 'react';
-import { Form, Prompt, PromptMode } from '@llmnative/react';
+import { ContextMenu, Form, Prompt, PromptMode } from '@llmnative/react';
 import PageLayout from '../../../showcase/page';
 import Section from '../../../docs-kit/page/Section';
 import PropDocsTable from '../../../docs-kit/docs/PropDocsTable';
@@ -95,6 +95,44 @@ export default function PromptPlainPage() {
                     </Form>
                 )}
                 code={`<Prompt name="notes" mode={PromptMode.RUN} renderFallback={({ name }) => <MyRichTextEditor name={name} />} />`}
+            />
+
+            <Section
+                title="ContextMenu: scorciatoie testo"
+                description="Digita / per aprire un menu con blocchi di testo predefiniti da inserire."
+                preview={(
+                    <div className="max-w-3xl">
+                        <Form appearance="empty" defaultValues={{ notes: { value: '' } }}>
+                            <ContextMenu trigger="/">
+                                <ContextMenu.Heading>Blocchi testo</ContextMenu.Heading>
+                                <ContextMenu.Item label="Saluto formale" value="Dear Sir/Madam," icon="greeting" />
+                                <ContextMenu.Item label="Follow-up" value="Follow up with the customer in 2 weeks." icon="clock" />
+                                <ContextMenu.Item label="Chiusura" value="Best regards" icon="pen" />
+                                <ContextMenu.Separator />
+                                <ContextMenu.Heading>Formattazione</ContextMenu.Heading>
+                                <ContextMenu.Item label="Titolo" value="# " icon="heading" />
+                                <ContextMenu.Item label="Elenco" value="- " icon="list" />
+                                <Prompt
+                                    name="notes"
+                                    label={t.labels.notes}
+                                    mode={PromptMode.RUN}
+                                    minHeight={120}
+                                    maxHeight={160}
+                                    defaultValue={{ value: '', enabled: false }}
+                                />
+                            </ContextMenu>
+                        </Form>
+                    </div>
+                )}
+                code={`import { ContextMenu } from '@llmnative/react';
+
+<ContextMenu trigger="/">
+    <ContextMenu.Heading>Blocchi testo</ContextMenu.Heading>
+    <ContextMenu.Item label="Saluto" value="Dear Sir/Madam," />
+    <ContextMenu.Item label="Follow-up" value="Follow up in 2 weeks." />
+    <ContextMenu.Item label="Chiusura" value="Best regards" />
+    <Prompt name="notes" mode={PromptMode.RUN} />
+</ContextMenu>`}
             />
 
             <PropDocsTable props={[...plainProps, ...sharedProps]} title={t.propsDocs.title} />

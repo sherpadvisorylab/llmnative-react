@@ -35,9 +35,13 @@ export default defineConfig({
     ],
     build: {
         lib: {
-            entry: resolve(__dirname, 'src/index.ts'),
+            entry: {
+                index: resolve(__dirname, 'src/index.ts'),
+                vite: resolve(__dirname, 'src/providers/proxy/vite.ts'),
+            },
             formats: ['es', 'cjs'],
-            fileName: (format) => format === 'es' ? 'index.mjs' : 'index.js',
+            fileName: (format, entryName) =>
+                format === 'es' ? `${entryName}.mjs` : `${entryName}.js`,
         },
         rollupOptions: {
             external,

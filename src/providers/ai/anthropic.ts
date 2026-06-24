@@ -13,6 +13,7 @@ export const ANTHROPIC_PROVIDER_DEFINITION: AIProviderDefinition = {
     configKey: 'anthropicApiKey',
     defaultModel: 'claude-sonnet-4-0',
     fallbackModels: ['claude-sonnet-4-0', 'claude-opus-4-1', 'claude-3-7-sonnet-latest'],
+    dashboardUrl: 'https://console.anthropic.com/settings/keys',
     capabilities: { supportsTemperature: true, supportsVision: true, supportsDocuments: true },
     discoverModels: async (apiKey) => {
         const response = await fetchJson(ANTHROPIC_MODELS_URL, {

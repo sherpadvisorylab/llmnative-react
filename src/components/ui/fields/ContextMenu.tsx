@@ -93,12 +93,12 @@ const ContextMenu: ContextMenuComponent = ({
 }) => {
     const menuId = useId();
     const containerRef = useRef<HTMLDivElement>(null);
+    const menuRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement | HTMLInputElement | null>(null);
     const [open, setOpen] = useState(false);
     const [filter, setFilter] = useState('');
     const [caretPos, setCaretPos] = useState<{ top: number; left: number } | null>(null);
     const [activeIndex, setActiveIndex] = useState(0);
-    const selectItemRef = useRef<((item: { label: string; value: string; icon?: string }) => void) | null>(null);
 
     const items = useMemo(() => {
         const collected: { label: string; value: string; icon?: string }[] = [];
@@ -125,30 +125,50 @@ const ContextMenu: ContextMenuComponent = ({
         const triggerIdx = el.value.lastIndexOf(trigger, pos - 1);
         if (triggerIdx === -1) return null;
 
-        const textBefore = el.value.slice(0, pos);
-        let line = 0;
-        let col = 0;
-        for (let i = pos - 1; i >= 0; i--) {
-            if (textBefore[i] === '\n') { line++; col = 0; }
-            else { col++; }
-        }
-        const colAtTrigger = (() => {
-            let c = 0;
-            for (let i = triggerIdx - 1; i >= 0; i--) {
-                if (textBefore[i] === '\n') break;
-                c++;
-            }
-            return c;
-        })();
-
-        const charWidth = 8;
-        const lineHeight = 20;
-        const scrollTop = el.scrollTop;
+        const style = window.getComputedStyle(el);
         const rect = el.getBoundingClientRect();
 
+        const lineHeight = parseFloat(style.lineHeight) || 20;
+        const bl = parseFloat(style.borderLeftWidth) || 0;
+        const pl = parseFloat(style.paddingLeft) || 0;
+
+        const textBefore = el.value.slice(0, pos);
+        let line = 0;
+        for (let i = pos - 1; i >= 0; i--) {
+            if (textBefore[i] === '\n') line++;
+        }
+
+        const lineStartIdx = textBefore.lastIndexOf('\n', triggerIdx - 1) + 1;
+        const textBeforeTriggerOnLine = el.value.slice(lineStartIdx, triggerIdx);
+
+        /* Misura larghezza testo con uno span mirror che replica fedelmente il
+           font rendering della textarea (all:initial + copia proprietà testuali). */
+        const span = document.createElement('span');
+        span.style.all = 'initial';
+        const textProps: string[] = [
+            'fontFamily', 'fontSize', 'fontWeight', 'fontStyle', 'fontVariant',
+            'letterSpacing', 'wordSpacing', 'lineHeight', 'textAlign', 'textIndent',
+            'textRendering', 'textTransform', 'whiteSpace', 'wordBreak', 'wordWrap',
+        ];
+        for (const p of textProps) {
+            const val = style.getPropertyValue(p);
+            if (val) span.style.setProperty(p, val);
+        }
+        span.style.whiteSpace = 'pre';
+        span.style.position = 'absolute';
+        span.style.visibility = 'hidden';
+        span.style.pointerEvents = 'none';
+        span.style.margin = '0';
+        span.style.padding = '0';
+        span.style.border = '0';
+        span.textContent = textBeforeTriggerOnLine;
+        document.body.appendChild(span);
+        const textWidth = span.offsetWidth;
+        document.body.removeChild(span);
+
         return {
-            left: rect.left + colAtTrigger * charWidth + 4,
-            top: rect.top + (line - (scrollTop / lineHeight)) * lineHeight + lineHeight + 4,
+            left: rect.left + bl + pl + textWidth - el.scrollLeft,
+            top: rect.top + (line + 1) * lineHeight - el.scrollTop,
         };
     }, [trigger]);
 
@@ -212,71 +232,94 @@ const ContextMenu: ContextMenuComponent = ({
         close();
     }, [onSelect, buildEditorContext, trigger, close]);
 
+    const openRef = useRef(open);
+    const activeIndexRef = useRef(activeIndex);
+    const filteredItemsRef = useRef(filteredItems);
+    const closeRef = useRef(close);
+    const selectItemRef = useRef<((item: { label: string; value: string; icon?: string }) => void) | null>(null);
+
+    openRef.current = open;
+    activeIndexRef.current = activeIndex;
+    filteredItemsRef.current = filteredItems;
+    closeRef.current = close;
     selectItemRef.current = selectItem;
 
-    const handleKeyDown = useCallback((e: KeyboardEvent) => {
-        const target = e.target as HTMLElement;
-        if (!containerRef.current?.contains(target)) return;
-        if (target.tagName !== 'TEXTAREA' && target.tagName !== 'INPUT') return;
+    useEffect(() => {
+        const els = containerRef.current?.querySelectorAll<HTMLTextAreaElement | HTMLInputElement>('textarea, input');
+        if (!els || els.length === 0) return;
+        textareaRef.current = els[0];
 
-        const el = target as HTMLTextAreaElement | HTMLInputElement;
-        textareaRef.current = el;
-
-        if (!open) {
-            if (e.key === trigger) {
-                const pos = el.selectionStart ?? 0;
-                if (pos > 0 && el.value[pos - 1] === trigger) {
-                    e.preventDefault();
-                    setFilter('');
-                    setActiveIndex(0);
-                    const coords = getCaretCoordinates(el);
-                    if (coords) {
-                        setCaretPos(coords);
-                        setOpen(true);
+        const onKeyDown = (e: Event) => {
+            if (!openRef.current) return;
+            const ke = e as KeyboardEvent;
+            const target = e.target as HTMLTextAreaElement | HTMLInputElement;
+            switch (ke.key) {
+                case 'ArrowDown':
+                    ke.preventDefault();
+                    setActiveIndex((prev) => (prev + 1) % filteredItemsRef.current.length);
+                    break;
+                case 'ArrowUp':
+                    ke.preventDefault();
+                    setActiveIndex((prev) => (prev - 1 + filteredItemsRef.current.length) % filteredItemsRef.current.length);
+                    break;
+                case 'Enter':
+                case 'Tab':
+                    if (filteredItemsRef.current.length === 0) break;
+                    ke.preventDefault();
+                    selectItemRef.current?.(filteredItemsRef.current[activeIndexRef.current] ?? filteredItemsRef.current[0]);
+                    break;
+                case 'Escape':
+                    ke.preventDefault();
+                    closeRef.current();
+                    break;
+                default:
+                    if (searchable) {
+                        const pos = target.selectionStart ?? 0;
+                        const parts = target.value.slice(0, pos).split(trigger);
+                        setFilter(parts[parts.length - 1] ?? '');
                     }
+                    break;
+            }
+        };
+
+        const onKeyUp = (e: Event) => {
+            if (openRef.current) return;
+            const ke = e as KeyboardEvent;
+            if (ke.key !== trigger) return;
+            const target = e.target as HTMLTextAreaElement | HTMLInputElement;
+            textareaRef.current = target;
+
+            const pos = target.selectionStart ?? 0;
+            if (pos > 0 && target.value[pos - 1] === trigger) {
+                setFilter('');
+                setActiveIndex(0);
+                const coords = getCaretCoordinates(target);
+                if (coords) {
+                    setCaretPos(coords);
+                    setOpen(true);
                 }
             }
-            return;
-        }
+        };
 
-        switch (e.key) {
-            case 'ArrowDown':
-                e.preventDefault();
-                setActiveIndex((prev) => (prev + 1) % filteredItems.length);
-                break;
-            case 'ArrowUp':
-                e.preventDefault();
-                setActiveIndex((prev) => (prev - 1 + filteredItems.length) % filteredItems.length);
-                break;
-            case 'Enter':
-            case 'Tab':
-                if (filteredItems.length === 0) break;
-                e.preventDefault();
-                selectItemRef.current?.(filteredItems[activeIndex] ?? filteredItems[0]);
-                break;
-            case 'Escape':
-                e.preventDefault();
-                close();
-                break;
-            default:
-                if (searchable) {
-                    const pos = el.selectionStart ?? 0;
-                    const parts = el.value.slice(0, pos).split(trigger);
-                    setFilter(parts[parts.length - 1] ?? '');
-                }
-                break;
-        }
-    }, [open, trigger, searchable, filteredItems, activeIndex, getCaretCoordinates, close]);
-
-    useEffect(() => {
-        document.addEventListener('keydown', handleKeyDown);
-        return () => document.removeEventListener('keydown', handleKeyDown);
-    }, [handleKeyDown]);
+        els.forEach((el) => {
+            el.addEventListener('keydown', onKeyDown);
+            el.addEventListener('keyup', onKeyUp);
+        });
+        return () => {
+            els.forEach((el) => {
+                el.removeEventListener('keydown', onKeyDown);
+                el.removeEventListener('keyup', onKeyUp);
+            });
+        };
+    }, [trigger, searchable, getCaretCoordinates]);
 
     useEffect(() => {
         if (!open) return;
-        const handlePointerDown = (e: PointerEvent) => {
-            if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+            const handlePointerDown = (e: PointerEvent) => {
+            const target = e.target as Node;
+            const insideContainer = containerRef.current?.contains(target);
+            const insideMenu = menuRef.current?.contains(target);
+            if (!insideContainer && !insideMenu) {
                 close();
             }
         };
@@ -323,12 +366,13 @@ const ContextMenu: ContextMenuComponent = ({
                 {after}
             </div>
             {open && caretPos && createPortal(
-                <div
-                    role="menu"
-                    className="fixed z-[200] min-w-44 overflow-y-auto rounded-md border bg-popover p-1 text-popover-foreground shadow-md outline-none"
-                    style={{ top: caretPos.top, left: caretPos.left, maxHeight: 240 }}
-                    id={menuId}
-                >
+                    <div
+                        ref={menuRef}
+                        role="menu"
+                        className="fixed z-[200] min-w-44 overflow-y-auto rounded-md border bg-popover p-1 text-popover-foreground shadow-md outline-none"
+                        style={{ top: caretPos.top, left: caretPos.left, maxHeight: 240 }}
+                        id={menuId}
+                    >
                     {renderedItems}
                     {filteredItems.length === 0 && searchable && filter && (
                         <div className="px-2 py-1.5 text-xs text-muted-foreground">

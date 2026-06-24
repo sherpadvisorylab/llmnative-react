@@ -51,6 +51,7 @@ export type AIConfig = {
     openCodeApiKey?: string;
     anthropicApiKey?: string;
     mistralApiKey?: string;
+    glmApiKey?: string;
     openAICompatible?: {
         apiKey?: string;
         baseUrl?: string;
@@ -172,6 +173,13 @@ const initConfig = (defaultConfig: Config, tenantsURI ?: string): Config => {
 
     tenantsConfig = [defaultConfig];
     currentConfig = defaultConfig;
+
+    // Fire handlers synchronously so dependent modules (e.g. proxy) are configured
+    // before the first render — useEffect fires too late for isProxyEnabled() checks.
+    for (const handler of configChangeHandlers) {
+        handler(currentConfig, null);
+    }
+
     loadTenants();
 
     return currentConfig;

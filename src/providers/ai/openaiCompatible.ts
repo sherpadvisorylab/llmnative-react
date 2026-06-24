@@ -2,7 +2,7 @@ import { Prompt } from '../../conf/Prompt';
 import { fetchJson } from '../../libs/fetch';
 import { proxyFetch } from '../proxy';
 import type { AIProviderDefinition, BuiltInAIProviderId } from './shared';
-import { parseTextResponse, createBrowserTransportError } from './shared';
+import { parseTextResponse, createBrowserTransportError, extractProviderError } from './shared';
 
 type OpenAICompatibleDefinitionOptions = {
     id: BuiltInAIProviderId;
@@ -14,6 +14,9 @@ type OpenAICompatibleDefinitionOptions = {
     baseUrl: string;
     modelsUrl?: string;
     chatCompletionsUrl?: string;
+    dashboardUrl?: string;
+    /** Override the default validateApiKey when the models endpoint is public or uses a non-standard error format. */
+    validateApiKey?: AIProviderDefinition['validateApiKey'];
 };
 
 const trimTrailingSlash = (value: string) => value.replace(/\/+$/, '');
@@ -28,10 +31,28 @@ export const createOpenAICompatibleProviderDefinition = ({
     baseUrl,
     modelsUrl,
     chatCompletionsUrl,
+    dashboardUrl,
+    validateApiKey: validateApiKeyOverride,
 }: OpenAICompatibleDefinitionOptions): AIProviderDefinition => {
     const normalizedBaseUrl = trimTrailingSlash(baseUrl);
     const resolvedModelsUrl = modelsUrl || `${normalizedBaseUrl}/models`;
     const resolvedChatUrl = chatCompletionsUrl || `${normalizedBaseUrl}/chat/completions`;
+
+    const defaultValidateApiKey: AIProviderDefinition['validateApiKey'] = async (apiKey) => {
+        try {
+            const response = await fetchJson(resolvedModelsUrl, {
+                headers: { Authorization: `Bearer ${apiKey}` },
+            }, proxyFetch);
+            if (response === null) return { valid: false, error: 'Nessuna risposta dal server (CORS o proxy non attivo)' };
+            // Some providers (e.g. Mistral) return { message: "Unauthorized" } instead of { error: { message } }
+            if (typeof response?.message === 'string' && !Array.isArray(response?.data)) {
+                return { valid: false, error: response.message };
+            }
+            return { valid: true };
+        } catch (err) {
+            return { valid: false, error: extractProviderError(err) };
+        }
+    };
 
     return {
         id,
@@ -40,7 +61,9 @@ export const createOpenAICompatibleProviderDefinition = ({
         requiredConfigKeys,
         defaultModel,
         fallbackModels,
+        dashboardUrl,
         capabilities: { supportsTemperature: true, supportsVision: true, supportsDocuments: false },
+        validateApiKey: validateApiKeyOverride ?? defaultValidateApiKey,
         discoverModels: async (apiKey) => {
             const response = await fetchJson(resolvedModelsUrl, {
                 headers: {

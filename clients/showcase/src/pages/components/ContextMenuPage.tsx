@@ -37,6 +37,15 @@ const itemProps: PropDocsInput[] = [
     { name: 'icon', type: 'string', description: 'Lucide/Phosphor icon name rendered before the label.' },
 ];
 
+const headingProps: PropDocsInput[] = [
+    { name: 'children', type: 'ReactNode', required: true, description: 'Section heading text.' },
+    { name: 'className', type: 'string', description: 'Additional CSS classes.' },
+];
+
+const separatorProps: PropDocsInput[] = [
+    { name: 'className', type: 'string', description: 'Additional CSS classes.' },
+];
+
 const textareaBase = 'flex min-h-[8rem] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm';
 
 export default function ContextMenuPage() {
@@ -184,6 +193,8 @@ export default function ContextMenuPage() {
 
             <PropDocsTable props={contextMenuProps} title="ContextMenu props" />
             <PropDocsTable props={itemProps} title="ContextMenu.Item props" />
+            <PropDocsTable props={headingProps} title="ContextMenu.Heading props" />
+            <PropDocsTable props={separatorProps} title="ContextMenu.Separator props" />
         </PageLayout>
     );
 }

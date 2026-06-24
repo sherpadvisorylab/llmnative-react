@@ -6,11 +6,12 @@ import { GEMINI_PROVIDER_DEFINITION } from './gemini';
 import { MISTRAL_PROVIDER_DEFINITION } from './mistral';
 import { OPENAI_PROVIDER_DEFINITION } from './openai';
 import { createOpenAICompatibleProviderDefinition } from './openaiCompatible';
+import { GLM_PROVIDER_DEFINITION } from './glm';
 import { OPENCODE_PROVIDER_DEFINITION } from './opencode';
 import { OPENROUTER_PROVIDER_DEFINITION } from './openrouter';
 import { getAIModelCatalog, type AIProviderDefinition, type AIModelCatalog, RuntimeAIProvider } from './shared';
 
-export type { AIProviderAdapter, AIModelDescriptor, AIProviderCapabilities, AIRequestOptions, AIAttachment } from './AIProvider';
+export type { AIProviderAdapter, AIKeyValidationResult, AIModelDescriptor, AIProviderCapabilities, AIRequestOptions, AIAttachment } from './AIProvider';
 export { formatAIModelRef, parseAIModelRef } from './AIProvider';
 export type { AIModelCatalog } from './shared';
 export { getAIModelCatalog } from './shared';
@@ -23,6 +24,7 @@ export const AI_PROVIDER_DEFINITIONS: AIProviderDefinition[] = [
     GEMINI_PROVIDER_DEFINITION,
     ANTHROPIC_PROVIDER_DEFINITION,
     MISTRAL_PROVIDER_DEFINITION,
+    GLM_PROVIDER_DEFINITION,
 ];
 
 const getDynamicAIProviderDefinitions = (aiConfig?: AIConfig): AIProviderDefinition[] => {

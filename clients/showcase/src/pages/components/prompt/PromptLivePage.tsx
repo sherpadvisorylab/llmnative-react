@@ -1,5 +1,5 @@
 import React from 'react';
-import { AIProvider, createAIProviderRegistry, Form, Prompt, PromptMode, PromptUtils } from '@llmnative/react';
+import { AIProvider, ContextMenu, createAIProviderRegistry, Form, Prompt, PromptMode, PromptUtils } from '@llmnative/react';
 import PageLayout from '../../../showcase/page';
 import Section from '../../../docs-kit/page/Section';
 import PropDocsTable from '../../../docs-kit/docs/PropDocsTable';
@@ -479,6 +479,55 @@ export default function PromptLivePage() {
                     </div>
                 )}
                 code={`import { PromptUtils } from '@llmnative/react';`}
+            />
+
+            <Section
+                title="ContextMenu: variabili contesto"
+                description="Digita @ per inserire variabili di contesto nel prompt. Utile quando il prompt usa variabili come {projectName} o {industry}."
+                preview={(
+                    <Form appearance="empty" defaultValues={{
+                        projectName: 'Atlas Console',
+                        summary: {
+                            value: '',
+                            prompt: {
+                                enabled: 'on',
+                                value: 'Write a concise summary for {projectName} in {language}.',
+                            },
+                        },
+                    }}>
+                        <div className="max-w-3xl">
+                            <ContextMenu trigger="@">
+                                <ContextMenu.Heading>Variabili contesto</ContextMenu.Heading>
+                                <ContextMenu.Item label="Project name" value="{projectName}" icon="folder" />
+                                <ContextMenu.Item label="Industry" value="{industry}" icon="building" />
+                                <ContextMenu.Item label="Customer" value="{customerName}" icon="user" />
+                                <ContextMenu.Item label="Language" value="{language}" icon="languages" />
+                                <Prompt
+                                    name="summary"
+                                    label={t.labels.summary}
+                                    mode={PromptMode.RUN}
+                                    minHeight={120}
+                                    maxHeight={160}
+                                    defaultValue={{
+                                        value: 'Write a concise summary for {projectName} in {language}.',
+                                        enabled: true,
+                                        language: shared.playground.defaults.english,
+                                    }}
+                                    onRunPrompt={runPreview}
+                                />
+                            </ContextMenu>
+                        </div>
+                    </Form>
+                )}
+                code={`import { ContextMenu } from '@llmnative/react';
+
+<ContextMenu trigger="@">
+    <ContextMenu.Heading>Context variables</ContextMenu.Heading>
+    <ContextMenu.Item label="Project name" value="{projectName}" />
+    <ContextMenu.Item label="Industry" value="{industry}" />
+    <ContextMenu.Item label="Language" value="{language}" />
+    <Prompt name="summary" mode={PromptMode.RUN} />
+</ContextMenu>`}
             />
 
             <PropDocsTable props={[...liveProps, ...sharedProps]} title={t.propsDocs.title} />

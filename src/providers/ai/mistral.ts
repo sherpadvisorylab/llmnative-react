@@ -7,4 +7,6 @@ export const MISTRAL_PROVIDER_DEFINITION = createOpenAICompatibleProviderDefinit
     defaultModel: 'mistral-medium-3',
     fallbackModels: ['mistral-medium-3', 'mistral-small-3.1', 'ministral-8b-latest'],
     baseUrl: 'https://api.mistral.ai/v1',
+    dashboardUrl: 'https://console.mistral.ai/api-keys',
+    // Mistral returns { message: "Unauthorized" } on 401, handled by defaultValidateApiKey in the factory
 });

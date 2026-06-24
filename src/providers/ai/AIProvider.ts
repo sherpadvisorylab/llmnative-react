@@ -37,12 +37,24 @@ export interface AICompleteRequest extends AIRequestOptions {
     data?: PromptVariables;
 }
 
+export interface AIKeyValidationResult {
+    valid: boolean;
+    /** Human-readable error from the provider API (e.g. "Incorrect API key provided"). */
+    error?: string;
+    /** URL to the provider's API key management page, for showing in UI. */
+    dashboardUrl?: string;
+}
+
 export interface AIProviderAdapter extends ProviderConfigurable {
     id: string;
     label: string;
     defaultModel: string;
+    /** URL to the provider's API key management page. */
+    dashboardUrl?: string;
     getCapabilities(forceRefresh?: boolean): Promise<AIProviderCapabilities>;
     complete(request: AICompleteRequest): Promise<string | null>;
+    /** Makes a live API call to verify the key is accepted. Never uses cache. */
+    validateApiKey(): Promise<AIKeyValidationResult>;
 }
 
 export interface AIModelRef {

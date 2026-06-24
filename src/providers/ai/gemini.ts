@@ -12,6 +12,7 @@ export const GEMINI_PROVIDER_DEFINITION: AIProviderDefinition = {
     configKey: 'geminiApiKey',
     defaultModel: 'gemini-2.5-pro',
     fallbackModels: ['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite'],
+    dashboardUrl: 'https://aistudio.google.com/app/apikey',
     capabilities: { supportsTemperature: true, supportsVision: true, supportsDocuments: true },
     discoverModels: async (apiKey) => {
         const response = await fetchJson(`${GEMINI_MODELS_URL}?key=${apiKey}`, null, proxyFetch);
@@ -20,6 +21,25 @@ export const GEMINI_PROVIDER_DEFINITION: AIProviderDefinition = {
                 .map((entry: { name?: string }) => entry.name?.replace(/^models\//, ''))
                 .filter(Boolean)
             : [];
+    },
+    validateApiKey: async (apiKey) => {
+        try {
+            const response = await fetchJson(`${GEMINI_MODELS_URL}?key=${apiKey}`, null, proxyFetch);
+            if (response === null) return { valid: false, error: 'Nessuna risposta dal server (CORS o rete)' };
+            if (response?.error) {
+                const msg = typeof response.error === 'object' && 'message' in response.error
+                    ? String(response.error.message)
+                    : String(response.error);
+                return { valid: false, error: msg };
+            }
+            return { valid: true };
+        } catch (err) {
+            const e = err as Record<string, unknown> | null;
+            const msg = e?.error && typeof e.error === 'object'
+                ? String((e.error as Record<string, unknown>).message ?? err)
+                : String(err);
+            return { valid: false, error: msg };
+        }
     },
     complete: async (apiKey, request) => {
         const attachments = request.attachments ?? [];

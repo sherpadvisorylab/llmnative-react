@@ -20,6 +20,8 @@ interface BaseInputProps extends FormFieldProps {
     id?: string;
     labelClassName?: string;
     validator?: (value: FieldValue) => string | undefined | Promise<string | undefined>;
+    /** Content rendered as an absolute overlay inside the input (right side). No addon border/bg. */
+    afterInset?: React.ReactNode;
 }
 
 interface LabelProps {
@@ -169,6 +171,7 @@ export const Input = ({
     disabled = false,
     before = undefined,
     after = undefined,
+    afterInset = undefined,
     feedback = undefined,
     min = undefined,
     max = undefined,
@@ -189,13 +192,13 @@ export const Input = ({
     return (
         <Wrapper className={formWrapClass}>
             {label && <Label label={label} required={required} htmlFor={elementId} className={labelClassName} />}
-            <Wrapper className={before || after ? fieldGroupClass : ""}>
+            <Wrapper className={cn(before || after ? fieldGroupClass : "", afterInset && "relative")}>
                 {before && <FieldAddon side="before">{before}</FieldAddon>}
                 <input
                     id={elementId}
                     type={type}
                     name={name}
-                    className={withFieldEdges(cn(fieldControlBaseClass, error && 'border-destructive focus-visible:ring-destructive/20', className), { before, after })}
+                    className={withFieldEdges(cn(fieldControlBaseClass, error && 'border-destructive focus-visible:ring-destructive/20', afterInset && 'pr-9', className), { before, after })}
                     placeholder={placeholder}
                     required={required}
                     disabled={disabled || (readOnlyAfterSet && !isEmpty(value))}
@@ -208,6 +211,11 @@ export const Input = ({
                     onDrop={handleDrop}
                 />
                 {after && <FieldAddon side="after">{after}</FieldAddon>}
+                {afterInset && (
+                    <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-1.5 [&>*]:pointer-events-auto">
+                        {afterInset}
+                    </span>
+                )}
             </Wrapper>
             {error
                 ? <FieldError message={error} />
@@ -232,13 +240,16 @@ export const Email = (props: InputProps) => (
 export const Password = (props: InputProps) => {
     const [visible, setVisible] = useState(false);
 
-    return <Input {...props} type={visible ? "text" : "password"} after={
-        <ActionButton
-            className="p-0 border-0"
-            icon={visible ? "eye" : "eye-slash"}
+    return <Input {...props} type={visible ? "text" : "password"} afterInset={
+        <button
+            type="button"
+            tabIndex={-1}
             onClick={() => setVisible(!visible)}
-        />}
-    />;
+            className="h-7 w-7 inline-flex items-center justify-center rounded text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+        >
+            <Icon name={visible ? "eye" : "eye-off"} size={15} />
+        </button>
+    }/>;
 };
 
 // twMerge resolves conflicts: w-10 beats w-full, p-0.5 beats px-3 py-1

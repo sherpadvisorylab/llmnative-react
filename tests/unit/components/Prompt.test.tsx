@@ -69,6 +69,56 @@ describe('Prompt', () => {
         expect(screen.queryByText('Prompt: Summary')).not.toBeInTheDocument();
     });
 
+    it('toggles prompt metadata on and off when edit mode starts disabled', () => {
+        renderWithProviders(
+            <Form
+                aspect="empty"
+                defaultValues={{
+                    description: {
+                        value: 'A short human-written description without AI assistance.',
+                    },
+                }}
+            >
+                <Prompt
+                    name="description"
+                    label="Description"
+                    mode={PromptMode.EDIT}
+                    minHeight={120}
+                    defaultValue={{
+                        value: 'A short human-written description without AI assistance.',
+                        enabled: false,
+                    }}
+                />
+            </Form>
+        );
+
+        const toggleOff = screen.getByRole('checkbox', {
+            name: 'Prompt OFF. In PromptRun, the prompt system is skipped and the plain fallback text is used directly. Turn ON to use this textarea as the prompt template.',
+        });
+
+        expect(toggleOff).not.toBeChecked();
+        expect(screen.getByText('Description')).toBeInTheDocument();
+        expect(screen.getByDisplayValue('A short human-written description without AI assistance.')).toBeInTheDocument();
+
+        fireEvent.click(toggleOff);
+
+        const toggleOn = screen.getByRole('checkbox', {
+            name: 'Prompt ON. In PromptRun, this textarea is treated as the prompt template and can be executed against the current record. Turn OFF to skip the prompt system and use the plain fallback text instead.',
+        });
+
+        expect(toggleOn).toBeChecked();
+        expect(screen.getByText('Prompt: Description')).toBeInTheDocument();
+        expect(screen.getByDisplayValue('A short human-written description without AI assistance.')).toBeInTheDocument();
+
+        fireEvent.click(toggleOn);
+
+        expect(screen.getByRole('checkbox', {
+            name: 'Prompt OFF. In PromptRun, the prompt system is skipped and the plain fallback text is used directly. Turn ON to use this textarea as the prompt template.',
+        })).not.toBeChecked();
+        expect(screen.getByText('Description')).toBeInTheDocument();
+        expect(screen.getByDisplayValue('A short human-written description without AI assistance.')).toBeInTheDocument();
+    });
+
     it('runs the prompt in run mode with a custom executor and writes the generated result back into the form field', async () => {
         renderWithProviders(
             <Form
@@ -376,6 +426,7 @@ describe('Prompt', () => {
             expect(screen.getByText(/Output: \d+ tok/i)).toBeInTheDocument();
         });
     });
+
 });
 
 describe('runPrompt', () => {

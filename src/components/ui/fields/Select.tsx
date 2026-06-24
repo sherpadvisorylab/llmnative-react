@@ -20,6 +20,7 @@ import { cn } from '../../../libs/cn';
 interface Option extends RecordProps {
     label: string;
     value: string;
+    group?: string;
 }
 
 type OptionOrderConfig = OrderConfig & {
@@ -212,7 +213,22 @@ export const Select = ({
                     title={title}
                 >
                     {resolvedPlaceholder && <option key={`${id}-empty`} value={resolvedPlaceholder.value}>{resolvedPlaceholder.label}</option>}
-                    {opts.map((op, index) => <option key={`${id}-${index}`} value={op.value}>{op.label}</option>)}
+                    {opts.some(o => o.group)
+                        ? Object.entries(
+                            opts.reduce<Record<string, Option[]>>((acc, o) => {
+                                const g = o.group ?? '';
+                                (acc[g] ??= []).push(o);
+                                return acc;
+                            }, {})
+                          ).map(([group, groupOpts]) =>
+                            group
+                                ? <optgroup key={group} label={group}>
+                                    {groupOpts.map((op, i) => <option key={`${id}-${group}-${i}`} value={op.value}>{op.label}</option>)}
+                                  </optgroup>
+                                : groupOpts.map((op, i) => <option key={`${id}-nogroup-${i}`} value={op.value}>{op.label}</option>)
+                          )
+                        : opts.map((op, index) => <option key={`${id}-${index}`} value={op.value}>{op.label}</option>)
+                    }
                 </select>
                 {after && <SelectAddon side="after">{after}</SelectAddon>}
             </Wrapper>

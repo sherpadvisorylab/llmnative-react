@@ -49,6 +49,13 @@ export interface ModalProps extends MotionUIProps {
     closeOnBackdrop?: boolean;
     /** CSS `z-index` override (useful when stacking modals). */
     zIndex?: number;
+    /**
+     * When `true` this modal is visually "behind" another modal stacked on top.
+     * The panel becomes 10% wider (so its edge peeks out from behind the upper modal),
+     * gains a semi-transparent dimming overlay, its backdrop is suppressed (the upper
+     * modal's backdrop handles interaction blocking), and its cover becomes non-interactive.
+     */
+    stackedBehind?: boolean;
 }
 
 export interface ModalYesNoProps {
@@ -92,6 +99,7 @@ const ModalDefault = ({
                           footerClassName       = undefined,
                           closeOnBackdrop   = true,
                           zIndex            = undefined,
+                          stackedBehind     = false,
                           motion: motionConfig = undefined
 }: ModalProps) => {
     const theme = useTheme("modal");
@@ -227,7 +235,28 @@ const ModalDefault = ({
     const coverStyle: React.CSSProperties = {
         cursor: closeOnBackdrop && onClose ? 'pointer' : 'default',
         ...(zIndex !== undefined ? { zIndex } : {}),
+        ...(stackedBehind ? { pointerEvents: 'none' } : {}),
     };
+
+    // GTM-style depth effect: scale back + shift away from edge + transition
+    const stackedTransform: React.CSSProperties = stackedBehind ? {
+        transform: position === 'left'
+            ? 'scale(0.94) translateX(-14px)'
+            : position === 'right'
+                ? 'scale(0.94) translateX(14px)'
+                : position === 'bottom'
+                    ? 'scale(0.94) translateY(14px)'
+                    : position === 'top'
+                        ? 'scale(0.94) translateY(-14px)'
+                        : 'scale(0.94)',
+        transformOrigin: position === 'left' ? 'left center'
+            : position === 'right' ? 'right center'
+            : position === 'bottom' ? 'bottom center'
+            : position === 'top' ? 'top center'
+            : 'center',
+        transition: 'transform 200ms ease, filter 200ms ease',
+        filter: 'brightness(0.7)',
+    } : {};
 
     const showFooter = footer !== false && (footer || onSave || onDelete || (showCancel && onClose));
 
@@ -243,7 +272,15 @@ const ModalDefault = ({
                 }
             }}
         >
-            <div className={pos.dialogClass} style={{ ...dialogStyle, ...(zIndex !== undefined ? { zIndex } : {}) }} onClick={(e) => e.stopPropagation()}>
+            <div
+                className={pos.dialogClass}
+                style={{
+                    ...dialogStyle,
+                    ...stackedTransform,
+                    ...(zIndex !== undefined ? { zIndex } : {}),
+                }}
+                onClick={(e) => e.stopPropagation()}
+            >
                 {before}
                 <div className={pos.contentClass}>
                     {(header || title || allowFullscreen || onClose) && <div className={pos.headerClassName}>
@@ -314,17 +351,19 @@ const ModalDefault = ({
                 {after}
             </div>
         </div>
-        <div
-            data-rf-modal-backdrop=""
-            aria-hidden="true"
-            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
-            style={backdropStyle}
-            onClick={() => {
-                if (closeOnBackdrop && onClose) {
-                    handleClose();
-                }
-            }}
-        />
+        {!stackedBehind && (
+            <div
+                data-rf-modal-backdrop=""
+                aria-hidden="true"
+                className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+                style={backdropStyle}
+                onClick={() => {
+                    if (closeOnBackdrop && onClose) {
+                        handleClose();
+                    }
+                }}
+            />
+        )}
     </>, document.body);
 };
 

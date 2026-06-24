@@ -7,6 +7,7 @@ import {
 import { isProxyEnabled } from '../proxy';
 import type {
     AICompleteRequest,
+    AIKeyValidationResult,
     AIModelDescriptor,
     AIProviderAdapter,
     AIProviderCapabilities,
@@ -14,7 +15,7 @@ import type {
 } from './AIProvider';
 import { formatAIModelRef } from './AIProvider';
 
-export type BuiltInAIProviderId = 'openai' | 'openrouter' | 'opencode' | 'openai-compatible' | 'deepseek' | 'gemini' | 'anthropic' | 'mistral';
+export type BuiltInAIProviderId = 'openai' | 'openrouter' | 'opencode' | 'openai-compatible' | 'deepseek' | 'gemini' | 'anthropic' | 'mistral' | 'glm';
 
 export type AIProviderDefinition = {
     id: BuiltInAIProviderId;
@@ -23,9 +24,18 @@ export type AIProviderDefinition = {
     requiredConfigKeys?: string[];
     defaultModel: string;
     fallbackModels: string[];
+    /** URL to the provider's API key management page (shown in UI on validation error). */
+    dashboardUrl?: string;
     capabilities?: Omit<AIProviderCapabilities, 'models'>;
     discoverModels: (apiKey: string) => Promise<string[]>;
     complete: (apiKey: string, request: Required<Pick<AICompleteRequest, 'prompt' | 'model'>> & AIRequestOptions) => Promise<string | null>;
+    /**
+     * Per-provider auth check. When omitted, the default implementation in
+     * RuntimeAIProvider calls discoverModels() live (no cache) and treats any
+     * thrown error as invalid. Providers whose error format is non-standard or
+     * whose models endpoint is public MUST provide their own implementation.
+     */
+    validateApiKey?: (apiKey: string) => Promise<Omit<AIKeyValidationResult, 'dashboardUrl'>>;
 };
 
 export type AIModelCatalog = {
@@ -36,6 +46,24 @@ export type AIModelCatalog = {
 
 const MODEL_CACHE_PREFIX = 'ai.models.';
 const MODEL_CACHE_TTL_MS = 1000 * 60 * 60 * 24;
+
+export const extractProviderError = (err: unknown): string => {
+    if (err instanceof Error) return err.message;
+    if (err !== null && typeof err === 'object') {
+        const e = err as Record<string, unknown>;
+        if (e.error && typeof e.error === 'object') {
+            const inner = e.error as Record<string, unknown>;
+            if (typeof inner.message === 'string') return inner.message;
+            if (typeof inner.type === 'string') return inner.type;
+        }
+        if (typeof e.error === 'string') return e.error;
+        if (typeof e.message === 'string') return e.message;
+        if (typeof e.detail === 'string') return e.detail;
+        if (typeof e.status === 'number') return `HTTP ${e.status}`;
+        try { return JSON.stringify(e); } catch { /* fallthrough */ }
+    }
+    return String(err);
+};
 
 export const createBrowserTransportError = (label: string) => {
     const proxyHint = isProxyEnabled()
@@ -140,6 +168,7 @@ export class RuntimeAIProvider implements AIProviderAdapter {
     id: BuiltInAIProviderId;
     label: string;
     defaultModel: string;
+    dashboardUrl?: string;
     private readonly definition: AIProviderDefinition;
     private readonly apiKey: string;
 
@@ -148,6 +177,7 @@ export class RuntimeAIProvider implements AIProviderAdapter {
         this.id = definition.id;
         this.label = definition.label;
         this.defaultModel = definition.defaultModel;
+        this.dashboardUrl = definition.dashboardUrl;
         this.apiKey = apiKey;
     }
 
@@ -199,5 +229,20 @@ export class RuntimeAIProvider implements AIProviderAdapter {
             model: request.model || this.defaultModel,
             prompt: Prompt.parsePrompt(request.prompt, { ...request.data, ...request } as PromptVariables & AICompleteRequest),
         });
+    }
+
+    async validateApiKey(): Promise<AIKeyValidationResult> {
+        const dashboardUrl = this.definition.dashboardUrl;
+        if (this.definition.validateApiKey) {
+            const result = await this.definition.validateApiKey(this.apiKey);
+            return { ...result, dashboardUrl };
+        }
+        // Default: call discoverModels live (bypasses cache); any thrown error = invalid key.
+        try {
+            await this.definition.discoverModels(this.apiKey);
+            return { valid: true, dashboardUrl };
+        } catch (err) {
+            return { valid: false, error: extractProviderError(err), dashboardUrl };
+        }
     }
 }

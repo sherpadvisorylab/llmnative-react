@@ -42,6 +42,7 @@ export const OPENCODE_PROVIDER_DEFINITION: AIProviderDefinition = {
     configKey: 'openCodeApiKey',
     defaultModel: 'deepseek-v4-flash-free',
     fallbackModels: OPENCODE_FALLBACK_MODELS,
+    dashboardUrl: 'https://opencode.ai',
     capabilities: { supportsTemperature: true },
     discoverModels: async (apiKey) => {
         const response = await fetchJson(OPENCODE_MODELS_URL, {
