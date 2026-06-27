@@ -3,9 +3,16 @@ import { ActionButton } from './Buttons';
 import { FieldOnChange, setFormFieldsName, useFormContext } from '../widgets/Form';
 import { RecordProps } from '../../providers/data/DataProvider';
 
+export interface RepeatCallbackArgs {
+    record: RecordProps;
+    records: RecordProps[];
+    index: number;
+    remove: () => void;
+}
+
 interface RepeatProps {
     name: string;
-    children: React.ReactNode | ((record: RecordProps) => React.ReactNode);
+    children: React.ReactNode | ((args: RepeatCallbackArgs) => React.ReactNode);
     value?: RecordProps[];
     onChange?: FieldOnChange;
     onAdd?: (value: RecordProps[]) => void;
@@ -15,6 +22,8 @@ interface RepeatProps {
     minItems?: number;
     maxItems?: number;
     label?: string;
+    labelPosition?: 'top' | 'bottom';
+    hideRemoveButton?: boolean;
     readOnly?: boolean;
 }
 
@@ -30,6 +39,8 @@ const Repeat = ({
     minItems = undefined,
     maxItems = undefined,
     label = undefined,
+    labelPosition = 'top',
+    hideRemoveButton = false,
     readOnly = false,
 }: RepeatProps) => {
     const { value, handleChange } = useFormContext({ name, onChange });
@@ -38,7 +49,7 @@ const Repeat = ({
     const renderChildren = (index: number, wrapperClassName?: string) => {
         return setFormFieldsName({
             children: typeof children === 'function'
-                ? children({ record: records[index], records, index: index })
+                ? children({ record: records[index], records, index, remove: () => handleRemove(index) })
                 : children,
             parentName: `${name}.${index}`,
             wrapperClassName
@@ -65,13 +76,13 @@ const Repeat = ({
                 return <></>
             case 'inline':
             return (
-                <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-start gap-2 mb-1">
                     <div className="flex-1 min-w-0">
                         {renderChildren(index, '!mb-0')}
                     </div>
-                    {canRemove && (
+                    {canRemove && !hideRemoveButton && (
                         <ActionButton
-                            className="shrink-0 h-9 w-9 rounded-md bg-transparent p-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                            className="shrink-0 mt-1 h-7 w-7 rounded-md bg-transparent p-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                             icon="x"
                             onClick={() => handleRemove(index)}
                         />
@@ -108,6 +119,17 @@ const Repeat = ({
     const addButton = useMemo(() => {
         if (readOnly) return null;
         if (!maxItems || components.length < maxItems) {
+            if (label && labelPosition === 'bottom') {
+                return (
+                    <ActionButton
+                        icon='plus'
+                        label={label}
+                        variant='link'
+                        className="w-full justify-start gap-1 text-xs text-muted-foreground hover:text-foreground px-1 h-7"
+                        onClick={handleAdd}
+                    />
+                );
+            }
             return <ActionButton
                 icon='plus'
                 label={label ? undefined : 'Add'}
@@ -117,18 +139,19 @@ const Repeat = ({
             />
         }
         return null;
-    }, [readOnly, maxItems, components.length]);
+    }, [readOnly, maxItems, components.length, label, labelPosition]);
 
     return (
         <div className={className}>
-            {label && (
-            <div className='flex items-center justify-between mb-2'>
-                <span className='text-sm font-medium text-foreground'>{label}</span>
-                {addButton}
-            </div>
-        )}
+            {label && labelPosition === 'top' && (
+                <div className='flex items-center justify-between mb-2'>
+                    <span className='text-sm font-medium text-foreground'>{label}</span>
+                    {addButton}
+                </div>
+            )}
             {components}
             {!label && addButton}
+            {label && labelPosition === 'bottom' && addButton}
         </div>
     );
 };

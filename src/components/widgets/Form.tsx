@@ -303,7 +303,7 @@ export const useFormContext = ({name, onChange, wrapperClassName, inputType = "t
                     });
                 }
             }
-            if (childChildren) {
+            if (childChildren && typeof childChildren !== 'function') {
                 newProps.children   = setFormFieldsName({
                     children: childChildren,
                     parentName,
