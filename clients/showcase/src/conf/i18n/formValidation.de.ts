@@ -9,7 +9,7 @@ export default defineLocaleMessages({
                 editMode: { title: 'Bearbeitungsmodus — Speichern und Loeschen', description: 'Gib defaultValues mit einem _key-Feld an, um den Bearbeitungsmodus zu signalisieren. Das Formular erkennt _key in defaultValues und setzt isNewRecord = false, wodurch sowohl Speichern- als auch Loeschen-Button angezeigt werden.' },
                 longForm: { title: 'Langes Formular — Scrollen zum ersten Fehler', description: 'Wenn ein Formular hoeher als der Viewport ist, scrollt es automatisch zum ersten ungueltigen Feld und fokussiert es nach einem fehlgeschlagenen Submit. Scrolle ans Ende und klicke Speichern — die Seite springt zrueck zum ersten fehlenden Feld.' },
                 longFormHowToTry: 'So testest du es: Scrolle ueber alle Felder zum Speichern-Button und klicke ihn. Die Seite springt zrueck zum ersten ungueltigen Feld.',
-                insideModal: { title: 'Formular im Modal', description: 'Ein validiertes Formular kann in einem Modal an jeder Position leben. Der Speichern-Button des Modals delegiert an das interne handleSave des Formulars: Validierung laeuft, Fehler erscheinen inline, und das Modal schliesst nur, wenn alle Felder gueltig sind.' },
+                insideModal: { title: 'Formular im Modal', description: 'Ein validiertes Formular kann in einem Modal an jeder Position leben. Der Speichern-Button des Modals kann einen gemeinsamen FormController aufrufen: Die Validierung laeuft, Fehler erscheinen inline, und das Modal schliesst nur, wenn alle Felder gueltig sind.' },
             },
         },
     },

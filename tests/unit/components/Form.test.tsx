@@ -39,9 +39,11 @@ vi.mock('../../../src/Theme', () => ({
 }));
 
 import Form from '../../../src/components/widgets/Form';
-import { Input } from '../../../src/components/ui/fields/Input';
+import { ActionButton } from '../../../src/components/ui/Buttons';
+import { Input, TextArea } from '../../../src/components/ui/fields/Input';
 import { MockDataProvider } from '../../../src/providers/data/mock';
 import { renderWithProviders } from '../../helpers/renderWithProviders';
+import { useFormController } from '../../../src/components/widgets/form-controller';
 
 beforeEach(() => {
     localStorage.clear();
@@ -81,6 +83,21 @@ describe('Form — defaultValues', () => {
         const input = screen.getByRole('textbox') as HTMLInputElement;
         fireEvent.change(input, { target: { name: 'title', value: 'Hello' } });
         expect(input.value).toBe('Hello');
+    });
+
+    it('supports CSS-only floating labels for inputs and textareas', () => {
+        renderWithProviders(
+            <Form defaultValues={{ title: '', description: '' }}>
+                <Input name="title" label="Title" labelMode="floating" />
+                <TextArea name="description" label="Description" labelMode="floating" />
+            </Form>
+        );
+
+        const title = screen.getByLabelText('Title') as HTMLInputElement;
+        const description = screen.getByLabelText('Description') as HTMLTextAreaElement;
+
+        expect(title.placeholder).toBe(' ');
+        expect(description.placeholder).toBe(' ');
     });
 
     it('renders Save button', () => {
@@ -238,6 +255,51 @@ describe('Form — save', () => {
 
         await waitFor(async () => {
             const saved = await provider.read('/products/shortcut');
+            expect(saved).toMatchObject({ title: 'Widget v2' });
+        });
+    });
+
+    it('lets an external button reuse native dirty state and save through FormController', async () => {
+        const provider = new MockDataProvider({
+            '/products': { controlled: { title: 'Widget' } },
+        });
+
+        function ControlledForm() {
+            const form = useFormController();
+
+            return (
+                <>
+                    <ActionButton
+                        label="Save from header"
+                        disabled={form.saveDisabled}
+                        loading={form.isSaving}
+                        onClick={() => { void form.save(); }}
+                    />
+                    <Form controller={form} path="/products/controlled">
+                        <Input name="title" label="Title" />
+                    </Form>
+                </>
+            );
+        }
+
+        renderWithProviders(<ControlledForm />, { provider });
+
+        await waitFor(() => {
+            expect(screen.getByDisplayValue('Widget')).toBeInTheDocument();
+        });
+
+        const saveButton = screen.getByRole('button', { name: /save from header/i }) as HTMLButtonElement;
+        const input = screen.getByRole('textbox') as HTMLInputElement;
+
+        expect(saveButton.disabled).toBe(true);
+
+        fireEvent.change(input, { target: { name: 'title', value: 'Widget v2' } });
+        expect(saveButton.disabled).toBe(false);
+
+        fireEvent.click(saveButton);
+
+        await waitFor(async () => {
+            const saved = await provider.read('/products/controlled');
             expect(saved).toMatchObject({ title: 'Widget v2' });
         });
     });

@@ -9,7 +9,7 @@ export default defineLocaleMessages({
                 editMode: { title: '编辑模式 — 保存和删除', description: '传入包含 _key 字段的 defaultValues 以指示编辑模式。Form 在 defaultValues 中看到 _key 后设置 isNewRecord = false，同时显示保存和删除按钮。' },
                 longForm: { title: '长表单 — 滚动到第一个错误', description: '当表单高于视口时，提交失败后表单会自动滚动到第一个无效字段并聚焦。滚动到表单底部点击保存 — 页面会跳回第一个缺失字段。' },
                 longFormHowToTry: '如何尝试：滚动所有字段到保存按钮，然后点击它。页面会滚动回第一个无效字段。',
-                insideModal: { title: '模态框中的表单', description: '验证表单可以在任何位置的 Modal 中存在。模态框的保存按钮委托给表单的内部 handleSave：运行验证，错误内联显示，只有所有字段都有效时模态框才会关闭。' },
+                insideModal: { title: '模态框中的表单', description: '验证表单可以在任何位置的 Modal 中存在。模态框的保存按钮可以调用共享的 FormController：运行验证，错误内联显示，只有所有字段都有效时模态框才会关闭。' },
             },
         },
     },

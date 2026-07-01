@@ -36,6 +36,7 @@ export default function InputPage() {
     const inputProps = React.useMemo<PropDef[]>(() => [
         { name: 'name', type: 'string', required: true, description: t.propsDocs.items.name.description, control: 'text' },
         { name: 'label', type: 'string', description: t.propsDocs.items.label.description, control: 'text' },
+        { name: 'labelMode', type: '"default" | "floating"', default: '"default"', description: 'Controls how the label is rendered. Use "floating" for a CSS-only floating label pattern.', control: 'select', options: ['default', 'floating'] },
         { name: 'type', type: '"text" | "number" | "email" | "password" | "url" | "color" | "date" | "datetime-local" | "time" | "week" | "month" | "range"', default: '"text"', description: t.propsDocs.items.type.description, control: 'select', options: ['text', 'number', 'email', 'password', 'url', 'color', 'date', 'datetime-local', 'time', 'week', 'month', 'range'] },
         { name: 'placeholder', type: 'string', description: t.propsDocs.items.placeholder.description, control: 'text' },
         { name: 'required', type: 'boolean', default: 'false', description: t.propsDocs.items.required.description, control: 'boolean' },
@@ -60,6 +61,7 @@ export default function InputPage() {
         defaultProps: {
             name: 'demo',
             label: t.labels.fieldLabel,
+            labelMode: 'default',
             type: 'text',
             placeholder: t.labels.typeSomething,
             required: false,
@@ -75,6 +77,7 @@ export default function InputPage() {
                 <Input
                     name={p.name || 'demo'}
                     label={p.label}
+                    labelMode={p.labelMode}
                     type={p.type}
                     placeholder={p.placeholder || undefined}
                     required={p.required}
@@ -114,6 +117,19 @@ export default function InputPage() {
             </LiveForm>
 
             <LiveForm
+                title="Floating label"
+                description={'Use labelMode="floating" to switch from the default stacked label to a CSS-only floating label.'}
+                code={`<Input
+    name="company"
+    label="Company"
+    labelMode="floating"
+    placeholder=" "
+/>`}
+            >
+                <Input name="company" label="Company" labelMode="floating" />
+            </LiveForm>
+
+            <LiveForm
                 title={t.sections.numberRange.title}
                 code={`<Input name="age"   label="Age"           type="number" min={0} max={120} />
 <Input name="score" label="Score (0-100)" type="range"  min={0} max={100} />`}
@@ -149,9 +165,9 @@ export default function InputPage() {
                 description={t.sections.textarea.description}
                 code={`import { TextArea } from '@llmnative/react';
 
-<TextArea name="bio" label="Bio" minHeight={120} placeholder="Tell us about yourself..." />`}
+<TextArea name="bio" label="Bio" labelMode="floating" minHeight={120} placeholder="Tell us about yourself..." />`}
             >
-                <TextArea name="bio" label={t.labels.bio} minHeight={120} placeholder={t.labels.tellUsAboutYourself} />
+                <TextArea name="bio" label={t.labels.bio} labelMode="floating" minHeight={120} placeholder={t.labels.tellUsAboutYourself} />
             </LiveForm>
 
             <LiveForm

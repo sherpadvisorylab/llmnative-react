@@ -214,6 +214,7 @@ export interface CodeEditorProps extends FormFieldProps {
     labelClassName?: string;
     validateSyntax?: boolean;
     validator?: (value: FieldValue) => string | undefined | Promise<string | undefined>;
+    extensions?: unknown[];
 }
 
 const getLangLoader = (lang: CodeEditorLanguage): () => Promise<unknown> => {
@@ -268,6 +269,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
     name,
     onChange = undefined,
     defaultValue = undefined,
+    className = undefined,
     label,
     language = 'html',
     placeholder,
@@ -279,6 +281,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
     labelClassName,
     validateSyntax = true,
     validator,
+    extensions: customExtensions,
     wrapperClassName,
     inheritWrapperClassName = true,
     before,
@@ -319,7 +322,9 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
     const currentValueRef = useRef<string>((value as string) ?? '');
 
     useEffect(() => {
-        currentValueRef.current = (value as string) ?? '';
+        if (!viewRef.current) {
+            currentValueRef.current = (value as string) ?? '';
+        }
     }, [value]);
 
     const onUpdate = useCallback((newValue: string) => {
@@ -336,8 +341,15 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
 
             const viewTheme = cm.EditorView.theme({
                 '&': { backgroundColor: 'var(--rf-background)', height: '100%' },
-                '.cm-scroller': { fontFamily: 'var(--font-mono, ui-monospace, SFMono-Regular, monospace)' },
-                '.cm-content': { caretColor: 'var(--rf-foreground)', color: 'var(--rf-foreground)' },
+                '.cm-scroller': {
+                    fontFamily: 'var(--font-mono, ui-monospace, SFMono-Regular, monospace)',
+                    paddingBottom: '0.5rem',
+                },
+                '.cm-content': {
+                    caretColor: 'var(--rf-foreground)',
+                    color: 'var(--rf-foreground)',
+                    paddingBottom: '0.75rem',
+                },
                 '.cm-cursor, .cm-dropCursor': { borderLeftColor: 'var(--rf-primary)' },
                 '&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection': {
                     backgroundColor: 'var(--rf-primary)',
@@ -372,6 +384,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
                         onUpdate(update.state.doc.toString());
                     }
                 }),
+                ...(customExtensions ?? []),
             ];
 
             if (disabled) {
@@ -407,7 +420,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
                 viewRef.current = null;
             }
         };
-    }, [language, placeholder, disabled, onUpdate]);
+    }, [language, placeholder, disabled, onUpdate, customExtensions]);
 
     useEffect(() => {
         const externalValue = (value as string) ?? '';
@@ -434,6 +447,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
     const editorClass = cn(
         'w-full overflow-hidden border border-input',
         themeCfg.CodeEditor?.className,
+        className,
         loading && 'flex items-center justify-center bg-muted text-muted-foreground text-sm',
         error && 'border-destructive',
         before ? 'rounded-l-none' : 'rounded-l-md',

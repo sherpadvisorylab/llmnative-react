@@ -26,6 +26,7 @@ interface DropdownProps extends MotionUIProps {
     staticOpen?: boolean;
     position?: "start" | "end";
     placement?: "auto" | "top" | "bottom";
+    strategy?: "fixed" | "absolute";
     triggerClassName?: string;
     badgeClassName?: string;
     menuClassName?: string;
@@ -43,6 +44,7 @@ interface DropdownButtonProps extends Pick<MotionUIProps, 'motion'> {
     onToggle?: () => void;
     open?: boolean;
     menuId?: string;
+    buttonRef?: React.RefObject<HTMLButtonElement>;
 }
 
 interface DropdownItemProps {
@@ -72,6 +74,7 @@ export const Dropdown = ({
                              staticOpen         = false,
                              position           = undefined,
                              placement          = "bottom",
+                             strategy           = "fixed",
                              wrapperClassName          = undefined,
                              className          = undefined,
                              before                = undefined,
@@ -87,6 +90,7 @@ export const Dropdown = ({
     const theme = useTheme("dropdown");
     const [uncontrolledOpen, setUncontrolledOpen] = React.useState(defaultOpen);
     const rootRef = React.useRef<HTMLDivElement>(null);
+    const triggerRef = React.useRef<HTMLButtonElement>(null);
     const menuRef = React.useRef<HTMLDivElement>(null);
     const menuId = React.useId();
     const open = staticOpen ? true : controlledOpen ?? uncontrolledOpen;
@@ -124,8 +128,8 @@ export const Dropdown = ({
         };
     }, [staticOpen, open, updateOpen]);
     React.useEffect(() => {
-        if (!open || staticOpen || !rootRef.current) return;
-        const triggerRect = rootRef.current.getBoundingClientRect();
+        if (!open || staticOpen || !triggerRef.current) return;
+        const triggerRect = triggerRef.current.getBoundingClientRect();
         const spaceBelow = window.innerHeight - triggerRect.bottom - 8;
         const spaceAbove = triggerRect.top - 8;
 
@@ -141,6 +145,8 @@ export const Dropdown = ({
         const available = resolved === 'top' ? spaceAbove : spaceBelow;
         setMaxMenuHeight(Math.max(160, available));
 
+        if (strategy === 'absolute') return;
+
         // Fixed coords so menu escapes any stacking context (e.g. sticky topbar)
         const isEnd = position === 'end';
         const isStart = position === 'start';
@@ -155,7 +161,7 @@ export const Dropdown = ({
                     ...(isEnd ? { right: window.innerWidth - triggerRect.right } : isStart ? { left: triggerRect.left } : { left: triggerRect.left }),
                   }
         );
-    }, [open, placement, position, staticOpen]);
+    }, [open, placement, position, staticOpen, strategy]);
 
     function isDropdownToggler(button: unknown): button is DropdownTogglerProps {
         return (
@@ -166,7 +172,7 @@ export const Dropdown = ({
         );
     }
 
-    const Button = renderToggle ? <DropdownButton className={triggerClassName} badge={badge} badgeClassName={badgeClassName} motion={motionConfig} title={isDropdownToggler(trigger) ? trigger.title : undefined} onToggle={() => updateOpen(!open)} open={open} menuId={menuId}>
+    const Button = renderToggle ? <DropdownButton className={triggerClassName} badge={badge} badgeClassName={badgeClassName} motion={motionConfig} title={isDropdownToggler(trigger) ? trigger.title : undefined} onToggle={() => updateOpen(!open)} open={open} menuId={menuId} buttonRef={triggerRef}>
         {isDropdownToggler(trigger)
             ? <>
                 {trigger.icon && <Icon name={trigger.icon} className={trigger.text ? "mr-2" : undefined} />}
@@ -178,6 +184,9 @@ export const Dropdown = ({
 
 
     const resolvedWrapClass = wrapperClassName ?? theme.Dropdown.wrapperClassName ?? ((before || after) ? 'flex items-center gap-2' : undefined);
+
+    const absolutePlacementClass = resolvedPlacement === 'top' ? 'bottom-full mb-1' : 'top-full mt-1';
+    const absolutePositionClass = position === 'end' ? 'right-0' : 'left-0';
 
     return (
         <Wrapper className={resolvedWrapClass}>
@@ -191,8 +200,8 @@ export const Dropdown = ({
                      aria-hidden={!open}
                      className={cn(
                          "min-w-56 overflow-y-auto rounded-md border bg-popover p-1 text-popover-foreground shadow-md outline-none",
-                         staticOpen ? "relative" : "fixed z-[200]",
-                         placement !== 'auto' && (menuClassName || theme.Dropdown.menuClassName)
+                         staticOpen ? "relative" : strategy === 'absolute' ? `absolute z-[200] ${absolutePlacementClass} ${absolutePositionClass}` : "fixed z-[200]",
+                         menuClassName || theme.Dropdown.menuClassName
                      )}
                      style={staticOpen
                          ? undefined
@@ -202,8 +211,8 @@ export const Dropdown = ({
                              visibility: open ? 'visible' : 'hidden',
                              pointerEvents: open ? undefined : 'none',
                              maxHeight: maxMenuHeight,
-                             minWidth: rootRef.current ? rootRef.current.offsetWidth : undefined,
-                             ...menuCoords ?? {},
+                             minWidth: triggerRef.current ? triggerRef.current.offsetWidth : undefined,
+                             ...(strategy === 'fixed' ? menuCoords ?? {} : {}),
                          }}
                      onClick={(e) => {
                          e.stopPropagation();
@@ -236,13 +245,15 @@ export const DropdownButton = ({
                                    title        = undefined,
                                    onToggle     = undefined,
                                    open         = false,
-                                   menuId       = undefined
+                                   menuId       = undefined,
+                                   buttonRef    = undefined
 }: DropdownButtonProps) => {
     const theme = useTheme("dropdown");
     const motion = usePressMotion(false, {cursor: "pointer"}, motionConfig ?? theme.Dropdown.motion?.press ?? 'press');
 
     const button = (
         <button
+            ref={buttonRef}
             type="button"
             title={title}
             className={cn("inline-flex items-center justify-center gap-2", className || theme.Dropdown.triggerClassName)}

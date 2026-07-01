@@ -53,26 +53,33 @@ Built-in `add` and `edit` actions already open the framework modal. If you need 
 ## Pattern 2: Standalone Form
 
 ```tsx
-import { Form, Input, Select, UploadImage } from '@llmnative/react'
-import { useParams } from 'react-router-dom'
+import { ActionButton, Form, Input, Select, UploadImage, useFormController } from '@llmnative/react'
 
 export default function UserEdit() {
-  const { id } = useParams()
+  const form = useFormController()
 
   return (
-    <Form path="/users" recordId={id} appearance="card" showBack>
-      <Input name="name" label="Name" required />
-      <Input name="email" label="Email" inputType="email" />
-      <Select
-        name="role"
-        label="Role"
-        options={[
-          { label: 'Admin', value: 'admin' },
-          { label: 'User', value: 'user' },
-        ]}
+    <>
+      <ActionButton
+        label="Save"
+        disabled={form.saveDisabled}
+        onClick={() => { void form.save() }}
       />
-      <UploadImage name="avatar" label="Avatar" />
-    </Form>
+
+      <Form controller={form} path="/users/user_1" appearance="card" showBack persistDraft>
+        <Input name="name" label="Name" required />
+        <Input name="email" label="Email" inputType="email" />
+        <Select
+          name="role"
+          label="Role"
+          options={[
+            { label: 'Admin', value: 'admin' },
+            { label: 'User', value: 'user' },
+          ]}
+        />
+        <UploadImage name="avatar" label="Avatar" />
+      </Form>
+    </>
   )
 }
 ```
@@ -101,11 +108,10 @@ export default function UserEdit() {
     ...data,
     price: data.price ? data.price / 100 : 0,
   })}
-  onSave={async ({ record, isNewRecord }) => ({
+  onSave={async ({ record }) => ({
     ...record,
     price: Math.round(record.price * 100),
     updatedAt: Date.now(),
-    ...(isNewRecord && { createdAt: Date.now() }),
   })}
   keyGenerator={() => `prod_${crypto.randomUUID()}`}
 >

@@ -4,10 +4,12 @@ import {
     DataProvider,
     Form,
     Input,
+    LoadingButton,
     MockDataProvider,
     Modal,
     Select,
     TextArea,
+    useFormController,
 } from '@llmnative/react';
 import type { PlaygroundConfig, PropDef } from '../../docs-kit/playground';
 import PageLayout from '../../showcase/page';
@@ -61,6 +63,7 @@ const FORM_PROPS: PropDef[] = [
     { name: 'path', type: 'string', description: 'Provider path for data load and save. Omit it for a pure local form.', control: 'text' },
     { name: 'defaultValues', type: 'object', description: 'Initial field values. Include _key to signal edit mode.', control: 'json' },
     { name: 'appearance', type: '"card" | "empty"', default: '"empty"', description: 'Visual wrapper style for the form shell.', control: 'select', options: ['card', 'empty'] },
+    { name: 'controller', type: 'FormController', description: 'Shared controller exposing draft status, saveDisabled, restoreDraft() and discardDraft().' },
     { name: 'header', type: 'React.ReactNode', description: 'Custom content rendered in the form header area.' },
     { name: 'footer', type: 'React.ReactNode', description: 'Custom content rendered in the form footer area.' },
     { name: 'showBack', type: 'boolean', default: 'false', description: 'Show a back navigation button in the footer.', control: 'boolean' },
@@ -69,48 +72,10 @@ const FORM_PROPS: PropDef[] = [
     { name: 'noticeAnchorRef', type: 'React.RefObject<HTMLElement>', description: 'Render save/delete notices as sticky alerts anchored to an external container.' },
     { name: 'keyGenerator', type: '(record) => string', description: 'Custom primary key generator for new records. Presence forces create mode.' },
     { name: 'onLoad', type: '(record: RecordProps) => void', description: 'Called after the record is loaded from the provider.' },
-    {
-        name: 'onSave',
-        type: 'FormSaveHandler',
-        description: 'Transform the record before saving or override the write path.',
-        shape: `type FormSaveHandler = (
-  args: FormSaveArgs
-) => Promise<string | undefined>
-
-type FormSaveArgs = {
-  record?: RecordProps;
-  prevRecord?: RecordProps;
-  storagePath?: string;
-  action: "create" | "update";
-}`,
-    },
-    {
-        name: 'onDelete',
-        type: 'FormDeleteHandler',
-        description: 'Hook called before deletion. Return a custom path or undefined.',
-        shape: `type FormDeleteHandler = (
-  args: FormDeleteArgs
-) => Promise<string | undefined>
-
-type FormDeleteArgs = {
-  record?: RecordProps;
-}`,
-    },
-    {
-        name: 'onComplete',
-        type: 'FormFinallyHandler',
-        description: 'Called after save or delete. Return false to keep the surrounding modal/page flow open.',
-        shape: `type FormFinallyHandler = (
-  args: FormFinallyArgs
-) => Promise<boolean>
-
-type FormFinallyArgs = {
-  record?: RecordProps;
-  action: "create" | "update" | "delete";
-}`,
-    },
+    { name: 'onSave', type: 'FormSaveHandler', description: 'Transform the record before saving or override the write path.' },
+    { name: 'onDelete', type: 'FormDeleteHandler', description: 'Hook called before deletion. Return a custom path or undefined.' },
+    { name: 'onComplete', type: 'FormFinallyHandler', description: 'Called after save or delete. Return false to keep the surrounding modal/page flow open.' },
     { name: 'onRecordChange', type: '(record: RecordProps) => void', description: 'Called on every field change with the current record state.' },
-    { name: 'handlers', type: 'Partial<FormRef>', description: 'Expose internal save/delete handles to a parent ref.' },
     { name: 'log', type: 'boolean', default: 'false', description: 'Log field change events to the provider-backed audit log when configured.', control: 'boolean' },
     { name: 'wrapperClassName', type: 'string', description: 'CSS classes on the outermost wrapper element.', control: 'text' },
     { name: 'headerClassName', type: 'string', description: 'CSS classes on the header container.', control: 'text' },
@@ -129,6 +94,54 @@ const PLAYGROUND_SEED = {
         },
     },
 };
+
+function DraftPlaygroundForm(props: {
+    path: string;
+    appearance: 'card' | 'empty';
+    showBack: boolean;
+    persistDraft: boolean;
+    showNotice: boolean;
+}) {
+    const form = useFormController();
+
+    return (
+        <div className="w-full max-w-lg space-y-3">
+            <div className="flex flex-wrap items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700">
+                <LoadingButton
+                    label="Save"
+                    variant="primary"
+                    disabled={form.saveDisabled}
+                    loading={form.isSaving}
+                    onClick={async () => form.save()}
+                />
+                {form.hasDraft ? (
+                    <>
+                        <ActionButton label="Restore draft" variant="outline-secondary" onClick={() => form.restoreDraft()} />
+                        <ActionButton label="Discard draft" variant="outline-secondary" onClick={() => form.discardDraft()} />
+                    </>
+                ) : (
+                    <span>No draft pending</span>
+                )}
+            </div>
+
+            <Form
+                controller={form}
+                path={props.path}
+                appearance={props.appearance}
+                showBack={props.showBack}
+                showNotice={props.showNotice}
+                persistDraft={props.persistDraft}
+                onComplete={async () => false}
+            >
+                <Input name="name" label="Full name" required />
+                <Input name="email" label="Email" type="email" required />
+                <Select name="role" label="Role" options={ROLES} />
+                <Select name="status" label="Status" options={STATUSES} />
+                <TextArea name="bio" label="Bio" minHeight={96} />
+            </Form>
+        </div>
+    );
+}
 
 const PLAYGROUND: PlaygroundConfig = {
     size: '2xl',
@@ -149,29 +162,20 @@ const PLAYGROUND: PlaygroundConfig = {
     },
     mockSeed: PLAYGROUND_SEED,
     render: (p) => (
-        <div className="w-full max-w-lg">
-            <Form
-                path={p.path || '/showcase/playground-draft/user_1'}
-                appearance={p.appearance}
-                showBack={p.showBack}
-                showNotice={p.showNotice}
-                persistDraft={p.persistDraft}
-                onComplete={async () => false}
-            >
-                <Input name="name" label="Full name" required />
-                <Input name="email" label="Email" type="email" required />
-                <Select name="role" label="Role" options={ROLES} />
-                <Select name="status" label="Status" options={STATUSES} />
-                <TextArea name="bio" label="Bio" minHeight={96} />
-            </Form>
-        </div>
+        <DraftPlaygroundForm
+            path={p.path || '/showcase/playground-draft/user_1'}
+            appearance={p.appearance}
+            showBack={p.showBack}
+            persistDraft={p.persistDraft}
+            showNotice={p.showNotice}
+        />
     ),
 };
 
 function DraftPersistenceDemo({ persistDraft }: { persistDraft: boolean }) {
     const [mounted, setMounted] = useState(true);
     const helperText = persistDraft
-        ? 'Type in the form, do not save, then click "Unmount form" and mount it again. You will see the restore/discard alert.'
+        ? 'Type in the form, do not save, then unmount and mount again. The controller can restore or discard the draft.'
         : 'This version keeps the default behavior. Type, unmount, and mount again: no restore prompt is shown.';
 
     return (
@@ -194,20 +198,13 @@ function DraftPersistenceDemo({ persistDraft }: { persistDraft: boolean }) {
                 </div>
 
                 {mounted ? (
-                    <div className="w-full max-w-lg">
-                        <Form
-                            path="/showcase/drafts/user_1"
-                            appearance="card"
-                            persistDraft={persistDraft}
-                            onComplete={async () => false}
-                        >
-                            <Input name="name" label="Full name" required />
-                            <Input name="email" label="Email" type="email" required />
-                            <Select name="role" label="Role" options={ROLES} />
-                            <Select name="status" label="Status" options={STATUSES} />
-                            <TextArea name="bio" label="Bio" minHeight={96} />
-                        </Form>
-                    </div>
+                    <DraftPlaygroundForm
+                        path="/showcase/drafts/user_1"
+                        appearance="card"
+                        showBack={false}
+                        persistDraft={persistDraft}
+                        showNotice
+                    />
                 ) : (
                     <div className="rounded-xl border border-dashed border-slate-300 bg-white px-5 py-8 text-sm text-slate-600">
                         The form is currently unmounted. Mount it again to verify whether the draft comes back.
@@ -220,6 +217,7 @@ function DraftPersistenceDemo({ persistDraft }: { persistDraft: boolean }) {
 
 function DraftModalDemo() {
     const [open, setOpen] = useState(false);
+    const form = useFormController();
 
     return (
         <WithMock>
@@ -237,8 +235,10 @@ function DraftModalDemo() {
                         position="right"
                         closeOnBackdrop
                         onClose={() => setOpen(false)}
+                        onSave={() => form.save()}
                     >
                         <Form
+                            controller={form}
                             path="/showcase/drafts-modal/ticket_1"
                             appearance="card"
                             persistDraft
@@ -264,71 +264,52 @@ export default function FormDraftPage() {
     return (
         <PageLayout
             title="Form - Draft persistence"
-            description="persistDraft makes the Form remember unsaved edits in localStorage, disables Save until something changes, and offers restore/discard after the form is mounted again."
+            description="persistDraft makes the Form remember unsaved edits in localStorage, while the shared controller exposes the same native draft actions to toolbars, modals and page headers."
         >
             <Section
                 title="Basic recovery flow"
-                description="This is the core persistDraft behavior on a page-level form. The draft is stored while you type, survives unmount/remount, and comes back with a restore/discard alert."
+                description="This is the core persistDraft behavior on a page-level form. The draft is stored while you type, survives unmount/remount, and the controller can restore or discard it."
                 preview={<DraftPersistenceDemo persistDraft />}
-                code={`<Form
-    path="/users/user_1"
-    appearance="card"
-    persistDraft
-    onComplete={async () => false}
->
-    <Input name="name" label="Full name" required />
-    <Input name="email" label="Email" type="email" required />
-    <Select name="role" label="Role" options={ROLES} />
-    <Select name="status" label="Status" options={STATUSES} />
-    <TextArea name="bio" label="Bio" minHeight={96} />
-</Form>
+                code={`const form = useFormController();
 
-// Try it:
-// 1. Change any field.
-// 2. Do not save.
-// 3. Unmount and mount the form again.
-// 4. The restore/discard alert appears.`}
+<ActionButton label="Save" disabled={form.saveDisabled} onClick={() => { void form.save(); }} />
+{form.hasDraft && <ActionButton label="Restore draft" onClick={() => form.restoreDraft()} />}
+
+<Form controller={form} path="/users/user_1" appearance="card" persistDraft>
+  <Input name="name" label="Full name" required />
+  <Input name="email" label="Email" type="email" required />
+  <Select name="role" label="Role" options={ROLES} />
+  <TextArea name="bio" label="Bio" minHeight={96} />
+</Form>`}
             />
 
             <Section
                 title="Default-off comparison"
-                description="persistDraft is opt-in. Without it, the Form still tracks dirty state and Ctrl+S, but it does not remember local edits after the component is removed."
+                description="persistDraft is opt-in. Without it, the Form still tracks dirty state and controller-driven save actions, but it does not remember local edits after the component is removed."
                 preview={<DraftPersistenceDemo persistDraft={false} />}
-                code={`// persistDraft defaults to false
-<Form
-    path="/users/user_1"
-    appearance="card"
-    onComplete={async () => false}
+                code={`<Form
+  path="/users/user_1"
+  appearance="card"
+  onComplete={async () => false}
 >
-    <Input name="name" label="Full name" required />
-    <Input name="email" label="Email" type="email" required />
+  <Input name="name" label="Full name" required />
+  <Input name="email" label="Email" type="email" required />
 </Form>`}
             />
 
             <Section
                 title="Modal and accidental close"
-                description="persistDraft is especially useful in modal workflows. If the user closes the panel accidentally, reopening the same form path offers a safe restore path."
+                description="persistDraft is especially useful in modal workflows. The modal save action can use the same controller, so validation, save and draft recovery all stay aligned."
                 preview={<DraftModalDemo />}
-                code={`const [open, setOpen] = useState(false);
+                code={`const form = useFormController();
 
-{open && (
-    <Modal
-        title="Draft-aware modal form"
-        position="right"
-        closeOnBackdrop
-        onClose={() => setOpen(false)}
-    >
-        <Form
-            path="/tickets/ticket_1"
-            persistDraft
-            onComplete={async () => false}
-        >
-            <Input name="subject" label="Subject" required />
-            <Input name="email" label="Requester email" type="email" required />
-            <TextArea name="notes" label="Notes" minHeight={120} />
-        </Form>
-    </Modal>
-)}`}
+<Modal title="Draft-aware modal form" onSave={() => form.save()}>
+  <Form controller={form} path="/tickets/ticket_1" persistDraft>
+    <Input name="subject" label="Subject" required />
+    <Input name="email" label="Requester email" type="email" required />
+    <TextArea name="notes" label="Notes" minHeight={120} />
+  </Form>
+</Modal>`}
             />
 
             <PropDocsTable props={propertyDocs} />

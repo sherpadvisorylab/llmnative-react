@@ -240,7 +240,15 @@ export class RestDataProvider implements DataProviderAdapter {
 | `onDelete` | `FormDeleteHandler` | Hook prima della cancellazione |
 | `onComplete` | `FormFinallyHandler` | Dopo save/delete |
 
-**FormRef** (via `useRef<FormRef>()`): `{ handleSave, handleDelete, getRecord, getHeader, getFooter }`
+**Form controller** (via `const form = useFormController()`): stato e azioni native del form ovunque nella pagina.
+
+Esempio rapido:
+```tsx
+const form = useFormController();
+
+<ActionButton disabled={form.saveDisabled} onClick={() => { void form.save(); }} />
+<Form controller={form} persistDraft onSave={...} />
+```
 
 ---
 

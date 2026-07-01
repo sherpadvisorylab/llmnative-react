@@ -1,13 +1,10 @@
-import React, { useState, useRef } from 'react';
-import { Form, Input, Select, TextArea, MockDataProvider, DataProvider, Modal, ActionButton } from '@llmnative/react';
-import type { FormRef } from '@llmnative/react';
+import React, { useState } from 'react';
+import { Form, Input, Select, TextArea, MockDataProvider, DataProvider, Modal, ActionButton, useFormController } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
 import type { PropDef } from '../../docs-kit/playground';
 import { useShowcaseFormValidationI18n } from '../../showcase/i18n';
-
-// ── Shared mock setup ──────────────────────────────────────────────────────────
 
 const mockProvider = new MockDataProvider();
 
@@ -18,8 +15,6 @@ function WithMock({ children }: { children: React.ReactNode }) {
         </DataProvider>
     );
 }
-
-// ── Validators ────────────────────────────────────────────────────────────────
 
 const validateEmail = (value: any): string | undefined => {
     if (!value) return undefined;
@@ -72,7 +67,7 @@ const validateAge = (value: any): string | undefined => {
     const n = Number(value);
     if (isNaN(n)) return 'Age must be a number';
     if (n < 18) return 'You must be at least 18 years old';
-    if (n > 120) return 'Age must be realistic (≤ 120)';
+    if (n > 120) return 'Age must be realistic (<= 120)';
     return undefined;
 };
 
@@ -84,41 +79,63 @@ const COUNTRY_OPTIONS = [
     { label: 'United Kingdom', value: 'uk' },
 ];
 
-// ── Prop docs ──────────────────────────────────────────────────────────────────
-
 const VALIDATOR_PROPS: PropDef[] = [
     {
         name: 'required',
         type: 'boolean',
         default: 'false',
-        description: 'Marks the field as mandatory. The form collects all empty required fields before showing errors - submit is blocked until every required field has a value.',
+        description: 'Marks the field as mandatory. The form collects all empty required fields before showing errors; submit is blocked until every required field has a value.',
     },
     {
         name: 'validator',
         type: '(value: any) => string | undefined',
         description: 'Custom validator function. Called after the required check. Return an error string to block submit; return undefined to pass. Works on Input, TextArea and Select.',
-        shape: `// The validator receives the raw field value.
-// Return a string to show as error; return undefined to pass.
-const validateEmail = (value: any): string | undefined => {
-    if (!value) return undefined;  // let required handle the empty case
-    return /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(String(value))
-        ? undefined
-        : 'Enter a valid email address';
+        shape: `const validateEmail = (value: any): string | undefined => {
+  if (!value) return undefined;
+  return /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(String(value))
+    ? undefined
+    : 'Enter a valid email address';
 };
 
 <Input name="email" label="Email" required validator={validateEmail} />`,
     },
 ];
 
-// ── Page ───────────────────────────────────────────────────────────────────────
-
 const MODAL_POSITIONS = ['center', 'left', 'right', 'top', 'bottom'] as const;
 type ModalPosition = typeof MODAL_POSITIONS[number];
 
+function ModalValidationDemo({ openPosition, onClose }: { openPosition: ModalPosition | null; onClose: () => void }) {
+    const form = useFormController();
+
+    if (!openPosition) return null;
+
+    return (
+        <Modal
+            key={openPosition}
+            title={`Contact form - ${openPosition}`}
+            position={openPosition}
+            size="md"
+            closeOnBackdrop
+            onClose={onClose}
+            onSave={async () => {
+                const ok = await form.save();
+                if (ok) onClose();
+                return ok;
+            }}
+        >
+            <Form controller={form} path="/modal-demo" keyGenerator={() => `rec_${Date.now()}`}>
+                <Input name="firstName" label="First name" required />
+                <Input name="lastName"  label="Last name"  required />
+                <Input name="email"     label="Email"      required validator={validateEmail} />
+                <Input name="phone"     label="Phone"               validator={validatePhone} />
+                <Select name="country"  label="Country"    required options={COUNTRY_OPTIONS} />
+            </Form>
+        </Modal>
+    );
+}
+
 export default function FormValidationPage() {
     const [openPosition, setOpenPosition] = useState<ModalPosition | null>(null);
-    const formRef = useRef<FormRef>(null);
-
     const t = useShowcaseFormValidationI18n();
 
     return (
@@ -126,7 +143,6 @@ export default function FormValidationPage() {
             title={t.page.title}
             description={t.page.description}
         >
-            {/* ── 1. Create mode - required + validators + notification ─── */}
             <Section
                 title={t.sections.createMode.title}
                 description={t.sections.createMode.description}
@@ -142,44 +158,21 @@ export default function FormValidationPage() {
                                 <Input name="username"  label="Username" required validator={validateUsername} />
                                 <Input name="email"     label="Email"    required validator={validateEmail} />
                                 <Input name="phone"     label="Phone"             validator={validatePhone} />
-                                <Input
-                                    name="password"
-                                    label="Password"
-                                    type="password"
-                                    required
-                                    validator={validatePassword}
-                                />
-                                <Select
-                                    name="country"
-                                    label="Country"
-                                    required
-                                    options={COUNTRY_OPTIONS}
-                                />
+                                <Input name="password"  label="Password" type="password" required validator={validatePassword} />
+                                <Select name="country"  label="Country" required options={COUNTRY_OPTIONS} />
                             </Form>
                         </div>
                     </WithMock>
                 }
-                code={`const validateEmail   = (v: any) => /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(v) ? undefined : 'Invalid email';
-const validatePhone   = (v: any) => !v || /^\\+?[\\d\\s\\-()]{7,20}$/.test(v) ? undefined : 'Invalid phone';
-const validatePassword = (v: any) => {
-    if (!v) return undefined;
-    if (v.length < 8)         return 'At least 8 characters';
-    if (!/[A-Z]/.test(v))    return 'Add an uppercase letter';
-    if (!/\\d/.test(v))       return 'Add a number';
-    if (!/[^A-Za-z0-9]/.test(v)) return 'Add a special character';
-};
-
-// path="/demo" + keyGenerator → create mode (Save button, no Delete)
-<Form path="/demo" appearance="card" keyGenerator={() => \`rec_\${Date.now()}\`}>
-    <Input  name="username" label="Username" required validator={validateUsername} />
-    <Input  name="email"    label="Email"    required validator={validateEmail} />
-    <Input  name="phone"    label="Phone"             validator={validatePhone} />
-    <Input  name="password" label="Password" type="password" required validator={validatePassword} />
-    <Select name="country"  label="Country"  required options={COUNTRY_OPTIONS} />
+                code={`<Form path="/demo" appearance="card" keyGenerator={() => \`rec_\${Date.now()}\`}>
+  <Input name="username" label="Username" required validator={validateUsername} />
+  <Input name="email" label="Email" required validator={validateEmail} />
+  <Input name="phone" label="Phone" validator={validatePhone} />
+  <Input name="password" label="Password" type="password" required validator={validatePassword} />
+  <Select name="country" label="Country" required options={COUNTRY_OPTIONS} />
 </Form>`}
             />
 
-            {/* ── 2. Edit mode - save + delete ─────────────────────────── */}
             <Section
                 title={t.sections.editMode.title}
                 description={t.sections.editMode.description}
@@ -207,25 +200,18 @@ const validatePassword = (v: any) => {
                         </div>
                     </WithMock>
                 }
-                code={`// defaultValues with _key → edit mode (isNewRecord = false → Save + Delete both visible)
-// Saves to /users/user_001 (path + _key)
-<Form
-    path="/users"
-    appearance="card"
-    defaultValues={{ _key: 'user_001', username: 'alice_dev', email: 'alice@example.com', country: 'it' }}
-    onDelete={async () => { /* custom delete logic */ return undefined; }}
-    onComplete={async ({ action }) => {
-        if (action === 'delete') navigate('/users');
-        return true;
-    }}
+                code={`<Form
+  path="/users"
+  appearance="card"
+  defaultValues={{ _key: 'user_001', username: 'alice_dev', email: 'alice@example.com', country: 'it' }}
+  onDelete={async () => undefined}
 >
-    <Input  name="username" label="Username" required validator={validateUsername} />
-    <Input  name="email"    label="Email"    required validator={validateEmail} />
-    <Select name="country"  label="Country"  required options={COUNTRY_OPTIONS} />
+  <Input name="username" label="Username" required validator={validateUsername} />
+  <Input name="email" label="Email" required validator={validateEmail} />
+  <Select name="country" label="Country" required options={COUNTRY_OPTIONS} />
 </Form>`}
             />
 
-            {/* ── 3. Long form - scroll to first error ─────────────────── */}
             <Section
                 title={t.sections.longForm.title}
                 description={t.sections.longForm.description}
@@ -247,20 +233,20 @@ const validatePassword = (v: any) => {
                                 }}
                             >
                                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mt-2 mb-1">Personal</p>
-                                <Input name="firstName" label="First name"    required />
-                                <Input name="lastName"  label="Last name"     required />
+                                <Input name="firstName" label="First name" required />
+                                <Input name="lastName"  label="Last name" required />
                                 <Input name="birthDate" label="Date of birth" type="date" required />
 
                                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mt-4 mb-1">Contact</p>
-                                <Input name="email"   label="Email"   required validator={validateEmail} />
-                                <Input name="phone"   label="Phone"            validator={validatePhone} />
-                                <Input name="website" label="Website"          validator={validateUrl} />
+                                <Input name="email" label="Email" required validator={validateEmail} />
+                                <Input name="phone" label="Phone" validator={validatePhone} />
+                                <Input name="website" label="Website" validator={validateUrl} />
 
                                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mt-4 mb-1">Address</p>
-                                <Input name="address.street"     label="Street"      required />
-                                <Input name="address.city"       label="City"        required />
+                                <Input name="address.street" label="Street" required />
+                                <Input name="address.city" label="City" required />
                                 <Input name="address.postalCode" label="Postal code" required validator={validatePostalCode} />
-                                <Select name="address.country"   label="Country"     required options={COUNTRY_OPTIONS} />
+                                <Select name="address.country" label="Country" required options={COUNTRY_OPTIONS} />
 
                                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mt-4 mb-1">Account</p>
                                 <Input name="username" label="Username" required validator={validateUsername} />
@@ -278,25 +264,18 @@ const validatePassword = (v: any) => {
                         </WithMock>
                     </div>
                 }
-                code={`<Form
-    path="/users"
-    appearance="card"
-    keyGenerator={() => \`rec_\${Date.now()}\`}
-    defaultValues={{ firstName: 'Alice', lastName: 'Rossi', birthDate: '1990-06-15' }}
->
-    <Input name="firstName" label="First name"    required />
-    <Input name="lastName"  label="Last name"     required />
-    <Input name="birthDate" label="Date of birth" type="date" required />
-    <Input name="email"     label="Email"   required validator={validateEmail} />
-    <Input name="address.street" label="Street"   required />
-    <Select name="address.country" label="Country" required options={COUNTRY_OPTIONS} />
-    <Input name="username" label="Username" required validator={validateUsername} />
-    <Input name="password" label="Password" type="password" required validator={validatePassword} />
-    <Input name="age"      label="Age"      type="number" required validator={validateAge} />
+                code={`<Form path="/users" appearance="card" keyGenerator={() => \`rec_\${Date.now()}\`}>
+  <Input name="firstName" label="First name" required />
+  <Input name="lastName" label="Last name" required />
+  <Input name="email" label="Email" required validator={validateEmail} />
+  <Input name="address.street" label="Street" required />
+  <Select name="address.country" label="Country" required options={COUNTRY_OPTIONS} />
+  <Input name="username" label="Username" required validator={validateUsername} />
+  <Input name="password" label="Password" type="password" required validator={validatePassword} />
+  <Input name="age" label="Age" type="number" required validator={validateAge} />
 </Form>`}
             />
 
-            {/* ── 4. Form inside modal - all positions ─────────────────── */}
             <Section
                 title={t.sections.insideModal.title}
                 description={t.sections.insideModal.description}
@@ -312,73 +291,27 @@ const validatePassword = (v: any) => {
                             ))}
                         </div>
 
-                        {openPosition && (
-                            <Modal
-                                key={openPosition}
-                                title={`Contact form - ${openPosition}`}
-                                position={openPosition}
-                                size="md"
-                                closeOnBackdrop
-                                onClose={() => setOpenPosition(null)}
-                                onSave={async e => {
-                                    const ok = await (formRef.current?.handleSave(e) ?? Promise.resolve(false));
-                                    if (ok) setOpenPosition(null);
-                                    return ok;
-                                }}
-                            >
-                                <Form
-                                    ref={formRef}
-                                    path="/modal-demo"
-                                    keyGenerator={() => `rec_${Date.now()}`}
-                                >
-                                    <Input name="firstName" label="First name" required />
-                                    <Input name="lastName"  label="Last name"  required />
-                                    <Input name="email"     label="Email"      required validator={validateEmail} />
-                                    <Input name="phone"     label="Phone"               validator={validatePhone} />
-                                    <Select
-                                        name="country"
-                                        label="Country"
-                                        required
-                                        options={COUNTRY_OPTIONS}
-                                    />
-                                </Form>
-                            </Modal>
-                        )}
+                        <ModalValidationDemo openPosition={openPosition} onClose={() => setOpenPosition(null)} />
                     </WithMock>
                 }
-                code={`import { Modal, Form, Input, Select } from '@llmnative/react';
-import type { FormRef } from '@llmnative/react';
-import { useRef, useState } from 'react';
+                code={`const form = useFormController();
 
-const formRef = useRef<FormRef>(null);
-const [open, setOpen] = useState(false);
-
-{open && (
-    <Modal
-        title="Contact form"
-        position="center"   // center | left | right | top | bottom
-        size="md"
-        closeOnBackdrop
-        onClose={() => setOpen(false)}
-        onSave={async e => {
-            const ok = await (formRef.current?.handleSave(e) ?? Promise.resolve(false));
-            if (ok) setOpen(false);
-            return ok;   // true → modal closes · false → keeps modal open
-        }}
-    >
-        <Form
-            ref={formRef}
-            path="/contacts"
-            keyGenerator={() => \`rec_\${Date.now()}\`}
-            showNotice={false}
-        >
-            <Input  name="firstName" label="First name" required />
-            <Input  name="lastName"  label="Last name"  required />
-            <Input  name="email"     label="Email"      required validator={validateEmail} />
-            <Select name="country"   label="Country"    required options={COUNTRY_OPTIONS} />
-        </Form>
-    </Modal>
-)}`}
+<Modal
+  title="Contact form"
+  position="center"
+  onSave={async () => {
+    const ok = await form.save();
+    if (ok) setOpen(false);
+    return ok;
+  }}
+>
+  <Form controller={form} path="/contacts" keyGenerator={() => \`rec_\${Date.now()}\`}>
+    <Input name="firstName" label="First name" required />
+    <Input name="lastName" label="Last name" required />
+    <Input name="email" label="Email" required validator={validateEmail} />
+    <Select name="country" label="Country" required options={COUNTRY_OPTIONS} />
+  </Form>
+</Modal>`}
             />
 
             <PropDocsTable props={VALIDATOR_PROPS} />

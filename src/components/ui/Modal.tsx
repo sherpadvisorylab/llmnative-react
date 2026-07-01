@@ -31,7 +31,7 @@ export interface ModalProps extends MotionUIProps {
     size?: "sm" | "md" | "lg" | "xl" | "2xl" | "fullscreen";
     /** Anchor position: `"center"` (default) · `"top"` · `"left"` · `"right"` · `"bottom"`. */
     position?: "center" | "top" | "left" | "right" | "bottom";
-    /** Show a fullscreen toggle button in the header. Defaults to `true`. */
+    /** Show a fullscreen toggle button in the header. Defaults to `false`. */
     allowFullscreen?: boolean;
     /** Show the Cancel button in the footer. Defaults to `true`. */
     showCancel?: boolean;
@@ -86,7 +86,7 @@ const ModalDefault = ({
                           onDelete          = undefined,
                           size              = undefined,
                           position          = undefined,
-                          allowFullscreen  = true,
+                          allowFullscreen  = false,
                           showCancel      = true,
                           before               = undefined,
                           after              = undefined,

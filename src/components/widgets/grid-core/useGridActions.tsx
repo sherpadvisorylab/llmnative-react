@@ -1,7 +1,7 @@
-﻿import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useId, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { type FormRef } from "../Form";
 import Form from "../Form";
+import { useFormController } from "../form-controller";
 import { type DataProviderAdapter, type RecordProps } from "../../../providers/data/DataProvider";
 import {
     type GridAction,
@@ -61,7 +61,7 @@ function useGridActions<TRecord extends RecordProps>({
     const location = useLocation();
     const navigate = useNavigate();
     const reactId = useId();
-    const formRef = useRef<FormRef | undefined>(undefined);
+    const formController = useFormController();
     const getRecordKey = useMemo(() => getRecordKeyResolver(recordId), [recordId]);
     const normalizedActions = useMemo(() => normalizeActions(actions, !!form), [actions, form]);
     const [activeAction, setActiveAction] = useState<GridActiveAction<TRecord> | null>(null);
@@ -72,11 +72,10 @@ function useGridActions<TRecord extends RecordProps>({
 
     const close = useCallback(() => {
         setActiveAction(null);
-        formRef.current = undefined;
         if (editDeepLink && location.hash.startsWith(`#${gridHashId}:`)) {
             navigate({ pathname: location.pathname, search: location.search, hash: "" }, { replace: true });
         }
-    }, [gridHashId, location.hash, location.pathname, location.search, navigate, editDeepLink]);
+    }, [editDeepLink, gridHashId, location.hash, location.pathname, location.search, navigate]);
 
     const removeRecord = useCallback(async (record: TRecord, closeOnSuccess = true) => {
         const storagePath = onDelete
@@ -91,9 +90,7 @@ function useGridActions<TRecord extends RecordProps>({
         return result;
     }, [close, db, getRecordKey, onComplete, onDelete, sourcePath]);
 
-    const saveCurrentAction = useCallback(async () => (
-        formRef.current?.handleSave({ preventDefault: () => undefined } as React.MouseEvent<HTMLButtonElement>) ?? false
-    ), []);
+    const saveCurrentAction = useCallback(async () => formController.save(), [formController]);
 
     const runAction = useCallback(async (actionKey: string, record?: TRecord) => {
         const action = normalizedActions[actionKey];
@@ -137,7 +134,7 @@ function useGridActions<TRecord extends RecordProps>({
         }
 
         setActiveAction({ actionKey, record });
-    }, [close, getRecordKey, gridHashId, navigate, normalizedActions, removeRecord, editDeepLink, saveCurrentAction]);
+    }, [close, editDeepLink, getRecordKey, gridHashId, navigate, normalizedActions, removeRecord, saveCurrentAction]);
 
     const getActionContext = useCallback((actionKey: string, record?: TRecord): GridActionContext<TRecord> => ({
         actionKey,
@@ -200,7 +197,7 @@ function useGridActions<TRecord extends RecordProps>({
                     : { actionKey: "edit", record: nextRecord }
             ));
         }
-    }, [activeAction?.actionKey, getRecordKey, gridHashId, location.hash, preparedRecords, editDeepLink]);
+    }, [activeAction?.actionKey, editDeepLink, getRecordKey, gridHashId, location.hash, preparedRecords]);
 
     const activeActionConfig = activeAction ? normalizedActions[activeAction.actionKey] : undefined;
 
@@ -233,6 +230,7 @@ function useGridActions<TRecord extends RecordProps>({
             return (
                 <Form
                     appearance="empty"
+                    controller={formController}
                     defaultValues={activeAction.record}
                     log={audit}
                     onSave={onSave ? async ({ record, action, storagePath }) => (
@@ -253,7 +251,6 @@ function useGridActions<TRecord extends RecordProps>({
                         return success;
                     }}
                     path={sourcePath}
-                    ref={(ref) => { formRef.current = ref ?? undefined; }}
                 >
                     {formNode}
                 </Form>
@@ -267,7 +264,7 @@ function useGridActions<TRecord extends RecordProps>({
         }
 
         return null;
-    }, [activeAction, activeActionConfig, audit, close, form, getActionContext, getModalActionContext, getRecordKey, onComplete, onDelete, onSave, sourcePath]);
+    }, [activeAction, activeActionConfig, audit, close, form, formController, getActionContext, getModalActionContext, getRecordKey, onComplete, onDelete, onSave, sourcePath]);
 
     return {
         normalizedActions,
@@ -281,7 +278,7 @@ function useGridActions<TRecord extends RecordProps>({
         getActionContext,
         getModalActionContext,
         getRecordKey,
-        formRef,
+        formController,
         gridHashId,
     };
 }

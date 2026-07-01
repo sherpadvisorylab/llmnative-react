@@ -8,7 +8,7 @@ export default defineLocaleMessages({
                 editMode: { title: 'Edit mode — save and delete', description: 'Pass defaultValues that include a _key field to signal edit mode. The Form sees _key in defaultValues and sets isNewRecord = false, showing both Save and Delete buttons.' },
                 longForm: { title: 'Long form — scroll to first error', description: 'When a form is taller than the viewport, the form automatically scrolls to the first invalid field and focuses it after a failed submission. Scroll to the bottom and click Save — the page jumps back to the first missing field.' },
                 longFormHowToTry: 'How to try it: scroll past all fields to the Save button, then click it. The page jumps back to the first invalid field.',
-                insideModal: { title: 'Form inside a modal', description: 'A validated form can live inside a Modal in any position. The modal\'s Save button delegates to the form\'s internal handleSave: validation runs, errors appear inline, and the modal only closes when all fields are valid.' },
+                insideModal: { title: 'Form inside a modal', description: 'A validated form can live inside a Modal in any position. The modal\'s Save button can call a shared FormController: validation runs, errors appear inline, and the modal only closes when all fields are valid.' },
             },
         },
     },

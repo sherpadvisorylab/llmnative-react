@@ -13,6 +13,7 @@ export default function TextAreaPage() {
     const textAreaProps = React.useMemo<PropDef[]>(() => [
         { name: 'name', type: 'string', required: true, description: t.propsDocs.items.name.description, control: 'text' },
         { name: 'label', type: 'string', description: t.propsDocs.items.label.description, control: 'text' },
+        { name: 'labelMode', type: '"default" | "floating"', default: '"default"', description: 'Controls how the label is rendered. Use "floating" for a CSS-only floating label pattern.', control: 'select', options: ['default', 'floating'] },
         { name: 'placeholder', type: 'string', description: t.propsDocs.items.placeholder.description, control: 'text' },
         { name: 'required', type: 'boolean', default: 'false', description: t.propsDocs.items.required.description, control: 'boolean' },
         { name: 'disabled', type: 'boolean', default: 'false', description: t.propsDocs.items.disabled.description, control: 'boolean' },
@@ -50,6 +51,7 @@ export default function TextAreaPage() {
         defaultProps: {
             name: 'notes',
             label: t.labels.notes,
+            labelMode: 'default',
             placeholder: t.labels.writeShortNote,
             required: false,
             disabled: false,
@@ -68,6 +70,7 @@ export default function TextAreaPage() {
                 <TextArea
                     name={p.name}
                     label={p.label}
+                    labelMode={p.labelMode}
                     placeholder={p.placeholder}
                     required={p.required}
                     disabled={p.disabled}
@@ -101,6 +104,31 @@ export default function TextAreaPage() {
 <Form defaultValues={{ notes: 'Initial note' }}>
   <TextArea name="notes" label="Notes" minHeight={120} />
 </Form>`}
+            />
+
+            <Section
+                title="Floating label"
+                description={'Use labelMode="floating" when you want the textarea label anchored inside the field with the floating-label pattern.'}
+                preview={(
+                    <Form appearance="empty">
+                        <TextArea
+                            name="floatingNotes"
+                            label={t.labels.notes}
+                            labelMode="floating"
+                            placeholder={t.labels.writeShortNote}
+                            minHeight={56}
+                            maxHeight={160}
+                        />
+                    </Form>
+                )}
+                code={`<TextArea
+  name="floatingNotes"
+  label="Notes"
+  labelMode="floating"
+  placeholder="Write a short note..."
+  minHeight={56}
+  maxHeight={160}
+/>`}
             />
 
             <Section

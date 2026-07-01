@@ -51,7 +51,9 @@ export { default as SideNav } from './blocks/SideNav';
 export type { SideNavProps, SideNavItemDef } from './blocks/SideNav';
 
 export { default as Form } from './widgets/Form';
-export type { FormProps, FormDeleteArgs, FormDeleteHandler, FormFinallyArgs, FormFinallyHandler, FormRef, FormSaveArgs, FormSaveHandler } from './widgets/Form';
+export type { FormProps, FormDeleteArgs, FormDeleteHandler, FormFinallyArgs, FormFinallyHandler, FormSaveArgs, FormSaveHandler } from './widgets/Form';
+export { FormControllerContext, useFormActions, useFormController } from './widgets/form-controller';
+export type { FormActionEvent, FormController, FormControllerActions, FormControllerState, FormDraftStatus } from './widgets/form-controller';
 export { default as Grid } from './widgets/Grid';
 export { GridArray, GridCore, GridDB, GridGalleryView, GridTableView } from './widgets/grid-core';
 export type {

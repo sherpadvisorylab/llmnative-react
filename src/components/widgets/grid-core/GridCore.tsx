@@ -93,7 +93,7 @@ function GridCore<TRecord extends RecordProps>({
         getActionContext,
         getModalActionContext,
         getRecordKey,
-        formRef,
+        formController,
     } = useGridActions({
         actions,
         form,
@@ -288,7 +288,7 @@ function GridCore<TRecord extends RecordProps>({
                         activeActionConfig.kind === "modal"
                         && activeActionConfig.footer === undefined
                         && (activeAction.actionKey === "add" || activeAction.actionKey === "edit")
-                            ? (event) => formRef.current?.handleSave(event) ?? Promise.resolve(false)
+                            ? (event) => formController.save(event)
                             : undefined
                     }
                     onDelete={

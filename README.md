@@ -120,22 +120,33 @@ export default function UserList() {
 ### 2. Standalone form
 
 ```tsx
-import { Form, Input, Select } from '@llmnative/react'
+import { ActionButton, Form, Input, Select, useFormController } from '@llmnative/react'
 
 export default function UserForm() {
+  const form = useFormController()
+
   return (
-    <Form path="/users" appearance="card" showBack>
-      <Input name="name" label="Name" required />
-      <Input name="email" label="Email" inputType="email" />
-      <Select
-        name="role"
-        label="Role"
-        options={[
-          { label: "Admin", value: "admin" },
-          { label: "User", value: "user" },
-        ]}
+    <>
+      <ActionButton
+        label="Save"
+        disabled={form.saveDisabled}
+        loading={form.isSaving}
+        onClick={() => { void form.save() }}
       />
-    </Form>
+
+      <Form controller={form} path="/users" appearance="card" showBack persistDraft>
+        <Input name="name" label="Name" required />
+        <Input name="email" label="Email" inputType="email" />
+        <Select
+          name="role"
+          label="Role"
+          options={[
+            { label: "Admin", value: "admin" },
+            { label: "User", value: "user" },
+          ]}
+        />
+      </Form>
+    </>
   )
 }
 ```
@@ -181,8 +192,8 @@ export default function UserForm() {
   path="/products"
   onLoad={(data) => ({ ...data, price: data.price / 100 })}
   onSave={async ({ record }) => ({ ...record, price: record.price * 100 })}
-  onFinally={async ({ action }) => {
-    if (action === 'save') navigate('/products')
+  onComplete={async ({ action }) => {
+    if (action === 'update') navigate('/products')
   }}
 >
   <Input name="title" label="Title" required />

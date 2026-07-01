@@ -39,6 +39,10 @@ export interface CheckboxProps extends FormFieldProps {
     valueChecked?: string | number;
 }
 
+export interface HiddenProps extends FormFieldProps {
+    id?: string;
+}
+
 export interface TextAreaProps extends FormFieldProps {
     placeholder?: string;
     /** When `true`, the textarea becomes read-only (disabled) once a value has been set. */
@@ -74,6 +78,11 @@ export const fieldControlBaseClass = "flex h-9 w-full rounded-md border border-i
 export const fieldTextAreaBaseClass = "flex min-h-[5rem] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
 export const fieldGroupClass = "flex w-full items-stretch";
 export const fieldAddonClass = "inline-flex shrink-0 items-center border border-input bg-muted px-3 py-1 text-sm text-muted-foreground";
+const floatingFieldWrapClass = "relative";
+const floatingLabelClass = "pointer-events-none absolute left-3 top-2 z-10 origin-[0] bg-background px-1 text-xs font-medium normal-case tracking-normal text-muted-foreground transition-all duration-150 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:px-0 peer-placeholder-shown:text-sm peer-placeholder-shown:font-normal peer-placeholder-shown:normal-case peer-placeholder-shown:tracking-normal peer-focus:top-2 peer-focus:-translate-y-0 peer-focus:px-1 peer-focus:text-xs peer-focus:font-medium peer-focus:tracking-normal peer-focus:text-foreground";
+const floatingTextAreaLabelClass = "pointer-events-none absolute left-3 top-2 z-10 origin-[0] bg-background px-1 text-xs font-medium normal-case tracking-normal text-muted-foreground transition-all duration-150 peer-placeholder-shown:top-2 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:px-0 peer-placeholder-shown:text-sm peer-placeholder-shown:font-normal peer-placeholder-shown:normal-case peer-placeholder-shown:tracking-normal peer-focus:top-2 peer-focus:translate-y-0 peer-focus:px-1 peer-focus:text-xs peer-focus:font-medium peer-focus:tracking-normal peer-focus:text-foreground";
+const floatingInputClass = "peer h-14 px-3 pt-6 pb-2";
+const floatingTextAreaClass = "peer px-3 pt-6 pb-2";
 
 const withFieldEdges = (baseClass: string, { before, after }: { before?: React.ReactNode; after?: React.ReactNode }) =>
     cn(
@@ -182,24 +191,27 @@ export const Input = ({
     wrapperClassName = undefined,
     className = undefined,
     validator = undefined,
+    labelMode = "default",
 }: BaseInputProps) => {
     const { value, handleChange, formWrapClass } = useFormContext({ name, onChange, wrapperClassName, inputType: type, defaultValue, inheritWrapperClassName });
     const error = useFieldValidation(name, { required, label, validator });
     const generatedId = useId();
     const elementId = id ?? generatedId;
     const handleDrop = useHandleDrop({ name, value, handleChange });
+    const useFloating = Boolean(labelMode === "floating" && label && !before && !after && !afterInset);
+    const resolvedPlaceholder = useFloating ? ' ' : placeholder;
 
     return (
         <Wrapper className={formWrapClass}>
-            {label && <Label label={label} required={required} htmlFor={elementId} className={labelClassName} />}
-            <Wrapper className={cn(before || after ? fieldGroupClass : "", afterInset && "relative")}>
+            {!useFloating && label && <Label label={label} required={required} htmlFor={elementId} className={labelClassName} />}
+            <Wrapper className={cn(before || after ? fieldGroupClass : "", afterInset && "relative", useFloating && floatingFieldWrapClass)}>
                 {before && <FieldAddon side="before">{before}</FieldAddon>}
                 <input
                     id={elementId}
                     type={type}
                     name={name}
-                    className={withFieldEdges(cn(fieldControlBaseClass, error && 'border-destructive focus-visible:ring-destructive/20', afterInset && 'pr-9', className), { before, after })}
-                    placeholder={placeholder}
+                    className={withFieldEdges(cn(fieldControlBaseClass, useFloating && floatingInputClass, error && 'border-destructive focus-visible:ring-destructive/20', afterInset && 'pr-9', className), { before, after })}
+                    placeholder={resolvedPlaceholder}
                     required={required}
                     disabled={disabled || (readOnlyAfterSet && !isEmpty(value))}
                     value={(value as string | number | undefined) ?? ''}
@@ -210,6 +222,11 @@ export const Input = ({
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={handleDrop}
                 />
+                {useFloating && (
+                    <label htmlFor={elementId} className={cn(floatingLabelClass, labelClassName)}>
+                        {label} {required && <span className="text-destructive">*</span>}
+                    </label>
+                )}
                 {after && <FieldAddon side="after">{after}</FieldAddon>}
                 {afterInset && (
                     <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-1.5 [&>*]:pointer-events-auto">
@@ -292,6 +309,60 @@ export const Range = (props: InputProps) => (
 export const Url = (props: InputProps) => (
     <Input {...props} type="url" />
 );
+
+export const Hidden = ({
+    name,
+    onChange = undefined,
+    defaultValue = undefined,
+    value = undefined,
+    id = undefined,
+    inheritWrapperClassName = true,
+    wrapperClassName = undefined,
+}: HiddenProps) => {
+    const { value: formValue, handleChange } = useFormContext({
+        name,
+        onChange,
+        wrapperClassName,
+        defaultValue: defaultValue ?? value,
+        inheritWrapperClassName,
+    });
+    const generatedId = useId();
+    const elementId = id ?? generatedId;
+
+    const serializedExternalValue = React.useMemo(
+        () => JSON.stringify(value ?? null),
+        [value],
+    );
+    const serializedFormValue = React.useMemo(
+        () => JSON.stringify(formValue ?? null),
+        [formValue],
+    );
+
+    useEffect(() => {
+        if (value === undefined) return;
+        if (serializedExternalValue === serializedFormValue) return;
+        handleChange({
+            target: {
+                name,
+                value,
+            },
+        });
+    }, [handleChange, name, serializedExternalValue, serializedFormValue, value]);
+
+    return (
+        <input
+            id={elementId}
+            type="hidden"
+            name={name}
+            value={typeof formValue === 'string'
+                ? formValue
+                : formValue == null
+                    ? ''
+                    : JSON.stringify(formValue)}
+            readOnly
+        />
+    );
+};
 
 export const Checkbox = ({
     name,
@@ -452,6 +523,7 @@ export const TextArea = ({
     onKeyDown = undefined,
     onClick = undefined,
     onBlur = undefined,
+    labelMode = "default",
 }: TextAreaProps) => {
     const { value, handleChange, formWrapClass } = useFormContext({ name, onChange, wrapperClassName, defaultValue, inheritWrapperClassName });
     const error = useFieldValidation(name, { required, label, validator });
@@ -461,6 +533,8 @@ export const TextArea = ({
     const elementId = id ?? generatedId;
     const handleDrop = useHandleDrop({ name, value, handleChange });
     const internalRef = React.useRef<HTMLTextAreaElement | null>(null);
+    const useFloating = Boolean(labelMode === "floating" && label && !before && !after);
+    const resolvedPlaceholder = useFloating ? ' ' : placeholder;
 
     const assignRef = (el: HTMLTextAreaElement | null) => {
         internalRef.current = el;
@@ -492,15 +566,15 @@ export const TextArea = ({
 
     return (
         <Wrapper className={formWrapClass}>
-            {label && <Label required={required} label={label} htmlFor={elementId} className={labelClassName} />}
-            <Wrapper className={before || after ? fieldGroupClass : ""}>
+            {!useFloating && label && <Label required={required} label={label} htmlFor={elementId} className={labelClassName} />}
+            <Wrapper className={cn(before || after ? fieldGroupClass : "", useFloating && floatingFieldWrapClass)}>
                 {before && <FieldAddon side="before">{before}</FieldAddon>}
                 <textarea
                     id={elementId}
                     name={name}
-                    className={withFieldEdges(cn(fieldTextAreaBaseClass, "resize-none", error && 'border-destructive focus-visible:ring-destructive/20', className), { before, after })}
+                    className={withFieldEdges(cn(fieldTextAreaBaseClass, "resize-none", useFloating && floatingTextAreaClass, error && 'border-destructive focus-visible:ring-destructive/20', className), { before, after })}
                     ref={assignRef}
-                    placeholder={placeholder}
+                    placeholder={resolvedPlaceholder}
                     required={required}
                     disabled={disabled || (readOnlyAfterSet && !isEmpty(value))}
                     value={(value as string | number | undefined) ?? ''}
@@ -511,6 +585,11 @@ export const TextArea = ({
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={handleDrop}
                 />
+                {useFloating && (
+                    <label htmlFor={elementId} className={cn(floatingTextAreaLabelClass, labelClassName)}>
+                        {label} {required && <span className="text-destructive">*</span>}
+                    </label>
+                )}
                 {after && <FieldAddon side="after">{after}</FieldAddon>}
             </Wrapper>
             {error

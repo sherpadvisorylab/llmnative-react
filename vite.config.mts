@@ -1,4 +1,4 @@
-import { existsSync, renameSync } from 'node:fs';
+import { copyFileSync, existsSync, rmSync } from 'node:fs';
 import { builtinModules } from 'node:module';
 import { resolve } from 'node:path';
 import { defineConfig } from 'vite';
@@ -28,7 +28,8 @@ export default defineConfig({
                 const stylePath = resolve(__dirname, 'dist/style.css');
                 const indexPath = resolve(__dirname, 'dist/index.css');
                 if (existsSync(stylePath)) {
-                    renameSync(stylePath, indexPath);
+                    rmSync(indexPath, { force: true });
+                    copyFileSync(stylePath, indexPath);
                 }
             },
         },

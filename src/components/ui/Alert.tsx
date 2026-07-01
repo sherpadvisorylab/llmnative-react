@@ -39,6 +39,8 @@ const TEXT_COLORS: Record<string, string> = {
     dark:      'text-gray-800',
 };
 
+const OVERLAY_ALERT_SURFACE_CLASS = "bg-card supports-[backdrop-filter]:backdrop-blur-sm";
+
 const Alert = ({
     children,
     variant = "info",
@@ -139,7 +141,10 @@ const Alert = ({
                 className={cn(
                     "alert alert-" + variant,
                     className || theme.Alert.className,
-                    (placement === 'fixed' || placement === 'sticky') && "w-full rounded-none border-x-0 shadow-md"
+                    (placement === 'fixed' || placement === 'sticky') && [
+                        "w-full rounded-none border-x-0 shadow-md",
+                        OVERLAY_ALERT_SURFACE_CLASS,
+                    ]
                 )}
             >
                 {iconName && <Icon name={iconName} size={16} className="shrink-0" />}
