@@ -5,7 +5,6 @@ import {decodeJWT, loadScripts} from "../../../libs/utils";
 import {PLACEHOLDER_USER, useTheme} from "../../../Theme";
 import {useGlobalVars} from "../../../Global";
 import {authConfig} from "./auth";
-import TenantMenu from "../../../Config";
 import ImageAvatar from "../../../components/ui/ImageAvatar";
 
 declare global {
@@ -208,7 +207,6 @@ const GoogleAuth = ({
                         </DropdownItem>
                         <DropdownDivider />
                     </>}
-                    <TenantMenu />
                     <DropdownMenu menuKey={"profile"} />
 
                     {user && <>

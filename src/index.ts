@@ -128,6 +128,10 @@ export type {
 } from './components/widgets/Grid';
 export type { ProviderConfigurable, ProviderConfigurationState } from './providers/ProviderConfiguration';
 export { getProviderConfigurationState } from './providers/ProviderConfiguration';
+export type { ProviderAdapterMap, ProviderService, SetProviderFn } from './providers/ProviderRegistryContext';
+export { useSetProvider } from './providers/ProviderRegistryContext';
+export type { ProviderSessionCredential, ProviderSessionAssignment, ProviderSessionResponse, SwitchProviderSessionFn } from './providers/ProviderSession';
+export { useProviderSession } from './providers/ProviderSession';
 export type { MotionEffect, MotionReference, MotionRegistry, MotionStyle, MotionTransition, ReducedMotionMode, ResolvedMotionEffect } from './motion';
 export { createMotionTransition, resolveMotionEffect, useEnterMotion, useMotionEffect, useMotionState, usePressMotion } from './motion';
 export { FirebaseDataProvider } from './providers/data/firebase';

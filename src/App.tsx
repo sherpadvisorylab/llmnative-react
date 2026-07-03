@@ -51,6 +51,7 @@ import {
     type SupabaseProviderConfig,
     type MockProviderConfig,
 } from "./providers/manifest";
+import { ProviderRegistryProvider, type ProviderService, type SetProviderFn } from "./providers/ProviderRegistryContext";
 
 
 
@@ -116,7 +117,6 @@ export type AppProviderProps = {
     contextProviders?: React.ComponentType<{ children: React.ReactNode }>;
     appName?: string;
     scrapeConfig?: ScrapeConfig;
-    tenantsURI?: string;
     providers?: AppProvidersConfig;
     /** Icon provider registry config. String shorthand selects the default provider id. */
     iconProvider?: AppIconProviderConfig;
@@ -230,7 +230,6 @@ export function AppProvider({
     providers = {},
     appName = 'LLM Native',
     scrapeConfig,
-    tenantsURI,
     iconProvider,
     themeProvider,
     i18n,
@@ -238,9 +237,30 @@ export function AppProvider({
     errorReportUrl,
     debug,
 }: AppProviderProps) {
-    const registriesRef = useRef<ReturnType<typeof resolveProviderRegistries>>();
-    if (!registriesRef.current) registriesRef.current = resolveProviderRegistries(providers);
-    const registries = registriesRef.current;
+    const [registries, setRegistries] = useState(() => resolveProviderRegistries(providers));
+
+    // Mirror so setProvider always reads the latest registries synchronously,
+    // even across multiple calls before a re-render commits.
+    const registriesRef = useRef(registries);
+    registriesRef.current = registries;
+
+    const setProviderRef = useRef<SetProviderFn>();
+    if (!setProviderRef.current) {
+        // Untyped internally (heterogeneous adapter map, same pattern as resolveProviderRegistries
+        // below) — SetProviderFn's generic signature is the public, type-safe surface callers see.
+        setProviderRef.current = (async (service: ProviderService, key: string, adapter: { dispose?(): Promise<void> | void }) => {
+            const registry = registriesRef.current[service].registry as Record<string, { dispose?(): Promise<void> | void }>;
+            await registry[key]?.dispose?.();
+            setRegistries(current => ({
+                ...current,
+                [service]: {
+                    ...current[service],
+                    registry: { ...current[service].registry, [key]: adapter },
+                },
+            }));
+        }) as SetProviderFn;
+    }
+    const setProvider = setProviderRef.current;
 
     const ContextProviders = contextProviders ?? React.Fragment;
 
@@ -261,7 +281,8 @@ export function AppProvider({
                 ai: providers.ai,
                 scrape: scrapeConfig,
                 proxy: providers.proxy,
-            }} tenantsURI={tenantsURI}>
+            }}>
+                <ProviderRegistryProvider setProvider={setProvider}>
                 <AuthProvider {...registries.auth}>
                     <CredentialsProvider {...registries.credentials}>
                     <DataProvider {...registries.data}>
@@ -285,6 +306,7 @@ export function AppProvider({
                     </DataProvider>
                     </CredentialsProvider>
                 </AuthProvider>
+                </ProviderRegistryProvider>
             </RuntimeProvider>
         </BrowserRouter>
         </ErrorBoundary>

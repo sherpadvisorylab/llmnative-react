@@ -11,7 +11,7 @@ import {
     Condition,
     RECORD_KEY,
 } from './DataProvider';
-import { getSupabaseClient, getSupabaseConfigurationState } from '../supabase-init';
+import { getSupabaseClient, createSupabaseClient, disposeSupabaseClient, getSupabaseConfigurationState } from '../supabase-init';
 import type { ProviderConfigurationState } from '../ProviderConfiguration';
 
 // ── Config ────────────────────────────────────────────────────────────────────
@@ -24,6 +24,13 @@ export interface SupabaseDataConfig {
      * Default: 'id'. Must be a text/uuid column.
      */
     primaryKey?: string;
+    /**
+     * Tenant-session JWT signed by the control-plane, scoped to this project.
+     * When present, the adapter uses an uncached, disposable client with this
+     * bearer token instead of the shared single-project client — see
+     * createSupabaseClient() in supabase-init.ts.
+     */
+    accessToken?: string;
 }
 
 // ── Path helpers ──────────────────────────────────────────────────────────────
@@ -120,11 +127,24 @@ function fromDbRecord(row: Record<string, any>, pk: string, index = 0): RecordPr
 export class SupabaseDataProvider implements DataProviderAdapter {
     private config: SupabaseDataConfig;
     private get pk(): string { return this.config.primaryKey ?? 'id'; }
-    private get client(): SupabaseClient { return getSupabaseClient(this.config.url, this.config.anonKey); }
+
+    // A scoped (accessToken) client is created once per instance and never shared —
+    // each tenant switch produces a new SupabaseDataProvider, never mutates this one.
+    private scopedClient: SupabaseClient | undefined;
+    private get client(): SupabaseClient {
+        if (!this.config.accessToken) return getSupabaseClient(this.config.url, this.config.anonKey);
+        if (!this.scopedClient) this.scopedClient = createSupabaseClient(this.config.url, this.config.anonKey, this.config.accessToken);
+        return this.scopedClient;
+    }
 
     constructor(config: SupabaseDataConfig) {
         this.config = config;
     }
+
+    /** Force-closes any realtime channels left open before this adapter is discarded. No-op for the shared (non-scoped) client. */
+    dispose = async (): Promise<void> => {
+        if (this.scopedClient) await disposeSupabaseClient(this.scopedClient);
+    };
 
     getConfigurationState(): ProviderConfigurationState {
         return getSupabaseConfigurationState(this.config);

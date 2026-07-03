@@ -1,5 +1,5 @@
 import { initializeApp, getApp, getApps, deleteApp, type FirebaseApp } from 'firebase/app';
-import { getAuth, getAdditionalUserInfo, signInWithCredential, onAuthStateChanged, type Auth, type User } from "firebase/auth";
+import { getAuth, getAdditionalUserInfo, signInWithCredential, signInWithCustomToken, setPersistence, inMemoryPersistence, onAuthStateChanged, type Auth, type User } from "firebase/auth";
 import { getGoogleCredential } from "./auth/google/auth";
 import { FirebaseConfig } from "../Config";
 import {
@@ -123,6 +123,29 @@ export const getFirebaseAuthorization = async (): Promise<boolean> => {
     }
 
     return true;
+};
+
+/**
+ * Signs into the currently-initialized Firebase app using a custom token minted
+ * server-side (Admin SDK createCustomToken()) and scoped to a specific project —
+ * the multi-tenant session-switch path, distinct from the Google-login flow above.
+ *
+ * Forces in-memory persistence: this session must never survive a reload or be
+ * written to IndexedDB/localStorage by the SDK's default persistence behavior.
+ * Call init(config) to point the app at the right project *before* calling this.
+ */
+export const signInWithFirebaseCustomToken = async (token: string): Promise<boolean> => {
+    const auth = getSafeAuth();
+    if (!auth) return false;
+
+    try {
+        await setPersistence(auth, inMemoryPersistence);
+        await signInWithCustomToken(auth, token);
+        return true;
+    } catch (error) {
+        console.error("Firebase custom token sign-in error: ", error);
+        return false;
+    }
 };
 
 const init = async (config: FirebaseConfig): Promise<FirebaseApp> => {

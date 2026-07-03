@@ -7,6 +7,12 @@ export interface ProviderConfigurationState {
 export interface ProviderConfigurable {
     isConfigured?(): boolean;
     getConfigurationState?(): ProviderConfigurationState;
+    /**
+     * Optional teardown hook. Called by setProvider() before an adapter is replaced
+     * in the registry — e.g. unsubscribe realtime listeners, sign out, close connections.
+     * Never called on unmount; only on explicit replacement.
+     */
+    dispose?(): Promise<void> | void;
 }
 
 export const getMissingKeys = (

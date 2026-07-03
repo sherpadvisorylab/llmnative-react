@@ -20,6 +20,13 @@ interface SupabaseStorageConfig {
     anonKey: string;
     /** Default bucket name. Falls back to "public" if omitted. */
     bucket?: string;
+    /**
+     * Tenant-session JWT signed by the control-plane, scoped to this project.
+     * When present, requests authenticate as this session instead of the bare
+     * anon key — needed for RLS-protected buckets. `apikey` stays the anon key
+     * regardless (Supabase always requires it alongside the bearer token).
+     */
+    accessToken?: string;
 }
 
 // ── Provider ──────────────────────────────────────────────────────────────────
@@ -49,7 +56,7 @@ export class SupabaseStorageProvider implements StorageProviderAdapter {
     private authHeaders(): Record<string, string> {
         return {
             apikey:        this.config.anonKey,
-            Authorization: `Bearer ${this.config.anonKey}`,
+            Authorization: `Bearer ${this.config.accessToken ?? this.config.anonKey}`,
         };
     }
 
