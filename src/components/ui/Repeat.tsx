@@ -2,6 +2,7 @@
 import { ActionButton } from './Buttons';
 import { FieldOnChange, setFormFieldsName, useFormContext } from '../widgets/Form';
 import { RecordProps } from '../../providers/data/DataProvider';
+import { cn } from '../../libs/cn';
 
 export interface RepeatCallbackArgs {
     record: RecordProps;
@@ -26,6 +27,12 @@ interface RepeatProps {
     hideRemoveButton?: boolean;
     readOnly?: boolean;
 }
+
+const itemShellClass = "rounded-xl border border-border/60 bg-card/80 shadow-sm";
+const itemHeaderClass = "flex items-center justify-between gap-3 border-b border-border/50 px-3 py-2";
+const itemIndexClass = "text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground";
+const itemBodyClass = "px-3 py-3";
+const removeButtonClass = "h-7 w-7 rounded-md bg-transparent p-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive";
 
 const Repeat = ({
     name,
@@ -57,38 +64,43 @@ const Repeat = ({
     }
     const renderLayout = (index: number, canRemove: boolean) => {
         switch (layout) {
-            case 'horizontal': 
-            return <>
-                {canRemove && (<div className='flex justify-between pl-1 mb-2'>
-                    <h6>#{index + 1}</h6>
-                    <ActionButton
-                        className="h-6 w-6 rounded-md bg-transparent p-0 text-muted-foreground hover:bg-accent hover:text-foreground"
-                        icon="x"
-                        onClick={() => handleRemove(index)}
-                    />
-                </div>)}
-                <div className={`pl-2`}>
-                    {renderChildren(index)}
-                </div>
-                <hr className='mb-2' />
-            </>
+            case 'horizontal':
+                return (
+                    <div className={itemShellClass}>
+                        <div className={itemHeaderClass}>
+                            <span className={itemIndexClass}>#{index + 1}</span>
+                            {canRemove && !hideRemoveButton ? (
+                                <ActionButton
+                                    className={removeButtonClass}
+                                    icon="x"
+                                    onClick={() => handleRemove(index)}
+                                />
+                            ) : <span className="h-7 w-7" aria-hidden="true" />}
+                        </div>
+                        <div className={itemBodyClass}>
+                            {renderChildren(index)}
+                        </div>
+                    </div>
+                );
             case 'vertical':
                 return <></>
             case 'inline':
-            return (
-                <div className="flex items-start gap-2 mb-1">
-                    <div className="flex-1 min-w-0">
-                        {renderChildren(index, '!mb-0')}
+                return (
+                    <div className={cn(itemShellClass, "px-3 py-2")}>
+                        <div className="flex items-start gap-2">
+                            <div className="flex-1 min-w-0">
+                                {renderChildren(index, '!mb-0')}
+                            </div>
+                            {canRemove && !hideRemoveButton && (
+                                <ActionButton
+                                    className={cn(removeButtonClass, "mt-1 shrink-0")}
+                                    icon="x"
+                                    onClick={() => handleRemove(index)}
+                                />
+                            )}
+                        </div>
                     </div>
-                    {canRemove && !hideRemoveButton && (
-                        <ActionButton
-                            className="shrink-0 mt-1 h-7 w-7 rounded-md bg-transparent p-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                            icon="x"
-                            onClick={() => handleRemove(index)}
-                        />
-                    )}
-                </div>
-            )
+                )
         }
     }
 
@@ -125,7 +137,7 @@ const Repeat = ({
                         icon='plus'
                         label={label}
                         variant='link'
-                        className="w-full justify-start gap-1 text-xs text-muted-foreground hover:text-foreground px-1 h-7"
+                        className="w-full justify-start gap-1 rounded-lg border border-dashed border-border/60 px-3 py-2 text-sm text-muted-foreground hover:border-border hover:bg-muted/40 hover:text-foreground"
                         onClick={handleAdd}
                     />
                 );
@@ -134,7 +146,7 @@ const Repeat = ({
                 icon='plus'
                 label={label ? undefined : 'Add'}
                 variant={label ? 'link' : 'secondary'}
-                className={label ? 'h-7 w-7 rounded-md p-0' : undefined}
+                className={label ? 'h-8 w-8 rounded-lg p-0 text-muted-foreground hover:bg-muted/50 hover:text-foreground' : undefined}
                 onClick={handleAdd}
             />
         }
@@ -142,9 +154,9 @@ const Repeat = ({
     }, [readOnly, maxItems, components.length, label, labelPosition]);
 
     return (
-        <div className={className}>
+        <div className={cn("space-y-3", className)}>
             {label && labelPosition === 'top' && (
-                <div className='flex items-center justify-between mb-2'>
+                <div className='flex items-center justify-between gap-3'>
                     <span className='text-sm font-medium text-foreground'>{label}</span>
                     {addButton}
                 </div>

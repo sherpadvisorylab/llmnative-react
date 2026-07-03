@@ -115,7 +115,7 @@ export function getTabTriggerClassName(layout: TabPosition, active: boolean, cla
 
 export function getTabPaneClassName(className?: string) {
     const theme = useTheme("tab");
-    return cn("min-h-0 min-w-0 h-full overflow-y-auto", theme.Tab.contentClassName, className);
+    return cn("min-h-0 min-w-0 h-full overflow-x-hidden overflow-y-auto", theme.Tab.contentClassName, className);
 }
 
 export const TabLayouts: Record<TabPosition, (props: TabLayoutProps) => JSX.Element> = {
