@@ -11,6 +11,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useMenu, type UseMenuItem } from '../../App';
+import { useTheme } from '../../Theme';
+import { cn } from '../../libs/cn';
 import Icon from '../ui/Icon';
 
 // ── Constants ──────────────────────────────────────────────────────────────
@@ -95,8 +97,12 @@ function buildGroups(items: SideNavItemDef[]): GroupDef[] {
 // ── Badge pill ─────────────────────────────────────────────────────────────
 
 function BadgePill({ value }: { value: string | number }) {
+    const theme = useTheme('sideNav');
     return (
-        <span className="ml-auto shrink-0 text-[10px] font-semibold leading-none px-1.5 py-[3px] rounded-full bg-primary/15 text-primary">
+        <span className={cn(
+            'ml-auto shrink-0 text-[10px] font-semibold leading-none px-1.5 py-[3px] rounded-full bg-primary/15 text-primary',
+            theme.SideNav.itemBadgeClassName,
+        )}>
             {value}
         </span>
     );
@@ -106,6 +112,7 @@ function BadgePill({ value }: { value: string | number }) {
 
 function SubItems({ children, open }: { children: SideNavItemDef[]; open: boolean }) {
     const { pathname } = useLocation();
+    const theme = useTheme('sideNav');
     return (
         <div
             style={{
@@ -121,11 +128,11 @@ function SubItems({ children, open }: { children: SideNavItemDef[]; open: boolea
                         <Link
                             key={child.path}
                             to={child.path}
-                            className={`flex items-center rounded-md pl-9 pr-3 py-[6px] text-sm transition-colors ${
-                                active
-                                    ? 'bg-primary/10 text-primary font-medium'
-                                    : 'text-muted-foreground hover:text-foreground hover:bg-accent'
-                            }`}
+                            className={cn(
+                                'flex items-center rounded-md pl-9 pr-3 py-[6px] text-sm transition-colors',
+                                theme.SideNav.subItemClassName,
+                                active ? theme.SideNav.subItemActiveClassName : theme.SideNav.subItemInactiveClassName,
+                            )}
                         >
                             <span className="flex-1 truncate">{child.title}</span>
                             {child.badge !== undefined && <BadgePill value={child.badge} />}
@@ -149,26 +156,30 @@ interface NavItemProps {
 
 function NavItem({ item, expanded, open, showIcons, onToggle }: NavItemProps) {
     const { pathname } = useLocation();
+    const theme = useTheme('sideNav');
     const hasChildren = (item.children?.length ?? 0) > 0;
 
     const isActive    = isPathActive(pathname, item.path, item.end);
     const childActive = hasChildren && item.children!.some(c => isPathActive(pathname, c.path, c.end));
 
     const activeClass = isActive
-        ? 'bg-primary/10 text-primary font-medium'
+        ? theme.SideNav.itemActiveClassName
         : childActive
-            ? 'bg-accent text-foreground font-medium'
-            : 'text-muted-foreground hover:text-foreground hover:bg-accent';
+            ? theme.SideNav.itemChildActiveClassName
+            : theme.SideNav.itemInactiveClassName;
 
     const iconSlot = showIcons ? (
-        <span className="relative shrink-0 flex items-center justify-center w-[18px] h-[18px]">
+        <span className={cn('relative shrink-0 flex items-center justify-center w-[18px] h-[18px]', theme.SideNav.itemIconClassName)}>
             {item.icon
                 ? <Icon name={item.icon} size={17} />
                 : <span className="w-1.5 h-1.5 rounded-full bg-current opacity-30" />
             }
             {/* Collapsed badge: dot indicator */}
             {!expanded && item.badge !== undefined && (
-                <span className="absolute -top-0.5 -right-1 w-[7px] h-[7px] rounded-full bg-primary ring-1 ring-background" />
+                <span className={cn(
+                    'absolute -top-0.5 -right-1 w-[7px] h-[7px] rounded-full bg-primary ring-1 ring-background',
+                    theme.SideNav.itemCollapsedBadgeClassName,
+                )} />
             )}
         </span>
     ) : null;
@@ -181,7 +192,10 @@ function NavItem({ item, expanded, open, showIcons, onToggle }: NavItemProps) {
         transition: 'opacity 150ms ease, max-width 200ms ease',
     };
 
-    const baseClass = 'flex items-center w-full rounded-md px-2 py-[7px] text-sm transition-colors gap-2.5';
+    const baseClass = cn(
+        'flex items-center w-full rounded-md px-2 py-[7px] text-sm transition-colors gap-2.5',
+        theme.SideNav.itemClassName,
+    );
 
     if (hasChildren) {
         return (
@@ -190,16 +204,23 @@ function NavItem({ item, expanded, open, showIcons, onToggle }: NavItemProps) {
                     <Link
                         to={item.path}
                         title={!expanded ? item.title : undefined}
-                        className={`flex-1 flex items-center gap-2.5 rounded-md px-2 py-[7px] text-sm transition-colors ${activeClass}`}
+                        className={cn(
+                            'flex-1 flex items-center gap-2.5 rounded-md px-2 py-[7px] text-sm transition-colors',
+                            theme.SideNav.itemClassName,
+                            activeClass,
+                        )}
                     >
                         {iconSlot}
-                        <span style={labelStyle}>{item.title}</span>
+                        <span style={labelStyle} className={theme.SideNav.itemTextClassName}>{item.title}</span>
                         {expanded && item.badge !== undefined && <BadgePill value={item.badge} />}
                     </Link>
                     {expanded && (
                         <button
                             onClick={() => onToggle(item.path)}
-                            className="shrink-0 flex items-center justify-center w-6 h-6 rounded transition-colors text-muted-foreground/50 hover:text-foreground hover:bg-accent"
+                            className={cn(
+                                'shrink-0 flex items-center justify-center w-6 h-6 rounded transition-colors text-muted-foreground/50 hover:text-foreground hover:bg-accent',
+                                theme.SideNav.itemToggleClassName,
+                            )}
                             title={open ? 'Collapse' : 'Expand'}
                         >
                             <span style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 200ms ease' }}>
@@ -217,10 +238,10 @@ function NavItem({ item, expanded, open, showIcons, onToggle }: NavItemProps) {
         <Link
             to={item.path}
             title={!expanded ? item.title : undefined}
-            className={`${baseClass} ${activeClass}`}
+            className={cn(baseClass, activeClass)}
         >
             {iconSlot}
-            <span style={labelStyle}>{item.title}</span>
+            <span style={labelStyle} className={theme.SideNav.itemTextClassName}>{item.title}</span>
             {expanded && item.badge !== undefined && <BadgePill value={item.badge} />}
         </Link>
     );
@@ -238,6 +259,7 @@ function NavGroup({
     onToggle: (path: string) => void;
 }) {
     const singleGroup = group.key === 'General';
+    const theme = useTheme('sideNav');
     return (
         <div className="mb-1">
             {!singleGroup && (
@@ -245,11 +267,14 @@ function NavGroup({
                     style={{ height: expanded ? undefined : '1px' }}
                     className={expanded
                         ? 'px-2 pb-0.5 pt-3 first:pt-1'
-                        : 'mx-2 my-2 bg-border/40'
+                        : cn('mx-2 my-2 bg-border/40', theme.SideNav.groupDividerClassName)
                     }
                 >
                     {expanded && (
-                        <span className="text-[10.5px] font-semibold uppercase tracking-widest text-muted-foreground/50 select-none">
+                        <span className={cn(
+                            'text-[10.5px] font-semibold uppercase tracking-widest text-muted-foreground/50 select-none',
+                            theme.SideNav.groupLabelClassName,
+                        )}>
                             {group.key}
                         </span>
                     )}
@@ -284,6 +309,7 @@ export default function SideNav({
     embedded = false,
 }: SideNavProps) {
     const { pathname } = useLocation();
+    const theme = useTheme('sideNav');
     const menuItems = useMenu(menuKey ?? '');
     const resolvedItems: SideNavItemDef[] = itemsProp ?? (menuKey ? mapMenuItems(menuItems) : []);
 
@@ -332,7 +358,7 @@ export default function SideNav({
     // Embedded mode: plain nav list, no wrapper shell, always fully expanded
     if (embedded) {
         return (
-            <nav className="px-1.5 py-2">
+            <nav className={cn('px-1.5 py-2', theme.SideNav.navClassName)}>
                 {groups.map(group => (
                     <NavGroup
                         key={group.key}
@@ -348,7 +374,10 @@ export default function SideNav({
     }
 
     return (
-        <div className="min-h-0" style={{ width: collapsed ? W_COLLAPSED : W_EXPANDED, height: '100%', transition: 'width 220ms cubic-bezier(0.4,0,0.2,1)', flexShrink: 0, position: 'relative' }}>
+        <div
+            className={cn('min-h-0', theme.SideNav.wrapperClassName)}
+            style={{ width: collapsed ? W_COLLAPSED : W_EXPANDED, height: '100%', transition: 'width 220ms cubic-bezier(0.4,0,0.2,1)', flexShrink: 0, position: 'relative' }}
+        >
             <aside
                 style={{
                     width: isExpanded ? W_EXPANDED : W_COLLAPSED,
@@ -361,12 +390,16 @@ export default function SideNav({
                     overflowX: 'hidden',
                     overflowY: 'hidden',
                 }}
-                className="flex min-h-0 flex-col border-r bg-background"
+                className={cn(
+                    'flex min-h-0 flex-col border-r bg-background',
+                    theme.SideNav.shellClassName,
+                    collapsed && hovered && theme.SideNav.overlayClassName,
+                )}
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
             >
                 {header && (
-                    <div className="shrink-0 border-b px-1.5 py-2" style={{
+                    <div className={cn('shrink-0 border-b px-1.5 py-2', theme.SideNav.headerClassName)} style={{
                         opacity: isExpanded ? 1 : 0,
                         maxWidth: isExpanded ? '100%' : '0px',
                         overflow: 'hidden',
@@ -375,7 +408,7 @@ export default function SideNav({
                         {header}
                     </div>
                 )}
-                <nav className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-1.5 py-2">
+                <nav className={cn('min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-1.5 py-2', theme.SideNav.navClassName)}>
                     {groups.map(group => (
                         <NavGroup
                             key={group.key}
@@ -388,12 +421,15 @@ export default function SideNav({
                     ))}
                 </nav>
                 {(showCollapseButton || footer) && (
-                    <div className="shrink-0 border-t px-1.5 py-2 flex items-center gap-1">
+                    <div className={cn('shrink-0 border-t px-1.5 py-2 flex items-center gap-1', theme.SideNav.footerClassName)}>
                         {showCollapseButton && (
                             <button
                                 onClick={() => { setCollapsed(c => !c); setHovered(false); }}
                                 title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-                                className="shrink-0 flex items-center justify-center rounded-md w-8 h-8 transition-colors text-muted-foreground hover:text-foreground hover:bg-accent"
+                                className={cn(
+                                    'shrink-0 flex items-center justify-center rounded-md w-8 h-8 transition-colors text-muted-foreground hover:text-foreground hover:bg-accent',
+                                    theme.SideNav.collapseButtonClassName,
+                                )}
                             >
                                 <Icon name={collapsed ? 'chevrons-right' : 'chevrons-left'} size={16} />
                             </button>

@@ -36,6 +36,7 @@ const ImagePage = lazyPage(() => import('../pages/components/ImagePage'));
 const ImageAvatarPage = lazyPage(() => import('../pages/components/ImageAvatarPage'));
 const ImageFieldPage = lazyPage(() => import('../pages/components/ImageFieldPage'));
 const LayoutBuilderPage = lazyPage(() => import('../pages/components/LayoutBuilderPage'));
+const ListCardPage = lazyPage(() => import('../pages/components/ListCardPage'));
 const ListGroupPage = lazyPage(() => import('../pages/components/ListGroupPage'));
 const MenuPage = lazyPage(() => import('../pages/components/MenuPage'));
 const ModalPage = lazyPage(() => import('../pages/components/ModalPage'));
@@ -55,6 +56,7 @@ const SwitchPage = lazyPage(() => import('../pages/components/SwitchPage'));
 const TabPage = lazyPage(() => import('../pages/components/TabPage'));
 const TabDynamicPage = lazyPage(() => import('../pages/components/TabDynamicPage'));
 const TablePage = lazyPage(() => import('../pages/components/TablePage'));
+const ThemeSwitcherPage = lazyPage(() => import('../pages/components/ThemeSwitcherPage'));
 const TextAreaPage = lazyPage(() => import('../pages/components/TextAreaPage'));
 const InputPage = lazyPage(() => import('../pages/components/InputPage'));
 const LabelPage = lazyPage(() => import('../pages/components/LabelPage'));
@@ -232,9 +234,11 @@ export const menu = {
         // ── Blocks (alphabetical) ─────────────────────────────────────────────
         { path: '/components/brand', title: 'Brand', page: BrandPage, group: 'Blocks' },
         { path: '/components/breadcrumbs', title: 'Breadcrumbs', page: BreadcrumbsPage, group: 'Blocks' },
+        { path: '/components/list-card', title: 'ListCard', page: ListCardPage, group: 'Blocks' },
         { path: '/components/menu', title: 'Menu', page: MenuPage, group: 'Blocks' },
         { path: '/components/notifications', title: 'Notifications', page: NotificationsPage, group: 'Blocks' },
         { path: '/components/search', title: 'Search', page: SearchPage, group: 'Blocks' },
+        { path: '/components/theme-switcher', title: 'ThemeSwitcher', page: ThemeSwitcherPage, group: 'Blocks' },
     ],
 
     providers: [

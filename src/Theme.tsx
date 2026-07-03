@@ -2,6 +2,10 @@ import React, {createContext, useContext, useEffect, useMemo, useState, ReactNod
 import _themeDefault, { components as defaultComponents } from '../themes/default';
 import _themeFlat from '../themes/flat';
 import _themeCyber from '../themes/cyber';
+import _themeVSCodeDarkPlus from '../themes/vscode-dark-plus';
+import _themeVSCodeLightPlus from '../themes/vscode-light-plus';
+import _themeTokyoNight from '../themes/tokyo-night';
+import _themeTokyoNightLight from '../themes/tokyo-night-light';
 import type { MotionReference, MotionRegistry } from './motion';
 
 type UseTheme = Theme;
@@ -59,6 +63,63 @@ export interface MenuTheme {
     badgeClassName?: string;
     arrowClassName?: string;
     submenuClassName?: string;
+}
+
+export interface SideNavTheme {
+    wrapperClassName?: string;
+    shellClassName?: string;
+    overlayClassName?: string;
+    headerClassName?: string;
+    navClassName?: string;
+    footerClassName?: string;
+    groupLabelClassName?: string;
+    groupDividerClassName?: string;
+    itemClassName?: string;
+    itemActiveClassName?: string;
+    itemChildActiveClassName?: string;
+    itemInactiveClassName?: string;
+    itemIconClassName?: string;
+    itemTextClassName?: string;
+    itemBadgeClassName?: string;
+    itemCollapsedBadgeClassName?: string;
+    itemToggleClassName?: string;
+    subItemClassName?: string;
+    subItemActiveClassName?: string;
+    subItemInactiveClassName?: string;
+    collapseButtonClassName?: string;
+}
+
+export interface ToolbarTheme {
+    wrapperClassName?: string;
+    stickyClassName?: string;
+    restingClassName?: string;
+    scrolledClassName?: string;
+    innerClassName?: string;
+    leadingClassName?: string;
+    centerClassName?: string;
+    trailingClassName?: string;
+}
+
+export interface ListCardTheme {
+    wrapperClassName?: string;
+    className?: string;
+    activeClassName?: string;
+    inactiveClassName?: string;
+    disabledClassName?: string;
+    dashedClassName?: string;
+    compactClassName?: string;
+    leadingClassName?: string;
+    bodyClassName?: string;
+    headerClassName?: string;
+    titleClassName?: string;
+    descriptionClassName?: string;
+    metaClassName?: string;
+    badgeClassName?: string;
+    trailingClassName?: string;
+    footerClassName?: string;
+    motion?: {
+        press?: MotionReference;
+    };
 }
 
 export interface CardTheme {
@@ -223,6 +284,9 @@ export interface ThemeConfig {
         };
     };
     Menu?: MenuTheme;
+    SideNav?: SideNavTheme;
+    Toolbar?: ToolbarTheme;
+    ListCard?: ListCardTheme;
     Brand?: {
         wrapperClassName?: string;
         className?: string;
@@ -253,6 +317,12 @@ export interface ThemeConfig {
     Tab?: {
         wrapperClassName?: string;
         className?: string;
+        menuClassName?: string;
+        itemClassName?: string;
+        contentClassName?: string;
+        triggerClassName?: string;
+        activeTriggerClassName?: string;
+        inactiveTriggerClassName?: string;
         motion?: {
             enter?: MotionReference;
         };
@@ -304,7 +374,15 @@ export interface ThemeDefinition {
 }
 
 /** IDs of built-in themes. Extend by adding entries to BUILT_IN_THEMES. */
-export const BUILT_IN_THEME_IDS = ['default', 'flat', 'cyber'] as const;
+export const BUILT_IN_THEME_IDS = [
+    'default',
+    'flat',
+    'cyber',
+    'vscode-dark-plus',
+    'vscode-light-plus',
+    'tokyo-night',
+    'tokyo-night-light',
+] as const;
 export type BuiltInThemeId = (typeof BUILT_IN_THEME_IDS)[number];
 
 export type AppThemeProviderConfig =
@@ -344,9 +422,13 @@ const MotionRegistryContext = createContext<MotionRegistry>(_themeDefault.motion
 const ThemeControllerContext = createContext<ThemeController | null>(null);
 
 export const BUILT_IN_THEMES: Record<BuiltInThemeId, ThemeDefinition> = {
-    default: _themeDefault,
-    flat:    _themeFlat,
-    cyber:   _themeCyber,
+    default:            _themeDefault,
+    flat:               _themeFlat,
+    cyber:              _themeCyber,
+    'vscode-dark-plus': _themeVSCodeDarkPlus,
+    'vscode-light-plus': _themeVSCodeLightPlus,
+    'tokyo-night':      _themeTokyoNight,
+    'tokyo-night-light': _themeTokyoNightLight,
 };
 
 // Funzione per unire profondamente due oggetti

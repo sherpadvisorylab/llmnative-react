@@ -18,6 +18,8 @@ interface TabItemProps {
 interface TabLayoutProps {
     menu: React.ReactNode;
     content: React.ReactNode;
+    menuClassName?: string;
+    contentClassName?: string;
 }
 
 type TabLayoutConfig = {
@@ -40,6 +42,10 @@ interface TabProps extends MotionUIProps {
     onChange?: (index: number) => void;
     /** Spatial layout of the tab bar: `"default"` (underline top), `"top"`, `"left"`, `"right"`, `"bottom"`. */
     layout?: TabPosition;
+    /** Additional classes applied to the tablist container. */
+    menuClassName?: string;
+    /** Additional classes applied to the active pane wrapper. */
+    contentClassName?: string;
 }
 
 const TAB_LAYOUTS: Record<TabPosition, TabLayoutConfig> = {
@@ -62,21 +68,21 @@ const TAB_LAYOUTS: Record<TabPosition, TabLayoutConfig> = {
         inactiveTriggerClassName: "text-muted-foreground hover:bg-background/80 hover:text-foreground",
     },
     left: {
-        shellClassName: "flex flex-col gap-5 md:flex-row md:items-start",
+        shellClassName: "flex h-full min-h-0 flex-col gap-5 md:flex-row md:items-start",
         menuClassName: "flex shrink-0 gap-2 overflow-x-auto md:w-64 md:flex-col md:overflow-visible",
-        contentClassName: "min-w-0 flex-1 rounded-2xl border border-border/60 bg-card p-4 shadow-sm",
+        contentClassName: "min-h-0 min-w-0 flex-1 overflow-hidden rounded-2xl border border-border/60 bg-card/80 p-4 shadow-sm",
         itemClassName: "shrink-0 md:w-full",
         triggerClassName: "inline-flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-        activeTriggerClassName: "bg-primary text-primary-foreground shadow-sm",
+        activeTriggerClassName: "bg-primary/10 text-primary shadow-sm ring-1 ring-primary/15",
         inactiveTriggerClassName: "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
     },
     right: {
-        shellClassName: "flex flex-col gap-5 md:flex-row md:items-start",
+        shellClassName: "flex h-full min-h-0 flex-col gap-5 md:flex-row md:items-start",
         menuClassName: "order-1 flex shrink-0 gap-2 overflow-x-auto md:order-2 md:w-64 md:flex-col md:overflow-visible",
-        contentClassName: "order-2 min-w-0 flex-1 rounded-2xl border border-border/60 bg-card p-4 shadow-sm md:order-1",
+        contentClassName: "order-2 min-h-0 min-w-0 flex-1 overflow-hidden rounded-2xl border border-border/60 bg-card/80 p-4 shadow-sm md:order-1",
         itemClassName: "shrink-0 md:w-full",
         triggerClassName: "inline-flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-        activeTriggerClassName: "bg-primary text-primary-foreground shadow-sm",
+        activeTriggerClassName: "bg-primary/10 text-primary shadow-sm ring-1 ring-primary/15",
         inactiveTriggerClassName: "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
     },
     bottom: {
@@ -96,61 +102,70 @@ export function getTabLayoutConfig(layout: TabPosition): TabLayoutConfig {
 
 export function getTabTriggerClassName(layout: TabPosition, active: boolean, className?: string) {
     const config = getTabLayoutConfig(layout);
+    const theme = useTheme("tab");
 
     return cn(
         config.triggerClassName,
+        theme.Tab.triggerClassName,
         active ? config.activeTriggerClassName : config.inactiveTriggerClassName,
+        active ? theme.Tab.activeTriggerClassName : theme.Tab.inactiveTriggerClassName,
         className,
     );
 }
 
 export function getTabPaneClassName(className?: string) {
-    return cn("min-w-0", className);
+    const theme = useTheme("tab");
+    return cn("min-h-0 min-w-0 h-full overflow-y-auto", theme.Tab.contentClassName, className);
 }
 
 export const TabLayouts: Record<TabPosition, (props: TabLayoutProps) => JSX.Element> = {
-    default: ({menu, content}) => {
+    default: ({menu, content, menuClassName, contentClassName}) => {
         const config = getTabLayoutConfig("default");
+        const theme = useTheme("tab");
         return (
             <div className={config.shellClassName}>
-                <div role="tablist" aria-orientation="horizontal" className={config.menuClassName}>{menu}</div>
-                <div className={config.contentClassName}>{content}</div>
+                <div role="tablist" aria-orientation="horizontal" className={cn(config.menuClassName, theme.Tab.menuClassName, menuClassName)}>{menu}</div>
+                <div className={cn(config.contentClassName, theme.Tab.contentClassName, contentClassName)}>{content}</div>
             </div>
         );
     },
-    top: ({menu, content}) => {
+    top: ({menu, content, menuClassName, contentClassName}) => {
         const config = getTabLayoutConfig("top");
+        const theme = useTheme("tab");
         return (
             <div className={config.shellClassName}>
-                <div role="tablist" aria-orientation="horizontal" className={config.menuClassName}>{menu}</div>
-                <div className={config.contentClassName}>{content}</div>
+                <div role="tablist" aria-orientation="horizontal" className={cn(config.menuClassName, theme.Tab.menuClassName, menuClassName)}>{menu}</div>
+                <div className={cn(config.contentClassName, theme.Tab.contentClassName, contentClassName)}>{content}</div>
             </div>
         );
     },
-    left: ({menu, content}) => {
+    left: ({menu, content, menuClassName, contentClassName}) => {
         const config = getTabLayoutConfig("left");
+        const theme = useTheme("tab");
         return (
             <div className={config.shellClassName}>
-                <div role="tablist" aria-orientation="vertical" className={config.menuClassName}>{menu}</div>
-                <div className={config.contentClassName}>{content}</div>
+                <div role="tablist" aria-orientation="vertical" className={cn(config.menuClassName, theme.Tab.menuClassName, menuClassName)}>{menu}</div>
+                <div className={cn(config.contentClassName, theme.Tab.contentClassName, contentClassName)}>{content}</div>
             </div>
         );
     },
-    right: ({menu, content}) => {
+    right: ({menu, content, menuClassName, contentClassName}) => {
         const config = getTabLayoutConfig("right");
+        const theme = useTheme("tab");
         return (
             <div className={config.shellClassName}>
-                <div role="tablist" aria-orientation="vertical" className={config.menuClassName}>{menu}</div>
-                <div className={config.contentClassName}>{content}</div>
+                <div role="tablist" aria-orientation="vertical" className={cn(config.menuClassName, theme.Tab.menuClassName, menuClassName)}>{menu}</div>
+                <div className={cn(config.contentClassName, theme.Tab.contentClassName, contentClassName)}>{content}</div>
             </div>
         );
     },
-    bottom: ({menu, content}) => {
+    bottom: ({menu, content, menuClassName, contentClassName}) => {
         const config = getTabLayoutConfig("bottom");
+        const theme = useTheme("tab");
         return (
             <div className={config.shellClassName}>
-                <div className={config.contentClassName}>{content}</div>
-                <div role="tablist" aria-orientation="horizontal" className={config.menuClassName}>{menu}</div>
+                <div className={cn(config.contentClassName, theme.Tab.contentClassName, contentClassName)}>{content}</div>
+                <div role="tablist" aria-orientation="horizontal" className={cn(config.menuClassName, theme.Tab.menuClassName, menuClassName)}>{menu}</div>
             </div>
         );
     },
@@ -180,6 +195,8 @@ const Tab: React.FC<TabProps> = ({
     defaultIndex = 0,
     onChange,
     layout = "default",
+    menuClassName = undefined,
+    contentClassName = undefined,
     before = undefined,
     after = undefined,
     wrapperClassName = undefined,
@@ -200,14 +217,17 @@ const Tab: React.FC<TabProps> = ({
 
     const config = useMemo(() => getTabLayoutConfig(layout), [layout]);
     const TabLayout = TabLayouts[layout];
+    const theme = useTheme("tab");
 
     return (
-        <Wrapper className={wrapperClassName}>
+        <Wrapper className={cn(theme.Tab.wrapperClassName, wrapperClassName)}>
             {before}
-            <div className={cn("min-w-0", className)}>
+            <div className={cn("min-w-0", theme.Tab.className, className)}>
                 <TabLayout
+                    menuClassName={menuClassName}
+                    contentClassName={contentClassName}
                     menu={items.map((item, index) => (
-                        <div key={index} className={config.itemClassName}>
+                        <div key={index} className={cn(config.itemClassName, theme.Tab.itemClassName)}>
                             <button
                                 type="button"
                                 role="tab"

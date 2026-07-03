@@ -264,6 +264,43 @@ function DropdownItemsFromMock({ path }) {
             />
 
             <Section
+                title="Workspace switcher"
+                description="A realistic CMS pattern: current workspace on top, quick switching in the middle, management actions separated at the bottom."
+                preview={
+                    <div className="min-h-64 pt-3 pr-3">
+                        <Dropdown
+                            trigger="Acme Corp"
+                            header="Workspace"
+                            footer="Tenant-level actions"
+                            defaultOpen
+                            position="start"
+                        >
+                            <DropdownHeader>Current workspace</DropdownHeader>
+                            <DropdownItem icon="check">Acme Corp</DropdownItem>
+                            <DropdownHeader>Switch to</DropdownHeader>
+                            <DropdownItem>Blog Dev</DropdownItem>
+                            <DropdownItem>Design Studio</DropdownItem>
+                            <DropdownItem>Retail Group</DropdownItem>
+                            <DropdownDivider />
+                            <DropdownItem icon="sliders-horizontal">Manage tenants</DropdownItem>
+                            <DropdownItem icon="plus">New tenant</DropdownItem>
+                        </Dropdown>
+                    </div>
+                }
+                code={`<Dropdown trigger="Acme Corp" header="Workspace" footer="Tenant-level actions" defaultOpen>
+    <DropdownHeader>Current workspace</DropdownHeader>
+    <DropdownItem icon="check">Acme Corp</DropdownItem>
+    <DropdownHeader>Switch to</DropdownHeader>
+    <DropdownItem>Blog Dev</DropdownItem>
+    <DropdownItem>Design Studio</DropdownItem>
+    <DropdownItem>Retail Group</DropdownItem>
+    <DropdownDivider />
+    <DropdownItem icon="sliders-horizontal">Manage tenants</DropdownItem>
+    <DropdownItem icon="plus">New tenant</DropdownItem>
+</Dropdown>`}
+            />
+
+            <Section
                 title={t.sections.toggleBadge.title}
                 description={t.sections.toggleBadge.description}
                 preview={

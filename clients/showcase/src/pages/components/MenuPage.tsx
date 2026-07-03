@@ -90,6 +90,29 @@ export default function MenuPage() {
 <Menu menuKey="components" />`}
             />
 
+            <Section
+                title="Site navigation sidebar"
+                description="A more realistic admin navigation example with grouped sections, primary current state and lightweight badges."
+                preview={
+                    <div className="w-full max-w-sm rounded-2xl border border-border/60 bg-card/80 p-3">
+                        <div className="mb-3 px-3 text-[10.5px] font-semibold uppercase tracking-widest text-muted-foreground/60">Content</div>
+                        <Menu
+                            menuKey="examples"
+                            badges={{ grid: { type: 'primary', children: 'new' } }}
+                            wrapperClassName="p-0"
+                            className="space-y-1"
+                            itemClassName="list-none"
+                            linkClassName="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent/50 hover:text-foreground"
+                            submenuClassName="mt-1 flex flex-col gap-1 pl-4"
+                        />
+                    </div>
+                }
+                code={`<Menu
+    menuKey="examples"
+    badges={{ grid: { type: 'primary', children: 'new' } }}
+/>`}
+            />
+
             <PropDocsTable props={menuProps} title={common.sections.props} />
         </PageLayout>
     );

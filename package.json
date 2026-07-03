@@ -17,8 +17,9 @@
   },
   "scripts": {
     "prebuild": "node scripts/dev/build-local.js --restore-only",
-    "build": "vite build && tsc --emitDeclarationOnly",
-    "build:dev": "vite build --mode development && tsc --emitDeclarationOnly",
+    "themes:compile:vscode": "node scripts/themes/compile-vscode-themes.js",
+    "build": "npm run themes:compile:vscode && vite build && tsc --emitDeclarationOnly",
+    "build:dev": "npm run themes:compile:vscode && vite build --mode development && tsc --emitDeclarationOnly",
     "watch:dev": "vite build --watch",
     "build:local": "node scripts/dev/build-local.js",
     "prepublishOnly": "npm run build",

@@ -7,6 +7,10 @@ export { default as Carousel } from './blocks/Carousel';
 export * from './blocks/Dropdown';
 export { default as Notifications } from './blocks/Notifications';
 export { default as Search } from './blocks/Search';
+export { default as Toolbar } from './blocks/Toolbar';
+export type { ToolbarProps } from './blocks/Toolbar';
+export { default as ThemeSwitcher } from './blocks/ThemeSwitcher';
+export type { ThemeSwitcherProps, ThemeSwitcherThemeOption } from './blocks/ThemeSwitcher';
 
 export { default as Alert } from './ui/Alert';
 export type { AlertProps } from './ui/Alert';
@@ -47,6 +51,8 @@ export * from './ui/fields/CodeEditor';
 export * from './ui/fields/ContextMenu';
 
 export { default as Menu } from './blocks/Menu';
+export { default as ListCard } from './blocks/ListCard';
+export type { ListCardProps } from './blocks/ListCard';
 export { default as SideNav } from './blocks/SideNav';
 export type { SideNavProps, SideNavItemDef } from './blocks/SideNav';
 

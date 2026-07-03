@@ -199,7 +199,7 @@ export const Dropdown = ({
                      role="menu"
                      aria-hidden={!open}
                      className={cn(
-                         "min-w-56 overflow-y-auto rounded-md border bg-popover p-1 text-popover-foreground shadow-md outline-none",
+                         "min-w-56 overflow-y-auto rounded-xl border border-border/60 bg-popover/95 p-1 text-popover-foreground shadow-xl shadow-black/5 outline-none backdrop-blur supports-[backdrop-filter]:bg-popover/90 dark:shadow-black/20",
                          staticOpen ? "relative" : strategy === 'absolute' ? `absolute z-[200] ${absolutePlacementClass} ${absolutePositionClass}` : "fixed z-[200]",
                          menuClassName || theme.Dropdown.menuClassName
                      )}
@@ -335,7 +335,7 @@ export const DropdownHeader = ({children, className}: DropdownHeaderProps) => {
 
 export const DropdownDivider = ({className}: DropdownDividerProps) => {
     const theme = useTheme("dropdown");
-    return <div className={cn("-mx-1 my-1 h-px bg-border", className || theme.Dropdown.menuDividerClass)} />;
+    return <div className={cn("-mx-1 my-1 h-px bg-border/60", className || theme.Dropdown.menuDividerClass)} />;
 }
 
 interface DropdownMenuProps {

@@ -56,6 +56,7 @@ const ICON_MAP: Record<string, string> = {
     // Blocks
     '/components/brand':           'star',
     '/components/breadcrumbs':     'chevrons-right',
+    '/components/list-card':       'rows-3',
     '/components/menu':            'menu',
     '/components/notifications':   'bell',
     '/components/search':          'search',
