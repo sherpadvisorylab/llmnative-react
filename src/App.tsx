@@ -51,7 +51,7 @@ import {
     type SupabaseProviderConfig,
     type MockProviderConfig,
 } from "./providers/manifest";
-import { ProviderRegistryProvider, type ProviderService, type SetProviderFn } from "./providers/ProviderRegistryContext";
+import { ProviderRegistryProvider, type SetProviderFn } from "./providers/ProviderRegistryContext";
 
 
 
@@ -94,6 +94,12 @@ export type AppProvidersConfig = {
         ai?:          Record<string, AIProviderAdapter>      | AIProviderAdapter;
         credentials?: Record<string, CredentialsAdapter>     | CredentialsAdapter;
     };
+    /**
+     * Registers entirely new provider categories the framework has no built-in
+     * knowledge of (e.g. `{ payments: { stripe: new StripeAdapter() } }`).
+     * Consume with useProvider('payments', 'stripe') — see ProviderRegistryContext.
+     */
+    customCategories?: Record<string, Record<string, unknown> | unknown>;
     services?: ServicesConfig;
 };
 
@@ -157,15 +163,17 @@ function selectDefaultKey<T>(registry: Record<string, T>, preferred?: string, em
     return Object.keys(registry)[0] ?? emptyFallback;
 }
 
-function resolveProviderRegistries(providers: AppProvidersConfig = {}) {
-    const data: Record<string, DataProviderAdapter> = {};
-    const storage: Record<string, StorageProviderAdapter> = {};
-    const auth: Record<string, AuthProviderAdapter> = {};
-    const email: Record<string, EmailProviderAdapter> = {};
-    const ai: Record<string, AIProviderAdapter> = {};
-    const credentials: Record<string, CredentialsAdapter> = {};
+/**
+ * category → registry of adapters. Open-ended: the 6 built-in categories
+ * (data/storage/auth/email/ai/credentials) are always present, but a vertical
+ * can add entirely new categories via providers.customCategories, or later at
+ * runtime via setProvider() — this map has no fixed shape.
+ */
+type ProviderRegistries = Record<string, Record<string, unknown>>; // CR-042: heterogeneous adapter map, each category registry has a different value type
 
-    const registries = { data, storage, auth, email, ai, credentials } as Record<string, Record<string, unknown>>; // CR-042: heterogeneous adapter map, each service registry has a different value type
+function resolveProviderRegistries(providers: AppProvidersConfig = {}) {
+    const registries: ProviderRegistries = { data: {}, storage: {}, auth: {}, email: {}, ai: {}, credentials: {} };
+    const ensure = (category: string) => (registries[category] ??= {});
 
     // Manifest-driven: one loop for all providers - adding a new provider
     // only requires a new entry in PROVIDER_MANIFESTS, not a change here.
@@ -174,29 +182,40 @@ function resolveProviderRegistries(providers: AppProvidersConfig = {}) {
         if (cfg === undefined) continue;
         for (const [driverName, descriptor] of Object.entries(manifest)) {
             if (descriptor.when && !descriptor.when(cfg)) continue;
-            registries[descriptor.service][driverName] = descriptor.create(cfg);
+            ensure(descriptor.service)[driverName] = descriptor.create(cfg);
         }
     }
 
-    addCustomProviders(data,        providers.custom?.data);
-    addCustomProviders(storage,     providers.custom?.storage);
-    addCustomProviders(auth,        providers.custom?.auth);
-    addCustomProviders(email,       providers.custom?.email);
-    addCustomProviders(ai,          providers.custom?.ai);
-    addCustomProviders(credentials, providers.custom?.credentials);
+    addCustomProviders(ensure('data'),        providers.custom?.data);
+    addCustomProviders(ensure('storage'),     providers.custom?.storage);
+    addCustomProviders(ensure('auth'),        providers.custom?.auth);
+    addCustomProviders(ensure('email'),       providers.custom?.email);
+    addCustomProviders(ensure('ai'),          providers.custom?.ai);
+    addCustomProviders(ensure('credentials'), providers.custom?.credentials);
 
-    if (Object.keys(data).length === 0) data.mock = new MockDataProvider();
-    if (Object.keys(auth).length === 0) auth.googleAuth = new GoogleAuthProvider();
+    // Arbitrary categories a vertical declares that the framework doesn't know about at all —
+    // e.g. providers.customCategories = { payments: { stripe: new StripeAdapter() } }.
+    for (const [category, value] of Object.entries(providers.customCategories ?? {})) {
+        addCustomProviders(ensure(category), value);
+    }
 
-    const svc = providers.services;
+    if (Object.keys(registries.data).length === 0) registries.data.mock = new MockDataProvider();
+    if (Object.keys(registries.auth).length === 0) registries.auth.googleAuth = new GoogleAuthProvider();
 
-    return {
-        data:        { registry: data,        defaultKey: selectDefaultKey(data,        svc?.data) },
-        storage:     { registry: storage,     defaultKey: selectDefaultKey(storage,     svc?.storage) },
-        auth:        { registry: auth,        defaultKey: selectDefaultKey(auth,        svc?.auth) },
-        email:       { registry: email,       defaultKey: selectDefaultKey(email,       svc?.email) },
-        ai:          { registry: ai,          defaultKey: selectDefaultKey(ai,          svc?.ai) },
-        credentials: { registry: credentials, defaultKey: selectDefaultKey(credentials, svc?.credentials) },
+    const svc = (providers.services ?? {}) as Record<string, string | undefined>;
+
+    const resolved: Record<string, { registry: Record<string, unknown>; defaultKey: string }> = {};
+    for (const [category, registry] of Object.entries(registries)) {
+        resolved[category] = { registry, defaultKey: selectDefaultKey(registry, svc[category]) };
+    }
+    return resolved as {
+        data:        { registry: Record<string, DataProviderAdapter>;    defaultKey: string };
+        storage:     { registry: Record<string, StorageProviderAdapter>; defaultKey: string };
+        auth:        { registry: Record<string, AuthProviderAdapter>;    defaultKey: string };
+        email:       { registry: Record<string, EmailProviderAdapter>;   defaultKey: string };
+        ai:          { registry: Record<string, AIProviderAdapter>;      defaultKey: string };
+        credentials: { registry: Record<string, CredentialsAdapter>;     defaultKey: string };
+        [category: string]: { registry: Record<string, unknown>; defaultKey: string };
     };
 }
 
@@ -248,14 +267,16 @@ export function AppProvider({
     if (!setProviderRef.current) {
         // Untyped internally (heterogeneous adapter map, same pattern as resolveProviderRegistries
         // below) — SetProviderFn's generic signature is the public, type-safe surface callers see.
-        setProviderRef.current = (async (service: ProviderService, key: string, adapter: { dispose?(): Promise<void> | void }) => {
-            const registry = registriesRef.current[service].registry as Record<string, { dispose?(): Promise<void> | void }>;
-            await registry[key]?.dispose?.();
+        // `category` may not exist yet (a vertical registering a brand new category at runtime,
+        // not just at bootstrap) — every access below falls back gracefully instead of assuming it does.
+        setProviderRef.current = (async (category: string, key: string, adapter: { dispose?(): Promise<void> | void }) => {
+            const prevRegistry = registriesRef.current[category]?.registry as Record<string, { dispose?(): Promise<void> | void }> | undefined;
+            await prevRegistry?.[key]?.dispose?.();
             setRegistries(current => ({
                 ...current,
-                [service]: {
-                    ...current[service],
-                    registry: { ...current[service].registry, [key]: adapter },
+                [category]: {
+                    defaultKey: current[category]?.defaultKey ?? key,
+                    registry: { ...current[category]?.registry, [key]: adapter },
                 },
             }));
         }) as SetProviderFn;
@@ -282,7 +303,7 @@ export function AppProvider({
                 scrape: scrapeConfig,
                 proxy: providers.proxy,
             }}>
-                <ProviderRegistryProvider setProvider={setProvider}>
+                <ProviderRegistryProvider registries={registries} setProvider={setProvider}>
                 <AuthProvider {...registries.auth}>
                     <CredentialsProvider {...registries.credentials}>
                     <DataProvider {...registries.data}>

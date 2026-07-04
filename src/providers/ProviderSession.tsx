@@ -10,8 +10,9 @@ import { SupabaseStorageProvider } from './storage/supabase';
 
 /**
  * Generic multi-backend session switch — no domain vocabulary (tenant, workspace, ...).
- * Given an endpoint that returns which backend project to connect to and a scoped
- * credential for it, resolves the right adapters and swaps them in via setProvider().
+ * Given an endpoint that returns which backend project to connect to (per category —
+ * data, storage, or any custom category a vertical registered) and a scoped credential
+ * for it, resolves the right adapter and swaps it in via setProvider().
  *
  * A vertical app (e.g. a CMS with tenants) wraps this in its own thin, named provider
  * (e.g. TenantProvider, mounted via <App contextProviders>) that knows what a "session"
@@ -19,60 +20,83 @@ import { SupabaseStorageProvider } from './storage/supabase';
  * of the way.
  */
 
-export type ProviderSessionCredential =
-    | { type: 'firebaseCustomToken'; token: string }
-    | { type: 'supabaseAccessToken'; token: string };
+export type ProviderSessionCredential = { type: string } & Record<string, unknown>;
 
 export type ProviderSessionAssignment = {
     /**
-     * 'mock' has no real backend project — publicConfig.seed is fed straight into
-     * MockDataProvider. Used to exercise this exact switch mechanism (fetch/resolve →
-     * build adapter → setProvider → dispose previous) against demo data before a real
-     * control-plane endpoint exists, so swapping 'mock' for 'firebase'/'supabase' later
-     * is a config change, not new code.
+     * Matched against the factory registry below — 'firebase'/'supabase'/'mock' are
+     * built in, a vertical can register more with registerProviderSessionFactory().
+     * An assignment whose (category, type) has no registered factory is discarded,
+     * not an error — a session response can describe categories/types this particular
+     * app build doesn't know about without breaking the switch for the ones it does.
      */
-    type: 'firebase' | 'supabase' | 'mock';
+    type: string;
     /** Client-safe config for this provider's project — never a secret. */
     publicConfig: Record<string, unknown>;
     /** Scoped, short-lived credential resolved server-side. Absent = anonymous/public access. */
     credential?: ProviderSessionCredential;
 };
 
+/** category (data, storage, or any custom one) → assignment. Open-ended on purpose. */
 export type ProviderSessionResponse = {
-    // Assumes data + storage share one project (silo isolation model) — see docs.
-    providers: Partial<Record<'data' | 'storage', ProviderSessionAssignment>>;
+    providers: Record<string, ProviderSessionAssignment>;
+};
+
+export type ProviderSessionFactory = (assignment: ProviderSessionAssignment) => unknown | Promise<unknown>;
+
+const factories: Record<string, Record<string, ProviderSessionFactory>> = {};
+
+/**
+ * Registers how to turn a ProviderSessionAssignment into a live adapter for a given
+ * (category, type) pair. Callable anytime — at module load, or later once a feature
+ * that needs it is loaded — not only at <App> bootstrap.
+ */
+export const registerProviderSessionFactory = (category: string, type: string, factory: ProviderSessionFactory): void => {
+    (factories[category] ??= {})[type] = factory;
 };
 
 const accessTokenOf = (assignment: ProviderSessionAssignment): string | undefined =>
-    assignment.credential?.type === 'supabaseAccessToken' ? assignment.credential.token : undefined;
+    typeof assignment.credential?.token === 'string' ? assignment.credential.token : undefined;
 
-const buildDataAdapter = (assignment: ProviderSessionAssignment) => {
-    if (assignment.type === 'mock') {
-        // persist: false — a mock session is scoped to one switch, never leaks into
-        // the next one via a shared localStorage key (mirrors "no cached secrets" for real backends).
-        return new MockDataProvider(assignment.publicConfig.seed as ConstructorParameters<typeof MockDataProvider>[0], { persist: false });
+// Firebase's app is a single global namespace (see firebase-init.ts) — connecting is a
+// side effect that must run before the adapter is used, but init() is idempotent when
+// the appId hasn't changed, so calling this once per data + once per storage assignment
+// (same project, same config) is safe — the second call is a same-config no-op, and
+// re-signing with the same unexpired custom token is harmless.
+const connectFirebase = async (assignment: ProviderSessionAssignment): Promise<void> => {
+    await initFirebase(assignment.publicConfig as FirebaseConfig);
+    if (assignment.credential?.type === 'firebaseCustomToken') {
+        await signInWithFirebaseCustomToken(assignment.credential.token as string);
     }
-    return assignment.type === 'firebase'
-        ? new FirebaseDataProvider()
-        : new SupabaseDataProvider({
-            url: assignment.publicConfig.url as string,
-            anonKey: assignment.publicConfig.anonKey as string,
-            accessToken: accessTokenOf(assignment),
-        });
 };
 
-const buildStorageAdapter = (assignment: ProviderSessionAssignment) => {
-    if (assignment.type === 'mock') {
-        throw new Error('ProviderSession: no mock storage adapter exists yet — omit `storage` from a mock session response.');
-    }
-    return assignment.type === 'firebase'
-        ? new FirebaseStorageProvider()
-        : new SupabaseStorageProvider({
-            url: assignment.publicConfig.url as string,
-            anonKey: assignment.publicConfig.anonKey as string,
-            accessToken: accessTokenOf(assignment),
-        });
-};
+// ── Built-in factories ──────────────────────────────────────────────────────
+
+registerProviderSessionFactory('data', 'mock', (assignment) =>
+    // persist: false — a mock session is scoped to one switch, never leaks into the next
+    // one via a shared localStorage key (mirrors "no cached secrets" for real backends).
+    new MockDataProvider(assignment.publicConfig.seed as ConstructorParameters<typeof MockDataProvider>[0], { persist: false }),
+);
+registerProviderSessionFactory('data', 'firebase', async (assignment) => {
+    await connectFirebase(assignment);
+    return new FirebaseDataProvider();
+});
+registerProviderSessionFactory('data', 'supabase', (assignment) => new SupabaseDataProvider({
+    url: assignment.publicConfig.url as string,
+    anonKey: assignment.publicConfig.anonKey as string,
+    accessToken: accessTokenOf(assignment),
+}));
+
+registerProviderSessionFactory('storage', 'firebase', async (assignment) => {
+    await connectFirebase(assignment);
+    return new FirebaseStorageProvider();
+});
+registerProviderSessionFactory('storage', 'supabase', (assignment) => new SupabaseStorageProvider({
+    url: assignment.publicConfig.url as string,
+    anonKey: assignment.publicConfig.anonKey as string,
+    accessToken: accessTokenOf(assignment),
+}));
+// No 'storage'/'mock' factory — omit `storage` from a mock session response until one exists.
 
 /**
  * Either a URL to fetch (real backend) or a resolver function that produces the same
@@ -98,24 +122,14 @@ export const useProviderSession = (): { switchSession: SwitchProviderSessionFn }
             body = await res.json() as ProviderSessionResponse;
         }
 
-        // Firebase: connecting is a side effect (init() deletes the previous global app and
-        // signs into the new one) that must happen once, before either adapter is built —
-        // unlike Supabase, where each adapter carries its own client and no shared connect step exists.
-        const firebaseAssignment = body.providers.data?.type === 'firebase'
-            ? body.providers.data
-            : body.providers.storage?.type === 'firebase' ? body.providers.storage : undefined;
-        if (firebaseAssignment) {
-            await initFirebase(firebaseAssignment.publicConfig as FirebaseConfig);
-            if (firebaseAssignment.credential?.type === 'firebaseCustomToken') {
-                await signInWithFirebaseCustomToken(firebaseAssignment.credential.token);
+        for (const [category, assignment] of Object.entries(body.providers)) {
+            const factory = factories[category]?.[assignment.type];
+            if (!factory) {
+                console.warn(`ProviderSession: no factory registered for category "${category}" type "${assignment.type}" — discarding. Register one with registerProviderSessionFactory().`);
+                continue;
             }
-        }
-
-        if (body.providers.data) {
-            await setProvider('data', 'custom', buildDataAdapter(body.providers.data));
-        }
-        if (body.providers.storage) {
-            await setProvider('storage', 'custom', buildStorageAdapter(body.providers.storage));
+            const adapter = await factory(assignment);
+            await setProvider(category, 'custom', adapter);
         }
     }, [setProvider]);
 
