@@ -86,6 +86,13 @@ export type AppProvidersConfig = {
     mock?: MockProviderConfig;
     ai?: AIConfig;
     proxy?: ProxyConfig;
+    /**
+     * Pre-built adapter instances, registered directly rather than resolved from a
+     * vendor config above. The 6 named categories are typed for convenience, but any
+     * other key works too — an entirely new category the framework has no built-in
+     * knowledge of (e.g. `{ payments: { stripe: new StripeAdapter() } }`). Consume a
+     * custom category with useProvider('payments', 'stripe') — see ProviderRegistryContext.
+     */
     custom?: {
         data?:        Record<string, DataProviderAdapter>    | DataProviderAdapter;
         storage?:     Record<string, StorageProviderAdapter> | StorageProviderAdapter;
@@ -93,13 +100,8 @@ export type AppProvidersConfig = {
         email?:       Record<string, EmailProviderAdapter>   | EmailProviderAdapter;
         ai?:          Record<string, AIProviderAdapter>      | AIProviderAdapter;
         credentials?: Record<string, CredentialsAdapter>     | CredentialsAdapter;
+        [category: string]: unknown;
     };
-    /**
-     * Registers entirely new provider categories the framework has no built-in
-     * knowledge of (e.g. `{ payments: { stripe: new StripeAdapter() } }`).
-     * Consume with useProvider('payments', 'stripe') — see ProviderRegistryContext.
-     */
-    customCategories?: Record<string, Record<string, unknown> | unknown>;
     services?: ServicesConfig;
 };
 
@@ -166,7 +168,7 @@ function selectDefaultKey<T>(registry: Record<string, T>, preferred?: string, em
 /**
  * category → registry of adapters. Open-ended: the 6 built-in categories
  * (data/storage/auth/email/ai/credentials) are always present, but a vertical
- * can add entirely new categories via providers.customCategories, or later at
+ * can add entirely new categories via providers.custom.<anyName>, or later at
  * runtime via setProvider() — this map has no fixed shape.
  */
 type ProviderRegistries = Record<string, Record<string, unknown>>; // CR-042: heterogeneous adapter map, each category registry has a different value type
@@ -186,16 +188,9 @@ function resolveProviderRegistries(providers: AppProvidersConfig = {}) {
         }
     }
 
-    addCustomProviders(ensure('data'),        providers.custom?.data);
-    addCustomProviders(ensure('storage'),     providers.custom?.storage);
-    addCustomProviders(ensure('auth'),        providers.custom?.auth);
-    addCustomProviders(ensure('email'),       providers.custom?.email);
-    addCustomProviders(ensure('ai'),          providers.custom?.ai);
-    addCustomProviders(ensure('credentials'), providers.custom?.credentials);
-
-    // Arbitrary categories a vertical declares that the framework doesn't know about at all —
-    // e.g. providers.customCategories = { payments: { stripe: new StripeAdapter() } }.
-    for (const [category, value] of Object.entries(providers.customCategories ?? {})) {
+    // One loop for every key in `custom`, known category or brand new one alike —
+    // providers.custom.data and providers.custom.payments are handled identically.
+    for (const [category, value] of Object.entries(providers.custom ?? {})) {
         addCustomProviders(ensure(category), value);
     }
 

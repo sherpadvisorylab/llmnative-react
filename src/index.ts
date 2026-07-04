@@ -75,6 +75,7 @@ export type {
     ListCardTheme,
     MenuTheme,
     ModalTheme,
+    ProviderSwitcherTheme,
     ToolbarTheme,
     TableTheme,
     Theme,

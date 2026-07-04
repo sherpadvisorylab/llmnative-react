@@ -122,6 +122,22 @@ export interface ListCardTheme {
     };
 }
 
+export interface ProviderSwitcherTheme {
+    wrapperClassName?: string;
+    className?: string;
+    triggerClassName?: string;
+    disabledClassName?: string;
+    iconWrapperClassName?: string;
+    labelClassName?: string;
+    captionClassName?: string;
+    chevronClassName?: string;
+    itemClassName?: string;
+    itemActiveClassName?: string;
+    itemInactiveClassName?: string;
+    itemMetaClassName?: string;
+    checkClassName?: string;
+}
+
 export interface CardTheme {
     wrapperClassName?: string;
     className?: string;
@@ -287,6 +303,7 @@ export interface ThemeConfig {
     SideNav?: SideNavTheme;
     Toolbar?: ToolbarTheme;
     ListCard?: ListCardTheme;
+    ProviderSwitcher?: ProviderSwitcherTheme;
     Brand?: {
         wrapperClassName?: string;
         className?: string;

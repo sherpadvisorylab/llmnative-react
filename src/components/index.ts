@@ -11,6 +11,8 @@ export { default as Toolbar } from './blocks/Toolbar';
 export type { ToolbarProps } from './blocks/Toolbar';
 export { default as ThemeSwitcher } from './blocks/ThemeSwitcher';
 export type { ThemeSwitcherProps, ThemeSwitcherThemeOption } from './blocks/ThemeSwitcher';
+export { default as ProviderSwitcher } from './blocks/ProviderSwitcher';
+export type { ProviderSwitcherProps, ProviderSwitcherItem } from './blocks/ProviderSwitcher';
 
 export { default as Alert } from './ui/Alert';
 export type { AlertProps } from './ui/Alert';
