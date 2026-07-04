@@ -8,7 +8,7 @@ import type { UIProps } from '../types';
 
 export interface ProviderSwitcherItem {
     id: string;
-    label: React.ReactNode;
+    label: string;
     /** Rendered on the trailing side of the row, e.g. a role or a status. */
     meta?: React.ReactNode;
     /** Icon name (resolved via the icon provider) or a ready-made node. Falls back to the switcher's own `icon`. */
