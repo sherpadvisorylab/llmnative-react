@@ -1,4 +1,5 @@
 import { useProvider } from '../ProviderRegistryContext';
+import { proxyFetch } from '../proxy';
 
 /**
  * Generic "api" provider engine — Service Gateway (docs/24-tenant-platform.md).
@@ -21,6 +22,12 @@ import { useProvider } from '../ProviderRegistryContext';
  *   name, caller params — to that URL. The secret-bearing registration lives in the gateway
  *   process instead, built from the exact same createApiProvider() there; the browser never
  *   sees the header/query/body fields at all, not even for an instant.
+ *
+ * Composes with the existing CORS proxy (../proxy), doesn't replace it — they solve different
+ * problems. The proxy answers "can this browser reach that URL at all" (most third-party REST
+ * APIs don't allow direct cross-origin calls); this engine answers "who controls what's in the
+ * request and where the secret lives". Both calls below go through proxyFetch(), which no-ops
+ * back to a plain fetch() when the proxy isn't configured or the target is same-origin.
  */
 
 export type ApiProviderEndpoint = {
@@ -62,7 +69,7 @@ async function parseResponse(res: Response): Promise<unknown> {
 
 function buildGatewayCall(registration: ApiProviderRegistration, endpoint: ApiProviderEndpoint): ApiProviderCall {
     return async (params = {}) => {
-        const res = await fetch(registration.gatewayUrl as string, {
+        const res = await proxyFetch(registration.gatewayUrl as string, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ provider: registration.name, endpoint: endpoint.name, params }),
@@ -83,7 +90,7 @@ function buildDirectCall(registration: ApiProviderRegistration, endpoint: ApiPro
         const { query: _callerQuery, ...bodyParams } = params;
         const mergedBody = { ...bodyParams, ...registration.body };
 
-        const res = await fetch(url.toString(), {
+        const res = await proxyFetch(url.toString(), {
             method,
             headers: { 'Content-Type': 'application/json', ...registration.header },
             body: method === 'GET' || method === 'HEAD' ? undefined : JSON.stringify(mergedBody),
