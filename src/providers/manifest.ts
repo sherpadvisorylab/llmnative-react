@@ -25,10 +25,12 @@ import { MISTRAL_PROVIDER_DEFINITION } from './ai/mistral';
 import { OPENAI_PROVIDER_DEFINITION } from './ai/openai';
 import { OPENCODE_PROVIDER_DEFINITION } from './ai/opencode';
 import { OPENROUTER_PROVIDER_DEFINITION } from './ai/openrouter';
+import type { ProviderService } from './ProviderRegistryContext';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-export type ServiceCategory = 'data' | 'storage' | 'auth' | 'email' | 'ai' | 'credentials';
+/** The 6 built-in categories — alias of ProviderService (ProviderRegistryContext.tsx), derived from ProviderAdapterMap so the two can't drift. */
+export type ServiceCategory = ProviderService;
 
 type AnyAdapter =
     | DataProviderAdapter
