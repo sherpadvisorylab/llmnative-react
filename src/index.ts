@@ -133,6 +133,8 @@ export type { ProviderAdapterMap, ProviderService, SetProviderFn, ProviderRegist
 export { useSetProvider, useProvider } from './providers/ProviderRegistryContext';
 export type { ProviderSessionCredential, ProviderSessionAssignment, ProviderSessionResponse, ProviderSessionFactory, SwitchProviderSessionFn, ProviderSessionSwitchOptions, ProviderSessionSwitchResult } from './providers/ProviderSession';
 export { useProviderSession, registerProviderSessionFactory } from './providers/ProviderSession';
+export type { ApiProvider, ApiProviderCall, ApiProviderEndpoint, ApiProviderRegistration } from './providers/api/ApiProvider';
+export { createApiProvider, useApiProvider } from './providers/api/ApiProvider';
 export type { MotionEffect, MotionReference, MotionRegistry, MotionStyle, MotionTransition, ReducedMotionMode, ResolvedMotionEffect } from './motion';
 export { createMotionTransition, resolveMotionEffect, useEnterMotion, useMotionEffect, useMotionState, usePressMotion } from './motion';
 export { FirebaseDataProvider } from './providers/data/firebase';
