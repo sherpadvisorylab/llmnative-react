@@ -175,8 +175,6 @@ export type { AIRequestOptions, AIAttachment, AIProviderAdapter, AIKeyValidation
 export { createAIProviderRegistry, getAIModelCatalog, formatAIModelRef, parseAIModelRef } from './providers/ai';
 export { useAIProvider, useAIProviderRegistry, AIProvider } from './providers/ai/AIProviderContext';
 export { proxyFetch, useProxy, configureProxy, isProxyEnabled } from './providers/proxy';
-export type { ProxyProviderName, ProxyScaffoldDescriptor } from './providers/proxy';
-export { PROXY_SCAFFOLD_MAP, PROXY_PROVIDER_NAMES, getProxyScaffold } from './providers/proxy';
 export { googleGetAccessToken } from './providers/auth/google/GoogleAuth';
 export { sendEmail } from './providers/email/google/email';
 export { getKeywordIdeas } from './providers/seo/google/keyword';

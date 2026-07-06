@@ -1,9 +1,6 @@
 import { onConfigChange } from '../../Config';
 import type { ProxyConfig } from '../../Config';
 
-export type { ProxyProviderName, ProxyScaffoldDescriptor } from './scaffold';
-export { PROXY_SCAFFOLD_MAP, PROXY_PROVIDER_NAMES, getProxyScaffold } from './scaffold';
-
 export const PROXY_CALLER_HEADER = 'x-llmnative-proxy';
 export const DEFAULT_PROXY_ROUTE = '/api/proxy';
 
