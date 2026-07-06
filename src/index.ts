@@ -135,6 +135,8 @@ export type { ProviderSessionCredential, ProviderSessionAssignment, ProviderSess
 export { useProviderSession, registerProviderSessionFactory } from './providers/ProviderSession';
 export type { ApiProvider, ApiProviderCall, ApiProviderEndpoint, ApiProviderRegistration } from './providers/api/ApiProvider';
 export { createApiProvider, useApiProvider } from './providers/api/ApiProvider';
+export type { EmailApiProviderRegistration } from './providers/api/createEmailApiProvider';
+export { createEmailApiProvider } from './providers/api/createEmailApiProvider';
 export type { MotionEffect, MotionReference, MotionRegistry, MotionStyle, MotionTransition, ReducedMotionMode, ResolvedMotionEffect } from './motion';
 export { createMotionTransition, resolveMotionEffect, useEnterMotion, useMotionEffect, useMotionState, usePressMotion } from './motion';
 export { FirebaseDataProvider } from './providers/data/firebase';
