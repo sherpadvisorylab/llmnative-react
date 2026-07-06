@@ -1,4 +1,3 @@
-// @ts-nocheck - scaffold template, copied to user project by CLI
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { Plugin } from 'vite';
 
