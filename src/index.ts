@@ -133,8 +133,15 @@ export type { ProviderAdapterMap, ProviderService, SetProviderFn, ProviderRegist
 export { useSetProvider, useProvider } from './providers/ProviderRegistryContext';
 export type { ProviderSessionCredential, ProviderSessionAssignment, ProviderSessionResponse, ProviderSessionFactory, SwitchProviderSessionFn, ProviderSessionSwitchOptions, ProviderSessionSwitchResult } from './providers/ProviderSession';
 export { useProviderSession, registerProviderSessionFactory } from './providers/ProviderSession';
-export type { ApiProviderAdapter, ApiProviderRequest, DirectApiProviderConfig, FirebaseApiProviderConfig, SupabaseApiProviderConfig } from './providers/api/ApiProvider';
-export { useApiProvider, DirectApiProviderAdapter, MockApiProviderAdapter, FirebaseApiProviderAdapter, SupabaseApiProviderAdapter } from './providers/api/ApiProvider';
+export type { ApiProviderAdapter, ApiProviderRequest } from './providers/api/ApiProvider';
+export { useApiProvider } from './providers/api/ApiProvider';
+export type { DirectApiProviderConfig } from './providers/api/direct';
+export { DirectApiProviderAdapter } from './providers/api/direct';
+export { MockApiProviderAdapter } from './providers/api/mock';
+export type { FirebaseApiProviderConfig } from './providers/api/firebase';
+export { FirebaseApiProviderAdapter } from './providers/api/firebase';
+export type { SupabaseApiProviderConfig } from './providers/api/supabase';
+export { SupabaseApiProviderAdapter } from './providers/api/supabase';
 export type { MotionEffect, MotionReference, MotionRegistry, MotionStyle, MotionTransition, ReducedMotionMode, ResolvedMotionEffect } from './motion';
 export { createMotionTransition, resolveMotionEffect, useEnterMotion, useMotionEffect, useMotionState, usePressMotion } from './motion';
 export { FirebaseDataProvider } from './providers/data/firebase';
