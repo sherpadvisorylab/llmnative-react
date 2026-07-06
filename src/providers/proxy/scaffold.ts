@@ -1,44 +1,26 @@
+// Single source of truth shared with the CLI (scripts/cli/setup-devtools.js), which requires
+// the same JSON file directly at scaffold time — see scripts/cli/proxy-templates/scaffold.json.
+// Kept as JSON (not .ts) so a plain Node script can read it without a TypeScript loader.
+import scaffoldData from '../../../scripts/cli/proxy-templates/scaffold.json';
+
 export type ProxyProviderName = 'vite' | 'express' | 'nextjs-app' | 'nextjs-pages' | 'cloudflare';
 
 export type ProxyScaffoldDescriptor = {
     label: string;
-    templateFile: string;
     outputPath: string;
     hint: string;
+    /** Copied verbatim into outputPath — for server runtimes with no importable package build (express/nextjs/cloudflare). */
+    templateFile?: string;
+    /**
+     * outputPath is generated as a one-line re-export of this instead of a copy — for runtimes
+     * where the framework already ships a real, separately-built package export (vite only:
+     * `@llmnative/react/vite` → dist/vite.mjs). Never goes stale relative to the real implementation.
+     */
+    packageExport?: string;
+    exportName?: string;
 };
 
-export const PROXY_SCAFFOLD_MAP: Record<ProxyProviderName, ProxyScaffoldDescriptor> = {
-    vite: {
-        label: 'Vite dev server',
-        templateFile: 'vite.ts',
-        outputPath: 'src/proxy/proxy.ts',
-        hint: 'Import createProxyPlugin() and add it to plugins[] in vite.config.ts',
-    },
-    express: {
-        label: 'Express',
-        templateFile: 'express.ts',
-        outputPath: 'src/proxy/proxy.ts',
-        hint: 'Import registerProxy() and mount it with app.use() in your server entry',
-    },
-    'nextjs-app': {
-        label: 'Next.js App Router',
-        templateFile: 'nextjs-app.ts',
-        outputPath: 'app/api/proxy/route.ts',
-        hint: 'File placed at app/api/proxy/route.ts - no extra setup needed',
-    },
-    'nextjs-pages': {
-        label: 'Next.js Pages Router',
-        templateFile: 'nextjs-pages.ts',
-        outputPath: 'pages/api/proxy.ts',
-        hint: 'File placed at pages/api/proxy.ts - no extra setup needed',
-    },
-    cloudflare: {
-        label: 'Cloudflare Worker / Pages Function',
-        templateFile: 'cloudflare.ts',
-        outputPath: 'functions/api/proxy.ts',
-        hint: 'File placed at functions/api/proxy.ts for Cloudflare Pages, or deploy as a standalone Worker',
-    },
-};
+export const PROXY_SCAFFOLD_MAP: Record<ProxyProviderName, ProxyScaffoldDescriptor> = scaffoldData;
 
 export const PROXY_PROVIDER_NAMES = Object.keys(PROXY_SCAFFOLD_MAP) as ProxyProviderName[];
 
@@ -49,4 +31,3 @@ export const getProxyScaffold = (name: ProxyProviderName): ProxyScaffoldDescript
     }
     return descriptor;
 };
-

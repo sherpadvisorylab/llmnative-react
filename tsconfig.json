@@ -12,7 +12,8 @@
     "baseUrl": "./src",                       // Base URL for module resolution
     "allowSyntheticDefaultImports": true,     // Allows default imports from modules with no default export
     "declaration": true,                      // Generates corresponding .d.ts file
-    "declarationDir": "./dist/types"          // Output directory for .d.ts files
+    "declarationDir": "./dist/types",         // Output directory for .d.ts files
+    "resolveJsonModule": true                 // Allows importing .json files as typed modules
   },
   "include": [                                // Include all files in src folder
     "src/**/*"

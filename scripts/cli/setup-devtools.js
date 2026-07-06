@@ -2,15 +2,11 @@ const fs = require('fs');
 const path = require('path');
 
 const root = process.cwd();
-const PROXY_SRC = path.resolve(__dirname, '../../src/providers/proxy');
-
-const PROXY_PROVIDERS = {
-    vite:           { src: 'vite.ts',          dest: 'dev/proxy.ts' },
-    express:        { src: 'express.ts',        dest: 'server/proxy.ts' },
-    'nextjs-app':   { src: 'nextjs-app.ts',     dest: 'app/api/proxy/route.ts' },
-    'nextjs-pages': { src: 'nextjs-pages.ts',   dest: 'pages/api/proxy.ts' },
-    cloudflare:     { src: 'cloudflare.ts',     dest: 'functions/api/proxy.ts' },
-};
+// Templates and the vite/packageExport split live in scripts/cli/proxy-templates/scaffold.json —
+// the same JSON the framework's src/providers/proxy/scaffold.ts imports, so there's one shared
+// source instead of two hand-maintained maps that can drift (as they had before this fix).
+const PROXY_TEMPLATES_DIR = path.resolve(__dirname, 'proxy-templates');
+const PROXY_PROVIDERS = require(path.join(PROXY_TEMPLATES_DIR, 'scaffold.json'));
 
 function ensureFile(filePath, content) {
     if (!fs.existsSync(filePath)) {
@@ -31,19 +27,25 @@ function copyProxyFile(proxyProvider) {
     const descriptor = PROXY_PROVIDERS[proxyProvider];
     if (!descriptor) return;
 
-    const src  = path.join(PROXY_SRC, descriptor.src);
-    const dest = path.join(root, descriptor.dest);
+    const dest = path.join(root, descriptor.outputPath);
+    ensureDir(path.dirname(dest));
+    if (fs.existsSync(dest)) return;
 
+    if (descriptor.packageExport) {
+        // vite only: re-export the framework's own build instead of copying a snapshot that
+        // could drift from the real implementation — see dist/vite.mjs / package.json exports.
+        fs.writeFileSync(dest, `export { ${descriptor.exportName} } from '${descriptor.packageExport}';\n`);
+        console.log(`Created file: ${dest}`);
+        return;
+    }
+
+    const src = path.join(PROXY_TEMPLATES_DIR, descriptor.templateFile);
     if (!fs.existsSync(src)) {
         console.warn(`Proxy template not found: ${src}`);
         return;
     }
-
-    ensureDir(path.dirname(dest));
-    if (!fs.existsSync(dest)) {
-        fs.copyFileSync(src, dest);
-        console.log(`Created file: ${dest}`);
-    }
+    fs.copyFileSync(src, dest);
+    console.log(`Created file: ${dest}`);
 }
 
 function createViteConfig(proxyProvider) {
@@ -140,7 +142,7 @@ export default {
     `);
 
     if (proxyProvider !== 'none' && PROXY_PROVIDERS[proxyProvider]) {
-        console.log(`\nProxy file created: ${PROXY_PROVIDERS[proxyProvider].dest}`);
+        console.log(`\nProxy file created: ${PROXY_PROVIDERS[proxyProvider].outputPath}`);
         if (proxyProvider === 'express') {
             console.log('  → Add registerProxy(app) to your server entry file.');
         }
