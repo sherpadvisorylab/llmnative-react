@@ -131,7 +131,7 @@ export type { ProviderConfigurable, ProviderConfigurationState } from './provide
 export { getProviderConfigurationState } from './providers/ProviderConfiguration';
 export type { ProviderAdapterMap, ProviderService, SetProviderFn, ProviderRegistrySnapshot } from './providers/ProviderRegistryContext';
 export { useSetProvider, useProvider } from './providers/ProviderRegistryContext';
-export type { ProviderSessionCredential, ProviderSessionAssignment, ProviderSessionResponse, ProviderSessionFactory, SwitchProviderSessionFn } from './providers/ProviderSession';
+export type { ProviderSessionCredential, ProviderSessionAssignment, ProviderSessionResponse, ProviderSessionFactory, SwitchProviderSessionFn, ProviderSessionSwitchOptions, ProviderSessionSwitchResult } from './providers/ProviderSession';
 export { useProviderSession, registerProviderSessionFactory } from './providers/ProviderSession';
 export type { MotionEffect, MotionReference, MotionRegistry, MotionStyle, MotionTransition, ReducedMotionMode, ResolvedMotionEffect } from './motion';
 export { createMotionTransition, resolveMotionEffect, useEnterMotion, useMotionEffect, useMotionState, usePressMotion } from './motion';

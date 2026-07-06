@@ -98,6 +98,22 @@ registerProviderSessionFactory('storage', 'supabase', (assignment) => new Supaba
 }));
 // No 'storage'/'mock' factory — omit `storage` from a mock session response until one exists.
 
+export type ProviderSessionSwitchOptions = {
+    fetchOptions?: RequestInit;
+    /**
+     * Inspect or transform the raw response before it's applied — e.g. inject an extra
+     * category, filter one out, forward it to an audit log. Whatever this returns
+     * (defaults to the untouched response) is what actually gets applied.
+     */
+    onResponse?: (response: ProviderSessionResponse) => ProviderSessionResponse | Promise<ProviderSessionResponse>;
+};
+
+/** Which (category, type) pairs were actually applied vs had no matching factory. */
+export type ProviderSessionSwitchResult = {
+    applied: string[];
+    skipped: { category: string; type: string }[];
+};
+
 /**
  * Either a URL to fetch (real backend) or a resolver function that produces the same
  * response shape directly (e.g. a mock backend, or any non-HTTP source). Everything
@@ -106,31 +122,41 @@ registerProviderSessionFactory('storage', 'supabase', (assignment) => new Supaba
  */
 export type SwitchProviderSessionFn = (
     source: string | (() => Promise<ProviderSessionResponse>),
-    fetchOptions?: RequestInit,
-) => Promise<void>;
+    options?: ProviderSessionSwitchOptions,
+) => Promise<ProviderSessionSwitchResult>;
 
 export const useProviderSession = (): { switchSession: SwitchProviderSessionFn } => {
     const setProvider = useSetProvider();
 
-    const switchSession = useCallback<SwitchProviderSessionFn>(async (source, fetchOptions) => {
+    const switchSession = useCallback<SwitchProviderSessionFn>(async (source, options) => {
         let body: ProviderSessionResponse;
         if (typeof source === 'function') {
             body = await source();
         } else {
-            const res = await fetch(source, fetchOptions);
+            const res = await fetch(source, options?.fetchOptions);
             if (!res.ok) throw new Error(`Provider session request failed: ${res.status} ${res.statusText}`);
             body = await res.json() as ProviderSessionResponse;
         }
+
+        if (options?.onResponse) {
+            body = await options.onResponse(body);
+        }
+
+        const result: ProviderSessionSwitchResult = { applied: [], skipped: [] };
 
         for (const [category, assignment] of Object.entries(body.providers)) {
             const factory = factories[category]?.[assignment.type];
             if (!factory) {
                 console.warn(`ProviderSession: no factory registered for category "${category}" type "${assignment.type}" — discarding. Register one with registerProviderSessionFactory().`);
+                result.skipped.push({ category, type: assignment.type });
                 continue;
             }
             const adapter = await factory(assignment);
             await setProvider(category, 'custom', adapter);
+            result.applied.push(category);
         }
+
+        return result;
     }, [setProvider]);
 
     return { switchSession };
