@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useSetProvider } from './ProviderRegistryContext';
+import type { SetProviderFn } from './ProviderRegistryContext';
 import type { FirebaseConfig } from '../Config';
 import initFirebase, { signInWithFirebaseCustomToken } from './firebase-init';
 import { FirebaseDataProvider } from './data/firebase';
@@ -125,7 +126,7 @@ export type SwitchProviderSessionFn = (
     options?: ProviderSessionSwitchOptions,
 ) => Promise<ProviderSessionSwitchResult>;
 
-export const useProviderSession = (): { switchSession: SwitchProviderSessionFn } => {
+export const useProviderSession = (): { switchSession: SwitchProviderSessionFn; setProvider: SetProviderFn } => {
     const setProvider = useSetProvider();
 
     const switchSession = useCallback<SwitchProviderSessionFn>(async (source, options) => {
@@ -159,5 +160,5 @@ export const useProviderSession = (): { switchSession: SwitchProviderSessionFn }
         return result;
     }, [setProvider]);
 
-    return { switchSession };
+    return { switchSession, setProvider };
 };
