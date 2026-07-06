@@ -1,65 +1,50 @@
 import { useProvider } from '../ProviderRegistryContext';
+import type { ProviderConfigurable } from '../ProviderConfiguration';
 import { proxyFetch } from '../proxy';
 
 /**
- * Generic "api" provider engine — Service Gateway (docs/24-tenant-platform.md).
+ * "api" — a real provider category (docs/24-tenant-platform.md, Service Gateway), same
+ * registry/lifecycle as data/storage/etc. Registers a third-party REST integration (Brevo,
+ * a payments API, a non-streaming AI provider, ...) once — base URL, fixed header/query/body
+ * fields (where a secret usually lives) — and exposes one generic call:
  *
- * Registers a third-party REST integration (Brevo, Resend, a non-streaming AI provider, ...)
- * as DATA, not hand-written adapter code: a name, fixed header/query/body fields (where a
- * secret usually lives), and a list of named endpoints. Consumers call it by endpoint name
- * — `provider.send(params)` — never touching the registration or the secret directly.
+ *   setProvider('api', 'payments', new DirectApiProviderAdapter({
+ *       baseUrl: 'https://payments.acme.com/api',
+ *       header: { Authorization: 'Bearer <secret>' },
+ *   }));
  *
- * Registered under category 'api' in the same open provider registry as everything else:
- *   setProvider('api', 'brevo', createApiProvider({...}))
- *   useApiProvider('brevo').send({ to, subject, html })
+ *   useApiProvider('payments').fetch({ path: '/charges', method: 'post', body: { amount: 1000 } });
  *
- * Two execution modes, same interface either way:
- * - Client-resident (no `gatewayUrl`): merges the registration's header/query/body straight
- *   into a direct fetch. The secret IS visible to the browser in this mode — acceptable only
- *   for a dev/personal key, never a real shared tenant secret. This is also the fallback for
- *   deploys with no backend at all, so the mechanism works identically with or without one.
- * - Gateway-resident (`gatewayUrl` set): forwards only the *intent* — provider name, endpoint
- *   name, caller params — to that URL. The secret-bearing registration lives in the gateway
- *   process instead, built from the exact same createApiProvider() there; the browser never
- *   sees the header/query/body fields at all, not even for an instant.
+ * Registered/fixed fields always win over a matching key the caller passes — same
+ * authoritative-merge rule as the tenant-session handshake.
  *
- * Composes with the existing CORS proxy (../proxy), doesn't replace it — they solve different
- * problems. The proxy answers "can this browser reach that URL at all" (most third-party REST
- * APIs don't allow direct cross-origin calls); this engine answers "who controls what's in the
- * request and where the secret lives". Both calls below go through proxyFetch(), which no-ops
- * back to a plain fetch() when the proxy isn't configured or the target is same-origin.
+ * Other category adapters (an EmailProviderAdapter for Brevo, an AIProviderAdapter for a
+ * REST-only model) call an ApiProviderAdapter internally instead of fetch()/proxyFetch()
+ * directly — see the BrevoEmailProvider example below. There's no generic "createEmailApiProvider"
+ * bridge: once ApiProviderAdapter exists, a vendor adapter is just a few lines of normal code.
+ *
+ * Adapters (same interface, different execution context — mirrors DataProviderAdapter's
+ * Firebase/Supabase/Mock split):
+ * - DirectApiProviderAdapter — client-resident, calls the target directly via proxyFetch
+ *   (CORS-safe). The secret IS visible to the browser here — a dev/personal key, or a
+ *   no-backend deploy, never a real shared tenant secret.
+ * - FirebaseApiProviderAdapter — routes through a Firebase Callable Function; the secret
+ *   lives server-side, resolved there from the real tenant/user registration.
+ * - SupabaseApiProviderAdapter — same idea via a Supabase Edge Function.
+ * - MockApiProviderAdapter — resolves via a local function, no network. Dev/tests.
  */
 
-export type ApiProviderEndpoint = {
-    name: string;
+export type ApiProviderRequest = {
+    path: string;
     /** Default: 'POST'. */
     method?: string;
-    url: string;
-};
-
-export type ApiProviderRegistration = {
-    name: string;
-    /**
-     * Fixed fields merged into every call to any endpoint below — this is where a secret
-     * normally lives (e.g. `header: { Authorization: 'Bearer <key>' }`). Always wins over
-     * a matching key the caller passes in `params`; the caller only controls what's left.
-     */
-    header?: Record<string, string>;
     query?: Record<string, string>;
-    body?: Record<string, unknown>;
-    endpoints: ApiProviderEndpoint[];
-    /**
-     * When set, every call is forwarded to this URL as `{ provider, endpoint, params }`
-     * instead of calling `endpoint.url` directly — header/query/body above are never sent
-     * to the browser's fetch layer at all; they belong to the gateway-side registration.
-     */
-    gatewayUrl?: string;
+    body?: unknown;
 };
 
-export type ApiProviderCall = (params?: Record<string, unknown>) => Promise<unknown>;
-
-/** Callable per registered endpoint name — `provider.send(params)`, `provider.discoverModels(params)`, ... */
-export type ApiProvider = Record<string, ApiProviderCall>;
+export interface ApiProviderAdapter extends ProviderConfigurable {
+    fetch(request: ApiProviderRequest): Promise<unknown>;
+}
 
 async function parseResponse(res: Response): Promise<unknown> {
     if (!res.ok) throw new Error(`ApiProvider request failed: ${res.status} ${res.statusText}`);
@@ -67,47 +52,92 @@ async function parseResponse(res: Response): Promise<unknown> {
     return text ? JSON.parse(text) : undefined;
 }
 
-function buildGatewayCall(registration: ApiProviderRegistration, endpoint: ApiProviderEndpoint): ApiProviderCall {
-    return async (params = {}) => {
-        const res = await proxyFetch(registration.gatewayUrl as string, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ provider: registration.name, endpoint: endpoint.name, params }),
-        });
-        return parseResponse(res);
-    };
-}
+// ── Direct (client-resident) ────────────────────────────────────────────────
 
-function buildDirectCall(registration: ApiProviderRegistration, endpoint: ApiProviderEndpoint): ApiProviderCall {
-    return async (params = {}) => {
-        const method = (endpoint.method ?? 'POST').toUpperCase();
+export type DirectApiProviderConfig = {
+    baseUrl: string;
+    /** Fixed fields merged into every call — this is where a secret normally lives. Always wins over a matching key in the request. */
+    header?: Record<string, string>;
+    query?: Record<string, string>;
+    body?: Record<string, unknown>;
+};
 
-        const url = new URL(endpoint.url);
-        const callerQuery = (params.query as Record<string, string> | undefined) ?? {};
-        // Registered query wins on conflicting keys — same authoritative rule as body/header.
-        Object.entries({ ...callerQuery, ...registration.query }).forEach(([key, value]) => url.searchParams.set(key, value));
+export class DirectApiProviderAdapter implements ApiProviderAdapter {
+    constructor(private config: DirectApiProviderConfig) {}
 
-        const { query: _callerQuery, ...bodyParams } = params;
-        const mergedBody = { ...bodyParams, ...registration.body };
+    async fetch(request: ApiProviderRequest): Promise<unknown> {
+        const method = (request.method ?? 'POST').toUpperCase();
+
+        const url = new URL(this.config.baseUrl.replace(/\/+$/, '') + '/' + request.path.replace(/^\/+/, ''));
+        Object.entries({ ...request.query, ...this.config.query }).forEach(([key, value]) => url.searchParams.set(key, value));
+
+        const mergedBody = { ...(request.body as Record<string, unknown> | undefined), ...this.config.body };
 
         const res = await proxyFetch(url.toString(), {
             method,
-            headers: { 'Content-Type': 'application/json', ...registration.header },
+            headers: { 'Content-Type': 'application/json', ...this.config.header },
             body: method === 'GET' || method === 'HEAD' ? undefined : JSON.stringify(mergedBody),
         });
         return parseResponse(res);
-    };
+    }
 }
 
-export function createApiProvider(registration: ApiProviderRegistration): ApiProvider {
-    const provider: ApiProvider = {};
-    for (const endpoint of registration.endpoints) {
-        provider[endpoint.name] = registration.gatewayUrl
-            ? buildGatewayCall(registration, endpoint)
-            : buildDirectCall(registration, endpoint);
+// ── Mock (dev/tests, no network) ────────────────────────────────────────────
+
+export class MockApiProviderAdapter implements ApiProviderAdapter {
+    constructor(private resolver: (request: ApiProviderRequest) => unknown | Promise<unknown>) {}
+
+    async fetch(request: ApiProviderRequest): Promise<unknown> {
+        return this.resolver(request);
     }
-    return provider;
+}
+
+// ── Firebase Callable Function (secret lives server-side) ──────────────────
+
+export type FirebaseApiProviderConfig = {
+    /** Name of the Callable Function that receives { provider, request } and does the real, secret-bearing call server-side. */
+    functionName: string;
+    /** The registered provider's own name — sent alongside the request so the function knows which registration to resolve. */
+    providerName: string;
+    region?: string;
+};
+
+export class FirebaseApiProviderAdapter implements ApiProviderAdapter {
+    constructor(private config: FirebaseApiProviderConfig) {}
+
+    async fetch(request: ApiProviderRequest): Promise<unknown> {
+        const { getApp } = await import('firebase/app');
+        const { getFunctions, httpsCallable } = await import('firebase/functions');
+        const functions = getFunctions(getApp(), this.config.region);
+        const call = httpsCallable(functions, this.config.functionName);
+        const result = await call({ provider: this.config.providerName, request });
+        return result.data;
+    }
+}
+
+// ── Supabase Edge Function (secret lives server-side) ───────────────────────
+
+export type SupabaseApiProviderConfig = {
+    url: string;
+    anonKey: string;
+    /** Name of the Edge Function that receives { provider, request } and does the real, secret-bearing call server-side. */
+    functionName: string;
+    providerName: string;
+};
+
+export class SupabaseApiProviderAdapter implements ApiProviderAdapter {
+    constructor(private config: SupabaseApiProviderConfig) {}
+
+    async fetch(request: ApiProviderRequest): Promise<unknown> {
+        const { getSupabaseClient } = await import('../supabase-init');
+        const client = getSupabaseClient(this.config.url, this.config.anonKey);
+        const { data, error } = await client.functions.invoke(this.config.functionName, {
+            body: { provider: this.config.providerName, request },
+        });
+        if (error) throw error;
+        return data;
+    }
 }
 
 /** Convenience wrapper over useProvider('api', name) — same registry, just the ergonomic one-arg form. */
-export const useApiProvider = (name: string): ApiProvider => useProvider<ApiProvider>('api', name);
+export const useApiProvider = (name: string): ApiProviderAdapter => useProvider<ApiProviderAdapter>('api', name);
