@@ -71,6 +71,7 @@ const UploadCSVPage = lazyPage(() => import('../pages/components/upload/UploadCS
 const FormPage = lazyPage(() => import('../pages/components/FormPage'));
 const FormValidationPage = lazyPage(() => import('../pages/components/FormValidationPage'));
 const FormDraftPage = lazyPage(() => import('../pages/components/FormDraftPage'));
+const FormCustomActionsPage = lazyPage(() => import('../pages/components/FormCustomActionsPage'));
 const RichTextPage = lazyPage(() => import('../pages/components/RichTextPage'));
 const GridPage = lazyPage(() => import('../pages/components/GridPage'));
 const GridArrayPage = lazyPage(() => import('../pages/components/GridArrayPage'));
@@ -201,6 +202,7 @@ export const menu = {
             children: [
                 { path: '/components/form/draft', title: 'Draft persistence', page: FormDraftPage },
                 { path: '/components/form/validation', title: 'Validation', page: FormValidationPage },
+                { path: '/components/form/custom-actions', title: 'Custom actions', page: FormCustomActionsPage },
             ],
         },
 

@@ -1,7 +1,6 @@
 import React from 'react';
 import {
     ActionButton,
-    Alert,
     DataProvider,
     Form,
     Input,
@@ -163,50 +162,6 @@ const PLAYGROUND: PlaygroundConfig = {
     ),
 };
 
-function HeaderActionDemo() {
-    const form = useFormController();
-
-    return (
-        <WithMock>
-            <div className="w-full max-w-lg space-y-3">
-                <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-                    <div>
-                        <p className="text-sm font-semibold text-slate-900">Header action driven by FormController</p>
-                        <p className="text-xs text-slate-600">The button below is outside the Form tree but behaves like the native save action.</p>
-                    </div>
-                    <LoadingButton
-                        label="Save changes"
-                        variant="primary"
-                        disabled={form.saveDisabled}
-                        loading={form.isSaving}
-                        onClick={async () => form.save()}
-                    />
-                </div>
-
-                {form.isDirty ? (
-                    <Alert variant="warning" appearance="text">
-                        Unsaved changes are tracked by the controller, not by duplicated page state.
-                    </Alert>
-                ) : null}
-
-                <Form
-                    controller={form}
-                    path="/users/user_1"
-                    appearance="card"
-                    persistDraft
-                    onComplete={async () => false}
-                >
-                    <Input name="name"  label="Full name" required />
-                    <Input name="email" label="Email" type="email" required />
-                    <Select name="role"   label="Role"   options={ROLES} />
-                    <Select name="status" label="Status" options={STATUS} />
-                    <TextArea name="bio" label="Bio" minHeight={96} />
-                </Form>
-            </div>
-        </WithMock>
-    );
-}
-
 export default function FormPage() {
     usePlayground(PLAYGROUND, 'Form');
     const t = useShowcaseFormI18n();
@@ -216,35 +171,6 @@ export default function FormPage() {
             title={t.page.title}
             description={t.page.description}
         >
-            <Section
-                title="Shared controller and custom actions"
-                description="Create a controller once with useFormController(), pass it to the Form, and use the same native state/actions anywhere in the page."
-                preview={<HeaderActionDemo />}
-                code={`import { Form, Input, LoadingButton, Select, TextArea, useFormController } from '@llmnative/react';
-
-function SiteSettings() {
-  const form = useFormController();
-
-  return (
-    <>
-      <LoadingButton
-        label="Save changes"
-        disabled={form.saveDisabled}
-        loading={form.isSaving}
-        onClick={async () => form.save()}
-      />
-
-      <Form controller={form} path="/users/user_1" persistDraft appearance="card">
-        <Input name="name" label="Full name" required />
-        <Input name="email" label="Email" type="email" required />
-        <Select name="role" label="Role" options={ROLES} />
-        <TextArea name="bio" label="Bio" minHeight={96} />
-      </Form>
-    </>
-  );
-}`}
-            />
-
             <Section
                 title={t.sections.newRecord.title}
                 description={t.sections.newRecord.description}

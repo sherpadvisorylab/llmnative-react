@@ -209,7 +209,7 @@ export class RestDataProvider implements DataProviderAdapter {
 ```tsx
 <Form
   path="/products"
-  appearance="card"           // 'card' | 'none'
+  appearance="card"           // 'card' | 'empty'
   showBack
   defaultValues={{ status: 'draft' }}
   keyGenerator={() => `prod_${Date.now()}`}
@@ -230,25 +230,53 @@ export class RestDataProvider implements DataProviderAdapter {
 | Prop | Tipo | Note |
 |---|---|---|
 | `path` | `string` | Path provider-backed |
-| `appearance` | `'card' \| 'none'` | |
-| `showBack` | `boolean` | |
+| `appearance` | `'card' \| 'empty'` | Guscio visuale |
+| `controller` | `FormController` | Controller condiviso per bottoni custom esterni |
+| `showBack` | `boolean` | Pulsante Back nel footer |
 | `defaultValues` | `RecordProps` | Valori iniziali per nuovo record |
 | `keyGenerator` | `(record) => string` | Generatore chiave primaria custom |
+| `persistDraft` | `boolean` | Salva bozza locale su modifiche non salvate |
+| `noticeAnchorRef` | `React.RefObject<HTMLElement>` | Ancoraggio sticky per notifiche |
+| `showNotice` | `boolean` | Mostra notifiche save/delete (default `true`) |
+| `wrapperClassName` | `string` | CSS wrapper esterno |
+| `headerClassName` | `string` | CSS header |
+| `className` | `string` | CSS body form |
+| `footerClassName` | `string` | CSS footer |
+| `log` | `boolean` | Logga ogni modifica su console |
 | `onLoad` | `(record) => RecordProps` | Trasforma dopo il caricamento |
 | `onRecordChange` | `(record) => void` | Cambio campo in tempo reale |
 | `onSave` | `FormSaveHandler` | Trasforma prima del salvataggio |
 | `onDelete` | `FormDeleteHandler` | Hook prima della cancellazione |
 | `onComplete` | `FormFinallyHandler` | Dopo save/delete |
 
-**Form controller** (via `const form = useFormController()`): stato e azioni native del form ovunque nella pagina.
+**Form controller** — stato e azioni native del form accessibili da qualsiasi punto della pagina.
 
-Esempio rapido:
+Due hook:
+
+| Hook | Dove usarlo | Cosa restituisce |
+|---|---|---|
+| `useFormController(controller?)` | Ovunque (anche fuori dal form) | Crea o si aggancia a un `FormController`. Senza argomenti ne crea uno locale stabile. Con un `controller` esistente ci si aggancia. |
+| `useFormActions()` | Solo dentro `<Form>` (legge dal context) | Restituisce lo stesso `FormController` del form genitore. Lancia errore se usato fuori. |
+
+Esempio — bottone custom fuori dal form:
 ```tsx
 const form = useFormController();
 
 <ActionButton disabled={form.saveDisabled} onClick={() => { void form.save(); }} />
 <Form controller={form} persistDraft onSave={...} />
 ```
+
+Esempio — uso dentro il form (senza passare controller):
+```tsx
+function MySaveButton() {
+  const form = useFormActions();
+  return <LoadingButton disabled={form.saveDisabled} loading={form.isSaving} onClick={form.save} />;
+}
+```
+
+Stato esposto dal controller: `record`, `isNewRecord`, `isDirty`, `canSave`, `canDelete`, `isSaving`, `isDeleting`, `saveDisabled`, `deleteDisabled`, `hasDraft`, `draftStatus`, `errors`, `hasErrors`.
+
+Azioni: `save()`, `delete()`, `reset()`, `restoreDraft()`, `discardDraft()`.
 
 ---
 

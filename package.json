@@ -1,6 +1,6 @@
 {
   "name": "@llmnative/react",
-  "version": "0.1.2",
+  "version": "1.0.0",
   "description": "LLM-native React framework for deterministic UI generation. Data-driven by default, schema-driven optional. Ultra-low token consumption — built for AI agents, not just humans.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -72,9 +72,9 @@
     "@supabase/supabase-js": "^2.107.0",
     "firebase": "^10.14.0",
     "lucide-react": "^0.400.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^6.22.0"
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router-dom": "^6.30.0"
   },
   "peerDependenciesMeta": {
     "@phosphor-icons/react": {
@@ -142,7 +142,7 @@
     "codemirror": "^6.0.2",
     "liquidjs": "^10.27.0",
     "papaparse": "^5.5.3",
-    "prismjs": "^ 1.30.0",
+    "prismjs": "^1.30.0",
     "react-markdown": "^10.1.0",
     "rehype-autolink-headings": "^7.1.0",
     "rehype-sanitize": "^6.0.0",
@@ -150,5 +150,8 @@
     "remark-gfm": "^4.0.1",
     "tailwind-merge": "^3.5.0",
     "tui-image-editor": "^3.15.3"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
