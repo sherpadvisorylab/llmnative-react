@@ -2,7 +2,7 @@
 
 > Framework React AI-first per generazione deterministica di UI da configurazione dichiarativa.
 > Data-driven di default, schema-driven opzionale. Ottimizzato per minimo consumo di token AI.
-> Apache-2.0 — versione 0.1.x
+> Apache-2.0 — versione 1.0.0
 
 ## Install
 
