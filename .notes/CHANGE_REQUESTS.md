@@ -198,7 +198,7 @@ export const components = {
 - [x] Animare Dropdown/Menu.
 - [x] Animare Accordion.
 - [x] Animare Tabs.
-- [ ] Animare Notifications/Toast.
+- [x] Animare Notifications/Toast.
 - [x] Aggiungere override globale e locale.
 - [x] Aggiungere docs motion.
 - [x] Aggiungere showcase motion playground.
@@ -4524,7 +4524,7 @@ const configForm = Component.schema[field.type](field.overrides)
 
 ## CR-048 — Prompt file attachment — AI provider vision/docs integration
 
-**Stato:** 🔄 in progress
+**Stato:** ✅ completato (v1.0.0) — tutti gli item della checklist verificati. Dropdown/Menu/Accordion/Tabs/Modal/Bottoni animati. Notifications riceve `motion` prop con `useEnterMotion` per gli item con stagger 30ms, passa `motion` al Dropdown interno.  
 **Priorità:** Media
 **Dipende da:** CR-047
 

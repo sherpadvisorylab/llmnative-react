@@ -2,8 +2,10 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Dropdown, DropdownDivider } from "./Dropdown";
 import { useI18n } from "../../I18n";
+import { useEnterMotion } from "../../motion";
 import Icon from "../ui/Icon";
 import type { BadgeProps } from "../ui/Badge";
+import type { MotionReference } from "../../motion";
 
 interface NotificationItem {
     title: string;
@@ -20,6 +22,8 @@ interface NotificationsProps {
     seeAllUrl?: string;
     /** Callback for "mark all as read" — shown in the header only when there are items */
     onMarkAllRead?: () => void;
+    /** Named motion preset for notification items appearance. */
+    motion?: MotionReference;
     className?: string;
 }
 
@@ -28,10 +32,13 @@ function Notifications({
     badge,
     seeAllUrl,
     onMarkAllRead,
+    motion,
     className,
 }: NotificationsProps) {
     const dict = useI18n('notifications');
     const hasItems = items.length > 0;
+
+    const itemStyle = useEnterMotion(undefined, motion ?? 'fadeDown', motion ?? 'fadeDown');
 
     return (
         <Dropdown
@@ -41,6 +48,7 @@ function Notifications({
             position="end"
             placement="auto"
             menuClassName="w-80"
+            motion={motion}
             className={className}
         >
             {/* ── Header ─────────────────────────────────────────── */}
@@ -80,6 +88,7 @@ function Notifications({
                     key={i}
                     to={item.url}
                     className="flex items-start gap-3 px-3 py-2.5 rounded-sm hover:bg-accent transition-colors"
+                    style={{ ...itemStyle, transitionDelay: `${i * 30}ms` }}
                 >
                     <div className={`mt-0.5 shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
                         item.read ? 'bg-muted' : 'bg-primary/10'
