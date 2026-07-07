@@ -15,15 +15,22 @@ interface TokenInfo {
     isExpired: boolean;
 }
 
-let currentFirebaseConfig: FirebaseConfig | undefined;
+// Firebase apps are keyed by name — the SDK's own unnamed/default app is internally
+// called '[DEFAULT]'. Config state is tracked per app name so a dedicated named app
+// (e.g. a control-plane auth session, see FirebaseAuthProvider) can coexist with the
+// default app used by the tenant-switching session factories in ProviderSession.tsx
+// without the two overwriting each other's "is this configured" state.
+const DEFAULT_APP_NAME = '[DEFAULT]';
 
-export const setFirebaseConfigState = (config: FirebaseConfig | undefined): void => {
-    currentFirebaseConfig = config;
+const configByApp = new Map<string, FirebaseConfig | undefined>();
+
+export const setFirebaseConfigState = (config: FirebaseConfig | undefined, appName: string = DEFAULT_APP_NAME): void => {
+    configByApp.set(appName, config);
 };
 
-export const getFirebaseConfigurationState = (): ProviderConfigurationState => createConfigurationState(
+export const getFirebaseConfigurationState = (appName: string = DEFAULT_APP_NAME): ProviderConfigurationState => createConfigurationState(
     'FirebaseProvider',
-    getMissingKeys(currentFirebaseConfig as unknown as Record<string, unknown> | undefined, [
+    getMissingKeys(configByApp.get(appName) as unknown as Record<string, unknown> | undefined, [
         'apiKey',
         'authDomain',
         'databaseURL',
@@ -35,9 +42,9 @@ export const getFirebaseConfigurationState = (): ProviderConfigurationState => c
 );
 
 // Firestore does not require databaseURL - only core Firebase keys are needed.
-export const getFirestoreConfigurationState = (): ProviderConfigurationState => createConfigurationState(
+export const getFirestoreConfigurationState = (appName: string = DEFAULT_APP_NAME): ProviderConfigurationState => createConfigurationState(
     'FirestoreProvider',
-    getMissingKeys(currentFirebaseConfig as unknown as Record<string, unknown> | undefined, [
+    getMissingKeys(configByApp.get(appName) as unknown as Record<string, unknown> | undefined, [
         'apiKey',
         'authDomain',
         'projectId',
@@ -45,9 +52,9 @@ export const getFirestoreConfigurationState = (): ProviderConfigurationState => 
     ], 'firebase.')
 );
 
-export const getSafeAuth = (): Auth | null => {
+export const getSafeAuth = (appName: string = DEFAULT_APP_NAME): Auth | null => {
     try {
-        return getAuth();
+        return appName === DEFAULT_APP_NAME ? getAuth() : getAuth(getApp(appName));
     } catch (error: unknown) {
         console.error('FirebaseAuthorization', error instanceof Error ? error.message : 'Error: check Configuration');
         return null;
@@ -148,20 +155,37 @@ export const signInWithFirebaseCustomToken = async (token: string): Promise<bool
     }
 };
 
-const init = async (config: FirebaseConfig): Promise<FirebaseApp> => {
-    setFirebaseConfigState(config);
-    const apps = getApps();
-    const firebaseApp = apps.length ? getApp() : undefined;
+const init = async (config: FirebaseConfig, appName: string = DEFAULT_APP_NAME): Promise<FirebaseApp> => {
+    setFirebaseConfigState(config, appName);
+    const existingApp = getApps().find((app) => app.name === appName);
 
-    if (firebaseApp) {
-        if ((firebaseApp.options as Partial<FirebaseConfig>)?.appId === config.appId) {
-            console.log("[firebase] Already initialized with same appId, skipping re-init");
-            return firebaseApp;
+    if (existingApp) {
+        if ((existingApp.options as Partial<FirebaseConfig>)?.appId === config.appId) {
+            console.log(`[firebase] App "${appName}" already initialized with same appId, skipping re-init`);
+            return existingApp;
         }
-        await deleteApp(firebaseApp);
+        await deleteApp(existingApp);
     }
 
-    return initializeApp(config);
+    return appName === DEFAULT_APP_NAME ? initializeApp(config) : initializeApp(config, appName);
 };
+
+/**
+ * Invokes a Firebase Callable Function against a given app (the SDK auto-attaches
+ * that app's current auth session's ID token — no manual header wiring). Lazily
+ * imports 'firebase/functions' so it's not bundled for apps that never call one.
+ */
+export async function callFirebaseFunction<T = unknown>(
+    functionName: string,
+    data: unknown,
+    appName: string = DEFAULT_APP_NAME,
+    region?: string,
+): Promise<T> {
+    const { getFunctions, httpsCallable } = await import('firebase/functions');
+    const app = appName === DEFAULT_APP_NAME ? getApp() : getApp(appName);
+    const call = httpsCallable<unknown, T>(getFunctions(app, region), functionName);
+    const { data: result } = await call(data);
+    return result;
+}
 
 export default init;

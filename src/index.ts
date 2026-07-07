@@ -2,7 +2,7 @@ import './globals.css';
 export { default as App, AppProvider } from './App';
 export { useMenu } from './App';
 export type { AppProps, AppProviderProps, AppProvidersConfig, MenuConfig } from './App';
-export type { AIConfig } from './Config';
+export type { AIConfig, FirebaseConfig } from './Config';
 export type {
     ServicesConfig,
     SupabaseProviderConfig,
@@ -156,7 +156,9 @@ export { useStorageProvider, StorageProvider } from './providers/storage/Storage
 export type { AuthProviderAdapter, AuthIntent, AuthSignInOptions, UserProfile } from './providers/auth/AuthProvider';
 export { useAuthProvider, AuthProvider } from './providers/auth/AuthProviderContext';
 export { GoogleAuthProvider } from './providers/auth/google/GoogleAuthProvider';
+export type { FirebaseAuthProviderOptions, FirebaseSignInOptions } from './providers/auth/firebase/FirebaseAuthProvider';
 export { FirebaseAuthProvider } from './providers/auth/firebase/FirebaseAuthProvider';
+export { callFirebaseFunction } from './providers/firebase-init';
 export { SupabaseAuthProvider } from './providers/auth/supabase/SupabaseAuthProvider';
 export { DropboxAuthProvider } from './providers/auth/dropbox/DropboxAuthProvider';
 export type { CredentialsAdapter } from './providers/credentials/CredentialsProvider';

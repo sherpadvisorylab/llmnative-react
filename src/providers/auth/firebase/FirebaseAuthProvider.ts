@@ -9,7 +9,8 @@ import {
 } from 'firebase/auth';
 import type { AuthProviderAdapter, AuthSignInOptions, UserProfile } from '../AuthProvider';
 import type { ProviderConfigurationState } from '../../ProviderConfiguration';
-import { getFirebaseConfigurationState, getSafeAuth } from '../../firebase-init';
+import type { FirebaseConfig } from '../../../Config';
+import init, { getFirebaseConfigurationState, getSafeAuth } from '../../firebase-init';
 
 // ── Sign-in options ────────────────────────────────────────────────────────────
 
@@ -61,10 +62,37 @@ function mapUser(user: User | null): UserProfile | null {
 
 // ── Provider ───────────────────────────────────────────────────────────────────
 
+export interface FirebaseAuthProviderOptions {
+    /**
+     * Static config for this provider's own Firebase app. Omit when relying on
+     * another consumer (e.g. providers.firebase + FirebaseDataProvider, or the
+     * tenant-switching session factories in ProviderSession.tsx) to have already
+     * initialized the target app — matches the provider's original zero-arg behavior.
+     */
+    config?: FirebaseConfig;
+    /**
+     * Firebase app name this provider's session lives under. Defaults to the SDK's
+     * unnamed default app. Give this a dedicated name (e.g. 'control-plane') when a
+     * long-lived login session must coexist with the default app used by tenant
+     * switching — ProviderSession's 'data'/'storage' firebase factories reinitialize
+     * the default app on every switch, which would otherwise tear down this session.
+     */
+    appName?: string;
+}
+
 export class FirebaseAuthProvider implements AuthProviderAdapter {
+    private readonly appName?: string;
+    private readonly initPromise: Promise<void>;
+
+    constructor(private readonly options: FirebaseAuthProviderOptions = {}) {
+        this.appName = options.appName;
+        this.initPromise = options.config
+            ? init(options.config, this.appName).then(() => undefined)
+            : Promise.resolve();
+    }
 
     getConfigurationState(): ProviderConfigurationState {
-        return getFirebaseConfigurationState();
+        return getFirebaseConfigurationState(this.appName);
     }
 
     isConfigured(): boolean {
@@ -74,7 +102,7 @@ export class FirebaseAuthProvider implements AuthProviderAdapter {
     // ── getUser ────────────────────────────────────────────────────────────────
 
     getUser(): UserProfile | null {
-        const auth = getSafeAuth();
+        const auth = getSafeAuth(this.appName);
         return mapUser(auth?.currentUser ?? null);
     }
 
@@ -85,7 +113,8 @@ export class FirebaseAuthProvider implements AuthProviderAdapter {
     // ── signIn ─────────────────────────────────────────────────────────────────
 
     async signIn(options: FirebaseSignInOptions = {}): Promise<UserProfile | null> {
-        const auth = getSafeAuth();
+        await this.initPromise;
+        const auth = getSafeAuth(this.appName);
         if (!auth) throw new Error('FirebaseAuthProvider: Firebase auth is not initialized');
 
         const method = options.method ?? 'password';
@@ -115,7 +144,8 @@ export class FirebaseAuthProvider implements AuthProviderAdapter {
     // ── signOut ────────────────────────────────────────────────────────────────
 
     async signOut(): Promise<void> {
-        const auth = getSafeAuth();
+        await this.initPromise;
+        const auth = getSafeAuth(this.appName);
         if (!auth) throw new Error('FirebaseAuthProvider: Firebase auth is not initialized');
         await firebaseSignOut(auth);
     }
@@ -123,19 +153,41 @@ export class FirebaseAuthProvider implements AuthProviderAdapter {
     // ── onAuthChange ───────────────────────────────────────────────────────────
 
     onAuthChange(callback: (user: UserProfile | null) => void): () => void {
-        const auth = getSafeAuth();
-        if (!auth) {
-            callback(null);
-            return () => {};
-        }
-        return onAuthStateChanged(auth, (user) => callback(mapUser(user)));
+        let unsubscribe = () => {};
+        let cancelled = false;
+
+        this.initPromise.then(() => {
+            if (cancelled) return;
+            const auth = getSafeAuth(this.appName);
+            if (!auth) {
+                callback(null);
+                return;
+            }
+            unsubscribe = onAuthStateChanged(auth, (user) => callback(mapUser(user)));
+        });
+
+        return () => {
+            cancelled = true;
+            unsubscribe();
+        };
     }
 
     // ── getAccessToken ─────────────────────────────────────────────────────────
 
     async getAccessToken(): Promise<string> {
-        const auth = getSafeAuth();
+        await this.initPromise;
+        const auth = getSafeAuth(this.appName);
         if (!auth?.currentUser) throw new Error('FirebaseAuthProvider: no active session');
         return auth.currentUser.getIdToken();
+    }
+
+    // ── getIdTokenClaims ───────────────────────────────────────────────────────
+
+    async getIdTokenClaims(): Promise<Record<string, unknown> | null> {
+        await this.initPromise;
+        const auth = getSafeAuth(this.appName);
+        if (!auth?.currentUser) return null;
+        const { claims } = await auth.currentUser.getIdTokenResult();
+        return claims;
     }
 }

@@ -1,4 +1,5 @@
 import type { ApiProviderAdapter, ApiProviderRequest } from './ApiProvider';
+import { callFirebaseFunction } from '../firebase-init';
 
 export type FirebaseApiProviderConfig = {
     /** Name of the Callable Function that receives { provider, request } and does the real, secret-bearing call server-side. */
@@ -13,11 +14,11 @@ export class FirebaseApiProviderAdapter implements ApiProviderAdapter {
     constructor(private config: FirebaseApiProviderConfig) {}
 
     async fetch(request: ApiProviderRequest): Promise<unknown> {
-        const { getApp } = await import('firebase/app');
-        const { getFunctions, httpsCallable } = await import('firebase/functions');
-        const functions = getFunctions(getApp(), this.config.region);
-        const call = httpsCallable(functions, this.config.functionName);
-        const result = await call({ provider: this.config.providerName, request });
-        return result.data;
+        return callFirebaseFunction(
+            this.config.functionName,
+            { provider: this.config.providerName, request },
+            undefined,
+            this.config.region,
+        );
     }
 }
