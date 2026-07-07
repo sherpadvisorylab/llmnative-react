@@ -153,6 +153,20 @@ export class FirebaseAuthProvider implements AuthProviderAdapter {
     // ── onAuthChange ───────────────────────────────────────────────────────────
 
     onAuthChange(callback: (user: UserProfile | null) => void): () => void {
+        // No owned config → whatever app exists (or doesn't) is already there; subscribe
+        // synchronously, same as before this provider supported owning its own app. Only
+        // defer when this instance's own init() call is actually still in flight — an
+        // unconditional await here would push every caller's callback a tick later, even
+        // in the common case, which callers relying on an immediate callback don't expect.
+        if (!this.options.config) {
+            const auth = getSafeAuth(this.appName);
+            if (!auth) {
+                callback(null);
+                return () => {};
+            }
+            return onAuthStateChanged(auth, (user) => callback(mapUser(user)));
+        }
+
         let unsubscribe = () => {};
         let cancelled = false;
 
