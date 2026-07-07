@@ -37,8 +37,8 @@ What it verifies dynamically:
 Current verification state:
 
 - `npm test` passes
-- `44` test files pass
-- `457` tests pass
+- `60` test files pass
+- `551` tests pass
 
 What this test does **not** verify:
 

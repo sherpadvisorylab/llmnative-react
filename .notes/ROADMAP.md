@@ -29,7 +29,7 @@ Already implemented and verified:
 - `ImageEditor` heavy runtime (`tui-image-editor`) now stays in a lazy chunk instead of being forced into the root bundle.
 - Vite-based showcase built on `<App providers={{ ... }}>` and Markdown docs via frontmatter.
 - Vite-first scaffold realigned to the new `providers` API.
-- Unit/component/contract tests: 45 files, 464 passing tests.
+- Unit/component/contract tests: 60 files, 551 passing tests.
 
 Not yet complete:
 
@@ -46,12 +46,13 @@ Not yet complete:
 ## Recommended sequence
 
 ```text
-CR-006 tests hardening              in progress
-CR-007 showcase completion          in progress
-CR-012 showcase native examples     next
-CR-014 component API audit          after/while CR-012
-CR-008..CR-011 themes cleanup       after visual baseline
-2.0.0-rc                            after tests + showcase no critical stubs
+CR-006 tests hardening              88% — 551 tests
+CR-007 showcase completion          73% — 9 stub routes remain
+CR-014 component API audit          55%
+CR-025 ContextMenu/@mention         in progress
+CR-039 WorkflowAI                   spec written — not started
+CR-040 SchemaForm                   spec written — not started
+CR-027 Notifications/toast motion   last gap in motion system
 ```
 
 ---
@@ -111,18 +112,14 @@ Known issues:
 
 ## Priority 4 - Release readiness
 
-Before `2.0.0-rc`:
+Released as `@llmnative/react@1.0.0` (2026-07-07).
 
-- `npm run test` passes. *(already true on 2026-06-18)*
-- `npm run build` passes.
-- `cd clients/showcase && npm run build` passes.
-- Showcase without critical stubs in main paths.
-- Operational docs updated to the same date.
-- Unresolved gaps declared in `STATUS.md`.
+Next (1.x / 2.0):
 
-Before `2.0.0`:
-
-- CI active.
-- At least one E2E CRUD flow.
-- Clear integration strategy for Firebase and Supabase.
-- README and public docs aligned to the real state.
+- CR-025: ContextMenu/@mention completion, legacy `Command.tsx` removal.
+- CR-039: WorkflowAI declarative multi-step pipeline.
+- CR-040: SchemaForm (form generation from JSON schema).
+- CR-027: Notifications/toast-specific motion.
+- Showcase stub elimination (9 routes remain).
+- Playwright E2E for at least one CRUD flow.
+- Firebase/Supabase emulator integration tests.

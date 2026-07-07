@@ -1,7 +1,7 @@
 # @llmnative/react — Riferimento completo
 
 Framework React AI-first per generazione deterministica di UI. Data-driven di default, schema-driven opzionale.
-Versione 0.1.x — Apache-2.0
+Versione 1.0.0 — Apache-2.0
 
 ```bash
 npm install @llmnative/react

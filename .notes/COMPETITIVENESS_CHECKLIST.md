@@ -3,8 +3,8 @@
 > Operational roadmap for bringing @llmnative/react to the level of React Admin, Refine and Contember.
 > Each item is an atomic verifiable task: ✅ done, ⬜ to do.
 >
-> Last reviewed: 2026-06-06
-> Based on `main` codebase analysis (v0.1.2 → target v1.0.0)
+> Last reviewed: 2026-07-07
+> Based on `main` codebase analysis (published as @llmnative/react@1.0.0)
 
 ---
 
@@ -34,8 +34,8 @@ The framework defines itself as "AI-first". Today the AI provider is **completel
 - [x] **Fix `fetchAI` export**: removed — replaced by `createAIProviderRegistry`
 - [x] **Implement DeepSeek**: config key `deepSeekApiKey` now maps to the built-in `deepseek` provider
 - [x] **Remove debug logs from production**: all removed — no `console.log("Laaaaaaaaaaaa")`, `"<<<<<<<<impossible>>>>>>>>"`
-- [ ] **Type without `any`**: `AIProviderDefinition` typed, but `any` persists in `fetchJson` response handling
-- [ ] **Add AI provider tests**: mock HTTP + verify calls + parse response for each provider
+- [x] **Type without `any`**: CR-042 done — 6 justified exceptions, all annotated. `tsc --noEmit` 0 errors.
+- [x] **Add AI provider tests**: 32 tests in `tests/unit/providers/AIProviderDefinitions.test.ts`.
 
 ### P0.1 — Incomplete providers
 
@@ -112,8 +112,8 @@ This is where gaps that the market expects are closed.
 ### P2.1 — i18n
 
 - [x] **Create I18nProvider and `useI18n()` hook** (CR-029)
-- [ ] **Extract hardcoded strings** from public components
-- [ ] **Default `en` dictionary** + locale switching support in `<App locale="it" />`
+- [x] **Extract hardcoded strings** from public components (14/14 files — see I18N_AUDIT.md)
+- [x] **Default `en` dictionary** + locale switching support in `<App locale="it" />`
 
 ### P2.2 — Auth
 
@@ -129,10 +129,10 @@ This is where gaps that the market expects are closed.
 
 ### P2.4 — UI/UX
 
-- [ ] **Notifications/Toast system**
-- [ ] **WYSIWYG editor** (CR-024 — Tiptap)
-- [ ] **ContextMenu with @mention** (CR-025)
-- [ ] **Sidebar block** (CR-031)
+- [ ] **Notifications/Toast system** (dropdown-based — standalone toast still missing)
+- [x] **WYSIWYG editor** (CR-024 — Tiptap, RichText)
+- [ ] **ContextMenu with @mention** (CR-025 — 30%)
+- [x] **Sidebar block** (CR-031 — SideNav)
 
 ### P2.5 — Developer experience
 
@@ -312,17 +312,18 @@ PHASE 4 — PARITY + ECOSYSTEM (1-2 months)
 
 ## Appendix D — Quality gates for v1.0.0
 
-| Metric | Target | How to measure |
-|--------|--------|----------------|
-| Test count | ≥ 200 | `npm run test -- --reporter=verbose` |
-| Coverage | ≥ 60% | `npm run test:coverage` |
-| Failing tests | 0 | `npm run test` |
-| TypeScript strict | 0 errors | `npx tsc --noEmit` |
-| CI build | ✅ on every PR | GitHub Actions |
-| Showcase build | ✅ | `cd clients/showcase && npm run build` |
-| E2E flows | ≥ 1 (CRUD) | Playwright |
-| Data providers | 4/4 working | Mock ✅ FirebaseRTDB ✅ Firestore ✅ Supabase ✅ |
-| Auth providers | 4/4 working | Google ✅ Firebase ✅ Supabase ✅ Dropbox ✅ |
+| Metric | Target | Actual (v1.0.0) |
+|--------|--------|-----------------|
+| Test count | ≥ 200 | **551** ✅ |
+| Coverage | ≥ 60% | ❌ not yet measured |
+| Failing tests | 0 | **0** ✅ |
+| TypeScript strict | 0 errors | **0** ✅ (`tsc --noEmit`) |
+| CI build | ✅ on every PR | ✅ GitHub Actions |
+| Showcase build | ✅ | ✅ `clients/showcase && npm run build` |
+| Published | ✅ npm | ✅ `@llmnative/react@1.0.0` |
+| E2E flows | ≥ 1 (CRUD) | ❌ Playwright not yet set up |
+| Data providers | 4/4 working | ✅ Mock ✅ FirebaseRTDB ✅ Firestore ✅ Supabase |
+| Auth providers | 4/4 working | ✅ Google ✅ Firebase ✅ Supabase ✅ Dropbox |
 
 ---
 
