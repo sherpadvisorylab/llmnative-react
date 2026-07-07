@@ -51,19 +51,19 @@ import '@llmnative/react/dist/index.css'  // necessario una volta sola
 | storage | `firestorage`, `supabaseStorage` | no |
 | auth | `googleAuth`, `firebaseAuth`, `supabaseAuth`, `dropboxAuth` | sì (fallback: googleAuth) |
 | email | `gmail` | no |
-| ai | `openai`, `gemini`, `anthropic`, `deepseek`, `mistral`, `openrouter` | no |
+| ai | `openai`, `gemini`, `anthropic`, `deepseek`, `mistral`, `openrouter`, `opencode` | no |
 
 ```tsx
-<App providers={{ firebase: { config: firebaseConfig }, services: { data: 'dbRealtime', storage: 'firestorage', auth: 'googleAuth' } }} />
+<App providers={{ firebase: { apiKey, authDomain, databaseURL }, services: { data: 'dbRealtime', storage: 'firestorage', auth: 'googleAuth' } }} />
 ```
 
 ## Struttura componenti
 
 ```
-ui/        → primitivi stateless: Alert, Badge, Button, Card, Image, Modal, Table, Gallery, Tab, Repeat, Icon
-ui/fields/ → campi form: Input, Select, Upload, UploadCSV, ImageField, RichText, Prompt
-blocks/    → composizioni: Menu, Breadcrumbs, Notifications, Search, Carousel
-widgets/   → smart (hanno stato e provider): Grid, Form, MarkdownReader, ImageEditor
+ui/        → primitivi stateless: Alert, Badge, Button, Card, Image, Modal, Table, Gallery, Tab, Repeat, Icon, LocaleSwitcher, ThemeSwitcher, ProviderSwitcher, LayoutBuilder, ContextMenu
+ui/fields/ → campi form: Input, Select, Upload (Image/Document/CSV), CodeEditor, ImageField, RichText, Prompt, Crop, ContextMenu
+blocks/    → composizioni: Menu, Breadcrumbs, Notifications, Search, Carousel, Dropdown, Toolbar, SideNav, ListCard, AuthButton
+widgets/   → smart (hanno stato e provider): Grid, Form, MarkdownReader, ImageEditor, TabDynamic
 ```
 
 Tutti gli import da `'@llmnative/react'` — mai da sottodirectory.

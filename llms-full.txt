@@ -327,6 +327,18 @@ Azioni: `save()`, `delete()`, `reset()`, `restoreDraft()`, `discardDraft()`.
 | `editable` | `boolean` |
 | `max` | `number` (MB) |
 
+### Crop
+```tsx
+<Crop name="avatar" label="Avatar" aspectRatio={1} />
+```
+Campo ritaglio immagine con preview e zoom.
+
+### UploadCSV
+```tsx
+<UploadCSV name="data" label="Importa CSV" />
+```
+Upload file CSV con preview tabellare e validazione.
+
 ### ImageField
 ```tsx
 <ImageField
@@ -339,6 +351,12 @@ Azioni: `save()`, `delete()`, `reset()`, `restoreDraft()`, `discardDraft()`.
 ```
 
 Gestisce un oggetto `{ src, alt, srcset?, sizes? }`, preview inline, crop editor e generazione opzionale di varianti responsive.
+
+### CodeEditor
+```tsx
+<CodeEditor name="code" label="Template" language="html" />
+```
+Editor basato su CodeMirror con syntax highlighting e validazione. Linguaggi: `liquid`, `html`, `json`, `js`, `ts`, `css`.
 
 ### RichText
 ```tsx
@@ -469,6 +487,27 @@ Editor WYSIWYG integrato con il contesto `Form`. Carica TipTap lazy solo quando 
 <Percentage value={0.75} appearance="circle" size={60} />
 ```
 
+### Dropdown
+```tsx
+<Dropdown trigger={<Icon name="menu" />} position="end">
+  <DropdownItem label="Modifica" icon="edit" onClick={() => {}} />
+  <DropdownItem label="Elimina" icon="trash" variant="danger" />
+  <DropdownDivider />
+  <DropdownHeader label="Azioni rapide" />
+</Dropdown>
+```
+
+### ContextMenu
+```tsx
+<ContextMenu trigger="/" searchable>
+  <ContextMenu.Heading>Comandi</ContextMenu.Heading>
+  <ContextMenu.Item label="Titolo" value="# " icon="heading" />
+  <ContextMenu.Separator />
+  <ContextMenu.Item label="Bold" value="**bold**" icon="bold" />
+</ContextMenu>
+```
+Funziona su qualsiasi `<textarea>` / `<input>` figlio. Trigger custom (`/`, `@`, `{`), filtro searchable, navigazione tastiera, floating positioning.
+
 ### Altre primitive
 ```tsx
 <Icon name="user" size={20} />           // usa provider icone configurato
@@ -476,6 +515,10 @@ Editor WYSIWYG integrato con il contesto `Form`. Carica TipTap lazy solo quando 
 <Loader />                               // spinner
 <Code language="tsx">{snippet}</Code>   // syntax highlight
 <GridSystem.Row><GridSystem.Col xs={12} md={6}>...</GridSystem.Col></GridSystem.Row>
+<LocaleSwitcher locales={[{ code: 'it', label: 'Italiano' }]} />
+<ThemeSwitcher />
+<ProviderSwitcher />
+<LayoutBuilder components={...} />
 ```
 
 ---
@@ -488,6 +531,11 @@ Editor WYSIWYG integrato con il contesto `Form`. Carica TipTap lazy solo quando 
 <Search onQueryChange={(e) => setQ(e.target.value)} />
 <Notifications />
 <Carousel images={[...]} />
+<Toolbar items={[...]}>
+  {children}
+</Toolbar>
+<SideNav />
+<ListCard records={records} onRowClick={(r) => {}} />
 
 // Menu — renderizza una sezione del menuConfig passato ad <App>
 <Menu menuKey="main" />            // 'main' o qualsiasi chiave definita in MenuConfig
@@ -526,16 +574,17 @@ Tab con lazy loading dei contenuti — gestione dinamica aggiunta/rimozione tab.
 ## AI Integration
 
 ```ts
-import { AI } from '@llmnative/react'
-
-const text  = await AI.fetch("Scrivi un titolo per: {keyword}", { keyword: "React" })
-const json  = await AI.json("Lista di 5 categorie per blog tech")
-const arr   = await AI.array("5 tag per: machine learning")
+import { useAIProvider, getAIModelCatalog, createAIProviderRegistry } from '@llmnative/react'
 
 // Hooks
 const provider  = useAIProvider()           // provider di default
 const registry  = useAIProviderRegistry()   // tutti i provider AI registrati
 const catalog   = getAIModelCatalog()       // modelli disponibili
+
+// Provider adapter restituito da useAIProvider()
+const text  = await provider.fetch("Scrivi un titolo per: {keyword}", { keyword: "React" })
+const json  = await provider.json("Lista di 5 categorie per blog tech")
+const arr   = await provider.array("5 tag per: machine learning")
 
 // Provider custom
 class MyAIProvider implements AIProviderAdapter {
@@ -543,9 +592,12 @@ class MyAIProvider implements AIProviderAdapter {
   async json<T>(prompt: string, options?: AIRequestOptions): Promise<T> { ... }
   async array(prompt: string, options?: AIRequestOptions): Promise<string[]> { ... }
 }
+
+// Factory per registri esterni
+const registry = createAIProviderRegistry(definitions)
 ```
 
-Configurazione API key in `Config.tsx`: `geminiApiKey`, `openaiApiKey`, `anthropicApiKey`, `deepSeekApiKey`, `mistralApiKey`.
+Configurazione API key in `Config.tsx`: `geminiApiKey`, `openaiApiKey`, `anthropicApiKey`, `deepSeekApiKey`, `mistralApiKey`, `openRouterApiKey`.
 
 ---
 
@@ -597,16 +649,37 @@ removeGlobalVars('key')
 | `useEmailProvider(name?)` | `EmailProviderAdapter \| null` |
 | `useAIProvider(name?)` | `AIProviderAdapter \| null` |
 | `useAIProviderRegistry()` | `Record<string, AIProviderAdapter>` |
+| `useCredentialsProvider()` | `CredentialsAdapter \| null` |
 | `useTheme()` | `Theme \| undefined` |
 | `useThemeController()` | `ThemeController` |
 | `useIconController()` | `IconController` |
 | `useAccessToken()` | `string \| null` |
 | `useGlobalVars()` | `Record<string, unknown>` |
 | `useHead()` | `HeadController` |
+| `useDocumentHead()` | `HeadController` |
+| `useAssetsHead(title?)` | `void` |
+| `useLanguageHead(lang?)` | `void` |
+| `useSocialHead(config)` | `void` |
+| `usePaginationHead(config)` | `void` |
+| `usePwaHead(config)` | `void` |
+| `useSchemaOrgHead(config)` | `void` |
+| `useHeadLinks(links)` | `void` |
 | `useProxy()` | `(url, init?) => Promise<Response>` |
 | `useImage()` | `UseImageResult` |
 | `useI18n()` | `I18nController` |
 | `useMenu()` | Menu hook |
+| `useFormController(controller?)` | `FormController` |
+| `useFormActions()` | `FormController` |
+| `useApiProvider(pathname?)` | `ApiProviderAdapter \| null` |
+| `useSetProvider(service, driver?)` | `void` |
+| `useProvider(name)` | `ProviderConfigurationState` |
+| `useProviderSession()` | `ProviderSession` |
+| `useDropBoxConnect(config?)` | `DropBoxConnectResult` |
+| `useEnterMotion(baseStyle?, ref?, fallback?)` | `CSSProperties` |
+| `useMotionState(active, ref?, fallback?, baseStyle?)` | `CSSProperties` |
+| `useMotionEffect(ref?, fallback?)` | `ResolvedMotionEffect` |
+| `usePressMotion(hovered, baseStyle?, ref?, fallback?)` | `{ style, pressHandlers }` |
+| `useIconProvider()` | `IconProvider` |
 
 ---
 
@@ -635,11 +708,17 @@ type UserProfile = { uid?: string; email?: string; displayName?: string; photoUR
 ## Utilities
 
 ```ts
-import { cn, converter, sanitizer, order, path, fetch, seo } from '@llmnative/react'
+import { cn, converter, Sanitizer, Order, path, fetchJson, fetchRest, fetchWithRetry } from '@llmnative/react'
+import { getKeywordIdeas, getGoogleTrendsData, getGoogleTrendsRelated } from '@llmnative/react'
 
-cn('base', condition && 'extra', className)   // tailwind-merge classname
-seo.getKeywordIdeas(keyword)                  // Google Ads Keywords
-seo.getGoogleTrendsData(keyword)              // Google Trends
+cn('base', condition && 'extra', className)     // tailwind-merge classname
+new Sanitizer().sanitize(html)                  // XSS sanitizer (non usare dangerouslySetInnerHTML)
+new Order().order(records, { field: 'name', dir: 'asc' })  // ordina record array
+fetchJson(url, init?)                           // fetch + JSON parse + error handling
+fetchRest(path, init?)                          // fetch REST con auth
+getKeywordIdeas(keyword)                        // Google Ads Keyword Ideas
+getGoogleTrendsData(keyword)                    // Google Trends interest over time
+getGoogleTrendsRelated(keyword)                 // Google Trends related queries
 ```
 
 ---
@@ -725,16 +804,33 @@ export const providers: AppProvidersConfig = {
 |---|---|
 | Form | `src/components/widgets/Form.tsx` |
 | Grid | `src/components/widgets/Grid.tsx` |
+| Prompt | `src/components/widgets/Prompt.tsx` |
 | Campi form | `src/components/ui/fields/` |
-| Provider data Firebase | `src/providers/data/firebase.ts` |
+| Blocks (Menu, Toolbar, Notifications, Dropdown…) | `src/components/blocks/` |
+| Provider data Firebase (RTDB) | `src/providers/data/firebase.ts` |
+| Provider data Firestore | `src/providers/data/firestore.ts` |
 | Provider data Supabase | `src/providers/data/supabase.ts` |
+| Provider storage Firebase | `src/providers/storage/firebase.ts` |
+| Provider storage Supabase | `src/providers/storage/supabase.ts` |
 | Provider auth Firebase | `src/providers/auth/firebase/FirebaseAuthProvider.ts` |
+| Provider auth Supabase | `src/providers/auth/supabase/` |
 | Provider auth Google | `src/providers/auth/google/` |
+| Provider auth Dropbox | `src/providers/auth/dropbox/` |
+| Provider email Gmail | `src/providers/email/gmail.ts` |
+| Provider AI definitions | `src/providers/ai/` |
+| Provider credenziali | `src/providers/credentials/` |
+| Provider session | `src/providers/ProviderSession.ts` |
+| Proxy CORS | `src/providers/proxy.ts` |
+| Motion system | `src/motion.ts` |
+| I18n | `src/I18n.ts` |
+| Dropbox integration | `src/providers/dropbox/` |
 | Interfaccia DataProvider | `src/providers/data/DataProvider.ts` |
 | Interfaccia StorageProvider | `src/providers/storage/StorageProvider.ts` |
 | Interfaccia AuthProvider | `src/providers/auth/AuthProvider.ts` |
+| Interfaccia EmailProvider | `src/providers/email/EmailProvider.ts` |
+| Interfaccia AIProvider | `src/providers/ai/AIProvider.ts` |
 | Registry provider | `src/providers/manifest.ts` |
-| AI integration | `src/providers/ai/index.ts` |
+| Config provider | `src/providers/ProviderConfiguration.ts` |
 | SEO / Google Trends | `src/providers/seo/google/` |
 | Sistema tema | `src/Theme.tsx` |
 | Config runtime | `src/Config.tsx` |
