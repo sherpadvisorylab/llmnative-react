@@ -20,14 +20,23 @@ interface PercentageBarProps {
 
 
 interface PercentageProps extends UIProps {
+  /** Current value. */
   value?: number;
+  /** Maximum value (defaults to `100`). */
   max?: number;
+  /** Minimum value. */
   min?: number;
+  /** Visual shape: `"bar"` (default) or `"circle"`. */
   appearance?: ShapeType;
+  /** Progress bar color. */
   variant?: ColorType;
+  /** Track (background) color. */
   trackVariant?: ColorType;
+  /** Bar/circle thickness in px. */
   thickness?: number;
+  /** Show percentage text label. */
   showText?: boolean;
+  /** Circle diameter in px (circle mode only). */
   size?: number;
   fontSize?: number;
   label?: string;

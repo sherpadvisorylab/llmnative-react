@@ -67,6 +67,7 @@
 | CR-046 | Done | PromptRun redesign chatbot-style. |
 | CR-047 | Done | Prompt extensible toolbar + PromptUtils API. |
 | CR-049 | Done | Component.schema meta-layer per configurazione campi. |
+| CR-014 | Done | Audit API completo su 40+ componenti. 8 bug fix. JSDoc su 20+ file. |
 
 ---
 
@@ -76,7 +77,6 @@
 |----|-----------|-----------------|
 | CR-006 | **88%** — 60 test files / 551 tests. GitHub Actions CI present (test + build + showcase). Firebase/Supabase emulator integration, browser OAuth and Playwright E2E still absent. | Integration/E2E coverage. |
 | CR-007 | **73%** — Showcase is a real Vite consumer app with many component pages and interactive playgrounds. SideNav present. FormCustomActionsPage added. 30 new smoke tests. | 9 stub routes remain (providers: firebase/supabase/google — examples: crud/dashboard/nested-form/file-manager/google-auth). |
-| CR-014 | **55%** — Component API and playground much richer than May snapshot. Public export contract test verifies all showcase imports resolve. | Public API audit, Input/Modal/Grid doc clarifications still open. Icon `type`/`inputType` inconsistency unresolved. |
 | CR-027 | Done | Motion system completo. Notifications con `motion` prop e stagger item. |
 | CR-039 | **0% — spec written** | WorkflowAI declarative multi-step pipeline; spec in `CHANGE_REQUESTS.md`. No implementation. |
 | CR-040 | **0% — spec written** | SchemaForm (form generation from JSON schema/factory); spec in `CHANGE_REQUESTS.md`. No implementation. |

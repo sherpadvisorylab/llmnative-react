@@ -8,6 +8,7 @@ import Icon from './Icon';
 
 export type AlertProps = {
     children: string | React.ReactNode;
+    /** Semantic color variant. */
     variant?: "info" | "success" | "warning" | "danger" | "primary" | "secondary" | "light" | "dark";
     /** Visual shell:
      *  - `"default"` - full alert box with background and border (default)
@@ -22,8 +23,11 @@ export type AlertProps = {
     placement?: "inline" | "fixed" | "sticky";
     /** Required when placement="sticky": the scrollable container to anchor to. */
     anchorRef?: React.RefObject<HTMLElement>;
+    /** Auto-dismiss timeout in ms. */
     timeout?: number;
+    /** Called when the alert is dismissed. */
     onClose?: () => void;
+    /** Icon name, or `true` to show the default variant icon, or `false` to hide. */
     icon?: string | boolean;
     className?: string;
 } & UIProps;

@@ -76,39 +76,46 @@ type RenderAIUnavailable = (props: {
     configured: boolean;
 }) => React.ReactNode;
 
-type PromptSharedProps = FormFieldProps & {
+interface PromptFieldBase {
+    name: string;
+    label?: string;
+    required?: boolean;
+    onChange?: FormFieldProps["onChange"];
+    before?: React.ReactNode;
+    after?: React.ReactNode;
+    wrapperClassName?: string;
+    className?: string;
     minHeight?: number;
     maxHeight?: number;
+}
+
+interface PromptWithAI extends PromptFieldBase {
     defaultValue?: PromptDefaultValue;
     renderAIUnavailable?: RenderAIUnavailable;
+}
+
+interface PromptEditorProps extends PromptWithAI {
+    value?: RecordProps & { prompt?: PromptConfig };
+}
+
+interface PromptRunProps extends PromptWithAI {
+    value?: RecordProps & { prompt?: PromptConfig };
     variables?: PromptVariables;
-};
-
-type PromptEditProps = PromptSharedProps & {
-    mode?: PromptMode.EDIT;
-};
-
-type PromptRunProps = PromptSharedProps & {
-    mode: PromptMode.RUN;
     onRunPrompt?: OnRunPrompt;
     renderFallback?: RenderPlainFallback;
     commands?: PromptCommand[];
     attachments?: boolean;
     actions?: PromptAction[];
     statusItems?: PromptStatusItem[];
-};
-
-export type PromptProps = PromptEditProps | PromptRunProps;
-
-interface PromptEditorProps extends Omit<PromptEditProps, "mode"> {
-    value?: RecordProps & { prompt?: PromptConfig };
 }
 
-interface PromptRunBranchProps extends Omit<PromptRunProps, "mode"> {
-    value?: RecordProps & { prompt?: PromptConfig };
+interface PromptPlainFallbackProps extends PromptFieldBase {
+    renderFallback?: RenderPlainFallback;
 }
 
-interface PromptPlainFallbackProps extends Omit<PromptRunProps, "mode" | "onRunPrompt"> {}
+type PromptEditBranch = PromptEditorProps & { mode?: PromptMode.EDIT };
+type PromptRunBranch = PromptRunProps & { mode: PromptMode.RUN };
+export type PromptProps = PromptEditBranch | PromptRunBranch;
 
 
 type PromptAvailabilityState = {
@@ -416,7 +423,7 @@ const PromptRun = ({
     attachments,
     actions,
     statusItems,
-}: PromptRunBranchProps) => {
+}: PromptRunProps) => {
     const { handleChange, record } = useFormContext({ name });
     const theme = useTheme("prompt");
     const dict = useI18n('prompt');

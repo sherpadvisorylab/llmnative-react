@@ -261,11 +261,12 @@ export const Autocomplete = ({
     inheritWrapperClassName = true,
     wrapperClassName = undefined,
     className = undefined,
+    validator = undefined,
     creatable = false,
     onCreate = undefined,
 }: AutocompleteProps) => {
     const { value, handleChange, formWrapClass } = useFormContext({ name, onChange, wrapperClassName, defaultValue, inheritWrapperClassName });
-    const error = useFieldValidation(name, { required, label });
+    const error = useFieldValidation(name, { required, label, validator });
     const theme = useTheme("select");
 
     const valueArray = useMemo(() => valueToArray(value), [value]);
@@ -402,10 +403,11 @@ export const Checklist = ({
     inheritWrapperClassName = true,
     wrapperClassName = undefined,
     className = undefined,
+    validator = undefined,
     itemClassName = undefined,
 }: ChecklistProps) => {
     const { value, handleChange, formWrapClass } = useFormContext({ name, onChange, wrapperClassName, defaultValue, inheritWrapperClassName });
-    const error = useFieldValidation(name, { required, label });
+    const error = useFieldValidation(name, { required, label, validator });
 
     const valueArray = useMemo(() => valueToArray(value), [value]);
     const [selectedItems, setSelectedItems] = useState(() => valueArray);

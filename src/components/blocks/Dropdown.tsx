@@ -9,6 +9,7 @@ import { useMotionState, usePressMotion } from '../../motion';
 import type { MotionUIProps } from '../types';
 import Icon from '../ui/Icon';
 
+/** Shorthand config for the dropdown trigger when it renders as a button + icon. */
 interface DropdownTogglerProps {
     icon?: string;
     text?: string;
@@ -16,16 +17,24 @@ interface DropdownTogglerProps {
 }
 interface DropdownProps extends MotionUIProps {
     children: React.ReactNode;
+    /** Dropdown trigger: string (label), React element, or `DropdownTogglerProps` object. */
     trigger?: string | React.ReactNode | DropdownTogglerProps;
     badge?: BadgeProps;
+    /** Fixed header rendered inside the dropdown menu. */
     header?: React.ReactNode;
     footer?: React.ReactNode;
+    /** Uncontrolled open state default. */
     defaultOpen?: boolean;
+    /** Controlled open state. */
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
+    /** When `true`, the menu stays open regardless of interaction. */
     staticOpen?: boolean;
+    /** Horizontal alignment relative to the trigger. */
     position?: "start" | "end";
+    /** Drop direction. */
     placement?: "auto" | "top" | "bottom";
+    /** CSS positioning strategy. */
     strategy?: "fixed" | "absolute";
     triggerClassName?: string;
     badgeClassName?: string;
@@ -37,6 +46,7 @@ interface DropdownProps extends MotionUIProps {
 interface DropdownButtonProps extends Pick<MotionUIProps, 'motion'> {
     children: React.ReactNode;
     badge?: BadgeProps;
+    /** `"static"` — always visible; `"dynamic"` — shows/hides with the menu. */
     display?: "static" | "dynamic";
     className?: string;
     badgeClassName?: string;
@@ -48,10 +58,12 @@ interface DropdownButtonProps extends Pick<MotionUIProps, 'motion'> {
 }
 
 interface DropdownItemProps {
+    /** Link URL. When set, renders as `<a>`, otherwise as `<button>`. */
     url?: string;
     onClick?: React.MouseEventHandler<HTMLAnchorElement | HTMLButtonElement>;
     className?: string;
     children: React.ReactNode;
+    /** Leading icon name. */
     icon?: string;
 }
 interface DropdownHeaderProps {

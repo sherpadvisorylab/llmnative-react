@@ -12,13 +12,15 @@ import Icon from './Icon';
 
 export interface IButton extends MotionUIProps {
     onClick?: (e: React.MouseEvent<HTMLElement>) => unknown;
+    /** Icon name or path for a leading icon. */
     icon?: string;
     label?: string | React.ReactNode;
+    /** Badge descriptor shown as overlay on the button. */
     badge?: BadgeProps;
     title?: string;
+    /** Accessible label for screen readers. Required when the button is icon-only. */
     ariaLabel?: string;
     disabled?: boolean;
-    loading?: boolean;
     iconClassName?: string;
     style?: React.CSSProperties;
     variant?: "primary" | "secondary" | "danger" | "success" | "warning" | "info" | "light" | "dark" | "outline-primary" | "outline-secondary" | "outline-danger" | "outline-success" | "link";
@@ -28,6 +30,7 @@ export type SetMessagePayload = { message: string; chunkDone?: number; totalChun
 
 export interface LoadingButtonProps extends Omit<IButton, "onClick"> {
     onClick?: (e: React.MouseEvent<HTMLElement>, setMessage?: (payload: SetMessagePayload) => void) => Promise<unknown>;
+    loading?: boolean;
     loadingLabel?: string | React.ReactNode;
 }
 
@@ -105,7 +108,7 @@ export const LoadingButton = ({
         <button
             type="button"
             title={title}
-            aria-label={ariaLabel}
+            aria-label={ariaLabel || (icon && !label ? title || undefined : undefined)}
             className={cn(
                 buttonBaseClass,
                 variant ? resolveButtonVariant(variant) : (className || theme.LoadingButton.className),
@@ -148,6 +151,7 @@ export const ActionButton = ({
     label           = undefined,
     badge           = undefined,
     title           = undefined,
+    ariaLabel       = undefined,
     disabled        = false,
     before             = undefined,
     after            = undefined,
@@ -164,6 +168,7 @@ export const ActionButton = ({
         <button
             type="button"
             title={title}
+            aria-label={ariaLabel || (icon && !label ? title || undefined : undefined)}
             className={cn(
                 buttonBaseClass,
                 variant ? resolveButtonVariant(variant) : (className || theme.ActionButton.className),

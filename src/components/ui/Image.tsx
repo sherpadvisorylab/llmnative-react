@@ -14,15 +14,21 @@ export type ImagePosition =
     | 'top left' | 'top right' | 'bottom left' | 'bottom right';
 
 type ImageProps = {
+    /** Image source URL. */
     src: string;
+    /** Placeholder image URL shown while loading. */
     placeholder?: string;
     label?: string;
     title?: string;
+    /** Object-fit style for the image. */
     fit?: ImageFit;
+    /** Object-position for the image. */
     position?: ImagePosition;
+    /** Feedback element shown below the image (e.g. caption, error). */
     feedback?: React.ReactNode;
     width?: number;
     height?: number;
+    /** Responsive srcset attribute. */
     srcset?: string;
     sizes?: string;
 } & UIProps;

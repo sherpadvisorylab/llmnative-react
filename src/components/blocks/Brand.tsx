@@ -5,12 +5,17 @@ import Image from "../ui/Image";
 import {Wrapper} from "../ui/GridSystem";
 
 type BrandProps = {
+    /** Link target URL for the brand. */
     url?: string;
+    /** Brand text label. */
     label?: string;
+    /** Logo image URL. */
     logo?: string;
+    /** Logo image width. */
     width?: number;
+    /** Logo image height. Defaults to `36`. */
     height?: number;
-    wrapperClassName ?: string;
+    wrapperClassName?: string;
     className?: string;
     logoClassName?: string;
     labelClassName?: string;

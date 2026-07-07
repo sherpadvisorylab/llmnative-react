@@ -10,17 +10,24 @@ import Icon from '../ui/Icon';
 export interface ListCardProps extends MotionUIProps {
     title?: React.ReactNode;
     description?: React.ReactNode;
+    /** Metadata displayed below the description. */
     meta?: React.ReactNode;
     badge?: React.ReactNode;
+    /** Leading icon or custom element. */
     icon?: string | React.ReactNode;
+    /** Element displayed on the trailing edge. */
     trailing?: React.ReactNode;
     footer?: React.ReactNode;
     children?: React.ReactNode;
+    /** Navigate to this URL on click. */
     href?: string;
+    /** Open link in a new tab. */
     external?: boolean;
     active?: boolean;
     disabled?: boolean;
+    /** Show a dashed border style. */
     dashed?: boolean;
+    /** Compact layout with less padding. */
     compact?: boolean;
     align?: 'start' | 'center';
     style?: React.CSSProperties;

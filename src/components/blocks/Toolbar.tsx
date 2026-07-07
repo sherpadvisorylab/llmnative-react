@@ -14,9 +14,13 @@ export interface ToolbarProps {
     center?: React.ReactNode;
     trailing?: React.ReactNode;
     children?: React.ReactNode;
+    /** Stick the toolbar to the top of the viewport on scroll. */
     sticky?: boolean;
+    /** Add shadow on scroll when `sticky` is enabled. */
     elevateOnScroll?: boolean;
+    /** Scroll container to observe for sticky threshold. Defaults to `window`. */
     scrollTarget?: ScrollTarget;
+    /** Px threshold before sticky/elevate activates. */
     scrollThreshold?: number;
     className?: string;
     innerClassName?: string;

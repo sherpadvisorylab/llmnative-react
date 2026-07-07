@@ -5,8 +5,10 @@ import { Wrapper } from "./GridSystem";
 import Icon from "./Icon";
 
 interface LoaderProps extends UIProps {
+    /** When `true`, renders the loading indicator instead of children. */
     show?: boolean;
     children: React.ReactNode;
+    /** Icon name for the loading indicator. */
     icon?: string;
     title?: string;
     description?: string;

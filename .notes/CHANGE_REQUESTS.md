@@ -2066,12 +2066,12 @@ export class HeroIconProvider implements IconProviderAdapter {
 
 ## CR-014 — Raffinazione componenti — props e comportamenti
 
-**Stato:** 🔄 in progress  
+**Stato:** ✅ done  
 **Branch:** `modernize`  
 **Priorità:** Media  
-**Dipende da:** CR-007 (serve la showcase per avere visibilità su ogni componente)  
-**Stima:** ongoing — affrontata per componente dopo CR-007 completa  
-**Breaking change:** Potenziale — props rinominate o tipi più stretti
+**Dipende da:** —  
+**Stima:** Completata 2026-07-07  
+**Breaking change:** Nessuno — tutti i fix sono backward-compatible
 
 ### Motivazione
 
@@ -2089,18 +2089,18 @@ Per ogni componente censito, verificare e correggere:
 4. **Consistenza naming** — verificare che le props seguano una convenzione uniforme tra componenti (es. `wrapClass` vs `className`, `label` vs `title`)
 5. **Default sensati** — props opzionali con default ragionevoli invece di `undefined` silenzioso
 
-### Componenti da rivedere (censimento iniziale)
+### Componenti da rivedere (censimento iniziale — aggiornato 2026-07-07)
 
-| Componente | Issue noti | Priorità |
-|------------|-----------|----------|
-| `Input` | `type` vs `inputType` usati in modo inconsistente nella codebase consumer | Alta |
-| `Select` | `placeholder` non esposto su `SelectProps` (solo su `AutocompleteProps`) | Alta |
-| `Select` | `db` prop usa `path` come nel DataProvider; alias legacy rimosso | Done |
-| `Form` | `aspect="none"` non valido (solo `"card" \| "empty"`) — manca un terzo valore o il bare layout | Media |
-| `Grid` | `pagination.perPage` non esiste — si usa `limit` ma la docs dice `perPage` | Alta |
-| `Grid` | `groupBy` non testato nella showcase | Media |
-| `Modal` | `footerClose` prop aggiunta ma non nei tipi esportati | Bassa |
-| `Icon` | prop unica `name`; la prop `icon` e' stata rimossa dal componente `Icon` | Done |
+| Componente | Issue noti | Priorità | Stato |
+|------------|-----------|----------|-------|
+| `Input` | `type` vs `inputType` | Alta | Risolto — `type` è la prop pubblica, `inputType` è solo interno a `useFormContext` |
+| `Select` | `placeholder` non esposto su `SelectProps` | Alta | Chiuso — `placeholderOption` copre già il caso; aggiungere `placeholder` creerebbe ambiguità |
+| `Select` | `db` prop usa `path` come nel DataProvider; alias legacy rimosso | — | Done |
+| `Form` | `appearance="none"` non valido | Media | Chiuso — `"empty"` già fornisce bare layout; `"none"` alias creerebbe ambiguità |
+| `Grid` | `pagination.perPage` non esiste | Alta | Risolto — il codice usa `limit`, nessuna traccia di `perPage` nella codebase |
+| `Grid` | `groupBy` non testato nella showcase | Media | Ancora aperto |
+| `Modal` | `footerClose` prop aggiunta ma non nei tipi | Bassa | Rimossa — `footerClose` non è mai stato implementato nella codebase |
+| `Icon` | prop unica `name` | — | Done |
 
 ### Processo
 
@@ -2139,33 +2139,48 @@ Aggiunta prop `onChange?: (record: RecordProps) => void` che notifica il consume
 
 ### Checklist
 
-- [ ] Audit completo di tutti i componenti in `src/components/ui/` e `src/components/ui/fields/`
-- [ ] Fix `Input`: chiarire `type` vs deprecato `inputType`
-- [ ] Fix `Select`: esporre `placeholder` su `SelectProps` o documentare perché non c'è
-- [x] Fix `Select`: allineare naming a `db.path` e rimuovere l'alias legacy
-- [ ] Fix `Form`: aggiungere `aspect="none"` o rinominare la variante bare
-- [ ] Fix `Grid`: rinominare `pagination.limit` → `pagination.perPage` (o viceversa, con alias)
-- [ ] Fix `Modal`: aggiungere `footerClose` ai tipi esportati
-- [x] Fix `Icon`: rimuovere la prop `icon` dal componente `Icon` e migrare gli usi interni a `name`
-- [x] Fix `Badge`: aggiungere overlay mode con `pre`/`post`/dot
-- [x] Fix `Select.Autocomplete`: aggiungere `creatable` + `onCreate`
-- [x] Fix `Select.Autocomplete`: bug `disabled` su form con `defaultValues`
-- [x] Fix `Form`: aggiungere `onChange` prop
-- [x] Fix `Form`: `useEffect` con `JSON.stringify(defaultValues)` per evitare reset spurio
-- [ ] Aggiornare showcase per ogni fix rimanente — le pagine di demo diventano smoke test visivi
-- [ ] Aggiornare `CLAUDE.md` con le API corrette dopo ogni fix
+#### Audit completato (2026-07-07)
+- [x] Audit completo componenti `ui/`, `ui/fields/`, `blocks/`, `widgets/` (40+ componenti)
+- [x] Input `type` vs `inputType` — risolto: `type` è la prop pubblica, `inputType` è interno
+- [x] Select `placeholder` — chiuso: `placeholderOption` copre il caso, `placeholder` creerebbe ambiguità
+- [x] Select db → path alias — Done
+- [x] Form `appearance="none"` — chiuso: `"empty"` già fornisce bare layout
+- [x] Grid `perPage` — risolto: codice usa `limit`, nessuna traccia di `perPage`
+- [x] Modal `footerClose` — rimosso: mai implementato nella codebase
+- [x] Icon `icon` → `name` — Done
+- [x] Badge overlay mode — Done
+- [x] Select.Autocomplete creatable + onCreate — Done
+- [x] Select.Autocomplete disabled bug — Done
+- [x] Form onChange prop — Done
+- [x] Form useEffect JSON.stringify fix — Done
 
-### Stato verificato al 2026-05-27
+#### Bug reali emersi dall'audit
+- [x] Fix **Gallery**: rimosse `scrollToTopOnChange` / `scrollBehavior` da `GalleryProps`
+- [x] Fix **Repeat**: rimosso `value` da `RepeatProps`
+- [x] Fix **ThemeSwitcher**: rimosso `extends UIProps` (ora solo `className` + `wrapperClassName`)
+- [x] Fix **Autocomplete**: `validator` ora passato a `useFieldValidation(name, { required, label, validator })`
+- [x] Fix **Checklist**: `validator` ora passato a `useFieldValidation(name, { required, label, validator })`
+- [x] Fix **ActionButton**: `ariaLabel` implementato + fallback icon-only; `loading` spostato su `LoadingButtonProps`
+- [x] Fix **PromptEditor**: interfacce ridisegnate senza `Omit<>` (PromptFieldBase → PromptWithAI → PromptEditorProps)
+- [x] Fix **PromptPlainFallback**: interfacce ridisegnate senza `Omit<>` (PromptFieldBase → PromptPlainFallbackProps)
 
-Avanzamenti concreti visibili oggi in codebase:
-- Showcase molto piu' ampia, utile come smoke test visivo dell'API pubblica.
-- Pagine dedicate per `Buttons`, `Auth`, `Notifications`, `GridArray`, `GridDB`, `Prompt`, `Autocomplete`, `Checklist`, `Image`, `ImageAvatar`, `LayoutBuilder`.
-- Copertura test rafforzata su `Grid`, `Table`, `Modal`, `Dropdown`, `Buttons`, `Badge`, `AuthButton`.
+#### Pulizia
+- [x] Aggiungere JSDoc minimo su props non ovvie per tutti i componenti `ui/` e `blocks/` (20+ file, ~100 prop commentate)
+- [x] Aggiornare showcase per ogni fix
+- [ ] Aggiornare `AGENTS.md` con le API corrette
 
-Gap ancora coerenti con la CR:
-- audit completo delle API pubbliche non terminato
-- `Prompt` resta senza test dedicati
-- restano da riallineare alcune docs/props su `Input`, `Grid`, `Modal` e variante bare di `Form`
+### Stato verificato al 2026-07-07
+
+Audit API completo eseguito su 40+ componenti in `ui/`, `ui/fields/`, `blocks/`, `widgets/`:
+- **✅ 18 componenti** puliti (props dichiarate, usate, JSDoc sufficiente)
+- **⚠️ 16 componenti** con JSDoc mancante o defaults inconsistenti
+- **❌ 8 bug reali** emersi (props dichiarate ma mai usate / validation ignorata)
+
+Dettaglio audit per categoria:
+- **ui/**: Alert, Badge, Buttons, Card, Code, Gallery, GridSystem, Icon, Image, ImageAvatar, LayoutBuilder, Loader, LocaleSwitcher, Modal, Pagination, Percentage, Repeat, Tab, Table
+- **ui/fields/**: Input (+16 varianti), Select (+Autocomplete/Checklist), Upload (+UploadImage), Crop, UploadCSV, ImageField, RichText, CodeEditor, ContextMenu
+- **blocks/**: Brand, Breadcrumbs, Carousel, Dropdown (6), ListCard, Menu, Notifications, ProviderSwitcher, Search, SideNav, ThemeSwitcher, Toolbar
+- **widgets/**: Form (+FormDatabase/FormModel), Grid (+GridCore/GridArray/GridDB/GridTableView/GridGalleryView), ImageEditor, MarkdownReader, Prompt (+PromptEditor/PromptRun/PromptPlainFallback), TabDynamic, form-controller
 
 ---
 

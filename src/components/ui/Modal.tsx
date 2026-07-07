@@ -58,14 +58,18 @@ export interface ModalProps extends MotionUIProps {
     stackedBehind?: boolean;
 }
 
+/** Props for a confirm/deny modal dialog with Yes/No buttons. */
 export interface ModalYesNoProps {
     title?: React.ReactNode;
     children: React.ReactNode;
+    /** Async handler for the Yes button. Return `true` to close. */
     onYes?: (e: React.MouseEvent<HTMLElement>) => Promise<boolean>;
+    /** Async handler for the No button. Return `true` to close. */
     onNo?: (e: React.MouseEvent<HTMLElement>) => Promise<boolean>;
     onClose?: () => void;
 }
 
+/** Props for a simple acknowledgment modal with an OK button. */
 export interface ModalOkProps {
     children: React.ReactNode;
     title?: React.ReactNode;

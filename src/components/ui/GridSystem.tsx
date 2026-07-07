@@ -8,7 +8,10 @@ type ContainerProps = {
     onClick?: () => void;
 };
 
-type ColProps = ContainerProps & {
+type ColProps = {
+    children?: ReactNode;
+    className?: string;
+    style?: CSSProperties;
     defaultSize?: number;
     xxl?: number | 'auto';
     xl?: number | 'auto';

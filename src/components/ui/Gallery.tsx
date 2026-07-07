@@ -69,13 +69,14 @@ export interface GalleryProps extends UIProps {
     records?: GalleryRecord[];
     header?: string | React.ReactNode;
     footer?: string | React.ReactNode;
+    /** Overlay badges rendered on each gallery item. */
     overlays?: GalleryOverlay[];
     onRowClick?: (record: GalleryRecord) => void;
     onSelectionChange?: GallerySelectionChangeHandler;
+    /** Enable sorting, optionally with a default sort config. */
     sortable?: boolean | OrderConfig;
     pagination?: PaginationParams;
-    scrollToTopOnChange?: boolean;
-    scrollBehavior?: ScrollBehavior;
+    /** Grid gap size (Tailwind spacing scale). */
     gap?: 0 | 1 | 2 | 3 | 4 | 5;
     columns?: 1 | 2 | 3 | 4 | 6;
     groupBy?: string | string[];

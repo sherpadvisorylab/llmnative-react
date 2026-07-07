@@ -14,7 +14,6 @@ export interface RepeatCallbackArgs {
 interface RepeatProps {
     name: string;
     children: React.ReactNode | ((args: RepeatCallbackArgs) => React.ReactNode);
-    value?: RecordProps[];
     onChange?: FieldOnChange;
     onAdd?: (value: RecordProps[]) => void;
     onRemove?: (index: number) => void;
@@ -37,7 +36,6 @@ const removeButtonClass = "h-7 w-7 rounded-md bg-transparent p-0 text-muted-fore
 const Repeat = ({
     name,
     children,
-    //value = undefined,
     onChange,
     onAdd,
     onRemove,

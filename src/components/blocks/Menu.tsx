@@ -10,8 +10,10 @@ import type { UIProps } from '../types';
 import { cn } from '../../libs/cn';
 
 interface MenuProps extends UIProps {
+  /** Registry key used to look up menu items from `useMenu()`. */
   menuKey: string;
   as?: 'ul' | 'ol';
+  /** Badge overrides keyed by menu item ID. */
   badges?: Record<string, { type?: BadgeType, children: string }>;
   headerClassName?: string;
   itemClassName?: string;

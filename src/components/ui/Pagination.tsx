@@ -28,7 +28,9 @@ export type PaginationParams = {
 
 interface PaginationProps<T> extends UIProps, PaginationParams {
     records: T[];
+    /** Render function receiving paginated records and current page offset. */
     children: (pageRecords: T[], pageOffset: number) => React.ReactNode;
+    /** Portal target element — renders pagination bar outside the normal flow. */
     appendTo?: HTMLElement | null;
 }
 

@@ -5,6 +5,7 @@ import { useI18n } from "../../I18n";
 
 
 interface SearchProps {
+    /** Called on every keystroke with the current search input event. */
     onQueryChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 export const SearchButton = () => {

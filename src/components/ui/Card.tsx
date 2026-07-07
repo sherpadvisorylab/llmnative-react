@@ -7,12 +7,15 @@ import Loader from './Loader';
 
 export interface CardProps extends UIProps {
     children: React.ReactNode;
+    /** Card title shown in the header area. */
     title?: string;
+    /** Custom header content (replaces the default title row). */
     header?: string | React.ReactNode;
     footer?: string | React.ReactNode;
     headerClassName?: string;
     bodyClassName?: string;
     footerClassName?: string;
+    /** Show a loading skeleton instead of content. */
     loading?: boolean;
     before?: React.ReactNode;
     after?: React.ReactNode;

@@ -4,12 +4,15 @@ import type { IconProviderAdapter } from '../../providers/icon/IconProvider';
 import { LucideIconProvider } from '../../providers/icon/LucideIconProvider';
 
 interface IconProps {
+    /** Icon name (provider-specific identifier). */
     name?: string;
+    /** Icon size in px. Defaults to `16`. */
     size?: number;
     className?: string;
     style?: React.CSSProperties;
     /** Override the global icon provider for this instance only */
     provider?: IconProviderAdapter;
+    /** Accessible label for screen readers. */
     label?: string;
     /** Provider-specific variant — e.g. PhosphorWeight: 'thin'|'light'|'regular'|'bold'|'fill'|'duotone'. Ignored by providers that don't support it. */
     weight?: string;

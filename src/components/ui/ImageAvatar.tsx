@@ -11,12 +11,15 @@ import type { BadgeDescriptor } from './Badge';
 export type AvatarFit = 'cover' | 'contain' | 'fill' | 'scale-down' | 'none';
 
 interface ImageAvatarProps extends UIProps {
+    /** Avatar image URL. */
     src: string;
     width?: number;
     height?: number;
     title?: string;
     alt?: string;
+    /** Object-fit style for the avatar image. */
     fit?: AvatarFit;
+    /** Badge descriptor shown as an overlay on the avatar. */
     badge?: BadgeDescriptor;
     feedback?: React.ReactNode;
 }

@@ -15,8 +15,10 @@ type CarouselProps = {
     showIndicators?: boolean;
     showControls?: boolean;
     showCaption?: boolean;
+    /** Use dark variant indicators/controls. */
     dark?: boolean;
     autoPlay?: AutoPlayOptions;
+    /** 0-based index of the initially visible slide. */
     initialSlide?: number;
     renderCaption?: (image: React.ReactElement) => React.ReactElement;
     onSlideClick?: (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;

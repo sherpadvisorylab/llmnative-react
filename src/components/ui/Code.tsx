@@ -103,9 +103,13 @@ const BACKGROUND_CLASS: Record<PrismBackground, string | undefined> = {
 
 interface CodeProps extends UIProps {
   children: string;
+  /** Syntax highlight language (e.g. `"tsx"`, `"python"`). */
   language?: PrismLanguage;
+  /** Show a copy-to-clipboard button. */
   showCopy?: boolean;
+  /** Prism color theme. */
   theme?: PrismTheme;
+  /** Background style variant. */
   background?: PrismBackground;
 }
 

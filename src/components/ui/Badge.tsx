@@ -47,11 +47,16 @@ export function normalizeBadgeProps(
 }
 
 export type BadgeOverlayProps = {
+    /** Shorthand badge descriptor (content + variant). */
     badge?: BadgeProps;
+    /** Badge content when not using the `badge` shorthand. */
     content?: React.ReactNode;
+    /** Badge color variant. */
     variant?: BadgeType;
+    /** Fallback variant when none is specified. */
     defaultType?: BadgeType;
     className?: string;
+    /** When `true` and no badge is provided, renders children without wrapping. */
     descriptorOnly?: boolean;
     children?: React.ReactNode;
 };
@@ -92,6 +97,7 @@ export const BadgeOverlay = ({
 
 export type BadgeComponentProps = {
     children: string | React.ReactNode;
+    /** Semantic color variant. */
     variant?: BadgeType;
 } & UIProps;
 

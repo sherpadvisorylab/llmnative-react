@@ -36,7 +36,9 @@ export interface TableProps extends UIProps {
     onRowClick?: (record: RecordProps) => void;
     onReorder?: TableReorderHandler;
     onSelectionChange?: TableSelectionChangeHandler;
+    /** Selection mode: `"single"` or `"multiple"`. */
     selection?: TableSelectionMode;
+    /** Enable sorting, optionally with a default sort config. */
     sortable?: boolean | OrderConfig;
     pagination?: PaginationParams;
     activeKey?: string | null;
@@ -48,6 +50,7 @@ export interface TableProps extends UIProps {
     heightClassName?: string,
     scrollClassName?: string,
     selectedClassName?: string,
+    /** Custom cell renderer. Receives the record, column key, and absolute row index. */
     renderCell?: (record: RecordProps, key: string, absoluteIndex: number) => React.ReactNode
 };
 

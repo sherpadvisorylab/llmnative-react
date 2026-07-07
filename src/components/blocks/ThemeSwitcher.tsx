@@ -4,7 +4,6 @@ import { PhosphorIconProvider } from '../../providers/icon/PhosphorIconProvider'
 import type { PhosphorWeight } from '../../providers/icon/PhosphorIconProvider';
 import { useThemeController } from '../../Theme';
 import type { ColorScale } from '../../Theme';
-import type { UIProps } from '../types';
 import Icon from '../ui/Icon';
 import Modal from '../ui/Modal';
 import { cn } from '../../libs/cn';
@@ -14,14 +13,19 @@ export interface ThemeSwitcherThemeOption {
     description?: string;
 }
 
-export interface ThemeSwitcherProps extends UIProps {
+export interface ThemeSwitcherProps {
+    /** Show the switcher panel. */
     open?: boolean;
+    className?: string;
+    wrapperClassName?: string;
     onClose?: () => void;
+    /** Render as a flat panel or inside a Modal. */
     surface?: 'flat' | 'modal';
     showHeader?: boolean;
     title?: React.ReactNode;
     subtitle?: React.ReactNode;
     headerActions?: React.ReactNode;
+    /** Per-theme label/description overrides. */
     themeOptions?: Record<string, ThemeSwitcherThemeOption>;
     showModeSection?: boolean;
     showPrimarySection?: boolean;
