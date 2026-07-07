@@ -156,7 +156,7 @@ Main real routes:
 
 | File | State |
 |------|-------|
-| `src/components/ui/fields/Command.tsx` | Legacy prototype with `contentEditable` and `document.execCommand`; to be removed or replaced in CR-025. |
+| ~~`src/components/ui/fields/Command.tsx`~~ | Removed in CR-025 (commit `df7d4a6`). |
 
 ---
 
@@ -181,4 +181,4 @@ Real verification performed on 2026-06-18:
 |---------|-----------|
 | 1.0.0 | Published on npm (`@llmnative/react@1.0.0`). |
 | 1.0.x | Maintenance: bugfixes, documentation alignment, test hardening. |
-| 1.x / 2.0 | Roadmap: CR-025 (ContextMenu/@mention), CR-039 (WorkflowAI), CR-040 (SchemaForm), showcase stub resolution, E2E. |
+| 1.x / 2.0 | Roadmap: CR-039 (WorkflowAI), CR-040 (SchemaForm), CR-050 (ContextMenu adapters), showcase stub resolution, E2E. |

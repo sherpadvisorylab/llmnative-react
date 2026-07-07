@@ -3195,122 +3195,39 @@ Il componente usa classi CSS del compatibility layer per la toolbar (`.btn`, `.b
 
 ## CR-025 — ContextMenu con comandi e @mention
 
-**Stato:** 🔄 in progress — slash commands implementati in `Prompt.tsx` (slashMatch, navigazione tastiera, filtro comandi). Manca `ContextMenu` come componente standalone e l'integrazione @mention. `Command.tsx` è legacy non esportato.  
+**Stato:** ✅ completato (v1.0.0) — `ContextMenu` implementato come componente standalone con floating positioning, navigazione tastiera, filtro searchable, trigger character custom. Integrato in showcase con Prompt (`{` per template variables, `@` per context variables, `/` per scorciatoie testo). `Command.tsx` rimosso.  
 **Branch:** `modernize/cr-025-context-menu`  
 **Priorità:** Alta  
 **Dipende da:** CR-024  
 **Stima:** 1 settimana  
 **Breaking change:** No (nuovo componente)
 
-### Motivazione
+### Deliverable realizzato
 
-Nei contesti di editing collaborativo o note-taking è comune il pattern **slash command** (`/`) e **@mention**: l'utente digita un carattere trigger e appare un menu contestuale con azioni o suggerimenti. Questo pattern è distinto da un dropdown standard — appare inline nel testo, segue il cursore, e inserisce contenuto strutturato nell'editor.
+- `src/components/ui/fields/ContextMenu.tsx` (393 linee) — componente compound con `Item`, `Heading`, `Separator`
+- Rilevazione trigger via `keyup` su `<textarea>` / `<input>` trovati con `querySelector`
+- Posizionamento floating via mirror span che replica il font rendering
+- Filtro searchable (filtra per `label` e `value`)
+- Navigazione tastiera: ↑ ↓ Enter/Esc/Tab
+- Click-outside-to-close via `pointerdown` listener
+- `EditorContext` con `textBeforeCaret`, `textAfterCaret`, `insert()`, `replace()`
+- Default behavior: sostituisce trigger + testo digitato con `item.value`
+- `onSelect` custom: riceve `(item, editorContext)`
+- Showcase: `ContextMenuPage.tsx` (4 demo: slash, searchable, @mention custom, multi-trigger)
+- Showcase Prompt: `PromptEditorPage.tsx` (`trigger="{"`), `PromptLivePage.tsx` (`trigger="@"`), `PromptPlainPage.tsx` (`trigger="/"`)
+- `Command.tsx` eliminato (commit `df7d4a6`)
 
-Il componente `ContextMenu` (già abbozzato in `src/components/ui/fields/Command.tsx`) va riscritto in modo strutturato, estendibile e integrato nativamente con l'editor scelto in CR-024.
+### Non realizzato (per motivi architetturali)
 
-### API target
+- **Integrazione con RichText/Tiptap**: non compatibile — Tiptap ha API Suggestion nativa, non usa `<textarea>`. Richiederebbe un adattatore Tiptap.
+- **Integrazione con CodeEditor**: non compatibile — CodeMirror non usa `<textarea>` ma contenteditable div. Richiederebbe un adattatore CodeMirror.
+- **Render-prop pattern** `{({ query }) => ...}`: non implementato (i children sono Item statici)
 
-```tsx
-import { RichEditor, ContextMenu } from '@llmnative/react';
+### Limiti noti
 
-<RichEditor name="body">
-  {/* slash command: digita / per vedere le azioni */}
-  <ContextMenu trigger="/" label="Comandi">
-    <ContextMenu.Item
-      id="heading"
-      label="Titolo"
-      icon="heading"
-      onSelect={() => editor.chain().toggleHeading({ level: 2 }).run()}
-    />
-    <ContextMenu.Item
-      id="quote"
-      label="Citazione"
-      icon="quote"
-      onSelect={() => editor.chain().toggleBlockquote().run()}
-    />
-    <ContextMenu.Item
-      id="table"
-      label="Tabella"
-      icon="table"
-      onSelect={() => editor.chain().insertTable().run()}
-    />
-  </ContextMenu>
-
-  {/* @mention: digita @ per cercare utenti */}
-  <ContextMenu trigger="@" label="Menziona" searchable>
-    {({ query }) => (
-      <MentionResults
-        query={query}
-        onSelect={(user) => editor.chain().insertMention(user).run()}
-      />
-    )}
-  </ContextMenu>
-</RichEditor>
-```
-
-### Comportamento
-
-1. L'utente digita il carattere `trigger` nell'editor
-2. Il menu appare posizionato vicino al cursore (floating, non in un portale fisso)
-3. L'utente può filtrare con ulteriore testo (`searchable`) o navigare con tastiera (↑ ↓ Enter Esc)
-4. Selezionando un item, il trigger character e il testo digitato vengono rimpiazzati dall'output dell'azione
-5. Esc o click fuori chiude il menu senza modificare il testo
-
-### Uso standalone (senza RichEditor)
-
-Il componente `ContextMenu` funziona anche su campi di testo normali — utile per mention in commenti, chat o input veloci senza editor ricco:
-
-```tsx
-<Input name="comment" label="Commento">
-  <ContextMenu trigger="@" searchable>
-    {({ query }) => <UserSuggestions query={query} />}
-  </ContextMenu>
-</Input>
-```
-
-### Architettura interna
-
-Se la libreria scelta in CR-024 è Tiptap, i trigger vengono implementati come **Suggestion extension** (`@tiptap/suggestion`), che gestisce nativamente la rilevazione del trigger character, il posizionamento floating e la navigazione tastiera. Il componente `ContextMenu` diventa un wrapper React thin sopra questa extension.
-
-Se la libreria è diversa, la logica di rilevazione trigger va re-implementata — ma l'API pubblica del componente rimane identica.
-
-### Refactoring Command.tsx
-
-Il file `src/components/ui/fields/Command.tsx` contiene un prototipo grezzo dello stesso pattern, ma usa `contentEditable` + `document.execCommand` (deprecato) e non ha integrazione con l'editor. Va rimosso o svuotato a favore di `ContextMenu`.
-
-### Scope
-
-**Incluso:**
-- Componente `ContextMenu` in `src/components/ui/fields/ContextMenu.tsx`
-- Integration con `RichEditor` (CR-024)
-- Uso standalone su `Input` e `TextArea`
-- Navigazione tastiera: ↑ ↓ Enter Esc Tab
-- Filtro testo (`searchable`)
-- Posizionamento floating vicino al cursore
-- Export da `src/index.ts`
-- Rimozione/svuotamento di `Command.tsx`
-- Pagina showcase con demo slash command + @mention
-- Aggiornamento `docs/components.md`
-
-**Escluso:**
-- Mention con persistenza (salvare le mention come link o nodi strutturati nell'editor) — può essere aggiunto in CR-026
-- Multi-trigger simultanei in editor diversi
-- SSR
-
-### Checklist
-
-- [ ] Verificare l'API Suggestion di Tiptap (o equivalente per la libreria scelta)
-- [ ] Creare `src/components/ui/fields/ContextMenu.tsx`
-- [ ] Implementare integration con `RichEditor`
-- [ ] Implementare uso standalone su `Input`/`TextArea`
-- [ ] Navigazione tastiera completa
-- [ ] Posizionamento floating
-- [ ] Rimuovere/svuotare `src/components/ui/fields/Command.tsx`
-- [ ] Aggiungere export in `src/index.ts`
-- [ ] Aggiungere pagina showcase `ContextMenuPage.tsx`
-- [ ] Aggiornare `docs/components.md`
-- [ ] `npm run build:dev` passa senza errori
-- [ ] Smoke test: slash command inserisce contenuto correttamente; @mention filtra e inserisce
+- Funziona solo su `<textarea>` e `<input>` nativi — non su editor custom (CodeMirror, Tiptap, Draft.js, Slate)
+- Single trigger per istanza (non multi-trigger sullo stesso ContextMenu)
+- Nessuna persistenza delle mention
 
 ---
 
@@ -4641,3 +4558,102 @@ CR-047 aggiunge il bottone attach nella UI e il trasporto attachment-side. Quest
 - [x] Disabilitare attach button se provider non supporta (`supportsVision === false && supportsDocuments === false`)
 - [x] Unit test
 - [x] Aggiornare `docs/AI_REFERENCE.md`
+
+---
+
+## CR-050 — ContextMenu adapter system (proposal)
+
+**Stato:** 📋 proposal — nessuna implementazione avviata  
+**Priorità:** Media  
+**Dipende da:** CR-025 (ContextMenu base completato)  
+**Stima:** 2-3 settimane  
+**Breaking change:** No (nuovo layer adapter, API ContextMenu invariata)
+
+### Motivazione
+
+Il `ContextMenu` attuale (CR-025) funziona solo su `<textarea>` / `<input>` nativi perché usa `querySelector` e `keydown`/`keyup` eventi DOM. Due editor importanti nel framework non possono beneficiarne:
+
+1. **CodeEditor** (CodeMirror) — rendering contenteditable, non textarea
+2. **RichText** (Tiptap) — ha API Suggestion nativa incompatibile
+
+Invece di riscrivere ContextMenu per ogni editor, si introduce un **sistema di adapter**: ogni editor espone un adapter che traduce l'API ContextMenu (rilevazione trigger, posizionamento cursore, insert/replace) nel meccanismo nativo dell'editor.
+
+### API proposta
+
+```tsx
+// L'adapter viene passato come prop, non più discovery automatica
+<CodeEditor name="body" language="html">
+  <ContextMenu trigger="/" adapter={codeMirrorAdapter}>
+    <ContextMenu.Item label="Div" value="<div></div>" />
+    <ContextMenu.Item label="Span" value="<span></span>" />
+  </ContextMenu>
+</CodeEditor>
+
+// RichText con adapter Tiptap
+<RichText name="body">
+  <ContextMenu trigger="/" adapter={tiptapAdapter}>
+    <ContextMenu.Item label="Heading" value="heading" 
+      onSelect={(_, ctx) => ctx.editor.chain().toggleHeading({ level: 2 }).run()} />
+  </ContextMenu>
+</RichText>
+```
+
+### Interfaccia adapter
+
+```tsx
+interface ContextMenuAdapter {
+  /** Tipo di editor target */
+  type: 'textarea' | 'codemirror' | 'tiptap';
+  
+  /** Registra i listener per il trigger character */
+  attach: (container: HTMLElement, trigger: string, callbacks: {
+    onTrigger: (pos: { top: number; left: number }) => void;
+    onKeyDown: (e: KeyboardEvent) => void;
+    onClose: () => void;
+  }) => () => void; // cleanup
+  
+  /** Sostituisce trigger + query con il valore selezionato */
+  replace: (value: string) => void;
+  
+  /** Inserisce testo alla posizione corrente */
+  insert: (text: string) => void;
+  
+  /** Riferimento all'istanza editor per onSelect */
+  editor?: unknown;
+}
+```
+
+### Adapter built-in
+
+| Adapter | Target | Meccanismo |
+|---------|--------|------------|
+| `textareaAdapter` (default) | `<textarea>` / `<input>` | Eventi DOM nativi — già implementato in CR-025 |
+| `codeMirrorAdapter` | CodeEditor | `CodeMirror.ViewPlugin` + `posToDOMRect` per floating |
+| `tiptapAdapter` | RichText | `@tiptap/suggestion` + `Editor.state.selection` |
+
+### Scope proposal (da validare)
+
+- Definire interfaccia `ContextMenuAdapter` in `src/components/ui/fields/ContextMenu.tsx`
+- Refactor del codice esistente per usare l'adapter invece della logica hardcoded
+- `textareaAdapter` — estrarre la logica attuale in un adapter esplicito
+- `codeMirrorAdapter` — implementare per CodeEditor
+- `tiptapAdapter` — implementare per RichText (nota: potrebbe essere complesso per la sovrapposizione con `@tiptap/suggestion`)
+- Auto-selection dell'adapter: se nessun adapter specificato, usare `textareaAdapter` (backward compatibile)
+- Showcase: demo ContextMenu dentro CodeEditor + RichText
+- Test: unit test per ogni adapter + integration test con editor mock
+
+### Escluso dal proposal
+
+- Adapter per altri editor (Draft.js, Slate, Quill) — futuro
+- Render-prop pattern `{({ query }) => ...}` — può essere CR separato se serve
+- Persistenza mention — CR-026
+
+### Domande aperte
+
+1. L'adapter va passato esplicitamente o va rilevato automaticamente dal contesto editor?
+2. Per Tiptap, ha senso un adapter o è meglio usare direttamente `@tiptap/suggestion` come estensione?
+3. CodeMirror ha `posToDOMRect` per il posizionamento floating, ma la sostituzione testo richiede `Editor.view.dispatch` — va bene?
+4. L'adapter espone `editor` per l'`onSelect`? Se sì, come tipizzarlo senza perdere type safety?
+5. Backward compatibility: `textareaAdapter` come default significa che tutto l'esistente continua a funzionare senza modifiche?
+
+---
