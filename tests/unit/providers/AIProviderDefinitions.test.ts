@@ -286,6 +286,45 @@ describe('createOpenAICompatibleProviderDefinition()', () => {
                 undefined,
             );
         });
+
+        it('includes image attachments as image_url content blocks', async () => {
+            mockFetchJson().mockResolvedValueOnce({ choices: [{ message: { content: 'ok' } }] });
+            await makeProvider().complete('sk-key', {
+                ...req,
+                attachments: [
+                    { mimeType: 'image/png', base64: 'iVBORw0KGgo=', name: 'photo.png' },
+                ],
+            });
+            const body = mockFetchJson().mock.calls[0][1].body as { messages: { content: { type: string }[] }[] };
+            const content = body.messages.find((m: { role: string }) => m.role === 'user')?.content;
+            expect(content[0]).toMatchObject({ type: 'image_url', image_url: { url: 'data:image/png;base64,iVBORw0KGgo=' } });
+        });
+
+        it('includes text document attachments as decoded text blocks', async () => {
+            mockFetchJson().mockResolvedValueOnce({ choices: [{ message: { content: 'ok' } }] });
+            await makeProvider().complete('sk-key', {
+                ...req,
+                attachments: [
+                    { mimeType: 'text/plain', base64: 'SGVsbG8gV29ybGQ=', name: 'hello.txt' },
+                ],
+            });
+            const body = mockFetchJson().mock.calls[0][1].body as { messages: { content: { text: string }[] }[] };
+            const content = body.messages.find((m: { role: string }) => m.role === 'user')?.content;
+            expect(content[0].text).toContain('Hello World');
+        });
+
+        it('includes binary document attachments as file reference text blocks', async () => {
+            mockFetchJson().mockResolvedValueOnce({ choices: [{ message: { content: 'ok' } }] });
+            await makeProvider().complete('sk-key', {
+                ...req,
+                attachments: [
+                    { mimeType: 'application/pdf', base64: 'JVBERi0=', name: 'doc.pdf' },
+                ],
+            });
+            const body = mockFetchJson().mock.calls[0][1].body as { messages: { content: { text: string }[] }[] };
+            const content = body.messages.find((m: { role: string }) => m.role === 'user')?.content;
+            expect(content[0].text).toContain('[File attached: doc.pdf (application/pdf)]');
+        });
     });
 });
 

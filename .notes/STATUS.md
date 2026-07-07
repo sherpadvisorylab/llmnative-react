@@ -81,7 +81,7 @@
 | CR-039 | **0% — spec written** | WorkflowAI declarative multi-step pipeline; spec in `CHANGE_REQUESTS.md`. No implementation. |
 | CR-040 | **0% — spec written** | SchemaForm (form generation from JSON schema/factory); spec in `CHANGE_REQUESTS.md`. No implementation. |
 | CR-041 | **0% — proposal written** | SeoEnhancer (HTML filter applying technical SEO, structured report); proposal in `CHANGE_REQUESTS.md`. No implementation. |
-| CR-048 | **80%** | Prompt file attachment + AI provider vision/docs. Manca OpenAI document support. |
+| CR-048 | Done | Prompt file attachment + AI provider vision/docs. OpenAI con supporto document (text decoding + binary reference). Tutti e 5 i provider built-in supportano attachments. |
 
 ---
 

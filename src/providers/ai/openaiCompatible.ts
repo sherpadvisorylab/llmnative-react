@@ -62,7 +62,7 @@ export const createOpenAICompatibleProviderDefinition = ({
         defaultModel,
         fallbackModels,
         dashboardUrl,
-        capabilities: { supportsTemperature: true, supportsVision: true, supportsDocuments: false },
+        capabilities: { supportsTemperature: true, supportsVision: true, supportsDocuments: true },
         validateApiKey: validateApiKeyOverride ?? defaultValidateApiKey,
         discoverModels: async (apiKey) => {
             const response = await fetchJson(resolvedModelsUrl, {
@@ -75,15 +75,19 @@ export const createOpenAICompatibleProviderDefinition = ({
                 : [];
         },
         complete: async (apiKey, request) => {
-            const imageAttachments = (request.attachments ?? []).filter((a) => a.mimeType.startsWith('image/'));
-            const userContent = imageAttachments.length > 0
-                ? [
-                    ...imageAttachments.map((a) => ({
-                        type: 'image_url' as const,
-                        image_url: { url: `data:${a.mimeType};base64,${a.base64}` },
-                    })),
-                    { type: 'text' as const, text: request.prompt },
-                  ]
+            const attachments = request.attachments ?? [];
+            const textMime = /^text\/|^application\/(json|csv|xml|javascript|typescript)/;
+            const userContent = attachments.length > 0
+                ? attachments.map((a) => {
+                    if (a.mimeType.startsWith('image/')) {
+                      return { type: 'image_url' as const, image_url: { url: `data:${a.mimeType};base64,${a.base64}` } };
+                    }
+                    if (textMime.test(a.mimeType)) {
+                      const decoded = globalThis.atob(a.base64);
+                      return { type: 'text' as const, text: `[File: ${a.name}]\n${decoded}` };
+                    }
+                    return { type: 'text' as const, text: `[File attached: ${a.name} (${a.mimeType})]` };
+                  }).concat({ type: 'text' as const, text: request.prompt })
                 : request.prompt;
 
             const response = await fetchJson(resolvedChatUrl, {

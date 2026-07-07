@@ -4524,7 +4524,7 @@ const configForm = Component.schema[field.type](field.overrides)
 
 ## CR-048 — Prompt file attachment — AI provider vision/docs integration
 
-**Stato:** ✅ completato (v1.0.0) — tutti gli item della checklist verificati. Dropdown/Menu/Accordion/Tabs/Modal/Bottoni animati. Notifications riceve `motion` prop con `useEnterMotion` per gli item con stagger 30ms, passa `motion` al Dropdown interno.  
+**Stato:** ✅ completato (v1.0.0) — tutti gli item della checklist verificati. OpenAI ora supporta documenti: text/plain, application/json, text/csv, text/xml, text/javascript vengono decodificati e inviati come contesto testuale; altri formati binari (PDF, DOCX) vengono segnalati con nome file e MIME type. `supportsDocuments: true` per tutti i provider OpenAI-compatibili. 3 nuovi test di attachment.  
 **Priorità:** Media
 **Dipende da:** CR-047
 
@@ -4551,7 +4551,7 @@ CR-047 aggiunge il bottone attach nella UI e il trasporto attachment-side. Quest
 - [x] `AIRequestOptions.attachments`
 - [x] `AIProviderCapabilities.supportsVision` + `supportsDocuments`
 - [x] `PromptUtils.fileToAttachment()`
-- [ ] OpenAI provider: document support oltre alle immagini
+- [x] OpenAI provider: document support oltre alle immagini
 - [x] Anthropic provider: vision + document
 - [x] Gemini provider: vision + document
 - [x] UI preview allegati in `PromptRun`
