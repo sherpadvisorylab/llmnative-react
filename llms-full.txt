@@ -405,6 +405,8 @@ In `RichText`, `commands` usa lo stesso contratto esterno di `Prompt` e `CodeEdi
 
 Quando `commands` e presente in `mode="run"`, `Prompt` monta internamente `ContextMenu` sulla textarea del risultato. Il trigger di default e `"/"`; `commandsTrigger` permette di cambiarlo. Il menu diventa searchable automaticamente sopra una soglia interna di comandi.
 
+`renderFallback`: quando l'AI non e configurata, `Prompt` monta un fallback testuale; passa `renderFallback` per personalizzarlo (riceve `{ name, label, required, onChange }`).
+
 ---
 
 ## UI Primitives
@@ -432,7 +434,8 @@ Quando `commands` e presente in `mode="run"`, `Prompt` monta internamente `Conte
 <GoSite href="https://..." label="Visita" />
 ```
 
-**IButton props:** `variant`, `label`, `icon`, `badge`, `disabled`, `loading`, `onClick`
+**IButton props:** `variant`, `label`, `icon`, `badge`, `disabled`, `ariaLabel`, `onClick`
+**LoadingButton aggiunge:** `loading`, `loadingLabel`
 
 ### Card
 ```tsx

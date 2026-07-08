@@ -25,7 +25,7 @@
 | [CR-021](#cr-021--use-case-templates) | Use case templates (crm, admin, inventory, project) | Media | CR-005, CR-017 | ✅ |
 | [CR-012](#cr-012--showcase-refactor--react-firestrap-native) | Showcase refactor — react-firestrap native | Alta | CR-004, CR-007 | ✅ |
 | [CR-013](#cr-013--icon-provider-system) | Icon provider system | Media | CR-004 | ✅ |
-| [CR-014](#cr-014--raffinazione-componenti--props-e-comportamenti) | Raffinazione componenti — props e comportamenti | Media | CR-007 | 🔄 |
+| [CR-014](#cr-014--raffinazione-componenti--props-e-comportamenti) | Raffinazione componenti — props e comportamenti | Media | — | ✅ done |
 | [CR-015](#cr-015--vite-toolchain-framework--scaffolding) | Vite toolchain framework + scaffolding | Alta | CR-003, CR-004, CR-006 | ✅ |
 | [CR-016](#cr-016--showcase-vite--scaffold-first) | Showcase Vite + scaffold-first | Alta | CR-012, CR-015 | ✅ |
 | [CR-017](#cr-017--app-managed-theme--icon-registries) | App-managed theme + icon registries | Alta | CR-004, CR-013 | ✅ |
@@ -2167,7 +2167,7 @@ Aggiunta prop `onChange?: (record: RecordProps) => void` che notifica il consume
 #### Pulizia
 - [x] Aggiungere JSDoc minimo su props non ovvie per tutti i componenti `ui/` e `blocks/` (20+ file, ~100 prop commentate)
 - [x] Aggiornare showcase per ogni fix
-- [ ] Aggiornare `AGENTS.md` con le API corrette
+- [x] Aggiornare `AGENTS.md` con le API corrette
 
 ### Stato verificato al 2026-07-07
 
