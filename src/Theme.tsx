@@ -504,6 +504,42 @@ function normalizeThemeProviderConfig(config?: AppThemeProviderConfig): {
         themeOverride: config.themeOverride,
     };
 }
+// Theme/mode are the only genuinely personal, low-stakes UI preference here — persisted
+// per-device in localStorage (not synced to any account/backend on purpose: it's a cosmetic
+// default a device remembers, not data that needs to follow the user across machines).
+const THEME_STORAGE_KEY = 'llmnative.theme.activeTheme';
+const MODE_STORAGE_KEY = 'llmnative.theme.mode';
+
+function readPersistedTheme(themes: Record<string, ThemeDefinition>): string | undefined {
+    if (typeof window === 'undefined') return undefined;
+    try {
+        const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
+        return stored && themes[stored] ? stored : undefined;
+    } catch {
+        return undefined;
+    }
+}
+
+function readPersistedMode(): ThemeMode | undefined {
+    if (typeof window === 'undefined') return undefined;
+    try {
+        const stored = window.localStorage.getItem(MODE_STORAGE_KEY);
+        return stored === 'light' || stored === 'dark' || stored === 'system' ? stored : undefined;
+    } catch {
+        return undefined;
+    }
+}
+
+function persistThemeChoice(themeId: string, mode: ThemeMode): void {
+    if (typeof window === 'undefined') return;
+    try {
+        window.localStorage.setItem(THEME_STORAGE_KEY, themeId);
+        window.localStorage.setItem(MODE_STORAGE_KEY, mode);
+    } catch {
+        // Private browsing / quota exceeded — theme just won't persist this session.
+    }
+}
+
 function resolveMode(mode: ThemeMode): 'light' | 'dark' {
     if (mode !== 'system') return mode;
     if (typeof window === 'undefined' || !window.matchMedia) return 'light';
@@ -585,11 +621,12 @@ export const ThemeProvider = ({
                                                                 config = undefined
 }: ThemeProviderProps) => {
     const normalized = useMemo(() => normalizeThemeProviderConfig(config), [config]);
-    const initialDefinition = normalized.themes[normalized.theme] ?? normalized.themes.default;
+    const initialThemeId = readPersistedTheme(normalized.themes) ?? normalized.theme;
+    const initialDefinition = normalized.themes[initialThemeId] ?? normalized.themes.default;
     const initialThemePreset = initialDefinition.preset;
     const [themeRegistry, setThemeRegistry] = useState<Record<string, ThemeDefinition>>(normalized.themes);
-    const [activeTheme, setActiveTheme] = useState(normalized.theme);
-    const [mode, setMode] = useState<ThemeMode>(normalized.defaultMode ?? initialThemePreset.mode ?? 'light');
+    const [activeTheme, setActiveTheme] = useState(initialThemeId);
+    const [mode, setMode] = useState<ThemeMode>(readPersistedMode() ?? normalized.defaultMode ?? initialThemePreset.mode ?? 'light');
     const [radius, setRadius] = useState(initialThemePreset.radius ?? BUILT_IN_THEMES.default.preset.radius!);
     const [fontSans, setFontSans] = useState(initialThemePreset.fontSans ?? '');
     const [fontMono, setFontMono] = useState(initialThemePreset.fontMono ?? '');
@@ -599,11 +636,12 @@ export const ThemeProvider = ({
     const [motionRegistry, setMotionRegistry] = useState<MotionRegistry>(initialDefinition.motion);
 
     useEffect(() => {
-        const selectedDefinition = normalized.themes[normalized.theme] ?? normalized.themes.default;
+        const themeId = readPersistedTheme(normalized.themes) ?? normalized.theme;
+        const selectedDefinition = normalized.themes[themeId] ?? normalized.themes.default;
         const selectedPreset = selectedDefinition.preset;
         setThemeRegistry(normalized.themes);
-        setActiveTheme(normalized.theme);
-        setMode(normalized.defaultMode ?? selectedPreset.mode ?? 'light');
+        setActiveTheme(themeId);
+        setMode(readPersistedMode() ?? normalized.defaultMode ?? selectedPreset.mode ?? 'light');
         setRadius(selectedPreset.radius ?? BUILT_IN_THEMES.default.preset.radius!);
         setFontSans(selectedPreset.fontSans ?? '');
         setFontMono(selectedPreset.fontMono ?? '');
@@ -619,6 +657,10 @@ export const ThemeProvider = ({
         setTheme(nextTheme);
         setMotionRegistry(currentDefinition.motion);
     }, [activeTheme, normalized.themeOverride, themeRegistry]);
+
+    useEffect(() => {
+        persistThemeChoice(activeTheme, mode);
+    }, [activeTheme, mode]);
 
     useEffect(() => {
         const currentPreset = (themeRegistry[activeTheme] ?? themeRegistry.default).preset;

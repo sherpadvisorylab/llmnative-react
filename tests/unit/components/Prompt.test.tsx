@@ -322,7 +322,10 @@ describe('Prompt', () => {
                         {
                             name: 'shorten',
                             description: 'Shorten to one sentence',
-                            handler: (value) => `Shorten this text:\n\n${value}`,
+                            // The command context's `value` is the field's text with the
+                            // trigger+query span already removed (see buildTextCommandContext
+                            // in ContextMenu.tsx) — for a lone "/" that's an empty string.
+                            handler: ({ value }) => `Shorten this text:\n\n${value}`,
                         },
                     ]}
                 />
@@ -342,7 +345,7 @@ describe('Prompt', () => {
         fireEvent.keyDown(textarea!, { key: 'Enter' });
 
         await waitFor(() => {
-            expect(textarea?.value).toBe('Shorten this text:\n\n/');
+            expect(textarea?.value).toBe('Shorten this text:\n\n');
         });
     });
 

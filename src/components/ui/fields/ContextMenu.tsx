@@ -518,6 +518,11 @@ const ContextMenu = forwardRef<ContextMenuHandle, ContextMenuProps>(({
         targets.forEach((target) => {
             target.addEventListener('keydown', onKeyDown);
             target.addEventListener('keyup', onKeyUp);
+            // Also react to `input`/`change` directly — `keyup` alone misses paste, IME
+            // composition, and any programmatic value change that doesn't originate from a
+            // physical keystroke (e.g. React Testing Library's `fireEvent.change`).
+            target.addEventListener('input', onKeyUp);
+            target.addEventListener('change', onKeyUp);
             target.addEventListener('click', onClick);
             target.addEventListener('blur', onBlur);
         });
@@ -527,6 +532,8 @@ const ContextMenu = forwardRef<ContextMenuHandle, ContextMenuProps>(({
             targets.forEach((target) => {
                 target.removeEventListener('keydown', onKeyDown);
                 target.removeEventListener('keyup', onKeyUp);
+                target.removeEventListener('input', onKeyUp);
+                target.removeEventListener('change', onKeyUp);
                 target.removeEventListener('click', onClick);
                 target.removeEventListener('blur', onBlur);
             });

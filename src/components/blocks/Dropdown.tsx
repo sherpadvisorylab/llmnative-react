@@ -1,4 +1,5 @@
 ﻿import React from 'react';
+import { createPortal } from 'react-dom';
 import {Link} from "react-router-dom";
 import {useTheme} from "../../Theme";
 import {Wrapper} from "../ui/GridSystem";
@@ -122,7 +123,10 @@ export const Dropdown = ({
         if (!open || staticOpen) return;
 
         const handlePointerDown = (event: PointerEvent) => {
-            if (!rootRef.current?.contains(event.target as Node)) {
+            const target = event.target as Node;
+            // menuRef is checked separately because the "fixed" strategy portals the menu
+            // to document.body (see render below) — it's no longer a DOM descendant of rootRef.
+            if (!rootRef.current?.contains(target) && !menuRef.current?.contains(target)) {
                 updateOpen(false);
             }
         };
@@ -200,46 +204,58 @@ export const Dropdown = ({
     const absolutePlacementClass = resolvedPlacement === 'top' ? 'bottom-full mb-1' : 'top-full mt-1';
     const absolutePositionClass = position === 'end' ? 'right-0' : 'left-0';
 
+    const menuElement = (
+        <div
+             ref={menuRef}
+             id={menuId}
+             role="menu"
+             aria-hidden={!open}
+             className={cn(
+                 "min-w-56 overflow-y-auto rounded-xl border border-border/60 bg-popover/95 p-1 text-popover-foreground shadow-xl shadow-black/5 outline-none backdrop-blur supports-[backdrop-filter]:bg-popover/90 dark:shadow-black/20",
+                 staticOpen ? "relative" : strategy === 'absolute' ? `absolute z-[200] ${absolutePlacementClass} ${absolutePositionClass}` : "fixed z-[200]",
+                 menuClassName || theme.Dropdown.menuClassName
+             )}
+             style={staticOpen
+                 ? undefined
+                 : {
+                     ...menuMotionStyle,
+                     opacity: open ? 1 : 0,
+                     visibility: open ? 'visible' : 'hidden',
+                     pointerEvents: open ? undefined : 'none',
+                     maxHeight: maxMenuHeight,
+                     minWidth: triggerRef.current ? triggerRef.current.offsetWidth : undefined,
+                     ...(strategy === 'fixed' ? menuCoords ?? {} : {}),
+                 }}
+             onClick={(e) => {
+                 e.stopPropagation();
+             }}
+        >
+            {header && <div className={cn("px-2 py-1.5 text-sm font-semibold", headerClassName || theme.Dropdown.headerClassName)}>
+                {header}
+                <DropdownDivider />
+            </div>}
+            {children}
+            {footer && <div className={(footerClassName || theme.Dropdown.footerClassName)}>
+                <DropdownDivider />
+                {footer}
+            </div>}
+        </div>
+    );
+
+    // "fixed" strategy computes viewport-relative coordinates specifically so the menu can
+    // escape ancestor stacking contexts (sticky topbars, etc.) — but a transformed ancestor
+    // (e.g. Modal's enter/exit animation) still traps a same-DOM-tree `position: fixed` node
+    // by creating a new containing block, clipping it via the ancestor's own overflow-hidden.
+    // Portaling to document.body sidesteps that entirely; "absolute"/static stay in-place
+    // since they're deliberately positioned relative to the trigger's own layout flow.
+    const canPortal = !staticOpen && strategy === 'fixed' && typeof document !== 'undefined';
+
     return (
         <Wrapper className={resolvedWrapClass}>
             {before}
             <div ref={rootRef} className={cn(staticOpen ? "inline-block text-left" : "relative inline-block text-left", className || theme.Dropdown.className)}>
                 {Button}
-                <div
-                     ref={menuRef}
-                     id={menuId}
-                     role="menu"
-                     aria-hidden={!open}
-                     className={cn(
-                         "min-w-56 overflow-y-auto rounded-xl border border-border/60 bg-popover/95 p-1 text-popover-foreground shadow-xl shadow-black/5 outline-none backdrop-blur supports-[backdrop-filter]:bg-popover/90 dark:shadow-black/20",
-                         staticOpen ? "relative" : strategy === 'absolute' ? `absolute z-[200] ${absolutePlacementClass} ${absolutePositionClass}` : "fixed z-[200]",
-                         menuClassName || theme.Dropdown.menuClassName
-                     )}
-                     style={staticOpen
-                         ? undefined
-                         : {
-                             ...menuMotionStyle,
-                             opacity: open ? 1 : 0,
-                             visibility: open ? 'visible' : 'hidden',
-                             pointerEvents: open ? undefined : 'none',
-                             maxHeight: maxMenuHeight,
-                             minWidth: triggerRef.current ? triggerRef.current.offsetWidth : undefined,
-                             ...(strategy === 'fixed' ? menuCoords ?? {} : {}),
-                         }}
-                     onClick={(e) => {
-                         e.stopPropagation();
-                     }}
-                >
-                    {header && <div className={cn("px-2 py-1.5 text-sm font-semibold", headerClassName || theme.Dropdown.headerClassName)}>
-                        {header}
-                        <DropdownDivider />
-                    </div>}
-                    {children}
-                    {footer && <div className={(footerClassName || theme.Dropdown.footerClassName)}>
-                        <DropdownDivider />
-                        {footer}
-                    </div>}
-                </div>
+                {canPortal ? createPortal(menuElement, document.body) : menuElement}
             </div>
             {after}
         </Wrapper>
