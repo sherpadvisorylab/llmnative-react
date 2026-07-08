@@ -8,6 +8,16 @@ import { useEditorHeight } from '../../../libs/editorHeight';
 import Icon from '../Icon';
 import type { FieldValue } from '../../../providers/data/DataProvider';
 import type { Parser, TreeCursor } from '@lezer/common';
+import {
+    buildTextCommandContext,
+    ContextMenu,
+    CONTEXT_MENU_SEARCH_THRESHOLD,
+    matchCommandTrigger,
+    type ContextMenuHandle,
+    type ContextMenuItem,
+    type EditorCommand,
+    type EditorContext,
+} from './ContextMenu';
 
 export type CodeEditorLanguage = 'liquid' | 'html' | 'json' | 'js' | 'ts' | 'css';
 
@@ -215,7 +225,16 @@ export interface CodeEditorProps extends FormFieldProps {
     validateSyntax?: boolean;
     validator?: (value: FieldValue) => string | undefined | Promise<string | undefined>;
     extensions?: unknown[];
+    commands?: EditorCommand[];
+    commandsTrigger?: string;
 }
+
+type CodeEditorCommandSession = {
+    open: boolean;
+    query: string;
+    anchorPosition: { top: number; left: number } | null;
+    editorContext: EditorContext | null;
+};
 
 const getLangLoader = (lang: CodeEditorLanguage): () => Promise<unknown> => {
     switch (lang) {
@@ -245,7 +264,9 @@ const loadCM = async (lang: CodeEditorLanguage) => {
         basicSetup: codemirror.basicSetup,
         EditorView: view.EditorView,
         EditorState: state.EditorState,
+        keymap: view.keymap,
         language,
+        Prec: state.Prec,
     };
 };
 
@@ -265,6 +286,48 @@ const ensureCM = (lang: CodeEditorLanguage): Promise<CMModules> => {
     return _cmPending[lang]!;
 };
 
+const getCodeEditorQueryMatch = (value: string, caret: number, trigger: string) => {
+    return matchCommandTrigger(value, caret, trigger, {
+        queryPattern: /^[A-Za-z0-9-]*$/,
+    });
+};
+
+const buildCodeEditorCommandContext = (
+    view: { state: { doc: { toString: () => string }; selection: { main: { from: number; to: number } } }; dispatch: (spec: { changes: { from: number; to: number; insert: string }; selection?: { anchor: number; head?: number } }) => void; focus: () => void; },
+    trigger: string,
+): EditorContext | null => {
+    const value = view.state.doc.toString();
+    const selection = view.state.selection.main;
+    if (selection.from !== selection.to) return null;
+
+    const match = getCodeEditorQueryMatch(value, selection.from, trigger);
+    if (!match) return null;
+
+    return {
+        value,
+        textBeforeCaret: value.slice(0, selection.from),
+        textAfterCaret: value.slice(selection.to),
+        trigger,
+        query: match.query,
+        triggerRange: { start: match.start, end: match.end },
+        insert: (text: string) => {
+            const currentSelection = view.state.selection.main;
+            view.dispatch({
+                changes: { from: currentSelection.from, to: currentSelection.to, insert: text },
+                selection: { anchor: currentSelection.from + text.length },
+            });
+            view.focus();
+        },
+        replace: (start: number, end: number, text: string) => {
+            view.dispatch({
+                changes: { from: start, to: end, insert: text },
+                selection: { anchor: start + text.length },
+            });
+            view.focus();
+        },
+    };
+};
+
 export const CodeEditor: React.FC<CodeEditorProps> = ({
     name,
     onChange = undefined,
@@ -282,6 +345,8 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
     validateSyntax = true,
     validator,
     extensions: customExtensions,
+    commands,
+    commandsTrigger,
     wrapperClassName,
     inheritWrapperClassName = true,
     before,
@@ -317,9 +382,33 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
 
     const containerRef = useRef<HTMLDivElement>(null);
     const viewRef = useRef<{ destroy: () => void; dom: HTMLElement; scrollDOM: HTMLElement } | null>(null);
+    const contextMenuRef = useRef<ContextMenuHandle | null>(null);
     const [loading, setLoading] = useState(true);
+    const [commandSession, setCommandSession] = useState<CodeEditorCommandSession>({
+        open: false,
+        query: '',
+        anchorPosition: null,
+        editorContext: null,
+    });
 
     const currentValueRef = useRef<string>((value as string) ?? '');
+    const commandSessionRef = useRef(commandSession);
+    commandSessionRef.current = commandSession;
+    const resolvedCommandsTrigger = commands?.length ? (commandsTrigger ?? '/') : undefined;
+    const commandsSearchable = (commands?.length ?? 0) >= CONTEXT_MENU_SEARCH_THRESHOLD;
+    const commandLookup = React.useMemo(
+        () => new Map((commands ?? []).map((command) => [command.name, command])),
+        [commands],
+    );
+    const commandMenuItems = React.useMemo(
+        () => (commands ?? []).map((command) => ({
+            key: command.name,
+            label: `${resolvedCommandsTrigger ?? '/'}${command.name}`,
+            value: command.name,
+            icon: command.icon,
+        })),
+        [commands, resolvedCommandsTrigger],
+    );
 
     useEffect(() => {
         if (!viewRef.current) {
@@ -331,6 +420,32 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
         currentValueRef.current = newValue;
         handleChange({ target: { name, value: newValue } });
     }, [handleChange, name]);
+
+    const closeCommandMenu = useCallback(() => {
+        setCommandSession({
+            open: false,
+            query: '',
+            anchorPosition: null,
+            editorContext: null,
+        });
+    }, []);
+
+    const applyCommandSelection = useCallback(async (item: ContextMenuItem, context: EditorContext) => {
+        const command = commandLookup.get(item.value);
+        if (!command) return;
+
+        if (command.handler) {
+            const nextValue = await command.handler(buildTextCommandContext(context));
+            context.replace(context.triggerRange.start, context.triggerRange.end, nextValue);
+            return;
+        }
+
+        context.replace(
+            context.triggerRange.start,
+            context.triggerRange.end,
+            `${context.trigger}${command.name} `,
+        );
+    }, [commandLookup]);
 
     useEffect(() => {
         let cancelled = false;
@@ -387,6 +502,105 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
                 ...(customExtensions ?? []),
             ];
 
+            if (resolvedCommandsTrigger) {
+                extensions.push(
+                    cm.EditorView.updateListener.of((update: { state: { doc: { toString: () => string }; selection: { main: { from: number; to: number } } }; view: { coordsAtPos: (pos: number) => { left: number; bottom: number } | null; state: { doc: { toString: () => string }; selection: { main: { from: number; to: number } } }; dispatch: (spec: { changes: { from: number; to: number; insert: string }; selection?: { anchor: number; head?: number } }) => void; focus: () => void; } }) => {
+                        const selection = update.state.selection.main;
+                        if (selection.from !== selection.to) {
+                            if (commandSessionRef.current.open) closeCommandMenu();
+                            return;
+                        }
+
+                        const value = update.state.doc.toString();
+                        const match = getCodeEditorQueryMatch(value, selection.from, resolvedCommandsTrigger);
+                        if (!match) {
+                            if (commandSessionRef.current.open) closeCommandMenu();
+                            return;
+                        }
+
+                        const coords = update.view.coordsAtPos(selection.from);
+                        const editorContext = buildCodeEditorCommandContext(update.view, resolvedCommandsTrigger);
+                        if (!coords || !editorContext) return;
+
+                        setCommandSession({
+                            open: true,
+                            query: match.query,
+                            anchorPosition: { top: coords.bottom, left: coords.left },
+                            editorContext,
+                        });
+                    }),
+                    cm.Prec.highest(cm.keymap.of([
+                        {
+                            key: 'ArrowDown',
+                            run: () => {
+                                if (!commandSessionRef.current.open) return false;
+                                contextMenuRef.current?.moveNext();
+                                return true;
+                            },
+                        },
+                        {
+                            key: 'ArrowUp',
+                            run: () => {
+                                if (!commandSessionRef.current.open) return false;
+                                contextMenuRef.current?.movePrev();
+                                return true;
+                            },
+                        },
+                        {
+                            key: 'Enter',
+                            run: () => {
+                                if (!commandSessionRef.current.open) return false;
+                                contextMenuRef.current?.selectActive();
+                                return true;
+                            },
+                        },
+                        {
+                            key: 'Tab',
+                            run: () => {
+                                if (!commandSessionRef.current.open) return false;
+                                contextMenuRef.current?.selectActive();
+                                return true;
+                            },
+                        },
+                        {
+                            key: 'Escape',
+                            run: () => {
+                                if (!commandSessionRef.current.open) return false;
+                                contextMenuRef.current?.close();
+                                return true;
+                            },
+                        },
+                    ])),
+                    cm.EditorView.domEventHandlers({
+                        keydown: (event: KeyboardEvent) => {
+                            if (!commandSessionRef.current.open) return false;
+
+                            switch (event.key) {
+                                case 'ArrowDown':
+                                    event.preventDefault();
+                                    contextMenuRef.current?.moveNext();
+                                    return true;
+                                case 'ArrowUp':
+                                    event.preventDefault();
+                                    contextMenuRef.current?.movePrev();
+                                    return true;
+                                case 'Enter':
+                                case 'Tab':
+                                    event.preventDefault();
+                                    contextMenuRef.current?.selectActive();
+                                    return true;
+                                case 'Escape':
+                                    event.preventDefault();
+                                    contextMenuRef.current?.close();
+                                    return true;
+                                default:
+                                    return false;
+                            }
+                        },
+                    }),
+                );
+            }
+
             if (disabled) {
                 extensions.push(cm.EditorView.editable.of(false));
             }
@@ -420,7 +634,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
                 viewRef.current = null;
             }
         };
-    }, [language, placeholder, disabled, onUpdate, customExtensions]);
+    }, [closeCommandMenu, customExtensions, disabled, language, onUpdate, placeholder, resolvedCommandsTrigger]);
 
     useEffect(() => {
         const externalValue = (value as string) ?? '';
@@ -454,6 +668,17 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
         after ? 'rounded-r-none' : 'rounded-r-md',
     );
 
+    const editorShell = (
+        <div className={cn('min-w-0 flex-1', editorClass)}>
+            {loading && (
+                <div style={{ minHeight: height.resolvedMinHeight }} className="flex items-center justify-center">
+                    <Icon name="loader-circle" size={16} className="animate-spin text-muted-foreground" />
+                </div>
+            )}
+            <div ref={containerRef} className={cn(loading && 'hidden')} />
+        </div>
+    );
+
     return (
         <Wrapper className={cn(formWrapClass, themeCfg.CodeEditor?.wrapperClassName)}>
             {label && <Label label={label} required={required} htmlFor={id} className={labelClassName} />}
@@ -463,14 +688,35 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
                         {before}
                     </span>
                 )}
-                <div className={cn('min-w-0 flex-1', editorClass)}>
-                    {loading && (
-                        <div style={{ minHeight: height.resolvedMinHeight }} className="flex items-center justify-center">
-                            <Icon name="loader-circle" size={16} className="animate-spin text-muted-foreground" />
-                        </div>
-                    )}
-                    <div ref={containerRef} className={cn(loading && 'hidden')} />
-                </div>
+                {resolvedCommandsTrigger && commandMenuItems.length > 0 ? (
+                    <ContextMenu
+                        ref={contextMenuRef}
+                        trigger={resolvedCommandsTrigger}
+                        searchable={commandsSearchable}
+                        controlled={commandSession.editorContext ? {
+                            open: commandSession.open,
+                            anchorPosition: commandSession.anchorPosition,
+                            query: commandSession.query,
+                            editorContext: commandSession.editorContext,
+                            onClose: closeCommandMenu,
+                        } : undefined}
+                        onSelect={(item, context) => {
+                            void applyCommandSelection(item, context);
+                        }}
+                    >
+                        {commandMenuItems.map((item) => (
+                            <ContextMenu.Item
+                                key={item.key}
+                                label={item.label}
+                                value={item.value}
+                                icon={item.icon}
+                            />
+                        ))}
+                        {editorShell}
+                    </ContextMenu>
+                ) : (
+                    editorShell
+                )}
                 {after && (
                     <span className={cn(fieldAddonClass, 'rounded-l-none rounded-r-md border-l-0')}>
                         {after}

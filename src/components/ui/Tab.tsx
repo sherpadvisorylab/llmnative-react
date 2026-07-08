@@ -105,6 +105,7 @@ export function getTabTriggerClassName(layout: TabPosition, active: boolean, cla
     const theme = useTheme("tab");
 
     return cn(
+        "cursor-pointer",
         config.triggerClassName,
         theme.Tab.triggerClassName,
         active ? config.activeTriggerClassName : config.inactiveTriggerClassName,

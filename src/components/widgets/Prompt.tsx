@@ -11,6 +11,14 @@ import { Dropdown, DropdownItem } from '../blocks/Dropdown';
 import Alert from '../ui/Alert';
 import { LoadingButton } from '../ui/Buttons';
 import Icon from '../ui/Icon';
+import {
+    buildTextCommandContext,
+    ContextMenu,
+    CONTEXT_MENU_SEARCH_THRESHOLD,
+    type ContextMenuItem,
+    type EditorCommand,
+    type EditorContext as ContextMenuEditorContext,
+} from '../ui/fields/ContextMenu';
 import { Wrapper } from '../ui/GridSystem';
 import { Label, Range, Switch, TextArea } from '../ui/fields/Input';
 import { FormFieldProps, useFormContext } from './Form';
@@ -20,13 +28,6 @@ export enum PromptMode {
     EDIT = "edit",
     RUN = "run",
 }
-
-export type PromptCommand = {
-    name: string;
-    description?: string;
-    icon?: string;
-    handler?: (currentValue: string) => string | Promise<string>;
-};
 
 export type PromptAction = {
     key: string;
@@ -103,7 +104,8 @@ interface PromptRunProps extends PromptWithAI {
     variables?: PromptVariables;
     onRunPrompt?: OnRunPrompt;
     renderFallback?: RenderPlainFallback;
-    commands?: PromptCommand[];
+    commands?: EditorCommand[];
+    commandsTrigger?: string;
     attachments?: boolean;
     actions?: PromptAction[];
     statusItems?: PromptStatusItem[];
@@ -128,12 +130,6 @@ type PromptAvailabilityState = {
 type PromptCapabilitiesState = {
     modelOptions: Array<{ label: string; value: string }>;
     capabilitiesByProvider: Record<string, AIProviderCapabilities>;
-};
-
-type SlashMatchState = {
-    query: string;
-    start: number;
-    end: number;
 };
 
 const promptBodyClass = "space-y-2";
@@ -403,6 +399,21 @@ const promptTextareaClass = "border-0 shadow-none rounded-none focus-visible:rin
 const promptGhostIcon = "h-7 w-7 cursor-pointer rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground";
 const promptModelTrigger = "h-7 max-w-[140px] rounded-md px-2 text-xs gap-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground truncate";
 
+const buildPromptOptions = (
+    promptConfig: PromptConfig | undefined,
+    defaults: PromptDefaultValue | undefined,
+): PromptOptions => ({
+    value: String(promptConfig?.value ?? defaults?.value ?? ''),
+    role: String(promptConfig?.role ?? defaults?.role ?? ''),
+    language: String(promptConfig?.language ?? defaults?.language ?? ''),
+    voice: String(promptConfig?.voice ?? defaults?.voice ?? ''),
+    style: String(promptConfig?.style ?? defaults?.style ?? ''),
+    model: String(promptConfig?.model ?? defaults?.model ?? ''),
+    temperature: typeof promptConfig?.temperature === 'number'
+        ? promptConfig.temperature
+        : defaults?.temperature,
+});
+
 const PromptRun = ({
     name,
     label,
@@ -420,6 +431,7 @@ const PromptRun = ({
     renderAIUnavailable,
     variables,
     commands,
+    commandsTrigger,
     attachments,
     actions,
     statusItems,
@@ -433,8 +445,6 @@ const PromptRun = ({
     const [previewOpen, setPreviewOpen] = useState(false);
     const [attachedFiles, setAttachedFiles] = useState<{ file: File; objectUrl: string }[]>([]);
     const resultTextareaRef = useRef<HTMLTextAreaElement | null>(null);
-    const [slashMatch, setSlashMatch] = useState<SlashMatchState | null>(null);
-    const [activeCommandIndex, setActiveCommandIndex] = useState(0);
     const removeAttachment = React.useCallback((idx: number) => {
         setAttachedFiles((prev) => {
             URL.revokeObjectURL(prev[idx].objectUrl);
@@ -449,8 +459,12 @@ const PromptRun = ({
     const defaultModelRef = (typeof localStorage !== 'undefined' && localStorage.getItem('prompt.model'))
         || (ai ? formatAIModelRef(ai.id, ai.defaultModel) : '');
     const { modelOptions, capabilitiesByProvider } = usePromptCapabilities();
+    const resolvedPromptOptions = React.useMemo(
+        () => buildPromptOptions(value?.prompt, defaultValue),
+        [defaultValue, value?.prompt],
+    );
 
-    const selectedModelRef = value?.prompt?.model?.toString() || defaultValue?.model || defaultModelRef;
+    const selectedModelRef = resolvedPromptOptions.model || defaultModelRef;
     const selectedProvider = parseAIModelRef(selectedModelRef)?.provider;
     const selectedCapabilities = selectedProvider ? capabilitiesByProvider[selectedProvider] : undefined;
     const supportsTemperature = selectedCapabilities?.supportsTemperature ?? true;
@@ -495,134 +509,47 @@ const PromptRun = ({
             : dict.attachmentsNotSupported)
         : dict.attachFiles;
 
-    const getSlashMatchState = React.useCallback((text: string, caret: number): SlashMatchState | null => {
-        const beforeCaret = text.slice(0, caret);
-        const match = beforeCaret.match(/(?:^|\s)\/([^\s/]*)$/);
-        if (!match) return null;
-
-        const slashIndex = beforeCaret.lastIndexOf('/');
-        if (slashIndex < 0) return null;
-
-        return {
-            query: match[1] ?? '',
-            start: slashIndex,
-            end: caret,
-        };
-    }, []);
-
-    const getResultValue = (): string => {
-        const fieldData = record?.[name];
-        if (fieldData && typeof fieldData === 'object' && !Array.isArray(fieldData)) {
-            return String((fieldData as Record<string, unknown>).value ?? '');
-        }
-        return '';
-    };
-
-    const syncSlashState = React.useCallback(() => {
-        if (editing || !commands?.length || !resultTextareaRef.current) {
-            setSlashMatch(null);
-            return;
-        }
-
-        const el = resultTextareaRef.current;
-        const caret = el.selectionStart ?? el.value.length;
-        setSlashMatch(getSlashMatchState(el.value, caret));
-    }, [commands, editing, getSlashMatchState]);
-
-    const scheduleSlashSync = React.useCallback(() => {
-        if (typeof requestAnimationFrame === 'function') {
-            requestAnimationFrame(() => syncSlashState());
-            return;
-        }
-        setTimeout(() => syncSlashState(), 0);
-    }, [syncSlashState]);
-
-    const getMatchingCommands = React.useCallback((query?: string | null) => {
-        if (!commands?.length) return [];
-
-        const normalizedQuery = query?.trim().toLowerCase();
-        if (!normalizedQuery) return commands;
-
-        return commands.filter((cmd) =>
-            cmd.name.toLowerCase().includes(normalizedQuery)
-            || cmd.description?.toLowerCase().includes(normalizedQuery)
-        );
-    }, [commands]);
-
-    const filteredCommands = React.useMemo(
-        () => getMatchingCommands(slashMatch?.query),
-        [getMatchingCommands, slashMatch]
-    );
-
-    useEffect(() => {
-        setActiveCommandIndex(0);
-    }, [slashMatch?.query]);
-
     useEffect(() => {
         return () => {
             attachedFiles.forEach(({ objectUrl }) => URL.revokeObjectURL(objectUrl));
         };
     }, [attachedFiles]);
 
-    const applyCommand = React.useCallback(async (
-        cmd: PromptCommand,
-        currentValue?: string,
-        matchState?: SlashMatchState | null,
+    const resolvedCommandsTrigger = commands?.length ? (commandsTrigger ?? '/') : undefined;
+    const commandsSearchable = (commands?.length ?? 0) >= CONTEXT_MENU_SEARCH_THRESHOLD;
+    const commandLookup = React.useMemo(
+        () => new Map((commands ?? []).map((cmd) => [cmd.name, cmd])),
+        [commands],
+    );
+    const commandMenuItems = React.useMemo(
+        () => (commands ?? []).map((cmd) => ({
+            key: cmd.name,
+            label: `${resolvedCommandsTrigger ?? '/'}${cmd.name}`,
+            value: cmd.name,
+            icon: cmd.icon,
+        })),
+        [commands, resolvedCommandsTrigger],
+    );
+
+    const applyCommandSelection = React.useCallback(async (
+        item: ContextMenuItem,
+        context: ContextMenuEditorContext,
     ) => {
-        const current = currentValue ?? getResultValue();
-        const resolvedSlashMatch = matchState ?? slashMatch;
-        const fallbackValue = resolvedSlashMatch
-            ? `${current.slice(0, resolvedSlashMatch.start)}/${cmd.name} ${current.slice(resolvedSlashMatch.end)}`
-            : `${current}${current && !/\s$/.test(current) ? '\n' : ''}/${cmd.name} `;
-        const newValue = cmd.handler ? await cmd.handler(current) : fallbackValue;
-        handleChange?.({ target: { name: name + ".value", value: newValue } });
-        setSlashMatch(null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [handleChange, name, record, slashMatch]);
+        const cmd = commandLookup.get(item.value);
+        if (!cmd) return;
 
-    const handleResultTextareaKeyDown = React.useCallback((event: React.KeyboardEvent<HTMLTextAreaElement>) => {
-        if (!commands?.length || editing) return;
-
-        const currentValue = event.currentTarget.value;
-        const currentCaret = event.currentTarget.selectionStart ?? currentValue.length;
-        const currentSlashMatch = getSlashMatchState(currentValue, currentCaret);
-        const resolvedSlashMatch = slashMatch ?? currentSlashMatch;
-        const resolvedCommands = getMatchingCommands(resolvedSlashMatch?.query);
-
-        if (resolvedSlashMatch && resolvedCommands.length > 0) {
-            if (event.key === 'ArrowDown') {
-                event.preventDefault();
-                setActiveCommandIndex((current) => (current + 1) % resolvedCommands.length);
-                return;
-            }
-
-            if (event.key === 'ArrowUp') {
-                event.preventDefault();
-                setActiveCommandIndex((current) => (current - 1 + resolvedCommands.length) % resolvedCommands.length);
-                return;
-            }
-
-            if (event.key === 'Enter' || event.key === 'Tab') {
-                event.preventDefault();
-                void applyCommand(
-                    resolvedCommands[activeCommandIndex] ?? resolvedCommands[0],
-                    currentValue,
-                    resolvedSlashMatch,
-                );
-                return;
-            }
-
-            if (event.key === 'Escape') {
-                event.preventDefault();
-                setSlashMatch(null);
-                return;
-            }
+        if (cmd.handler) {
+            const newValue = await cmd.handler(buildTextCommandContext(context));
+            context.replace(context.triggerRange.start, context.triggerRange.end, newValue);
+            return;
         }
 
-        if (event.key === '/' || event.key === 'Backspace' || event.key === 'Delete') {
-            scheduleSlashSync();
-        }
-    }, [activeCommandIndex, applyCommand, commands, editing, getMatchingCommands, getSlashMatchState, scheduleSlashSync, slashMatch]);
+        context.replace(
+            context.triggerRange.start,
+            context.triggerRange.end,
+            `${context.trigger}${cmd.name} `,
+        );
+    }, [commandLookup]);
 
     const runHandler = async () => {
         const modelRef = value?.prompt?.model?.toString() || defaultModelRef;
@@ -637,7 +564,7 @@ const PromptRun = ({
                 attachedFiles.map(({ file }) => PromptUtils.fileToAttachment(file))
             );
             const result = await runPrompt(
-                value?.prompt as PromptOptions,
+                resolvedPromptOptions,
                 mergedData,
                 onRunPrompt,
                 resolvedProvider,
@@ -648,7 +575,7 @@ const PromptRun = ({
             setRunError(null);
             handleChange?.({ target: { name: name + ".value", value: result } });
             if (statusItems && statusItems.length > 0) {
-                const resolved = PromptConf.parsePrompt(value?.prompt?.value?.toString() ?? '', mergedData);
+                const resolved = PromptConf.parsePrompt(resolvedPromptOptions.value ?? '', mergedData);
                 const tokensIn = PromptUtils.countTokens(resolved);
                 const tokensOut = PromptUtils.countTokens(result ?? '');
                 const ctxPct = PromptUtils.contextPercent(tokensIn, modelRef);
@@ -669,6 +596,20 @@ const PromptRun = ({
 
     const setField = (field: string, val: string) =>
         handleChange?.({ target: { name: field, value: val } } as React.ChangeEvent<HTMLInputElement>);
+
+    const resultTextarea = (
+        <TextArea
+            name={name + ".value"}
+            onChange={onChange}
+            textareaRef={resultTextareaRef}
+            required={required}
+            inheritWrapperClassName={false}
+            wrapperClassName=""
+            className={`${className || theme.Prompt.className} ${promptTextareaClass}`}
+            minHeight={minHeight}
+            maxHeight={maxHeight}
+        />
+    );
 
     return (
         <Wrapper className={wrapperClassName || theme.Prompt.wrapperClassName}>
@@ -745,22 +686,27 @@ const PromptRun = ({
                                         ))}
                                     </div>
                                 )}
-                                <TextArea
-                                    name={name + ".value"}
-                                    onChange={(params) => {
-                                        onChange?.(params);
-                                        scheduleSlashSync();
-                                    }}
-                                    onKeyDown={handleResultTextareaKeyDown}
-                                    onClick={scheduleSlashSync}
-                                    textareaRef={resultTextareaRef}
-                                    required={required}
-                                    inheritWrapperClassName={false}
-                                    wrapperClassName=""
-                                    className={`${className || theme.Prompt.className} ${promptTextareaClass}`}
-                                    minHeight={minHeight}
-                                    maxHeight={maxHeight}
-                                />
+                                {resolvedCommandsTrigger && commandMenuItems.length > 0 ? (
+                                    <ContextMenu
+                                        trigger={resolvedCommandsTrigger}
+                                        searchable={commandsSearchable}
+                                        onSelect={(item, context) => {
+                                            void applyCommandSelection(item, context);
+                                        }}
+                                    >
+                                        {commandMenuItems.map((item) => (
+                                            <ContextMenu.Item
+                                                key={item.key}
+                                                label={item.label}
+                                                value={item.value}
+                                                icon={item.icon}
+                                            />
+                                        ))}
+                                        {resultTextarea}
+                                    </ContextMenu>
+                                ) : (
+                                    resultTextarea
+                                )}
                             </div>
                         </div>
 
@@ -786,8 +732,8 @@ const PromptRun = ({
 
                         <div className="relative flex items-center gap-1 border-t border-input px-2 py-1 rounded-b-xl">
 
-                            {/* Run-mode left: upload + slash + custom actions — separator before settings */}
-                            {!editing && (attachments || (commands?.length ?? 0) > 0 || (actions?.length ?? 0) > 0) && (
+                            {/* Run-mode left: upload + custom actions */}
+                            {!editing && (attachments || (actions?.length ?? 0) > 0) && (
                                 <>
                                     {attachments && (
                                         <button
@@ -799,48 +745,6 @@ const PromptRun = ({
                                         >
                                             <Icon name="paperclip" size={13} />
                                         </button>
-                                    )}
-                                    {commands && commands.length > 0 && (
-                                        <Dropdown
-                                            trigger={{ icon: 'slash', title: 'Commands' }}
-                                            open={Boolean(slashMatch)}
-                                            onOpenChange={(open) => {
-                                                if (open) {
-                                                    const current = getResultValue();
-                                                    const caret = resultTextareaRef.current?.selectionStart ?? current.length;
-                                                    setSlashMatch(getSlashMatchState(current, caret) ?? {
-                                                        query: '',
-                                                        start: caret,
-                                                        end: caret,
-                                                    });
-                                                    setActiveCommandIndex(0);
-                                                    return;
-                                                }
-                                                setSlashMatch(null);
-                                            }}
-                                            placement="top"
-                                            position="start"
-                                            triggerClassName={`${promptGhostIcon} flex items-center justify-center`}
-                                        >
-                                            {filteredCommands.map((cmd, index) => (
-                                                <DropdownItem
-                                                    key={cmd.name}
-                                                    icon={cmd.icon}
-                                                    className={index === activeCommandIndex ? 'bg-accent text-accent-foreground' : undefined}
-                                                    onClick={() => applyCommand(cmd)}
-                                                >
-                                                    <span className="font-medium">/{cmd.name}</span>
-                                                    {cmd.description && (
-                                                        <span className="ml-2 text-xs text-muted-foreground">{cmd.description}</span>
-                                                    )}
-                                                </DropdownItem>
-                                            ))}
-                                            {filteredCommands.length === 0 && (
-                                                <DropdownItem className="text-muted-foreground">
-                                                    {dict.noMatchingCommands}
-                                                </DropdownItem>
-                                            )}
-                                        </Dropdown>
                                     )}
                                     {actions?.map((action) =>
                                         action.key === 'tokenUsage' || action.content ? (

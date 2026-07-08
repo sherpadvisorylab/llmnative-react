@@ -27,7 +27,7 @@ export const ru: I18nDict = {
         deleteConfirm: 'Вы уверены, что хотите удалить этот элемент?',
         emptyState: 'Нет элементов для отображения',
     },
-    select: { placeholder: 'Выбрать...' },
+    select: { placeholder: 'Выбрать...', loading: 'Загрузка...' },
     modal: { save: 'Сохранить', delete: 'Удалить', cancel: 'Отменить', close: 'Закрыть' },
     upload: {
         clickOrDrag: 'Нажмите или перетащите для загрузки...', dropToUpload: 'Отпустите для загрузки',

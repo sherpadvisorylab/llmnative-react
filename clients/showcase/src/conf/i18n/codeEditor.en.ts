@@ -20,6 +20,10 @@ export default defineLocaleMessages({
                     title: 'Disabled',
                     description: 'The disabled prop makes the editor read-only.',
                 },
+                commandMenu: {
+                    title: 'Slash commands',
+                    description: 'Pass commands to open the shared ContextMenu directly inside CodeEditor. The trigger defaults to "/" and can be customized with commandsTrigger.',
+                },
             },
             labels: {
                 templateBody: 'Template body',
@@ -27,6 +31,7 @@ export default defineLocaleMessages({
                 script: 'Script',
                 stylesheet: 'Stylesheet',
                 liquidTemplate: 'Liquid template',
+                codeTemplateWithCommands: 'Template with commands',
                 startCoding: 'Start coding…',
             },
             propsDocs: {
@@ -41,6 +46,8 @@ export default defineLocaleMessages({
                     minHeight: { description: 'Minimum editor height in pixels. Default: 200.' },
                     maxHeight: { description: 'Maximum editor height in pixels before scrolling. Default: 600.' },
                     feedback: { description: 'Helper text rendered below the editor.' },
+                    commands: { description: 'Slash commands shown by the shared ContextMenu. Pass an array of { name, description?, icon?, handler? }. The trigger defaults to "/" when commands is present.' },
+                    commandsTrigger: { description: 'Trigger string used to open the internal ContextMenu. Defaults to "/" when commands is present.' },
                     defaultValue: { description: 'Initial value when used outside a Form context.' },
                     value: { description: 'Controlled value synced from outside the form.' },
                     labelClassName: { description: 'CSS classes applied to the label element.' },

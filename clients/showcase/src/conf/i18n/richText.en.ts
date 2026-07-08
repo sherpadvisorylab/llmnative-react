@@ -22,7 +22,7 @@ export default defineLocaleMessages({
                 },
                 tableSupport: {
                     title: 'Table support',
-                    description: 'Add "table" to toolbarCommands to enable the insert-table button. A default 3×3 table with a header row is inserted at the cursor position.',
+                    description: 'Add "table" to toolbarCommands to enable the insert-table button. A default 3x3 table with a header row is inserted at the cursor position.',
                 },
                 sourceCode: {
                     title: 'Source code mode',
@@ -42,7 +42,11 @@ export default defineLocaleMessages({
                 },
                 imageUpload: {
                     title: 'Image upload with responsive variants',
-                    description: 'Pass imageUpload to the RichText to enable the imageUpload toolbar command. Set srcsetWidths to auto-generate responsive variants on upload — each variant is stored as <name>_<width>w.<ext> and the srcset attribute is written directly into the inserted <img> tag. The demo uses an in-memory mock storage.',
+                    description: 'Pass imageUpload to RichText to enable the imageUpload toolbar command. Set srcsetWidths to auto-generate responsive variants on upload. Each variant is stored as <name>_<width>w.<ext> and the srcset attribute is written directly into the inserted <img> tag. The demo uses an in-memory mock storage.',
+                },
+                commandMenu: {
+                    title: 'Slash commands',
+                    description: 'Pass commands to open the shared ContextMenu inside the editor. In this first version the command handler works on plain text and returns a string that replaces the trigger range.',
                 },
             },
             labels: {
@@ -52,6 +56,7 @@ export default defineLocaleMessages({
                 comment: 'Comment',
                 notes: 'Notes',
                 content: 'Content',
+                contentWithCommands: 'Content with commands',
                 startTyping: 'Start typing...',
             },
             propsDocs: {
@@ -70,7 +75,8 @@ export default defineLocaleMessages({
                     maxHeight: { description: 'Maximum editor height in pixels. Content scrolls internally beyond this value.' },
                     imageUpload: { description: 'Image upload config object: { path, srcsetWidths, accept, maxBytes }. Pass to enable the imageUpload toolbar command. Omit to keep images as base64 data URIs.' },
                     documentUpload: { description: 'Document upload config object: { path, accept, maxBytes }. Pass to enable the documentUpload toolbar command and upload files to storage. Omit to use data URI fallback. Inserted as a clickable file chip with filename and size.' },
-                    uploadPath: { description: '@deprecated — use imageUpload.path instead.' },
+                    commands: { description: 'Slash commands shown by the shared ContextMenu. The trigger defaults to "/" when commands is present. In RichText v1 the handler receives plain-text context and returns a string.' },
+                    commandsTrigger: { description: 'Trigger string used to open the internal ContextMenu. Defaults to "/" when commands is present.' },
                     feedback: { description: 'Helper text rendered below the editor.' },
                     defaultValue: { description: 'Initial value when used outside a Form context.' },
                     validator: { description: 'Custom validation function. Return an error string to block form submission.' },

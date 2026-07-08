@@ -27,7 +27,7 @@ export const it: I18nDict = {
         deleteConfirm: 'Sei sicuro di voler eliminare questo elemento?',
         emptyState: 'Nessun elemento da mostrare',
     },
-    select: { placeholder: 'Seleziona...' },
+    select: { placeholder: 'Seleziona...', loading: 'Caricamento...' },
     modal: { save: 'Salva', delete: 'Elimina', cancel: 'Annulla', close: 'Chiudi' },
     upload: {
         clickOrDrag: 'Clicca o trascina per caricare...', dropToUpload: 'Rilascia per caricare',

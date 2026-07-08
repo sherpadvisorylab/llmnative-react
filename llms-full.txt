@@ -354,16 +354,29 @@ Gestisce un oggetto `{ src, alt, srcset?, sizes? }`, preview inline, crop editor
 
 ### CodeEditor
 ```tsx
-<CodeEditor name="code" label="Template" language="html" />
+<CodeEditor
+  name="code"
+  label="Template"
+  language="html"
+  commands={[{ name: 'wrap-section', handler: ({ value }) => `<section>\n${value}\n</section>` }]}
+  commandsTrigger="/"
+/>
 ```
 Editor basato su CodeMirror con syntax highlighting e validazione. Linguaggi: `liquid`, `html`, `json`, `js`, `ts`, `css`.
+Quando `commands` e presente, `CodeEditor` apre internamente `ContextMenu` sul trigger configurato. Il trigger di default e `"/"` e il menu diventa searchable automaticamente sopra una soglia interna di comandi.
 
 ### RichText
 ```tsx
-<RichText name="body" label="Article body" />
+<RichText
+  name="body"
+  label="Article body"
+  commands={[{ name: 'summary', icon: 'sparkles' }]}
+  commandsTrigger="/"
+/>
 ```
 
 Editor WYSIWYG integrato con il contesto `Form`. Carica TipTap lazy solo quando il campo viene montato.
+In `RichText`, `commands` usa lo stesso contratto esterno di `Prompt` e `CodeEditor`. In questa prima versione l'handler riceve contesto plain-text e deve restituire una stringa.
 
 ### Repeat — array dinamici
 ```tsx
@@ -384,10 +397,13 @@ Editor WYSIWYG integrato con il contesto `Form`. Carica TipTap lazy solo quando 
   mode="run"                  // 'edit' | 'run'
   onRunPrompt={async (prompt, options) => AI.fetch(prompt)}
   commands={[{ name: 'translate', icon: 'languages', handler: (v) => `Translate:\n${v}` }]}
+  commandsTrigger="/"         // default automatico quando commands e presente
   attachments
   statusItems={['tokensIn', 'tokensOut', 'contextPercent', 'duration']}
 />
 ```
+
+Quando `commands` e presente in `mode="run"`, `Prompt` monta internamente `ContextMenu` sulla textarea del risultato. Il trigger di default e `"/"`; `commandsTrigger` permette di cambiarlo. Il menu diventa searchable automaticamente sopra una soglia interna di comandi.
 
 ---
 

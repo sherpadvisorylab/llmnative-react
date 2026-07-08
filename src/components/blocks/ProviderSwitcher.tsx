@@ -20,6 +20,8 @@ export interface ProviderSwitcherItem {
 
 export interface ProviderSwitcherProps extends UIProps {
     items: ProviderSwitcherItem[];
+    /** True while `items` itself is still being fetched — distinct from the switch-in-progress state. Shows a spinner in the trigger and disables opening the list, instead of rendering as if there were genuinely zero items. */
+    itemsLoading?: boolean;
     activeId?: string | null;
     /** Fires once the switch has actually succeeded — never optimistically on click. */
     onSelect?: (id: string) => void;
@@ -78,6 +80,7 @@ function renderIcon(icon: ProviderSwitcherItem['icon'], className?: string) {
  */
 export default function ProviderSwitcher({
     items,
+    itemsLoading = false,
     activeId = null,
     onSelect = undefined,
     onError = undefined,
@@ -111,7 +114,8 @@ export default function ProviderSwitcher({
     const activeItem = items.find((item) => item.id === activeId) ?? null;
     const isOpen = open ?? internalOpen;
     const setOpen = onOpenChange ?? setInternalOpen;
-    const loading = switchingId !== null;
+    const switching = switchingId !== null;
+    const loading = switching || itemsLoading;
 
     // Guards against switching the same id twice: once when the user clicks it, and again
     // from the effect below reacting to `activeId` changing as a result of that same click
@@ -184,7 +188,7 @@ export default function ProviderSwitcher({
                         </span>
                         <span className="min-w-0 flex-1 pr-2">
                             <span className={cn(theme.ProviderSwitcher.labelClassName)}>
-                                {activeItem?.label ?? placeholder ?? dict.placeholder}
+                                {activeItem?.label ?? (itemsLoading ? dict.loading : placeholder ?? dict.placeholder)}
                             </span>
                             {caption ? (
                                 <span className={cn(theme.ProviderSwitcher.captionClassName)}>

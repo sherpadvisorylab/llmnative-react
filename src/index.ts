@@ -93,7 +93,7 @@ export type { DataProviderAdapter, FieldValue, RecordProps, RecordArray, Databas
 export type { OrderConfig, OrderDirection } from './libs/order';
 export { Order } from './libs/order';
 export { PromptUtils } from './libs/promptUtils';
-export type { PromptCommand, PromptAction, PromptStatusItem, PromptRunStats } from './components/widgets/Prompt';
+export type { PromptAction, PromptStatusItem, PromptRunStats } from './components/widgets/Prompt';
 export type { TableHeaderProp, TableReorderHandler, TableReorderMeta, TableSelectionChangeHandler, TableSelectionState } from './components/ui/Table';
 export type { GalleryRecord, GallerySelectionChangeHandler, GallerySelectionState } from './components/ui/Gallery';
 export type {

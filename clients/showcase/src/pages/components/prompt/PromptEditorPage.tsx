@@ -7,50 +7,21 @@ import { usePlayground } from '../../../docs-kit/playground';
 import { createPromptEditorProps, createPromptPlayground, createPromptPlaygroundSeed, createPromptSharedProps } from './promptDocs';
 import { useShowcasePromptEditorI18n, useShowcasePromptSharedI18n } from '../../../showcase/i18n';
 
-function isPromptEnabled(value: unknown): boolean {
-    return value === 'on' || value === true || value === 'true' || value === 1;
-}
-
 function StablePromptExample({
     defaultValues,
-    promptFieldName,
     minHeightClassName,
     children,
 }: {
     defaultValues: Record<string, unknown>;
-    promptFieldName: string;
     minHeightClassName?: string;
     children: React.ReactNode;
 }) {
-    const containerRef = React.useRef<HTMLDivElement | null>(null);
-    const lastEnabledRef = React.useRef<boolean | null>(null);
-
     return (
         <Form
             appearance="empty"
             defaultValues={defaultValues}
-            onRecordChange={(record) => {
-                const field = record?.[promptFieldName];
-                const nextEnabled = isPromptEnabled(
-                    field && typeof field === 'object' && !Array.isArray(field)
-                        ? (field as { prompt?: { enabled?: unknown } }).prompt?.enabled
-                        : undefined
-                );
-
-                if (lastEnabledRef.current === null) {
-                    lastEnabledRef.current = nextEnabled;
-                    return;
-                }
-
-                if (lastEnabledRef.current !== nextEnabled) {
-                    lastEnabledRef.current = nextEnabled;
-                    requestAnimationFrame(() => {
-                        containerRef.current?.scrollIntoView({ block: 'nearest' });
-                    });
-                }
-            }}
         >
-            <div ref={containerRef} className={minHeightClassName ? `max-w-3xl ${minHeightClassName}` : 'max-w-3xl'}>
+            <div className={minHeightClassName ? `max-w-3xl ${minHeightClassName}` : 'max-w-3xl'}>
                 {children}
             </div>
         </Form>
@@ -105,7 +76,7 @@ export default function PromptEditorPage() {
                 bare
                 preview={(
                     <StablePromptExample
-                        promptFieldName="summaryAuthor"
+                        minHeightClassName="min-h-[22rem]"
                         defaultValues={{
                             summaryAuthor: {
                                 prompt: {
@@ -149,7 +120,7 @@ export default function PromptEditorPage() {
                 bare
                 preview={(
                     <StablePromptExample
-                        promptFieldName="descriptionPlain"
+                        minHeightClassName="min-h-[20rem]"
                         defaultValues={{
                             descriptionPlain: {
                                 value: t.labels.humanWrittenDescription,
@@ -188,8 +159,7 @@ export default function PromptEditorPage() {
                 bare
                 preview={(
                     <StablePromptExample
-                        promptFieldName="summaryNotice"
-                        minHeightClassName="min-h-[18rem]"
+                        minHeightClassName="min-h-[22rem]"
                         defaultValues={{
                             summaryNotice: {
                                 prompt: {
@@ -229,12 +199,11 @@ export default function PromptEditorPage() {
 
             <Section
                 title="ContextMenu: variabili template"
-                description="Digita { per aprire un menu che inserisce variabili direttamente nel prompt template."
+                description="Il wrapper esterno con ContextMenu resta supportato anche in edit mode. Qui il trigger { inserisce variabili direttamente nel template del prompt."
                 bare
                 preview={(
                     <StablePromptExample
-                        promptFieldName="templateSummary"
-                        minHeightClassName="min-h-[20rem]"
+                        minHeightClassName="min-h-[22rem]"
                         defaultValues={{
                             templateSummary: {
                                 prompt: {

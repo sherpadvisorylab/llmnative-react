@@ -56,6 +56,7 @@ export interface I18nDict {
     };
     select: {
         placeholder: string;
+        loading:     string;
     };
     modal: {
         save:   string;

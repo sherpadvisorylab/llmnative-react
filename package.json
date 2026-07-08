@@ -1,6 +1,6 @@
 {
   "name": "@llmnative/react",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "LLM-native React framework for deterministic UI generation. Data-driven by default, schema-driven optional. Ultra-low token consumption — built for AI agents, not just humans.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",

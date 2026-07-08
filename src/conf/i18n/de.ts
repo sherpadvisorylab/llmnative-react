@@ -27,7 +27,7 @@ export const de: I18nDict = {
         deleteConfirm: 'Dieses Element wirklich löschen?',
         emptyState: 'Keine Elemente vorhanden',
     },
-    select: { placeholder: 'Auswählen...' },
+    select: { placeholder: 'Auswählen...', loading: 'Lädt...' },
     modal: { save: 'Speichern', delete: 'Löschen', cancel: 'Abbrechen', close: 'Schließen' },
     upload: {
         clickOrDrag: 'Klicken oder ziehen zum Hochladen...', dropToUpload: 'Loslassen zum Hochladen',

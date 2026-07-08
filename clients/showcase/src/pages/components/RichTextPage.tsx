@@ -1,6 +1,7 @@
 import React from 'react';
 import { Form, RichText, StorageProvider } from '@llmnative/react';
 import type { StorageProviderAdapter, RichTextImageUploadConfig, RichTextDocumentUploadConfig, ToolbarCommand, StatusBarConfig } from '@llmnative/react';
+import type { EditorCommand } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
@@ -37,8 +38,30 @@ const demoStorage: StorageProviderAdapter = {
     list: async () => [],
 };
 
+const RICH_TEXT_COMMANDS: EditorCommand[] = [
+    {
+        name: 'summary',
+        icon: 'sparkles',
+        description: 'Replace the trigger with a summary instruction.',
+    },
+    {
+        name: 'translate-it',
+        icon: 'languages',
+        description: 'Insert a translation instruction at the cursor.',
+        handler: () => 'Translate the following content to Italian:\n\n',
+    },
+];
+
 export default function RichTextPage() {
     const t = useShowcaseRichTextI18n();
+    const commandMenuTitle = t.sections.commandMenu?.title ?? 'Slash commands';
+    const commandMenuDescription = t.sections.commandMenu?.description
+        ?? 'Pass commands to open the shared ContextMenu inside the editor. In this first version the command handler works on plain text and returns a string that replaces the trigger range.';
+    const commandsLabel = t.labels.contentWithCommands ?? 'Content with commands';
+    const commandsDescription = t.propsDocs.items.commands?.description
+        ?? 'Slash commands shown by the shared ContextMenu. The trigger defaults to "/" when commands is present. In RichText v1 the handler receives plain-text context and returns a string.';
+    const commandsTriggerDescription = t.propsDocs.items.commandsTrigger?.description
+        ?? 'Trigger string used to open the internal ContextMenu. Defaults to "/" when commands is present.';
 
     const richTextProps = React.useMemo<PropDef[]>(() => [
         { name: 'name', type: 'string', required: true, description: t.propsDocs.items.name.description, control: 'text' },
@@ -171,6 +194,14 @@ documentUpload={{
         },
         { name: 'feedback', type: 'string', description: t.propsDocs.items.feedback.description, control: 'text' },
         { name: 'defaultValue', type: 'string', description: t.propsDocs.items.defaultValue.description, control: 'textarea', rows: 3 },
+        {
+            name: 'commands',
+            type: 'EditorCommand[]',
+            description: commandsDescription,
+            control: 'select',
+            options: ['none', 'basic'],
+        },
+        { name: 'commandsTrigger', type: 'string', description: commandsTriggerDescription, control: 'text' },
         { name: 'validator', type: '(value: FieldValue) => string | undefined', description: t.propsDocs.items.validator.description },
         { name: 'labelClassName', type: 'string', description: t.propsDocs.items.labelClassName.description, control: 'text' },
         { name: 'className', type: 'string', description: t.propsDocs.items.className.description, control: 'text' },
@@ -178,7 +209,7 @@ documentUpload={{
         { name: 'before', type: 'ReactNode', description: t.propsDocs.items.before.description, control: 'text' },
         { name: 'after', type: 'ReactNode', description: t.propsDocs.items.after.description, control: 'text' },
         { name: 'onChange', type: 'FieldOnChange', description: t.propsDocs.items.onChange.description },
-    ], [t]);
+    ], [commandsDescription, commandsTriggerDescription, t]);
 
     const playground = React.useMemo<PlaygroundConfig>(() => ({
         props: richTextProps,
@@ -197,6 +228,8 @@ documentUpload={{
             maxHeight: null,
             imageUpload: null,
             documentUpload: null,
+            commands: 'none',
+            commandsTrigger: '/',
             feedback: '',
             placeholder: t.labels.startTyping,
             before: '',
@@ -230,6 +263,8 @@ documentUpload={{
                         maxHeight={(p.maxHeight as number) || undefined}
                         imageUpload={imageUpload ?? undefined}
                         documentUpload={documentUpload ?? undefined}
+                        commands={p.commands === 'basic' ? RICH_TEXT_COMMANDS : undefined}
+                        commandsTrigger={p.commands === 'basic' ? ((p.commandsTrigger as string) || '/') : undefined}
                         feedback={(p.feedback as string) || undefined}
                         placeholder={(p.placeholder as string) || undefined}
                         before={(p.before as string) || undefined}
@@ -492,6 +527,44 @@ const storage = new FirebaseStorageProvider({ bucket: 'my-app.appspot.com' });
 // <img src="…_800w.jpg"
 //      srcset="…_400w.jpg 400w, …_800w.jpg 800w"
 //      sizes="(max-width: 640px) 100vw, 800px" />`}
+            />
+
+            <Section
+                title={commandMenuTitle}
+                description={commandMenuDescription}
+                preview={(
+                    <Form appearance="empty">
+                        <RichText
+                            name="commandsBody"
+                            label={commandsLabel}
+                            minHeight={120}
+                            commands={RICH_TEXT_COMMANDS}
+                            commandsTrigger="/"
+                        />
+                    </Form>
+                )}
+                code={`import { Form, RichText } from '@llmnative/react';
+
+const commands = [
+  { name: 'summary', icon: 'sparkles' },
+  {
+    name: 'translate-it',
+    icon: 'languages',
+    handler: () => 'Translate the following content to Italian:\\n\\n',
+  },
+];
+
+<Form>
+  <RichText
+    name="body"
+    label="Content with commands"
+    commands={commands}
+    commandsTrigger="/"
+  />
+</Form>
+
+// RichText v1 note:
+// command handlers currently work on plain-text context and return a string.`}
             />
 
             <PropDocsTable props={richTextProps} title={t.propsDocs.title} />

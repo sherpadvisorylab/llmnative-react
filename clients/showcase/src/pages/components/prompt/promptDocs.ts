@@ -53,7 +53,35 @@ export const createPromptLiveProps = (t: PromptSharedCopy): PropDef[] => [
         ],
         typeDetails: t.propsDocs.items.variables.typeDetails,
     },
-    { name: 'commands', type: 'PromptCommand[]', description: t.propsDocs.items.commands.description, group: t.propsDocs.groups.specific, typeDetails: t.propsDocs.items.commands.typeDetails },
+    {
+        name: 'commands',
+        type: 'EditorCommand[]',
+        description: 'Commands rendered through the built-in ContextMenu inside the run-mode textarea. Selecting one can insert text or transform the current field value via handler.',
+        group: t.propsDocs.groups.specific,
+        typeDetails: t.propsDocs.items.commands.typeDetails,
+        control: 'json',
+        rows: 8,
+        shortcuts: [
+            { label: 'none', value: [], help: 'Disable inline command menu.' },
+            {
+                label: 'marketing',
+                value: [
+                    { name: 'translate', description: 'Translate to English', icon: 'languages' },
+                    { name: 'shorten', description: 'Shorten text', icon: 'minimize-2' },
+                    { name: 'bulletpoints', description: 'Convert to bullet points', icon: 'list' },
+                ],
+                help: 'Three searchable commands rendered by ContextMenu.',
+            },
+        ],
+    },
+    {
+        name: 'commandsTrigger',
+        type: 'string',
+        default: '"/" when commands is present',
+        description: 'Trigger character used by the internal ContextMenu for commands. Defaults to "/" when commands is present.',
+        control: 'text',
+        group: t.propsDocs.groups.specific,
+    },
     { name: 'attachments', type: 'boolean', default: t.propsDocs.items.attachments.default, description: t.propsDocs.items.attachments.description, control: 'boolean', group: t.propsDocs.groups.specific },
     { name: 'actions', type: 'PromptAction[]', description: t.propsDocs.items.actions.description, group: t.propsDocs.groups.specific, typeDetails: t.propsDocs.items.actions.typeDetails },
     { name: 'statusItems', type: 'PromptStatusItem[]', description: t.propsDocs.items.statusItems.description, group: t.propsDocs.groups.specific, typeDetails: t.propsDocs.items.statusItems.typeDetails },
@@ -148,6 +176,12 @@ export const createPromptPlaygroundDefaults = (
         return {
             ...base,
             variables: { projectName: t.playground.defaults.atlasConsole },
+            commands: [
+                { name: 'translate', description: 'Translate to English', icon: 'languages' },
+                { name: 'shorten', description: 'Shorten text', icon: 'minimize-2' },
+                { name: 'bulletpoints', description: 'Convert to bullet points', icon: 'list' },
+            ],
+            commandsTrigger: '/',
             attachments: false,
         };
     }

@@ -75,6 +75,8 @@ function PromptRunPlaygroundPreview({
                     className={typeof props.className === 'string' ? props.className : undefined}
                     wrapperClassName={typeof props.wrapperClassName === 'string' ? props.wrapperClassName : undefined}
                     variables={variables}
+                    commands={Array.isArray(props.commands) ? props.commands as Parameters<typeof Prompt>[0]['commands'] : undefined}
+                    commandsTrigger={typeof props.commandsTrigger === 'string' ? props.commandsTrigger : undefined}
                     attachments={Boolean(props.attachments)}
                 />
             </Form>
@@ -384,8 +386,8 @@ export default function PromptLivePage() {
             />
 
             <Section
-                title={t.sections.slashCommands.title}
-                description={t.sections.slashCommands.description}
+                title="Commands via internal ContextMenu"
+                description="Pass commands to mount ContextMenu directly inside the result textarea. Typing the trigger opens one unified menu instead of a separate slash surface."
                 bare
                 preview={(
                     <Form appearance="empty">
@@ -397,17 +399,23 @@ export default function PromptLivePage() {
                                 minHeight={140}
                                 maxHeight={200}
                                 commands={[
-                                    { name: 'translate', description: 'Translate to English', icon: 'languages', handler: (v) => `Translate the following to English:\n\n${v}` },
-                                    { name: 'shorten', description: 'Shorten text', icon: 'minimize-2', handler: (v) => `Shorten to 1 sentence:\n\n${v}` },
-                                    { name: 'bulletpoints', description: 'Convert to bullet points', icon: 'list', handler: (v) => `Convert to 3 bullet points:\n\n${v}` },
+                                    { name: 'translate', description: 'Translate to English', icon: 'languages', handler: () => 'Translate the following to English:\n\n' },
+                                    { name: 'shorten', description: 'Shorten text', icon: 'minimize-2', handler: () => 'Shorten to 1 sentence:\n\n' },
+                                    { name: 'bulletpoints', description: 'Convert to bullet points', icon: 'list', handler: () => 'Convert to 3 bullet points:\n\n' },
                                 ]}
+                                commandsTrigger="/"
                                 defaultValue={{ value: t.labels.devopsPlatformDescription, enabled: true }}
                                 onRunPrompt={runPreview}
                             />
                         </div>
                     </Form>
                 )}
-                code={`<Prompt name="copy" mode={PromptMode.RUN} commands={COMMANDS} />`}
+                code={`<Prompt
+  name="copy"
+  mode={PromptMode.RUN}
+  commands={COMMANDS}
+  commandsTrigger="/"
+/>`}
             />
 
             <Section
@@ -483,7 +491,7 @@ export default function PromptLivePage() {
 
             <Section
                 title="ContextMenu: variabili contesto"
-                description="Digita @ per inserire variabili di contesto nel prompt. Utile quando il prompt usa variabili come {projectName} o {industry}."
+                description="Il wrapper esterno con ContextMenu resta supportato. Qui @ apre un menu separato per inserire variabili di contesto nella textarea visibile del PromptRun, mentre i comandi interni continuano a usare il trigger configurato del Prompt."
                 preview={(
                     <Form appearance="empty" defaultValues={{
                         projectName: 'Atlas Console',

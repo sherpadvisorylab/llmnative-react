@@ -27,7 +27,7 @@ export const ar: I18nDict = {
         deleteConfirm: 'هل أنت متأكد من حذف هذا العنصر؟',
         emptyState: 'لا توجد عناصر للعرض',
     },
-    select: { placeholder: 'اختر...' },
+    select: { placeholder: 'اختر...', loading: 'جارٍ التحميل...' },
     modal: { save: 'حفظ', delete: 'حذف', cancel: 'إلغاء', close: 'إغلاق' },
     upload: {
         clickOrDrag: 'انقر أو اسحب للتحميل...', dropToUpload: 'أفلت للتحميل',

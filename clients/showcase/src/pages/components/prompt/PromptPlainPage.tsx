@@ -99,7 +99,7 @@ export default function PromptPlainPage() {
 
             <Section
                 title="ContextMenu: scorciatoie testo"
-                description="Digita / per aprire un menu con blocchi di testo predefiniti da inserire."
+                description="Il wrapper esterno con ContextMenu resta permesso anche sui fallback plain. Qui il menu slash e fornito dal wrapper, non dai commands interni di Prompt."
                 preview={(
                     <div className="max-w-3xl">
                         <Form appearance="empty" defaultValues={{ notes: { value: '' } }}>

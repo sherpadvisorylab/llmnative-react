@@ -8,6 +8,16 @@ import { cn } from '../../../libs/cn';
 import { useEditorHeight } from '../../../libs/editorHeight';
 import Icon from '../Icon';
 import { useFileUploadCore, type FileProps } from './Upload';
+import {
+    buildTextCommandContext,
+    ContextMenu,
+    CONTEXT_MENU_SEARCH_THRESHOLD,
+    matchCommandTrigger,
+    type ContextMenuHandle,
+    type ContextMenuItem,
+    type EditorCommand,
+    type EditorContext,
+} from './ContextMenu';
 import { useStorageProvider } from '../../../providers/storage/StorageProviderContext'; // CR-042
 import { resizeToVariants, uploadVariants, buildSrcset } from '../../../libs/imageVariants';
 import Modal from '../Modal';
@@ -141,7 +151,16 @@ export interface RichTextProps extends FormFieldProps {
     documentUpload?: RichTextDocumentUploadConfig;
     labelClassName?: string;
     validator?: (value: FieldValue) => string | undefined;
+    commands?: EditorCommand[];
+    commandsTrigger?: string;
 }
+
+type RichTextCommandSession = {
+    open: boolean;
+    query: string;
+    anchorPosition: { top: number; left: number } | null;
+    editorContext: EditorContext | null;
+};
 
 // ── CONSTANTS ─────────────────────────────────────────────────────────────────
 
@@ -861,12 +880,20 @@ interface RichTextInnerProps {
     hasError: boolean;
     className: string | undefined;
     onEditorChange: (content: string) => void;
+    commands: EditorCommand[] | undefined;
+    commandsTrigger: string | undefined;
 }
+
+const getRichTextQueryMatch = (value: string, caret: number, trigger: string) => {
+    return matchCommandTrigger(value, caret, trigger, {
+        queryPattern: /^[A-Za-z0-9-]*$/,
+    });
+};
 
 const RichTextInner = ({
     modules, name, value, outputFormat, placeholder, disabled,
     toolbar, toolbarCommands, statusBar, minHeight, maxHeight,
-    imageUpload, documentUpload, hasError, className, onEditorChange,
+    imageUpload, documentUpload, hasError, className, onEditorChange, commands, commandsTrigger,
 }: RichTextInnerProps) => {
     const { useEditor, EditorContent } = modules[0];
     const { BubbleMenu }               = modules[1];
@@ -915,6 +942,30 @@ const RichTextInner = ({
     const [editDialog,  setEditDialog ] = useState<EditDialogState | null>(null);
     const [, rerenderOnSelection] = React.useReducer(n => n + 1, 0);
     const docInputRef = useRef<HTMLInputElement>(null);
+    const contextMenuRef = useRef<ContextMenuHandle | null>(null);
+    const [commandSession, setCommandSession] = useState<RichTextCommandSession>({
+        open: false,
+        query: '',
+        anchorPosition: null,
+        editorContext: null,
+    });
+    const commandSessionRef = useRef(commandSession);
+    commandSessionRef.current = commandSession;
+    const resolvedCommandsTrigger = commands?.length ? (commandsTrigger ?? '/') : undefined;
+    const commandsSearchable = (commands?.length ?? 0) >= CONTEXT_MENU_SEARCH_THRESHOLD;
+    const commandLookup = React.useMemo(
+        () => new Map((commands ?? []).map((command) => [command.name, command])),
+        [commands],
+    );
+    const commandMenuItems = React.useMemo(
+        () => (commands ?? []).map((command) => ({
+            key: command.name,
+            label: `${resolvedCommandsTrigger ?? '/'}${command.name}`,
+            value: command.name,
+            icon: command.icon,
+        })),
+        [commands, resolvedCommandsTrigger],
+    );
 
     // Always default to [400, 800] so the Insert-image dialog shows variant previews
     // even without a StorageProvider (variants are generated as local blob URLs).
@@ -942,6 +993,53 @@ const RichTextInner = ({
     });
 
     const height = useEditorHeight({ minHeight, maxHeight, paddingOffset: 16 });
+
+    const closeCommandMenu = useCallback(() => {
+        setCommandSession({
+            open: false,
+            query: '',
+            anchorPosition: null,
+            editorContext: null,
+        });
+    }, []);
+
+    const getRichTextEditorContext = useCallback((ed: Editor, activeTrigger: string): EditorContext | null => {
+        const selection = ed.state.selection;
+        if (!selection.empty) return null;
+
+        const { $from } = selection;
+        const parent = $from.parent;
+        if (!parent.isTextblock) return null;
+
+        const blockText = parent.textContent ?? '';
+        const caretInBlock = $from.parentOffset;
+        const match = getRichTextQueryMatch(blockText, caretInBlock, activeTrigger);
+        if (!match) return null;
+
+        const blockStart = selection.from - caretInBlock;
+        const triggerStart = blockStart + match.start;
+        const triggerEnd = blockStart + match.end;
+
+        return {
+            value: ed.getText(),
+            textBeforeCaret: blockText.slice(0, caretInBlock),
+            textAfterCaret: blockText.slice(caretInBlock),
+            trigger: activeTrigger,
+            query: match.query,
+            triggerRange: { start: triggerStart, end: triggerEnd },
+            insert: (text: string) => {
+                const { from, to } = ed.state.selection;
+                const transaction = ed.state.tr.insertText(text, from, to);
+                ed.view.dispatch(transaction);
+                ed.commands.focus();
+            },
+            replace: (start: number, end: number, text: string) => {
+                const transaction = ed.state.tr.insertText(text, start, end);
+                ed.view.dispatch(transaction);
+                ed.commands.focus();
+            },
+        };
+    }, []);
 
     const editor = useEditor({
         extensions: [
@@ -1002,6 +1100,31 @@ const RichTextInner = ({
                 }
                 return false;
             },
+            handleKeyDown(_view, event) {
+                if (!commandSessionRef.current.open) return false;
+
+                switch (event.key) {
+                    case 'ArrowDown':
+                        event.preventDefault();
+                        contextMenuRef.current?.moveNext();
+                        return true;
+                    case 'ArrowUp':
+                        event.preventDefault();
+                        contextMenuRef.current?.movePrev();
+                        return true;
+                    case 'Enter':
+                    case 'Tab':
+                        event.preventDefault();
+                        contextMenuRef.current?.selectActive();
+                        return true;
+                    case 'Escape':
+                        event.preventDefault();
+                        contextMenuRef.current?.close();
+                        return true;
+                    default:
+                        return false;
+                }
+            },
         },
         onUpdate: ({ editor: ed }) => {
             const content =
@@ -1041,6 +1164,77 @@ const RichTextInner = ({
         editor.on('selectionUpdate', rerenderOnSelection);
         return () => { editor.off('selectionUpdate', rerenderOnSelection); };
     }, [editor, height.adjustedMinHeight]);
+
+    useEffect(() => {
+        if (!editor || !resolvedCommandsTrigger || sourceMode) {
+            if (commandSessionRef.current.open) closeCommandMenu();
+            return;
+        }
+
+        const updateCommandSession = () => {
+            if (!editor.isFocused) {
+                if (commandSessionRef.current.open) closeCommandMenu();
+                return;
+            }
+
+            const selection = editor.state.selection;
+            if (!selection.empty) {
+                if (commandSessionRef.current.open) closeCommandMenu();
+                return;
+            }
+
+            const { $from } = selection;
+            const parent = $from.parent;
+            if (!parent.isTextblock) {
+                if (commandSessionRef.current.open) closeCommandMenu();
+                return;
+            }
+
+            const blockText = parent.textContent ?? '';
+            const caretInBlock = $from.parentOffset;
+            const match = getRichTextQueryMatch(blockText, caretInBlock, resolvedCommandsTrigger);
+            if (!match) {
+                if (commandSessionRef.current.open) closeCommandMenu();
+                return;
+            }
+
+            const coords = editor.view.coordsAtPos(selection.from);
+            const editorContext = getRichTextEditorContext(editor, resolvedCommandsTrigger);
+            if (!coords || !editorContext) return;
+
+            setCommandSession({
+                open: true,
+                query: match.query,
+                anchorPosition: { top: coords.bottom, left: coords.left },
+                editorContext,
+            });
+        };
+
+        updateCommandSession();
+        editor.on('selectionUpdate', updateCommandSession);
+        editor.on('transaction', updateCommandSession);
+        return () => {
+            editor.off('selectionUpdate', updateCommandSession);
+            editor.off('transaction', updateCommandSession);
+        };
+    }, [closeCommandMenu, editor, getRichTextEditorContext, resolvedCommandsTrigger, sourceMode]);
+
+    const applyCommandSelection = useCallback(async (item: ContextMenuItem, context: EditorContext) => {
+        const command = commandLookup.get(item.value);
+        if (!command) return;
+
+        if (command.handler) {
+            const nextValue = await command.handler(buildTextCommandContext(context));
+            context.replace(context.triggerRange.start, context.triggerRange.end, nextValue);
+            return;
+        }
+
+        context.replace(
+            context.triggerRange.start,
+            context.triggerRange.end,
+            `${context.trigger}${command.name} `,
+        );
+    }, [commandLookup]);
 
 
 
@@ -1324,32 +1518,66 @@ const RichTextInner = ({
                     value={sourceContent}
                     onChange={e => setSourceContent(e.target.value)}
                 />
-            ) : (
-                <div
-                    style={height.wrapperStyle}
-                    className={cn(
-                        'w-full px-3 py-2 text-sm',
-                        '[&_.ProseMirror]:outline-none',
-                        '[&_.ProseMirror_p]:my-1',
-                        '[&_.ProseMirror_h1]:my-2 [&_.ProseMirror_h1]:text-2xl [&_.ProseMirror_h1]:font-bold',
-                        '[&_.ProseMirror_h2]:my-2 [&_.ProseMirror_h2]:text-xl  [&_.ProseMirror_h2]:font-semibold',
-                        '[&_.ProseMirror_h3]:my-1 [&_.ProseMirror_h3]:text-lg  [&_.ProseMirror_h3]:font-semibold',
-                        '[&_.ProseMirror_ul]:list-disc   [&_.ProseMirror_ul]:pl-6',
-                        '[&_.ProseMirror_ol]:list-decimal [&_.ProseMirror_ol]:pl-6',
-                        '[&_.ProseMirror_blockquote]:my-2 [&_.ProseMirror_blockquote]:border-l-4 [&_.ProseMirror_blockquote]:border-border [&_.ProseMirror_blockquote]:pl-4 [&_.ProseMirror_blockquote]:text-muted-foreground',
-                        '[&_.ProseMirror_code]:rounded [&_.ProseMirror_code]:bg-muted [&_.ProseMirror_code]:px-1 [&_.ProseMirror_code]:font-mono [&_.ProseMirror_code]:text-xs',
-                        '[&_.ProseMirror_pre]:my-2 [&_.ProseMirror_pre]:overflow-x-auto [&_.ProseMirror_pre]:rounded [&_.ProseMirror_pre]:bg-muted [&_.ProseMirror_pre]:p-3',
-                        '[&_.ProseMirror_table]:w-full [&_.ProseMirror_table]:border-collapse',
-                        '[&_.ProseMirror_td]:border [&_.ProseMirror_td]:border-border [&_.ProseMirror_td]:px-2 [&_.ProseMirror_td]:py-1',
-                        '[&_.ProseMirror_th]:border [&_.ProseMirror_th]:border-border [&_.ProseMirror_th]:bg-muted [&_.ProseMirror_th]:px-2 [&_.ProseMirror_th]:py-1 [&_.ProseMirror_th]:font-semibold',
-                        '[&_.ProseMirror_a]:text-primary [&_.ProseMirror_a]:underline [&_.ProseMirror_a]:pointer-events-none',
-                        '[&_.ProseMirror_a_img]:pointer-events-auto',
-                        '[&_.ProseMirror_.is-editor-empty:first-child::before]:pointer-events-none [&_.ProseMirror_.is-editor-empty:first-child::before]:float-left [&_.ProseMirror_.is-editor-empty:first-child::before]:h-0 [&_.ProseMirror_.is-editor-empty:first-child::before]:text-muted-foreground [&_.ProseMirror_.is-editor-empty:first-child::before]:content-[attr(data-placeholder)]',
-                    )}
-                >
-                    <EditorContent editor={editor} />
-                </div>
-            )}
+            ) : (() => {
+                const editorSurface = (
+                    <div
+                        style={height.wrapperStyle}
+                        className={cn(
+                            'w-full px-3 py-2 text-sm',
+                            '[&_.ProseMirror]:outline-none',
+                            '[&_.ProseMirror_p]:my-1',
+                            '[&_.ProseMirror_h1]:my-2 [&_.ProseMirror_h1]:text-2xl [&_.ProseMirror_h1]:font-bold',
+                            '[&_.ProseMirror_h2]:my-2 [&_.ProseMirror_h2]:text-xl  [&_.ProseMirror_h2]:font-semibold',
+                            '[&_.ProseMirror_h3]:my-1 [&_.ProseMirror_h3]:text-lg  [&_.ProseMirror_h3]:font-semibold',
+                            '[&_.ProseMirror_ul]:list-disc   [&_.ProseMirror_ul]:pl-6',
+                            '[&_.ProseMirror_ol]:list-decimal [&_.ProseMirror_ol]:pl-6',
+                            '[&_.ProseMirror_blockquote]:my-2 [&_.ProseMirror_blockquote]:border-l-4 [&_.ProseMirror_blockquote]:border-border [&_.ProseMirror_blockquote]:pl-4 [&_.ProseMirror_blockquote]:text-muted-foreground',
+                            '[&_.ProseMirror_code]:rounded [&_.ProseMirror_code]:bg-muted [&_.ProseMirror_code]:px-1 [&_.ProseMirror_code]:font-mono [&_.ProseMirror_code]:text-xs',
+                            '[&_.ProseMirror_pre]:my-2 [&_.ProseMirror_pre]:overflow-x-auto [&_.ProseMirror_pre]:rounded [&_.ProseMirror_pre]:bg-muted [&_.ProseMirror_pre]:p-3',
+                            '[&_.ProseMirror_table]:w-full [&_.ProseMirror_table]:border-collapse',
+                            '[&_.ProseMirror_td]:border [&_.ProseMirror_td]:border-border [&_.ProseMirror_td]:px-2 [&_.ProseMirror_td]:py-1',
+                            '[&_.ProseMirror_th]:border [&_.ProseMirror_th]:border-border [&_.ProseMirror_th]:bg-muted [&_.ProseMirror_th]:px-2 [&_.ProseMirror_th]:py-1 [&_.ProseMirror_th]:font-semibold',
+                            '[&_.ProseMirror_a]:text-primary [&_.ProseMirror_a]:underline [&_.ProseMirror_a]:pointer-events-none',
+                            '[&_.ProseMirror_a_img]:pointer-events-auto',
+                            '[&_.ProseMirror_.is-editor-empty:first-child::before]:pointer-events-none [&_.ProseMirror_.is-editor-empty:first-child::before]:float-left [&_.ProseMirror_.is-editor-empty:first-child::before]:h-0 [&_.ProseMirror_.is-editor-empty:first-child::before]:text-muted-foreground [&_.ProseMirror_.is-editor-empty:first-child::before]:content-[attr(data-placeholder)]',
+                        )}
+                    >
+                        <EditorContent editor={editor} />
+                    </div>
+                );
+
+                if (!(resolvedCommandsTrigger && commandMenuItems.length > 0)) {
+                    return editorSurface;
+                }
+
+                return (
+                    <ContextMenu
+                        ref={contextMenuRef}
+                        trigger={resolvedCommandsTrigger}
+                        searchable={commandsSearchable}
+                        controlled={commandSession.editorContext ? {
+                            open: commandSession.open,
+                            anchorPosition: commandSession.anchorPosition,
+                            query: commandSession.query,
+                            editorContext: commandSession.editorContext,
+                            onClose: closeCommandMenu,
+                        } : undefined}
+                        onSelect={(item, context) => {
+                            void applyCommandSelection(item, context);
+                        }}
+                    >
+                        {commandMenuItems.map((item) => (
+                            <ContextMenu.Item
+                                key={item.key}
+                                label={item.label}
+                                value={item.value}
+                                icon={item.icon}
+                            />
+                        ))}
+                        {editorSurface}
+                    </ContextMenu>
+                );
+            })()}
 
             {/* Status bar */}
             {statusBar && editor && (
@@ -1418,6 +1646,8 @@ export const RichText = ({
     before            = undefined,
     after             = undefined,
     validator         = undefined,
+    commands          = undefined,
+    commandsTrigger   = undefined,
 }: RichTextProps) => {
     const { value, handleChange, formWrapClass } = useFormContext({
         name,
@@ -1480,6 +1710,8 @@ export const RichText = ({
                             hasError={!!error}
                             className={className}
                             onEditorChange={handleEditorChange}
+                            commands={commands}
+                            commandsTrigger={commandsTrigger}
                         />
                     ) : (
                         <div

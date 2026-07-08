@@ -216,7 +216,7 @@ export default function ThemeSwitcher({
                                 key={modeOption}
                                 type="button"
                                 onClick={() => resolvedMode !== modeOption && toggleMode()}
-                                className={`flex flex-1 items-center justify-center gap-2 rounded-md border py-2 text-sm font-medium transition-colors ${
+                                className={`flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-md border py-2 text-sm font-medium transition-colors ${
                                     resolvedMode === modeOption
                                         ? 'border-primary bg-primary/10 text-primary'
                                         : 'border-border text-muted-foreground hover:bg-accent'
@@ -242,7 +242,7 @@ export default function ThemeSwitcher({
                                 type="button"
                                 onClick={() => setPrimary(swatch.value)}
                                 title={swatch.label}
-                                className={`h-8 w-8 rounded-full border-2 transition-transform hover:scale-110 ${
+                                className={`h-8 w-8 cursor-pointer rounded-full border-2 transition-transform hover:scale-110 ${
                                     primary === swatch.value ? 'scale-110 border-foreground' : 'border-transparent'
                                 }`}
                                 style={{ backgroundColor: swatch.hex }}
@@ -318,7 +318,7 @@ export default function ThemeSwitcher({
                                             type="button"
                                             onClick={() => setTokens({ [key]: swatch.value, [fgKey]: swatch.fgValue })}
                                             title={`${label} - ${swatch.hex}`}
-                                            className={`h-6 w-6 rounded-full border-2 transition-transform hover:scale-110 ${
+                                            className={`h-6 w-6 cursor-pointer rounded-full border-2 transition-transform hover:scale-110 ${
                                                 colors?.[key] === swatch.value ? 'scale-110 border-foreground' : 'border-transparent'
                                             }`}
                                             style={{ backgroundColor: swatch.hex }}
@@ -343,7 +343,7 @@ export default function ThemeSwitcher({
                                 key={themeOption.value}
                                 type="button"
                                 onClick={() => applyTheme(themeOption.value)}
-                                className={`w-full rounded-md border px-3 py-2.5 text-left text-sm transition-colors ${
+                                className={`w-full cursor-pointer rounded-md border px-3 py-2.5 text-left text-sm transition-colors ${
                                     theme === themeOption.value
                                         ? 'border-primary bg-primary/10'
                                         : 'border-border hover:bg-accent'
@@ -372,7 +372,7 @@ export default function ThemeSwitcher({
                                 key={library.value}
                                 type="button"
                                 onClick={() => setProvider(library.value)}
-                                className={`w-full rounded-md border px-3 py-2.5 text-left text-sm transition-colors ${
+                                className={`w-full cursor-pointer rounded-md border px-3 py-2.5 text-left text-sm transition-colors ${
                                     iconLibraryId === library.value
                                         ? 'border-primary bg-primary/10'
                                         : 'border-border hover:bg-accent'
@@ -401,7 +401,7 @@ export default function ThemeSwitcher({
                                             registerProvider('phosphor', new PhosphorIconProvider(weight.value));
                                             setProvider('phosphor');
                                         }}
-                                        className="rounded border border-border px-2 py-1 text-xs transition-colors hover:bg-accent"
+                                        className="cursor-pointer rounded border border-border px-2 py-1 text-xs transition-colors hover:bg-accent"
                                     >
                                         {weight.label}
                                     </button>

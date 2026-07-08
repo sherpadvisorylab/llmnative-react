@@ -1,5 +1,6 @@
 import React from 'react';
 import { Form, CodeEditor } from '@llmnative/react';
+import type { EditorCommand } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
@@ -48,10 +49,34 @@ const SAMPLE_LIQUID = `{% assign featured = collections.posts | limit: 3 %}
       <p>{{ post.excerpt }}</p>
     </article>
   {% endfor %}
-</div>`;
+</div>
+
+`;
+
+const CODE_EDITOR_COMMANDS: EditorCommand[] = [
+    {
+        name: 'wrap-section',
+        icon: 'square-code',
+        description: 'Insert a semantic section snippet at the cursor.',
+        handler: () => '<section class="generated-block">\n  \n</section>',
+    },
+    {
+        name: 'todo',
+        icon: 'list-checks',
+        description: 'Insert a TODO marker at the cursor.',
+    },
+];
 
 export default function CodeEditorPage() {
     const t = useShowcaseCodeEditorI18n();
+    const commandMenuTitle = t.sections.commandMenu?.title ?? 'Slash commands';
+    const commandMenuDescription = t.sections.commandMenu?.description
+        ?? 'Pass commands to open the shared ContextMenu directly inside CodeEditor. The trigger defaults to "/". Type "/" on a blank line or after whitespace to open it.';
+    const commandsLabel = t.labels.codeTemplateWithCommands ?? 'Template with commands';
+    const commandsDescription = t.propsDocs.items.commands?.description
+        ?? 'Slash commands shown by the shared ContextMenu. Pass an array of { name, description?, icon?, handler? }. The trigger defaults to "/" when commands is present.';
+    const commandsTriggerDescription = t.propsDocs.items.commandsTrigger?.description
+        ?? 'Trigger string used to open the internal ContextMenu. Defaults to "/" when commands is present.';
 
     const props = React.useMemo<PropDef[]>(() => [
         { name: 'name',            type: 'string',            required: true,  description: t.propsDocs.items.name.description,           control: 'text' },
@@ -73,12 +98,20 @@ export default function CodeEditorPage() {
         ] },
         { name: 'value',           type: 'string',                             description: t.propsDocs.items.value.description },
         { name: 'feedback',        type: 'string',                             description: t.propsDocs.items.feedback.description,       control: 'text' },
+        {
+            name: 'commands',
+            type: 'EditorCommand[]',
+            description: commandsDescription,
+            control: 'select',
+            options: ['none', 'basic'],
+        },
+        { name: 'commandsTrigger', type: 'string',                             description: commandsTriggerDescription, control: 'text' },
         { name: 'before',          type: 'ReactNode',                          description: t.propsDocs.items.before.description,         control: 'text' },
         { name: 'after',           type: 'ReactNode',                          description: t.propsDocs.items.after.description,          control: 'text' },
         { name: 'onChange',        type: 'FieldOnChange',                      description: t.propsDocs.items.onChange.description },
         { name: 'className',       type: 'string',                             description: t.propsDocs.items.className.description,      control: 'text' },
         { name: 'wrapperClassName', type: 'string',                            description: t.propsDocs.items.wrapperClassName.description, control: 'text' },
-    ], [t]);
+    ], [commandsDescription, commandsTriggerDescription, t]);
 
     const playground = React.useMemo<PlaygroundConfig>(() => ({
         props,
@@ -95,6 +128,8 @@ export default function CodeEditorPage() {
             minHeight:    200,
             maxHeight:    600,
             feedback:     '',
+            commands:     'none',
+            commandsTrigger: '/',
             before:       '',
             after:        '',
             className:    '',
@@ -113,6 +148,8 @@ export default function CodeEditorPage() {
                     minHeight={p.minHeight}
                     maxHeight={p.maxHeight}
                     feedback={p.feedback || undefined}
+                    commands={p.commands === 'basic' ? CODE_EDITOR_COMMANDS : undefined}
+                    commandsTrigger={p.commands === 'basic' ? ((p.commandsTrigger as string) || '/') : undefined}
                     before={p.before || undefined}
                     after={p.after || undefined}
                     className={p.className || undefined}
@@ -219,6 +256,44 @@ export default function CodeEditorPage() {
         defaultValue={'<h1>Hello</h1>'}
         disabled
     />
+</Form>`}
+            />
+
+            <Section
+                title={commandMenuTitle}
+                description={commandMenuDescription}
+                preview={(
+                    <Form appearance="empty">
+                        <CodeEditor
+                            name="commandsCode"
+                            label={commandsLabel}
+                            language="liquid"
+                            minHeight={140}
+                            defaultValue={SAMPLE_LIQUID}
+                            commands={CODE_EDITOR_COMMANDS}
+                            commandsTrigger="/"
+                        />
+                    </Form>
+                )}
+                code={`import { Form, CodeEditor } from '@llmnative/react';
+
+const commands = [
+  {
+    name: 'wrap-section',
+    icon: 'square-code',
+    handler: () => '<section class="generated-block">\\n  \\n</section>',
+  },
+  { name: 'todo', icon: 'list-checks' },
+];
+
+<Form>
+  <CodeEditor
+    name="template"
+    label="Template with commands"
+    language="liquid"
+    commands={commands}
+    commandsTrigger="/"
+  />
 </Form>`}
             />
 

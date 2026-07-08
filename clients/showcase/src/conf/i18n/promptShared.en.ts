@@ -43,7 +43,7 @@ export default defineLocaleMessages({
                         typeDetails: 'Record<string, unknown>',
                     },
                     commands: {
-                        description: 'Slash commands shown via the / button in the run-mode footer. Selecting one calls its handler with the current textarea value and replaces it with the returned string.',
+                        description: 'Commands rendered through the built-in ContextMenu inside the run-mode textarea. Selecting one calls its handler with the current field value and replaces it with the returned string.',
                         typeDetails: `{
   name: string;
   description?: string;
@@ -51,6 +51,7 @@ export default defineLocaleMessages({
   handler?: (currentValue: string) => string | Promise<string>;
 }[]`,
                     },
+                    commandsTrigger: { description: 'Trigger character used by the internal ContextMenu for commands. Defaults to "/" when commands is present.' },
                     attachments: { description: 'Enables the paperclip button in the footer bar. Attached files appear as previews above the result textarea and are forwarded as multimodal inputs to compatible AI providers.', default: 'false' },
                     actions: {
                         description: 'Custom icon buttons in the run-mode footer bar. A tokenUsage key activates the built-in token usage popup after each run.',

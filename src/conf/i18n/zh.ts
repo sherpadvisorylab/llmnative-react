@@ -27,7 +27,7 @@ export const zh: I18nDict = {
         deleteConfirm: '确定要删除此项目吗？',
         emptyState: '暂无数据',
     },
-    select: { placeholder: '请选择...' },
+    select: { placeholder: '请选择...', loading: '加载中...' },
     modal: { save: '保存', delete: '删除', cancel: '取消', close: '关闭' },
     upload: {
         clickOrDrag: '点击或拖拽上传...', dropToUpload: '松开上传',

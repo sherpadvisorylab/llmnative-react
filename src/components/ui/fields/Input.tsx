@@ -446,31 +446,33 @@ export const Switch = ({
         <Wrapper className={formWrapClass}>
             <div className="flex items-center gap-2">
                 {before}
-                <label htmlFor={id} className="inline-flex cursor-pointer items-center gap-2 select-none">
-                    <input
-                        id={id}
-                        name={name}
-                        type="checkbox"
-                        title={title}
-                        aria-label={ariaLabel}
-                        checked={checked}
-                        onChange={handleCheckboxChange}
-                        className="sr-only"
-                    />
-                    <span
-                        aria-hidden="true"
-                        className={cn(
-                            "relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors duration-200 ease-out",
-                            checked ? "bg-primary" : "bg-muted-foreground/35",
-                            className
-                        )}
-                    >
-                        <span
-                            className={cn(
-                                "pointer-events-none absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-background shadow-sm transition-transform duration-200 ease-out",
-                                checked && "translate-x-4"
-                            )}
+                <label className="inline-flex cursor-pointer items-center gap-2 select-none">
+                    <span className="relative inline-flex h-5 w-9 shrink-0 items-center">
+                        <input
+                            id={id}
+                            name={name}
+                            type="checkbox"
+                            title={title}
+                            aria-label={ariaLabel}
+                            checked={checked}
+                            onChange={handleCheckboxChange}
+                            className="peer absolute inset-0 m-0 h-full w-full cursor-pointer opacity-0"
                         />
+                        <span
+                            aria-hidden="true"
+                            className={cn(
+                                "pointer-events-none absolute inset-0 rounded-full transition-colors duration-200 ease-out peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2",
+                                checked ? "bg-primary" : "bg-muted-foreground/35",
+                                className
+                            )}
+                        >
+                            <span
+                                className={cn(
+                                    "pointer-events-none absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-background shadow-sm transition-transform duration-200 ease-out",
+                                    checked && "translate-x-4"
+                                )}
+                            />
+                        </span>
                     </span>
                     {label && (
                         <span className="text-sm font-medium leading-none text-foreground">
