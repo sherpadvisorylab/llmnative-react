@@ -59,10 +59,17 @@ const refInfoWithMeta = async (item: StorageReference): Promise<StorageFileInfo>
 
 // ── Provider ──────────────────────────────────────────────────────────────────
 
+export interface FirebaseStorageProviderConfig {
+    /** Used when a call doesn't pass its own `opts.bucket` — omit for the project's default bucket. */
+    defaultBucket?: string;
+}
+
 export class FirebaseStorageProvider implements StorageProviderAdapter {
     private static listenerRegistered = false;
+    private defaultBucket?: string;
 
-    constructor() {
+    constructor(config: FirebaseStorageProviderConfig = {}) {
+        this.defaultBucket = config.defaultBucket;
         if (!FirebaseStorageProvider.listenerRegistered && typeof onConfigChange === 'function') {
             FirebaseStorageProvider.listenerRegistered = true;
             onConfigChange((newConfig: Config) => {
@@ -70,6 +77,8 @@ export class FirebaseStorageProvider implements StorageProviderAdapter {
             });
         }
     }
+
+    private resolveBucket = (bucket?: string): string | undefined => bucket ?? this.defaultBucket;
 
     getConfigurationState(): ProviderConfigurationState {
         return getFirebaseConfigurationState();
@@ -88,7 +97,7 @@ export class FirebaseStorageProvider implements StorageProviderAdapter {
     ): Promise<string | undefined> => {
         if (!file) return;
         try {
-            const ref = storageRef(getStorage(opts.bucket), path);
+            const ref = storageRef(getStorage(this.resolveBucket(opts.bucket)), path);
 
             if (typeof file === 'string') {
                 const snapshot = await uploadString(ref, file, 'data_url');
@@ -127,7 +136,7 @@ export class FirebaseStorageProvider implements StorageProviderAdapter {
         path: string,
         opts: UploadOptions = {}
     ): UploadHandle => {
-        const ref = storageRef(getStorage(opts.bucket), path);
+        const ref = storageRef(getStorage(this.resolveBucket(opts.bucket)), path);
 
         // Data URL: uploadString has no native pause/resume
         if (typeof file === 'string') {
@@ -233,7 +242,7 @@ export class FirebaseStorageProvider implements StorageProviderAdapter {
 
     getURL = async (path: string, opts: StorageOptions = {}): Promise<string | undefined> => {
         try {
-            return await getDownloadURL(storageRef(getStorage(opts.bucket), path));
+            return await getDownloadURL(storageRef(getStorage(this.resolveBucket(opts.bucket)), path));
         } catch (error) {
             console.error(`[FirebaseStorage] getURL error for ${path}:`, error);
         }
@@ -243,7 +252,7 @@ export class FirebaseStorageProvider implements StorageProviderAdapter {
 
     getFileInfo = async (path: string, opts: StorageOptions = {}): Promise<StorageFileInfo | undefined> => {
         try {
-            const ref = storageRef(getStorage(opts.bucket), path);
+            const ref = storageRef(getStorage(this.resolveBucket(opts.bucket)), path);
             const meta = await getMetadata(ref);
             return {
                 name:        ref.name,
@@ -284,7 +293,7 @@ export class FirebaseStorageProvider implements StorageProviderAdapter {
             return this._deleteFolder(path, opts);
         }
         try {
-            await deleteObject(storageRef(getStorage(opts.bucket), path));
+            await deleteObject(storageRef(getStorage(this.resolveBucket(opts.bucket)), path));
             return 1;
         } catch (error: unknown) {
             if ((error as { code?: string }).code === 'storage/object-not-found') return 0;
@@ -295,7 +304,7 @@ export class FirebaseStorageProvider implements StorageProviderAdapter {
 
     private _deleteFolder = async (path: string, opts: StorageOptions): Promise<number> => {
         try {
-            const ref = storageRef(getStorage(opts.bucket), path);
+            const ref = storageRef(getStorage(this.resolveBucket(opts.bucket)), path);
             const { items, prefixes } = await listAll(ref);
 
             let count = 0;
@@ -340,7 +349,7 @@ export class FirebaseStorageProvider implements StorageProviderAdapter {
         const showFolders = opts.includeFolders === true;
 
         try {
-            const ref = storageRef(getStorage(opts.bucket), path);
+            const ref = storageRef(getStorage(this.resolveBucket(opts.bucket)), path);
             const { items, prefixes } = await listAll(ref);
 
             const fileResults: StorageFileInfo[] = showFiles

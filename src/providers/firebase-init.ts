@@ -150,7 +150,11 @@ export const signInWithFirebaseCustomToken = async (token: string): Promise<bool
         await signInWithCustomToken(auth, token);
         return true;
     } catch (error) {
-        console.error("Firebase custom token sign-in error: ", error);
+        const apiKey = (auth.app.options as Partial<FirebaseConfig>)?.apiKey;
+        console.error(
+            "Firebase custom token sign-in error: ", error,
+            `— app "${auth.app.name}" options.apiKey: ${apiKey ? `${apiKey.slice(0, 6)}… (len ${apiKey.length})` : String(apiKey)}`,
+        );
         return false;
     }
 };

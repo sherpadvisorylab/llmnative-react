@@ -836,7 +836,13 @@ const FormData = ({
             errors,
             hasErrors: Object.keys(errors).length > 0,
         });
-    }, [canDelete, canSave, controllerStore, draftNoticeState, errors, isDeleting, isDirty, isNewRecord, isSaving]);
+        // `record` (not just recordRef) MUST be a dep — otherwise this only re-publishes to
+        // the controller store when isDirty/canSave/etc. happen to flip (typically once, on
+        // the first keystroke), leaving controller.record frozen after that even though the
+        // user keeps typing. Any caller reading useFormController().record outside of the
+        // Form's own save flow (e.g. a custom submit button reading it directly) would see a
+        // stale snapshot from the first edit, not the latest one.
+    }, [canDelete, canSave, controllerStore, draftNoticeState, errors, isDeleting, isDirty, isNewRecord, isSaving, record]);
 
     useEffect(() => () => resetFormController(formController), [controllerStore]);
 

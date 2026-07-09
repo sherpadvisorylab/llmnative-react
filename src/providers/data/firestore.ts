@@ -1,3 +1,4 @@
+import { getApp } from 'firebase/app';
 import {
     getFirestore,
     collection,
@@ -48,7 +49,10 @@ const getSegments   = (path: string) => normalizePath(path).split('/').filter(Bo
 /** Even segment count = document path (/users/uid). Odd = collection (/users). */
 const isDocPath = (path: string) => getSegments(path).length % 2 === 0;
 
-const getDb = (): FirestoreDb => getFirestore();
+export interface FirestoreDataProviderConfig {
+    /** Named database within the current app's project — omit for the "(default)" database. */
+    databaseId?: string;
+}
 
 // ── Error helper ─────────────────────────────────────────────────────────────
 
@@ -150,8 +154,10 @@ const recordArrayToObject = (records: RecordArray): RecordObject =>
 
 export class FirestoreDataProvider implements DataProviderAdapter {
     private static listenerRegistered = false;
+    private databaseId?: string;
 
-    constructor() {
+    constructor(config: FirestoreDataProviderConfig = {}) {
+        this.databaseId = config.databaseId;
         if (!FirestoreDataProvider.listenerRegistered && typeof onConfigChange === 'function') {
             FirestoreDataProvider.listenerRegistered = true;
             onConfigChange((newConfig: Config) => {
@@ -159,6 +165,10 @@ export class FirestoreDataProvider implements DataProviderAdapter {
             });
         }
     }
+
+    /** Same "(default)" database as before when no databaseId was configured. */
+    private getDb = (): FirestoreDb =>
+        this.databaseId ? getFirestore(getApp(), this.databaseId) : getFirestore();
 
     getConfigurationState(): ProviderConfigurationState {
         return getFirestoreConfigurationState();
@@ -174,7 +184,7 @@ export class FirestoreDataProvider implements DataProviderAdapter {
         path: string,
         { where, order, toArray = false, exception = false }: ReadOptions = {}
     ): Promise<any> => {
-        const db = getDb();
+        const db = this.getDb();
         const np = normalizePath(path);
         try {
             if (isDocPath(path)) {
@@ -203,7 +213,7 @@ export class FirestoreDataProvider implements DataProviderAdapter {
     // ── set ─────────────────────────────────────────────────────────────────
 
     set = async (path: string, data: object, exception = false): Promise<void> => {
-        const db = getDb();
+        const db = this.getDb();
         const np = normalizePath(path);
         try {
             if (isDocPath(path)) {
@@ -221,7 +231,7 @@ export class FirestoreDataProvider implements DataProviderAdapter {
     // ── update ──────────────────────────────────────────────────────────────
 
     update = async (path: string, data: object, exception = false): Promise<void> => {
-        const db = getDb();
+        const db = this.getDb();
         const np = normalizePath(path);
         try {
             if (isDocPath(path)) {
@@ -238,7 +248,7 @@ export class FirestoreDataProvider implements DataProviderAdapter {
     // ── remove ──────────────────────────────────────────────────────────────
 
     remove = async (path: string, exception = false): Promise<void> => {
-        const db = getDb();
+        const db = this.getDb();
         const np = normalizePath(path);
         try {
             if (isDocPath(path)) {
@@ -256,7 +266,7 @@ export class FirestoreDataProvider implements DataProviderAdapter {
 
     count = async (path: string): Promise<number> => {
         if (isDocPath(path)) return 1;
-        const db = getDb();
+        const db = this.getDb();
         try {
             const snap = await getCountFromServer(collection(db, normalizePath(path)));
             return snap.data().count;
@@ -289,7 +299,7 @@ export class FirestoreDataProvider implements DataProviderAdapter {
         if (!auth || !path) return () => undefined;
 
         const attachListener = (): (() => void) => {
-            const db = getDb();
+            const db = this.getDb();
             const np = normalizePath(path);
 
             if (isDocPath(path)) {
@@ -349,7 +359,7 @@ export class FirestoreDataProvider implements DataProviderAdapter {
      * On a document path, returns the document's field names.
      */
     readShallow = async (path: string, exception = false): Promise<string[]> => {
-        const db = getDb();
+        const db = this.getDb();
         const np = normalizePath(path);
         try {
             if (isDocPath(path)) {
@@ -377,7 +387,7 @@ export class FirestoreDataProvider implements DataProviderAdapter {
         data: object,
         { chunkSize = 500, purge = false, onProgress }: SetChunksOptions = {}
     ): Promise<void> => {
-        const db = getDb();
+        const db = this.getDb();
         const np = normalizePath(path);
         // Firestore writeBatch cap - never exceed 500 ops per commit
         const batchSize = Math.min(chunkSize, 500);

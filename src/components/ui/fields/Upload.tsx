@@ -12,6 +12,7 @@ import Icon from "../Icon";
 import { FormFieldProps, FieldOnChange, useFormContext, useFieldValidation } from "../../widgets/Form";
 import { FieldError } from "./Input";
 import { useStorageProvider } from "../../../providers/storage/StorageProviderContext";
+import type { StorageProviderAdapter } from "../../../providers/storage/StorageProvider";
 import { resizeToVariants, uploadVariants, buildSrcset } from "../../../libs/imageVariants";
 
 export interface FileProps {
@@ -46,6 +47,14 @@ export interface UseFileUploadCoreOptions {
     srcsetWidths?: number[];
     /** Initial file list (e.g. from a form record on load). */
     initialFiles?: FileProps[];
+    /** Named storage provider slot to upload through — omit for the default. */
+    storageKey?: string;
+    /**
+     * Direct adapter instance — takes priority over `storageKey` when set. For callers that
+     * already computed the right adapter themselves (e.g. a per-record bucket resolved from
+     * that record's own fields, not from a registry key) rather than one registered globally.
+     */
+    storageProvider?: StorageProviderAdapter | null;
 }
 
 export const useFileUploadCore = ({
@@ -54,9 +63,11 @@ export const useFileUploadCore = ({
     uploadPath,
     srcsetWidths,
     initialFiles,
+    storageKey,
+    storageProvider,
 }: UseFileUploadCoreOptions) => {
     const [files, setFiles] = useState<FileProps[]>(initialFiles ?? []);
-    const storage           = useStorageProvider();
+    const storage           = storageProvider ?? useStorageProvider(storageKey);
     const fileInputRef      = useRef<HTMLInputElement | null>(null);
 
     // Stable refs so callbacks don't need to be in useEffect deps
@@ -184,6 +195,8 @@ const useFileUpload = (
     wrapperClassName?: string,
     uploadPath?: string,
     srcsetWidths?: number[],
+    storageKey?: string,
+    storageProvider?: StorageProviderAdapter | null,
 ) => {
     const { value, handleChange, formWrapClass } = useFormContext({ name, onChange, wrapperClassName });
     const [currentFile, setCurrentFile] = useState<FileProps | null>(null);
@@ -193,6 +206,8 @@ const useFileUpload = (
         onFilesChange:  (files) => handleChange({ target: { name, value: files } }),
         uploadPath,
         srcsetWidths,
+        storageKey,
+        storageProvider,
     });
 
     const handleSave = (updates: Partial<FileProps>) => {
@@ -220,6 +235,10 @@ export interface UploadDocumentProps extends FormFieldProps {
     max?: number;
     /** StorageProvider path — when set, files are auto-uploaded on selection. */
     uploadPath?: string;
+    /** Named storage provider slot to upload through — omit for the default. */
+    storageKey?: string;
+    /** Direct adapter instance — takes priority over `storageKey` when set. */
+    storageProvider?: StorageProviderAdapter | null;
 }
 
 export interface UploadImageProps extends UploadDocumentProps {
@@ -328,6 +347,8 @@ export const UploadDocument = ({
     max              = 100,
     accept           = '.pdf,.doc,.docx,.txt,.iso',
     uploadPath       = undefined,
+    storageKey       = undefined,
+    storageProvider  = undefined,
     before           = undefined,
     after            = undefined,
     wrapperClassName = undefined,
@@ -337,7 +358,7 @@ export const UploadDocument = ({
         files, currentFile, fileInputRef, formWrapClass,
         handleFiles, handleUploadChange, handleUpload, handleRemove,
         handleSave, handleEdit, handleClose,
-    } = useFileUpload(name, onChange, wrapperClassName, uploadPath);
+    } = useFileUpload(name, onChange, wrapperClassName, uploadPath, undefined, storageKey, storageProvider);
     const error = useFieldValidation(name, { required, label });
     const dict  = useI18n('upload');
     const [dragOver, setDragOver] = useState(false);
@@ -461,6 +482,8 @@ export const UploadImage = ({
     previewWidth     = 100,
     uploadPath       = undefined,
     srcsetWidths     = undefined,
+    storageKey       = undefined,
+    storageProvider  = undefined,
     before           = undefined,
     after            = undefined,
     wrapperClassName = undefined,
@@ -470,7 +493,7 @@ export const UploadImage = ({
         files, currentFile, fileInputRef, formWrapClass,
         handleUploadChange, handleUpload, handleRemove,
         handleSave, handleEdit, handleClose,
-    } = useFileUpload(name, onChange, wrapperClassName, uploadPath, srcsetWidths);
+    } = useFileUpload(name, onChange, wrapperClassName, uploadPath, srcsetWidths, storageKey, storageProvider);
     const error = useFieldValidation(name, { required, label });
     const dict  = useI18n('upload');
 

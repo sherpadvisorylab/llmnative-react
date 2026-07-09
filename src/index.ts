@@ -146,11 +146,13 @@ export type { MotionEffect, MotionReference, MotionRegistry, MotionStyle, Motion
 export { createMotionTransition, resolveMotionEffect, useEnterMotion, useMotionEffect, useMotionState, usePressMotion } from './motion';
 export { FirebaseDataProvider } from './providers/data/firebase';
 export { FirestoreDataProvider } from './providers/data/firestore';
+export type { FirestoreDataProviderConfig } from './providers/data/firestore';
 export { SupabaseDataProvider } from './providers/data/supabase';
 export { MockDataProvider } from './providers/data/mock';
 export { useDataProvider, DataProvider } from './providers/data/DataProviderContext';
 export type { StorageProviderAdapter, UploadOptions, StorageOptions, DeleteOptions, MoveOptions, ListOptions, StorageFileInfo, UploadHandle } from './providers/storage/StorageProvider';
 export { FirebaseStorageProvider } from './providers/storage/firebase';
+export type { FirebaseStorageProviderConfig } from './providers/storage/firebase';
 export { SupabaseStorageProvider } from './providers/storage/supabase';
 export { useStorageProvider, StorageProvider } from './providers/storage/StorageProviderContext';
 export type { AuthProviderAdapter, AuthIntent, AuthSignInOptions, UserProfile } from './providers/auth/AuthProvider';

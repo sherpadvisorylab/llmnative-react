@@ -31,11 +31,14 @@ import '@llmnative/react/dist/index.css'
     },
     supabase: { url, anonKey },
     google: { clientId, scope },       // flat — NON { oAuth2: { clientId } }
+    dropbox: { clientId },             // DropboxConfig
     mock: { data: mockData },
     ai: {                              // AIConfig — NON una prop separata di <App>
       openaiApiKey, geminiApiKey, anthropicApiKey,
       deepSeekApiKey, mistralApiKey, openRouterApiKey,
     },
+    proxy: { enable: true, route: '/api/proxy' },
+    custom: { data: { myAdapter: new MyDataProvider() } },
     services: {
       data:        'dbRealtime',      // DataDriverName
       storage:     'firestorage',     // StorageDriverName | null
@@ -49,6 +52,12 @@ import '@llmnative/react/dist/index.css'
   themeProvider="default"            // 'default' | 'flat' | 'cyber' | AppThemeProviderConfig
   menuConfig={menuConfig}
   importPage={(path) => import(path)}
+  LayoutDefault={MyLayout}           // layout wrapper custom (opzionale)
+  appName="MyApp"                    // nome app (opzionale)
+  i18n={{ locale: 'it', translations: { ... } }}
+  contextProviders={MyContextProvider}
+  errorReportUrl="/api/errors"
+  debug={import.meta.env.DEV}
 />
 ```
 
@@ -175,7 +184,7 @@ export class RestDataProvider implements DataProviderAdapter {
   sortable={{ field: 'name', dir: 'asc' }}
   form={<FormFields />}
   onSave={async ({ record, action }) => record._key}
-  onActionComplete={async ({ record, action }) => true}
+  onComplete={async ({ record, action }) => true}
   selection={{ mode: 'multiple', onChange: (sel) => {} }}
   reorderable
   onReorder={(records, meta) => {}}
@@ -185,20 +194,32 @@ export class RestDataProvider implements DataProviderAdapter {
 ```
 
 | Prop | Tipo | Note |
-|---|---|---|
+|---|---|---|---|
 | `path` | `string \| "fromUrl"` | Path provider-backed |
 | `records` | `RecordArray` | Dati in memoria (alternativa a path) |
-| `columns` | `GridColumn[]` | `{ key, label, sortable?, render? }` |
+| `columns` | `GridColumn[]` | `{ key, label, sortable?, render?, className? }` |
 | `actions` | `Array<'add'\|'edit'\|'delete'> \| Record<string, GridAction>` | |
 | `view` | `'table' \| 'gallery'` | |
 | `groupBy` | `string \| string[]` | |
-| `pagination` | `{ limit: number }` | |
+| `pagination` | `PaginationParams` | `{ limit, page?, maxPageButtons?, align?, sticky? }` |
 | `sortable` | `boolean \| OrderConfig` | |
+| `selection` | `false \| 'single' \| 'multiple' \| GridSelectionConfig` | |
 | `form` | `ReactElement \| ((ctx) => ReactNode)` | Form condiviso per CRUD |
-| `onSave` | `async ({ record, action }) => string` | |
-| `onActionComplete` | `async ({ record, action }) => boolean` | |
-
-**Render built-in colonne:** `'text'`, `'email'`, `'date'`, `'datetime'`, `'badge'`, `'image'`, `'boolean'`, `'json'`
+| `onSave` | `GridMutationSaveHandler` | `async ({ record, action }) => string` |
+| `onDelete` | `GridMutationDeleteHandler` | `async ({ record }) => string` |
+| `onComplete` | `GridAfterActionHandler` | `async ({ record, action }) => boolean` |
+| `onRowClick` | `(record) => void` | |
+| `reorderable` | `boolean` | Abilita drag & drop righe |
+| `onReorder` | `GridReorderHandler` | `(records, meta) => void` |
+| `onLoad` | `(records) => TRecord[]` | Trasforma records dopo il fetch |
+| `editDeepLink` | `boolean` | Sincronizza modal edit con URL |
+| `audit` | `boolean` | Logga mutazioni |
+| `sticky` | `'top' \| 'bottom'` | Header/footer sticky |
+| `wrapperClassName` | `string` | CSS wrapper esterno |
+| `loading` | `boolean` | Stato loading override |
+| `title` | `ReactNode` | Titolo header grid |
+| `before` / `after` | `ReactNode` | Slot prima/dopo il contenuto |
+| `header` / `footer` | `ReactNode \| ((ctx) => ReactNode)` | Header/footer custom |
 
 **GridAction kind:** `'modal'` (default), `'route'`, `'external'`, `'inline'`, `'delete'`
 
@@ -213,8 +234,8 @@ export class RestDataProvider implements DataProviderAdapter {
   showBack
   defaultValues={{ status: 'draft' }}
   keyGenerator={() => `prod_${Date.now()}`}
-  onLoad={(data) => ({ ...data, price: data.price / 100 })}
-  onSave={async ({ record }) => ({ ...record, price: record.price * 100 })}
+  onLoad={(data) => { /* side-effect hook, non trasforma */ }}
+  onSave={async ({ record, action }) => { /* return storagePath or undefined */ }}
   onDelete={async ({ record }) => { /* confirm */ }}
   onComplete={async ({ action }) => { if (action === 'save') navigate('/products') }}
 >
@@ -228,7 +249,7 @@ export class RestDataProvider implements DataProviderAdapter {
 ```
 
 | Prop | Tipo | Note |
-|---|---|---|
+|---|---|---|---|
 | `path` | `string` | Path provider-backed |
 | `appearance` | `'card' \| 'empty'` | Guscio visuale |
 | `controller` | `FormController` | Controller condiviso per bottoni custom esterni |
@@ -238,16 +259,19 @@ export class RestDataProvider implements DataProviderAdapter {
 | `persistDraft` | `boolean` | Salva bozza locale su modifiche non salvate |
 | `noticeAnchorRef` | `React.RefObject<HTMLElement>` | Ancoraggio sticky per notifiche |
 | `showNotice` | `boolean` | Mostra notifiche save/delete (default `true`) |
+| `children` | `ReactNode \| ((fields) => ReactNode) \| (({ record }) => ReactNode)` | Contenuto form |
+| `header` | `ReactNode` | Contenuto header custom |
+| `footer` | `ReactNode` | Contenuto footer custom |
 | `wrapperClassName` | `string` | CSS wrapper esterno |
 | `headerClassName` | `string` | CSS header |
 | `className` | `string` | CSS body form |
 | `footerClassName` | `string` | CSS footer |
 | `log` | `boolean` | Logga ogni modifica su console |
-| `onLoad` | `(record) => RecordProps` | Trasforma dopo il caricamento |
+| `onLoad` | `(record) => void` | Side-effect dopo il caricamento (non trasforma) |
 | `onRecordChange` | `(record) => void` | Cambio campo in tempo reale |
-| `onSave` | `FormSaveHandler` | Trasforma prima del salvataggio |
-| `onDelete` | `FormDeleteHandler` | Hook prima della cancellazione |
-| `onComplete` | `FormFinallyHandler` | Dopo save/delete |
+| `onSave` | `FormSaveHandler` | `async ({ record, prevRecord?, storagePath?, action }) => string \| undefined` |
+| `onDelete` | `FormDeleteHandler` | `async ({ record }) => string \| undefined` |
+| `onComplete` | `FormFinallyHandler` | `async ({ record, action }) => boolean` |
 
 **Form controller** — stato e azioni native del form accessibili da qualsiasi punto della pagina.
 
@@ -297,7 +321,7 @@ Azioni: `save()`, `delete()`, `reset()`, `restoreDraft()`, `discardDraft()`.
 
 **NOTA**: `inputType` NON è una prop pubblica — usa i sub-componenti `Input.Number`, `Input.Email` ecc.
 
-### Select
+### Select / Autocomplete / Checklist
 ```tsx
 <Select name="role" options={[{ label: 'Admin', value: 'admin' }]} />
 <Select name="categoryId" optionsSource={{ path: '/categories', labelField: 'name', valueField: '_key' }} />
@@ -305,39 +329,58 @@ Azioni: `save()`, `delete()`, `reset()`, `restoreDraft()`, `discardDraft()`.
 <Select.Checklist name="tags" options={['a', 'b', 'c']} />
 ```
 
-| Prop | Tipo |
-|---|---|
-| `options` | `Option[] \| string[] \| number[]` |
-| `optionsSource` | `{ path, labelField, valueField? }` — carica da provider |
-| `order` | `{ field: 'label' \| 'value', dir: 'asc' \| 'desc' }` |
+| Prop | Tipo | Note |
+|---|---|---|
+| `options` | `Option[] \| string[] \| number[]` | |
+| `optionsSource` | `{ path, labelField, valueField?, where?, order?, fieldMap?, onLoad? }` | Carica da provider |
+| `order` | `{ field: 'label' \| 'value', dir: 'asc' \| 'desc' }` | |
+| `placeholderOption` | `Option` | Solo Select |
+| `placeholder` | `string` | Solo Autocomplete |
+| `creatable` | `boolean` | Solo Autocomplete — crea nuovi valori |
+| `onCreate` | `(value) => Promise<void>` | Solo Autocomplete |
+| `minItems` / `maxItems` | `number` | Solo Autocomplete |
+| `itemClassName` | `string` | Solo Checklist |
+| `validator` | `(value) => string \| undefined` | Tutte le varianti |
+| `readOnlyAfterSet` | `boolean` | readonly dopo primo valore |
+| `disabled` | `boolean` | |
+| `title` | `string` | |
+| `feedback` | `string` | Messaggio di errore/suggerimento |
 
-### Upload
+### UploadImage / UploadDocument / UploadCSV
 ```tsx
-<Upload name="file" label="Allegato" accept=".pdf,.zip" multiple />
-<Upload.Image name="cover" label="Copertina" />    {/* con crop editor */}
-<Upload.Document name="pdf" label="PDF" />
+<UploadImage name="cover" label="Copertina" />    {/* con crop editor */}
+<UploadDocument name="pdf" label="PDF" />
 <UploadCSV name="data" label="Importa CSV" />      {/* con preview tabellare */}
 ```
 
-| Prop | Tipo |
-|---|---|
-| `name` | `string` (required) |
-| `accept` | `string` |
-| `multiple` | `boolean` |
-| `editable` | `boolean` |
-| `max` | `number` (MB) |
+**UploadImageProps** (eredita FormFieldProps):
+| Prop | Tipo | Note |
+|---|---|---|
+| `name` | `string` (required) | |
+| `uploadPath` | `string` | Path storage per upload automatico |
+| `accept` | `string` | MIME types accettati |
+| `editable` | `boolean` | Abilita crop editor |
+| `multiple` | `boolean` | Multipla selezione |
+| `max` | `number` | Numero massimo file |
+| `feedback` | `string` | Testo placeholder drop zone |
+| `srcsetWidths` | `number[]` | Larghezze varianti responsive |
+| `previewHeight` / `previewWidth` | `number` | Dimensioni preview |
 
-### Crop
-```tsx
-<Crop name="avatar" label="Avatar" aspectRatio={1} />
-```
-Campo ritaglio immagine con preview e zoom.
+**UploadDocumentProps** (eredita FormFieldProps): `name`, `uploadPath`, `accept`, `editable`, `multiple`, `max`
 
 ### UploadCSV
 ```tsx
 <UploadCSV name="data" label="Importa CSV" />
 ```
-Upload file CSV con preview tabellare e validazione.
+| Prop | Tipo |
+|---|---|
+| `name` | `string` (required) |
+| `onDataLoaded` | `(data: UploadCSVData) => void` |
+| `onParseField` | `([key, value]) => [key, value] \| undefined` |
+| `normalizeKeys` | `boolean` |
+| `removeEmptyFields` | `boolean` |
+| `delimiter` | `string` |
+| `label` / `icon` | Opzionali |
 
 ### ImageField
 ```tsx
@@ -352,43 +395,97 @@ Upload file CSV con preview tabellare e validazione.
 
 Gestisce un oggetto `{ src, alt, srcset?, sizes? }`, preview inline, crop editor e generazione opzionale di varianti responsive.
 
+### CropImage
+```tsx
+<CropImage img={imageObj} title="Ritaglia" scales={{ '1:1': 1, '4:3': 1.33 }} />
+```
+Componente di ritaglio indipendente. `img` ha tipo `{ fileName, variants }` dove ogni variante è `{ fileName, type, scale, top, left, width, height, base64? }`. Usato internamente da `UploadImage` e `ImageField`, ma esportato pubblicamente per uso standalone.
+
 ### CodeEditor
 ```tsx
 <CodeEditor
   name="code"
   label="Template"
   language="html"
+  placeholder="Scrivi HTML..."
+  minHeight={200}
+  maxHeight={600}
+  disabled={false}
+  required
+  validateSyntax
   commands={[{ name: 'wrap-section', handler: ({ value }) => `<section>\n${value}\n</section>` }]}
   commandsTrigger="/"
 />
 ```
 Editor basato su CodeMirror con syntax highlighting e validazione. Linguaggi: `liquid`, `html`, `json`, `js`, `ts`, `css`.
-Quando `commands` e presente, `CodeEditor` apre internamente `ContextMenu` sul trigger configurato. Il trigger di default e `"/"` e il menu diventa searchable automaticamente sopra una soglia interna di comandi.
+Quando `commands` e presente, `CodeEditor` apre internamente `ContextMenu` sul trigger configurato.
+
+| Prop extra | Tipo |
+|---|---|
+| `language` | `CodeEditorLanguage` |
+| `placeholder` | `string` |
+| `minHeight` / `maxHeight` | `number` |
+| `validateSyntax` | `boolean` |
+| `validator` | `(value) => string \| undefined \| Promise<string \| undefined>` |
+| `extensions` | `unknown[]` |
 
 ### RichText
 ```tsx
 <RichText
   name="body"
   label="Article body"
+  placeholder="Scrivi..."
+  toolbar="fixed"                    // 'fixed' | 'floating' | false
+  toolbarCommands={['bold', 'italic', 'heading1', '|', 'bulletList', 'link']}
+  outputFormat="html"                // 'html' | 'json' | 'text'
+  statusBar={{ tagBreadcrumb: true, wordCount: true }}
+  minHeight={200}
+  maxHeight={800}
+  imageUpload={{ path: '/content/images', srcsetWidths: [400, 800] }}
   commands={[{ name: 'summary', icon: 'sparkles' }]}
   commandsTrigger="/"
 />
 ```
 
-Editor WYSIWYG integrato con il contesto `Form`. Carica TipTap lazy solo quando il campo viene montato.
-In `RichText`, `commands` usa lo stesso contratto esterno di `Prompt` e `CodeEditor`. In questa prima versione l'handler riceve contesto plain-text e deve restituire una stringa.
+| Prop extra | Tipo |
+|---|---|
+| `placeholder` | `string` |
+| `disabled` | `boolean` |
+| `feedback` | `string` |
+| `toolbar` | `'fixed' \| 'floating' \| false` |
+| `toolbarCommands` | `ToolbarCommand[]` |
+| `outputFormat` | `'html' \| 'json' \| 'text'` |
+| `statusBar` | `boolean \| StatusBarConfig` |
+| `minHeight` / `maxHeight` | `number` |
+| `imageUpload` | `RichTextImageUploadConfig` |
+| `documentUpload` | `RichTextDocumentUploadConfig` |
+| `validator` | `(value) => string \| undefined` |
 
 ### Repeat — array dinamici
 ```tsx
-<Repeat name="items" defaultLength={3} minItems={1} maxItems={10}>
-  {(index) => (
+<Repeat name="items" defaultLength={3} minItems={1} maxItems={10} label="Elementi" layout="vertical" readOnly>
+  {({ index, record, records, remove }) => (
     <>
       <Input name={`items.${index}.name`} label="Nome" />
-      <Upload.Image name={`items.${index}.photo`} label="Foto" />
+      <UploadImage name={`items.${index}.photo`} label="Foto" />
     </>
   )}
 </Repeat>
 ```
+
+| Prop | Tipo | Note |
+|---|---|---|
+| `name` | `string` (required) | |
+| `children` | `ReactNode \| ((args) => ReactNode)` | Render prop con `{ index, record, records, remove }` |
+| `defaultLength` | `number` | Righe iniziali |
+| `minItems` / `maxItems` | `number` | Min/max righe |
+| `layout` | `'vertical' \| 'horizontal' \| 'inline'` | |
+| `label` | `string` | Etichetta gruppo |
+| `labelPosition` | `'top' \| 'bottom'` | |
+| `hideRemoveButton` | `boolean` | Nascondi rimozione |
+| `readOnly` | `boolean` | Sola lettura |
+| `onChange` | `FieldOnChange` | |
+| `onAdd` / `onRemove` | `(records) => void` | Callback aggiunta/rimozione |
 
 ### Prompt — campo AI-potenziato
 ```tsx
@@ -434,8 +531,8 @@ Quando `commands` e presente in `mode="run"`, `Prompt` monta internamente `Conte
 <GoSite href="https://..." label="Visita" />
 ```
 
-**IButton props:** `variant`, `label`, `icon`, `badge`, `disabled`, `ariaLabel`, `onClick`
-**LoadingButton aggiunge:** `loading`, `loadingLabel`
+**IButton props:** `variant`, `label`, `icon`, `badge`, `disabled`, `ariaLabel`, `title`, `iconClassName`, `onClick`
+**LoadingButton aggiunge:** `loading`, `loadingLabel` — `onClick` riceve `(e, setMessage?) => Promise<unknown>`
 
 ### Card
 ```tsx
@@ -446,14 +543,30 @@ Quando `commands` e presente in `mode="run"`, `Prompt` monta internamente `Conte
 
 ### Modal
 ```tsx
-<Modal title="Conferma" size="md" position="center" onClose={() => {}} onSave={handleSave} onDelete={handleDelete}>
+<Modal title="Conferma" size="md" position="center" onClose={() => {}} onSave={handleSave} onDelete={handleDelete} motion="fade" allowFullscreen stackedBehind>
   {content}
 </Modal>
-<Modal.YesNo title="Sicuro?" onClose={() => {}} onSave={() => {}} />
+<Modal.YesNo title="Sicuro?" onClose={() => {}} onYes={async () => true} />
 <Modal.Ok title="Completato!" onClose={() => {}} />
 ```
 `size`: `'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'fullscreen'`
 `position`: `'center' | 'top' | 'left' | 'right' | 'bottom'`
+
+| Prop | Tipo | Note |
+|---|---|---|
+| `children` | `ReactNode` (required) | |
+| `title` | `ReactNode` | |
+| `header` / `footer` | `ReactNode \| false` | Custom header/footer |
+| `size` / `position` | Come sopra | |
+| `onClose` | `() => void` | |
+| `onSave` / `onDelete` | `(e) => Promise<boolean>` | |
+| `allowFullscreen` | `boolean` | Toggle fullscreen |
+| `showCancel` | `boolean` | Default `true` |
+| `stackedBehind` | `boolean` | Modal seconda in pila |
+| `closeOnBackdrop` | `boolean` | Default `true` |
+| `zIndex` | `number` | |
+| `motion` | `MotionReference` | Preset animazione |
+| Classi CSS header/title/subtitle/body/footer | `string` | |
 
 ### Table
 ```tsx
@@ -464,19 +577,62 @@ Quando `commands` e presente in `mode="run"`, `Prompt` monta internamente `Conte
   selection="multiple"
   sortable={{ field: 'name', dir: 'asc' }}
   pagination={{ limit: 20 }}
+  onReorder={(records, meta) => {}}
+  onSelectionChange={(sel) => {}}
+  groupBy="status"
+  renderCell={(record, key, index) => <CustomCell />}
 />
 ```
+
+| Prop | Tipo |
+|---|---|
+| `columns` | `TableHeaderProp[]` |
+| `records` | `RecordArray` |
+| `sortable` | `boolean \| OrderConfig` |
+| `pagination` | `PaginationParams` |
+| `selection` | `'single' \| 'multiple'` |
+| `onRowClick` | `(record) => void` |
+| `onReorder` | `(records, meta) => void` |
+| `onSelectionChange` | `(selection) => void` |
+| `renderCell` | `(record, key, index) => ReactNode` |
+| `groupBy` | `string \| string[]` |
+| `activeKey` | `string \| null` |
+| `selectedKeys` | `string[]` |
+| `header` / `footer` | `ReactNode` |
+| `headerClassName` / `bodyClassName` / `footerClassName` / `scrollClassName` / `selectedClassName` / `heightClassName` | `string` |
 
 ### Gallery
 ```tsx
 <Gallery
-  records={records}           // GalleryRecord extends RecordProps: img, thumbnail, name, width, height
-  overlays={[{ position: 'top-right', badge: { variant: 'success', children: 'New' } }]}
+  records={records}
+  overlays={[{ position: 'topRight', badge: { variant: 'success', children: 'New' } }]}
   columns={3}
-  gutterSize={2}
-  onClickRow={(record) => {}}
+  gap={2}
+  sortable={{ field: 'name', dir: 'asc' }}
+  pagination={{ limit: 20 }}
+  onRowClick={(record) => {}}
+  onSelectionChange={(sel) => {}}
+  header="Titolo"
+  groupBy="status"
 />
 ```
+
+`position`: `'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight' | 'middleLeft' | 'middleRight'`
+
+| Prop | Tipo |
+|---|---|
+| `records` | `GalleryRecord[]` (`{ img?, thumbnail?, name?, width?, height? }`) |
+| `columns` | `1 \| 2 \| 3 \| 4 \| 6` |
+| `gap` | `0 \| 1 \| 2 \| 3 \| 4 \| 5` |
+| `overlays` | `GalleryOverlay[]` |
+| `sortable` | `boolean \| OrderConfig` |
+| `pagination` | `PaginationParams` |
+| `onRowClick` | `(record) => void` |
+| `onSelectionChange` | `(selection) => void` |
+| `groupBy` | `string \| string[]` |
+| `selectedKeys` | `string[]` |
+| `header` / `footer` | `ReactNode` |
+| Classi CSS: `headerClassName`, `bodyClassName`, `footerClassName`, `scrollClassName`, `selectedClassName` | `string` |
 
 ### Tab
 ```tsx
@@ -506,6 +662,20 @@ Quando `commands` e presente in `mode="run"`, `Prompt` monta internamente `Conte
 <Percentage value={0.75} appearance="circle" size={60} />
 ```
 
+| Prop | Tipo | Default |
+|---|---|---|
+| `value` | `number` | — |
+| `max` | `number` | `100` |
+| `min` | `number` | — |
+| `appearance` | `'bar' \| 'circle'` | `'bar'` |
+| `variant` | `ColorType` | — |
+| `trackVariant` | `ColorType` | — |
+| `thickness` | `number` | — (px) |
+| `showText` | `boolean` | — |
+| `size` | `number` | Diametro in modalità `'circle'` (px) |
+| `fontSize` | `number` | — |
+| `label` | `string` | — |
+
 ### Dropdown
 ```tsx
 <Dropdown trigger={<Icon name="menu" />} position="end">
@@ -526,6 +696,18 @@ Quando `commands` e presente in `mode="run"`, `Prompt` monta internamente `Conte
 </ContextMenu>
 ```
 Funziona su qualsiasi `<textarea>` / `<input>` figlio. Trigger custom (`/`, `@`, `{`), filtro searchable, navigazione tastiera, floating positioning.
+
+| Prop | Tipo | Note |
+|---|---|---|
+| `trigger` | `string` (required) | Es. `"/"`, `"@"`, `"{"` |
+| `searchable` | `boolean` | Filtro testuale |
+| `controlled` | `ContextMenuControlledState` | Stato controllato esterno |
+| `onSelect` | `(item, context) => void` | |
+
+**EditorCommand** (usato da `commands` prop su `RichText`, `CodeEditor`, `Prompt`):
+```ts
+{ name: string; description?: string; icon?: string; handler?: (context: TextCommandContext) => string | Promise<string> }
+```
 
 ### Altre primitive
 ```tsx
@@ -548,13 +730,62 @@ Funziona su qualsiasi `<textarea>` / `<input>` figlio. Trigger custom (`/`, `@`,
 <Breadcrumbs trail={[{ label: 'Home', href: '/' }, { label: 'Utenti' }]} separator="/" jsonLd />
 <Brand url="/" label="MyApp" logo="/logo.svg" width={120} />
 <Search onQueryChange={(e) => setQ(e.target.value)} />
-<Notifications />
+<Notifications items={[...]} seeAllUrl="/notifications" onMarkAllRead={() => {}} />
 <Carousel images={[...]} />
 <Toolbar items={[...]}>
   {children}
 </Toolbar>
 <SideNav />
 <ListCard records={records} onRowClick={(r) => {}} />
+```
+
+**Brand:**
+| Prop | Tipo |
+|---|---|
+| `url` | `string` |
+| `label` | `string` |
+| `logo` | `string` |
+| `width` / `height` | `number` |
+| `wrapperClassName` / `className` / `logoClassName` / `labelClassName` | `string` |
+
+**Search:**
+| Prop | Tipo |
+|---|---|
+| `onQueryChange` | `(e: React.ChangeEvent<HTMLInputElement>) => void` |
+
+**Notifications:**
+| Prop | Tipo |
+|---|---|
+| `items` | `NotificationItem[]` |
+| `badge` | `BadgeProps` |
+| `seeAllUrl` | `string` |
+| `onMarkAllRead` | `() => void` |
+| `motion` | `MotionReference` |
+
+**ListCard:**
+| Prop | Tipo |
+|---|---|
+| `title` / `description` / `meta` | `ReactNode` |
+| `badge` | `ReactNode` |
+| `icon` | `string \| ReactNode` |
+| `trailing` / `footer` / `children` | `ReactNode` |
+| `href` | `string` |
+| `external` / `active` / `disabled` / `dashed` / `compact` | `boolean` |
+| `align` | `'start' \| 'center'` |
+| `onClick` | `(e) => void` |
+| Classi CSS: `titleClassName`, `descriptionClassName`, `metaClassName`, `badgeClassName`, `leadingClassName`, `bodyClassName`, `headerClassName`, `trailingClassName`, `footerClassName` | `string` |
+
+**Dropdown:**
+| Prop | Tipo |
+|---|---|
+| `trigger` | `string \| ReactNode \| DropdownTogglerProps` |
+| `badge` | `BadgeProps` |
+| `header` / `footer` | `ReactNode` |
+| `defaultOpen` / `open` | `boolean` |
+| `onOpenChange` | `(open) => void` |
+| `position` | `'start' \| 'end'` |
+| `placement` | `'auto' \| 'top' \| 'bottom'` |
+| `strategy` | `'fixed' \| 'absolute'` |
 
 // Menu — renderizza una sezione del menuConfig passato ad <App>
 <Menu menuKey="main" />            // 'main' o qualsiasi chiave definita in MenuConfig
@@ -672,7 +903,7 @@ removeGlobalVars('key')
 | `useTheme()` | `Theme \| undefined` |
 | `useThemeController()` | `ThemeController` |
 | `useIconController()` | `IconController` |
-| `useAccessToken()` | `string \| null` |
+| `useAccessToken(clientID, renew?)` | `boolean` | Ottiene token per servizio esterno (true = ok) |
 | `useGlobalVars()` | `Record<string, unknown>` |
 | `useHead()` | `HeadController` |
 | `useDocumentHead()` | `HeadController` |
@@ -835,13 +1066,13 @@ export const providers: AppProvidersConfig = {
 | Provider auth Supabase | `src/providers/auth/supabase/` |
 | Provider auth Google | `src/providers/auth/google/` |
 | Provider auth Dropbox | `src/providers/auth/dropbox/` |
-| Provider email Gmail | `src/providers/email/gmail.ts` |
+| Provider email Gmail | `src/providers/email/google/GmailEmailProvider.ts` |
 | Provider AI definitions | `src/providers/ai/` |
 | Provider credenziali | `src/providers/credentials/` |
 | Provider session | `src/providers/ProviderSession.ts` |
 | Proxy CORS | `src/providers/proxy.ts` |
 | Motion system | `src/motion.ts` |
-| I18n | `src/I18n.ts` |
+| I18n | `src/I18n.tsx` |
 | Dropbox integration | `src/providers/dropbox/` |
 | Interfaccia DataProvider | `src/providers/data/DataProvider.ts` |
 | Interfaccia StorageProvider | `src/providers/storage/StorageProvider.ts` |

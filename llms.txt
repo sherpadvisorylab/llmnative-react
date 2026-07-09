@@ -52,6 +52,7 @@ import '@llmnative/react/dist/index.css'  // necessario una volta sola
 | auth | `googleAuth`, `firebaseAuth`, `supabaseAuth`, `dropboxAuth` | sì (fallback: googleAuth) |
 | email | `gmail` | no |
 | ai | `openai`, `gemini`, `anthropic`, `deepseek`, `mistral`, `openrouter`, `opencode` | no |
+| credentials | `googleServiceAccount` | no |
 
 ```tsx
 <App providers={{ firebase: { apiKey, authDomain, databaseURL }, services: { data: 'dbRealtime', storage: 'firestorage', auth: 'googleAuth' } }} />
@@ -61,7 +62,7 @@ import '@llmnative/react/dist/index.css'  // necessario una volta sola
 
 ```
 ui/        → primitivi stateless: Alert, Badge, Button, Card, Image, Modal, Table, Gallery, Tab, Repeat, Icon, LocaleSwitcher, ThemeSwitcher, ProviderSwitcher, LayoutBuilder, ContextMenu
-ui/fields/ → campi form: Input, Select, Upload (Image/Document/CSV), CodeEditor, ImageField, RichText, Prompt, Crop, ContextMenu
+ui/fields/ → campi form: Input, Select, UploadImage, UploadDocument, UploadCSV, CodeEditor, ImageField, RichText, Prompt, Crop, ContextMenu
 blocks/    → composizioni: Menu, Breadcrumbs, Notifications, Search, Carousel, Dropdown, Toolbar, SideNav, ListCard, AuthButton
 widgets/   → smart (hanno stato e provider): Grid, Form, MarkdownReader, ImageEditor, TabDynamic
 ```

@@ -3,7 +3,7 @@ import { useSetProvider } from './ProviderRegistryContext';
 import type { SetProviderFn } from './ProviderRegistryContext';
 import type { FirebaseConfig } from '../Config';
 import initFirebase, { signInWithFirebaseCustomToken } from './firebase-init';
-import { FirebaseDataProvider } from './data/firebase';
+import { FirestoreDataProvider } from './data/firestore';
 import { SupabaseDataProvider } from './data/supabase';
 import { MockDataProvider } from './data/mock';
 import { FirebaseStorageProvider } from './storage/firebase';
@@ -80,7 +80,7 @@ registerProviderSessionFactory('data', 'mock', (assignment) =>
 );
 registerProviderSessionFactory('data', 'firebase', async (assignment) => {
     await connectFirebase(assignment);
-    return new FirebaseDataProvider();
+    return new FirestoreDataProvider();
 });
 registerProviderSessionFactory('data', 'supabase', (assignment) => new SupabaseDataProvider({
     url: assignment.publicConfig.url as string,
