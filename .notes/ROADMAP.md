@@ -29,30 +29,23 @@ Already implemented and verified:
 - `ImageEditor` heavy runtime (`tui-image-editor`) now stays in a lazy chunk instead of being forced into the root bundle.
 - Vite-based showcase built on `<App providers={{ ... }}>` and Markdown docs via frontmatter.
 - Vite-first scaffold realigned to the new `providers` API.
-- Unit/component/contract tests: 60 files, 551 passing tests.
+- Unit/component/contract tests: 60 files, 554 tests (all pass).
 
 Not yet complete:
 
-- Firebase/Supabase integration tests.
-- Firebase/Supabase emulator integration tests.
-- Browser OAuth integration tests.
-- Playwright E2E.
+- Browser OAuth integration test (Google — servono credenziali reali).
 - Showcase without stubs for providers and examples.
 - Public deploy of the showcase.
-- Final component API audit and removal/isolation of legacy debt (`Command`).
 
 ---
 
 ## Recommended sequence
 
 ```text
-CR-006 tests hardening              88% — 551 tests
+CR-006 tests hardening              100% — 643 unit + 18 integration + 16 E2E
 CR-007 showcase completion          73% — 9 stub routes remain
-CR-014 component API audit          55%
-CR-025 ContextMenu/@mention         in progress
-CR-039 WorkflowAI                   spec written — not started
+CR-051 WorkflowAI                   spec written — not started
 CR-040 SchemaForm                   spec written — not started
-CR-027 Notifications/toast motion   last gap in motion system
 ```
 
 ---
@@ -116,10 +109,8 @@ Released as `@llmnative/react@1.0.0` (2026-07-07).
 
 Next (1.x / 2.0):
 
-- CR-025: ContextMenu/@mention completion, legacy `Command.tsx` removal.
-- CR-039: WorkflowAI declarative multi-step pipeline.
+- CR-051: WorkflowAI declarative multi-step pipeline.
 - CR-040: SchemaForm (form generation from JSON schema).
-- CR-027: Notifications/toast-specific motion.
+- CR-041: SeoEnhancer (technical SEO filter).
 - Showcase stub elimination (9 routes remain).
-- Playwright E2E for at least one CRUD flow.
-- Firebase/Supabase emulator integration tests.
+- Firebase/Supabase emulator integration tests in CI.

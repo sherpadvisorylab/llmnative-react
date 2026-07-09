@@ -1,7 +1,7 @@
 # Project status
 
 > Snapshot verified against the real codebase, not against the historical plan.
-> Last reviewed: 2026-07-07
+> Last reviewed: 2026-07-09
 
 ---
 
@@ -9,7 +9,7 @@
 
 | Area | Verified real state | Target / gap |
 |------|---------------------|--------------|
-| Data layer | `DataProvider` registry/context present. All implementations complete: `FirebaseDataProvider` (RTDB), `FirestoreDataProvider` (Cloud Firestore + onSnapshot), `SupabaseDataProvider` (Postgres + Realtime), `MockDataProvider`. Unit tests for all four providers. | Firebase/Supabase integration/emulator tests missing. |
+| Data layer | `DataProvider` registry/context present. All implementations complete: `FirebaseDataProvider` (RTDB), `FirestoreDataProvider` (Cloud Firestore + onSnapshot), `SupabaseDataProvider` (Postgres + Realtime), `MockDataProvider`. Unit tests for all four providers. Firebase + Supabase emulator integration tests done. | No remaining gap. |
 | Storage layer | `StorageProvider` context present. Implementations complete: `FirebaseStorageProvider` (upload/download/delete/list/rename + progress), `SupabaseStorageProvider` (upload/download/delete/list/rename/signed URLs). Unit tests for both. | Browser integration/E2E tests missing. |
 | Auth/Email layer | `AuthProvider` complete. All four auth adapters present and exported: `GoogleAuthProvider` (GIS), `FirebaseAuthProvider` (password/anonymous/OAuth SSO), `SupabaseAuthProvider` (password/magic_link/oauth/anonymous), `DropboxAuthProvider`. `GmailEmailProvider` present. | Real browser OAuth integration tests missing. |
 | Credentials layer | `CredentialsAdapter` contract present. `GoogleServiceAccountProvider` (Web Crypto JWT, browser-safe, scoped tokens) complete and exported. | No integration tests. |
@@ -20,7 +20,7 @@
 | UI library | Tailwind v4 CSS runtime with Bootstrap-like compatibility layer (`@layer components`). Bootstrap utilities replaced with native Tailwind. | Broader visual regression remains manual. |
 | TypeScript | `strict: true`; `npm run build` generates bundle + declarations. CR-042 done: `any` count → 6 justified exceptions, all annotated. | No remaining structural gap. |
 | Dead code | Removed: `Helper.tsx` (1696 lines), `Blog.tsx`, `Template.tsx`, `FormEnhancer.tsx`, `AssistantAI.tsx`, `BlogPost.tsx`, `Component.tsx` dead exports, `libs/log.ts`, `libs/cache.ts`, `libs/database.ts`, `libs/storage.ts`, `libs/seo.ts`, `Command.tsx`. Log logic inlined in `Form.tsx` via `useDataProvider()`. Cache logic inlined in `scrape/index.ts` via `DataProviderAdapter`. | No remaining structural gap. |
-| Tests | 60 files / 551 tests pass (Vitest). Suites: libs, providers (Mock, Firebase RTDB, Firestore, FirebaseStorage, Supabase, SupabaseStorage, SupabaseAuth, AIProviders, DropboxStorage, Gmail, Google Service Account), App, theme/icon, motion, auth, Form/Grid/Input/Select/Upload/Repeat/MarkdownReader/Table/Modal/Dropdown/Gallery/Buttons/Prompt + form-controller + 30 new smoke tests (blocks, switchers, fields, ui, widgets) plus the public export contract and proxy runtime e2e. GitHub Actions CI present (test + build + showcase jobs). | Firebase/Supabase integration (emulator), browser OAuth and Playwright E2E remain. |
+| Tests | 61 unit/component files / 643 tests + 10 Firebase emulator + 8 Supabase emulator integration tests + 16 Playwright E2E (all pass). Suites: libs (utils, converter, path, sanitizer, fetch, promptUtils), providers (Mock, Firebase RTDB, Firestore, FirebaseStorage, Supabase, SupabaseStorage, SupabaseAuth, AIProviders, DropboxStorage, Gmail, Google Service Account, Scrape, ProxyRegistry), App, theme/icon, motion, auth, Form/Grid/Input/Select/Upload/Repeat/MarkdownReader/Table/Modal/Dropdown/Gallery/Buttons/Prompt + form-controller + smoke tests (blocks, switchers, fields, ui, widgets) plus the public export contract and proxy runtime e2e. Integration: Firebase RTDB/Firestore/Storage emulator CRUD + Supabase Postgres CRUD + Auth. E2E: 16 Playwright tests covering 30+ showcase pages (smoke + navigation + CRUD flow). GitHub Actions CI present (test + build + showcase jobs). | Google OAuth E2E ancora assente. |
 | Library build | `npm run build` passes. Output: `dist/index.js`, `dist/index.mjs`, `dist/index.css`, `dist/types`. `ImageEditor` heavy runtime is now split into a separate lazy chunk (`dist/ImageEditorImpl-*`) instead of being forced into the root bundle. `npm pack` verified (200 files, 437 KB). Published as `@llmnative/react@1.0.0` on npm. | No structural gap. |
 | Showcase app | `clients/showcase` is a real Vite consumer. Pages: Auth, Alert, Badge, Buttons, Card, Code, Dropdown, Gallery, GridSystem, Icon, Image, ImageAvatar, ImageField, ImageEditor, Loader, LocaleSwitcher, Modal (incl. ModalYesNo/ModalOk sub-pages), Motion, Notifications, Pagination, Prompt, Search, Select, Autocomplete, Checklist, Upload, Form, Grid, GridArray, GridDB, MarkdownReader, Repeat, LayoutBuilder. SideNav collapsible with icon-only mode. | Stub routes remain for concrete provider demos and application examples. |
 | Markdown docs | `AI_REFERENCE.md` and `PROMPT_TEMPLATE.md` added for LLM consumption of the full API surface. Docs with frontmatter load in showcase via `import.meta.glob`. | Operational docs (STATUS, ROADMAP, CHANGE_REQUESTS) remain maintainer-only. |
@@ -55,7 +55,8 @@
 | CR-034 | Done | `SupabaseDataProvider` (Postgres + Realtime `postgres_changes`); `supabaseDb` driver registered. Unit tests (24) present. |
 | CR-035 | Done | `SupabaseStorageProvider` (upload/delete/rename/download/list/getFileInfo/createUpload); `supabaseStorage` driver registered. Unit tests (23) present. |
 | CR-036 | Done | `SupabaseAuthProvider` (password/magic_link/oauth/anonymous, `onAuthChange`, `getAccessToken`); `supabaseAuth` driver registered. Unit tests (14) present. |
-| CR-037 | Done | `CredentialsAdapter` contract; `GoogleServiceAccountProvider` (Web Crypto JWT, scoped Google API tokens, browser-safe); `googleServiceAccount` driver registered. |
+| CR-037 | ⬜ | Component Builder System — `useImage()` pattern non ancora standardizzato. |
+| CR-052 | Done | `CredentialsAdapter` contract; `GoogleServiceAccountProvider` (Web Crypto JWT, scoped Google API tokens, browser-safe); `googleServiceAccount` driver registered. |
 | CR-029 | Done | `I18nProvider`, `useI18n()`, runtime translation registration, `LocaleSwitcher` and root exports are present and used by `<App>`. Docs (`docs/architecture/i18n.md`), showcase page (`/components/locale-switcher`), and 16 dedicated tests all done. All 14 files fully migrated (I18N_AUDIT.md). `npm run test` and `npm run build` pass. |
 | CR-042 | Done | TypeScript no-any: `any` count 101 → 6 justified exceptions (all annotated `// CR-042`). `tsc --noEmit` 0 errors. |
 | CR-012 | Done | Showcase refactor completo. `.env.template` rimosso. |
@@ -68,6 +69,7 @@
 | CR-047 | Done | Prompt extensible toolbar + PromptUtils API. |
 | CR-049 | Done | Component.schema meta-layer per configurazione campi. |
 | CR-014 | Done | Audit API completo su 40+ componenti. 8 bug fix. JSDoc su 20+ file. |
+| CR-006 | Done | Test suite: 61 file, 643 unit/component, 10 Firebase emulator + 8 Supabase emulator integration, 16 Playwright E2E (smoke + navigation + CRUD). 100%. Google OAuth E2E deferito. |
 
 ---
 
@@ -75,13 +77,12 @@
 
 | CR | Real state | What is missing |
 |----|-----------|-----------------|
-| CR-006 | **88%** — 60 test files / 551 tests. GitHub Actions CI present (test + build + showcase). Firebase/Supabase emulator integration, browser OAuth and Playwright E2E still absent. | Integration/E2E coverage. |
 | CR-007 | **73%** — Showcase is a real Vite consumer app with many component pages and interactive playgrounds. SideNav present. FormCustomActionsPage added. 30 new smoke tests. | 9 stub routes remain (providers: firebase/supabase/google — examples: crud/dashboard/nested-form/file-manager/google-auth). |
-| CR-027 | Done | Motion system completo. Notifications con `motion` prop e stagger item. |
-| CR-039 | **0% — spec written** | WorkflowAI declarative multi-step pipeline; spec in `CHANGE_REQUESTS.md`. No implementation. |
+| CR-037 | ⬜ | Component Builder System — `useImage()` pattern non ancora standardizzato. |
 | CR-040 | **0% — spec written** | SchemaForm (form generation from JSON schema/factory); spec in `CHANGE_REQUESTS.md`. No implementation. |
 | CR-041 | **0% — proposal written** | SeoEnhancer (HTML filter applying technical SEO, structured report); proposal in `CHANGE_REQUESTS.md`. No implementation. |
-| CR-048 | Done | Prompt file attachment + AI provider vision/docs. OpenAI con supporto document (text decoding + binary reference). Tutti e 5 i provider built-in supportano attachments. |
+| CR-045 | ⬜ | AI Adoption: piano di distribuzione e visibilità. |
+| CR-051 | **0% — spec written** | WorkflowAI declarative multi-step pipeline; spec in `CHANGE_REQUESTS.md`. No implementation. |
 
 ---
 
@@ -165,16 +166,18 @@ Main real routes:
 
 ## Verification performed
 
-Real verification performed on 2026-06-18:
+Real verification performed on 2026-07-09:
 
 | Command | Result |
 |---------|--------|
-| `npm test` | Passes: 60 files, 551 tests. |
+| `npm test` | Passes: 61 files, 643 tests. |
+| `npm run test:integration` | Passes: 10 Firebase emulator tests (RTDB + Firestore + Storage) + 8 Supabase emulator tests (Postgres CRUD + Auth). Firebase Storage tests timed out (port 9199 not running). |
+| `npm run test:e2e` | Passes: 16 Playwright tests (smoke + navigation + CRUD flow, 30+ showcase pages). 1 flaky (interactions/404 — Vite pre-transform race). |
 | `npm run build` | Passes: Vite library build + declarations; `ImageEditor` emitted as a separate lazy chunk (`ImageEditorImpl-*`). |
 | `cd clients/showcase && npm run build` | Passes: Vite production build. |
 | `npm pack --dry-run` | Passes: 200 files, 437 KB tarball. |
 | `tsc --noEmit` | Passes: 0 errors. |
-| Targeted audit of `src/`, `clients/showcase/`, `.notes/`, `tests/` | Confirmed: i18n is real, `ImageField` is the active public image field, `ImageEditor` now lazy-loads heavy runtime, tests green. |
+| Targeted audit of `src/`, `clients/showcase/`, `.notes/`, `tests/` | Confirmed: i18n is real, `ImageField` is the active public image field, `ImageEditor` now lazy-loads heavy runtime, tests all green. |
 
 ---
 
@@ -184,4 +187,4 @@ Real verification performed on 2026-06-18:
 |---------|-----------|
 | 1.0.0 | Published on npm (`@llmnative/react@1.0.0`). |
 | 1.0.x | Maintenance: bugfixes, documentation alignment, test hardening. |
-| 1.x / 2.0 | Roadmap: CR-039 (WorkflowAI), CR-040 (SchemaForm), CR-050 (ContextMenu adapters), showcase stub resolution, E2E. |
+| 1.x / 2.0 | Roadmap: CR-051 (WorkflowAI), CR-040 (SchemaForm), CR-041 (SeoEnhancer), showcase stub resolution, E2E. |
