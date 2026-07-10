@@ -32,6 +32,10 @@ export default defineLocaleMessages({
                 configuration: 'الإعداد',
                 props: 'Props',
             },
+            stub: {
+                comingSoon: 'قريباً',
+                underConstruction: 'هذه الصفحة قيد الإنشاء.',
+            },
         },
     },
 });

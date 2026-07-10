@@ -16,8 +16,8 @@
 | [CR-003](#cr-003--typescript-strict) | TypeScript strict | Alta | — | ✅ |
 | [CR-004](#cr-004--shadcnui--tailwind-css) | shadcn/ui + Tailwind CSS | Alta | CR-002 | ✅ |
 | [CR-005](#cr-005--cli-update-e-scaffolding) | CLI update e scaffolding | Media | CR-002, CR-004 | ✅ |
-| [CR-006](#cr-006--batterie-di-test) | Batterie di test | Alta | CR-002, CR-003 | 🔄 |
-| [CR-007](#cr-007--showcase-app) | Showcase app | Alta | CR-002, CR-004 | 🔄 |
+| [CR-006](#cr-006--batterie-di-test) | Batterie di test | Alta | CR-002, CR-003 | ✅ |
+| [CR-007](#cr-007--showcase-app) | Showcase app | Alta | CR-002, CR-004 | ✅ |
 | [CR-008](#cr-008--tema-empty--tailwind--shadcnui) | Tema `empty` → Tailwind + shadcn/ui | Bassa | CR-004 | ✅ |
 | [CR-009](#cr-009--tema-default--tailwind--shadcnui) | Tema `default` → Tailwind + shadcn/ui | Bassa | CR-004 | ✅ |
 | [CR-010](#cr-010--tema-flat--tailwind--shadcnui) | Tema `flat` → Tailwind + shadcn/ui | Bassa | CR-004 | ✅ |
@@ -51,7 +51,7 @@
 | [CR-038](#cr-038--ai-first-naming-normalization) | AI-first naming normalization | Alta | CR-014, CR-037 | ✅ done |
 | [CR-039](#cr-039--firebase-sdk-compat--modular-v9) | Firebase SDK compat → modular v9+ | Alta | CR-002, CR-023 | ✅ |
 | [CR-040](#cr-040--schemaform-form-generation-da-schema-json--factory) | SchemaForm: form generation da schema JSON / factory | Alta | CR-037 | ⬜ |
-| [CR-041](#cr-041--seoenhancer-filtro-seo-tecnica-su-html-generato-proposta) | SeoEnhancer: filtro SEO tecnica su HTML generato (proposta) | Media | CR-007 | 📋 |
+| [CR-041](#cr-041--seoenhancer-filtro-seo-tecnica-su-html-generato-proposta) | SeoEnhancer: filtro SEO tecnica su HTML generato (proposta) | Media | CR-007 | ⬜ |
 | [CR-042](#cr-042--typescript-no-any-eliminazione-di-tutti-gli-usi-di-any) | TypeScript no-any: eliminazione di tutti gli usi di `any` | Alta | CR-003 | ✅ done |
 | [CR-043](#cr-043--token-benchmark-page-nel-showcase) | Token Benchmark page nel showcase | Media | CR-016 | ✅ done |
 | [CR-044](#cr-044--showcase-pagine-mancanti-label-uploadcsv-crop-command) | Showcase pagine mancanti (Label, UploadCSV, Crop, Command) | Bassa | CR-007 | ✅ |
@@ -1699,12 +1699,14 @@ Gap residui confermati (deferiti a CR future):
 
 ## CR-007 — Showcase app
 
-**Stato:** 🔄 in progress  
+**Stato:** ✅ done  
 **Branch:** `modernize`  
 **Priorità:** Alta — anticipata per testare visivamente CR-004  
 **Stima:** 3–4 settimane  
 **Dipende da:** CR-002, CR-004 (rimossa dipendenza da CR-006 — la showcase serve anche come test visivo)  
 **Breaking change:** No (app separata)
+
+> **Deploy e link docs**: rinviati a CR separato. La showcase è completa e navigabile localmente.
 
 ### Motivazione
 Una showcase app serve a tre cose contemporaneamente: documentazione interattiva per sviluppatori, test manuale visivo di ogni componente con ogni combinazione di props, e stress test di corner case reali. È anche il modo più efficace per mostrare il framework a chi non lo conosce. Anticipata rispetto a CR-006 perché è necessaria per verificare visivamente CR-004 (Tailwind migration).
@@ -1785,16 +1787,20 @@ Il codice generato live è particolarmente utile per l'AI: un developer (o un AI
 - [x] Pagine Providers: confronto Firebase vs Supabase side-by-side
 - [x] Showcase migrata a Vite (`vite.config.mts`, `src/index.tsx`, build produzione verificata)
 - [x] Pagine aggiuntive reali: Auth, Notifications, Buttons dedicate, Prompt, GridArray, GridDB, Autocomplete, Checklist, Image, ImageAvatar, LayoutBuilder
-- [ ] Deploy (GitHub Pages o Vercel)
-- [ ] Link alla showcase da `CLAUDE.md` e `docs/`
+- [x] Provider stub risolti (redirect): `/providers/data/firebase`, `/providers/data/supabase`, `/providers/storage/firebase`, `/providers/auth/google`
+- [x] Example stub risolti (real pages): CRUD, Dashboard, NestedForm, File manager, Google sign-in — tutti con `MockDataProvider`
+- [ ] Deploy (GitHub Pages o Vercel) — *deferred*
+- [ ] Link alla showcase da `CLAUDE.md` e `docs/` — *deferred*
 
-### Stato verificato al 2026-05-27
+### Stato verificato al 2026-07-10
 
 Implementazione reale confermata:
 - `clients/showcase` builda con `npm run build`.
 - Il menu espone molte pagine componente reali e non solo i nuclei iniziali.
 - Le docs pubbliche dello showcase arrivano da Markdown via `markdownDocs`.
-- Esistono ancora route stub per alcuni provider concreti e per esempi applicativi (`/examples/crud`, `/examples/dashboard`, `/examples/nested-form`, `/examples/file-manager`, `/examples/google-auth`).
+- **Provider stub** (4): reindirizzano alle pagine markdown generiche (`/providers/data`, `/providers/storage`, `/providers/auth`).
+- **Example stub** (5): pagine reali — `CrudPage.tsx`, `DashboardPage.tsx`, `NestedFormPage.tsx`, `FileManagerPage.tsx`, `GoogleAuthPage.tsx`. Tutti con `MockDataProvider`.
+- **Stub rimanenti**: 0.
 
 ---
 

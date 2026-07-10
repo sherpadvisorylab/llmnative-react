@@ -91,3 +91,8 @@ export const useShowcaseFormValidationI18n = () => useShowcaseSlice('formValidat
 export const useShowcaseRichTextI18n = () => useShowcaseSlice('richText');
 export const useShowcaseImageFieldI18n = () => useShowcaseSlice('imageField');
 export const useShowcaseCodeEditorI18n = () => useShowcaseSlice('codeEditor');
+export const useShowcaseCrudI18n = () => useShowcaseSlice('crud');
+export const useShowcaseDashboardI18n = () => useShowcaseSlice('dashboard');
+export const useShowcaseNestedFormI18n = () => useShowcaseSlice('nestedForm');
+export const useShowcaseFileManagerI18n = () => useShowcaseSlice('fileManager');
+export const useShowcaseGoogleAuthI18n = () => useShowcaseSlice('googleAuth');

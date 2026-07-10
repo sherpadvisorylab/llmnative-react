@@ -10,10 +10,12 @@ const ANTHROPIC_MESSAGES_URL = 'https://api.anthropic.com/v1/messages';
 export const ANTHROPIC_PROVIDER_DEFINITION: AIProviderDefinition = {
     id: 'anthropic',
     label: 'Anthropic',
+    description: 'Claude models via the Anthropic API.',
     configKey: 'anthropicApiKey',
     defaultModel: 'claude-sonnet-4-0',
     fallbackModels: ['claude-sonnet-4-0', 'claude-opus-4-1', 'claude-3-7-sonnet-latest'],
     dashboardUrl: 'https://console.anthropic.com/settings/keys',
+    credentialFields: [{ key: 'apiKey', label: 'API Key', type: 'password' }],
     capabilities: { supportsTemperature: true, supportsVision: true, supportsDocuments: true },
     discoverModels: async (apiKey) => {
         const response = await fetchJson(ANTHROPIC_MODELS_URL, {

@@ -1,7 +1,7 @@
 ---
 title: Proxy relay
 group: Architecture
-order: 45
+order: 47
 path: /docs/proxy
 description: How proxyFetch, the proxy service slot, and scaffolded relay implementations work together.
 ---

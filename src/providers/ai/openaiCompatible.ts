@@ -7,6 +7,7 @@ import { parseTextResponse, createBrowserTransportError, extractProviderError } 
 type OpenAICompatibleDefinitionOptions = {
     id: BuiltInAIProviderId;
     label: string;
+    description: string;
     configKey: string;
     requiredConfigKeys?: string[];
     defaultModel: string;
@@ -15,6 +16,7 @@ type OpenAICompatibleDefinitionOptions = {
     modelsUrl?: string;
     chatCompletionsUrl?: string;
     dashboardUrl?: string;
+    credentialsHint?: string;
     /** Override the default validateApiKey when the models endpoint is public or uses a non-standard error format. */
     validateApiKey?: AIProviderDefinition['validateApiKey'];
 };
@@ -24,6 +26,7 @@ const trimTrailingSlash = (value: string) => value.replace(/\/+$/, '');
 export const createOpenAICompatibleProviderDefinition = ({
     id,
     label,
+    description,
     configKey,
     requiredConfigKeys,
     defaultModel,
@@ -32,6 +35,7 @@ export const createOpenAICompatibleProviderDefinition = ({
     modelsUrl,
     chatCompletionsUrl,
     dashboardUrl,
+    credentialsHint,
     validateApiKey: validateApiKeyOverride,
 }: OpenAICompatibleDefinitionOptions): AIProviderDefinition => {
     const normalizedBaseUrl = trimTrailingSlash(baseUrl);
@@ -57,11 +61,19 @@ export const createOpenAICompatibleProviderDefinition = ({
     return {
         id,
         label,
+        description,
         configKey,
         requiredConfigKeys,
         defaultModel,
         fallbackModels,
         dashboardUrl,
+        credentialsHint,
+        credentialFields: id === 'openai-compatible'
+            ? [
+                { key: 'apiKey',  label: 'API Key',  type: 'password' },
+                { key: 'baseUrl', label: 'Base URL', type: 'text', placeholder: 'https://api.example.com/v1' },
+              ]
+            : [{ key: 'apiKey', label: 'API Key', type: 'password' }],
         capabilities: { supportsTemperature: true, supportsVision: true, supportsDocuments: true },
         validateApiKey: validateApiKeyOverride ?? defaultValidateApiKey,
         discoverModels: async (apiKey) => {

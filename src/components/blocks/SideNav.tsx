@@ -399,13 +399,15 @@ export default function SideNav({
                 onMouseLeave={handleMouseLeave}
             >
                 {header && (
-                    <div className={cn('shrink-0 border-b px-1.5 py-2', theme.SideNav.headerClassName)} style={{
+                    <div className={cn('flex h-14 shrink-0 items-center border-b px-1.5', theme.SideNav.headerClassName)} style={{
                         opacity: isExpanded ? 1 : 0,
                         maxWidth: isExpanded ? '100%' : '0px',
                         overflow: 'hidden',
                         transition: 'opacity 150ms ease, max-width 200ms ease',
                     }}>
-                        {header}
+                        <div className="min-w-0 flex-1">
+                            {header}
+                        </div>
                     </div>
                 )}
                 <nav className={cn('min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-1.5 py-2', theme.SideNav.navClassName)}>

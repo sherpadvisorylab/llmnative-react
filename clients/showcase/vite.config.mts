@@ -9,6 +9,7 @@ export default defineConfig(({ mode }) => {
     const useProxy = env.VITE_PROXY_ENABLED === 'true' && env.VITE_PROXY_PROVIDER === 'viteDevProxy';
 
     return {
+        base: env.VITE_BASE_PATH || '/',
         plugins: [
             react(),
             useProxy ? createProxyPlugin() : null,

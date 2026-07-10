@@ -39,10 +39,12 @@ const isChatCompletionsModel = (entry: OpenCodeModelEntry) => {
 export const OPENCODE_PROVIDER_DEFINITION: AIProviderDefinition = {
     id: 'opencode',
     label: 'OpenCode',
+    description: 'OpenCode Zen — a curated set of coding-focused models.',
     configKey: 'openCodeApiKey',
     defaultModel: 'deepseek-v4-flash-free',
     fallbackModels: OPENCODE_FALLBACK_MODELS,
     dashboardUrl: 'https://opencode.ai',
+    credentialFields: [{ key: 'apiKey', label: 'API Key', type: 'password' }],
     capabilities: { supportsTemperature: true },
     discoverModels: async (apiKey) => {
         const response = await fetchJson(OPENCODE_MODELS_URL, {

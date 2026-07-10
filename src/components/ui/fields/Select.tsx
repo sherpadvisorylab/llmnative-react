@@ -57,7 +57,7 @@ export interface ChecklistProps extends BaseProps {
 }
 
 const valueToArray = (value: FieldValue): unknown[] => {
-    if (value == null || typeof value === 'boolean') return [];
+    if (value == null || value === '' || typeof value === 'boolean') return [];
     if (typeof value === 'object' && !Array.isArray(value)) return [];
     return typeof value === 'string' || typeof value === 'number'
         ? value.toString().split(',')

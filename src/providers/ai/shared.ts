@@ -5,6 +5,7 @@ import {
     type ProviderConfigurationState,
 } from '../ProviderConfiguration';
 import { isProxyEnabled } from '../proxy';
+import type { ProviderCredentialField } from '../ProviderDescriptor';
 import type {
     AICompleteRequest,
     AIKeyValidationResult,
@@ -20,12 +21,20 @@ export type BuiltInAIProviderId = 'openai' | 'openrouter' | 'opencode' | 'openai
 export type AIProviderDefinition = {
     id: BuiltInAIProviderId;
     label: string;
+    /** One-line description shown in a "connect this provider" UI. */
+    description?: string;
     configKey?: string;
     requiredConfigKeys?: string[];
     defaultModel: string;
     fallbackModels: string[];
-    /** URL to the provider's API key management page (shown in UI on validation error). */
+    /** URL to the provider's API key management page (shown in UI on validation error, and
+     * surfaced as ProviderDescriptor.credentialsUrl via toProviderDescriptor()). */
     dashboardUrl?: string;
+    /** Credential fields a "connect" UI should collect (defaults to a single apiKey field
+     * when omitted — see toProviderDescriptor() in ./index.ts). */
+    credentialFields?: ProviderCredentialField[];
+    /** Short guidance on where in the dashboard to find the credential. */
+    credentialsHint?: string;
     capabilities?: Omit<AIProviderCapabilities, 'models'>;
     discoverModels: (apiKey: string) => Promise<string[]>;
     complete: (apiKey: string, request: Required<Pick<AICompleteRequest, 'prompt' | 'model'>> & AIRequestOptions) => Promise<string | null>;

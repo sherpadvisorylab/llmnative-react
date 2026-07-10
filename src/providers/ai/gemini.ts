@@ -9,10 +9,12 @@ const GEMINI_CONTENT_URL = 'https://generativelanguage.googleapis.com/v1beta/mod
 export const GEMINI_PROVIDER_DEFINITION: AIProviderDefinition = {
     id: 'gemini',
     label: 'Gemini',
+    description: 'Google\'s multimodal Gemini model family.',
     configKey: 'geminiApiKey',
     defaultModel: 'gemini-2.5-pro',
     fallbackModels: ['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite'],
     dashboardUrl: 'https://aistudio.google.com/app/apikey',
+    credentialFields: [{ key: 'apiKey', label: 'API Key', type: 'password' }],
     capabilities: { supportsTemperature: true, supportsVision: true, supportsDocuments: true },
     discoverModels: async (apiKey) => {
         const response = await fetchJson(`${GEMINI_MODELS_URL}?key=${apiKey}`, null, proxyFetch);

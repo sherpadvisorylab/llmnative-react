@@ -1,6 +1,6 @@
 # Roadmap
 
-> Operational roadmap aligned to the codebase on 2026-06-18.
+> Operational roadmap aligned to the codebase on 2026-07-10.
 > The full historical plan lives in `.notes/CHANGE_REQUESTS.md`; the current verified status lives in `.notes/STATUS.md`.
 
 ---
@@ -29,12 +29,13 @@ Already implemented and verified:
 - `ImageEditor` heavy runtime (`tui-image-editor`) now stays in a lazy chunk instead of being forced into the root bundle.
 - Vite-based showcase built on `<App providers={{ ... }}>` and Markdown docs via frontmatter.
 - Vite-first scaffold realigned to the new `providers` API.
-- Unit/component/contract tests: 60 files, 554 tests (all pass).
+- Unit/component/contract tests: 61 files, 643 tests (all pass).
+- Showcase stubs risolti: 0 stub routes. 5 example pages reali + 4 provider redirect.
+- Deploy e link docs rinviati.
 
 Not yet complete:
 
 - Browser OAuth integration test (Google — servono credenziali reali).
-- Showcase without stubs for providers and examples.
 - Public deploy of the showcase.
 
 ---
@@ -43,7 +44,7 @@ Not yet complete:
 
 ```text
 CR-006 tests hardening              100% — 643 unit + 18 integration + 16 E2E
-CR-007 showcase completion          73% — 9 stub routes remain
+CR-007 showcase completion          100% — done
 CR-051 WorkflowAI                   spec written — not started
 CR-040 SchemaForm                   spec written — not started
 ```
@@ -64,26 +65,6 @@ Tasks:
 - Add Supabase integration coverage against a real/emulated backend.
 - Add separate scripts if needed: `test:unit`, `test:integration`, `test:e2e`.
 - Extend CI from build/unit to integration/E2E where credentials and emulators allow.
-
----
-
-## Priority 2 - Real showcase
-
-Goal: remove stub routes that today give a more complete perception than the real state.
-
-First pages to make real:
-
-- `/examples/crud`: `Grid + Form + MockDataProvider`.
-- `/examples/nested-form`: dot notation, array/repeat and default values.
-- `/examples/dashboard`: metrics and tables from mock data.
-- `/providers/data/firebase`: real contract, config and limits.
-- `/providers/data/supabase`: honest page about real current capabilities and limits.
-- `/providers/storage`: real contract `upload/getURL/download/delete`.
-
-Acceptance:
-
-- Every route in the menu is either a working demo or explicitly declares it is a planned page.
-- `clients/showcase npm run build` continues to pass.
 
 ---
 
@@ -112,5 +93,6 @@ Next (1.x / 2.0):
 - CR-051: WorkflowAI declarative multi-step pipeline.
 - CR-040: SchemaForm (form generation from JSON schema).
 - CR-041: SeoEnhancer (technical SEO filter).
-- Showcase stub elimination (9 routes remain).
 - Firebase/Supabase emulator integration tests in CI.
+- GitHub Pages deploy della showcase.
+- GitHub Pages deploy della showcase.

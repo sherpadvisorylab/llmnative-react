@@ -32,6 +32,10 @@ export default defineLocaleMessages({
                 configuration: 'Konfiguration',
                 props: 'Props',
             },
+            stub: {
+                comingSoon: 'Demnächst verfügbar',
+                underConstruction: 'Diese Seite befindet sich im Aufbau.',
+            },
         },
     },
 });

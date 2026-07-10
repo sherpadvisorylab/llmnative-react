@@ -167,6 +167,11 @@ export type { CredentialsAdapter } from './providers/credentials/CredentialsProv
 export { useCredentialsProvider } from './providers/credentials/CredentialsProviderContext';
 export { GoogleServiceAccountProvider } from './providers/credentials/google/GoogleServiceAccountProvider';
 export type { EmailProviderAdapter, EmailSendParams } from './providers/email/EmailProvider';
+export type { EmailProviderId } from './providers/email/definitions';
+export { EMAIL_PROVIDER_DEFINITIONS } from './providers/email/definitions';
+export type { BuildManifest, BuildArtifacts, DeployOptions, DeployResult, Deployment, PublishProviderAdapter } from './providers/publish/PublishProvider';
+export type { PublishProviderId } from './providers/publish/definitions';
+export { PUBLISH_PROVIDER_DEFINITIONS } from './providers/publish/definitions';
 export type { IconProviderAdapter, IconComponentProps } from './providers/icon/IconProvider';
 export { LucideIconProvider } from './providers/icon/LucideIconProvider';
 export { PhosphorIconProvider } from './providers/icon/PhosphorIconProvider';
@@ -175,8 +180,9 @@ export { IconProvider, useIconProvider, useIconController } from './providers/ic
 export type { AppIconProviderConfig, IconController } from './providers/icon/IconProviderContext';
 export { useEmailProvider, EmailProvider } from './providers/email/EmailProviderContext';
 export { GmailEmailProvider } from './providers/email/google/GmailEmailProvider';
-export type { AIRequestOptions, AIAttachment, AIProviderAdapter, AIKeyValidationResult, AIModelDescriptor, AIProviderCapabilities, AIModelCatalog } from './providers/ai';
-export { createAIProviderRegistry, getAIModelCatalog, formatAIModelRef, parseAIModelRef } from './providers/ai';
+export type { AIRequestOptions, AIAttachment, AIProviderAdapter, AIKeyValidationResult, AIModelDescriptor, AIProviderCapabilities, AIModelCatalog, AIProviderDefinition } from './providers/ai';
+export { createAIProviderRegistry, getAIModelCatalog, formatAIModelRef, parseAIModelRef, AI_PROVIDER_DEFINITIONS, AI_PROVIDER_DESCRIPTORS, OPENAI_COMPATIBLE_PROVIDER_DESCRIPTOR, toProviderDescriptor } from './providers/ai';
+export type { ProviderDescriptor, ProviderCredentialField } from './providers/ProviderDescriptor';
 export { useAIProvider, useAIProviderRegistry, AIProvider } from './providers/ai/AIProviderContext';
 export { proxyFetch, useProxy, configureProxy, isProxyEnabled } from './providers/proxy';
 export { googleGetAccessToken } from './providers/auth/google/GoogleAuth';

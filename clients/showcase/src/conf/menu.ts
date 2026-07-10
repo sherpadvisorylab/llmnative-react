@@ -3,7 +3,6 @@ import { Navigate } from 'react-router-dom';
 
 import { markdownDocs, providerMarkdownDocs } from '../docs/markdownDocs';
 import MarkdownDocPage from '../pages/docs/MarkdownDocPage';
-import Stub from '../pages/docs/Stub';
 
 const lazyPage = <T extends { default: React.ComponentType<any> }>(
     loader: () => Promise<T>
@@ -11,6 +10,11 @@ const lazyPage = <T extends { default: React.ComponentType<any> }>(
 
 const Home = lazyPage(() => import('../pages/Home'));
 const ExamplesOverview = lazyPage(() => import('../pages/examples/ExamplesOverview'));
+const CrudPage = lazyPage(() => import('../pages/examples/CrudPage'));
+const DashboardPage = lazyPage(() => import('../pages/examples/DashboardPage'));
+const NestedFormPage = lazyPage(() => import('../pages/examples/NestedFormPage'));
+const FileManagerPage = lazyPage(() => import('../pages/examples/FileManagerPage'));
+const GoogleAuthPage = lazyPage(() => import('../pages/examples/GoogleAuthPage'));
 
 const AlertPage = lazyPage(() => import('../pages/components/AlertPage'));
 const AuthPage = lazyPage(() => import('../pages/components/AuthPage'));
@@ -82,8 +86,7 @@ const MarkdownReaderPage = lazyPage(() => import('../pages/components/MarkdownRe
 const ImageEditorPage = lazyPage(() => import('../pages/components/ImageEditorPage'));
 const CodeEditorPage = lazyPage(() => import('../pages/components/CodeEditorPage'));
 
-const s = (title: string, description: string): React.ComponentType =>
-    () => React.createElement(Stub, { title, description });
+
 
 const docsRoutes = markdownDocs.map((doc) => ({
     path: doc.meta.path,
@@ -245,18 +248,18 @@ export const menu = {
 
     providers: [
         ...providerRoutes,
-        { path: '/providers/data/firebase', title: 'FirebaseDataProvider', page: s('FirebaseDataProvider', 'Real-time Realtime Database implementation.'), group: 'Built-in drivers' },
-        { path: '/providers/data/supabase', title: 'SupabaseDataProvider', page: s('SupabaseDataProvider', 'Supabase PostgreSQL implementation.'), group: 'Built-in drivers' },
-        { path: '/providers/storage/firebase', title: 'FirebaseStorageProvider', page: s('FirebaseStorageProvider', 'Firebase Storage implementation.'), group: 'Built-in drivers' },
-        { path: '/providers/auth/google', title: 'GoogleAuthProvider', page: s('GoogleAuthProvider', 'OAuth2 Google sign-in implementation.'), group: 'Built-in drivers' },
+        { path: '/providers/data/firebase', title: 'FirebaseDataProvider', page: () => React.createElement(Navigate, { to: '/providers/data', replace: true }), group: 'Built-in drivers' },
+        { path: '/providers/data/supabase', title: 'SupabaseDataProvider', page: () => React.createElement(Navigate, { to: '/providers/data', replace: true }), group: 'Built-in drivers' },
+        { path: '/providers/storage/firebase', title: 'FirebaseStorageProvider', page: () => React.createElement(Navigate, { to: '/providers/storage', replace: true }), group: 'Built-in drivers' },
+        { path: '/providers/auth/google', title: 'GoogleAuthProvider', page: () => React.createElement(Navigate, { to: '/providers/auth', replace: true }), group: 'Built-in drivers' },
     ],
 
     examples: [
-        { path: '/examples/crud', title: 'CRUD table', page: s('CRUD table', 'Full create/read/update/delete with Grid + modal Form.'), group: 'Common patterns' },
-        { path: '/examples/dashboard', title: 'Dashboard', page: s('Dashboard', 'Metric cards, chart and recent-activity table.'), group: 'Common patterns' },
-        { path: '/examples/nested-form', title: 'Nested form', page: s('Nested form', 'Deep dot notation, arrays and Repeat components.'), group: 'Common patterns' },
-        { path: '/examples/file-manager', title: 'File manager', page: s('File manager', 'Upload + gallery Grid backed by Firebase Storage.'), group: 'Common patterns' },
-        { path: '/examples/google-auth', title: 'Google sign-in', page: s('Google sign-in', 'OAuth2 flow, protected routes and user profile.'), group: 'Auth flows' },
+        { path: '/examples/crud', title: 'CRUD table', page: CrudPage, group: 'Common patterns' },
+        { path: '/examples/dashboard', title: 'Dashboard', page: DashboardPage, group: 'Common patterns' },
+        { path: '/examples/nested-form', title: 'Nested form', page: NestedFormPage, group: 'Common patterns' },
+        { path: '/examples/file-manager', title: 'File manager', page: FileManagerPage, group: 'Common patterns' },
+        { path: '/examples/google-auth', title: 'Google sign-in', page: GoogleAuthPage, group: 'Auth flows' },
         { path: '/examples/ai', title: 'AI assistant', page: ExamplesOverview, group: 'Auth flows' },
     ],
 };

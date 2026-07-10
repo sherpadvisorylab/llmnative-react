@@ -1,7 +1,7 @@
 ---
 title: Icon system
 group: Architecture
-order: 40
+order: 42
 path: /docs/icons
 description: Icons are provider-based. App selects the provider; components reference icons by semantic name.
 ---

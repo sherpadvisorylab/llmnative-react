@@ -72,7 +72,12 @@ export type ShowcaseNamespace =
     | 'formValidation'
     | 'richText'
     | 'imageField'
-    | 'codeEditor';
+    | 'codeEditor'
+    | 'crud'
+    | 'dashboard'
+    | 'nestedForm'
+    | 'fileManager'
+    | 'googleAuth';
 
 function normalizeLocale(locale: string): ShowcaseLocaleKey {
     return (SHOWCASE_VALID_LOCALES as readonly string[]).includes(locale) ? locale as ShowcaseLocaleKey : SHOWCASE_FALLBACK_LOCALE;

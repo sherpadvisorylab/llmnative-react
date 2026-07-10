@@ -1,7 +1,7 @@
 # Project status
 
 > Snapshot verified against the real codebase, not against the historical plan.
-> Last reviewed: 2026-07-09
+> Last reviewed: 2026-07-10
 
 ---
 
@@ -70,6 +70,7 @@
 | CR-049 | Done | Component.schema meta-layer per configurazione campi. |
 | CR-014 | Done | Audit API completo su 40+ componenti. 8 bug fix. JSDoc su 20+ file. |
 | CR-006 | Done | Test suite: 61 file, 643 unit/component, 10 Firebase emulator + 8 Supabase emulator integration, 16 Playwright E2E (smoke + navigation + CRUD). 100%. Google OAuth E2E deferito. |
+| CR-007 | Done | Showcase stubs risolti: 0 stub routes. 4 provider redirects, 5 example pages reali (CRUD, Dashboard, NestedForm, FileManager, GoogleAuth). Deploy e link docs rinviati. |
 
 ---
 
@@ -77,7 +78,6 @@
 
 | CR | Real state | What is missing |
 |----|-----------|-----------------|
-| CR-007 | **73%** — Showcase is a real Vite consumer app with many component pages and interactive playgrounds. SideNav present. FormCustomActionsPage added. 30 new smoke tests. | 9 stub routes remain (providers: firebase/supabase/google — examples: crud/dashboard/nested-form/file-manager/google-auth). |
 | CR-037 | ⬜ | Component Builder System — `useImage()` pattern non ancora standardizzato. |
 | CR-040 | **0% — spec written** | SchemaForm (form generation from JSON schema/factory); spec in `CHANGE_REQUESTS.md`. No implementation. |
 | CR-041 | **0% — proposal written** | SeoEnhancer (HTML filter applying technical SEO, structured report); proposal in `CHANGE_REQUESTS.md`. No implementation. |
@@ -99,8 +99,7 @@ src/
   components/
     ui/                    # presentational primitives (Alert, Badge, Button, Card, Icon, Image,
     │                        Loader, Modal, Pagination, Table, Gallery, Tab, Repeat, GridSystem)
-    ui/fields/             # Input, Select, Upload, ImageField, RichText, Prompt, UploadCSV,
-    │                        Command (legacy — CR-025)
+    ui/fields/             # Input, Select, Upload, ImageField, RichText, Prompt, UploadCSV
     blocks/                # Brand, Menu, Breadcrumbs, Notifications, Search, Carousel, Dropdown
     widgets/               # Form, Grid, MarkdownReader, ImageEditor wrapper + lazy impl chunk
     Component.tsx          # FieldAdapter pattern for schema-driven forms (cleaned up)
@@ -138,12 +137,25 @@ clients/showcase/
 
 ## Visible stubs and gaps in the showcase
 
-Routes still stubbed in `clients/showcase/src/conf/menu.ts`:
+Tutti gli stub risolti. 0 route stub rimanenti.
 
-| Area | Stub routes |
-|------|-------------|
-| Providers | `/providers/data/firebase`, `/providers/data/supabase`, `/providers/storage/firebase`, `/providers/auth/google` |
-| Examples | `/examples/crud`, `/examples/dashboard`, `/examples/nested-form`, `/examples/file-manager`, `/examples/google-auth` |
+Resolved provider stubs (redirect to `/providers/data`, `/providers/storage`, `/providers/auth`):
+
+| Area | Route | Resolution |
+|------|-------|------------|
+| Providers | `/providers/data/firebase`, `/providers/data/supabase` | `<Navigate to="/providers/data">` |
+| Providers | `/providers/storage/firebase` | `<Navigate to="/providers/storage">` |
+| Providers | `/providers/auth/google` | `<Navigate to="/providers/auth">` |
+
+Resolved example stubs (real pages with `MockDataProvider`):
+
+| Area | Route | Resolution |
+|------|-------|------------|
+| Examples | `/examples/crud` | `CrudPage.tsx` — GridDB + Form + Badge, 6 prodotti sortable/paginati |
+| Examples | `/examples/dashboard` | `DashboardPage.tsx` — Card metriche + GridDB ordini con status Badge |
+| Examples | `/examples/nested-form` | `NestedFormPage.tsx` — dot notation + Repeat dinamico |
+| Examples | `/examples/file-manager` | `FileManagerPage.tsx` — GridDB file listing + status Badge |
+| Examples | `/examples/google-auth` | `GoogleAuthPage.tsx` — AuthButton demo + spiegazione OAuth |
 
 Main real routes:
 
@@ -152,7 +164,7 @@ Main real routes:
 | Docs | Generated from Markdown in `docs/` via `import.meta.glob` |
 | Components | Alert, Badge, Buttons, Card, Code, Dropdown, Gallery, GridSystem, Icon, Image, ImageAvatar, ImageField, ImageEditor, Loader, LocaleSwitcher, Modal (+ ModalYesNo, ModalOk), Motion, Notifications, Pagination, Prompt, Search, Select, Autocomplete, Checklist, Upload, Form, Grid, GridArray, GridDB, MarkdownReader, Repeat, Auth, LayoutBuilder |
 | Providers | `/providers`, `/providers/data`, `/providers/storage`, `/providers/auth`, `/providers/email`, `/providers/integrations` |
-| Examples | `/examples/ai` |
+| Examples | `/examples/ai`, `/examples/crud`, `/examples/dashboard`, `/examples/nested-form`, `/examples/file-manager`, `/examples/google-auth` |
 
 ---
 
@@ -166,7 +178,7 @@ Main real routes:
 
 ## Verification performed
 
-Real verification performed on 2026-07-09:
+Real verification performed on 2026-07-10:
 
 | Command | Result |
 |---------|--------|
@@ -187,4 +199,4 @@ Real verification performed on 2026-07-09:
 |---------|-----------|
 | 1.0.0 | Published on npm (`@llmnative/react@1.0.0`). |
 | 1.0.x | Maintenance: bugfixes, documentation alignment, test hardening. |
-| 1.x / 2.0 | Roadmap: CR-051 (WorkflowAI), CR-040 (SchemaForm), CR-041 (SeoEnhancer), showcase stub resolution, E2E. |
+| 1.x / 2.0 | Roadmap: CR-051 (WorkflowAI), CR-040 (SchemaForm), CR-041 (SeoEnhancer), E2E, deploy GitHub Pages. |
