@@ -45,6 +45,9 @@ jobs:
         env:
           VITE_BASE_PATH: /llmnative-react/
 
+      - name: SPA fallback for GH Pages
+        run: cp clients/showcase/dist/index.html clients/showcase/dist/404.html
+
       - uses: actions/configure-pages@v5
 
       - uses: actions/upload-pages-artifact@v3
