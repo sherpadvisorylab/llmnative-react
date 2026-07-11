@@ -137,6 +137,9 @@ export type AppProviderProps = {
     errorReportUrl?: string;
     /** Force debug mode in error boundaries (shows stack trace, component tree, browser context). Auto-enabled in DEV builds. */
     debug?: boolean;
+    /** Basename for BrowserRouter (e.g. '/llmnative-react/' for GH Pages). If set, only the
+     * pathname after this prefix is used for route matching. */
+    basename?: string;
 };
 
 /** Full App props: AppProviderProps + routing-specific config. */
@@ -250,6 +253,7 @@ export function AppProvider({
     children,
     errorReportUrl,
     debug,
+    basename,
 }: AppProviderProps) {
     const [registries, setRegistries] = useState(() => resolveProviderRegistries(providers));
 
@@ -282,7 +286,7 @@ export function AppProvider({
 
     return (
         <ErrorBoundary fullPage reportUrl={errorReportUrl} debug={debug}>
-        <BrowserRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
+        <BrowserRouter basename={basename} future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
             <RuntimeProvider defaultConfig={{
                 title: appName,
                 firebase: providers.firebase,
