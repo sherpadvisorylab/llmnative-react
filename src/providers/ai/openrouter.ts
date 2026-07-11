@@ -12,6 +12,7 @@ export const OPENROUTER_PROVIDER_DEFINITION = createOpenAICompatibleProviderDefi
     fallbackModels: ['openai/gpt-4', 'openai/gpt-5-nano', 'anthropic/claude-3.7-sonnet'],
     baseUrl: 'https://openrouter.ai/api/v1',
     dashboardUrl: 'https://openrouter.ai/settings/keys',
+    credentialsHint: 'OpenRouter → Settings → API Keys → Create Key.',
     // OpenRouter's /models endpoint is public — use /auth/key which requires a valid key
     validateApiKey: async (apiKey) => {
         try {

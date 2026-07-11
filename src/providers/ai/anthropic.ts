@@ -15,6 +15,7 @@ export const ANTHROPIC_PROVIDER_DEFINITION: AIProviderDefinition = {
     defaultModel: 'claude-sonnet-4-0',
     fallbackModels: ['claude-sonnet-4-0', 'claude-opus-4-1', 'claude-3-7-sonnet-latest'],
     dashboardUrl: 'https://console.anthropic.com/settings/keys',
+    credentialsHint: 'Anthropic Console → Settings → API Keys → Create Key.',
     credentialFields: [{ key: 'apiKey', label: 'API Key', type: 'password' }],
     capabilities: { supportsTemperature: true, supportsVision: true, supportsDocuments: true },
     discoverModels: async (apiKey) => {

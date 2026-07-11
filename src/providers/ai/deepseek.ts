@@ -9,4 +9,5 @@ export const DEEPSEEK_PROVIDER_DEFINITION = createOpenAICompatibleProviderDefini
     fallbackModels: ['deepseek-chat', 'deepseek-reasoner'],
     baseUrl: 'https://api.deepseek.com',
     dashboardUrl: 'https://platform.deepseek.com/api_keys',
+    credentialsHint: 'DeepSeek platform → API Keys → Create new API key.',
 });

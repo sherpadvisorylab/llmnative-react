@@ -14,6 +14,7 @@ export const GEMINI_PROVIDER_DEFINITION: AIProviderDefinition = {
     defaultModel: 'gemini-2.5-pro',
     fallbackModels: ['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite'],
     dashboardUrl: 'https://aistudio.google.com/app/apikey',
+    credentialsHint: 'Google AI Studio → Get API key → Create API key.',
     credentialFields: [{ key: 'apiKey', label: 'API Key', type: 'password' }],
     capabilities: { supportsTemperature: true, supportsVision: true, supportsDocuments: true },
     discoverModels: async (apiKey) => {

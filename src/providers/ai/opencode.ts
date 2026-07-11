@@ -44,6 +44,7 @@ export const OPENCODE_PROVIDER_DEFINITION: AIProviderDefinition = {
     defaultModel: 'deepseek-v4-flash-free',
     fallbackModels: OPENCODE_FALLBACK_MODELS,
     dashboardUrl: 'https://opencode.ai',
+    credentialsHint: 'OpenCode Zen dashboard → API Keys → Create Key.',
     credentialFields: [{ key: 'apiKey', label: 'API Key', type: 'password' }],
     capabilities: { supportsTemperature: true },
     discoverModels: async (apiKey) => {
