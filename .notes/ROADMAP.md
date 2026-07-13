@@ -31,12 +31,13 @@ Already implemented and verified:
 - Vite-first scaffold realigned to the new `providers` API.
 - Unit/component/contract tests: 61 files, 643 tests (all pass).
 - Showcase stubs risolti: 0 stub routes. 5 example pages reali + 4 provider redirect.
-- Deploy e link docs rinviati.
+- Showcase deployato su GitHub Pages.
+- Docs allineati alla codebase (proxy route, inputType, service slots, AIConfig, struttura providers).
 
 Not yet complete:
 
 - Browser OAuth integration test (Google — servono credenziali reali).
-- Public deploy of the showcase.
+- Scrivere docs per api/publish/ProviderSession/ProviderSwitcher provider categories (CR-053).
 
 ---
 
@@ -94,5 +95,4 @@ Next (1.x / 2.0):
 - CR-040: SchemaForm (form generation from JSON schema).
 - CR-041: SeoEnhancer (technical SEO filter).
 - Firebase/Supabase emulator integration tests in CI.
-- GitHub Pages deploy della showcase.
-- GitHub Pages deploy della showcase.
+- GitHub Pages deploy della showcase (fatto).

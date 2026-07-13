@@ -30,7 +30,7 @@ The scaffold asks for:
 |---|---|---|
 | Project name | any string | Sets folder and `package.json` name |
 | Data provider | `firebase` / `supabase` / `mock` / `custom` | Wires the default `data` service |
-| AI provider | `none` / `openai` / `gemini` / `anthropic` / `mistral` | Wires the default `ai` service and relevant API key prompt |
+| AI provider | `none` / `openai` / `gemini` / `anthropic` / `mistral` / `deepseek` / `openrouter` / `opencode` | Wires the default `ai` service and relevant API key prompt |
 | Proxy provider | `none` / `viteDevProxy` / `expressProxy` | Wires the default `proxy` service and generates the matching relay implementation |
 | Icon provider | `lucide` / `phosphor` | Sets `iconProvider` in `conf/app.ts` |
 | Theme | `default` / `flat` / `cyber` | Sets the built-in theme |
@@ -107,7 +107,7 @@ const proxyDriver = selectedProxyProvider !== 'none'
 export const providers: AppProvidersConfig = {
   proxy: {
     enabled: env.VITE_PROXY_ENABLED === 'true',
-    route: env.VITE_PROXY_ROUTE ?? '/api/llmnative/proxy',
+    route: env.VITE_PROXY_ROUTE ?? '/api/proxy',
   },
   services: {
     data: dataDriver,
@@ -131,7 +131,7 @@ VITE_PROVIDER=mock
 VITE_AI_PROVIDER=none
 VITE_PROXY_PROVIDER=none
 VITE_PROXY_ENABLED=false
-VITE_PROXY_ROUTE=/api/llmnative/proxy
+VITE_PROXY_ROUTE=/api/proxy
 VITE_ICON_PROVIDER=lucide
 VITE_THEME=default
 ```
@@ -158,7 +158,7 @@ Generated only when the scaffold selects `viteDevProxy`.
 It mounts a Vite middleware on:
 
 ```text
-/api/llmnative/proxy
+/api/proxy
 ```
 
 and is activated in `vite.config.ts` only when:

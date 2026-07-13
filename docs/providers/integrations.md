@@ -8,13 +8,15 @@ description: Specialized runtime integrations that are intentionally outside the
 
 # Utility integrations
 
-`@llmnative/react` has six service slots:
+`@llmnative/react` has seven service slots:
 
 - `data`
 - `storage`
 - `auth`
 - `email`
 - `ai`
+- `credentials`
+- `proxy`
 
 Everything that powers framework components should go through one of those provider registries. This page is only for integrations that stay intentionally outside that contract.
 

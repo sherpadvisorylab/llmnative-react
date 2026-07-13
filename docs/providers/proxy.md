@@ -44,7 +44,7 @@ That config lives in `providers.proxy`.
 providers={{
   proxy: {
     enabled: true,
-    route: '/api/llmnative/proxy',
+    route: '/api/proxy',
   },
   services: {
     proxy: 'viteDevProxy',
@@ -104,7 +104,7 @@ class CloudflareWorkerProxyProvider implements ProxyProviderAdapter {
     const headers = new Headers(request.headers);
     headers.set('x-llmnative-proxy', '1');
 
-    return fetch(`/api/llmnative/proxy?url=${encodeURIComponent(request.url)}`, {
+    return fetch(`/api/proxy?url=${encodeURIComponent(request.url)}`, {
       method: request.method,
       headers,
       body: ['GET', 'HEAD'].includes(request.method.toUpperCase()) ? undefined : request.body,
@@ -121,7 +121,7 @@ Register it through the normal provider registry:
   providers={{
     proxy: {
       enabled: true,
-      route: '/api/llmnative/proxy',
+      route: '/api/proxy',
     },
     custom: {
       proxy: new CloudflareWorkerProxyProvider(),

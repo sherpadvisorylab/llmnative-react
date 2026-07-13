@@ -3,7 +3,7 @@ title: App reference
 group: Getting started
 order: 40
 path: /docs/app-configuration
-description: Complete reference for App props, provider wiring, AI config and the six service slots.
+description: Complete reference for App props, provider wiring, AI config and the seven service slots.
 ---
 
 # App reference
@@ -60,15 +60,16 @@ interface AppProps {
 
 ## Service map
 
-@llmnative/react currently has six service slots.
+@llmnative/react currently has seven service slots.
 
 | Service slot | What it does | Main entry points | Built-in drivers |
 |---|---|---|---|
-| `data` | Record CRUD and collection access | `Grid`, `Form`, `useDataProvider` | `dbRealtime`, `supabaseDb`, `mock` |
+| `data` | Record CRUD and collection access | `Grid`, `Form`, `useDataProvider` | `dbRealtime`, `firestore`, `supabaseDb`, `mock` |
 | `storage` | Upload, download, delete, file URL | `Upload`, `useStorageProvider` | `firestorage`, `supabaseStorage` |
-| `auth` | Current user, sign-in/out, access token | `AuthButton`, `useAuthProvider` | `googleAuth`, `dropboxAuth` |
+| `auth` | Current user, sign-in/out, access token | `AuthButton`, `useAuthProvider` | `googleAuth`, `dropboxAuth`, `firebaseAuth`, `supabaseAuth` |
 | `email` | Outbound email | `useEmailProvider` | `gmail` |
-| `ai` | Prompt execution and model orchestration | `Prompt`, `WorkflowAI`, `AI.fetch(...)`, `useAIProvider` | `openai`, `openrouter`, `opencode`, `openai-compatible`, `deepseek`, `gemini`, `anthropic`, `mistral` |
+| `ai` | Prompt execution and model orchestration | `Prompt`, `WorkflowAI`, `AI.fetch(...)`, `useAIProvider` | `openai`, `openrouter`, `opencode`, `openai-compatible`, `deepseek`, `gemini`, `anthropic`, `mistral`, `glm` |
+| `credentials` | Service account credentials and token generation | `useCredentialsProvider`, `getAccessToken` | `googleServiceAccount` |
 | `proxy` | Same-origin relay for browser-safe external requests | `proxyFetch(...)`, `useProxyProvider` | `viteDevProxy`, `expressProxy` |
 
 The point is provider-agnostic UI:
@@ -101,16 +102,18 @@ interface AppProvidersConfig {
     storage?: StorageProviderAdapter | Record<string, StorageProviderAdapter>;
     auth?: AuthProviderAdapter | Record<string, AuthProviderAdapter>;
     email?: EmailProviderAdapter | Record<string, EmailProviderAdapter>;
+    credentials?: CredentialsAdapter | Record<string, CredentialsAdapter>;
     ai?: AIProviderAdapter | Record<string, AIProviderAdapter>;
     proxy?: ProxyProviderAdapter | Record<string, ProxyProviderAdapter>;
   };
 
   services?: {
-    data?: 'dbRealtime' | 'supabaseDb' | 'mock' | string;
+    data?: 'dbRealtime' | 'firestore' | 'supabaseDb' | 'mock' | string;
     storage?: 'firestorage' | 'supabaseStorage' | string;
-    auth?: 'googleAuth' | 'dropboxAuth' | string;
+    auth?: 'googleAuth' | 'dropboxAuth' | 'firebaseAuth' | 'supabaseAuth' | string;
     email?: 'gmail' | string;
-    ai?: 'openai' | 'openrouter' | 'opencode' | 'openai-compatible' | 'deepseek' | 'gemini' | 'anthropic' | 'mistral' | string;
+    ai?: 'openai' | 'openrouter' | 'opencode' | 'openai-compatible' | 'deepseek' | 'gemini' | 'anthropic' | 'mistral' | 'glm' | string;
+    credentials?: 'googleServiceAccount' | string;
     proxy?: 'viteDevProxy' | 'expressProxy' | string;
   };
 }
@@ -197,6 +200,7 @@ interface AIConfig {
   anthropicApiKey?: string;
   deepSeekApiKey?: string;
   mistralApiKey?: string;
+  glmApiKey?: string;
   openAICompatible?: {
     apiKey?: string;
     baseUrl?: string;
@@ -224,6 +228,7 @@ The proxy service uses one shared config shape for every built-in driver.
 ```ts
 type ProxyConfig = {
   enabled?: boolean;
+  route?: string;
 };
 ```
 
@@ -276,6 +281,7 @@ import {
   useStorageProvider,
   useAuthProvider,
   useEmailProvider,
+  useCredentialsProvider,
   useAIProvider,
   useProxyProvider,
 } from '@llmnative/react';
@@ -284,6 +290,7 @@ const data = useDataProvider();
 const storage = useStorageProvider();
 const auth = useAuthProvider();
 const email = useEmailProvider();
+const credentials = useCredentialsProvider();
 const ai = useAIProvider();
 const proxy = useProxyProvider();
 ```

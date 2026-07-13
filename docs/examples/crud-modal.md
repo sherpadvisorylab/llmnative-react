@@ -54,7 +54,7 @@ export default function ProductCatalog() {
                 <>
                   <Input name="name" label="Product name" required />
                   <Input name="sku" label="SKU code" />
-                  <Input name="price" label="Price (EUR)" inputType="number" step={0.01} />
+                  <Input.Number name="price" label="Price (EUR)" step={0.01} />
                   <Select
                     name="category"
                     label="Category"

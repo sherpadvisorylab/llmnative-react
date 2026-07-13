@@ -23,7 +23,7 @@ const form = useFormController()
 
   <Form controller={form} path="/users/alice" appearance="card" persistDraft>
     <Input name="name" label="Name" required />
-    <Input name="email" label="Email" inputType="email" />
+    <Input.Email name="email" label="Email" />
     <Select name="role" label="Role" options={roleOptions} />
   </Form>
 </>;

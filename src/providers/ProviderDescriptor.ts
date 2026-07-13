@@ -7,7 +7,7 @@
 export type ProviderCredentialField = {
     key:          string;
     label:        string;
-    type:         'text' | 'password';
+    type:         'text' | 'password' | 'textarea';
     placeholder?: string;
 };
 
@@ -20,4 +20,6 @@ export type ProviderDescriptor = {
     credentialsUrl?:  string;
     /** Short guidance on where in that dashboard to look, when the URL alone isn't obvious. */
     credentialsHint?: string;
+    /** Numbered walkthrough for setups too involved for a one-line hint (e.g. multi-console flows). Rendered instead of credentialsHint when present. */
+    credentialsSteps?: string[];
 };

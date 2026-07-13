@@ -1,7 +1,7 @@
 # Project status
 
 > Snapshot verified against the real codebase, not against the historical plan.
-> Last reviewed: 2026-07-10
+> Last reviewed: 2026-07-13
 
 ---
 
@@ -70,7 +70,7 @@
 | CR-049 | Done | Component.schema meta-layer per configurazione campi. |
 | CR-014 | Done | Audit API completo su 40+ componenti. 8 bug fix. JSDoc su 20+ file. |
 | CR-006 | Done | Test suite: 61 file, 643 unit/component, 10 Firebase emulator + 8 Supabase emulator integration, 16 Playwright E2E (smoke + navigation + CRUD). 100%. Google OAuth E2E deferito. |
-| CR-007 | Done | Showcase stubs risolti: 0 stub routes. 4 provider redirects, 5 example pages reali (CRUD, Dashboard, NestedForm, FileManager, GoogleAuth). Deploy e link docs rinviati. |
+| CR-007 | Done | Showcase stubs risolti: 0 stub routes. 4 provider redirects, 5 example pages reali (CRUD, Dashboard, NestedForm, FileManager, GoogleAuth). Showcase deployato su GH Pages. Docs allineati. |
 
 ---
 
@@ -83,6 +83,7 @@
 | CR-041 | **0% — proposal written** | SeoEnhancer (HTML filter applying technical SEO, structured report); proposal in `CHANGE_REQUESTS.md`. No implementation. |
 | CR-045 | ⬜ | AI Adoption: piano di distribuzione e visibilità. |
 | CR-051 | **0% — spec written** | WorkflowAI declarative multi-step pipeline; spec in `CHANGE_REQUESTS.md`. No implementation. |
+| CR-053 | ⬜ | Doc audit: scrivere docs per api/publish/ProviderSession/ProviderSwitcher provider categories e aggiornare architecture index. |
 
 ---
 
@@ -90,37 +91,45 @@
 
 ```text
 src/
-  App.tsx                  # routing, RuntimeProvider, declarative provider config, theme/icon/head
+  App.tsx                  # routing, RuntimeProvider, declarative provider config, theme/icon/head, basename
   Config.tsx               # runtime config, tenant config, Firebase/Google/AI/Dropbox config
   Global.tsx               # localStorage-backed global state, composed by runtime provider
   Head.tsx                 # head controller JSX: metadata, document, social, assets, PWA, schema.org
   Theme.tsx                # ThemeProvider, theme registry, useTheme/useThemeController
   motion.ts                # motion registry helpers, reduced motion, motion hooks
+  I18n.tsx                 # I18nProvider, useI18n, locale dictionaries, interpolate
   components/
     ui/                    # presentational primitives (Alert, Badge, Button, Card, Icon, Image,
     │                        Loader, Modal, Pagination, Table, Gallery, Tab, Repeat, GridSystem)
-    ui/fields/             # Input, Select, Upload, ImageField, RichText, Prompt, UploadCSV
-    blocks/                # Brand, Menu, Breadcrumbs, Notifications, Search, Carousel, Dropdown
+    ui/fields/             # Input (String/Number/Email/Password/Color/Date/…), Select, Upload,
+    │                        ImageField, RichText, Prompt, UploadCSV
+    blocks/                # Brand, Menu, Breadcrumbs, Notifications, Search, Carousel, Dropdown, SideNav, ProviderSwitcher
     widgets/               # Form, Grid, MarkdownReader, ImageEditor wrapper + lazy impl chunk
     Component.tsx          # FieldAdapter pattern for schema-driven forms (cleaned up)
   providers/
+    ProviderDescriptor.ts  # Metadata descriptor for provider registry UI
+    ProviderSession.tsx    # useProviderSession, registerProviderSessionFactory
     manifest.ts            # driver manifest: PROVIDER_MANIFESTS, DriverDescriptor, ServicesConfig
-    data/                  # DataProvider contract; FirebaseDataProvider, FirestoreDataProvider,
+    api/                   # ApiProviderAdapter + Firebase/Supabase/Mock adapters
+    data/                  # DataProvider contract; FirebaseDataProvider (RTDB), FirestoreDataProvider,
     │                        SupabaseDataProvider, MockDataProvider
     storage/               # StorageProvider contract; FirebaseStorageProvider,
     │                        SupabaseStorageProvider, Dropbox helper
     auth/                  # AuthProvider contract; GoogleAuthProvider, FirebaseAuthProvider,
     │                        SupabaseAuthProvider, DropboxAuthProvider
     credentials/           # CredentialsAdapter contract; GoogleServiceAccountProvider
-    email/                 # EmailProvider contract; GmailEmailProvider
+    email/                 # EmailProvider contract; GmailEmailProvider, definitions
     icon/                  # LucideIconProvider, PhosphorIconProvider
-    ai/                    # AI multi-provider (OpenAI/Gemini/Anthropic/DeepSeek/Mistral/…)
+    ai/                    # AI multi-provider (OpenAI/Gemini/Anthropic/DeepSeek/Mistral/…/GLM)
+    publish/               # PublishProviderAdapter + CloudflarePages/Netlify definitions
     seo/                   # Google keyword/trend helpers
     scrape/                # SerpAPI scraping (cache via DataProviderAdapter)
     firebase-init.ts
+    proxy/                 # Proxy registry, Vite dev proxy, Express proxy
   types/
   libs/                    # pure utilities: path, converter, sanitizer, email, fetch, utils, order, cn, imageBuilder
   pages/                   # PageNotFound (only remaining page export)
+  conf/i18n/               # Framework-level i18n dictionaries (en/it/de/ru/zh/ar)
 ```
 
 ```text
@@ -198,5 +207,5 @@ Real verification performed on 2026-07-10:
 | Version | Real state |
 |---------|-----------|
 | 1.0.0 | Published on npm (`@llmnative/react@1.0.0`). |
-| 1.0.x | Maintenance: bugfixes, documentation alignment, test hardening. |
-| 1.x / 2.0 | Roadmap: CR-051 (WorkflowAI), CR-040 (SchemaForm), CR-041 (SeoEnhancer), E2E, deploy GitHub Pages. |
+| 1.1.0 | Published on npm (`@llmnative/react@1.1.0`). CR-007 completo. GH Pages deploy live. |
+| 1.x / 2.0 | Roadmap: CR-051 (WorkflowAI), CR-040 (SchemaForm), CR-041 (SeoEnhancer), E2E. |

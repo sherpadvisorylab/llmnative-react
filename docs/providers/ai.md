@@ -24,6 +24,7 @@ The goal is the same as for `data`, `storage`, `auth` and `email`: keep the exte
 | `gemini` | Google Gemini API | Gemini-native projects and Google ecosystem |
 | `anthropic` | Anthropic API | Claude models |
 | `mistral` | Mistral API | Mistral-hosted text models |
+| `glm` | ZhipuAI API | GLM chat models |
 | custom | Your adapter | internal gateways, proxy routers, vendor aggregators |
 
 For complete configuration, see [AppProvidersConfig](/docs/app-configuration#appprovidersconfig) and [AIConfig](/docs/app-configuration#aiconfig--centralized-api-keys-for-the-ai-service).
@@ -45,6 +46,8 @@ Examples:
 - `deepseek/deepseek-chat`
 - `gemini/gemini-2.5-pro`
 - `anthropic/claude-opus-4.1`
+- `mistral/mistral-large-latest`
+- `glm/glm-4-plus`
 
 This avoids ambiguity and keeps stored prompt settings deterministic even when multiple providers are configured at the same time.
 
@@ -97,6 +100,7 @@ Built-in AI providers expose configuration state like the other service provider
 - `gemini` checks `ai.geminiApiKey`
 - `anthropic` checks `ai.anthropicApiKey`
 - `mistral` checks `ai.mistralApiKey`
+- `glm` checks `ai.glmApiKey`
 
 That lets UI stay visible but disabled when a provider is not configured.
 

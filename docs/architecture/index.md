@@ -49,12 +49,15 @@ src/
         Form, Grid, MarkdownReader, ImageEditor
 
   providers/
-    data/             ← DataProviderAdapter + FirebaseDataProvider, SupabaseDataProvider, MockDataProvider
+    api/              ← ApiProviderAdapter + FirebaseApiProviderAdapter, SupabaseApiProviderAdapter, MockApiProviderAdapter
+    data/             ← DataProviderAdapter + FirebaseDataProvider (RTDB), FirestoreDataProvider, SupabaseDataProvider, MockDataProvider
     storage/          ← StorageProviderAdapter + FirebaseStorageProvider, SupabaseStorageProvider
-    auth/             ← AuthProviderAdapter + GoogleAuthProvider
+    auth/             ← AuthProviderAdapter + GoogleAuthProvider, FirebaseAuthProvider, SupabaseAuthProvider, DropboxAuthProvider
     email/            ← EmailProviderAdapter + GmailEmailProvider
-    ai/               ← AIProviderAdapter + runtime OpenAI/Gemini/Anthropic/Mistral adapters + orchestration
+    credentials/      ← CredentialsAdapter + GoogleServiceAccountProvider
+    ai/               ← AIProviderAdapter + runtime OpenAI/Gemini/Anthropic/Mistral/DeepSeek/OpenRouter/OpenCode/GLM adapters + orchestration
     icon/             ← IconProviderAdapter + LucideIconProvider, PhosphorIconProvider
+    publish/          ← PublishProviderAdapter + CloudflarePagesProvider, NetlifyProvider (definitions)
     seo/              ← Google Ads keywords, Trends
     scrape/           ← SerpAPI scraping
 
@@ -109,7 +112,7 @@ src/
     theme.ts            ← ThemePresetConfig + ThemeConfig (edit freely, never overwritten)
 
   layouts/
-    AppLayout.tsx       ← App shell: sidebar + topbar + <Outlet />
+    Default.tsx         ← App shell: sidebar + topbar + <Outlet />
                            Must render <Outlet /> from react-router-dom
 
   pages/                ← One folder per route, one default export per file

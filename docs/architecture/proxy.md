@@ -58,7 +58,7 @@ The proxy is a first-class service slot, just like `data`, `storage`, `auth`, `e
 providers: {
   proxy: {
     enabled: true,
-    route: '/api/llmnative/proxy',
+    route: '/api/proxy',
   },
   services: {
     ai: 'opencode',
@@ -100,7 +100,7 @@ If the active proxy provider is enabled:
 The default route is:
 
 ```text
-/api/llmnative/proxy
+/api/proxy
 ```
 
 The relay accepts the original target through:
@@ -145,7 +145,7 @@ Scaffolded apps now include:
 ```env
 VITE_PROXY_PROVIDER=none
 VITE_PROXY_ENABLED=false
-VITE_PROXY_ROUTE=/api/llmnative/proxy
+VITE_PROXY_ROUTE=/api/proxy
 ```
 
 The generated `src/conf/app.ts` maps those env values into:
@@ -183,7 +183,7 @@ const env = import.meta.env;
   providers={{
     proxy: {
       enabled: env.VITE_PROXY_ENABLED === 'true',
-      route: env.VITE_PROXY_ROUTE ?? '/api/llmnative/proxy',
+      route: env.VITE_PROXY_ROUTE ?? '/api/proxy',
     },
     services: {
       ai: 'opencode',
