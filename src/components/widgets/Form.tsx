@@ -386,6 +386,14 @@ interface BaseFormProps {
     className?: string;
     /** CSS classes on the footer container. */
     footerClassName?: string;
+    /**
+     * CSS classes on the native `<form>` element itself — distinct from `wrapperClassName`
+     * (the outer `Wrapper` div) and `className` ("card" appearance's body). Needed whenever
+     * a layout must cascade real height/flex context through the form (e.g. a full-height
+     * field like `CodeEditor`'s `minHeight="fill"`) instead of reaching in via an arbitrary
+     * `[&>form]:` child selector on `wrapperClassName`.
+     */
+    formClassName?: string;
 }
 interface FormDefaultProps extends BaseFormProps {
     children: React.ReactNode | ((fields: FormTree) => React.ReactNode) | ((args: { record?: RecordProps}) => React.ReactNode);
@@ -500,7 +508,8 @@ const FormData = ({
     wrapperClassName = undefined,
     headerClassName = undefined,
     className = undefined,
-    footerClassName = undefined
+    footerClassName = undefined,
+    formClassName = undefined
 }: FormDefaultProps) => {
     const location = useLocation();
     const theme = useTheme("form");
@@ -990,6 +999,7 @@ const FormData = ({
         <Wrapper className={wrapperClassName || theme.Form.wrapperClassName}>
             <form
                 ref={containerRef}
+                className={formClassName}
                 noValidate
                 onSubmit={event => event.preventDefault()}
                 onKeyDownCapture={handleFormKeyDown}

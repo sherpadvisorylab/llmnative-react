@@ -1,6 +1,6 @@
 ﻿import React, { useMemo } from "react";
 import Gallery from "../../ui/Gallery";
-import { type RecordProps } from "../../../providers/data/DataProvider";
+import { RECORD_KEY, type RecordProps } from "../../../providers/data/DataProvider";
 import { type GridGalleryViewProps, type GridSelectionState } from "./types";
 import { getRecordKeyResolver } from "./utils";
 
@@ -17,6 +17,8 @@ function GridGalleryView<TRecord extends RecordProps>({
     wrapperClassName,
     before,
     after,
+    columns,
+    overlays,
 }: GridGalleryViewProps<TRecord>) {
     const getRecordKey = useMemo(() => getRecordKeyResolver(recordId), [recordId]);
     const sourceByKey = useMemo(() => {
@@ -26,9 +28,20 @@ function GridGalleryView<TRecord extends RecordProps>({
         }, new Map());
     }, [getRecordKey, records]);
 
+    // `Gallery` resolves its own item key from `record._key` only — it has no concept of
+    // an arbitrary `recordId` field/function like the rest of Grid. Without this, a
+    // consumer using e.g. `recordId="id"` (any field other than `_key`) gets a synthetic
+    // fallback key from Gallery that's disconnected from the real record id, breaking
+    // `onRowClick`/selection/overlay handlers that read `item._key` expecting it to match.
+    const keyedRecords = useMemo(
+        () => records.map((record) => ({ ...record, [RECORD_KEY]: getRecordKey(record) })),
+        [records, getRecordKey]
+    );
+
     return (
         <Gallery
-            records={records}
+            records={keyedRecords}
+            overlays={overlays}
             sortable={sortable}
             pagination={pagination}
             selectedKeys={selection ? selectedKeys : undefined}
@@ -60,6 +73,7 @@ function GridGalleryView<TRecord extends RecordProps>({
             wrapperClassName={wrapperClassName}
             before={before}
             after={after}
+            columns={columns}
         />
     );
 }

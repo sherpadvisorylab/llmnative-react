@@ -184,9 +184,14 @@ export class FirestoreDataProvider implements DataProviderAdapter {
         path: string,
         { where, order, toArray = false, exception = false }: ReadOptions = {}
     ): Promise<any> => {
-        const db = this.getDb();
         const np = normalizePath(path);
         try {
+            // `getDb()` (→ `getApp()`) belongs inside the try: it throws synchronously if the
+            // Firebase App isn't initialized yet (e.g. a caller races ahead of the tenant
+            // session — see docs/24-tenant-platform.md and TenantContext's `tenantSessionReady`
+            // in the CMS repo). Left outside, that throw escaped as an unhandled promise
+            // rejection instead of going through `handleError` like every other failure here.
+            const db = this.getDb();
             if (isDocPath(path)) {
                 const snap = await getDoc(doc(db, np));
                 if (!snap.exists()) {
@@ -213,9 +218,9 @@ export class FirestoreDataProvider implements DataProviderAdapter {
     // ── set ─────────────────────────────────────────────────────────────────
 
     set = async (path: string, data: object, exception = false): Promise<void> => {
-        const db = this.getDb();
         const np = normalizePath(path);
         try {
+            const db = this.getDb();
             if (isDocPath(path)) {
                 await setDoc(doc(db, np), data);
             } else {
@@ -231,9 +236,9 @@ export class FirestoreDataProvider implements DataProviderAdapter {
     // ── update ──────────────────────────────────────────────────────────────
 
     update = async (path: string, data: object, exception = false): Promise<void> => {
-        const db = this.getDb();
         const np = normalizePath(path);
         try {
+            const db = this.getDb();
             if (isDocPath(path)) {
                 await updateDoc(doc(db, np), data as DocumentData);
             } else {
@@ -248,9 +253,9 @@ export class FirestoreDataProvider implements DataProviderAdapter {
     // ── remove ──────────────────────────────────────────────────────────────
 
     remove = async (path: string, exception = false): Promise<void> => {
-        const db = this.getDb();
         const np = normalizePath(path);
         try {
+            const db = this.getDb();
             if (isDocPath(path)) {
                 await deleteDoc(doc(db, np));
             } else {
@@ -317,6 +322,14 @@ export class FirestoreDataProvider implements DataProviderAdapter {
                 : collection(db, np);
 
             return onSnapshot(q as any, (snap: QuerySnapshot<DocumentData>) => {
+                // With offline persistence, the SDK's first emission for a not-yet-cached
+                // query is often an empty from-cache snapshot, immediately followed by the
+                // real server snapshot. Consumers that gate a loading spinner on "first
+                // snapshot received" (e.g. the CMS's ComponentsPage) would otherwise flash an
+                // unblurred "no data" state for that one frame. A genuinely empty collection
+                // still resolves via the subsequent non-cache snapshot, so this only delays
+                // the empty state rather than hiding it.
+                if (snap.metadata?.fromCache && snap.size === 0) return;
                 const records = snapshotToRecordArray(snap, fieldMap);
 
                 if (onLoad) {
@@ -359,9 +372,9 @@ export class FirestoreDataProvider implements DataProviderAdapter {
      * On a document path, returns the document's field names.
      */
     readShallow = async (path: string, exception = false): Promise<string[]> => {
-        const db = this.getDb();
         const np = normalizePath(path);
         try {
+            const db = this.getDb();
             if (isDocPath(path)) {
                 const snap = await getDoc(doc(db, np));
                 return snap.exists() ? Object.keys(snap.data() ?? {}) : [];
@@ -387,19 +400,13 @@ export class FirestoreDataProvider implements DataProviderAdapter {
         data: object,
         { chunkSize = 500, purge = false, onProgress }: SetChunksOptions = {}
     ): Promise<void> => {
-        const db = this.getDb();
         const np = normalizePath(path);
         // Firestore writeBatch cap - never exceed 500 ops per commit
         const batchSize = Math.min(chunkSize, 500);
 
-        const commitBatch = async (ops: Array<() => void>) => {
-            const batch = writeBatch(db);
-            ops.forEach(op => op());
-            // ops add to batch via closure; re-do with batch reference
-            return batch.commit();
-        };
-
         try {
+            const db = this.getDb();
+
             // ── Purge ────────────────────────────────────────────────────
             if (purge) {
                 onProgress?.(0, 0, `Purging existing data at ${path}`);

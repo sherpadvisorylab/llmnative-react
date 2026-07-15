@@ -1,6 +1,7 @@
 ﻿import React from "react";
 import { type OrderConfig } from "../../../libs/order";
 import { type PaginationParams } from "../../ui/Pagination";
+import { type GalleryOverlay } from "../../ui/Gallery";
 import { type DatabaseOptions, type RecordProps } from "../../../providers/data/DataProvider";
 
 export type GridLayout = "table" | "gallery";
@@ -10,6 +11,68 @@ export type GridSelectionMode = false | "single" | "multiple";
 export type GridRecordKey<TRecord> =
     | keyof TRecord
     | ((record: TRecord) => string);
+
+/**
+ * Declarative field shown as an overlay on a gallery card — distinct from `GridColumn`
+ * (which drives table columns): a card doesn't need the same fields as a table row,
+ * and has its own visibility picker (`views.gallery.fieldPicker`) separate from the
+ * table's `views.table.columnPicker`.
+ */
+export type GridGalleryField<TRecord> = {
+    /** Record field to read. Accepts dot-notation strings for nested fields. */
+    key: keyof TRecord | string;
+    /** Label shown in the field picker (not on the card itself — the card shows the value only). */
+    label: string;
+    /** Where on the card this field's value is overlaid. Defaults to `"bottomLeft"`. */
+    position?: "topLeft" | "topRight" | "bottomLeft" | "bottomRight" | "middleLeft" | "middleRight";
+    /** Whether this field is shown by default when `fieldPicker` is enabled. Defaults to `true`. */
+    defaultVisible?: boolean;
+    /** Custom render — defaults to the raw field value as text. */
+    render?: (value: unknown, record: TRecord) => React.ReactNode;
+};
+
+/** Table-specific view options, grouped under `views.table`. */
+export type GridTableViewConfig = {
+    /** Show a built-in "Columns" dropdown letting the user show/hide table columns. Default `false`. */
+    columnPicker?: boolean;
+};
+
+/** Gallery-specific view options, grouped under `views.gallery`. */
+export type GridGalleryViewConfig<TRecord> = {
+    /** Cards per row — one of `1|2|3|4|6` (the only values the underlying `Gallery` component supports). */
+    columns?: 1 | 2 | 3 | 4 | 6;
+    /**
+     * Declarative fields overlaid on each card (see `GridGalleryField`). Generates the
+     * overlays automatically and, combined with `fieldPicker`, a "Fields" dropdown
+     * analogous to the table's "Columns" picker — but a separate one, since a card
+     * typically shows fewer/different fields than a table row.
+     */
+    fields?: GridGalleryField<TRecord>[];
+    /** Show the built-in "Fields" dropdown for `fields` above. Default `false`. */
+    fieldPicker?: boolean;
+    /**
+     * Escape hatch: fully custom overlay renderers (forwarded to `<Gallery overlays>`),
+     * for anything `fields` can't express (e.g. an action button, not just a label).
+     * ADDITIVE to the overlays generated from `fields` — a caller commonly needs both at
+     * once (e.g. a Delete button plus checkable label fields); positions shared by both
+     * simply stack, with the custom overlay rendered first.
+     */
+    overlays?: GalleryOverlay[];
+};
+
+/**
+ * Groups every Table/Gallery-view-switching concern under one input, instead of a flat
+ * spray of booleans on `<Grid>` — `toggle` decides whether the switch exists at all,
+ * `table`/`gallery` hold the options specific to each view (column picker vs. field
+ * picker are deliberately two different controls, since a gallery card and a table row
+ * don't need to show the same fields).
+ */
+export type GridViewsConfig<TRecord> = {
+    /** Show the built-in Table/Gallery switch in the header, letting the user change the active view at runtime. Default `false` — `view` behaves as a fixed initial mode when omitted, same as before this existed. */
+    toggle?: boolean;
+    table?: GridTableViewConfig;
+    gallery?: GridGalleryViewConfig<TRecord>;
+};
 
 export type GridFormat =
     | "text"
@@ -45,6 +108,8 @@ export type GridColumn<TRecord> = {
     className?: string;
     /** Built-in format name or custom render function. */
     render?: GridFormat | ((ctx: GridCellContext<TRecord>) => React.ReactNode);
+    /** Whether this column is shown by default when `views.table.columnPicker` is enabled. Defaults to `true`. */
+    defaultVisible?: boolean;
 };
 
 export type GridSelectionState<TRecord> = {
@@ -206,9 +271,11 @@ export type GridAfterActionHandler<TRecord> = (
 ) => Promise<boolean>;
 
 /** Visual / layout props for `<Grid>`. */
-export type GridPresentation = {
-    /** Display mode: `"table"` (default) or `"gallery"` card layout. */
+export type GridPresentation<TRecord> = {
+    /** Display mode: `"table"` (default) or `"gallery"` card layout. Acts as the initial/default view — see `views.toggle` to let the user switch at runtime. */
     view?: GridLayout;
+    /** Table/Gallery switch + per-view options (column picker, gallery field picker, cards-per-row, …) — see `GridViewsConfig`. Omit entirely to keep the pre-existing fixed-`view` behavior. */
+    views?: GridViewsConfig<TRecord>;
     /** Stick the header (`"top"`) or footer (`"bottom"`) while scrolling. */
     sticky?: GridSticky;
     /** CSS classes on the outermost wrapper element. */
@@ -258,7 +325,7 @@ export type GridPersistence<TRecord> = {
  * Combines presentation, behaviour, and persistence with a few top-level hooks.
  */
 export type GridBaseProps<TRecord> =
-    & GridPresentation
+    & GridPresentation<TRecord>
     & GridBehavior<TRecord>
     & GridPersistence<TRecord>
     & {
@@ -287,6 +354,15 @@ export type GridCoreProps<TRecord extends RecordProps> = GridBaseProps<TRecord> 
 export type GridArrayProps<TRecord extends RecordProps> = GridBaseProps<TRecord> & {
     records: TRecord[];
     recordId: GridRecordKey<TRecord>;
+    /**
+     * Base path the `records` were sourced from (e.g. `/components`) — enables the built-in
+     * "delete" action's `db.remove(\`${sourcePath}/${recordKey}\`)` when the caller fetched
+     * its own records (e.g. via `db.subscribe()`) instead of letting Grid fetch them itself
+     * (`GridDBProps.path` does the equivalent there). Already threaded through to `GridCore`
+     * — this was just missing from the public prop surface for the `records` variant.
+     * Omit if delete is handled entirely via a custom `actions.delete`/`onDelete`.
+     */
+    sourcePath?: string;
 };
 
 export type GridDBQuery = Pick<DatabaseOptions, "where" | "order" | "fieldMap">;
@@ -347,5 +423,9 @@ export type GridGalleryViewProps<TRecord extends RecordProps> = {
     wrapperClassName?: string;
     before?: React.ReactNode;
     after?: React.ReactNode;
+    /** Cards per row — forwarded to `<Gallery columns>`. */
+    columns?: 1 | 2 | 3 | 4 | 6;
+    /** Overlay badges/render-props for each card — forwarded to `<Gallery overlays>`. */
+    overlays?: GalleryOverlay[];
 };
 

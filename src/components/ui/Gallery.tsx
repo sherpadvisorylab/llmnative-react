@@ -47,6 +47,12 @@ export type GalleryOverlay = {
     render?: (item: GalleryRecord, index: number) => React.ReactNode;
     when?: GalleryOverlayFilter;
     className?: string;
+    /**
+     * Inline style overrides, merged on top of the position's own offset styles (and, for
+     * `width`/`maxWidth`, on top of the default overlay lane width — a single-line badge's
+     * width, too narrow for e.g. a multi-line description meant to span most of the card).
+     */
+    style?: React.CSSProperties;
 };
 
 type GalleryRenderedRecord =
@@ -307,7 +313,7 @@ const Gallery = ({
 
             return (
                 <React.Fragment key={`${overlay.position}-${overlayIndex}`}>
-                    {renderOverlay(content, position.style, position.align, overlay.className)}
+                    {renderOverlay(content, { ...position.style, ...overlay.style }, position.align, overlay.className)}
                 </React.Fragment>
             );
         });

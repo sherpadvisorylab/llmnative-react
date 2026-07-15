@@ -17,6 +17,8 @@ export interface ContextMenuItem {
     label: string;
     value: string;
     icon?: string;
+    /** Secondary muted text under the label — e.g. a variable's description/type. */
+    description?: string;
 }
 
 export interface EditorContext {
@@ -42,6 +44,11 @@ export interface EditorCommand {
     name: string;
     description?: string;
     icon?: string;
+    /** Groups commands under a `ContextMenu.Heading` in menu order — commands sharing the
+     * same `group` string render contiguously under one heading (see CodeEditor.tsx's
+     * `commandMenuItems`/render logic, which does the grouping/heading-insertion). Commands
+     * without a `group` render ungrouped, in their original order. */
+    group?: string;
     handler?: (context: TextCommandContext) => string | Promise<string>;
 }
 
@@ -74,6 +81,8 @@ interface ContextMenuItemProps extends UIProps {
     label: string;
     value: string;
     icon?: string;
+    /** Secondary muted text under the label — e.g. a variable's description/type. */
+    description?: string;
 }
 
 interface ContextMenuHeadingProps {
@@ -148,6 +157,7 @@ const MenuItem: React.FC<ContextMenuItemProps & { onSelect?: (item: ContextMenuI
     label,
     value,
     icon,
+    description,
     className,
     onSelect,
     active,
@@ -155,7 +165,7 @@ const MenuItem: React.FC<ContextMenuItemProps & { onSelect?: (item: ContextMenuI
     const handleMouseDown = (event: React.MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
         event.stopPropagation();
-        onSelect?.({ label, value, icon });
+        onSelect?.({ label, value, icon, description });
     };
 
     return (
@@ -163,14 +173,17 @@ const MenuItem: React.FC<ContextMenuItemProps & { onSelect?: (item: ContextMenuI
             type="button"
             role="menuitem"
             className={cn(
-                'flex w-full cursor-pointer select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground',
+                'flex w-full cursor-pointer select-none items-start gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground',
                 active && 'bg-accent text-accent-foreground',
                 className,
             )}
             onMouseDown={handleMouseDown}
         >
-            {icon && <Icon name={icon} size={16} className="shrink-0 text-muted-foreground" />}
-            <span className="min-w-0 truncate">{label}</span>
+            {icon && <Icon name={icon} size={16} className="mt-0.5 shrink-0 text-muted-foreground" />}
+            <span className="min-w-0 flex-1 text-left">
+                <span className="block truncate">{label}</span>
+                {description && <span className="block truncate text-xs text-muted-foreground">{description}</span>}
+            </span>
         </button>
     );
 };
@@ -186,6 +199,20 @@ const ContextMenuSeparator: React.FC<ContextMenuSeparatorProps> = ({ className }
 );
 
 const COMPOUND_TYPES = new Set([ContextMenuHeading, ContextMenuSeparator]);
+
+/**
+ * Whether `textAfterCaret` (from `TextCommandContext`/`EditorContext`) already starts with
+ * `closer`, optionally preceded by whitespace — typically because the editor's own
+ * bracket/quote auto-closing inserted it when the user typed the opening one. A command
+ * `handler` that would otherwise insert a closer of its own (e.g. `"{{ x }}"`) should check
+ * this first and omit its own closer when true, to avoid a duplicate
+ * (`"{{ x }}}}"` instead of the intended `"{{ x }}"`).
+ */
+export const hasAutoClosedSuffix = (textAfterCaret: string, closer: string): boolean => {
+    if (!closer) return false;
+    const escaped = closer.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return new RegExp(`^\\s*${escaped}`).test(textAfterCaret);
+};
 
 export const matchCommandTrigger = (
     value: string,
@@ -344,6 +371,7 @@ const ContextMenu = forwardRef<ContextMenuHandle, ContextMenuProps>(({
                     label: child.props.label,
                     value: child.props.value,
                     icon: child.props.icon,
+                    description: child.props.description,
                 });
             }
         });

@@ -2,6 +2,7 @@ import { initializeApp, getApp, getApps, deleteApp, type FirebaseApp } from 'fir
 import { getAuth, getAdditionalUserInfo, signInWithCredential, signInWithCustomToken, setPersistence, inMemoryPersistence, onAuthStateChanged, type Auth, type User } from "firebase/auth";
 import { getGoogleCredential } from "./auth/google/auth";
 import { FirebaseConfig } from "../Config";
+import { consoleLog } from "../constant";
 import {
     createConfigurationState,
     getMissingKeys,
@@ -165,7 +166,11 @@ const init = async (config: FirebaseConfig, appName: string = DEFAULT_APP_NAME):
 
     if (existingApp) {
         if ((existingApp.options as Partial<FirebaseConfig>)?.appId === config.appId) {
-            console.log(`[firebase] App "${appName}" already initialized with same appId, skipping re-init`);
+            // Expected to fire multiple times per session switch — connectFirebase() is called
+            // once per (data, storage) factory against the same project (ProviderSession.tsx),
+            // and React StrictMode double-invokes the effect that triggers it in dev. Neither is
+            // a bug; gated behind consoleLog (dev-only, off by default) so it doesn't read as one.
+            consoleLog(`[firebase] App "${appName}" already initialized with same appId, skipping re-init`);
             return existingApp;
         }
         await deleteApp(existingApp);

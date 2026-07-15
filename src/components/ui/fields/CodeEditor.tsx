@@ -4,7 +4,7 @@ import { FormFieldProps, useFormContext, useFieldValidation } from '../../widget
 import { Label, FieldError, fieldFeedbackClass, fieldGroupClass, fieldAddonClass } from './Input';
 import { cn } from '../../../libs/cn';
 import { useTheme } from '../../../Theme';
-import { useEditorHeight } from '../../../libs/editorHeight';
+import { useEditorHeight, type EditorHeight, type EditorHeightResult } from '../../../libs/editorHeight';
 import Icon from '../Icon';
 import type { FieldValue } from '../../../providers/data/DataProvider';
 import type { Parser, TreeCursor } from '@lezer/common';
@@ -215,7 +215,11 @@ export const getCodeValidationResult = async (
 export interface CodeEditorProps extends FormFieldProps {
     language?: CodeEditorLanguage;
     placeholder?: string;
-    minHeight?: number;
+    /** A pixel value, or `'fill'` to stretch to the parent container's height (with the
+     * editor's own internal scroll) instead of a fixed size — see `EditorHeight`. The
+     * parent must actually provide a real height (e.g. a flex column with `flex-1 min-h-0`)
+     * for `'fill'` to have any effect. */
+    minHeight?: EditorHeight;
     maxHeight?: number;
     label?: string;
     required?: boolean;
@@ -286,9 +290,28 @@ const ensureCM = (lang: CodeEditorLanguage): Promise<CMModules> => {
     return _cmPending[lang]!;
 };
 
+/** `'fill'` mode: no fixed pixel size — stretch to 100% of the parent (which supplies the
+ * real height via CSS) and let `.cm-scroller` handle internal overflow. Otherwise, a fixed
+ * pixel min/max height, as before. */
+const applyScrollDomHeight = (scrollDOM: HTMLElement, height: EditorHeightResult): void => {
+    if (height.fill) {
+        scrollDOM.style.height = '100%';
+        scrollDOM.style.minHeight = '';
+        scrollDOM.style.maxHeight = '';
+    } else {
+        scrollDOM.style.height = '';
+        scrollDOM.style.minHeight = `${height.resolvedMinHeight}px`;
+        scrollDOM.style.maxHeight = height.resolvedMaxHeight ? `${height.resolvedMaxHeight}px` : '';
+    }
+};
+
 const getCodeEditorQueryMatch = (value: string, caret: number, trigger: string) => {
     return matchCommandTrigger(value, caret, trigger, {
-        queryPattern: /^[A-Za-z0-9-]*$/,
+        // `.` and `_` allowed alongside alnum/dash: command names aren't always a single
+        // flat word — e.g. dotted variable paths (`site.name`) or snake_case local variable
+        // names (`banner_alignment`) both need to keep matching (and the menu open/filtering)
+        // as the user types past the first segment, not just up to the first `.`/`_`.
+        queryPattern: /^[A-Za-z0-9_.-]*$/,
     });
 };
 
@@ -406,9 +429,33 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
             label: `${resolvedCommandsTrigger ?? '/'}${command.name}`,
             value: command.name,
             icon: command.icon,
+            description: command.description,
+            group: command.group,
         })),
         [commands, resolvedCommandsTrigger],
     );
+    // Commands sharing the same (contiguous) `group` render under one `ContextMenu.Heading` —
+    // grouping is purely presentational, driven by command order, not a separate structure.
+    const commandMenuNodes = React.useMemo(() => {
+        const nodes: React.ReactNode[] = [];
+        let lastGroup: string | undefined;
+        commandMenuItems.forEach((item) => {
+            if (item.group !== lastGroup) {
+                lastGroup = item.group;
+                if (item.group) nodes.push(<ContextMenu.Heading key={`group:${item.group}`}>{item.group}</ContextMenu.Heading>);
+            }
+            nodes.push(
+                <ContextMenu.Item
+                    key={item.key}
+                    label={item.label}
+                    value={item.value}
+                    icon={item.icon}
+                    description={item.description}
+                />
+            );
+        });
+        return nodes;
+    }, [commandMenuItems]);
 
     useEffect(() => {
         if (!viewRef.current) {
@@ -454,40 +501,49 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
         ensureCM(language).then(cm => {
             if (cancelled || !containerRef.current) return;
 
+            // Every `--rf-*` custom property stores raw HSL components (e.g. "0 0% 100%"),
+            // not a usable color on its own — it must be wrapped in `hsl(...)` (same
+            // convention as Tailwind's own `--color-x: hsl(var(--rf-x))` in globals.css).
+            // Every rule below was missing that wrapper: each declaration was invalid CSS
+            // and silently dropped by the browser. Most of the resulting "no styling" went
+            // unnoticed (this editor sits inside its own `bg-card` wrapper anyway, see
+            // ComponentEditPage.tsx), but `.cm-tooltip` (the autocomplete popup) has no such
+            // backdrop of its own — with no real background it rendered fully transparent,
+            // its text blending straight into the code underneath.
             const viewTheme = cm.EditorView.theme({
-                '&': { backgroundColor: 'var(--rf-background)', height: '100%' },
+                '&': { backgroundColor: 'hsl(var(--rf-background))', height: '100%' },
                 '.cm-scroller': {
                     fontFamily: 'var(--font-mono, ui-monospace, SFMono-Regular, monospace)',
                     paddingBottom: '0.5rem',
                 },
                 '.cm-content': {
-                    caretColor: 'var(--rf-foreground)',
-                    color: 'var(--rf-foreground)',
+                    caretColor: 'hsl(var(--rf-foreground))',
+                    color: 'hsl(var(--rf-foreground))',
                     paddingBottom: '0.75rem',
                 },
-                '.cm-cursor, .cm-dropCursor': { borderLeftColor: 'var(--rf-primary)' },
+                '.cm-cursor, .cm-dropCursor': { borderLeftColor: 'hsl(var(--rf-primary))' },
                 '&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection': {
-                    backgroundColor: 'var(--rf-primary)',
+                    backgroundColor: 'hsl(var(--rf-primary))',
                 },
-                '.cm-activeLine': { backgroundColor: 'var(--rf-muted)' },
+                '.cm-activeLine': { backgroundColor: 'hsl(var(--rf-muted))' },
                 '.cm-gutters': {
-                    backgroundColor: 'var(--rf-muted)',
-                    color: 'var(--rf-muted-foreground)',
+                    backgroundColor: 'hsl(var(--rf-muted))',
+                    color: 'hsl(var(--rf-muted-foreground))',
                     border: 'none',
                 },
-                '.cm-activeLineGutter': { backgroundColor: 'var(--rf-accent)' },
-                '.cm-foldPlaceholder': { backgroundColor: 'var(--rf-muted)', color: 'var(--rf-muted-foreground)' },
+                '.cm-activeLineGutter': { backgroundColor: 'hsl(var(--rf-accent))' },
+                '.cm-foldPlaceholder': { backgroundColor: 'hsl(var(--rf-muted))', color: 'hsl(var(--rf-muted-foreground))' },
                 '.cm-tooltip': {
-                    backgroundColor: 'var(--rf-popover)',
-                    border: '1px solid var(--rf-border)',
-                    color: 'var(--rf-popover-foreground)',
+                    backgroundColor: 'hsl(var(--rf-popover))',
+                    border: '1px solid hsl(var(--rf-border))',
+                    color: 'hsl(var(--rf-popover-foreground))',
                 },
                 '.cm-tooltip-autocomplete ul li[aria-selected]': {
-                    backgroundColor: 'var(--rf-accent)',
-                    color: 'var(--rf-accent-foreground)',
+                    backgroundColor: 'hsl(var(--rf-accent))',
+                    color: 'hsl(var(--rf-accent-foreground))',
                 },
                 '&.cm-focused': { outline: 'none' },
-                '.cm-placeholder': { color: 'var(--rf-muted-foreground)' },
+                '.cm-placeholder': { color: 'hsl(var(--rf-muted-foreground))' },
             });
 
             const extensions: any[] = [
@@ -615,8 +671,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
                 parent: containerRef.current,
             });
 
-            currentView.scrollDOM.style.minHeight = `${height.resolvedMinHeight}px`;
-            if (height.resolvedMaxHeight) currentView.scrollDOM.style.maxHeight = `${height.resolvedMaxHeight}px`;
+            applyScrollDomHeight(currentView.scrollDOM, height);
 
             viewRef.current = currentView;
             setLoading(false);
@@ -650,13 +705,8 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
     useEffect(() => {
         const view = viewRef.current as { scrollDOM: HTMLElement } | null;
         if (!view) return;
-        view.scrollDOM.style.minHeight = `${height.resolvedMinHeight}px`;
-        if (height.resolvedMaxHeight) {
-            view.scrollDOM.style.maxHeight = `${height.resolvedMaxHeight}px`;
-        } else {
-            view.scrollDOM.style.maxHeight = '';
-        }
-    }, [height.resolvedMinHeight, height.resolvedMaxHeight]);
+        applyScrollDomHeight(view.scrollDOM, height);
+    }, [height.fill, height.resolvedMinHeight, height.resolvedMaxHeight]);
 
     const editorClass = cn(
         'w-full overflow-hidden border border-input',
@@ -669,20 +719,20 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
     );
 
     const editorShell = (
-        <div className={cn('min-w-0 flex-1', editorClass)}>
+        <div className={cn('min-w-0 flex-1', height.fill && 'h-full flex flex-col', editorClass)}>
             {loading && (
-                <div style={{ minHeight: height.resolvedMinHeight }} className="flex items-center justify-center">
+                <div style={{ minHeight: height.fill ? undefined : height.resolvedMinHeight }} className="flex items-center justify-center">
                     <Icon name="loader-circle" size={16} className="animate-spin text-muted-foreground" />
                 </div>
             )}
-            <div ref={containerRef} className={cn(loading && 'hidden')} />
+            <div ref={containerRef} className={cn(loading && 'hidden', height.fill && 'h-full min-h-0 flex-1')} />
         </div>
     );
 
     return (
-        <Wrapper className={cn(formWrapClass, themeCfg.CodeEditor?.wrapperClassName)}>
+        <Wrapper className={cn(formWrapClass, height.fill && 'h-full flex flex-col min-h-0', themeCfg.CodeEditor?.wrapperClassName)}>
             {label && <Label label={label} required={required} htmlFor={id} className={labelClassName} />}
-            <div className={cn(before || after ? fieldGroupClass : '')}>
+            <div className={cn(before || after ? fieldGroupClass : '', height.fill && 'flex-1 min-h-0 flex flex-col')}>
                 {before && (
                     <span className={cn(fieldAddonClass, 'rounded-l-md rounded-r-none border-r-0')}>
                         {before}
@@ -704,14 +754,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
                             void applyCommandSelection(item, context);
                         }}
                     >
-                        {commandMenuItems.map((item) => (
-                            <ContextMenu.Item
-                                key={item.key}
-                                label={item.label}
-                                value={item.value}
-                                icon={item.icon}
-                            />
-                        ))}
+                        {commandMenuNodes}
                         {editorShell}
                     </ContextMenu>
                 ) : (

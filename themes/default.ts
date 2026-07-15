@@ -125,16 +125,30 @@ export const motion: MotionRegistry = {
 
 export const components: Theme = {
     Grid: {
+        // REVERT NOTE (2026-07-15): before this change, `Card.className` was 'border-0' only
+        // (outer border removed, but bg-card/rounded/shadow kept — header+footer still sat in
+        // a white rounded box), `Table.wrapperClassName`/`Gallery.wrapperClassName` were both
+        // ''. The change moves the "raised card" surface (border+bg+shadow+radius) from the
+        // Card wrapper (which held header+body+footer together) down into Table/Gallery's own
+        // wrapper — so the toolbar row (view toggle, column picker, New component…) sits
+        // directly on the page's floor background with no box of its own, and only the actual
+        // data surface reads as a raised panel. To revert: restore the four blocks below to
+        // the values in this note.
         Card: {
             wrapperClassName: '',
-            className: '',
-            headerClassName: 'flex justify-between',
-            bodyClassName: 'p-0',
-            footerClassName: '',
+            // Fully transparent/borderless/shapeless now — header and footer (when used) are
+            // meant to float on the page's own background, not sit inside a card of their own;
+            // the "raised surface" look lives in Table/Gallery's wrapperClassName instead.
+            className: 'rounded-none border-0 bg-transparent shadow-none',
+            headerClassName: 'flex justify-between border-b-0 bg-transparent px-0 py-2',
+            bodyClassName: 'p-0 mt-2',
+            footerClassName: 'border-t-0 bg-transparent px-0 py-2',
             loading: false,
         },
         Table: {
-            wrapperClassName: '',
+            // The table's own raised surface — previously this border+bg lived on the
+            // shared Card wrapper (see revert note above).
+            wrapperClassName: 'rounded-lg border border-border bg-card shadow-sm',
             className: '',
             headerClassName: '',
             bodyClassName: '',
@@ -143,7 +157,8 @@ export const components: Theme = {
             selectedClassName: 'bg-primary/10',
         },
         Gallery: {
-            wrapperClassName: '',
+            // Same rationale as Table above; `p-3` so cards don't sit flush against the border.
+            wrapperClassName: 'rounded-lg border border-border bg-card shadow-sm p-3',
             className: '',
             scrollClassName: '',
             headerClassName: '',
@@ -224,7 +239,7 @@ export const components: Theme = {
     Loader: {
         wrapperClassName: '',
         className: '',
-        icon: 'custom-loader',
+        icon: 'loader-2',
         title: 'Loading..',
         description: '',
     },

@@ -125,16 +125,17 @@ export const motion: MotionRegistry = {
 
 export const components: Theme = {
     Grid: {
+        // REVERT NOTE (2026-07-15): see themes/default.ts for the full rationale/before-state.
         Card: {
             wrapperClassName: '',
-            className: '',
-            headerClassName: 'flex justify-between',
-            bodyClassName: 'p-0',
-            footerClassName: '',
+            className: 'rounded-none border-0 bg-transparent shadow-none',
+            headerClassName: 'flex justify-between border-b-0 bg-transparent px-0 py-2',
+            bodyClassName: 'p-0 mt-2',
+            footerClassName: 'border-t-0 bg-transparent px-0 py-2',
             loading: false,
         },
         Table: {
-            wrapperClassName: '',
+            wrapperClassName: 'rounded-lg border border-border bg-card shadow-sm',
             className: '',
             headerClassName: '',
             bodyClassName: '',
@@ -143,7 +144,7 @@ export const components: Theme = {
             selectedClassName: 'bg-primary/10',
         },
         Gallery: {
-            wrapperClassName: '',
+            wrapperClassName: 'rounded-lg border border-border bg-card shadow-sm p-3',
             className: '',
             scrollClassName: '',
             headerClassName: '',
@@ -224,7 +225,7 @@ export const components: Theme = {
     Loader: {
         wrapperClassName: '',
         className: '',
-        icon: 'custom-loader',
+        icon: 'loader-2',
         title: 'Loading..',
         description: '',
     },

@@ -109,7 +109,9 @@ export type {
     GridDBProps,
     GridFooterContext,
     GridFormContext,
+    GridGalleryField,
     GridGalleryViewProps,
+    GridGalleryViewConfig,
     GridHeaderContext,
     GridLayout,
     GridMutationDeleteArgs,
@@ -125,6 +127,8 @@ export type {
     GridSelectionState,
     GridSticky,
     GridTableViewProps,
+    GridTableViewConfig,
+    GridViewsConfig,
     GridCellContext,
 } from './components/widgets/Grid';
 export type { ProviderConfigurable, ProviderConfigurationState } from './providers/ProviderConfiguration';
