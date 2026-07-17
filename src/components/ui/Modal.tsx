@@ -50,12 +50,30 @@ export interface ModalProps extends MotionUIProps {
     /** CSS `z-index` override (useful when stacking modals). */
     zIndex?: number;
     /**
+     * Px of screen space already reserved on the right edge (e.g. a persistent app-level
+     * side panel docked outside this Modal's own portal) — the backdrop/cover stop short of
+     * that space (so the reserved area stays undimmed and interactive) and, for
+     * `position="right"`, the dialog itself shifts left by the same amount instead of
+     * overlapping it. `0`/`undefined` = today's behaviour, flush against the real viewport
+     * edge.
+     */
+    rightInset?: number;
+    /**
      * When `true` this modal is visually "behind" another modal stacked on top.
      * The panel becomes 10% wider (so its edge peeks out from behind the upper modal),
      * gains a semi-transparent dimming overlay, its backdrop is suppressed (the upper
      * modal's backdrop handles interaction blocking), and its cover becomes non-interactive.
      */
     stackedBehind?: boolean;
+    /**
+     * Replaces the default × close button with custom content, in the same header slot
+     * (still next to the fullscreen toggle, if any). Use this when the host app wants one
+     * consistent icon/action across every modal instead of the built-in ×  — e.g. an
+     * app-level "toggle side panel" icon that means the same thing whether a modal happens
+     * to be open or not. Backdrop click and Cancel/Save/Delete still call `onClose` as usual;
+     * this only swaps what's rendered in the × slot, not the close mechanics themselves.
+     */
+    closeSlot?: React.ReactNode;
 }
 
 /** Props for a confirm/deny modal dialog with Yes/No buttons. */
@@ -104,6 +122,8 @@ const ModalDefault = ({
                           closeOnBackdrop   = true,
                           zIndex            = undefined,
                           stackedBehind     = false,
+                          rightInset        = undefined,
+                          closeSlot         = undefined,
                           motion: motionConfig = undefined
 }: ModalProps) => {
     const theme = useTheme("modal");
@@ -230,16 +250,24 @@ const ModalDefault = ({
 
     const dialogStyle = useMotionState(entered, modalMotionReference, modalMotionReference);
 
+    // Spazio già riservato a destra (es. un pannello agente ancorato al layout, fuori dal
+    // portal di questo Modal) — cover/backdrop si fermano prima, il dialog "right" si
+    // sposta della stessa quantità invece di sovrapporsi. Uno style inline sovrascrive
+    // sempre la classe Tailwind `right-0`, quindi basta applicarlo quando è impostato.
+    const insetStyle: React.CSSProperties = rightInset ? { right: rightInset } : {};
+
     const backdropStyle: React.CSSProperties = {
         ...useMotionState(entered, theme.Modal.motion?.backdrop ?? 'fade', theme.Modal.motion?.backdrop ?? 'fade'),
         cursor: closeOnBackdrop && onClose ? 'pointer' : 'default',
         ...(zIndex !== undefined ? { zIndex: zIndex - 10 } : {}),
+        ...insetStyle,
     };
 
     const coverStyle: React.CSSProperties = {
         cursor: closeOnBackdrop && onClose ? 'pointer' : 'default',
         ...(zIndex !== undefined ? { zIndex } : {}),
         ...(stackedBehind ? { pointerEvents: 'none' } : {}),
+        ...insetStyle,
     };
 
     // GTM-style depth effect: scale back + shift away from edge + transition
@@ -282,18 +310,19 @@ const ModalDefault = ({
                     ...dialogStyle,
                     ...stackedTransform,
                     ...(zIndex !== undefined ? { zIndex } : {}),
+                    ...(modalPosition === 'right' ? insetStyle : {}),
                 }}
                 onClick={(e) => e.stopPropagation()}
             >
                 {before}
                 <div className={pos.contentClass}>
-                    {(header || title || allowFullscreen || onClose) && <div className={pos.headerClassName}>
+                    {(header || title || allowFullscreen || onClose || closeSlot) && <div className={pos.headerClassName}>
                         <div className="min-w-0">
                             {title && <h3 className={pos.titleClassName}>{title}</h3>}
                             {(title && header) && <div className={pos.subtitleClassName}>{header}</div>}
                             {!title && header && (typeof header === "string" ? <h3 className={pos.titleClassName}>{header}</h3> : header)}
                         </div>
-                        {(allowFullscreen || onClose) && <div className="ml-auto flex shrink-0 items-center gap-1">
+                        {(allowFullscreen || onClose || closeSlot) && <div className="ml-auto flex shrink-0 items-center gap-1">
                             {allowFullscreen && <button
                                 type="button"
                                 title={sizeClass === "fullscreen" ? "Exit fullscreen" : "Enter fullscreen"}
@@ -307,7 +336,7 @@ const ModalDefault = ({
                             >
                                 <Icon name={sizeClass === "fullscreen" ? theme.Modal.iconCollapse : theme.Modal.iconExpand} size={18} />
                             </button>}
-                            {onClose && <button
+                            {closeSlot ?? (onClose && <button
                                 type="button"
                                 title={dict.close}
                                 aria-label={dict.close}
@@ -319,7 +348,7 @@ const ModalDefault = ({
                                 }}
                             >
                                 <Icon name="x" size={20} />
-                            </button>}
+                            </button>)}
                         </div>}
                     </div>}
                     <div className={pos.bodyClassName}>{children}</div>
@@ -378,6 +407,7 @@ export const ModalYesNo = ({
                                onNo     = undefined,
                                onClose  = undefined
 }: ModalYesNoProps) => {
+    const dict = useI18n('modal');
     return <ModalDefault
         title={title}
         onClose={onClose}
@@ -385,7 +415,7 @@ export const ModalYesNo = ({
         footer={<>
             {onYes && <LoadingButton
                 variant="primary"
-                label={"Yes"}
+                label={dict.yes}
                 onClick={async (e) => {
                     e.preventDefault();
                     await onYes(e);
@@ -394,7 +424,7 @@ export const ModalYesNo = ({
             />}
             {onNo && <LoadingButton
                 variant="secondary"
-                label={"No"}
+                label={dict.no}
                 onClick={async (e) => {
                     e.preventDefault();
                     await onNo(e);
@@ -412,12 +442,13 @@ export const ModalOk = ({
                             title       = undefined,
                             onClose     = undefined
                         }: ModalOkProps) => {
+    const dict = useI18n('modal');
     return <ModalDefault
         title={title}
         onClose={onClose}
         allowFullscreen={false}
         footer={<>
-            <ActionButton variant="primary" label={"Ok"} onClick={onClose} />
+            <ActionButton variant="primary" label={dict.ok} onClick={onClose} />
         </>}
     >
         {children}

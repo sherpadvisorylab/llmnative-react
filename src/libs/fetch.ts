@@ -1,9 +1,53 @@
 import {sleep} from "./utils";
 
+// Diagnostic console.warn/console.log calls below echo the request/URL for debugging — but
+// every AI provider adapter (react/src/providers/ai/*) sends its API key via a header
+// (Authorization, x-api-key) or, for Gemini, a `?key=` query param. Logging the raw
+// request/URL on any network failure (bad key, rate limit, CORS, 5xx) would print the
+// plaintext key to the browser devtools console. Redact before logging, never before sending.
+const SENSITIVE_HEADER_PATTERN = /auth|key|token|secret/i;
+const SENSITIVE_QUERY_PARAMS = ['key', 'apikey', 'api_key', 'access_token', 'token', 'secret'];
+
+function redactedHeadersForLogging(headers: HeadersInit | undefined): Record<string, string> {
+    if (!headers) return {};
+    const entries = headers instanceof Headers
+        ? Array.from(headers.entries())
+        : Array.isArray(headers)
+            ? headers
+            : Object.entries(headers);
+    return entries.reduce<Record<string, string>>((acc, [key, value]) => {
+        acc[key] = SENSITIVE_HEADER_PATTERN.test(key) ? '[REDACTED]' : value;
+        return acc;
+    }, {});
+}
+
+function redactedRequestForLogging(request: RequestInit): RequestInit {
+    return { ...request, headers: redactedHeadersForLogging(request.headers) };
+}
+
+function redactedUrlForLogging(url: string): string {
+    try {
+        const parsed = new URL(url, 'http://placeholder-base.invalid');
+        let changed = false;
+        for (const param of SENSITIVE_QUERY_PARAMS) {
+            if (parsed.searchParams.has(param)) {
+                parsed.searchParams.set(param, '[REDACTED]');
+                changed = true;
+            }
+        }
+        if (!changed) return url;
+        return url.startsWith('http') ? parsed.toString() : `${parsed.pathname}${parsed.search}${parsed.hash}`;
+    } catch {
+        return url;
+    }
+}
+
 interface FetchOptions {
     method?: "GET" | "POST" | "PUT" | "DELETE" | "HEAD" | "PATCH";
     headers?: Record<string, string>;
     body?: Record<string, unknown> | string;
+    /** Lets a caller cancel an in-flight request (e.g. a "stop" button on a long AI call). */
+    signal?: AbortSignal;
 }
 
 function resolveContentType(options: FetchOptions) {
@@ -33,7 +77,8 @@ export async function fetchRest(
     const request: RequestInit = {
         redirect: "follow",
         method: options?.method?.toUpperCase() || "GET",
-        headers: options?.headers || {}
+        headers: options?.headers || {},
+        signal: options?.signal,
     };
 
     if (options?.body) {
@@ -89,7 +134,7 @@ export async function fetchRest(
         })
         .catch(error => {
             if (error.message) {
-                console.warn(`fetch: ${error.message}`, url, request);
+                console.warn(`fetch: ${error.message}`, redactedUrlForLogging(url), redactedRequestForLogging(request));
                 return null;
             }
             const { response, text } = error;
@@ -98,7 +143,7 @@ export async function fetchRest(
 
                 if (contentType === "application/json" && (text.startsWith("{") || text.startsWith("["))) {
                     const json = JSON.parse(text);
-                    console.warn(`fetch: Error`, url, request, response.status, json);
+                    console.warn(`fetch: Error`, redactedUrlForLogging(url), redactedRequestForLogging(request), response.status, json);
                     return json;
                 } else {
                     const accept = options?.headers?.['Accept']?.split(";")[0] || "";
@@ -109,7 +154,7 @@ export async function fetchRest(
                             ? "Request Accept header is application/json but response is not JSON"
                             : null;
 
-                    console.warn(`fetch: ${wrongContentType}`, url, request, response.status, text);
+                    console.warn(`fetch: ${wrongContentType}`, redactedUrlForLogging(url), redactedRequestForLogging(request), response.status, text);
                     return (wrongContentType && accept === "application/json"
                             ? {error: text, status: 520}
                             : text
@@ -156,7 +201,7 @@ export async function fetchWithRetry(
             }
 
             if (!statusNoRetry.includes(response.status) && maxRetries > 0) {
-                console.log("Retrying...", maxRetries, url, options);
+                console.log("Retrying...", maxRetries, redactedUrlForLogging(url), redactedRequestForLogging(options));
 
                 return sleep(500)
                     .then(() => fetchWithRetry(url, options, maxRetries - 1, statusNoRetry, fetchFn));

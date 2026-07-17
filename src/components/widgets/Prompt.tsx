@@ -1005,11 +1005,11 @@ export const runPrompt = async (
         attachments,
     });
 
-    if (typeof response !== 'string' || !response.trim()) {
+    if (response?.type !== 'text' || !response.text.trim()) {
         throw new Error(messages?.noResponse ?? "The AI provider returned no response.");
     }
 
-    return response;
+    return response.text;
 };
 
 export default Prompt;

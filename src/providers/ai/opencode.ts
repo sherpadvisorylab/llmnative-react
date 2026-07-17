@@ -2,7 +2,8 @@ import { Prompt } from '../../conf/Prompt';
 import { fetchJson } from '../../libs/fetch';
 import { proxyFetch } from '../proxy';
 import type { AIProviderDefinition } from './shared';
-import { parseTextResponse, createBrowserTransportError } from './shared';
+import { createBrowserTransportError } from './shared';
+import { toOpenAITool, toOpenAIMessages, parseOpenAIResponse } from './openaiCompatible';
 
 const OPENCODE_MODELS_URL = 'https://opencode.ai/zen/v1/models';
 const OPENCODE_CHAT_URL = 'https://opencode.ai/zen/v1/chat/completions';
@@ -77,16 +78,19 @@ export const OPENCODE_PROVIDER_DEFINITION: AIProviderDefinition = {
                 model: request.model,
                 messages: [
                     ...(request.role ? [{ role: 'system', content: Prompt.parseRole(request.role, request as unknown as import("../../conf/Prompt").PromptVariables) }] : []),
-                    { role: 'user', content: request.prompt },
+                    ...(request.history ?? []).flatMap(toOpenAIMessages),
+                    ...(request.prompt ? [{ role: 'user', content: request.prompt }] : []),
                 ],
+                ...(request.tools?.length ? { tools: request.tools.map(toOpenAITool) } : {}),
                 ...(typeof request.temperature === 'number' ? { temperature: request.temperature } : {}),
             },
+            signal: request.signal,
         }, proxyFetch);
 
         if (!response) {
             throw createBrowserTransportError('OpenCode');
         }
 
-        return parseTextResponse(response?.choices?.[0]?.message?.content);
+        return parseOpenAIResponse(response);
     },
 };

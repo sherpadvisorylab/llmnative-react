@@ -8,6 +8,7 @@ import { isProxyEnabled } from '../proxy';
 import type { ProviderCredentialField } from '../ProviderDescriptor';
 import type {
     AICompleteRequest,
+    AICompleteResult,
     AIKeyValidationResult,
     AIModelDescriptor,
     AIProviderAdapter,
@@ -37,7 +38,10 @@ export type AIProviderDefinition = {
     credentialsHint?: string;
     capabilities?: Omit<AIProviderCapabilities, 'models'>;
     discoverModels: (apiKey: string) => Promise<string[]>;
-    complete: (apiKey: string, request: Required<Pick<AICompleteRequest, 'prompt' | 'model'>> & AIRequestOptions) => Promise<string | null>;
+    complete: (
+        apiKey: string,
+        request: Required<Pick<AICompleteRequest, 'prompt' | 'model'>> & AIRequestOptions & Pick<AICompleteRequest, 'history' | 'tools' | 'signal'>,
+    ) => Promise<AICompleteResult | null>;
     /**
      * Per-provider auth check. When omitted, the default implementation in
      * RuntimeAIProvider calls discoverModels() live (no cache) and treats any
@@ -232,7 +236,7 @@ export class RuntimeAIProvider implements AIProviderAdapter {
         };
     }
 
-    complete(request: AICompleteRequest): Promise<string | null> {
+    complete(request: AICompleteRequest): Promise<AICompleteResult | null> {
         return this.definition.complete(this.apiKey, {
             ...request,
             model: request.model || this.defaultModel,

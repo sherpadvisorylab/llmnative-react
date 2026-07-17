@@ -2,9 +2,64 @@ import { fetchJson } from '../../libs/fetch';
 import { Prompt } from '../../conf/Prompt';
 import { proxyFetch } from '../proxy';
 import type { AIProviderDefinition } from './shared';
+import type { AIConversationTurn, AICompleteResult, AIToolDefinition } from './AIProvider';
 
 const GEMINI_MODELS_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
 const GEMINI_CONTENT_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
+
+function toGeminiTools(tools: AIToolDefinition[]) {
+    return [{ function_declarations: tools.map((t) => ({ name: t.name, description: t.description, parameters: t.inputSchema })) }];
+}
+
+/** Un turno assistant con tool_calls diventa parti `functionCall`; un turno tool_result
+ * diventa un turno `role: 'function'` con parti `functionResponse` — stessa forma richiesta
+ * dall'API generateContent di Gemini per continuare la conversazione dopo una tool call. */
+function toGeminiContent(turn: AIConversationTurn): Record<string, unknown> {
+    if (turn.role === 'user') return { role: 'user', parts: [{ text: turn.content }] };
+
+    if (turn.role === 'assistant') {
+        const parts: unknown[] = [];
+        if (turn.content) parts.push({ text: turn.content });
+        for (const call of turn.toolCalls ?? []) parts.push({ functionCall: { name: call.name, args: call.input } });
+        return { role: 'model', parts };
+    }
+
+    return {
+        role: 'function',
+        parts: turn.results.map((r) => ({ functionResponse: { name: r.name, response: { result: r.output } } })),
+    };
+}
+
+function parseGeminiResponse(response: { candidates?: Array<{ content?: { parts?: unknown[] } }> } | null): AICompleteResult | null {
+    const parts = response?.candidates?.[0]?.content?.parts;
+    if (!Array.isArray(parts)) return null;
+
+    const textParts = parts
+        .filter((p): p is { text: string } => typeof (p as Record<string, unknown>)?.text === 'string')
+        .map((p) => p.text);
+    const functionCalls = parts.filter((p) => (p as Record<string, unknown>)?.functionCall) as Array<{ functionCall: { name: string; args?: Record<string, unknown> } }>;
+
+    if (functionCalls.length > 0) {
+        return {
+            type: 'tool_calls',
+            // Gemini's functionCall has no provider-issued call id (unlike Anthropic's
+            // tool_use.id or OpenAI's tool_calls[].id) — `name-index` collides across
+            // rounds/turns when the same tool is called again (e.g. a "re-extract from this
+            // other URL" tool used twice in one conversation), corrupting the id → activity
+            // entry mapping in useAgent.ts. A random id is unique regardless of how many times
+            // the same tool is called in the same session.
+            toolCalls: functionCalls.map((p) => ({
+                id: `${p.functionCall.name}-${crypto.randomUUID()}`,
+                name: p.functionCall.name,
+                input: p.functionCall.args ?? {},
+            })),
+            text: textParts.length ? textParts.join('\n').trim() : undefined,
+        };
+    }
+
+    const text = textParts.join('\n').trim();
+    return text ? { type: 'text', text } : null;
+}
 
 export const GEMINI_PROVIDER_DEFINITION: AIProviderDefinition = {
     id: 'gemini',
@@ -54,16 +109,21 @@ export const GEMINI_PROVIDER_DEFINITION: AIProviderDefinition = {
         const response = await fetchJson(`${GEMINI_CONTENT_URL}/${request.model}:generateContent?key=${apiKey}`, {
             method: 'POST',
             body: {
-                contents: [{ parts }],
+                contents: [
+                    ...(request.history ?? []).map(toGeminiContent),
+                    // Prompt vuoto = nessun testo nuovo dell'utente (si continua solo perché
+                    // il turno precedente era un tool_result, già presente in history come
+                    // turno `role: 'function'`) — niente turno "user" vuoto in coda.
+                    ...(request.prompt ? [{ role: 'user', parts }] : []),
+                ],
                 ...(request.role ? { systemInstruction: { parts: [{ text: Prompt.parseRole(request.role, request as unknown as import("../../conf/Prompt").PromptVariables) }] } } : {}),
+                ...(request.tools?.length ? { tools: toGeminiTools(request.tools) } : {}),
                 generationConfig: typeof request.temperature === 'number'
                     ? { temperature: request.temperature }
                     : undefined,
             },
+            signal: request.signal,
         }, proxyFetch);
-        const responseParts = response?.candidates?.[0]?.content?.parts;
-        return Array.isArray(responseParts)
-            ? responseParts.map((part: unknown) => (part && typeof part === 'object' && 'text' in part ? String((part as { text: unknown }).text) : '')).join('\n').trim() || null
-            : null;
+        return parseGeminiResponse(response);
     },
 };

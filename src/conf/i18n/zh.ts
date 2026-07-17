@@ -28,7 +28,7 @@ export const zh: I18nDict = {
         emptyState: '暂无数据',
     },
     select: { placeholder: '请选择...', loading: '加载中...' },
-    modal: { save: '保存', delete: '删除', cancel: '取消', close: '关闭' },
+    modal: { save: '保存', delete: '删除', cancel: '取消', close: '关闭', ok: '确定', yes: '是', no: '否' },
     upload: {
         clickOrDrag: '点击或拖拽上传...', dropToUpload: '松开上传',
         uploadMore: '添加更多文件', editFileName: '编辑文件名',

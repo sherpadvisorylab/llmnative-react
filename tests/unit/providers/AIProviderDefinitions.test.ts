@@ -126,7 +126,7 @@ describe('ANTHROPIC_PROVIDER_DEFINITION', () => {
             });
 
             const result = await ANTHROPIC_PROVIDER_DEFINITION.complete('key', baseRequest);
-            expect(result).toBe('Hi there!');
+            expect(result).toEqual({ type: 'text', text: 'Hi there!' });
         });
 
         it('includes temperature in request body when provided', async () => {
@@ -240,7 +240,7 @@ describe('createOpenAICompatibleProviderDefinition()', () => {
             });
 
             const result = await makeProvider().complete('sk-key', req);
-            expect(result).toBe('Hi!');
+            expect(result).toEqual({ type: 'text', text: 'Hi!' });
         });
 
         it('sends user message in messages array', async () => {
@@ -365,7 +365,7 @@ describe('GEMINI_PROVIDER_DEFINITION', () => {
             });
 
             const result = await GEMINI_PROVIDER_DEFINITION.complete('gai-key', req);
-            expect(result).toBe('Greetings!');
+            expect(result).toEqual({ type: 'text', text: 'Greetings!' });
         });
 
         it('includes temperature in generationConfig when provided', async () => {

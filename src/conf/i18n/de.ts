@@ -28,7 +28,7 @@ export const de: I18nDict = {
         emptyState: 'Keine Elemente vorhanden',
     },
     select: { placeholder: 'Auswählen...', loading: 'Lädt...' },
-    modal: { save: 'Speichern', delete: 'Löschen', cancel: 'Abbrechen', close: 'Schließen' },
+    modal: { save: 'Speichern', delete: 'Löschen', cancel: 'Abbrechen', close: 'Schließen', ok: 'Ok', yes: 'Ja', no: 'Nein' },
     upload: {
         clickOrDrag: 'Klicken oder ziehen zum Hochladen...', dropToUpload: 'Loslassen zum Hochladen',
         uploadMore: 'Weitere Dateien hinzufügen', editFileName: 'Dateiname bearbeiten',

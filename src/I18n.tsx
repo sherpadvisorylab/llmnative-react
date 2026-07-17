@@ -63,6 +63,9 @@ export interface I18nDict {
         delete: string;
         cancel: string;
         close:  string;
+        ok:     string;
+        yes:    string;
+        no:     string;
     };
     upload: {
         clickOrDrag:   string;

@@ -28,7 +28,7 @@ export const ru: I18nDict = {
         emptyState: 'Нет элементов для отображения',
     },
     select: { placeholder: 'Выбрать...', loading: 'Загрузка...' },
-    modal: { save: 'Сохранить', delete: 'Удалить', cancel: 'Отменить', close: 'Закрыть' },
+    modal: { save: 'Сохранить', delete: 'Удалить', cancel: 'Отменить', close: 'Закрыть', ok: 'Ок', yes: 'Да', no: 'Нет' },
     upload: {
         clickOrDrag: 'Нажмите или перетащите для загрузки...', dropToUpload: 'Отпустите для загрузки',
         uploadMore: 'Добавить ещё файлы', editFileName: 'Изменить имя файла',

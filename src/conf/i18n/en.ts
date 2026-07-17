@@ -58,6 +58,9 @@ export const en: I18nDict = {
         delete: 'Delete',
         cancel: 'Cancel',
         close: 'Close',
+        ok: 'Ok',
+        yes: 'Yes',
+        no: 'No',
     },
     upload: {
         clickOrDrag: 'Click to upload or drag and drop',

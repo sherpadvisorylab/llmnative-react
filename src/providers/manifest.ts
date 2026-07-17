@@ -98,9 +98,18 @@ export const MOCK_MANIFEST: DriverManifest<MockProviderConfig> = {
 
 // ── AI manifest ──────────────────────────────────────────────────────────────
 
+// `when` gates on the config key actually being set — without it (as before this fix)
+// resolveProviderRegistries (App.tsx) unconditionally instantiates every AI driver with an
+// empty apiKey whenever `providers.ai` is passed at all (which every consumer app does by
+// default), regardless of whether any provider is genuinely configured. Consumers reading
+// useAIProviderRegistry() then see a non-empty registry — and some providers (OpenRouter's
+// /models endpoint is public) or fallbackModels lists return real-looking model catalogs —
+// for providers that have no usable API key at all. Matches the guard pattern already used
+// by googleServiceAccount above.
 const toAIDriver = (def: typeof OPENAI_PROVIDER_DEFINITION, configKey: keyof AIConfig): DriverDescriptor<AIConfig> => ({
     service: 'ai',
     create: (cfg) => new RuntimeAIProvider(def, (cfg?.[configKey] as string) || ''),
+    when: (cfg) => !!cfg?.[configKey],
 });
 
 export const AI_MANIFEST: DriverManifest<AIConfig> = {
