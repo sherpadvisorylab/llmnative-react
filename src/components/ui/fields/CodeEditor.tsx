@@ -515,17 +515,41 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
                 '.cm-scroller': {
                     fontFamily: 'var(--font-mono, ui-monospace, SFMono-Regular, monospace)',
                     paddingBottom: '0.5rem',
+                    minHeight: '100%',
                 },
                 '.cm-content': {
                     caretColor: 'hsl(var(--rf-foreground))',
                     color: 'hsl(var(--rf-foreground))',
                     paddingBottom: '0.75rem',
+                    // Without this, `.cm-content` is only as tall as its actual lines (e.g. one
+                    // line of code in a container with lots of vertical room) — clicking anywhere
+                    // in the visibly-empty space below that line does nothing, since it's outside
+                    // the editable area's real DOM box. Stretching it to the full scroller height
+                    // makes the whole card clickable-to-focus, not just the text itself.
+                    minHeight: '100%',
                 },
                 '.cm-cursor, .cm-dropCursor': { borderLeftColor: 'hsl(var(--rf-primary))' },
+                // `!important` is load-bearing here, not decorative: CodeMirror's own
+                // `drawSelection()` extension (pulled in by `basicSetup`) ships a same-specificity
+                // `.cm-line::selection { background: transparent }` rule to hide the native
+                // browser selection in favour of its own `.cm-selectionBackground` decoration
+                // layer. Being added to `extensions` after `basicSetup` isn't enough to win a
+                // same-specificity tie against that rule reliably (CM's own StyleModule mounting
+                // order doesn't guarantee "last extension wins" the way plain CSS source order
+                // would) — without `!important` the selection was rendering, just fully
+                // transparent, which looked like "no selection" at all.
                 '&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection': {
-                    backgroundColor: 'hsl(var(--rf-primary))',
+                    backgroundColor: 'hsl(var(--rf-primary)) !important',
                 },
-                '.cm-activeLine': { backgroundColor: 'hsl(var(--rf-muted))' },
+                // Solid (fully opaque) would work fine on its own, but the selection decoration
+                // (`.cm-selectionBackground`) is a separate layer painted BEHIND the line content
+                // (`.cm-layer.cm-selectionLayer` sits at z-index -2 — confirmed via devtools:
+                // unchecking this exact rule made the selection reappear). An opaque active-line
+                // background fully occludes whatever's behind it, so selecting text on the
+                // current line looked like "no selection at all". Using alpha lets the selection
+                // color show through/blend when the two overlap, while an unselected active line
+                // still reads as a normal, clearly-visible subtle highlight.
+                '.cm-activeLine': { backgroundColor: 'hsl(var(--rf-muted) / 0.6)' },
                 '.cm-gutters': {
                     backgroundColor: 'hsl(var(--rf-muted))',
                     color: 'hsl(var(--rf-muted-foreground))',
@@ -741,6 +765,14 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
                 {resolvedCommandsTrigger && commandMenuItems.length > 0 ? (
                     <ContextMenu
                         ref={contextMenuRef}
+                        // `ContextMenu`'s own wrapper div gets no classes at all unless told to —
+                        // without this, it's a plain block div (height: auto) sitting directly
+                        // between the `flex-1 min-h-0 flex flex-col` wrapper above and
+                        // `editorShell` below, breaking the h-full/flex-1 chain exactly here: the
+                        // editor collapsed to its content's height (one line) instead of filling
+                        // the available space, only in this branch (i.e. only when `commands` are
+                        // configured, e.g. the `{{ ` autocomplete on the Template tab).
+                        className={cn(height.fill && 'flex-1 min-h-0 flex flex-col')}
                         trigger={resolvedCommandsTrigger}
                         searchable={commandsSearchable}
                         controlled={commandSession.editorContext ? {

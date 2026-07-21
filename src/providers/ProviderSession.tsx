@@ -73,6 +73,18 @@ const connectFirebase = async (assignment: ProviderSessionAssignment): Promise<v
 
 // ── Built-in factories ──────────────────────────────────────────────────────
 
+// The reserved literal Firestore ID for a project's default database — NOT a deployment
+// setting (it never varies between dev/staging/prod, or between tenants), just a naming
+// convention worth making explicit. Every tenant gets its own fully dedicated Firebase project
+// (Silo isolation, never shared) — there is no scenario where a *specific* tenant would need a
+// different ID here, so this is a plain constant, not a per-tenant field or an env var. Passing
+// it explicitly (instead of the no-arg `new FirestoreDataProvider()`, which resolves to the same
+// thing implicitly) documents the intent at the call site: this targets the reserved default
+// database, not "whichever database happens to be first" — and guards against the confusing
+// failure mode already hit once, where a project had a CUSTOM database literally named
+// "default" (no parentheses) that isn't the same resource as this reserved one at all.
+const TENANT_SHARED_DATABASE_ID = '(default)';
+
 registerProviderSessionFactory('data', 'mock', (assignment) =>
     // persist: false — a mock session is scoped to one switch, never leaks into the next
     // one via a shared localStorage key (mirrors "no cached secrets" for real backends).
@@ -80,7 +92,7 @@ registerProviderSessionFactory('data', 'mock', (assignment) =>
 );
 registerProviderSessionFactory('data', 'firebase', async (assignment) => {
     await connectFirebase(assignment);
-    return new FirestoreDataProvider();
+    return new FirestoreDataProvider({ databaseId: TENANT_SHARED_DATABASE_ID });
 });
 registerProviderSessionFactory('data', 'supabase', (assignment) => new SupabaseDataProvider({
     url: assignment.publicConfig.url as string,

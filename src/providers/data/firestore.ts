@@ -15,6 +15,7 @@ import {
     where as fbWhere,
     orderBy,
     getCountFromServer,
+    terminate,
     type Firestore as FirestoreDb,
     type QueryConstraint,
     type DocumentData,
@@ -169,6 +170,20 @@ export class FirestoreDataProvider implements DataProviderAdapter {
     /** Same "(default)" database as before when no databaseId was configured. */
     private getDb = (): FirestoreDb =>
         this.databaseId ? getFirestore(getApp(), this.databaseId) : getFirestore();
+
+    /**
+     * Stops this instance's underlying network channel — call this once a caller has given up
+     * on this specific databaseId (e.g. after a timeout on a database that doesn't exist).
+     * `getFirestore(app, databaseId)` is a cached singleton per (app, databaseId); left alone,
+     * a client that can't connect keeps retrying with backoff FOREVER at the SDK level, fully
+     * independent of any one `read()`/`subscribe()` call already having given up on its own
+     * promise — this is what actually silences that. Safe to call even if never connected
+     * (Firestore no-ops); the cache entry is removed afterwards, so a later `new
+     * FirestoreDataProvider({databaseId})` for the same id gets a fresh client, not a dead one.
+     */
+    dispose = async (): Promise<void> => {
+        try { await terminate(this.getDb()); } catch { /* nothing to terminate, or already gone */ }
+    };
 
     getConfigurationState(): ProviderConfigurationState {
         return getFirestoreConfigurationState();

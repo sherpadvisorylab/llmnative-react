@@ -92,4 +92,12 @@ export interface DataProviderAdapter extends ProviderConfigurable {
     readShallow?(path: string, exception?: boolean): Promise<string[]>;
     /** Write `data` to `path` in batches (useful for large imports). */
     setChunks?(path: string, data: object, options?: SetChunksOptions): Promise<void>;
+    /**
+     * Releases this adapter's underlying connection/resources. Not all providers need one
+     * (e.g. a stateless REST-backed adapter has nothing to release) — implement it when the
+     * provider holds a long-lived client/channel that should stop retrying once a caller has
+     * given up on it (see FirestoreDataProvider, where a nonexistent named database otherwise
+     * keeps reconnecting with backoff forever at the SDK level).
+     */
+    dispose?(): Promise<void>;
 }
