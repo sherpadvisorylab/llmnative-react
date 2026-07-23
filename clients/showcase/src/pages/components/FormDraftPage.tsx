@@ -68,7 +68,7 @@ const FORM_PROPS: PropDef[] = [
     { name: 'footer', type: 'React.ReactNode', description: 'Custom content rendered in the form footer area.' },
     { name: 'showBack', type: 'boolean', default: 'false', description: 'Show a back navigation button in the footer.', control: 'boolean' },
     { name: 'showNotice', type: 'boolean', default: 'true', description: 'Show the inline save/delete notice banner.', control: 'boolean' },
-    { name: 'persistDraft', type: 'boolean', default: 'false', description: 'Persist unsaved changes in localStorage and offer restore/discard after remounting the form.', control: 'boolean' },
+    { name: 'draftBucket', type: 'string', description: 'Stable localStorage bucket for unsaved edits. Omit it to disable draft persistence.', control: 'text' },
     { name: 'noticeAnchorRef', type: 'React.RefObject<HTMLElement>', description: 'Render save/delete notices as sticky alerts anchored to an external container.' },
     { name: 'keyGenerator', type: '(record) => string', description: 'Custom primary key generator for new records. Presence forces create mode.' },
     { name: 'onLoad', type: '(record: RecordProps) => void', description: 'Called after the record is loaded from the provider.' },
@@ -90,7 +90,7 @@ const PLAYGROUND_SEED = {
             email: 'playground@example.com',
             role: 'editor',
             status: 'review',
-            bio: 'Toggle persistDraft, edit a field, close the playground and reopen it.',
+            bio: 'Set a draft bucket, edit a field, close the playground and reopen it.',
         },
     },
 };
@@ -99,7 +99,7 @@ function DraftPlaygroundForm(props: {
     path: string;
     appearance: 'card' | 'empty';
     showBack: boolean;
-    persistDraft: boolean;
+    draftBucket?: string;
     showNotice: boolean;
 }) {
     const form = useFormController();
@@ -130,7 +130,7 @@ function DraftPlaygroundForm(props: {
                 appearance={props.appearance}
                 showBack={props.showBack}
                 showNotice={props.showNotice}
-                persistDraft={props.persistDraft}
+                draftBucket={props.draftBucket || undefined}
                 onComplete={async () => false}
             >
                 <Input name="name" label="Full name" required />
@@ -150,14 +150,14 @@ const PLAYGROUND: PlaygroundConfig = {
         { name: 'path', type: 'string', description: 'Provider path.', control: 'text' },
         { name: 'appearance', type: '"card" | "empty"', default: '"card"', description: 'Visual wrapper style.', control: 'select', options: ['card', 'empty'] },
         { name: 'showBack', type: 'boolean', default: 'false', description: 'Show back button.', control: 'boolean' },
-        { name: 'persistDraft', type: 'boolean', default: 'true', description: 'Enable local draft persistence.', control: 'boolean' },
+        { name: 'draftBucket', type: 'string', default: 'showcase/playground', description: 'Stable bucket used to isolate the local draft.', control: 'text' },
         { name: 'showNotice', type: 'boolean', default: 'true', description: 'Show save/delete notices.', control: 'boolean' },
     ],
     defaultProps: {
         path: '/showcase/playground-draft/user_1',
         appearance: 'card',
         showBack: false,
-        persistDraft: true,
+        draftBucket: 'showcase/playground',
         showNotice: true,
     },
     mockSeed: PLAYGROUND_SEED,
@@ -166,15 +166,15 @@ const PLAYGROUND: PlaygroundConfig = {
             path={p.path || '/showcase/playground-draft/user_1'}
             appearance={p.appearance}
             showBack={p.showBack}
-            persistDraft={p.persistDraft}
+            draftBucket={p.draftBucket || undefined}
             showNotice={p.showNotice}
         />
     ),
 };
 
-function DraftPersistenceDemo({ persistDraft }: { persistDraft: boolean }) {
+function DraftPersistenceDemo({ draftBucket }: { draftBucket?: string }) {
     const [mounted, setMounted] = useState(true);
-    const helperText = persistDraft
+    const helperText = draftBucket
         ? 'Type in the form, do not save, then unmount and mount again. The controller can restore or discard the draft.'
         : 'This version keeps the default behavior. Type, unmount, and mount again: no restore prompt is shown.';
 
@@ -202,7 +202,7 @@ function DraftPersistenceDemo({ persistDraft }: { persistDraft: boolean }) {
                         path="/showcase/drafts/user_1"
                         appearance="card"
                         showBack={false}
-                        persistDraft={persistDraft}
+                        draftBucket={draftBucket}
                         showNotice
                     />
                 ) : (
@@ -241,7 +241,7 @@ function DraftModalDemo() {
                             controller={form}
                             path="/showcase/drafts-modal/ticket_1"
                             appearance="card"
-                            persistDraft
+                            draftBucket="showcase/modal"
                             onComplete={async () => false}
                         >
                             <Input name="subject" label="Subject" required />
@@ -264,18 +264,18 @@ export default function FormDraftPage() {
     return (
         <PageLayout
             title="Form - Draft persistence"
-            description="persistDraft makes the Form remember unsaved edits in localStorage, while the shared controller exposes the same native draft actions to toolbars, modals and page headers."
+            description="draftBucket makes the Form remember unsaved edits in an isolated localStorage scope, while the shared controller exposes the same native draft actions to toolbars, modals and page headers."
         >
             <Section
                 title="Basic recovery flow"
-                description="This is the core persistDraft behavior on a page-level form. The draft is stored while you type, survives unmount/remount, and the controller can restore or discard it."
-                preview={<DraftPersistenceDemo persistDraft />}
+                description="This is the core draftBucket behavior on a page-level form. The draft is stored while you type, survives unmount/remount, and the controller can restore or discard it."
+                preview={<DraftPersistenceDemo draftBucket="showcase/basic" />}
                 code={`const form = useFormController();
 
 <ActionButton label="Save" disabled={form.saveDisabled} onClick={() => { void form.save(); }} />
 {form.hasDraft && <ActionButton label="Restore draft" onClick={() => form.restoreDraft()} />}
 
-<Form controller={form} path="/users/user_1" appearance="card" persistDraft>
+<Form controller={form} path="/users/user_1" appearance="card" draftBucket="workspace/acme">
   <Input name="name" label="Full name" required />
   <Input name="email" label="Email" type="email" required />
   <Select name="role" label="Role" options={ROLES} />
@@ -285,8 +285,8 @@ export default function FormDraftPage() {
 
             <Section
                 title="Default-off comparison"
-                description="persistDraft is opt-in. Without it, the Form still tracks dirty state and controller-driven save actions, but it does not remember local edits after the component is removed."
-                preview={<DraftPersistenceDemo persistDraft={false} />}
+                description="draftBucket is opt-in. Without it, the Form still tracks dirty state and controller-driven save actions, but it does not remember local edits after the component is removed."
+                preview={<DraftPersistenceDemo />}
                 code={`<Form
   path="/users/user_1"
   appearance="card"
@@ -299,12 +299,12 @@ export default function FormDraftPage() {
 
             <Section
                 title="Modal and accidental close"
-                description="persistDraft is especially useful in modal workflows. The modal save action can use the same controller, so validation, save and draft recovery all stay aligned."
+                description="draftBucket is especially useful in modal workflows. The modal save action can use the same controller, so validation, save and draft recovery all stay aligned."
                 preview={<DraftModalDemo />}
                 code={`const form = useFormController();
 
 <Modal title="Draft-aware modal form" onSave={() => form.save()}>
-  <Form controller={form} path="/tickets/ticket_1" persistDraft>
+  <Form controller={form} path="/tickets/ticket_1" draftBucket="workspace/acme">
     <Input name="subject" label="Subject" required />
     <Input name="email" label="Requester email" type="email" required />
     <TextArea name="notes" label="Notes" minHeight={120} />

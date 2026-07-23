@@ -256,7 +256,7 @@ export class RestDataProvider implements DataProviderAdapter {
 | `showBack` | `boolean` | Pulsante Back nel footer |
 | `defaultValues` | `RecordProps` | Valori iniziali per nuovo record |
 | `keyGenerator` | `(record) => string` | Generatore chiave primaria custom |
-| `persistDraft` | `boolean` | Salva bozza locale su modifiche non salvate |
+| `draftBucket` | `string` | Bucket stabile che isola la bozza locale; omettilo per disabilitare la persistenza |
 | `noticeAnchorRef` | `React.RefObject<HTMLElement>` | Ancoraggio sticky per notifiche |
 | `showNotice` | `boolean` | Mostra notifiche save/delete (default `true`) |
 | `children` | `ReactNode \| ((fields) => ReactNode) \| (({ record }) => ReactNode)` | Contenuto form |
@@ -287,7 +287,7 @@ Esempio — bottone custom fuori dal form:
 const form = useFormController();
 
 <ActionButton disabled={form.saveDisabled} onClick={() => { void form.save(); }} />
-<Form controller={form} persistDraft onSave={...} />
+<Form controller={form} draftBucket="workspace/acme" onSave={...} />
 ```
 
 Esempio — uso dentro il form (senza passare controller):
@@ -686,6 +686,20 @@ Quando `commands` e presente in `mode="run"`, `Prompt` monta internamente `Conte
 </Dropdown>
 ```
 
+Per elenchi caricati dinamicamente usare `AsyncDropdown`: gestisce ricerca con debounce,
+cancellazione delle richieste precedenti tramite `AbortSignal` e stati loading/empty/error.
+
+```tsx
+<AsyncDropdown
+  trigger={<ActionButton label="Select user" />}
+  loadItems={(query, signal) => users.search(query, { signal })}
+  getItemId={user => user.id}
+  renderItem={user => user.name}
+  onSelect={user => setUser(user)}
+  selectedId={user?.id}
+/>
+```
+
 ### ContextMenu
 ```tsx
 <ContextMenu trigger="/" searchable>
@@ -706,8 +720,18 @@ Funziona su qualsiasi `<textarea>` / `<input>` figlio. Trigger custom (`/`, `@`,
 
 **EditorCommand** (usato da `commands` prop su `RichText`, `CodeEditor`, `Prompt`):
 ```ts
-{ name: string; description?: string; icon?: string; handler?: (context: TextCommandContext) => string | Promise<string> }
+{
+  name: string;
+  description?: string;
+  icon?: string;
+  group?: string;
+  consumeSuffix?: string;
+  handler?: (context: TextCommandContext) => string | Promise<string>;
+}
 ```
+
+`consumeSuffix` elimina una chiusura automatica adiacente durante la sostituzione del trigger,
+utile quando un comando cambia famiglia sintattica (per esempio da `{{ ... }}` a `{% ... %}`).
 
 ### Altre primitive
 ```tsx

@@ -2,6 +2,7 @@
 import { createPortal } from 'react-dom';
 import {Link} from "react-router-dom";
 import {useTheme} from "../../Theme";
+import { useI18n } from '../../I18n';
 import {Wrapper} from "../ui/GridSystem";
 import { BadgeOverlay, BadgeProps, BadgeType } from "../ui/Badge";
 import Menu from './Menu';
@@ -16,7 +17,7 @@ interface DropdownTogglerProps {
     text?: string;
     title?: string;
 }
-interface DropdownProps extends MotionUIProps {
+export interface DropdownProps extends MotionUIProps {
     children: React.ReactNode;
     /** Dropdown trigger: string (label), React element, or `DropdownTogglerProps` object. */
     trigger?: string | React.ReactNode | DropdownTogglerProps;
@@ -42,6 +43,28 @@ interface DropdownProps extends MotionUIProps {
     menuClassName?: string;
     headerClassName?: string;
     footerClassName?: string;
+}
+
+export type AsyncDropdownLoader<TItem> = (query: string, signal: AbortSignal) => Promise<TItem[]>;
+
+export interface AsyncDropdownProps<TItem> extends Omit<DropdownProps, 'children' | 'header' | 'onOpenChange'> {
+    /** Loads results when the menu opens and whenever the query changes. */
+    loadItems: AsyncDropdownLoader<TItem>;
+    getItemId: (item: TItem) => string;
+    renderItem: (item: TItem) => React.ReactNode;
+    /** Return `false` to keep the menu open (for example after a declined confirmation). */
+    onSelect: (item: TItem) => void | boolean | Promise<void | boolean>;
+    selectedId?: string | null;
+    searchPlaceholder?: string;
+    emptyState?: React.ReactNode;
+    loadingState?: React.ReactNode;
+    errorState?: (error: unknown) => React.ReactNode;
+    debounceMs?: number;
+    closeOnSelect?: boolean;
+    inputClassName?: string;
+    selectedClassName?: string;
+    header?: React.ReactNode;
+    onOpenChange?: (open: boolean) => void;
 }
 
 interface DropdownButtonProps extends Pick<MotionUIProps, 'motion'> {
@@ -262,6 +285,124 @@ export const Dropdown = ({
     );
 };
 
+
+/**
+ * Async/searchable extension of Dropdown. It owns only the interaction model; applications
+ * supply their own data reader and selection action (site, tenant, entity, or any resource).
+ */
+export function AsyncDropdown<TItem>({
+    loadItems,
+    getItemId,
+    renderItem,
+    onSelect,
+    selectedId = undefined,
+    searchPlaceholder = undefined,
+    emptyState = undefined,
+    loadingState = undefined,
+    errorState = undefined,
+    debounceMs = 200,
+    closeOnSelect = true,
+    inputClassName = undefined,
+    selectedClassName = undefined,
+    header = undefined,
+    open: controlledOpen = undefined,
+    defaultOpen = false,
+    onOpenChange = undefined,
+    footer = undefined,
+    headerClassName = undefined,
+    staticOpen = false,
+    ...dropdownProps
+}: AsyncDropdownProps<TItem>) {
+    const common = useI18n('common');
+    const [uncontrolledOpen, setUncontrolledOpen] = React.useState(defaultOpen);
+    const [query, setQuery] = React.useState('');
+    const [items, setItems] = React.useState<TItem[]>([]);
+    const [loading, setLoading] = React.useState(false);
+    const [error, setError] = React.useState<unknown>(null);
+    const requestRef = React.useRef(0);
+    const open = staticOpen || (controlledOpen ?? uncontrolledOpen);
+
+    const setOpen = React.useCallback((nextOpen: boolean) => {
+        if (controlledOpen === undefined) setUncontrolledOpen(nextOpen);
+        if (!nextOpen) setQuery('');
+        onOpenChange?.(nextOpen);
+    }, [controlledOpen, onOpenChange]);
+
+    React.useEffect(() => {
+        if (!open) return;
+        const controller = new AbortController();
+        const requestId = ++requestRef.current;
+        const timeout = window.setTimeout(() => {
+            setLoading(true);
+            setError(null);
+            void loadItems(query, controller.signal)
+                .then((nextItems) => {
+                    if (!controller.signal.aborted && requestId === requestRef.current) setItems(nextItems);
+                })
+                .catch((nextError: unknown) => {
+                    if (!controller.signal.aborted && requestId === requestRef.current) {
+                        setError(nextError);
+                        setItems([]);
+                    }
+                })
+                .finally(() => {
+                    if (!controller.signal.aborted && requestId === requestRef.current) setLoading(false);
+                });
+        }, query ? debounceMs : 0);
+
+        return () => { window.clearTimeout(timeout); controller.abort(); };
+    }, [open, query, debounceMs, loadItems]);
+
+    const handleSelect = React.useCallback(async (item: TItem) => {
+        const selectionAccepted = await onSelect(item);
+        if (closeOnSelect && selectionAccepted !== false) setOpen(false);
+    }, [closeOnSelect, onSelect, setOpen]);
+
+    return (
+        <Dropdown
+            {...dropdownProps}
+            staticOpen={staticOpen}
+            open={open}
+            onOpenChange={setOpen}
+            header={(
+                <>
+                    <div className="relative">
+                        <Icon name="search" size={14} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/60" />
+                        <input
+                            autoFocus
+                            value={query}
+                            onChange={(event) => setQuery(event.target.value)}
+                            placeholder={searchPlaceholder ?? common.search}
+                            className={cn('w-full rounded-md border border-border/60 bg-background py-1.5 pl-8 pr-2 text-sm font-normal text-foreground outline-none placeholder:text-muted-foreground focus:border-primary/50', inputClassName)}
+                        />
+                    </div>
+                    {header}
+                </>
+            )}
+            headerClassName={cn('px-2 pt-2 pb-1.5', headerClassName)}
+            footer={footer}
+        >
+            {loading ? (
+                <div className="px-2 py-3 text-center text-sm text-muted-foreground">{loadingState ?? common.loading}</div>
+            ) : error ? (
+                <div className="px-2 py-3 text-center text-sm text-destructive">{errorState?.(error) ?? (error instanceof Error ? error.message : common.noDataFound)}</div>
+            ) : items.length === 0 ? (
+                <div className="px-2 py-3 text-center text-sm text-muted-foreground">{emptyState ?? common.noDataFound}</div>
+            ) : items.map((item) => {
+                const itemId = getItemId(item);
+                return (
+                    <DropdownItem
+                        key={itemId}
+                        onClick={() => { void handleSelect(item); }}
+                        className={cn(itemId === selectedId && 'bg-accent text-accent-foreground', selectedClassName)}
+                    >
+                        {renderItem(item)}
+                    </DropdownItem>
+                );
+            })}
+        </Dropdown>
+    );
+}
 
 export const DropdownButton = ({
                                    children,

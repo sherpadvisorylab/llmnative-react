@@ -371,8 +371,11 @@ interface BaseFormProps {
     log?: boolean;
     /** Show the inline save/delete notice banner. Defaults to `true`. */
     showNotice?: boolean;
-    /** Persist unsaved changes locally and offer restore/discard on re-entry. Defaults to `false`. */
-    persistDraft?: boolean;
+    /**
+     * Stable bucket that isolates this form's local draft. Omit to disable draft persistence.
+     * The Form appends its own path/route identity, so one bucket safely serves many forms.
+     */
+    draftBucket?: string;
     /** When provided, the save/delete notice is rendered sticky at the top of this container
      *  instead of inline in the form footer. Ideal for full-page forms outside a modal. */
     noticeAnchorRef?: React.RefObject<HTMLElement>;
@@ -502,7 +505,7 @@ const FormData = ({
     onComplete = undefined,
     log = false,
     showNotice = true,
-    persistDraft = false,
+    draftBucket = undefined,
     noticeAnchorRef = undefined,
     showBack = false,
     wrapperClassName = undefined,
@@ -525,13 +528,21 @@ const FormData = ({
     const baselineRecordRef = useRef<RecordProps>(safeClone(defaultValues ?? {}));
     const [baselineSnapshot, setBaselineSnapshot] = useState(() => createRecordSnapshot(defaultValues));
     const [draftNoticeState, setDraftNoticeState] = useState<DraftNoticeState>(null);
+    const draftFlushRef = useRef<{
+        storageKey?: string;
+        record?: RecordProps;
+        isDirty: boolean;
+    }>({ isDirty: false });
 
     const draftStorageKey = useMemo(() => {
-        if (!persistDraft) return undefined;
+        if (!draftBucket) return undefined;
+        const normalizedBucket = normalizeKey(draftBucket);
         const identity = path || `${location.pathname}${location.hash || ''}`;
         const normalizedIdentity = normalizeKey(identity);
-        return normalizedIdentity ? `llmnative.form-draft.${normalizedIdentity}` : undefined;
-    }, [persistDraft, location.pathname, location.hash, path]);
+        return normalizedBucket && normalizedIdentity
+            ? `llmnative.form-draft.${normalizedBucket}.${normalizedIdentity}`
+            : undefined;
+    }, [draftBucket, location.pathname, location.hash, path]);
 
     const canSave = Boolean(onSave || path || !isNewRecord);
     const canDelete = Boolean(onDelete || !isNewRecord);
@@ -772,7 +783,7 @@ const FormData = ({
         baselineRecordRef.current = nextDefaultValues;
         setBaselineSnapshot(createRecordSnapshot(nextDefaultValues));
 
-        if (!persistDraft) {
+        if (!draftBucket) {
             setDraftNoticeState(null);
             return;
         }
@@ -784,7 +795,7 @@ const FormData = ({
         }
 
         setDraftNoticeState(null);
-    }, [JSON.stringify(defaultValues), persistDraft, onLoad, readStoredDraft]);
+    }, [JSON.stringify(defaultValues), draftBucket, onLoad, readStoredDraft]);
 
     useEffect(() => {
         recordRef.current = record;
@@ -818,6 +829,23 @@ const FormData = ({
 
         return () => window.clearTimeout(timer);
     }, [baselineSnapshot, draftStorageKey, isDirty, readStoredDraft, record]);
+
+    // The debounced write above keeps typing cheap, but route changes can unmount a form before
+    // its timer fires. Keep the latest dirty snapshot separately and flush it on unmount so a
+    // user never loses the final edit while navigating away immediately.
+    useEffect(() => {
+        draftFlushRef.current = {
+            storageKey: draftStorageKey,
+            record,
+            isDirty,
+        };
+    }, [draftStorageKey, isDirty, record]);
+
+    useEffect(() => () => {
+        const { storageKey, record: draftRecord, isDirty: hasDirtyDraft } = draftFlushRef.current;
+        if (!storageKey || !hasDirtyDraft || !draftRecord || typeof localStorage === 'undefined') return;
+        localStorage.setItem(storageKey, JSON.stringify(cleanRecord(draftRecord)));
+    }, []);
 
     useEffect(() => {
         controllerStore.bindActions({

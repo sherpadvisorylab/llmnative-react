@@ -15,6 +15,7 @@ import {
     buildTextCommandContext,
     ContextMenu,
     CONTEXT_MENU_SEARCH_THRESHOLD,
+    getAutoClosedSuffixLength,
     type ContextMenuItem,
     type EditorCommand,
     type EditorContext as ContextMenuEditorContext,
@@ -540,7 +541,10 @@ const PromptRun = ({
 
         if (cmd.handler) {
             const newValue = await cmd.handler(buildTextCommandContext(context));
-            context.replace(context.triggerRange.start, context.triggerRange.end, newValue);
+            const suffixLength = cmd.consumeSuffix
+                ? getAutoClosedSuffixLength(context.textAfterCaret, cmd.consumeSuffix)
+                : 0;
+            context.replace(context.triggerRange.start, context.triggerRange.end + suffixLength, newValue);
             return;
         }
 

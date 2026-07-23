@@ -326,9 +326,9 @@ describe('Form — draft restore', () => {
         expect(screen.getByDisplayValue('Original')).toBeInTheDocument();
     });
 
-    it('offers to restore a local draft after remount and can discard it again', async () => {
+    it('offers to restore a local draft from its bucket after remount and can discard it again', async () => {
         const initial = (
-            <Form path="/drafts/item_1" defaultValues={{ title: 'Original' }} persistDraft>
+            <Form path="/drafts/item_1" defaultValues={{ title: 'Original' }} draftBucket="tenant-a">
                 <Input name="title" label="Title" />
             </Form>
         );
@@ -354,6 +354,49 @@ describe('Form — draft restore', () => {
         await waitFor(() => {
             expect(screen.getByDisplayValue('Original')).toBeInTheDocument();
         });
+    });
+
+    it('flushes a dirty draft when the user leaves before the debounce expires', async () => {
+        const initial = (
+            <Form path="/drafts/immediate_exit" defaultValues={{ title: 'Original' }} draftBucket="tenant-a">
+                <Input name="title" label="Title" />
+            </Form>
+        );
+
+        const firstRender = renderWithProviders(initial);
+        fireEvent.change(screen.getByRole('textbox'), { target: { name: 'title', value: 'Final edit' } });
+        firstRender.unmount();
+
+        renderWithProviders(initial);
+
+        expect(await screen.findByText(/unsaved changes found/i)).toBeInTheDocument();
+        fireEvent.click(screen.getByRole('button', { name: /restore/i }));
+        await waitFor(() => {
+            expect(screen.getByDisplayValue('Final edit')).toBeInTheDocument();
+        });
+    });
+
+    it('isolates drafts with the same form path in different buckets', async () => {
+        const tenantA = (
+            <Form path="/drafts/shared" defaultValues={{ title: 'Original' }} draftBucket="tenant-a">
+                <Input name="title" label="Title" />
+            </Form>
+        );
+        const tenantB = (
+            <Form path="/drafts/shared" defaultValues={{ title: 'Original' }} draftBucket="tenant-b">
+                <Input name="title" label="Title" />
+            </Form>
+        );
+
+        const firstRender = renderWithProviders(tenantA);
+        fireEvent.change(screen.getByRole('textbox'), { target: { name: 'title', value: 'Tenant A draft' } });
+        await new Promise((resolve) => setTimeout(resolve, 250));
+        firstRender.unmount();
+
+        renderWithProviders(tenantB);
+
+        expect(screen.queryByText(/unsaved changes found/i)).not.toBeInTheDocument();
+        expect(screen.getByDisplayValue('Original')).toBeInTheDocument();
     });
 });
 

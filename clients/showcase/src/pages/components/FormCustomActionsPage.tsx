@@ -86,7 +86,7 @@ function ToolbarDemo() {
                     controller={form}
                     path="/users/user_1"
                     appearance="card"
-                    persistDraft
+                    draftBucket="showcase/custom-actions"
                     showNotice={false}
                     onComplete={async () => false}
                 >

@@ -1,7 +1,7 @@
 # Project status
 
 > Snapshot verified against the real codebase, not against the historical plan.
-> Last reviewed: 2026-07-13
+> Last reviewed: 2026-07-21
 
 ---
 
@@ -71,6 +71,20 @@
 | CR-014 | Done | Audit API completo su 40+ componenti. 8 bug fix. JSDoc su 20+ file. |
 | CR-006 | Done | Test suite: 61 file, 643 unit/component, 10 Firebase emulator + 8 Supabase emulator integration, 16 Playwright E2E (smoke + navigation + CRUD). 100%. Google OAuth E2E deferito. |
 | CR-007 | Done | Showcase stubs risolti: 0 stub routes. 4 provider redirects, 5 example pages reali (CRUD, Dashboard, NestedForm, FileManager, GoogleAuth). Showcase deployato su GH Pages. Docs allineati. |
+| CR-053 | Done | Doc audit: api, publish, ProviderSession, ProviderSwitcher docs scritti. 25 discrepanze corrette. |
+| CR-054 | Done | Grid views config (toggle table/gallery, column picker, field picker). |
+| CR-055 | Done | Fill-height editor (`EditorHeight = number \| 'fill'`). |
+| CR-056 | Done | Grouped command menu in ContextMenu. |
+| CR-057 | Done | Theming fixes Grid.Table/Grid.Gallery. |
+| CR-058 | Done | AI tool calling system (Anthropic, Gemini, OpenAI, OpenCode). |
+| CR-059 | Done | Abortable AI provider calls. |
+| CR-060 | Done | i18n'd Modal confirm dialogs. |
+| CR-061 | Done | Modal rightInset / closeSlot props. |
+| CR-062 | Done | Secret redaction in fetch error logs. |
+| CR-063 | Done | Tenant Firestore db (databaseId, dispose). |
+| CR-064 | Done | Provider dispose contract. |
+| CR-065 | Done | Firestore getDb() dentro try block. |
+| CR-066 | Done | Empty cache snapshot filter in Firestore subscribe. |
 
 ---
 
@@ -83,7 +97,7 @@
 | CR-041 | **0% — proposal written** | SeoEnhancer (HTML filter applying technical SEO, structured report); proposal in `CHANGE_REQUESTS.md`. No implementation. |
 | CR-045 | ⬜ | AI Adoption: piano di distribuzione e visibilità. |
 | CR-051 | **0% — spec written** | WorkflowAI declarative multi-step pipeline; spec in `CHANGE_REQUESTS.md`. No implementation. |
-| CR-053 | ⬜ | Doc audit: scrivere docs per api/publish/ProviderSession/ProviderSwitcher provider categories e aggiornare architecture index. |
+| CR-067 | Done | AsyncDropdown searchable con debounce, AbortSignal, stati asincroni, test e showcase. |
 
 ---
 

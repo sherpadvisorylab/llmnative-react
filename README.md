@@ -134,7 +134,7 @@ export default function UserForm() {
         onClick={() => { void form.save() }}
       />
 
-      <Form controller={form} path="/users" appearance="card" showBack persistDraft>
+      <Form controller={form} path="/users" appearance="card" showBack draftBucket="workspace/acme">
         <Input name="name" label="Name" required />
         <Input name="email" label="Email" inputType="email" />
         <Select

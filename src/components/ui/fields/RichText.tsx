@@ -12,6 +12,7 @@ import {
     buildTextCommandContext,
     ContextMenu,
     CONTEXT_MENU_SEARCH_THRESHOLD,
+    getAutoClosedSuffixLength,
     matchCommandTrigger,
     type ContextMenuHandle,
     type ContextMenuItem,
@@ -1225,7 +1226,10 @@ const RichTextInner = ({
 
         if (command.handler) {
             const nextValue = await command.handler(buildTextCommandContext(context));
-            context.replace(context.triggerRange.start, context.triggerRange.end, nextValue);
+            const suffixLength = command.consumeSuffix
+                ? getAutoClosedSuffixLength(context.textAfterCaret, command.consumeSuffix)
+                : 0;
+            context.replace(context.triggerRange.start, context.triggerRange.end + suffixLength, nextValue);
             return;
         }
 

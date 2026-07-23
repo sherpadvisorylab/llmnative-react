@@ -2,7 +2,7 @@
 
 > Ogni CR rappresenta un'unità di lavoro autonoma con motivazione, scope e checklist.  
 > Stato: `⬜ todo` · `🔄 in progress` · `✅ done` · `🚫 cancelled`  
-> Ultima revisione: 2026-07-09
+> Ultima revisione: 2026-07-21
 
 ---
 
@@ -63,6 +63,21 @@
 | [CR-050](#cr-050--contextmenu-adapter-system-proposal) | ContextMenu adapter system | Media | CR-025 | ✅ done |
 | [CR-051](#cr-051--workflowai-orchestrazione-pipeline-di-prompt) | WorkflowAI: orchestrazione pipeline di prompt | Alta | CR-039 | ⬜ |
 | [CR-052](#cr-052--credentialsadapter-e-googleserviceaccountprovider) | CredentialsAdapter + GoogleServiceAccountProvider | Media | CR-002 | ✅ |
+| [CR-053](#cr-053--doc-audit-api-publish-providersession-providerswitcher) | Doc audit: api, publish, ProviderSession, ProviderSwitcher | Media | — | ✅ |
+| [CR-054](#cr-054--grid-views-config) | Grid views config (toggle table/gallery, column picker, field picker) | Media | — | ✅ |
+| [CR-055](#cr-055--fill-height-editor) | Fill-height editor (`EditorHeight = number \| 'fill'`) | Bassa | — | ✅ |
+| [CR-056](#cr-056--grouped-command-context-menu) | Grouped command menu in ContextMenu | Bassa | CR-025 | ✅ |
+| [CR-057](#cr-057--theming-fixes-grid-table-gallery) | Theming fixes (Grid.Table, Grid.Gallery wrapper) | Bassa | — | ✅ |
+| [CR-058](#cr-058--ai-tool-calling-system) | AI tool calling system (AIToolDefinition, AIToolCall, AIToolResult) | Alta | — | ✅ |
+| [CR-059](#cr-059--abortable-ai-provider-calls) | Abortable AI provider calls (AbortSignal) | Alta | — | ✅ |
+| [CR-060](#cr-060--i18n-modal-confirm-dialogs) | i18n'd Modal confirm dialogs | Media | CR-029 | ✅ |
+| [CR-061](#cr-061--modal-rightinset-closeslot) | Modal rightInset / closeSlot props | Media | — | ✅ |
+| [CR-062](#cr-062--secret-redaction-in-fetch-logs) | Secret redaction in fetch error logs | Alta | — | ✅ |
+| [CR-063](#cr-063--tenant-firestore-databaseid-dispose) | Tenant Firestore db (databaseId, dispose) | Alta | CR-033 | ✅ |
+| [CR-064](#cr-064--provider-dispose-contract) | Provider dispose contract (DataProviderAdapter.dispose) | Media | CR-002 | ✅ |
+| [CR-065](#cr-065--firestore-getdb-inside-try-block) | Firestore getDb() dentro try block (race condition fix) | Alta | CR-033 | ✅ |
+| [CR-066](#cr-066--empty-cache-snapshot-filter-firestore) | Empty cache snapshot filter in Firestore subscribe | Media | CR-033 | ✅ |
+| [CR-067](#cr-067--asyncdropdown-searchable-component) | AsyncDropdown: componente searchable con AbortSignal | Media | — | ✅ |
 
 ---
 
@@ -4653,5 +4668,285 @@ L'architettura a stato controllato è più semplice e type-safe:
 - Il `ContextMenu` rimane un componente puramente presentazionale (posizionamento flottante + navigazione)
 - Nessuna nuova interfaccia/astrazione da mantenere
 - Backward compatibile: senza `controlled`, ContextMenu funziona come prima su textarea/input nativi
+
+---
+
+## CR-053 — Doc audit: api, publish, ProviderSession, ProviderSwitcher
+
+**Stato:** ✅ done  
+**Commit:** `713d5dc`  
+**Priorità:** Media  
+**Dipende da:** —
+
+### Motivazione
+Scrivere docs per api/publish/ProviderSession/ProviderSwitcher provider categories e aggiornare architecture index.
+
+### Checklist
+- [x] Scritto `docs/api.md`
+- [x] Scritto `docs/publish.md`
+- [x] Scritto `docs/provider-session.md`
+- [x] Aggiornato `docs/architecture/index.md` folder tree
+- [x] Allineamento completo docs vs codebase (25 discrepanze corrette)
+
+---
+
+## CR-054 — Grid views config
+
+**Stato:** ✅ done  
+**Commit:** `32a4843`  
+**Priorità:** Media  
+
+### Motivazione
+Aggiungere alla Grid un sistema di `views` config per switchare tra vista tabella e galleria, con column picker e field picker separati per view.
+
+### Checklist
+- [x] `GridViewsConfig<TRecord>` type con `toggle`, `table`, `gallery`
+- [x] `GridTableViewConfig` (columnPicker)
+- [x] `GridGalleryViewConfig` (fieldPicker, overlays)
+- [x] View toggle nativo nel header Grid
+- [x] Backward compatible: `views` opzionale
+
+---
+
+## CR-055 — Fill-height editor
+
+**Stato:** ✅ done  
+**Commit:** `32a4843`  
+**Priorità:** Bassa  
+
+### Motivazione
+Supportare editor a tutta altezza (`'fill'`) in CodeEditor, Input (textarea), RichText.
+
+### Checklist
+- [x] `EditorHeight = number | 'fill'`
+- [x] `useEditorHeight` gestisce `'fill'` → `height: 100%`, overflow auto
+- [x] Backward compatible: valori numerici continuano a funzionare
+
+---
+
+## CR-056 — Grouped command menu in ContextMenu
+
+**Stato:** ✅ done  
+**Commit:** `32a4843`  
+**Priorità:** Bassa  
+**Dipende da:** CR-025
+
+### Motivazione
+Raggruppare i comandi del ContextMenu per categoria (es. text formatting, insert, AI actions) invece di una lista piatta.
+
+### Checklist
+- [x] Grouped layout proof concept implementato
+- [x] Backward compatible
+
+---
+
+## CR-057 — Theming fixes (Grid.Table, Grid.Gallery wrapper)
+
+**Stato:** ✅ done  
+**Commit:** `32a4843`  
+**Priorità:** Bassa  
+
+### Motivazione
+Allineare classi Tailwind dei wrapper Grid.Table e Grid.Gallery con i temi built-in.
+
+### Checklist
+- [x] Fix classi wrapper per tutti i temi (default, flat, cyber)
+
+---
+
+## CR-058 — AI tool calling system
+
+**Stato:** ✅ done  
+**Commit:** `70141a9`  
+**Priorità:** Alta  
+
+### Motivazione
+Supportare strumenti AI (function calling) attraverso i provider Anthropic, Gemini, OpenAI-compatible, OpenCode.
+
+### Checklist
+- [x] `AIToolDefinition`, `AIToolCall`, `AIToolResult` types
+- [x] `AIConversationTurn` per history multi-turno
+- [x] `AICompleteResult = { type: 'text' } | { type: 'tool_calls' }`
+- [x] Anthropic: tools via `anthropic` SDK
+- [x] Gemini: tools via `tools` config
+- [x] OpenAI-compatible: tools via `tools` array
+- [x] OpenCode: tools via OpenAI-compatible format
+- [x] Prompt.tsx adattato al nuovo tipo di ritorno
+- [x] Test aggiornati
+
+---
+
+## CR-059 — Abortable AI provider calls
+
+**Stato:** ✅ done  
+**Commit:** `70141a9`  
+**Priorità:** Alta  
+
+### Motivazione
+Permettere la cancellazione delle richieste AI in-flight tramite AbortSignal (es. pulsante "stop").
+
+### Checklist
+- [x] `AbortSignal` in `AICompleteRequest`
+- [x] Propagazione in `fetchRest` / `fetchJson`
+- [x] Supporto in tutti e 4 i provider AI
+- [x] `fetch.ts` opzione `signal` in `FetchOptions`
+- [x] Backward compatible: `signal` opzionale
+
+---
+
+## CR-060 — i18n'd Modal confirm dialogs
+
+**Stato:** ✅ done  
+**Commit:** `70141a9`  
+**Priorità:** Media  
+**Dipende da:** CR-029
+
+### Motivazione
+Localizzare i pulsanti Save/Delete/Cancel/Yes/No/Ok del Modal tramite `useI18n('modal')`.
+
+### Checklist
+- [x] Dict `modal.save`, `modal.delete`, `modal.cancel`, `modal.yes`, `modal.no`, `modal.ok`, `modal.close`
+- [x] Dizionari aggiornati per en/it/de/ru/zh/ar
+- [x] ModalYesNo, ModalOk, ModalDefault usano `useI18n('modal')`
+
+---
+
+## CR-061 — Modal rightInset / closeSlot props
+
+**Stato:** ✅ done  
+**Commit:** `70141a9`  
+**Priorità:** Media  
+
+### Motivazione
+- `rightInset`: riservare spazio a destra del Modal (es. pannello laterale persistente).
+- `closeSlot`: sostituire il pulsante × con contenuto custom.
+
+### Checklist
+- [x] `ModalProps.rightInset?: number` — cover/backdrop si fermano prima, dialog right si sposta
+- [x] `ModalProps.closeSlot?: ReactNode` — sostituisce × button
+- [x] Documentazione inline JSDoc
+
+---
+
+## CR-062 — Secret redaction in fetch error logs
+
+**Stato:** ✅ done  
+**Commit:** `70141a9`  
+**Priorità:** Alta  
+
+### Motivazione
+I log d'errore di `fetchRest` stampavano URL e header completi, inclusi API key in Authorization, x-api-key, query params.
+
+### Checklist
+- [x] Pattern `SENSITIVE_HEADER_PATTERN = /auth|key|token|secret/i`
+- [x] `redactedHeadersForLogging()` sostituisce valori sensibili con `'[REDACTED]'`
+- [x] `redactedUrlForLogging()` redige query params sensibili (`key`, `api_key`, `token`, `secret`)
+- [x] `redactedRequestForLogging()` applica a tutte le console.warn
+
+---
+
+## CR-063 — Tenant Firestore db (databaseId, dispose)
+
+**Stato:** ✅ done  
+**Commit:** `d389c00`  
+**Priorità:** Alta  
+**Dipende da:** CR-033
+
+### Motivazione
+Supportare multi-tenancy con database Firestore dedicati per tenant, usando `getFirestore(app, databaseId)` invece del database default.
+
+### Checklist
+- [x] `FirestoreDataProviderConfig.databaseId?: string`
+- [x] `getDb()` usa `getFirestore(getApp(), this.databaseId)` se configurato
+- [x] ProviderSession: `TENANT_SHARED_DATABASE_ID = '(default)'` esplicito
+- [x] `dispose()` chiama `terminate()` sul db Firestore
+
+---
+
+## CR-064 — Provider dispose contract
+
+**Stato:** ✅ done  
+**Commit:** `d389c00`  
+**Priorità:** Media  
+**Dipende da:** CR-002
+
+### Motivazione
+Aggiungere `dispose()` opzionale a `DataProviderAdapter` per cleanup esplicito (es. terminare connessioni Firestore).
+
+### Checklist
+- [x] `dispose?(): Promise<void>` in `DataProviderAdapter`
+- [x] Implementato in `FirestoreDataProvider` (terminate)
+- [x] Implementato in `SupabaseDataProvider` (dispose client)
+- [x] `setProvider` in `App.tsx` chiama `await prevRegistry?.[key]?.dispose?.()` prima di sostituire
+
+---
+
+## CR-065 — Firestore getDb() dentro try block
+
+**Stato:** ✅ done  
+**Commit:** `d389c00`  
+**Priorità:** Alta  
+**Dipende da:** CR-033
+
+### Motivazione
+`getDb()` (→ `getApp()`) poteva lanciare sincronamente se Firebase non era inizializzato, causando unhandled promise rejection. Spostato dentro try/catch in tutti i metodi.
+
+### Checklist
+- [x] `getDb()` spostato dentro try in: read, set, update, remove, readShallow, setChunks
+- [x] count() aveva già getDb() fuori try — corretto
+
+---
+
+## CR-066 — Empty cache snapshot filter in Firestore subscribe
+
+**Stato:** ✅ done  
+**Commit:** `d389c00`  
+**Priorità:** Media  
+**Dipende da:** CR-033
+
+### Motivazione
+Con offline persistence, il primo emit di `onSnapshot` è spesso uno snapshot vuoto da cache — causava flash "no data" nei consumer.
+
+### Checklist
+- [x] `if (snap.metadata?.fromCache && snap.size === 0) return;` in subscribe
+- [x] Una collezione genuinamente vuota viene comunque notificata dal successivo snapshot server-side
+
+---
+
+## CR-067 — AsyncDropdown: componente searchable con AbortSignal
+
+**Stato:** ✅ done  
+**Priorità:** Media  
+
+### Motivazione
+Dropdown con caricamento asincrono dei dati, debounced search, AbortSignal per cancellare richieste in-flight, e stati loading/empty/error nativi.
+
+### API
+
+```typescript
+type AsyncDropdownLoader<TItem> = (query: string, signal: AbortSignal) => Promise<TItem[]>;
+
+interface AsyncDropdownProps<TItem> extends Omit<DropdownProps, 'children' | 'header' | 'onOpenChange'> {
+    loadItems: AsyncDropdownLoader<TItem>;
+    getItemId: (item: TItem) => string;
+    renderItem: (item: TItem) => React.ReactNode;
+    onSelect: (item: TItem) => void | Promise<void>;
+    selectedId?: string | null;
+    searchPlaceholder?: string;
+    emptyState?: React.ReactNode;
+    loadingState?: React.ReactNode;
+    errorState?: (error: unknown) => React.ReactNode;
+    debounceMs?: number;
+    closeOnSelect?: boolean;
+}
+```
+
+### Checklist
+- [x] `AsyncDropdown<TItem>` implementato in Dropdown.tsx
+- [x] 3 test unitari (caricamento + query, selezione + chiusura, errore) — 8 test totali nel file Dropdown
+- [x] Pagina showcase AsyncDropdownPage con playground interattivo
+- [x] Export pubblico da `@llmnative/react`
+- [x] Commit e push
+- [x] Aggiornare docs di riferimento
 
 ---

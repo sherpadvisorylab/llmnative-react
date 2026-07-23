@@ -49,6 +49,9 @@ export interface EditorCommand {
      * `commandMenuItems`/render logic, which does the grouping/heading-insertion). Commands
      * without a `group` render ungrouped, in their original order. */
     group?: string;
+    /** Optional auto-closed suffix to consume when replacing the active trigger. Useful when
+     * a command changes syntactic family, for example from `{{ ... }}` to `{% ... %}`. */
+    consumeSuffix?: string;
     handler?: (context: TextCommandContext) => string | Promise<string>;
 }
 
@@ -212,6 +215,14 @@ export const hasAutoClosedSuffix = (textAfterCaret: string, closer: string): boo
     if (!closer) return false;
     const escaped = closer.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     return new RegExp(`^\\s*${escaped}`).test(textAfterCaret);
+};
+
+/** Returns the number of characters occupied by an auto-closed suffix, including whitespace
+ * before it, or zero when the requested suffix is not present. */
+export const getAutoClosedSuffixLength = (textAfterCaret: string, closer: string): number => {
+    if (!closer) return 0;
+    const escaped = closer.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return textAfterCaret.match(new RegExp(`^\\s*${escaped}`))?.[0].length ?? 0;
 };
 
 export const matchCommandTrigger = (

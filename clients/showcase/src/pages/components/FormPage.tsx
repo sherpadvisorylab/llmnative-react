@@ -55,7 +55,7 @@ const FORM_PROPS: PropDef[] = [
     { name: 'appearance', type: '"card" | "empty"', default: '"empty"', description: 'Visual wrapper style.', control: 'select', options: ['card', 'empty'] },
     { name: 'controller', type: 'FormController', description: 'Shared controller for custom save/delete buttons, dirty state, draft recovery and modal actions.' },
     { name: 'showBack', type: 'boolean', default: 'false', description: 'Show a back navigation button.', control: 'boolean' },
-    { name: 'persistDraft', type: 'boolean', default: 'false', description: 'Persist unsaved local edits and expose restore/discard via the controller.', control: 'boolean' },
+    { name: 'draftBucket', type: 'string', description: 'Stable localStorage bucket for draft recovery. Omit it to disable persistence.', control: 'text' },
     { name: 'keyGenerator', type: '(record) => string', description: 'Custom primary key generator for new records. Presence forces create mode (no DB read).' },
     { name: 'onLoad', type: '(record: RecordProps) => void', description: 'Called after the record is loaded.' },
     {
@@ -106,7 +106,7 @@ function PlaygroundForm(props: {
     path: string;
     appearance: 'card' | 'empty';
     showBack: boolean;
-    persistDraft: boolean;
+    draftBucket?: string;
 }) {
     const form = useFormController();
 
@@ -129,7 +129,7 @@ function PlaygroundForm(props: {
                 path={props.path}
                 appearance={props.appearance}
                 showBack={props.showBack}
-                persistDraft={props.persistDraft}
+                draftBucket={props.draftBucket || undefined}
                 onComplete={async () => false}
             >
                 <Input name="name"  label="Full name" required />
@@ -149,7 +149,7 @@ const PLAYGROUND: PlaygroundConfig = {
         path: '/users/user_1',
         appearance: 'card',
         showBack: false,
-        persistDraft: false,
+        draftBucket: '',
     },
     mockSeed: PLAYGROUND_SEED,
     render: (p) => (
@@ -157,7 +157,7 @@ const PLAYGROUND: PlaygroundConfig = {
             path={p.path || '/users/user_1'}
             appearance={p.appearance}
             showBack={p.showBack}
-            persistDraft={p.persistDraft}
+            draftBucket={p.draftBucket || undefined}
         />
     ),
 };

@@ -66,7 +66,7 @@ export default function UserEdit() {
         onClick={() => { void form.save() }}
       />
 
-      <Form controller={form} path="/users/user_1" appearance="card" showBack persistDraft>
+      <Form controller={form} path="/users/user_1" appearance="card" showBack draftBucket="workspace/acme">
         <Input name="name" label="Name" required />
         <Input.Email name="email" label="Email" />
         <Select

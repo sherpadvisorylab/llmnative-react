@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
-import { Dropdown, DropdownItem } from '../../../src/components/blocks/Dropdown';
+import { I18nProvider } from '../../../src/I18n';
+import { AsyncDropdown, Dropdown, DropdownItem } from '../../../src/components/blocks/Dropdown';
+
+const renderWithI18n = (ui: React.ReactElement) => render(ui, { wrapper: I18nProvider });
 
 describe('Dropdown', () => {
     it('renders toggle badge through the shared overlay Badge component', () => {
@@ -74,5 +77,92 @@ describe('Dropdown', () => {
 
         expect(menu).not.toBeVisible();
         expect(menu).toHaveAttribute('aria-hidden', 'true');
+    });
+});
+
+describe('AsyncDropdown', () => {
+    const items = [
+        { id: 'alpha', label: 'Alpha' },
+        { id: 'beta', label: 'Beta' },
+    ];
+
+    it('loads results on open and sends the search query to its loader', async () => {
+        const loadItems = vi.fn(async (query: string) => items.filter((item) => item.label.toLowerCase().includes(query.toLowerCase())));
+
+        renderWithI18n(
+            <AsyncDropdown
+                trigger="Switch"
+                loadItems={loadItems}
+                getItemId={(item) => item.id}
+                renderItem={(item) => item.label}
+                onSelect={() => undefined}
+                debounceMs={0}
+            />
+        );
+
+        fireEvent.click(screen.getByRole('button', { name: 'Switch' }));
+        await waitFor(() => expect(screen.getByText('Alpha')).toBeVisible());
+        expect(loadItems).toHaveBeenCalledWith('', expect.any(AbortSignal));
+
+        fireEvent.change(screen.getByRole('textbox'), { target: { value: 'beta' } });
+        await waitFor(() => expect(screen.getByText('Beta')).toBeVisible());
+        expect(loadItems).toHaveBeenCalledWith('beta', expect.any(AbortSignal));
+    });
+
+    it('marks the current item and closes after selection', async () => {
+        const onSelect = vi.fn();
+        renderWithI18n(
+            <AsyncDropdown
+                trigger="Switch"
+                defaultOpen
+                selectedId="beta"
+                loadItems={async () => items}
+                getItemId={(item) => item.id}
+                renderItem={(item) => item.label}
+                onSelect={onSelect}
+                debounceMs={0}
+            />
+        );
+
+        const beta = await screen.findByText('Beta');
+        expect(beta.closest('button')).toHaveClass('bg-accent');
+        fireEvent.click(beta);
+
+        await waitFor(() => expect(onSelect).toHaveBeenCalledWith(items[1]));
+        await waitFor(() => expect(screen.getByRole('menu', { hidden: true })).toHaveAttribute('aria-hidden', 'true'));
+    });
+
+    it('keeps the menu open when selection is declined by the consumer', async () => {
+        renderWithI18n(
+            <AsyncDropdown
+                trigger="Switch"
+                defaultOpen
+                loadItems={async () => items}
+                getItemId={(item) => item.id}
+                renderItem={(item) => item.label}
+                onSelect={() => false}
+                debounceMs={0}
+            />
+        );
+
+        fireEvent.click(await screen.findByText('Alpha'));
+
+        await waitFor(() => expect(screen.getByRole('menu', { hidden: true })).toHaveAttribute('aria-hidden', 'false'));
+    });
+
+    it('renders the loader error state', async () => {
+        renderWithI18n(
+            <AsyncDropdown
+                trigger="Switch"
+                defaultOpen
+                loadItems={async () => { throw new Error('Lookup failed'); }}
+                getItemId={() => 'unused'}
+                renderItem={() => null}
+                onSelect={() => undefined}
+                debounceMs={0}
+            />
+        );
+
+        expect(await screen.findByText('Lookup failed')).toBeVisible();
     });
 });
