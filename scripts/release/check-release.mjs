@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const root = resolve(import.meta.dirname, '..', '..');
-const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+const npmExecPath = process.env.npm_execpath;
 const args = process.argv.slice(2);
 const valueAfter = (flag) => {
   const index = args.indexOf(flag);
@@ -30,6 +30,12 @@ const run = (command, commandArgs, options = {}) => {
     const detail = error.stderr?.toString().trim() || error.message;
     fail(`${command} ${commandArgs.join(' ')}: ${detail}`);
   }
+};
+const runNpm = (npmArgs) => {
+  if (!npmExecPath) {
+    fail('npm_execpath is unavailable; run the preflight through npm run release:check');
+  }
+  return run(process.execPath, [npmExecPath, ...npmArgs]);
 };
 
 if (noCr === Boolean(cr || issue)) {
@@ -76,9 +82,9 @@ if (run('git', ['rev-list', '-n', '1', `v${version}`], { allowFailure: true }) !
   fail(`tag v${version} is missing or does not point to HEAD`);
 }
 
-run(npmCommand, ['whoami']);
-const latest = run(npmCommand, ['view', packageJson.name, 'version']);
-const publishedVersions = JSON.parse(run(npmCommand, [
+runNpm(['whoami']);
+const latest = runNpm(['view', packageJson.name, 'version']);
+const publishedVersions = JSON.parse(runNpm([
   'view', packageJson.name, 'versions', '--json',
 ]));
 if (publishedVersions.includes(version)) fail(`${packageJson.name}@${version} is already published`);

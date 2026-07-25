@@ -18,6 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Agent-specific instruction files now reference the single maintainer workflow instead of duplicating release policy.
 
+### Fixed
+- The release preflight invokes npm through the active Node/npm CLI path, including on Windows.
+
 ## [1.2.0] - 2026-07-25
 
 > Snapshot realigned to the `modernize` branch, verified 2026-05-27.
