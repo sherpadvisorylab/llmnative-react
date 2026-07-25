@@ -1,6 +1,6 @@
 {
   "name": "@llmnative/react",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "LLM-native React framework for deterministic UI generation. Data-driven by default, schema-driven optional. Ultra-low token consumption — built for AI agents, not just humans.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -30,7 +30,8 @@
     "test:e2e:proxy-runtime": "vitest run tests/e2e/proxy-runtime.test.ts --environment node",
     "test:integration": "npx firebase emulators:exec --only database,firestore,storage --project demo-test \"npx vitest run --config vitest.integration.config.mts\"",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "release:check": "node scripts/release/check-release.mjs"
   },
   "bin": {
     "llmnative": "bin/cli.js"

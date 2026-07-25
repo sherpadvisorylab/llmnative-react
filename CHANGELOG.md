@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-07-25
+
+### Added
+- Canonical framework change-and-release workflow shared by Codex, Claude, Copilot, Cursor and Gemini.
+- `release:check` preflight validating CR and GitHub Issue state, version metadata, branch synchronization, annotated tag, npm authentication and registry availability.
+
+### Changed
+- Agent-specific instruction files now reference the single maintainer workflow instead of duplicating release policy.
+
 ## [1.2.0] - 2026-07-25
 
 > Snapshot realigned to the `modernize` branch, verified 2026-05-27.

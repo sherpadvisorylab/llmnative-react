@@ -79,6 +79,33 @@
 | [CR-066](#cr-066--empty-cache-snapshot-filter-firestore) | Empty cache snapshot filter in Firestore subscribe | Media | CR-033 | ✅ |
 | [CR-067](#cr-067--asyncdropdown-searchable-component) | AsyncDropdown: componente searchable con AbortSignal | Media | — | ✅ |
 | [CR-068](#cr-068--modern-runtime-and-dependency-baseline) | Modern runtime and dependency baseline | Alta | — | ✅ |
+| [CR-069](#cr-069--centralized-ai-change-and-release-workflow) | Centralized AI change and release workflow | Alta | — | ✅ |
+
+---
+
+## CR-069 — Centralized AI change and release workflow
+
+**Stato:** ✅ done
+**Issue:** [#9](https://github.com/sherpadvisorylab/llmnative-react/issues/9)
+**Priorità:** Alta
+
+### Motivazione
+
+Tutti gli agenti AI che lavorano sul framework devono applicare lo stesso
+processo verificabile per classificare le modifiche, sincronizzare CR e GitHub
+Issues, eseguire i gate, versionare, committare, pubblicare tag e rilasciare su
+npm. La direttiva deve avere una sola fonte di verità e non essere duplicata per
+ogni strumento.
+
+### Checklist
+
+- [x] Direttiva canonica unica per modifica e release del framework
+- [x] Trigger automatico quando una richiesta di commit/push include modifiche al framework
+- [x] Mapping esplicito tra stato CR e stato/label GitHub Issue
+- [x] Riferimenti sottili per Codex, Claude, Copilot, Cursor e Gemini
+- [x] Preflight `release:check` per metadata, issue, branch, tag, registry e worktree
+- [x] Verifica dei failure mode del preflight e dei gate della release candidata
+- [x] Procedura documentata per commit, chiusura della GitHub Issue, tag e pubblicazione npm
 
 ---
 
