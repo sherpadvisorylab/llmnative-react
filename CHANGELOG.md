@@ -9,9 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-07-25
+
 > Snapshot realigned to the `modernize` branch, verified 2026-05-27.
 
 ### Added
+- Public generic `AsyncDropdown<TItem>` with debounced search, request cancellation through
+  `AbortSignal`, controlled and uncontrolled modes, and native loading, empty and error states.
 - Driver manifest and typed service registry in `src/providers/manifest.ts`, with explicit drivers such as `dbRealtime`, `firestorage`, `googleAuth`, `dropboxAuth` and `gmail`.
 - Provider-agnostic `AuthButton` and `DropboxAuthProvider`, integrated into the auth manifest.
 - Shared provider configuration state (`getConfigurationState()` / `isConfigured()`) for auth, data, storage and email providers.
@@ -21,6 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Expanded test coverage to 25 files / 188 tests, including motion, provider configuration, Table, Modal, Dropdown, Gallery and Buttons.
 
 ### Changed
+- Runtime baseline moved to Node.js 24 LTS, React 19.2, Vite 8, Vitest 4 and the current stable
+  compatible dependency set; CI, showcase, generated scaffolding and CMS consumer are aligned.
 - `npm run build` now consistently uses Vite library mode + TypeScript declarations.
 - `clients/showcase` is now a real Vite consumer of the package and is no longer part of an active Webpack toolchain.
 - Operational documentation realigned to the actual codebase: verified state, current version `0.1.1`, remaining Supabase and showcase stub gaps documented.
