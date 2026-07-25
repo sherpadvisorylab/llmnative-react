@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "ES2021",                       // Target ECMAScript version
+    "target": "ES2022",                       // Target ECMAScript version
     "module": "ESNext",                       // Module system
     "jsx": "react",                           // JSX support
     "strict": true,                           // Enable strict type-checking options
@@ -9,7 +9,6 @@
     "forceConsistentCasingInFileNames": true, // Ensure file names are case-sensitive
     "skipLibCheck": true,                     // Skip type checking of declaration files
     "outDir": "./dist",                       // Output directory for transpiled files
-    "baseUrl": "./src",                       // Base URL for module resolution
     "allowSyntheticDefaultImports": true,     // Allows default imports from modules with no default export
     "declaration": true,                      // Generates corresponding .d.ts file
     "declarationDir": "./dist/types",         // Output directory for .d.ts files

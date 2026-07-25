@@ -97,7 +97,7 @@ const fetchDropboxBlob = async (
             'Content-Type': 'application/octet-stream',
             ...headers
         },
-        body: body,
+        body: body instanceof Uint8Array ? Uint8Array.from(body) : body,
     }).catch((error) => {
         console.error('There was a problem with the fetch operation:', error);
         return null;

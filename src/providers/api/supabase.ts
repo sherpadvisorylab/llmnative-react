@@ -1,4 +1,5 @@
 import type { ApiProviderAdapter, ApiProviderRequest } from './ApiProvider';
+import { getSupabaseClient } from '../supabase-init';
 
 export type SupabaseApiProviderConfig = {
     url: string;
@@ -13,7 +14,6 @@ export class SupabaseApiProviderAdapter implements ApiProviderAdapter {
     constructor(private config: SupabaseApiProviderConfig) {}
 
     async fetch(request: ApiProviderRequest): Promise<unknown> {
-        const { getSupabaseClient } = await import('../supabase-init');
         const client = getSupabaseClient(this.config.url, this.config.anonKey);
         const { data, error } = await client.functions.invoke(this.config.functionName, {
             body: { provider: this.config.providerName, request },

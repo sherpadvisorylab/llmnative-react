@@ -171,7 +171,7 @@ export function resetFormController(controller: FormController): void {
 export const FormControllerContext = createContext<FormController | null>(null);
 
 export function useFormController(controller?: FormController): FormController {
-    const localStoreRef = useRef<FormControllerStore>();
+    const localStoreRef = useRef<FormControllerStore | undefined>(undefined);
     if (!localStoreRef.current) {
         localStoreRef.current = controller ? ensureFormControllerStore(controller) : createFormControllerStore();
     }

@@ -15,7 +15,7 @@ jobs:
 
       - uses: actions/setup-node@v6
         with:
-          node-version: '22'
+          node-version: '24.18.0'
           cache: 'npm'
 
       - run: npm ci
@@ -35,7 +35,7 @@ jobs:
 
       - uses: actions/setup-node@v6
         with:
-          node-version: '22'
+          node-version: '24.18.0'
           cache: 'npm'
 
       - run: npm ci
@@ -55,7 +55,7 @@ jobs:
 
       - uses: actions/setup-node@v6
         with:
-          node-version: '22'
+          node-version: '24.18.0'
           cache: 'npm'
 
       - name: Install root deps
@@ -71,3 +71,27 @@ jobs:
       - name: Build showcase
         run: npm run build
         working-directory: clients/showcase
+
+  e2e:
+    name: Chromium & Chrome stable E2E
+    runs-on: ubuntu-latest
+    needs: showcase
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24.18.0'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Install showcase deps
+        run: npm ci
+        working-directory: clients/showcase
+
+      - name: Install current Chromium and Chrome stable
+        run: npx playwright install --with-deps chromium chrome
+
+      - name: Browser tests
+        run: npm run test:e2e

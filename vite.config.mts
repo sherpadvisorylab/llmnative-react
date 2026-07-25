@@ -1,4 +1,3 @@
-import { copyFileSync, existsSync, rmSync } from 'node:fs';
 import { builtinModules } from 'node:module';
 import { resolve } from 'node:path';
 import { defineConfig } from 'vite';
@@ -21,30 +20,19 @@ const external = (id: string) => {
 };
 
 export default defineConfig({
-    plugins: [
-        {
-            name: 'dynai-css-filename',
-            closeBundle() {
-                const stylePath = resolve(__dirname, 'dist/style.css');
-                const indexPath = resolve(__dirname, 'dist/index.css');
-                if (existsSync(stylePath)) {
-                    rmSync(indexPath, { force: true });
-                    copyFileSync(stylePath, indexPath);
-                }
-            },
-        },
-    ],
     build: {
+        target: 'baseline-widely-available',
         lib: {
             entry: {
                 index: resolve(__dirname, 'src/index.ts'),
                 vite: resolve(__dirname, 'src/providers/proxy/vite.ts'),
             },
             formats: ['es', 'cjs'],
+            cssFileName: 'index',
             fileName: (format, entryName) =>
                 format === 'es' ? `${entryName}.mjs` : `${entryName}.js`,
         },
-        rollupOptions: {
+        rolldownOptions: {
             external,
         },
         sourcemap: false,

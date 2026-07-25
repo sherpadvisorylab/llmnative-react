@@ -64,14 +64,15 @@ ${importBlock}
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
 
-  return {
-    plugins: [
+    return {
+        plugins: [
       react(),
 ${pluginBlock}    ].filter(Boolean),
     resolve: {
       dedupe: ['react', 'react-dom', 'react-router-dom'],
     },
     build: {
+      target: 'baseline-widely-available',
       cssMinify: false,
       chunkSizeWarningLimit: 10000,
     },
@@ -91,9 +92,9 @@ function setupDevTools(options = {}) {
     ensureFile(path.join(root, 'tsconfig.json'), `
 {
   "compilerOptions": {
-    "target": "ES2021",
+    "target": "ES2022",
     "useDefineForClassFields": true,
-    "lib": ["DOM", "DOM.Iterable", "ES2021"],
+    "lib": ["DOM", "DOM.Iterable", "ES2022"],
     "allowJs": false,
     "skipLibCheck": true,
     "esModuleInterop": true,

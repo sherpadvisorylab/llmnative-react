@@ -119,7 +119,7 @@ export function getTabPaneClassName(className?: string) {
     return cn("min-h-0 min-w-0 h-full overflow-x-hidden overflow-y-auto", theme.Tab.contentClassName, className);
 }
 
-export const TabLayouts: Record<TabPosition, (props: TabLayoutProps) => JSX.Element> = {
+export const TabLayouts: Record<TabPosition, (props: TabLayoutProps) => React.ReactElement> = {
     default: ({menu, content, menuClassName, contentClassName}) => {
         const config = getTabLayoutConfig("default");
         const theme = useTheme("tab");

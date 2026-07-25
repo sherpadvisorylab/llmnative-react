@@ -78,7 +78,7 @@ interface DropdownButtonProps extends Pick<MotionUIProps, 'motion'> {
     onToggle?: () => void;
     open?: boolean;
     menuId?: string;
-    buttonRef?: React.RefObject<HTMLButtonElement>;
+    buttonRef?: React.RefObject<HTMLButtonElement | null>;
 }
 
 interface DropdownItemProps {

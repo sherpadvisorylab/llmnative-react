@@ -78,7 +78,13 @@ vi.mock('firebase/auth', () => ({
         return { user };
     }),
 
-    OAuthProvider: vi.fn((providerId: string) => ({ providerId })),
+    OAuthProvider: vi.fn(class MockOAuthProvider {
+        providerId: string;
+
+        constructor(providerId: string) {
+            this.providerId = providerId;
+        }
+    }),
 
     signOut: vi.fn(async (_auth: any) => {
         mockAuth._setUser(null);

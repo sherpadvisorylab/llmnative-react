@@ -2,7 +2,7 @@
 
 > Ogni CR rappresenta un'unità di lavoro autonoma con motivazione, scope e checklist.  
 > Stato: `⬜ todo` · `🔄 in progress` · `✅ done` · `🚫 cancelled`  
-> Ultima revisione: 2026-07-21
+> Ultima revisione: 2026-07-25
 
 ---
 
@@ -78,6 +78,44 @@
 | [CR-065](#cr-065--firestore-getdb-inside-try-block) | Firestore getDb() dentro try block (race condition fix) | Alta | CR-033 | ✅ |
 | [CR-066](#cr-066--empty-cache-snapshot-filter-firestore) | Empty cache snapshot filter in Firestore subscribe | Media | CR-033 | ✅ |
 | [CR-067](#cr-067--asyncdropdown-searchable-component) | AsyncDropdown: componente searchable con AbortSignal | Media | — | ✅ |
+| [CR-068](#cr-068--modern-runtime-and-dependency-baseline) | Modern runtime and dependency baseline | Alta | — | ✅ |
+
+---
+
+## CR-068 — Modern runtime and dependency baseline
+
+**Stato:** ✅ done
+**Issue:** [#8](https://github.com/sherpadvisorylab/llmnative-react/issues/8)
+**Priorità:** Alta
+**Breaking change:** Sì, baseline runtime/tooling
+
+### Motivazione
+
+Framework, showcase e CMS devono condividere una baseline moderna, supportata e
+riproducibile. La migrazione elimina toolchain inutilizzate, versioni EOL e
+disallineamenti tra peer dependency e consumer senza introdurre polyfill o alias
+di compatibilità permanenti.
+
+### Decisioni
+
+- Node.js 24 LTS fissato come runtime di sviluppo e CI.
+- Dipendenze aggiornate alle release stabili correnti, con major migration esplicite.
+- Build browser su `baseline-widely-available`; Playwright copre Chromium e Chrome Stable.
+- React e relativi tipi devono avere la stessa major in framework, showcase e CMS.
+- Babel viene rimosso se non partecipa realmente alla pipeline.
+- TypeScript resta alla 6.0.3: TypeScript 7 non espone ancora la Compiler API stabile
+  richiesta dal contratto pubblico del framework.
+- `tui-image-editor` resta un limite noto: il pacchetto è abbandonato e va sostituito
+  tramite una migrazione funzionale dedicata, senza override forzati delle dipendenze.
+
+### Checklist
+
+- [x] Runtime Node e CI allineati
+- [x] Framework e test toolchain migrati
+- [x] Showcase e scaffolding migrati
+- [x] CMS consumer migrato
+- [x] Unit test, typecheck, build, public contract ed E2E verdi
+- [x] Policy runtime/browser documentata
 
 ---
 

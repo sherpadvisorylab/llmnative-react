@@ -377,7 +377,7 @@ const ContextMenu = forwardRef<ContextMenuHandle, ContextMenuProps>(({
     const items = useMemo(() => {
         const collected: ContextMenuItem[] = [];
         React.Children.forEach(children, (child) => {
-            if (React.isValidElement(child) && child.type === MenuItem) {
+            if (React.isValidElement<ContextMenuItemProps>(child) && child.type === MenuItem) {
                 collected.push({
                     label: child.props.label,
                     value: child.props.value,

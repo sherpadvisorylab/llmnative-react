@@ -1,4 +1,4 @@
-import { defineConfig } from '@playwright/test';
+import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
     testDir: './tests/e2e',
@@ -10,6 +10,16 @@ export default defineConfig({
         headless: true,
         viewport: { width: 1280, height: 720 },
     },
+    projects: [
+        {
+            name: 'chromium',
+            use: { ...devices['Desktop Chrome'] },
+        },
+        {
+            name: 'chrome-stable',
+            use: { ...devices['Desktop Chrome'], channel: 'chrome' },
+        },
+    ],
     webServer: {
         command: 'npm run dev',
         cwd: './clients/showcase',

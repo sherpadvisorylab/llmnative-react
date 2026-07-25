@@ -1,7 +1,7 @@
 # Project status
 
 > Snapshot verified against the real codebase, not against the historical plan.
-> Last reviewed: 2026-07-21
+> Last reviewed: 2026-07-25
 
 ---
 
@@ -98,6 +98,7 @@
 | CR-045 | ⬜ | AI Adoption: piano di distribuzione e visibilità. |
 | CR-051 | **0% — spec written** | WorkflowAI declarative multi-step pipeline; spec in `CHANGE_REQUESTS.md`. No implementation. |
 | CR-067 | Done | AsyncDropdown searchable con debounce, AbortSignal, stati asincroni, test e showcase. |
+| CR-068 | Done | Node 24 LTS, Vite 8, React 19, dipendenze stabili correnti, browser policy e allineamento framework/showcase/CMS. Issue #8. |
 
 ---
 

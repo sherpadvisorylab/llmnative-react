@@ -624,7 +624,7 @@ export const ListGroup = ({
             if (n == null || typeof n === "boolean") return "";
             if (typeof n === "string" || typeof n === "number") return `${n}`;
             if (Array.isArray(n)) return n.map(walk).join(" ");
-            if (React.isValidElement(n)) return walk(n.props.children);
+            if (React.isValidElement<{ children?: React.ReactNode }>(n)) return walk(n.props.children);
             return "";
         };
 

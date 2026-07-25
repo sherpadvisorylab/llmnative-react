@@ -286,7 +286,12 @@ function setParentName(name: string, parentName: string) {
 
 export const setFormFieldsName = ({children, parentName, parentKey, wrapperClassName}: SetFormFieldsNameProps): React.ReactNode => {
     return React.Children.map(children, (child) => {
-        if (!parentName || !React.isValidElement(child)) return child;
+        if (!parentName || !React.isValidElement<React.PropsWithChildren<{
+            name?: string;
+            wrapperClassName?: string;
+            before?: React.ReactNode;
+            after?: React.ReactNode;
+        }>>(child)) return child;
 
         const {name, children: childChildren} = child.props;
         const newProps: Record<string, unknown> = {};
@@ -378,7 +383,7 @@ interface BaseFormProps {
     draftBucket?: string;
     /** When provided, the save/delete notice is rendered sticky at the top of this container
      *  instead of inline in the form footer. Ideal for full-page forms outside a modal. */
-    noticeAnchorRef?: React.RefObject<HTMLElement>;
+    noticeAnchorRef?: React.RefObject<HTMLElement | null>;
     /** Render a Back navigation button in the footer. */
     showBack?: boolean;
     /** CSS classes on the outermost wrapper element. */

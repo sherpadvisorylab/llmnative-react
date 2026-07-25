@@ -51,6 +51,7 @@ export default defineConfig(({ mode }) => {
             strictPort: true,
         },
         build: {
+            target: 'baseline-widely-available',
             cssMinify: false,
             chunkSizeWarningLimit: 10000,
         },

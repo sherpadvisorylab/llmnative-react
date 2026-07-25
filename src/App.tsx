@@ -262,7 +262,7 @@ export function AppProvider({
     const registriesRef = useRef(registries);
     registriesRef.current = registries;
 
-    const setProviderRef = useRef<SetProviderFn>();
+    const setProviderRef = useRef<SetProviderFn | undefined>(undefined);
     if (!setProviderRef.current) {
         // Untyped internally (heterogeneous adapter map, same pattern as resolveProviderRegistries
         // below) — SetProviderFn's generic signature is the public, type-safe surface callers see.
@@ -286,7 +286,7 @@ export function AppProvider({
 
     return (
         <ErrorBoundary fullPage reportUrl={errorReportUrl} debug={debug}>
-        <BrowserRouter basename={basename} future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
+        <BrowserRouter basename={basename}>
             <RuntimeProvider defaultConfig={{
                 title: appName,
                 firebase: providers.firebase,

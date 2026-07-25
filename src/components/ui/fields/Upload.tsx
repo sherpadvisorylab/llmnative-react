@@ -260,7 +260,7 @@ interface FileEditorProps {
 
 interface ImagePlaceholderProps {
     name: string;
-    fileInputRef: React.RefObject<HTMLInputElement>;
+    fileInputRef: React.RefObject<HTMLInputElement | null>;
     accept: string;
     onUpload: () => void;
     onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;

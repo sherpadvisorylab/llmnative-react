@@ -22,7 +22,7 @@ export type AlertProps = {
      */
     placement?: "inline" | "fixed" | "sticky";
     /** Required when placement="sticky": the scrollable container to anchor to. */
-    anchorRef?: React.RefObject<HTMLElement>;
+    anchorRef?: React.RefObject<HTMLElement | null>;
     /** Auto-dismiss timeout in ms. */
     timeout?: number;
     /** Called when the alert is dismissed. */

@@ -51,7 +51,9 @@ const writeProxyResponse = async (req: IncomingMessage, res: ServerResponse, rou
         const upstream = await fetch(target, {
             method: req.method || 'GET',
             headers,
-            body: body && !['GET', 'HEAD'].includes((req.method || 'GET').toUpperCase()) ? body : undefined,
+            body: body && !['GET', 'HEAD'].includes((req.method || 'GET').toUpperCase())
+                ? Uint8Array.from(body)
+                : undefined,
             redirect: 'follow',
         });
 
