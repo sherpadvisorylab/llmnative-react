@@ -88,6 +88,7 @@
 | CR-067 | Done | AsyncDropdown searchable con debounce, AbortSignal, stati asincroni, test e showcase. Issue #7. |
 | CR-068 | Done | Node 24 LTS, Vite 8, React 19, dipendenze stabili correnti, browser policy e allineamento framework/showcase/CMS. Issue #8. |
 | CR-069 | Done | Workflow AI centralizzato, adapter per gli agenti e preflight automatico di release. Issue #9. |
+| CR-070 | Done | Registrazione della stessa istanza di provider resa no-op, switchSession deduplica gli switch concorrenti della stessa sessione. Issue #10. |
 
 ---
 

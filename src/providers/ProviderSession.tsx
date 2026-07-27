@@ -114,6 +114,13 @@ registerProviderSessionFactory('storage', 'supabase', (assignment) => new Supaba
 export type ProviderSessionSwitchOptions = {
     fetchOptions?: RequestInit;
     /**
+     * Stable identity of the logical session being requested (for example a tenant id).
+     * Concurrent calls with the same key share one switch, including calls made by
+     * different useProviderSession() consumers. Once active, requesting that key again
+     * is a no-op until another keyed session is requested.
+     */
+    sessionKey?: string;
+    /**
      * Inspect or transform the raw response before it's applied — e.g. inject an extra
      * category, filter one out, forward it to an audit log. Whatever this returns
      * (defaults to the untouched response) is what actually gets applied.
@@ -138,10 +145,55 @@ export type SwitchProviderSessionFn = (
     options?: ProviderSessionSwitchOptions,
 ) => Promise<ProviderSessionSwitchResult>;
 
+type PendingSessionSwitch = {
+    sequence: number;
+    promise: Promise<ProviderSessionSwitchResult>;
+};
+
+type ProviderSessionCoordinator = {
+    activeKey?: string;
+    activeResult?: ProviderSessionSwitchResult;
+    sequence: number;
+    queue: Promise<void>;
+    pending: Map<string, PendingSessionSwitch>;
+};
+
+// Every hook mounted under one <App> receives the same stable setProvider function.
+// Keying by that function gives all ProviderSwitcher/domain-context consumers in the
+// app one coordinator without introducing a global cross-App singleton.
+const sessionCoordinators = new WeakMap<SetProviderFn, ProviderSessionCoordinator>();
+
+const getSessionCoordinator = (setProvider: SetProviderFn): ProviderSessionCoordinator => {
+    const existing = sessionCoordinators.get(setProvider);
+    if (existing) return existing;
+    const created: ProviderSessionCoordinator = {
+        sequence: 0,
+        queue: Promise.resolve(),
+        pending: new Map(),
+    };
+    sessionCoordinators.set(setProvider, created);
+    return created;
+};
+
 export const useProviderSession = (): { switchSession: SwitchProviderSessionFn; setProvider: SetProviderFn } => {
     const setProvider = useSetProvider();
 
-    const switchSession = useCallback<SwitchProviderSessionFn>(async (source, options) => {
+    const switchSession = useCallback<SwitchProviderSessionFn>((source, options) => {
+        const sessionKey = options?.sessionKey;
+        const coordinator = getSessionCoordinator(setProvider);
+
+        if (sessionKey) {
+            const pending = coordinator.pending.get(sessionKey);
+            // Reuse only when it is still the latest requested session. If A -> B -> A
+            // is requested rapidly, the final A must be queued after B, not attached to
+            // the older A which will complete before B.
+            if (pending?.sequence === coordinator.sequence) return pending.promise;
+            if (coordinator.activeKey === sessionKey && coordinator.pending.size === 0) {
+                return Promise.resolve(coordinator.activeResult ?? { applied: [], skipped: [] });
+            }
+        }
+
+        const execute = async (): Promise<ProviderSessionSwitchResult> => {
         let body: ProviderSessionResponse;
         if (typeof source === 'function') {
             body = await source();
@@ -169,7 +221,28 @@ export const useProviderSession = (): { switchSession: SwitchProviderSessionFn; 
             result.applied.push(category);
         }
 
-        return result;
+            return result;
+        };
+
+        if (!sessionKey) return execute();
+
+        const sequence = ++coordinator.sequence;
+        // Keyed switches are serialized so an older request can never mutate provider
+        // registries after a newer session has already become active.
+        const request = coordinator.queue.then(execute, execute);
+        coordinator.queue = request.then(() => undefined, () => undefined);
+        coordinator.pending.set(sessionKey, { sequence, promise: request });
+
+        void request.then((result) => {
+            coordinator.activeKey = sessionKey;
+            coordinator.activeResult = result;
+        }).finally(() => {
+            if (coordinator.pending.get(sessionKey)?.promise === request) {
+                coordinator.pending.delete(sessionKey);
+            }
+        });
+
+        return request;
     }, [setProvider]);
 
     return { switchSession, setProvider };

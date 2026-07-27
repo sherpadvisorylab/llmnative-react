@@ -21,6 +21,7 @@ import {
 import { useTheme, useThemeController } from '../../src/Theme';
 import { components as defaultComponents, motion as defaultMotion } from '../../themes/default';
 import { useDataProvider } from '../../src/providers/data/DataProviderContext';
+import { useSetProvider } from '../../src/providers/ProviderRegistryContext';
 import type { DataProviderAdapter } from '../../src/providers/data/DataProvider';
 import type { IconComponentProps, IconProviderAdapter } from '../../src/providers/icon/IconProvider';
 import {
@@ -65,6 +66,16 @@ function ProbePage() {
 
 function HeadProbePage() {
     return <Head title="Probe" description="Probe page" />;
+}
+
+function ReRegisterProviderProbe({ adapter }: { adapter: DataProviderAdapter }) {
+    const setProvider = useSetProvider();
+
+    React.useEffect(() => {
+        void setProvider('data', 'custom', adapter);
+    }, [adapter, setProvider]);
+
+    return null;
 }
 
 function AdvancedHeadProbePage() {
@@ -303,6 +314,30 @@ describe('App provider orchestration', () => {
         });
 
         expect(screen.getByTestId('data-provider')).toHaveTextContent('mock-data');
+    });
+
+    it('does not dispose an adapter when it is registered again by identity', async () => {
+        const adapter = {
+            ...createDataProvider('reused-data'),
+            dispose: vi.fn(),
+        };
+
+        renderApp({
+            providers: {
+                custom: { data: adapter },
+                services: { data: 'custom' },
+            },
+            contextProviders: ({ children }) => (
+                <>
+                    <ReRegisterProviderProbe adapter={adapter} />
+                    {children}
+                </>
+            ),
+        });
+
+        await waitFor(() => {
+            expect(adapter.dispose).not.toHaveBeenCalled();
+        });
     });
 
 

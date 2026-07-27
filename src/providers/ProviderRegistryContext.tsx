@@ -24,7 +24,7 @@ export type ProviderRegistrySnapshot = Record<string, { registry: Record<string,
  * Replaces a single named adapter in a provider registry at runtime, in ANY
  * category — one of the 6 built-in ones (typed) or an arbitrary custom one a
  * vertical registered (string). Calls the previous adapter's dispose() (if
- * defined) before swapping it in, then propagates the new registry to every
+ * defined) only when the instance changes, then propagates the new registry to every
  * useXProvider()/useProvider() consumer. If `category` didn't exist yet, it's
  * created — categories can be registered after bootstrap, not only via <App providers>.
  */

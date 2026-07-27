@@ -80,6 +80,33 @@
 | [CR-067](#cr-067--asyncdropdown-searchable-component) | AsyncDropdown: componente searchable con AbortSignal | Media | — | ✅ |
 | [CR-068](#cr-068--modern-runtime-and-dependency-baseline) | Modern runtime and dependency baseline | Alta | — | ✅ |
 | [CR-069](#cr-069--centralized-ai-change-and-release-workflow) | Centralized AI change and release workflow | Alta | — | ✅ |
+| [CR-070](#cr-070--unchanged-runtime-provider-is-a-no-op) | Unchanged runtime provider is a no-op | Alta | CR-064 | ✅ |
+
+---
+
+## CR-070 — Unchanged runtime provider is a no-op
+
+**Stato:** ✅ done
+**Issue:** [#10](https://github.com/sherpadvisorylab/llmnative-react/issues/10)
+**Priorità:** Alta
+**Dipende da:** CR-064
+
+### Motivazione
+
+`setProvider()` disponeva sempre il provider registrato prima di sostituirlo,
+anche quando il chiamante registrava nuovamente la stessa istanza. Per provider
+con `dispose()` distruttivo, come Firestore, questa sequenza termina il runtime
+ancora in uso e le letture successive falliscono con `Firestore shutting down`.
+Inoltre più consumer potevano avviare contemporaneamente la stessa sessione e
+produrre adapter distinti per la stessa risorsa, reintroducendo la medesima gara.
+
+### Checklist
+
+- [x] Rendere no-op la registrazione della stessa istanza per categoria e chiave.
+- [x] Conservare il dispose quando l'istanza cambia realmente.
+- [x] Coordinare e deduplicare gli switch concorrenti della stessa sessione logica.
+- [x] Aggiungere regressioni sui contratti `setProvider()` e `switchSession()`.
+- [x] Verificare typecheck, test e build.
 
 ---
 

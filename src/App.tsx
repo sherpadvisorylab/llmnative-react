@@ -270,7 +270,13 @@ export function AppProvider({
         // not just at bootstrap) — every access below falls back gracefully instead of assuming it does.
         setProviderRef.current = (async (category: string, key: string, adapter: { dispose?(): Promise<void> | void }) => {
             const prevRegistry = registriesRef.current[category]?.registry as Record<string, { dispose?(): Promise<void> | void }> | undefined;
-            await prevRegistry?.[key]?.dispose?.();
+            const previousAdapter = prevRegistry?.[key];
+            // Re-registering the very same live instance is a no-op. In particular,
+            // providers such as Firestore terminate their backing runtime on dispose(),
+            // so disposing and reusing the same object leaves the next request aborted.
+            if (previousAdapter === adapter) return;
+
+            await previousAdapter?.dispose?.();
             setRegistries(current => ({
                 ...current,
                 [category]: {
