@@ -111,9 +111,15 @@ const Pagination = <T,>({
         end: "justify-end",
     }[resolvedAlign as "start" | "center" | "end"] || "justify-end";
 
+    // `sticky ?? theme.Pagination.sticky` (nullish coalescing, not `||`): a caller explicitly
+    // passing `sticky={false}` must be able to override a theme default of `true` — with `||`,
+    // `false` is falsy and silently falls through to the theme default, making it impossible to
+    // ever turn this off per-instance (the bug: an empty sticky/blurred bar stayed fixed to the
+    // viewport bottom even with `sticky={false}` passed explicitly).
+    const isSticky = sticky ?? theme.Pagination.sticky;
     const nav = (
-        <Wrapper className={(wrapperClassName || theme.Pagination.wrapperClassName) + (sticky || theme.Pagination.sticky ? ` ${theme.Pagination.stickyClassName}` : '')}
-            style={sticky || theme.Pagination.sticky ? {backdropFilter: "blur(10px)", backgroundColor: "rgba(255, 255, 255, 0.1)"} : {}}
+        <Wrapper className={(wrapperClassName || theme.Pagination.wrapperClassName) + (isSticky ? ` ${theme.Pagination.stickyClassName}` : '')}
+            style={isSticky ? {backdropFilter: "blur(10px)", backgroundColor: "rgba(255, 255, 255, 0.1)"} : {}}
         >
             {before}
 
