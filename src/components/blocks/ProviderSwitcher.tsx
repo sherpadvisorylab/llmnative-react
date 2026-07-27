@@ -132,11 +132,12 @@ export default function ProviderSwitcher({
         setSwitchingId(item.id);
         try {
             if (typeof endpoint === 'function') {
-                await switchSession(() => endpoint(item.id), { onResponse });
+                await switchSession(() => endpoint(item.id), { onResponse, sessionKey: item.id });
             } else {
                 const token = await resolveAuthorization();
                 await switchSession(endpoint, {
                     onResponse,
+                    sessionKey: item.id,
                     fetchOptions: {
                         method,
                         headers: {

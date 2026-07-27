@@ -36,7 +36,7 @@ describe('Dropdown', () => {
     it('does not force a horizontal position by default', () => {
         render(
             <Dropdown trigger="Actions" defaultOpen>
-                <DropdownItem>Edit</DropdownItem>
+                <DropdownItem onClick={() => undefined}>Edit</DropdownItem>
             </Dropdown>
         );
 
@@ -46,15 +46,29 @@ describe('Dropdown', () => {
         expect(menu).not.toHaveClass('right-0');
     });
 
-    it('keeps the menu open after an internal click', () => {
+    it('closes after a DropdownItem selection by default', () => {
         render(
             <Dropdown trigger="Actions" defaultOpen>
-                <DropdownItem>Edit</DropdownItem>
+                <DropdownItem onClick={() => undefined}>Edit</DropdownItem>
             </Dropdown>
         );
 
         const menu = screen.getByRole('menu');
 
+        fireEvent.click(screen.getByText('Edit'));
+
+        expect(menu).not.toBeVisible();
+        expect(menu).toHaveAttribute('aria-hidden', 'true');
+    });
+
+    it('can keep the menu open after a selection when requested', () => {
+        render(
+            <Dropdown trigger="Actions" defaultOpen closeOnSelect={false}>
+                <DropdownItem onClick={() => undefined}>Edit</DropdownItem>
+            </Dropdown>
+        );
+
+        const menu = screen.getByRole('menu');
         fireEvent.click(screen.getByText('Edit'));
 
         expect(menu).toBeVisible();

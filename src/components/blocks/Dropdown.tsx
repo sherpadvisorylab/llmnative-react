@@ -30,6 +30,8 @@ export interface DropdownProps extends MotionUIProps {
     /** Controlled open state. */
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
+    /** Close after an official `DropdownItem` selection. Defaults to `true`. */
+    closeOnSelect?: boolean;
     /** When `true`, the menu stays open regardless of interaction. */
     staticOpen?: boolean;
     /** Horizontal alignment relative to the trigger. */
@@ -98,16 +100,24 @@ interface DropdownDividerProps {
     className?: string;
 }
 
+interface DropdownSelectionContextValue {
+    closeOnSelect: boolean;
+    close: () => void;
+}
+
+const DropdownSelectionContext = React.createContext<DropdownSelectionContextValue | null>(null);
+
 export const Dropdown = ({
                              children,
                              trigger,
                              badge              = undefined,
                              header             = undefined,
                              footer             = undefined,
-                             defaultOpen        = false,
-                             open: controlledOpen = undefined,
-                             onOpenChange       = undefined,
-                             staticOpen         = false,
+                              defaultOpen        = false,
+                              open: controlledOpen = undefined,
+                              onOpenChange       = undefined,
+                              closeOnSelect      = true,
+                              staticOpen         = false,
                              position           = undefined,
                              placement          = "bottom",
                              strategy           = "fixed",
@@ -228,6 +238,7 @@ export const Dropdown = ({
     const absolutePositionClass = position === 'end' ? 'right-0' : 'left-0';
 
     const menuElement = (
+        <DropdownSelectionContext.Provider value={{ closeOnSelect, close: () => updateOpen(false) }}>
         <div
              ref={menuRef}
              id={menuId}
@@ -263,6 +274,7 @@ export const Dropdown = ({
                 {footer}
             </div>}
         </div>
+        </DropdownSelectionContext.Provider>
     );
 
     // "fixed" strategy computes viewport-relative coordinates specifically so the menu can
@@ -361,6 +373,9 @@ export function AsyncDropdown<TItem>({
     return (
         <Dropdown
             {...dropdownProps}
+            // AsyncDropdown owns its asynchronous acceptance contract below; do not let the
+            // generic item handler close it before `onSelect` can return false.
+            closeOnSelect={false}
             staticOpen={staticOpen}
             open={open}
             onOpenChange={setOpen}
@@ -459,6 +474,11 @@ export const DropdownItem = ({
                                  className  = undefined
 }: DropdownItemProps) => {
     const theme = useTheme("dropdown");
+    const dropdown = React.useContext(DropdownSelectionContext);
+    const handleClick: React.MouseEventHandler<HTMLAnchorElement | HTMLButtonElement> = (event) => {
+        onClick?.(event);
+        if (!event.defaultPrevented && dropdown?.closeOnSelect) dropdown.close();
+    };
     const item = icon 
         ? <span className="inline-flex min-w-0 items-center gap-2">
             <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center text-muted-foreground">
@@ -473,6 +493,7 @@ export const DropdownItem = ({
     return url ? (
         <Link 
             to={url}
+            onClick={handleClick}
             role="menuitem"
             className={cn("flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground", className || theme.Dropdown.menuItemClass)}
         >
@@ -480,7 +501,7 @@ export const DropdownItem = ({
         </Link>
     ) : onClick ? (
         <button 
-            onClick={onClick}
+            onClick={handleClick}
             role="menuitem"
             className={cn("flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-left text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground", className || theme.Dropdown.menuItemClass)}
         >
