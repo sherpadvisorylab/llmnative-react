@@ -1,6 +1,8 @@
 import { Prompt } from '../../conf/Prompt';
 import { fetchJson } from '../../libs/fetch';
 import { proxyFetch } from '../proxy';
+import { PromptUtils } from '../../libs/promptUtils';
+import { LLM_LOG_ID_HEADER } from '../proxy/logHeader';
 import type { AIProviderDefinition } from './shared';
 import { createBrowserTransportError } from './shared';
 import { toOpenAITool, toOpenAIMessages, parseOpenAIResponse } from './openaiCompatible';
@@ -47,7 +49,7 @@ export const OPENCODE_PROVIDER_DEFINITION: AIProviderDefinition = {
     dashboardUrl: 'https://opencode.ai',
     credentialsHint: 'OpenCode Zen dashboard → API Keys → Create Key.',
     credentialFields: [{ key: 'apiKey', label: 'API Key', type: 'password' }],
-    capabilities: { supportsTemperature: true },
+    capabilities: { supportsTemperature: true, supportsVision: true, supportsDocuments: true },
     discoverModels: async (apiKey) => {
         const response = await fetchJson(OPENCODE_MODELS_URL, {
             headers: {
@@ -69,17 +71,35 @@ export const OPENCODE_PROVIDER_DEFINITION: AIProviderDefinition = {
             .filter((value: unknown): value is string => typeof value === 'string' && value.length > 0);
     },
     complete: async (apiKey, request) => {
+        // Stesso wire format OpenAI Chat Completions dell'endpoint Zen (vedi
+        // isChatCompletionsModel sopra) — stesso trattamento allegati di openaiCompatible.ts,
+        // mai duplicato a mano: prima di questa correzione request.attachments veniva
+        // silenziosamente ignorato, il file allegato non arrivava mai al modello.
+        const attachments = request.attachments ?? [];
+        const userContent = attachments.length > 0
+            ? attachments.map((a) => {
+                if (a.mimeType.startsWith('image/')) {
+                  return { type: 'image_url' as const, image_url: { url: `data:${a.mimeType};base64,${a.base64}` } };
+                }
+                if (PromptUtils.isTextAttachment(a.mimeType)) {
+                  return { type: 'text' as const, text: `[File: ${a.name}]\n${PromptUtils.decodeBase64Text(a.base64)}` };
+                }
+                return { type: 'text' as const, text: `[File attached: ${a.name} (${a.mimeType})]` };
+              }).concat({ type: 'text' as const, text: request.prompt })
+            : request.prompt;
+
         const response = await fetchJson(OPENCODE_CHAT_URL, {
             method: 'POST',
             headers: {
                 Authorization: `Bearer ${apiKey}`,
+                ...(request.logId ? { [LLM_LOG_ID_HEADER]: request.logId } : {}),
             },
             body: {
                 model: request.model,
                 messages: [
                     ...(request.role ? [{ role: 'system', content: Prompt.parseRole(request.role, request as unknown as import("../../conf/Prompt").PromptVariables) }] : []),
                     ...(request.history ?? []).flatMap(toOpenAIMessages),
-                    ...(request.prompt ? [{ role: 'user', content: request.prompt }] : []),
+                    ...(request.prompt ? [{ role: 'user', content: userContent }] : []),
                 ],
                 ...(request.tools?.length ? { tools: request.tools.map(toOpenAITool) } : {}),
                 ...(typeof request.temperature === 'number' ? { temperature: request.temperature } : {}),

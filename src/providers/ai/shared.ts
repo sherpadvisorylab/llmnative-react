@@ -40,7 +40,7 @@ export type AIProviderDefinition = {
     discoverModels: (apiKey: string) => Promise<string[]>;
     complete: (
         apiKey: string,
-        request: Required<Pick<AICompleteRequest, 'prompt' | 'model'>> & AIRequestOptions & Pick<AICompleteRequest, 'history' | 'tools' | 'signal'>,
+        request: Required<Pick<AICompleteRequest, 'prompt' | 'model'>> & AIRequestOptions & Pick<AICompleteRequest, 'history' | 'tools' | 'signal' | 'logId'>,
     ) => Promise<AICompleteResult | null>;
     /**
      * Per-provider auth check. When omitted, the default implementation in

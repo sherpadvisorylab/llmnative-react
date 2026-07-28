@@ -57,6 +57,13 @@ const resolveModelId = (modelRef: string): string => {
     return parsed?.model ?? modelRef;
 };
 
+/** Mimetype che ha senso decodificare e inserire come testo nel content block del provider,
+ * invece di spedirlo come blocco binario nativo (document/inline_data) — un provider capisce
+ * sempre del testo semplice per definizione, mentre il supporto reale per "document" con un
+ * media_type non-PDF o "inline_data" con un mimetype testuale non è garantito da tutte le API
+ * (verificato: Anthropic documenta `document` per PDF, non per CSV/testo). */
+const TEXT_ATTACHMENT_MIME = /^text\/|^application\/(json|csv|xml|javascript|typescript)/;
+
 const readFileAsDataUrl = (file: File): Promise<string> => (
     new Promise((resolve, reject) => {
         if (typeof FileReader === 'undefined') {
@@ -118,5 +125,29 @@ export const PromptUtils = {
             base64,
             name: file.name,
         };
+    },
+
+    /**
+     * Whether an attachment's mimetype is plain text (or a text-like format such as JSON/CSV/
+     * XML) and should therefore be decoded and inlined as a text content block by the calling
+     * provider adapter, instead of sent as a binary document/inline-data block.
+     */
+    isTextAttachment(mimeType: string): boolean {
+        return TEXT_ATTACHMENT_MIME.test(mimeType);
+    },
+
+    /**
+     * Decodes a base64 attachment payload back to UTF-8 text — `atob` alone only yields a
+     * "binary string" (Latin-1), which corrupts multi-byte characters (accents, emoji); this
+     * re-interprets those bytes as UTF-8 first.
+     */
+    decodeBase64Text(base64: string): string {
+        try {
+            const binary = globalThis.atob(base64);
+            const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
+            return new TextDecoder('utf-8').decode(bytes);
+        } catch {
+            return '';
+        }
     },
 };

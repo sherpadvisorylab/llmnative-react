@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useId, useRef, useState } from 'react';
+﻿import React, { useEffect, useId, useState } from 'react';
 import { useTheme } from "../../Theme";
 import { useI18n, interpolate } from "../../I18n";
 import { Prompt as PromptConf, PromptVariables, PROMPT_CLEANUP, PROMPT_NO_REFERENCE } from '../../conf/Prompt';
@@ -7,35 +7,23 @@ import { useAIProvider, useAIProviderRegistry } from '../../providers/ai/AIProvi
 import { getAIModelCatalog } from '../../providers/ai/shared';
 import { RecordProps } from '../../providers/data/DataProvider';
 import { getProviderConfigurationState } from '../../providers/ProviderConfiguration';
-import { Dropdown, DropdownItem } from '../blocks/Dropdown';
 import Alert from '../ui/Alert';
-import { LoadingButton } from '../ui/Buttons';
 import Icon from '../ui/Icon';
-import {
-    buildTextCommandContext,
-    ContextMenu,
-    CONTEXT_MENU_SEARCH_THRESHOLD,
-    getAutoClosedSuffixLength,
-    type ContextMenuItem,
-    type EditorCommand,
-    type EditorContext as ContextMenuEditorContext,
-} from '../ui/fields/ContextMenu';
+import { type EditorCommand } from '../ui/fields/ContextMenu';
 import { Wrapper } from '../ui/GridSystem';
-import { Label, Range, Switch, TextArea } from '../ui/fields/Input';
+import { Label, Switch, TextArea } from '../ui/fields/Input';
 import { FormFieldProps, useFormContext } from './Form';
 import { PromptUtils } from '../../libs/promptUtils';
+import { Chatbot, type ChatbotAction, type ChatbotSubmitPayload } from './Chatbot';
 
 export enum PromptMode {
     EDIT = "edit",
     RUN = "run",
 }
 
-export type PromptAction = {
-    key: string;
-    icon: string;
-    label?: string;
-    content?: React.ReactNode;
-};
+/** Alias mantenuto per compatibilità pubblica — la vera definizione vive ora in
+ * `Chatbot.tsx` (CR-071), da cui `PromptRun` la eredita passandola a `<Chatbot actions>`. */
+export type PromptAction = ChatbotAction;
 
 export type PromptStatusItem =
     | 'tokensIn' | 'tokensOut' | 'contextPercent' | 'model' | 'duration'
@@ -398,7 +386,6 @@ const PromptEditor = ({
 
 const promptTextareaClass = "border-0 shadow-none rounded-none focus-visible:ring-0 resize-none";
 const promptGhostIcon = "h-7 w-7 cursor-pointer rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground";
-const promptModelTrigger = "h-7 max-w-[140px] rounded-md px-2 text-xs gap-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground truncate";
 
 const buildPromptOptions = (
     promptConfig: PromptConfig | undefined,
@@ -444,39 +431,21 @@ const PromptRun = ({
     const [editing, setEditing] = useState(false);
     const [templateText, setTemplateText] = useState(defaultValue?.value ?? '');
     const [previewOpen, setPreviewOpen] = useState(false);
-    const [attachedFiles, setAttachedFiles] = useState<{ file: File; objectUrl: string }[]>([]);
-    const resultTextareaRef = useRef<HTMLTextAreaElement | null>(null);
-    const removeAttachment = React.useCallback((idx: number) => {
-        setAttachedFiles((prev) => {
-            URL.revokeObjectURL(prev[idx].objectUrl);
-            return prev.filter((_, i) => i !== idx);
-        });
-    }, []);
     const [runStats, setRunStats] = useState<PromptRunStats | null>(null);
-    const attachInputRef = useRef<HTMLInputElement>(null);
     const ai = useAIProvider();
     const aiRegistry = useAIProviderRegistry();
-    const promptDefaults = PromptConf.defaults();
     const defaultModelRef = (typeof localStorage !== 'undefined' && localStorage.getItem('prompt.model'))
         || (ai ? formatAIModelRef(ai.id, ai.defaultModel) : '');
-    const { modelOptions, capabilitiesByProvider } = usePromptCapabilities();
+    const { modelOptions } = usePromptCapabilities();
     const resolvedPromptOptions = React.useMemo(
         () => buildPromptOptions(value?.prompt, defaultValue),
         [defaultValue, value?.prompt],
     );
 
     const selectedModelRef = resolvedPromptOptions.model || defaultModelRef;
-    const selectedProvider = parseAIModelRef(selectedModelRef)?.provider;
-    const selectedCapabilities = selectedProvider ? capabilitiesByProvider[selectedProvider] : undefined;
-    const supportsTemperature = selectedCapabilities?.supportsTemperature ?? true;
-    const supportsVision = selectedCapabilities?.supportsVision ?? Boolean(onRunPrompt);
-    const supportsDocuments = selectedCapabilities?.supportsDocuments ?? Boolean(onRunPrompt);
     const fieldId = useId();
     const availability = usePromptAvailability(selectedModelRef, Boolean(onRunPrompt));
     const runDisabled = !availability.configured;
-    const runTitle = runDisabled
-        ? (availability.reason || dict.aiNotConfiguredRun)
-        : undefined;
     const [runError, setRunError] = useState<string | null>(null);
     const customUnavailableNotice = !runError && !availability.configured
         ? renderAIUnavailable?.({
@@ -494,69 +463,39 @@ const PromptRun = ({
     }, [templateText, record, variables]);
     const hasVariableSubstitution = resolvedPreview !== templateText;
 
-    const modelLabel = selectedModelRef
-        ? (parseAIModelRef(selectedModelRef)?.model || selectedModelRef).split('/').pop() || selectedModelRef
-        : null;
-    const attachmentSupportKnown = Boolean(selectedCapabilities) || Boolean(onRunPrompt);
-    const attachmentsDisabled = Boolean(attachments)
-        && !editing
-        && (
-            (!availability.configured && !onRunPrompt)
-            || (attachmentSupportKnown && !supportsVision && !supportsDocuments)
-        );
-    const attachmentsTitle = attachmentsDisabled
-        ? (!availability.configured && !onRunPrompt
-            ? (availability.reason || dict.aiNotConfiguredRun)
-            : dict.attachmentsNotSupported)
-        : dict.attachFiles;
+    const setField = (field: string, val: string) =>
+        handleChange?.({ target: { name: field, value: val } } as React.ChangeEvent<HTMLInputElement>);
 
-    useEffect(() => {
-        return () => {
-            attachedFiles.forEach(({ objectUrl }) => URL.revokeObjectURL(objectUrl));
-        };
-    }, [attachedFiles]);
+    // Il built-in "tokenUsage" (CR-047) auto-compila il proprio content da runStats — un
+    // concetto specifico di Prompt (single-shot, un solo run alla volta), mai qualcosa che
+    // Chatbot deve sapere. Ogni altra action passa invariata.
+    const resolvedActions: ChatbotAction[] | undefined = actions?.map((action) => (
+        action.key === 'tokenUsage' && !action.content
+            ? {
+                ...action,
+                content: runStats ? (
+                    <div className="px-3 py-2 text-xs space-y-1">
+                        <p className="font-medium text-foreground">{dict.tokenUsage}</p>
+                        <p className="text-muted-foreground">{interpolate(dict.tokenInput, { count: String(runStats.tokensIn) })}</p>
+                        <p className="text-muted-foreground">{interpolate(dict.tokenOutput, { count: String(runStats.tokensOut) })}</p>
+                        {runStats.contextPercent !== null && <p className="text-muted-foreground">{interpolate(dict.tokenContext, { percent: runStats.contextPercent.toFixed(1) })}</p>}
+                        {runStats.estimatedCost !== null && <p className="text-muted-foreground">{interpolate(dict.tokenCost, { amount: runStats.estimatedCost.toFixed(5) })}</p>}
+                        <p className="text-muted-foreground">{interpolate(dict.tokenTime, { seconds: (runStats.durationMs / 1000).toFixed(1) })}</p>
+                    </div>
+                ) : (
+                    <p className="px-3 py-2 text-xs text-muted-foreground">{dict.tokenUsageEmpty}</p>
+                ),
+            }
+            : action
+    ));
 
-    const resolvedCommandsTrigger = commands?.length ? (commandsTrigger ?? '/') : undefined;
-    const commandsSearchable = (commands?.length ?? 0) >= CONTEXT_MENU_SEARCH_THRESHOLD;
-    const commandLookup = React.useMemo(
-        () => new Map((commands ?? []).map((cmd) => [cmd.name, cmd])),
-        [commands],
-    );
-    const commandMenuItems = React.useMemo(
-        () => (commands ?? []).map((cmd) => ({
-            key: cmd.name,
-            label: `${resolvedCommandsTrigger ?? '/'}${cmd.name}`,
-            value: cmd.name,
-            icon: cmd.icon,
-        })),
-        [commands, resolvedCommandsTrigger],
-    );
-
-    const applyCommandSelection = React.useCallback(async (
-        item: ContextMenuItem,
-        context: ContextMenuEditorContext,
-    ) => {
-        const cmd = commandLookup.get(item.value);
-        if (!cmd) return;
-
-        if (cmd.handler) {
-            const newValue = await cmd.handler(buildTextCommandContext(context));
-            const suffixLength = cmd.consumeSuffix
-                ? getAutoClosedSuffixLength(context.textAfterCaret, cmd.consumeSuffix)
-                : 0;
-            context.replace(context.triggerRange.start, context.triggerRange.end + suffixLength, newValue);
-            return;
-        }
-
-        context.replace(
-            context.triggerRange.start,
-            context.triggerRange.end,
-            `${context.trigger}${cmd.name} `,
-        );
-    }, [commandLookup]);
-
-    const runHandler = async () => {
-        const modelRef = value?.prompt?.model?.toString() || defaultModelRef;
+    // Riceve il pacchetto già risolto da Chatbot (testo, allegati grezzi, modello, tono) e
+    // applica la "politica" di Prompt: esegue SEMPRE il template autorato
+    // (resolvedPromptOptions), mai il testo visibile nella textarea — la stessa logica di
+    // runHandler pre-estrazione, solo i dati arrivano da payload invece che da closure
+    // locali (attachedFiles/selectedModelRef letti direttamente).
+    const handleChatbotSubmit = async (payload: ChatbotSubmitPayload) => {
+        const modelRef = payload.model || selectedModelRef || defaultModelRef;
         const parsed = parseAIModelRef(modelRef);
         const resolvedProvider = parsed
             ? (aiRegistry?.registry[parsed.provider] ?? ai ?? undefined)
@@ -565,10 +504,18 @@ const PromptRun = ({
         try {
             const mergedData = { ...(record as PromptVariables), ...variables };
             const fileAttachments = await Promise.all(
-                attachedFiles.map(({ file }) => PromptUtils.fileToAttachment(file))
+                payload.files.map((file) => PromptUtils.fileToAttachment(file))
             );
             const result = await runPrompt(
-                resolvedPromptOptions,
+                {
+                    ...resolvedPromptOptions,
+                    model: modelRef,
+                    role: payload.role ?? resolvedPromptOptions.role,
+                    voice: payload.voice ?? resolvedPromptOptions.voice,
+                    style: payload.style ?? resolvedPromptOptions.style,
+                    language: payload.language ?? resolvedPromptOptions.language,
+                    temperature: payload.temperature ?? resolvedPromptOptions.temperature,
+                },
                 mergedData,
                 onRunPrompt,
                 resolvedProvider,
@@ -578,6 +525,12 @@ const PromptRun = ({
             const durationMs = Date.now() - startMs;
             setRunError(null);
             handleChange?.({ target: { name: name + ".value", value: result } });
+            // Persiste tono/lingua/voce/stile scelti nel composer al momento dell'uso —
+            // non a ogni apertura del dropdown, solo quando davvero consumati da un run.
+            if (payload.role !== undefined) setField(name + ".prompt.role", payload.role);
+            if (payload.voice !== undefined) setField(name + ".prompt.voice", payload.voice);
+            if (payload.style !== undefined) setField(name + ".prompt.style", payload.style);
+            if (payload.language !== undefined) setField(name + ".prompt.language", payload.language);
             if (statusItems && statusItems.length > 0) {
                 const resolved = PromptConf.parsePrompt(resolvedPromptOptions.value ?? '', mergedData);
                 const tokensIn = PromptUtils.countTokens(resolved);
@@ -598,23 +551,6 @@ const PromptRun = ({
         }
     };
 
-    const setField = (field: string, val: string) =>
-        handleChange?.({ target: { name: field, value: val } } as React.ChangeEvent<HTMLInputElement>);
-
-    const resultTextarea = (
-        <TextArea
-            name={name + ".value"}
-            onChange={onChange}
-            textareaRef={resultTextareaRef}
-            required={required}
-            inheritWrapperClassName={false}
-            wrapperClassName=""
-            className={`${className || theme.Prompt.className} ${promptTextareaClass}`}
-            minHeight={minHeight}
-            maxHeight={maxHeight}
-        />
-    );
-
     return (
         <Wrapper className={wrapperClassName || theme.Prompt.wrapperClassName}>
             <div className="flex items-center gap-2">
@@ -627,7 +563,7 @@ const PromptRun = ({
                             required={required}
                         />
                     )}
-                    <div className={`group relative rounded-xl border border-input shadow-sm transition-shadow focus-within:shadow-md focus-within:ring-2 focus-within:ring-offset-0 ${editing ? "focus-within:ring-warning" : "focus-within:ring-ring"}`}>
+                    <div className="group relative">
                         {/* Settings overlay — gear on hover (result) / X always visible (edit) */}
                         <button
                             type="button"
@@ -638,8 +574,8 @@ const PromptRun = ({
                             <Icon name={editing ? "x" : "settings"} size={13} />
                         </button>
 
-                        <div className="overflow-hidden rounded-t-xl">
-                            <div className={editing ? '' : 'hidden'}>
+                        {editing ? (
+                            <div className="overflow-hidden rounded-xl border border-input shadow-sm transition-shadow focus-within:shadow-md focus-within:ring-2 focus-within:ring-warning focus-within:ring-offset-0">
                                 <TextArea
                                     id={fieldId}
                                     name={name + ".prompt.value"}
@@ -655,271 +591,96 @@ const PromptRun = ({
                                     minHeight={minHeight}
                                     maxHeight={maxHeight}
                                 />
-                                {editing && hasVariableSubstitution && previewOpen && (
+                                {hasVariableSubstitution && previewOpen && (
                                     <div className="border-t border-input px-4 py-3 bg-muted/20">
                                         <p className="whitespace-pre-wrap text-sm text-foreground/70">{resolvedPreview}</p>
                                     </div>
                                 )}
-                            </div>
-                            <div className={editing ? 'hidden' : ''}>
-                                {attachedFiles.length > 0 && (
-                                    <div className="flex gap-2 overflow-x-auto border-b border-input px-3 py-2.5">
-                                        {attachedFiles.map(({ file, objectUrl }, i) => (
-                                            <div key={objectUrl} className="relative shrink-0">
-                                                {file.type.startsWith('image/') ? (
-                                                    <div className="h-16 w-16 overflow-hidden rounded-lg border border-input bg-muted/30">
-                                                        <img src={objectUrl} alt={file.name} className="h-full w-full object-cover" />
-                                                    </div>
-                                                ) : (
-                                                    <div className="flex items-center gap-2 rounded-lg border border-input bg-muted/30 px-2.5 py-2 text-xs">
-                                                        <Icon name="file-text" size={18} className="shrink-0 text-muted-foreground" />
-                                                        <div className="max-w-[100px]">
-                                                            <p className="truncate font-medium text-foreground">{file.name}</p>
-                                                            <p className="text-muted-foreground">{(file.size / 1024).toFixed(0)} KB</p>
-                                                        </div>
-                                                    </div>
-                                                )}
-                                                <button
-                                                    type="button"
-                                                    className="absolute -right-1.5 -top-1.5 flex h-4 w-4 cursor-pointer items-center justify-center rounded-full bg-foreground text-background shadow"
-                                                    onClick={() => removeAttachment(i)}
-                                                >
-                                                    <Icon name="x" size={9} />
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                                {resolvedCommandsTrigger && commandMenuItems.length > 0 ? (
-                                    <ContextMenu
-                                        trigger={resolvedCommandsTrigger}
-                                        searchable={commandsSearchable}
-                                        onSelect={(item, context) => {
-                                            void applyCommandSelection(item, context);
-                                        }}
-                                    >
-                                        {commandMenuItems.map((item) => (
-                                            <ContextMenu.Item
-                                                key={item.key}
-                                                label={item.label}
-                                                value={item.value}
-                                                icon={item.icon}
-                                            />
-                                        ))}
-                                        {resultTextarea}
-                                    </ContextMenu>
-                                ) : (
-                                    resultTextarea
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Hidden file input for attachments */}
-                        {attachments && (
-                            <input
-                                ref={attachInputRef}
-                                type="file"
-                                multiple
-                                className="hidden"
-                                onChange={(e) => {
-                                    if (e.target.files) {
-                                        const newFiles = Array.from(e.target.files as FileList).map((file) => ({
-                                            file,
-                                            objectUrl: URL.createObjectURL(file),
-                                        }));
-                                        setAttachedFiles((prev) => [...prev, ...newFiles]);
-                                        e.target.value = '';
-                                    }
-                                }}
-                            />
-                        )}
-
-                        <div className="relative flex items-center gap-1 border-t border-input px-2 py-1 rounded-b-xl">
-
-                            {/* Run-mode left: upload + custom actions */}
-                            {!editing && (attachments || (actions?.length ?? 0) > 0) && (
-                                <>
-                                    {attachments && (
+                                {hasVariableSubstitution && (
+                                    <div className="flex items-center justify-end border-t border-input px-2 py-1">
                                         <button
                                             type="button"
-                                            title={attachmentsTitle}
-                                            className={`${promptGhostIcon} flex items-center justify-center`}
-                                            disabled={attachmentsDisabled}
-                                            onClick={() => attachInputRef.current?.click()}
+                                            title={previewOpen ? dict.hidePreview : dict.showPreview}
+                                            className={`${promptGhostIcon} flex items-center justify-center ${previewOpen ? "bg-muted text-foreground" : ""}`}
+                                            onClick={() => setPreviewOpen((o) => !o)}
                                         >
-                                            <Icon name="paperclip" size={13} />
+                                            <Icon name={previewOpen ? "eye-off" : "eye"} size={13} />
                                         </button>
-                                    )}
-                                    {actions?.map((action) =>
-                                        action.key === 'tokenUsage' || action.content ? (
-                                            <Dropdown
-                                                key={action.key}
-                                                trigger={{ icon: action.icon, title: action.label }}
-                                                placement="top"
-                                                position="start"
-                                                triggerClassName={promptGhostIcon}
-                                            >
-                                                {action.key === 'tokenUsage' ? (
-                                                    runStats ? (
-                                                        <div className="px-3 py-2 text-xs space-y-1">
-                                                            <p className="font-medium text-foreground">{dict.tokenUsage}</p>
-                                                            <p className="text-muted-foreground">{interpolate(dict.tokenInput, { count: String(runStats.tokensIn) })}</p>
-                                                            <p className="text-muted-foreground">{interpolate(dict.tokenOutput, { count: String(runStats.tokensOut) })}</p>
-                                                            {runStats.contextPercent !== null && <p className="text-muted-foreground">{interpolate(dict.tokenContext, { percent: runStats.contextPercent.toFixed(1) })}</p>}
-                                                            {runStats.estimatedCost !== null && <p className="text-muted-foreground">{interpolate(dict.tokenCost, { amount: runStats.estimatedCost.toFixed(5) })}</p>}
-                                                            <p className="text-muted-foreground">{interpolate(dict.tokenTime, { seconds: (runStats.durationMs / 1000).toFixed(1) })}</p>
-                                                        </div>
-                                                    ) : (
-                                                        <p className="px-3 py-2 text-xs text-muted-foreground">{dict.tokenUsageEmpty}</p>
-                                                    )
-                                                ) : action.content}
-                                            </Dropdown>
-                                        ) : (
-                                            <button
-                                                key={action.key}
-                                                type="button"
-                                                title={action.label}
-                                                className={`${promptGhostIcon} flex items-center justify-center`}
-                                            >
-                                                <Icon name={action.icon} size={13} />
-                                            </button>
-                                        )
-                                    )}
-                                    <div className="mx-1 h-4 w-px shrink-0 bg-border" />
-                                </>
-                            )}
-
-                            {/* Run-mode settings: shown only when AI is available (no error) */}
-                            {!editing && !runError && availability.configured && (
-                                <>
-                                    {/* Model */}
-                                    <Dropdown
-                                        trigger={{ icon: "cpu", text: modelLabel ?? "Model" }}
-                                        placement="top"
-                                        position="start"
-                                        triggerClassName={promptModelTrigger}
-                                    >
-                                        <DropdownItem onClick={() => setField(name + ".prompt.model", "")}>
-                                            {dict.defaultOption}
-                                        </DropdownItem>
-                                        {modelOptions.map((opt) => (
-                                            <DropdownItem key={opt.value} onClick={() => setField(name + ".prompt.model", opt.value)}>
-                                                {opt.label}
-                                            </DropdownItem>
-                                        ))}
-                                    </Dropdown>
-
-                                    {/* Role */}
-                                    <Dropdown trigger={{ icon: "user", title: "Role" }} placement="top" position="start" triggerClassName={promptGhostIcon}>
-                                        <DropdownItem onClick={() => setField(name + ".prompt.role", "")}>{dict.defaultOption} ({promptDefaults.role})</DropdownItem>
-                                        {PromptConf.getRoles().map((v) => (
-                                            <DropdownItem key={v} onClick={() => setField(name + ".prompt.role", v)}>{v}</DropdownItem>
-                                        ))}
-                                    </Dropdown>
-
-                                    {/* Language */}
-                                    <Dropdown trigger={{ icon: "globe", title: "Language" }} placement="top" position="start" triggerClassName={promptGhostIcon}>
-                                        <DropdownItem onClick={() => setField(name + ".prompt.language", "")}>{dict.defaultOption} ({promptDefaults.language})</DropdownItem>
-                                        {PromptConf.getLangs().map((v) => (
-                                            <DropdownItem key={v} onClick={() => setField(name + ".prompt.language", v)}>{v}</DropdownItem>
-                                        ))}
-                                    </Dropdown>
-
-                                    {/* Voice */}
-                                    <Dropdown trigger={{ icon: "mic", title: "Voice" }} placement="top" position="start" triggerClassName={promptGhostIcon}>
-                                        <DropdownItem onClick={() => setField(name + ".prompt.voice", "")}>{dict.defaultOption} ({promptDefaults.voice})</DropdownItem>
-                                        {PromptConf.getVoices().map((v) => (
-                                            <DropdownItem key={v} onClick={() => setField(name + ".prompt.voice", v)}>{v}</DropdownItem>
-                                        ))}
-                                    </Dropdown>
-
-                                    {/* Style */}
-                                    <Dropdown trigger={{ icon: "feather", title: "Style" }} placement="top" position="start" triggerClassName={promptGhostIcon}>
-                                        <DropdownItem onClick={() => setField(name + ".prompt.style", "")}>{dict.defaultOption} ({promptDefaults.style})</DropdownItem>
-                                        {PromptConf.getStyles().map((v) => (
-                                            <DropdownItem key={v} onClick={() => setField(name + ".prompt.style", v)}>{v}</DropdownItem>
-                                        ))}
-                                    </Dropdown>
-
-                                    {/* Temperature */}
-                                    {supportsTemperature && (
-                                        <Dropdown trigger={{ icon: "thermometer", title: "Temperature" }} placement="top" position="start" triggerClassName={promptGhostIcon}>
-                                            <DropdownItem>
-                                                <Range name={name + ".prompt.temperature"} label="Temperature" defaultValue={defaultValue?.temperature} inheritWrapperClassName={false} min={0} max={1} step={0.1} />
-                                            </DropdownItem>
-                                        </Dropdown>
-                                    )}
-                                </>
-                            )}
-
-                            {/* Spacer — always pushes right-side items to the far right */}
-                            <div className="flex-1" />
-
-                            {/* Availability / run-error notice — right side, replaces slash button when present */}
-                            {!editing && (runError || !availability.configured) && (
-                                customUnavailableNotice ? (
-                                    <div className="mr-1 min-w-0">
-                                        {customUnavailableNotice}
                                     </div>
-                                ) : (
-                                    <span className="flex min-w-0 items-center gap-1 text-xs text-warning truncate mr-1">
-                                        <Icon name="triangle-alert" size={13} className="shrink-0" />
-                                        <span className="truncate">
-                                            {runError ?? (availability.reason || dict.aiNotConfiguredShort)}
-                                        </span>
-                                    </span>
-                                )
-                            )}
-
-                            {/* Preview toggle — only in edit mode when variables produce substitutions */}
-                            {editing && hasVariableSubstitution && (
-                                <button
-                                    type="button"
-                                    title={previewOpen ? dict.hidePreview : dict.showPreview}
-                                    className={`${promptGhostIcon} flex items-center justify-center ${previewOpen ? "bg-muted text-foreground" : ""}`}
-                                    onClick={() => setPreviewOpen((o) => !o)}
-                                >
-                                    <Icon name={previewOpen ? "eye-off" : "eye"} size={13} />
-                                </button>
-                            )}
-
-                            {/* Run — icon only, hidden in edit mode */}
-                            {!editing && (
-                                <LoadingButton
-                                    icon="send"
-                                    loadingLabel=""
-                                    disabled={runDisabled}
-                                    ariaLabel={dict.run}
-                                    title={runTitle ?? dict.run}
-                                    variant="primary"
-                                    className="!p-0 h-8 w-8"
-                                    onClick={runHandler}
-                                />
-                            )}
-                        </div>
-
-                        {/* Status strip — shown after a run when statusItems are configured */}
-                        {statusItems && statusItems.length > 0 && runStats && !editing && (
-                            <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 rounded-b-xl border-t border-input/50 bg-muted/20 px-4 py-1.5 text-[11px] text-muted-foreground">
-                                {statusItems.map((item) => {
-                                    if (typeof item === 'string') {
-                                        switch (item) {
-                                            case 'tokensIn': return <span key="tokensIn">{interpolate(dict.tokenInput, { count: runStats.tokensIn })}</span>;
-                                            case 'tokensOut': return <span key="tokensOut">{interpolate(dict.tokenOutput, { count: runStats.tokensOut })}</span>;
-                                            case 'contextPercent': return runStats.contextPercent !== null
-                                                ? <span key="ctx">{interpolate(dict.tokenContext, { percent: runStats.contextPercent.toFixed(1) })}</span>
-                                                : null;
-                                            case 'model': return <span key="model" className="font-mono">{(parseAIModelRef(runStats.model)?.model || runStats.model).split('/').pop()}</span>;
-                                            case 'duration': return <span key="dur">{interpolate(dict.tokenTime, { seconds: (runStats.durationMs / 1000).toFixed(1) })}</span>;
-                                            default: return null;
-                                        }
-                                    }
-                                    return <span key={item.key}>{item.render(runStats)}</span>;
-                                })}
-                                {runStats.estimatedCost !== null && !statusItems.some((i) => typeof i === 'object' && i.key === 'cost') && (
-                                    <span className="ml-auto font-mono">~${runStats.estimatedCost.toFixed(5)}</span>
                                 )}
                             </div>
+                        ) : (
+                            <>
+                                <Chatbot
+                                    name={name + ".value"}
+                                    value={value?.value !== undefined ? String(value.value) : ''}
+                                    onChange={(text) => {
+                                        handleChange?.({ target: { name: name + ".value", value: text } });
+                                        onChange?.({
+                                            event: { target: { name: name + '.value', value: text } } as React.ChangeEvent<HTMLTextAreaElement>,
+                                            name: name + '.value',
+                                            value: text,
+                                            record: record ?? {},
+                                            onChange: handleChange ?? (() => {}),
+                                        });
+                                    }}
+                                    disabled={runDisabled}
+                                    onSubmit={(payload) => { void handleChatbotSubmit(payload); }}
+                                    attachments={attachments}
+                                    commands={commands}
+                                    commandsTrigger={commandsTrigger}
+                                    models={modelOptions}
+                                    selectedModel={selectedModelRef}
+                                    onModelChange={(id) => setField(name + ".prompt.model", id)}
+                                    showSettings
+                                    defaultRole={resolvedPromptOptions.role}
+                                    defaultVoice={resolvedPromptOptions.voice}
+                                    defaultStyle={resolvedPromptOptions.style}
+                                    defaultLanguage={resolvedPromptOptions.language}
+                                    defaultTemperature={resolvedPromptOptions.temperature}
+                                    actions={resolvedActions}
+                                    minHeight={minHeight}
+                                    maxHeight={maxHeight}
+                                    className={className || theme.Prompt.className}
+                                    wrapperClassName=""
+                                />
+
+                                {(runError || !availability.configured) && (
+                                    customUnavailableNotice ? (
+                                        <div className="mt-1">{customUnavailableNotice}</div>
+                                    ) : (
+                                        <span className="mt-1 flex min-w-0 items-center gap-1 text-xs text-warning">
+                                            <Icon name="triangle-alert" size={13} className="shrink-0" />
+                                            <span className="truncate">
+                                                {runError ?? (availability.reason || dict.aiNotConfiguredShort)}
+                                            </span>
+                                        </span>
+                                    )
+                                )}
+
+                                {statusItems && statusItems.length > 0 && runStats && (
+                                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 rounded-lg border border-input/50 bg-muted/20 px-4 py-1.5 text-[11px] text-muted-foreground">
+                                        {statusItems.map((item) => {
+                                            if (typeof item === 'string') {
+                                                switch (item) {
+                                                    case 'tokensIn': return <span key="tokensIn">{interpolate(dict.tokenInput, { count: runStats.tokensIn })}</span>;
+                                                    case 'tokensOut': return <span key="tokensOut">{interpolate(dict.tokenOutput, { count: runStats.tokensOut })}</span>;
+                                                    case 'contextPercent': return runStats.contextPercent !== null
+                                                        ? <span key="ctx">{interpolate(dict.tokenContext, { percent: runStats.contextPercent.toFixed(1) })}</span>
+                                                        : null;
+                                                    case 'model': return <span key="model" className="font-mono">{(parseAIModelRef(runStats.model)?.model || runStats.model).split('/').pop()}</span>;
+                                                    case 'duration': return <span key="dur">{interpolate(dict.tokenTime, { seconds: (runStats.durationMs / 1000).toFixed(1) })}</span>;
+                                                    default: return null;
+                                                }
+                                            }
+                                            return <span key={item.key}>{item.render(runStats)}</span>;
+                                        })}
+                                        {runStats.estimatedCost !== null && !statusItems.some((i) => typeof i === 'object' && i.key === 'cost') && (
+                                            <span className="ml-auto font-mono">~${runStats.estimatedCost.toFixed(5)}</span>
+                                        )}
+                                    </div>
+                                )}
+                            </>
                         )}
                     </div>
                 </div>

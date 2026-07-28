@@ -81,6 +81,206 @@
 | [CR-068](#cr-068--modern-runtime-and-dependency-baseline) | Modern runtime and dependency baseline | Alta | — | ✅ |
 | [CR-069](#cr-069--centralized-ai-change-and-release-workflow) | Centralized AI change and release workflow | Alta | — | ✅ |
 | [CR-070](#cr-070--unchanged-runtime-provider-is-a-no-op) | Unchanged runtime provider is a no-op | Alta | CR-064 | ✅ |
+| [CR-071](#cr-071--chatbot-componente-condiviso-estratto-da-prompt) | Chatbot — componente condiviso estratto da Prompt | Alta | CR-046, CR-047, CR-048 | ✅ |
+| [CR-072](#cr-072--fix-errori-tsc---noemit-in-clientsshowcase) | Fix errori `tsc --noEmit` in `clients/showcase` | Bassa | — | ⬜ |
+| [CR-073](#cr-073--dev-only-llm-requestresponse-file-logging-e-fix-allegati) | Dev-only LLM request/response file logging e fix allegati | Media | CR-069 | ✅ |
+
+---
+
+## CR-072 — Fix errori `tsc --noEmit` in `clients/showcase`
+
+**Stato:** ⬜ todo
+**Issue:** [#14](https://github.com/sherpadvisorylab/llmnative-react/issues/14)
+**Priorità:** Bassa
+**Dipende da:** —
+
+### Motivazione
+
+Lanciando `npx tsc --noEmit` dentro `clients/showcase` (non il comando verificato in
+`.notes/STATUS.md`, che elenca solo `cd clients/showcase && npm run build`) emergono ~934
+errori. Due famiglie distinte, verificate durante il lavoro su CR-071:
+
+1. **Duplicazione di `@types/react`**: `clients/showcase/node_modules/@types/react` e
+   `node_modules/@types/react` (radice) sono due copie fisicamente distinte anche se
+   entrambe alla versione `19.2.17` — TS le tratta come tipi nominalmente diversi
+   ("Two different types with this name exist, but they are unrelated"), rompendo
+   `MarkdownReader.tsx` (props `ref` su elementi HTML). Sintomo classico di monorepo senza
+   dedup/hoisting dei type packages.
+2. **`@llmnative/react` risolto senza i suoi export**: una cascata di errori
+   "Module '@llmnative/react' has no exported member 'Icon'/'defineLocaleMessages'/..." su
+   praticamente ogni file showcase — sembra un problema di risoluzione moduli/tipi tra
+   `tsc --noEmit` lanciato da solo in `clients/showcase` e il modo in cui il progetto viene
+   normalmente buildato (Vite, che invece risolve correttamente: `npm run build` passa,
+   incluso il nuovo `ChatbotPage`).
+
+**Non blocca nulla oggi** — `npm run build` (il vero gate documentato) passa. Rimandato
+esplicitamente: va fatto in un momento dedicato, non contestualmente a CR-071.
+
+### Scope (da investigare, non ancora deciso)
+
+- Capire se `tsc --noEmit` a livello showcase è mai stato un gate reale o solo un comando
+  non documentato/non funzionante da sempre.
+- Se va reso un gate reale: dedup dei type package (npm workspaces/hoisting, o
+  `skipLibCheck`/path mapping mirato), e capire perché la risoluzione di
+  `@llmnative/react` perde gli export solo in questo contesto.
+- Aggiornare `.notes/STATUS.md`/verification table di conseguenza una volta chiuso.
+
+### Checklist
+
+- [ ] Diagnosticare la causa esatta della duplicazione `@types/react`
+- [ ] Diagnosticare perché `@llmnative/react` perde i suoi export in questo tsc run
+- [ ] Decidere se correggere o formalizzare `tsc --noEmit` come non-gate per showcase
+- [ ] Aggiornare `.notes/STATUS.md` con l'esito
+
+---
+
+## CR-073 — Dev-only LLM request/response file logging e fix allegati
+
+**Stato:** ✅ done — rilasciato in 1.3.0
+**Issue:** [#17](https://github.com/sherpadvisorylab/llmnative-react/issues/17)
+**Priorità:** Media
+**Dipende da:** CR-069
+
+### Motivazione
+
+Un consumer (Agentico, CMS) aveva bisogno di ispezionare il prompt finale
+assemblato e la risposta grezza di ogni turno per verificare il prompt
+engineering di una conversazione multi-turno con tool-calling e allegati
+grandi — nessun logging esisteva oltre alla console del browser, che non
+mostra mai il body HTTP reale. Nel debug di quel flusso è emerso un bug
+indipendente ma reale: il provider `opencode` (`src/providers/ai/opencode.ts`)
+costruiva il messaggio utente ignorando `request.attachments` — un allegato
+veniva accettato dalla UI ma non arrivava mai al modello, senza errore.
+
+### Scope
+
+- `AICompleteRequest.logId?: string` (`AIProvider.ts`) — id stabile per
+  l'intera conversazione, generato una volta da chi possiede la sessione
+  (es. `useAgent` lato CMS), mai dal provider.
+- `createProxyPlugin(route, logOptions?: ProxyLogOptions)`
+  (`providers/proxy/vite.ts`) — se `logOptions.enabled`, il proxy dev
+  intercetta l'header `x-llmnative-log-id` (mai inoltrato upstream, consumato
+  come `PROXY_CALLER_HEADER`) e accoda request/response body (JSON
+  pretty-printed o testo grezzo) a `logOptions.dir/<logId>.txt`. Un file per
+  conversazione, non uno per singola chiamata. Un errore di scrittura non fa
+  mai fallire la richiesta reale (solo `console.warn`).
+  `providers/proxy/logHeader.ts` esporta la costante header condivisa.
+  Nessun log su chiamate che non impostano `logId` — i provider AI portano
+  l'header solo se lo ricevono, il proxy non ha bisogno di sapere quali URL
+  sono "un LLM".
+- Header aggiunto in tutte le chiamate `complete()`: `anthropic.ts`,
+  `gemini.ts`, `openaiCompatible.ts`, `opencode.ts`.
+- **Fix**: `opencode.ts` costruisce ora il content block utente con lo stesso
+  schema di `openaiCompatible.ts` (image inline per `image/*`, testo decodificato
+  per mimetype testuali via le nuove `PromptUtils.isTextAttachment`/
+  `decodeBase64Text`, placeholder altrimenti) — prima ignorava
+  `request.attachments` del tutto. `capabilities` aggiornate
+  (`supportsVision`/`supportsDocuments: true`), coerenti col fix.
+- `libs/csv.ts` (nuovo) — `parseCsvText(text)`, stesso motore (`papaparse`) di
+  `<UploadCSV>` ma per testo già in memoria (un allegato decodificato lato
+  agente non ha un `File`/`ChangeEvent` da passare a quel componente).
+
+### Checklist
+
+- [x] `AICompleteRequest.logId` + header su tutti e 4 i provider
+- [x] `ProxyLogOptions`/logging file, un file per conversazione, mai in produzione
+- [x] Fix allegati ignorati in `opencode.ts`
+- [x] `PromptUtils.isTextAttachment`/`decodeBase64Text`
+- [x] `libs/csv.ts` — `parseCsvText`
+- [x] Nuovi test in `tests/unit/providers/AIProviderDefinitions.test.ts` (header
+      presente/assente per i 4 provider) e `tests/unit/libs/promptUtils.test.ts`
+- [x] `npx tsc --noEmit` — 0 errori
+- [x] `npm test` — 681/681
+- [x] `npm run build` — bundle + dichiarazioni generati
+- [x] Issue GitHub collegata (#17)
+- [x] Versione SemVer (minor, cumulata con CR-071) e `npm publish` — 1.3.0
+
+---
+
+## CR-071 — Chatbot: componente condiviso estratto da Prompt
+
+**Stato:** ✅ done — rilasciato in 1.3.0
+**Issue:** [#13](https://github.com/sherpadvisorylab/llmnative-react/issues/13)
+**Priorità:** Alta
+**Dipende da:** CR-046, CR-047, CR-048
+
+### Motivazione
+
+Un consumer del framework (Agentico, orchestratore chatbot nel CMS `llmnative-cms`)
+aveva bisogno di un composer con allegati e scelta modello — UI che `Prompt` (mode
+RUN) possiede già dalle CR-046/047/048, ma cablata insieme alla semantica
+"template autorato una tantum + campo risultato separato", pensata per un caso
+d'uso diverso da una conversazione multi-turno. Verificato a fondo prima di
+decidere: la sostituzione `{value}`/`{variabile}` nel template avviene DAVVERO
+solo nel percorso "provider reale" (`src/providers/ai/shared.ts`, wrapper
+generico prima di `definition.complete()`) — con un `onRunPrompt` custom
+(l'esecutore che userebbe un consumer come Agentico) questa risoluzione non
+scatta mai (confermato dal test esistente su `onRunPrompt` con placeholder non
+risolto). `PromptRun` inoltre non passa mai `history` né `tools` a
+`provider.complete()`: è strutturalmente single-shot. La sola vera differenza
+tra `Prompt` e un composer di conversazione multi-turno è questa (memoria +
+tool-calling), non l'input widget in sé — da cui la scelta di estrarre un
+componente condiviso invece di duplicare la UI o forzare `Prompt` a diventare
+multi-turno.
+
+### Scope
+
+- Nuovo componente pubblico `Chatbot` (`src/components/widgets/Chatbot.tsx`):
+  textarea, slash-command (`ContextMenu`, riusato tale e quale), picker allegati
+  (paperclip, preview, `PromptUtils.fileToAttachment` lasciato al chiamante — Chatbot
+  restituisce `File[]` grezzi), model picker, dropdown ruolo/lingua/voce/stile/
+  temperatura opzionali (`showSettings`), bottone invio/stop. **Non dipende da
+  `Form`** (zero `useFormContext`), **non conosce provider AI/variabili di
+  template** — riceve un pacchetto di input risolto (`ChatbotSubmitPayload`) e lo
+  passa a `onSubmit`; chi lo consuma decide cosa farne (mai responsabilità di
+  Chatbot). Non renderizza un transcript/lista messaggi.
+- `PromptRun` (`Prompt.tsx`) refattorizzato per montare `<Chatbot>` al posto del
+  blocco toolbar+textarea+allegati+model-picker che prima possedeva
+  direttamente — **zero breaking change alle props pubbliche di `Prompt`**,
+  stesso comportamento osservabile (12 test esistenti in
+  `tests/unit/components/Prompt.test.tsx` invariati e verdi senza modifiche).
+  Resta a `Prompt`: il toggle editing (autoria del template), lo stato
+  `runStats`/status bar, il binding al campo Form.
+- `PromptAction` (pubblico) diventa un alias di `ChatbotAction`, nessun cambio
+  per i consumer esistenti.
+- Esportato da `@llmnative/react`: `Chatbot`, `ChatbotProps`,
+  `ChatbotSubmitPayload`, `ChatbotAction`, `ChatbotModelOption`.
+- Nuova suite `tests/unit/components/Chatbot.test.tsx` (10 test, standalone senza
+  `Form`): testo libero, invio via Enter, allegati (attach/preview/forward/clear),
+  drag&drop di file sul composer (overlay "Drop files to attach", ignorato se
+  `attachments` è `false`), model picker, running/stop con e senza `onStop`,
+  `disabled`.
+- Drag&drop nativo sul wrapper del composer (`onDragEnter`/`onDragOver`/
+  `onDragLeave`/`onDrop`, attivo solo con `attachments`): un contatore di
+  drag-enter (non un booleano) evita che l'overlay sparisca quando il
+  puntatore attraversa elementi figli (tray allegati, textarea, toolbar)
+  durante il trascinamento. Nuova chiave i18n `prompt.dropFilesHere` (6 lingue).
+
+### Semplificazioni consapevoli (non regressioni silenziose)
+
+- Il bottone allegati non si autodisabilita più in base a `supportsVision`/
+  `supportsDocuments` del provider selezionato (prima solo il bottone si
+  disattivava, mai l'intero composer) — oggi è un tutto-o-niente (`attachments`
+  boolean). Nessun test copriva questa sfumatura.
+- Ruolo/lingua/voce/stile/temperatura in `Chatbot` sono stato locale non
+  controllato (seedato da `default*`), riportato al chiamante solo al momento
+  del submit — `PromptRun` li persiste nel record Form in quel momento (non più
+  ad ogni apertura del dropdown).
+
+### Checklist
+
+- [x] `Chatbot.tsx` — componente standalone, nessuna dipendenza da `Form`
+- [x] `PromptRun` monta `Chatbot`, comportamento osservabile invariato
+- [x] `PromptAction` alias di `ChatbotAction`, nessun breaking change pubblico
+- [x] Export pubblici (`Chatbot`, tipi) da `@llmnative/react`
+- [x] `tests/unit/components/Prompt.test.tsx` — 13/13 verdi senza modifiche
+- [x] `tests/unit/components/Chatbot.test.tsx` — 10/10 verdi (incluso drag&drop)
+- [x] `npx tsc --noEmit` — 0 errori
+- [x] `npm test` — 681/681 (suite completa, incluso il contratto di export pubblico dopo rebuild)
+- [x] `npm run build` — bundle + dichiarazioni generati
+- [x] Issue GitHub collegata (#13)
+- [x] Versione SemVer (minor — nuova API pubblica retrocompatibile) e `npm publish` — 1.3.0
+- [x] Consumo lato CMS (`llmnative-cms`, pannello Agentico) — già in uso in Agentico
 
 ---
 

@@ -75,6 +75,13 @@ export interface AICompleteRequest extends AIRequestOptions {
     tools?: AIToolDefinition[];
     /** Annulla la richiesta in corso (es. un bottone "interrompi" lato chiamante). */
     signal?: AbortSignal;
+    /** Id stabile per l'intera conversazione (generato una volta da chi possiede la sessione,
+     * es. useAgent — mai dal provider), trasportato come header `x-llmnative-log-id` verso il
+     * proxy dev di Vite: se il logging file è abilitato (`createProxyPlugin` con
+     * `ProxyLogOptions.enabled`), il proxy accoda request/response di OGNI turno con questo id
+     * allo stesso file — un file per conversazione. Assente = nessun logging per questa
+     * chiamata, comportamento identico a oggi. */
+    logId?: string;
 }
 
 /** Esito di una chiamata completate — testo semplice, oppure una o più richieste di tool

@@ -97,6 +97,7 @@ export { default as ImageEditor } from './widgets/ImageEditor';
 export { default as MarkdownReader } from './widgets/MarkdownReader';
 export type { MarkdownReaderProps } from './widgets/MarkdownReader';
 export * from './widgets/Prompt';
+export * from './widgets/Chatbot';
 export { default as TabDynamic } from './widgets/TabDynamic';
 export { default as Component } from './Component';
 export { ComponentBlock } from './Component';

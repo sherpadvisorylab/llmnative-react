@@ -13,9 +13,8 @@
     "jsx": "react-jsx",
     "strict": true,
     "paths": {
-      "@/*": ["./src/*"],
-      "@llmnative/react": ["../../src/index.ts"]
+      "@/*": ["./src/*"]
     }
   },
-  "include": ["src"]
+    "include": ["src"]
 }

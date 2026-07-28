@@ -1,6 +1,8 @@
 import { fetchJson } from '../../libs/fetch';
 import { Prompt } from '../../conf/Prompt';
 import { proxyFetch } from '../proxy';
+import { PromptUtils } from '../../libs/promptUtils';
+import { LLM_LOG_ID_HEADER } from '../proxy/logHeader';
 import type { AIProviderDefinition } from './shared';
 import type { AIConversationTurn, AICompleteResult, AIToolDefinition } from './AIProvider';
 
@@ -101,13 +103,20 @@ export const GEMINI_PROVIDER_DEFINITION: AIProviderDefinition = {
     },
     complete: async (apiKey, request) => {
         const attachments = request.attachments ?? [];
+        // I mimetype testuali (CSV/TXT/JSON/...) vengono decodificati e inseriti come parte
+        // `text` invece di `inline_data` — stesso trattamento di anthropic.ts/
+        // openaiCompatible.ts (vedi PromptUtils.isTextAttachment), non un'assunzione che
+        // l'API Gemini interpreti bene testo semplice passato come dato binario inline.
         const parts = [
-            ...attachments.map((a) => ({ inline_data: { mime_type: a.mimeType, data: a.base64 } })),
+            ...attachments.map((a) => PromptUtils.isTextAttachment(a.mimeType)
+                ? { text: `[File: ${a.name}]\n${PromptUtils.decodeBase64Text(a.base64)}` }
+                : { inline_data: { mime_type: a.mimeType, data: a.base64 } }),
             { text: request.prompt },
         ];
 
         const response = await fetchJson(`${GEMINI_CONTENT_URL}/${request.model}:generateContent?key=${apiKey}`, {
             method: 'POST',
+            headers: request.logId ? { [LLM_LOG_ID_HEADER]: request.logId } : undefined,
             body: {
                 contents: [
                     ...(request.history ?? []).map(toGeminiContent),

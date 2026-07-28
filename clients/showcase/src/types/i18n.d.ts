@@ -1390,6 +1390,29 @@ interface ShowcaseBreadcrumbsI18n {
     };
 }
 
+interface ShowcaseChatbotI18n {
+    page: { title: string; description: string; };
+    sections: {
+        basicComposer: ShowcasePageSectionCopy;
+        attachments: ShowcasePageSectionCopy;
+        modelPicker: ShowcasePageSectionCopy;
+        runningAndStop: ShowcasePageSectionCopy;
+        disabledState: ShowcasePageSectionCopy;
+    };
+    labels: {
+        placeholder: string;
+        modelClaude: string;
+        modelGpt: string;
+        modelGemini: string;
+        stopHint: string;
+        disabledHint: string;
+    };
+    propsDocs: {
+        title: string;
+        items: Record<string, ShowcaseGridDocFieldCopy & { default?: string }>;
+    };
+}
+
 interface ShowcaseRepeatI18n {
     page: { title: string; description: string; };
     sections: {
@@ -2437,6 +2460,7 @@ declare module '@llmnative/react' {
             search:                       ShowcaseSearchI18n;
             menu:                         ShowcaseMenuI18n;
             breadcrumbs:                  ShowcaseBreadcrumbsI18n;
+            chatbot:                      ShowcaseChatbotI18n;
             repeat:                       ShowcaseRepeatI18n;
             tabDynamic:                   ShowcaseTabDynamicI18n;
             gridPreview:                  ShowcaseGridPreviewI18n;

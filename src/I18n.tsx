@@ -135,6 +135,7 @@ export interface I18nDict {
         closeEditor:            string;
         editSettings:           string;
         attachFiles:            string;
+        dropFilesHere:          string;
         attachmentsNotSupported: string;
         run:                    string;
         runFailed:              string;

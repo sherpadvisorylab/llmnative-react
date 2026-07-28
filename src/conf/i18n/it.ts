@@ -63,7 +63,7 @@ export const it: I18nDict = {
         toggleOnTitle: 'Prompt ATTIVO. Il testo viene usato come template e può essere eseguito.',
         toggleOffTitle: 'Prompt DISATTIVO. Il testo viene usato direttamente senza elaborazione AI.',
         closeEditor: 'Chiudi editor', editSettings: 'Modifica impostazioni',
-        attachFiles: 'Allega file', attachmentsNotSupported: 'Il provider AI selezionato non supporta allegati immagini o documenti.',
+        attachFiles: 'Allega file', dropFilesHere: 'Rilascia i file per allegarli', attachmentsNotSupported: 'Il provider AI selezionato non supporta allegati immagini o documenti.',
         run: 'Esegui', runFailed: 'Esecuzione del prompt fallita.',
         noMatchingCommands: 'Nessun comando corrispondente',
         tokenUsage: 'Utilizzo token', tokenInput: 'In: {count} tok',

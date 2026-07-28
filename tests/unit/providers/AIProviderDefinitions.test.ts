@@ -32,6 +32,7 @@ import { parseTextResponse, createBrowserTransportError } from '../../../src/pro
 import { ANTHROPIC_PROVIDER_DEFINITION } from '../../../src/providers/ai/anthropic';
 import { createOpenAICompatibleProviderDefinition } from '../../../src/providers/ai/openaiCompatible';
 import { GEMINI_PROVIDER_DEFINITION } from '../../../src/providers/ai/gemini';
+import { OPENCODE_PROVIDER_DEFINITION } from '../../../src/providers/ai/opencode';
 import * as fetchLib from '../../../src/libs/fetch';
 import * as proxy from '../../../src/providers/proxy';
 
@@ -168,6 +169,64 @@ describe('ANTHROPIC_PROVIDER_DEFINITION', () => {
         it('returns null when response content is empty', async () => {
             mockFetchJson().mockResolvedValueOnce({ content: [] });
             expect(await ANTHROPIC_PROVIDER_DEFINITION.complete('key', baseRequest)).toBeNull();
+        });
+
+        it('includes image attachments as base64 image blocks', async () => {
+            mockFetchJson().mockResolvedValueOnce({ content: [{ text: 'ok' }] });
+
+            await ANTHROPIC_PROVIDER_DEFINITION.complete('key', {
+                ...baseRequest,
+                attachments: [{ mimeType: 'image/png', base64: 'iVBORw0KGgo=', name: 'photo.png' }],
+            });
+
+            const body = mockFetchJson().mock.calls[0][1].body as { messages: { role: string; content: { type: string }[] }[] };
+            const content = body.messages.find((m) => m.role === 'user')?.content;
+            expect(content?.[0]).toMatchObject({ type: 'image', source: { type: 'base64', media_type: 'image/png', data: 'iVBORw0KGgo=' } });
+        });
+
+        it('decodes text attachments into text blocks instead of document blocks', async () => {
+            mockFetchJson().mockResolvedValueOnce({ content: [{ text: 'ok' }] });
+
+            await ANTHROPIC_PROVIDER_DEFINITION.complete('key', {
+                ...baseRequest,
+                attachments: [{ mimeType: 'text/csv', base64: 'SGVsbG8gV29ybGQ=', name: 'redirects.csv' }],
+            });
+
+            const body = mockFetchJson().mock.calls[0][1].body as { messages: { role: string; content: { type: string; text?: string }[] }[] };
+            const content = body.messages.find((m) => m.role === 'user')?.content;
+            expect(content?.[0]).toMatchObject({ type: 'text' });
+            expect(content?.[0].text).toContain('Hello World');
+        });
+
+        it('sends non-text, non-image attachments as document blocks', async () => {
+            mockFetchJson().mockResolvedValueOnce({ content: [{ text: 'ok' }] });
+
+            await ANTHROPIC_PROVIDER_DEFINITION.complete('key', {
+                ...baseRequest,
+                attachments: [{ mimeType: 'application/pdf', base64: 'JVBERi0=', name: 'doc.pdf' }],
+            });
+
+            const body = mockFetchJson().mock.calls[0][1].body as { messages: { role: string; content: { type: string }[] }[] };
+            const content = body.messages.find((m) => m.role === 'user')?.content;
+            expect(content?.[0]).toMatchObject({ type: 'document', source: { type: 'base64', media_type: 'application/pdf' } });
+        });
+
+        it('includes the log id header when logId is provided', async () => {
+            mockFetchJson().mockResolvedValueOnce({ content: [{ text: 'ok' }] });
+
+            await ANTHROPIC_PROVIDER_DEFINITION.complete('key', { ...baseRequest, logId: 'conv-123' });
+
+            const headers = mockFetchJson().mock.calls[0][1].headers as Record<string, string>;
+            expect(headers['x-llmnative-log-id']).toBe('conv-123');
+        });
+
+        it('omits the log id header when logId is not provided', async () => {
+            mockFetchJson().mockResolvedValueOnce({ content: [{ text: 'ok' }] });
+
+            await ANTHROPIC_PROVIDER_DEFINITION.complete('key', baseRequest);
+
+            const headers = mockFetchJson().mock.calls[0][1].headers as Record<string, string>;
+            expect(headers).not.toHaveProperty('x-llmnative-log-id');
         });
     });
 });
@@ -325,6 +384,24 @@ describe('createOpenAICompatibleProviderDefinition()', () => {
             const content = body.messages.find((m: { role: string }) => m.role === 'user')?.content;
             expect(content[0].text).toContain('[File attached: doc.pdf (application/pdf)]');
         });
+
+        it('includes the log id header when logId is provided', async () => {
+            mockFetchJson().mockResolvedValueOnce({ choices: [{ message: { content: 'ok' } }] });
+
+            await makeProvider().complete('sk-key', { ...req, logId: 'conv-123' });
+
+            const headers = mockFetchJson().mock.calls[0][1].headers as Record<string, string>;
+            expect(headers['x-llmnative-log-id']).toBe('conv-123');
+        });
+
+        it('omits the log id header when logId is not provided', async () => {
+            mockFetchJson().mockResolvedValueOnce({ choices: [{ message: { content: 'ok' } }] });
+
+            await makeProvider().complete('sk-key', req);
+
+            const headers = mockFetchJson().mock.calls[0][1].headers as Record<string, string>;
+            expect(headers).not.toHaveProperty('x-llmnative-log-id');
+        });
     });
 });
 
@@ -382,6 +459,119 @@ describe('GEMINI_PROVIDER_DEFINITION', () => {
         it('returns null when candidates is empty', async () => {
             mockFetchJson().mockResolvedValueOnce({ candidates: [] });
             expect(await GEMINI_PROVIDER_DEFINITION.complete('gai-key', req)).toBeNull();
+        });
+
+        it('includes image attachments as inline_data parts', async () => {
+            mockFetchJson().mockResolvedValueOnce({ candidates: [{ content: { parts: [{ text: 'ok' }] } }] });
+
+            await GEMINI_PROVIDER_DEFINITION.complete('gai-key', {
+                ...req,
+                attachments: [{ mimeType: 'image/png', base64: 'iVBORw0KGgo=', name: 'photo.png' }],
+            });
+
+            const body = mockFetchJson().mock.calls[0][1].body as { contents: { role: string; parts: Record<string, unknown>[] }[] };
+            const userTurn = body.contents.find((c) => c.role === 'user');
+            expect(userTurn?.parts[0]).toMatchObject({ inline_data: { mime_type: 'image/png', data: 'iVBORw0KGgo=' } });
+        });
+
+        it('decodes text attachments into text parts instead of inline_data', async () => {
+            mockFetchJson().mockResolvedValueOnce({ candidates: [{ content: { parts: [{ text: 'ok' }] } }] });
+
+            await GEMINI_PROVIDER_DEFINITION.complete('gai-key', {
+                ...req,
+                attachments: [{ mimeType: 'text/plain', base64: 'SGVsbG8gV29ybGQ=', name: 'hello.txt' }],
+            });
+
+            const body = mockFetchJson().mock.calls[0][1].body as { contents: { role: string; parts: Record<string, unknown>[] }[] };
+            const userTurn = body.contents.find((c) => c.role === 'user');
+            expect(userTurn?.parts[0]).not.toHaveProperty('inline_data');
+            expect((userTurn?.parts[0] as { text?: string } | undefined)?.text).toContain('Hello World');
+        });
+
+        it('includes the log id header when logId is provided', async () => {
+            mockFetchJson().mockResolvedValueOnce({ candidates: [{ content: { parts: [{ text: 'ok' }] } }] });
+
+            await GEMINI_PROVIDER_DEFINITION.complete('gai-key', { ...req, logId: 'conv-123' });
+
+            const headers = mockFetchJson().mock.calls[0][1].headers as Record<string, string>;
+            expect(headers['x-llmnative-log-id']).toBe('conv-123');
+        });
+
+        it('omits the log id header when logId is not provided', async () => {
+            mockFetchJson().mockResolvedValueOnce({ candidates: [{ content: { parts: [{ text: 'ok' }] } }] });
+
+            await GEMINI_PROVIDER_DEFINITION.complete('gai-key', req);
+
+            const headers = mockFetchJson().mock.calls[0][1].headers as Record<string, string> | undefined;
+            expect(headers).toBeUndefined();
+        });
+    });
+});
+
+// ── OPENCODE_PROVIDER_DEFINITION ────────────────────────────────────────────────
+
+describe('OPENCODE_PROVIDER_DEFINITION', () => {
+    it('has the correct id and defaultModel', () => {
+        expect(OPENCODE_PROVIDER_DEFINITION.id).toBe('opencode');
+        expect(OPENCODE_PROVIDER_DEFINITION.defaultModel).toBe('deepseek-v4-flash-free');
+    });
+
+    describe('complete()', () => {
+        const req = { prompt: 'Say hi', model: 'deepseek-v4-flash-free' };
+
+        it('sends the prompt as plain string content when there are no attachments', async () => {
+            mockFetchJson().mockResolvedValueOnce({ choices: [{ message: { content: 'ok' } }] });
+
+            await OPENCODE_PROVIDER_DEFINITION.complete('key', req);
+
+            const body = mockFetchJson().mock.calls[0][1].body as { messages: { role: string; content: unknown }[] };
+            const userMsg = body.messages.find((m) => m.role === 'user');
+            expect(userMsg?.content).toBe('Say hi');
+        });
+
+        it('includes text attachments as decoded text blocks instead of dropping them', async () => {
+            mockFetchJson().mockResolvedValueOnce({ choices: [{ message: { content: 'ok' } }] });
+
+            await OPENCODE_PROVIDER_DEFINITION.complete('key', {
+                ...req,
+                attachments: [{ mimeType: 'text/csv', base64: 'SGVsbG8gV29ybGQ=', name: 'traffic.csv' }],
+            });
+
+            const body = mockFetchJson().mock.calls[0][1].body as { messages: { role: string; content: { type: string; text?: string }[] }[] };
+            const content = body.messages.find((m) => m.role === 'user')?.content;
+            expect(content?.[0]).toMatchObject({ type: 'text' });
+            expect(content?.[0].text).toContain('Hello World');
+        });
+
+        it('includes image attachments as image_url content blocks', async () => {
+            mockFetchJson().mockResolvedValueOnce({ choices: [{ message: { content: 'ok' } }] });
+
+            await OPENCODE_PROVIDER_DEFINITION.complete('key', {
+                ...req,
+                attachments: [{ mimeType: 'image/png', base64: 'iVBORw0KGgo=', name: 'photo.png' }],
+            });
+
+            const body = mockFetchJson().mock.calls[0][1].body as { messages: { role: string; content: { type: string }[] }[] };
+            const content = body.messages.find((m) => m.role === 'user')?.content;
+            expect(content?.[0]).toMatchObject({ type: 'image_url', image_url: { url: 'data:image/png;base64,iVBORw0KGgo=' } });
+        });
+
+        it('includes the log id header when logId is provided', async () => {
+            mockFetchJson().mockResolvedValueOnce({ choices: [{ message: { content: 'ok' } }] });
+
+            await OPENCODE_PROVIDER_DEFINITION.complete('key', { ...req, logId: 'conv-123' });
+
+            const headers = mockFetchJson().mock.calls[0][1].headers as Record<string, string>;
+            expect(headers['x-llmnative-log-id']).toBe('conv-123');
+        });
+
+        it('omits the log id header when logId is not provided', async () => {
+            mockFetchJson().mockResolvedValueOnce({ choices: [{ message: { content: 'ok' } }] });
+
+            await OPENCODE_PROVIDER_DEFINITION.complete('key', req);
+
+            const headers = mockFetchJson().mock.calls[0][1].headers as Record<string, string>;
+            expect(headers).not.toHaveProperty('x-llmnative-log-id');
         });
     });
 });

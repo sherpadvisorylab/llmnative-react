@@ -69,7 +69,7 @@
 | CR-047 | Done | Prompt extensible toolbar + PromptUtils API. |
 | CR-049 | Done | Component.schema meta-layer per configurazione campi. |
 | CR-014 | Done | Audit API completo su 40+ componenti. 8 bug fix. JSDoc su 20+ file. |
-| CR-006 | Done | Test suite: 61 file, 643 unit/component, 10 Firebase emulator + 8 Supabase emulator integration, 16 Playwright E2E (smoke + navigation + CRUD). 100%. Google OAuth E2E deferito. |
+| CR-006 | Done | Test suite: 61 file, 649+ unit/component, 10 Firebase emulator + 8 Supabase emulator integration, 16 Playwright E2E (smoke + navigation + CRUD). 100%. Google OAuth E2E deferito. |
 | CR-007 | Done | Showcase stubs risolti: 0 stub routes. 4 provider redirects, 5 example pages reali (CRUD, Dashboard, NestedForm, FileManager, GoogleAuth). Showcase deployato su GH Pages. Docs allineati. |
 | CR-053 | Done | Doc audit: api, publish, ProviderSession, ProviderSwitcher docs scritti. 25 discrepanze corrette. |
 | CR-054 | Done | Grid views config (toggle table/gallery, column picker, field picker). |
@@ -85,10 +85,12 @@
 | CR-064 | Done | Provider dispose contract. |
 | CR-065 | Done | Firestore getDb() dentro try block. |
 | CR-066 | Done | Empty cache snapshot filter in Firestore subscribe. |
-| CR-067 | Done | AsyncDropdown searchable con debounce, AbortSignal, stati asincroni, test e showcase. Issue #7. |
-| CR-068 | Done | Node 24 LTS, Vite 8, React 19, dipendenze stabili correnti, browser policy e allineamento framework/showcase/CMS. Issue #8. |
-| CR-069 | Done | Workflow AI centralizzato, adapter per gli agenti e preflight automatico di release. Issue #9. |
-| CR-070 | Done | Registrazione della stessa istanza di provider resa no-op, switchSession deduplica gli switch concorrenti della stessa sessione. Issue #10. |
+| CR-067 | Done | AsyncDropdown searchable con debounce, AbortSignal, stati asincroni, test e showcase. Issue #7 chiusa. |
+| CR-068 | Done | Node 24 LTS, Vite 8, React 19, dipendenze stabili correnti, browser policy e allineamento framework/showcase/CMS. Issue #8 chiusa. |
+| CR-069 | Done | Workflow AI centralizzato, adapter per gli agenti e preflight automatico di release. Issue #9 chiusa. |
+| CR-070 | Done | Registrazione della stessa istanza di provider resa no-op, switchSession deduplica gli switch concorrenti della stessa sessione. Issue #10 chiusa. |
+| CR-071 | Done | `Chatbot` component estratto da `Prompt` (textarea, allegati con drag&drop, model picker, dropdown opzionali), `PromptRun` refattorizzato per consumarlo con zero breaking change. Issue #13 chiusa. |
+| CR-073 | Done | Log file LLM opzionale (dev-only, un file per conversazione) nel proxy Vite; fix allegati ignorati dal provider `opencode`; `libs/csv.ts`. Issue #17 chiusa. |
 
 ---
 
@@ -96,6 +98,7 @@
 
 | CR | Real state | What is missing |
 |----|-----------|-----------------|
+| CR-072 | **Diagnosed — not fixable via config alone** | 890 `tsc --noEmit` errori in `clients/showcase` causati da TypeScript 6.0.3: named exports da `.d.ts` files fuori dallo scope del progetto (`include: ["src"]`) non sono visibili in modalità named import (`import { Icon }`), mentre `import * as` e `typeof import()` funzionano. Tentate: `paths`, `moduleResolution: node10/bundler`, `include` espanso, `.ts` proxy, `.d.ts` proxy, skipLibCheck toggle — stesso risultato. Root cause: regressione TS 6.0.3 nel cross-project type resolution. `npm run build` (Vite/esbuild) è l'unico gate reale e passa. 15 errori prismjs risolti (wildcard declaration in `vite-env.d.ts`). Issue #14 aperta. |
 | CR-037 | ⬜ | Component Builder System — `useImage()` pattern non ancora standardizzato. |
 | CR-040 | **0% — spec written** | SchemaForm (form generation from JSON schema/factory); spec in `CHANGE_REQUESTS.md`. No implementation. |
 | CR-041 | **0% — proposal written** | SeoEnhancer (HTML filter applying technical SEO, structured report); proposal in `CHANGE_REQUESTS.md`. No implementation. |
@@ -204,16 +207,17 @@ Main real routes:
 
 ## Verification performed
 
-Real verification performed on 2026-07-10:
+Real verification performed on 2026-07-29 (CR-071 drag&drop addition + CR-073):
 
 | Command | Result |
 |---------|--------|
-| `npm test` | Passes: 61 files, 643 tests. |
+| `npm test` | Passes: 63 files, 681 tests (10 Chatbot tests incl. drag&drop, AIProviderDefinitions logId header tests for all 4 providers, promptUtils text-attachment tests). |
 | `npm run test:integration` | Passes: 10 Firebase emulator tests (RTDB + Firestore + Storage) + 8 Supabase emulator tests (Postgres CRUD + Auth). Firebase Storage tests timed out (port 9199 not running). |
 | `npm run test:e2e` | Passes: 16 Playwright tests (smoke + navigation + CRUD flow, 30+ showcase pages). 1 flaky (interactions/404 — Vite pre-transform race). |
 | `npm run build` | Passes: Vite library build + declarations; `ImageEditor` emitted as a separate lazy chunk (`ImageEditorImpl-*`). |
-| `cd clients/showcase && npm run build` | Passes: Vite production build. |
-| `npm pack --dry-run` | Passes: 200 files, 437 KB tarball. |
+| `cd clients/showcase && npm run build` | Passes: Vite production build. (Vite/esbuild, non tsc) |
+| `cd clients/showcase && npx tsc --noEmit` | 890 errori (691 TS2305 + cascade): TypeScript 6.0.3 regression — named exports da `.d.ts` fuori scope non visibili. Non è un gate reale; `npm run build` è il gate documentato. |
+| `npm pack --dry-run` | Passes: 283 files. |
 | `tsc --noEmit` | Passes: 0 errors. |
 | Targeted audit of `src/`, `clients/showcase/`, `.notes/`, `tests/` | Confirmed: i18n is real, `ImageField` is the active public image field, `ImageEditor` now lazy-loads heavy runtime, tests all green. |
 
@@ -226,5 +230,6 @@ Real verification performed on 2026-07-10:
 | 1.0.0 | Published on npm (`@llmnative/react@1.0.0`). |
 | 1.1.0 | Published on npm (`@llmnative/react@1.1.0`). CR-007 completo. GH Pages deploy live. |
 | 1.2.0 | Published on npm (`@llmnative/react@1.2.0`). CR-067 e CR-068 complete. |
-| 1.2.1 | Published on npm (`@llmnative/react@1.2.1`). CR-069 completa. |
-| 1.x / 2.0 | Roadmap: CR-051 (WorkflowAI), CR-040 (SchemaForm), CR-041 (SeoEnhancer), E2E. |
+| 1.2.1 | Published on npm (`@llmnative/react@1.2.1`). CR-069 completa. Contiene anche CR-070 (unchanged provider no-op). |
+| 1.3.0 | Published on npm (`@llmnative/react@1.3.0`). CR-071 (Chatbot, incl. drag&drop) e CR-073 (log LLM dev-only, fix allegati opencode) complete. |
+| 1.x / 2.0 | Roadmap: CR-051 (WorkflowAI), CR-040 (SchemaForm), CR-041 (SeoEnhancer), E2E. CR-072 deferito (TypeScript 6 regression upstream). |

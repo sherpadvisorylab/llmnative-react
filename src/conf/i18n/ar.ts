@@ -63,7 +63,7 @@ export const ar: I18nDict = {
         toggleOnTitle: 'الأمر مفعّل. النص يُستخدم كقالب ويمكن تشغيله.',
         toggleOffTitle: 'الأمر معطّل. النص يُستخدم مباشرةً دون معالجة AI.',
         closeEditor: 'إغلاق المحرر', editSettings: 'تعديل الإعدادات',
-        attachFiles: 'إرفاق الملفات', attachmentsNotSupported: 'مزوّد AI المحدد لا يدعم مرفقات الصور أو المستندات.',
+        attachFiles: 'إرفاق الملفات', dropFilesHere: 'أفلت الملفات هنا لإرفاقها', attachmentsNotSupported: 'مزوّد AI المحدد لا يدعم مرفقات الصور أو المستندات.',
         run: 'تشغيل', runFailed: 'فشل تنفيذ الأمر.',
         noMatchingCommands: 'لا توجد أوامر مطابقة',
         tokenUsage: 'استخدام الرموز', tokenInput: 'دخل: {count} tok',

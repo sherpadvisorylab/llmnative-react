@@ -130,6 +130,7 @@ export const en: I18nDict = {
         closeEditor: 'Close prompt editor',
         editSettings: 'Edit prompt settings',
         attachFiles: 'Attach files',
+        dropFilesHere: 'Drop files to attach',
         attachmentsNotSupported: 'The selected AI provider does not support image or document attachments.',
         run: 'Run prompt',
         runFailed: 'Prompt execution failed.',

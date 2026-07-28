@@ -9,12 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
-- AI directive files moved under `docs/directives/` (`maintainers/`, `consumers/`), renamed with an `llm-rule-` prefix, and indexed in a single "Direttive" trigger table in `AGENTS.md`; tool-specific files (`CLAUDE.md`, `GEMINI.md`, `.cursorrules`, `.github/copilot-instructions.md`) now only reference that table instead of duplicating trigger text.
+## [1.3.0] - 2026-07-29
+
+### Added
+- `Chatbot` (`src/components/widgets/Chatbot.tsx`): standalone AI composer extracted from `Prompt` — textarea, slash-commands, attachments (with drag&drop), model picker, optional role/language/voice/style/temperature dropdowns, run/stop button. No dependency on `Form`, no knowledge of AI providers or template variables — returns a resolved `ChatbotSubmitPayload` to `onSubmit`. `PromptRun` now mounts `Chatbot` internally with zero breaking changes to its public props. (CR-071)
+- Drag&drop file attachment on `Chatbot` — drop files anywhere on the composer to attach them, same as the paperclip picker. New i18n key `prompt.dropFilesHere` (6 languages). (CR-071)
+- `AICompleteRequest.logId` — optional, stable per-conversation id forwarded as `x-llmnative-log-id` to the dev proxy. `createProxyPlugin(route, logOptions)` accepts `ProxyLogOptions` to append request/response bodies to a per-conversation log file — dev-only, opt-in, never active by default. (CR-073)
+- `libs/csv.ts` — `parseCsvText(text)`, CSV/TSV parsing for text already in memory (e.g. a decoded attachment), same engine as `<UploadCSV>`. (CR-073)
+- `PromptUtils.isTextAttachment(mimeType)` / `PromptUtils.decodeBase64Text(base64)`. (CR-073)
 
 ### Fixed
+- `opencode` AI provider now actually sends `request.attachments` to the model — it previously built the user message ignoring attachments entirely, so files silently never reached the model. Capabilities updated to reflect real support (`supportsVision`, `supportsDocuments`). (CR-073)
 - `Dropdown` closes after selecting a `DropdownItem` by default. Set `closeOnSelect={false}` for the rare menu that must remain open.
 - `Pagination` now honors an explicit `sticky={false}` instead of always falling back to the theme default (`sticky || theme.Pagination.sticky` could never be overridden with `false`).
+
+### Changed
+- AI directive files moved under `docs/directives/` (`maintainers/`, `consumers/`), renamed with an `llm-rule-` prefix, and indexed in a single "Direttive" trigger table in `AGENTS.md`; tool-specific files (`CLAUDE.md`, `GEMINI.md`, `.cursorrules`, `.github/copilot-instructions.md`) now only reference that table instead of duplicating trigger text.
 
 ## [1.2.1] - 2026-07-25
 

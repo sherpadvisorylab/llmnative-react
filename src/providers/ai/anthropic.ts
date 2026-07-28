@@ -1,6 +1,8 @@
 import { fetchJson } from '../../libs/fetch';
 import { Prompt } from '../../conf/Prompt';
 import { proxyFetch } from '../proxy';
+import { PromptUtils } from '../../libs/promptUtils';
+import { LLM_LOG_ID_HEADER } from '../proxy/logHeader';
 import type { AIProviderDefinition } from './shared';
 import type { AIConversationTurn, AICompleteResult, AIToolDefinition } from './AIProvider';
 
@@ -86,12 +88,21 @@ export const ANTHROPIC_PROVIDER_DEFINITION: AIProviderDefinition = {
     },
     complete: async (apiKey, request) => {
         const attachments = request.attachments ?? [];
+        // Il blocco `document` dell'API Anthropic è documentato per PDF — un CSV/testo
+        // mandato lì come base64 non è supportato: i mimetype testuali vengono invece
+        // decodificati e inseriti come blocco `text` (stesso trattamento di
+        // openaiCompatible.ts/gemini.ts, vedi PromptUtils.isTextAttachment).
         const userContent = attachments.length > 0
             ? [
-                ...attachments.map((a) => a.mimeType.startsWith('image/')
-                    ? { type: 'image', source: { type: 'base64', media_type: a.mimeType, data: a.base64 } }
-                    : { type: 'document', source: { type: 'base64', media_type: a.mimeType, data: a.base64 } }
-                ),
+                ...attachments.map((a) => {
+                    if (a.mimeType.startsWith('image/')) {
+                        return { type: 'image', source: { type: 'base64', media_type: a.mimeType, data: a.base64 } };
+                    }
+                    if (PromptUtils.isTextAttachment(a.mimeType)) {
+                        return { type: 'text', text: `[File: ${a.name}]\n${PromptUtils.decodeBase64Text(a.base64)}` };
+                    }
+                    return { type: 'document', source: { type: 'base64', media_type: a.mimeType, data: a.base64 } };
+                }),
                 { type: 'text', text: request.prompt },
               ]
             : request.prompt;
@@ -101,6 +112,7 @@ export const ANTHROPIC_PROVIDER_DEFINITION: AIProviderDefinition = {
             headers: {
                 'x-api-key': apiKey,
                 'anthropic-version': '2023-06-01',
+                ...(request.logId ? { [LLM_LOG_ID_HEADER]: request.logId } : {}),
             },
             body: {
                 model: request.model,

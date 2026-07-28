@@ -49,6 +49,7 @@ export type ShowcaseNamespace =
     | 'search'
     | 'menu'
     | 'breadcrumbs'
+    | 'chatbot'
     | 'repeat'
     | 'tabDynamic'
     | 'gridPreview'

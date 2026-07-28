@@ -63,7 +63,7 @@ export const zh: I18nDict = {
         toggleOnTitle: '提示词已启用。文本用作模板并可执行。',
         toggleOffTitle: '提示词已禁用。文本直接使用，不经AI处理。',
         closeEditor: '关闭编辑器', editSettings: '编辑设置',
-        attachFiles: '附加文件', attachmentsNotSupported: '所选AI提供商不支持图像或文档附件。',
+        attachFiles: '附加文件', dropFilesHere: '拖放文件以附加', attachmentsNotSupported: '所选AI提供商不支持图像或文档附件。',
         run: '运行', runFailed: '提示词执行失败。',
         noMatchingCommands: '没有匹配的命令',
         tokenUsage: 'Token用量', tokenInput: '输入：{count} tok',

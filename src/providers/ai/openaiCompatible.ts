@@ -1,6 +1,8 @@
 import { Prompt } from '../../conf/Prompt';
 import { fetchJson } from '../../libs/fetch';
 import { proxyFetch } from '../proxy';
+import { PromptUtils } from '../../libs/promptUtils';
+import { LLM_LOG_ID_HEADER } from '../proxy/logHeader';
 import type { AIProviderDefinition, BuiltInAIProviderId } from './shared';
 import { parseTextResponse, createBrowserTransportError, extractProviderError } from './shared';
 import type { AIConversationTurn, AICompleteResult, AIToolDefinition } from './AIProvider';
@@ -150,15 +152,13 @@ export const createOpenAICompatibleProviderDefinition = ({
         },
         complete: async (apiKey, request) => {
             const attachments = request.attachments ?? [];
-            const textMime = /^text\/|^application\/(json|csv|xml|javascript|typescript)/;
             const userContent = attachments.length > 0
                 ? attachments.map((a) => {
                     if (a.mimeType.startsWith('image/')) {
                       return { type: 'image_url' as const, image_url: { url: `data:${a.mimeType};base64,${a.base64}` } };
                     }
-                    if (textMime.test(a.mimeType)) {
-                      const decoded = globalThis.atob(a.base64);
-                      return { type: 'text' as const, text: `[File: ${a.name}]\n${decoded}` };
+                    if (PromptUtils.isTextAttachment(a.mimeType)) {
+                      return { type: 'text' as const, text: `[File: ${a.name}]\n${PromptUtils.decodeBase64Text(a.base64)}` };
                     }
                     return { type: 'text' as const, text: `[File attached: ${a.name} (${a.mimeType})]` };
                   }).concat({ type: 'text' as const, text: request.prompt })
@@ -168,6 +168,7 @@ export const createOpenAICompatibleProviderDefinition = ({
                 method: 'POST',
                 headers: {
                     Authorization: `Bearer ${apiKey}`,
+                    ...(request.logId ? { [LLM_LOG_ID_HEADER]: request.logId } : {}),
                 },
                 body: {
                     model: request.model,
