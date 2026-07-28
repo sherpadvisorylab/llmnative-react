@@ -2,9 +2,9 @@
 
 Leggi `llms-full.txt` per l'intera API surface: componenti, provider, hook, tipi, esempi.
 Leggi `llms.txt` per orientamento rapido e provider matrix.
-Leggi e applica `AGENTS.md` e la direttiva canonica
-`docs/maintainers/FRAMEWORK_CHANGE_RELEASE_WORKFLOW.md`, in particolare quando
-la richiesta include commit/push o pubblicazione del framework.
+Leggi e applica `AGENTS.md`, inclusa la tabella "Direttive" e i relativi
+trigger: leggere ogni file di direttiva solo quando il suo trigger si
+verifica.
 
 ## Specificità Claude Code
 

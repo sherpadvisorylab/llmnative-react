@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- AI directive files moved under `docs/directives/` (`maintainers/`, `consumers/`), renamed with an `llm-rule-` prefix, and indexed in a single "Direttive" trigger table in `AGENTS.md`; tool-specific files (`CLAUDE.md`, `GEMINI.md`, `.cursorrules`, `.github/copilot-instructions.md`) now only reference that table instead of duplicating trigger text.
+
 ### Fixed
 - `Dropdown` closes after selecting a `DropdownItem` by default. Set `closeOnSelect={false}` for the rare menu that must remain open.
 - `Pagination` now honors an explicit `sticky={false}` instead of always falling back to the theme default (`sticky || theme.Pagination.sticky` could never be overridden with `false`).
