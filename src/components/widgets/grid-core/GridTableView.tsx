@@ -105,6 +105,13 @@ function GridTableView<TRecord extends RecordProps>({
                 sort: column.sortable,
             }))}
             records={records}
+            // Normalizza `recordId` (field name o funzione, vedi GridRecordKey) nella stessa
+            // funzione già usata sopra per le mappe interne di questo componente (getRecordKey) —
+            // così Table riceve una key IDENTICA a quella che Grid stesso considera stabile per
+            // questo record, invece di ricadere sul proprio fallback per identità d'oggetto (che
+            // Form.tsx invaliderebbe a ogni keystroke quando questo Grid è annidato in un Form,
+            // vedi useStableRecordKey.ts).
+            recordId={(record) => getRecordKey(record as TRecord)}
             sortable={sortable}
             pagination={pagination}
             renderCell={renderCell}

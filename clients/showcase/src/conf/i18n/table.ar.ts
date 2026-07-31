@@ -18,6 +18,7 @@ export default defineLocaleMessages({
                 dragReorder: { title: 'Iadat tartib bil sahb', description: 'Marrir onReorder lij3l al sutoor qabila lil sahb. Al callback yastalam al tartib al jadid lil records wa hatha makan munasib lihifz al taghyir.' },
                 footerAndPaging: { title: 'Footer wa pagination', description: 'Muhtawa al footer yaeesh fi tfoot wa al pagination tabqa mufawwada ila component Pagination almushtarak. Istakhdim pagination.align litarteeb al controls yasar aw wasat aw yamin.' },
                 groupedRows: { title: 'Sutoor mujammaa', description: 'Marrir ism field ila groupBy liidkhal satr fasl bayn al majmouat. Al tajmii yansajim tabieyan ma al sort ala nafs al field, wa yumkin tamrir array lil mustawayat al mutaaddida.' },
+                stableRowIdentity: { title: 'Hawiyat satr thabita', description: 'Bishakl iftiradi, al satr bidoon _key/record[RECORD_KEY] yatam taarifuh bihawiyat al object nafsuh. Iza kana shay ma yueed tazweed records bi objects jadida kulliyan maa kul taghyir (mithal Form murtabit bi array min al sutoor) walakin al qiyam lam tataghayar fielyan, fa hatha al ihtiyat yueamil kul satr ala annahu jadid wa yueid tarkeebuh — haql idkhal athnaa al taerir yafqid al tarkeez wal nas al madkhal. Marrir recordId (ism field aw daleel/function) litaarif al sutoor bishay yansaji maa al istinsakh.' },
             },
             labels: {
                 name: 'Name',
@@ -52,6 +53,10 @@ export default defineLocaleMessages({
                 selectionPayloadHint: 'Fael multi checkbox aala, thumma ikhtar sutoor litara payload al callback huna.',
                 reorderPayloadHint: 'Fael drag aala, thumma harrik al sutoor litafahhus al tartib al jadid wa metadata al drag.',
                 record: 'record',
+                recordIdPinnedOn: 'recordId="id" (muthabbat)',
+                recordIdPinnedOff: 'Bidoon recordId (iftiradi)',
+                simulateExternalUpdate: 'Muhakat tahdith kharji',
+                recordIdDemoHint: 'Uktub fi haql Name, thumma inqur ala "Muhakat tahdith kharji" — maa recordId muthabbat yahtafiz haql al idkhal bil tarkeez wal nas; bidoonuh, yueaad tarkeeb al satr wa tudae al taedilat.',
             },
             values: {
                 roles: { admin: 'Admin', editor: 'Editor', viewer: 'Viewer' },
@@ -64,6 +69,14 @@ export default defineLocaleMessages({
                 items: {
                     columns: { description: 'Optional column definitions. Each item describes a table column and can override sorting locally.' },
                     records: { description: 'Array of row records to render.' },
+                    recordId: {
+                        description: 'Field name or resolver function used to derive a stable per-row key, checked before the _key/object-identity fallback. Needed when records is re-supplied with new object references on every change but the values are otherwise the same.',
+                        placeholder: 'e.g. id or record => record.id',
+                        shortcuts: {
+                            idField: { label: 'id field', help: 'Key rows by their own "id" field.' },
+                            fnResolver: { label: 'fn resolver', help: 'Key rows with a custom function, e.g. record => record.id.' },
+                        },
+                    },
                     onReorder: { description: 'Called after drag reorder with the full reordered record set and moved row metadata.' },
                     selectedKeys: { description: 'Controlled selection state used with onSelectionChange to render multi-select checkboxes.' },
                     onSelectionChange: { description: 'Called whenever selected rows change.' },

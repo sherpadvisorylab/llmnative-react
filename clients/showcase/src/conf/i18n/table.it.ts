@@ -48,6 +48,10 @@ export default defineLocaleMessages({
                     title: 'Righe raggruppate',
                     description: 'Passa un nome campo a groupBy per inserire una riga separatrice tra i gruppi. Il raggruppamento si abbina bene all ordinamento sullo stesso campo. Passa un array per piu livelli.',
                 },
+                stableRowIdentity: {
+                    title: 'Identita di riga stabile',
+                    description: 'Di default una riga senza _key/record[RECORD_KEY] viene identificata dalla propria identita di oggetto. Se qualcosa ricrea records con oggetti nuovi a ogni modifica (un Form legato a un array di righe, ad esempio) ma i valori restano invariati, quel fallback tratta ogni riga come nuova e la rimonta: un input in modifica perde il focus e il testo digitato. Passa recordId (un nome campo o una funzione) per identificare le righe con qualcosa che sopravvive alla clonazione.',
+                },
             },
             labels: {
                 name: 'Nome',
@@ -82,6 +86,10 @@ export default defineLocaleMessages({
                 selectionPayloadHint: 'Abilita la checkbox multipla qui sopra, poi seleziona le righe per vedere qui il payload della callback.',
                 reorderPayloadHint: 'Abilita il drag qui sopra, poi sposta le righe per ispezionare il set riordinato e i metadati.',
                 record: 'record',
+                recordIdPinnedOn: 'recordId="id" (fissato)',
+                recordIdPinnedOff: 'Nessun recordId (default)',
+                simulateExternalUpdate: 'Simula aggiornamento esterno',
+                recordIdDemoHint: 'Scrivi nel campo Name, poi premi "Simula aggiornamento esterno" — con recordId fissato l input mantiene focus e testo; senza, la riga viene rimontata e la modifica si perde.',
             },
             values: {
                 roles: {
@@ -114,6 +122,14 @@ export default defineLocaleMessages({
                 items: {
                     columns: { description: 'Definizioni opzionali delle colonne. Ogni item descrive una colonna della tabella e puo sovrascrivere localmente l ordinamento.' },
                     records: { description: 'Array dei record riga da renderizzare.' },
+                    recordId: {
+                        description: 'Nome campo o funzione usata per ricavare una chiave per-riga stabile, controllata prima del fallback _key/identita oggetto. Serve quando records viene ricreato con nuovi riferimenti oggetto a ogni modifica (es. un array legato a un Form) ma i valori restano gli stessi — senza, ogni oggetto "nuovo" rimonta la propria riga.',
+                        placeholder: 'es. id oppure record => record.id',
+                        shortcuts: {
+                            idField: { label: 'campo id', help: 'Identifica le righe tramite il proprio campo "id".' },
+                            fnResolver: { label: 'funzione', help: 'Identifica le righe con una funzione custom, es. record => record.id.' },
+                        },
+                    },
                     onReorder: { description: 'Chiamata dopo un riordino drag con l intero set di record riordinato e i metadati della riga spostata. Quando presente, il drag and drop si abilita automaticamente.' },
                     selectedKeys: { description: 'Stato di selezione controllato. Se lo fornisci insieme a onSelectionChange, la tabella renderizza checkbox multi-selezione.' },
                     onSelectionChange: { description: 'Chiamata ogni volta che cambiano le righe selezionate. Quando presente, la colonna checkbox compare automaticamente.' },

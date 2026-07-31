@@ -7,7 +7,7 @@ import { UIProps } from '../';
 import Pagination, { PaginationParams } from './Pagination';
 import { Order, type OrderConfig } from '../../libs/order';
 import { RecordSelectionState, useRecordSelection } from './useRecordSelection';
-import { useStableRecordKey } from './useStableRecordKey';
+import { useStableRecordKey, type RecordKeyResolver } from './useStableRecordKey';
 
 export type TableHeaderProp = {
     key: string,
@@ -44,6 +44,12 @@ export interface TableProps extends UIProps {
     activeKey?: string | null;
     selectedKeys?: string[];
     groupBy?: string | string[];
+    /** Field name (or resolver function) for a stable per-record key — see
+     * useStableRecordKey.ts for why this matters specifically for a Table whose `records` are
+     * re-supplied with new object identities on every edit (e.g. wrapped in a `Form`, one clone
+     * per keystroke): without it, a record with no `_key` falls back to an identity-keyed cache
+     * that treats every clone as a brand-new row, remounting it. Absent = unchanged behavior. */
+    recordId?: RecordKeyResolver<RecordProps>;
     headerClassName?: string,
     bodyClassName?: string,
     footerClassName?: string,
@@ -67,6 +73,7 @@ function Table({
     activeKey = undefined,
     selectedKeys = undefined,
     groupBy = undefined,
+    recordId = undefined,
     before = undefined,
     after = undefined,
     wrapperClassName = undefined,
@@ -123,7 +130,7 @@ function Table({
         hasWarnedReorderSortConflict.current = true;
     }, [sortDisabledByReorder]);
 
-    const getStableRecordKey = useStableRecordKey<RecordProps>('row');
+    const getStableRecordKey = useStableRecordKey<RecordProps>('row', recordId);
     const getRecordKey = useCallback((record: RecordProps, index?: number) => getStableRecordKey(record, index), [getStableRecordKey]);
     const {
         activeSelectedKeys,

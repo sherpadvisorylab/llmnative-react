@@ -1,6 +1,7 @@
 import React from 'react';
 import { ActionButton, Badge, Modal, Table, buttonOutlineSecondaryClass, buttonPrimaryClass, useDataProvider } from '@llmnative/react';
 import type { RecordProps } from '@llmnative/react';
+import type { RecordKeyResolver } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
@@ -136,6 +137,70 @@ function buildScrollBody(rows: TableRow[]) {
     });
 }
 
+// Stesso principio di resolvePlaygroundRecordId in GridPage.tsx — un campo (stringa) o una
+// funzione "record => ..." digitata come testo nel playground. `new Function` è accettabile qui:
+// input dell'autore dello showcase in un ambiente di sviluppo locale, mai dati utente/produzione.
+function resolveTableRecordId(value: unknown): RecordKeyResolver<RecordProps> | undefined {
+    if (typeof value !== 'string') return undefined;
+    const trimmed = value.trim();
+    if (!trimmed) return undefined;
+    if (!trimmed.includes('=>')) return trimmed;
+    try {
+        const arrowIndex = trimmed.indexOf('=>');
+        const paramName = trimmed.slice(0, arrowIndex).replace(/[()]/g, '').trim() || 'record';
+        const body = trimmed.slice(arrowIndex + 2).trim();
+        const fn = body.startsWith('{')
+            ? new Function(paramName, body)
+            : new Function(paramName, `return (${body});`);
+        return fn as (record: RecordProps) => string;
+    } catch {
+        return undefined;
+    }
+}
+
+// Dimostra `recordId`: `records` viene ricostruito con oggetti NUOVI a ogni "Simulate external
+// update" (stessa forma di un Form che clona la riga toccata a ogni edit, vedi cloneContainer in
+// Form.tsx) — senza recordId, il fallback per identità d'oggetto tratta ogni nuovo oggetto come
+// una riga diversa e la rimonta, perdendo focus/testo digitato nell'input "Name". Con
+// recordId="id" la riga resta la stessa React key nonostante il cambio di identità.
+function StableRowIdentityDemo({ t }: { t: TableI18n }) {
+    const [pinned, setPinned] = React.useState(true);
+    const [tick, setTick] = React.useState(0);
+    const seed = React.useMemo(() => ([
+        { id: 'r1', name: 'Alice' },
+        { id: 'r2', name: 'Bob' },
+    ]), []);
+    const records = React.useMemo(() => seed.map((row) => ({ ...row })), [seed, tick]);
+
+    return (
+        <div className="w-full space-y-3">
+            <div className="flex flex-wrap items-center gap-2">
+                <ActionButton
+                    className={`${pinned ? buttonPrimaryClass : buttonOutlineSecondaryClass} h-8 px-3 text-xs`}
+                    label={pinned ? t.labels.recordIdPinnedOn : t.labels.recordIdPinnedOff}
+                    onClick={() => setPinned((current) => !current)}
+                />
+                <ActionButton
+                    className={`${buttonOutlineSecondaryClass} h-8 px-3 text-xs`}
+                    label={t.labels.simulateExternalUpdate}
+                    onClick={() => setTick((current) => current + 1)}
+                />
+            </div>
+            <Table
+                columns={[{ key: 'id', label: 'ID' }, { key: 'name', label: t.labels.name }]}
+                records={records}
+                recordId={pinned ? 'id' : undefined}
+                renderCell={(record, key) => (
+                    key === 'name'
+                        ? <input defaultValue={String(record.name ?? '')} className="w-full rounded-md border border-input bg-background px-2 py-1 text-sm" />
+                        : String(record[key] ?? '')
+                )}
+            />
+            <p className="text-xs text-muted-foreground">{t.labels.recordIdDemoHint}</p>
+        </div>
+    );
+}
+
 function TablePlaygroundPreview({
     p,
     t,
@@ -243,6 +308,7 @@ function TablePlaygroundPreview({
             <Table
                 columns={header}
                 records={playgroundRows}
+                recordId={resolveTableRecordId(p.recordId)}
                 selectedKeys={multiEnabled ? playgroundSelectedKeys : undefined}
                 onSelectionChange={multiEnabled ? ((selection) => {
                     setPlaygroundSelectedKeys(selection.keys);
@@ -330,6 +396,22 @@ export default function TablePage() {
 ]}`,
         },
         { name: 'records', type: 'RecordArray', description: t.propsDocs.items.records.description },
+        {
+            name: 'recordId',
+            type: 'string | ((record: RecordProps) => string)',
+            description: t.propsDocs.items.recordId.description,
+            control: 'textarea',
+            textareaMode: 'text',
+            rows: 2,
+            placeholder: t.propsDocs.items.recordId.placeholder,
+            shortcuts: [
+                { label: t.propsDocs.items.recordId.shortcuts?.idField.label || 'id field', value: 'id', help: t.propsDocs.items.recordId.shortcuts?.idField.help },
+                { label: t.propsDocs.items.recordId.shortcuts?.fnResolver.label || 'fn resolver', value: 'record => record.id', help: t.propsDocs.items.recordId.shortcuts?.fnResolver.help },
+            ],
+            example: `recordId="id"
+// or
+recordId={(record) => record.id}`,
+        },
         {
             name: 'onReorder',
             type: 'TableReorderHandler',
@@ -442,6 +524,7 @@ type TableSelectionState = ${TABLE_SELECTION_STATE_TYPE}`,
         defaultProps: {
             sortable: { field: 'name', dir: 'asc' },
             pagination: { limit: 4, align: 'end', sticky: false },
+            recordId: '',
             groupBy: '',
             footer: t.playground.defaultFooter,
             selectedClassName: '',
@@ -794,6 +877,27 @@ const [exportOpen, setExportOpen] = useState(false);
   records={rows}
   sortable={{ field: 'role', dir: 'asc' }}
   groupBy={['role', 'status']}
+/>`}
+            />
+
+            <Section
+                title={t.sections.stableRowIdentity.title}
+                description={t.sections.stableRowIdentity.description}
+                preview={<StableRowIdentityDemo t={t} />}
+                code={`const [rows, setRows] = useState(records);
+
+// Something re-supplies \`rows\` with brand-new objects on every change
+// (e.g. a Form bound to this array) — the values are the same, only the
+// object identity changed.
+setRows((current) => current.map((row) => ({ ...row })));
+
+<Table
+  columns={[{ key: 'id', label: 'ID' }, { key: 'name', label: 'Name' }]}
+  records={rows}
+  recordId="id"
+  renderCell={(record, key) => (
+    key === 'name' ? <input defaultValue={record.name} /> : record[key]
+  )}
 />`}
             />
 

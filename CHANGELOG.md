@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-08-01
+
+### Added
+- `Table.recordId` — optional field name or resolver function to derive a stable per-row key, checked before the `_key`/object-identity fallback in `useStableRecordKey`. New public export `RecordKeyResolver<TRecord>`. (CR-074)
+
+### Fixed
+- `GridTableView` now forwards its own `recordId` prop into the `<Table>` it renders — previously it computed a stable key for its own internal maps but never passed it down, so `Grid`'s `recordId` prop didn't protect the underlying `Table` at all. Symptom: a `Grid`/`Table` bound to a `Form` (cell inputs writing `rows.{index}.{field}`) would remount the edited row on every keystroke — since `Form.tsx`'s immutable per-field cloning gives the touched row a new object identity, and without a recognized `_key`/`recordId` the row's React key was derived from that identity — dropping focus after the first character typed. (CR-074)
+
 ## [1.3.0] - 2026-07-29
 
 ### Added

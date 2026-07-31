@@ -250,4 +250,24 @@ describe('Table', () => {
         fireEvent.click(screen.getAllByRole('checkbox')[1]);
         expect(selections.at(-1)).toEqual(['Alice']);
     });
+
+    it('does not remount a row (and whatever interactive element it renders) when its record gets a new object identity but `recordId` resolves to the same value — the case a Form wrapping this Table produces on every keystroke via its own immutable per-record cloning', () => {
+        const columns = [{ key: 'id', label: 'Id' }, { key: 'to', label: 'To' }];
+        const renderCell = (record: { id: string; to: string }, key: string) => (
+            key === 'to' ? <input data-testid={`input-${record.id}`} defaultValue={record.to} /> : record.id
+        );
+
+        const { rerender } = renderWithI18n(
+            <Table columns={columns} records={[{ id: 'r1', to: '/a' }, { id: 'r2', to: '/b' }]} recordId="id" renderCell={renderCell as never} />
+        );
+        const before = screen.getByTestId('input-r1');
+
+        // Same shape as Form.tsx's cloneContainer on a single-field edit: row r1 becomes a BRAND
+        // NEW object (only its `to` value changed), row r2 keeps its original reference untouched.
+        rerender(
+            <Table columns={columns} records={[{ id: 'r1', to: '/a-edited' }, { id: 'r2', to: '/b' }]} recordId="id" renderCell={renderCell as never} />
+        );
+
+        expect(screen.getByTestId('input-r1')).toBe(before);
+    });
 });

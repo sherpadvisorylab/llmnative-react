@@ -84,6 +84,7 @@
 | [CR-071](#cr-071--chatbot-componente-condiviso-estratto-da-prompt) | Chatbot — componente condiviso estratto da Prompt | Alta | CR-046, CR-047, CR-048 | ✅ |
 | [CR-072](#cr-072--fix-errori-tsc---noemit-in-clientsshowcase) | Fix errori `tsc --noEmit` in `clients/showcase` | Bassa | — | ⬜ |
 | [CR-073](#cr-073--dev-only-llm-requestresponse-file-logging-e-fix-allegati) | Dev-only LLM request/response file logging e fix allegati | Media | CR-069 | ✅ |
+| [CR-074](#cr-074--table-recordid--identita-di-riga-stabile) | Table recordId — identità di riga stabile | Media | — | ✅ |
 
 ---
 
@@ -194,6 +195,55 @@ veniva accettato dalla UI ma non arrivava mai al modello, senza errore.
 - [x] `npm run build` — bundle + dichiarazioni generati
 - [x] Issue GitHub collegata (#17)
 - [x] Versione SemVer (minor, cumulata con CR-071) e `npm publish` — 1.3.0
+
+---
+
+## CR-074 — Table recordId — identità di riga stabile
+
+**Stato:** ✅ done — rilasciato in 1.4.0
+**Issue:** [#18](https://github.com/sherpadvisorylab/llmnative-react/issues/18)
+**Priorità:** Media
+**Dipende da:** —
+
+### Motivazione
+
+`Table` (e `Grid`, che rende passando da `Table`) deriva la key React di una
+riga da `record[RECORD_KEY]` (`_key`) se presente, altrimenti da una WeakMap
+per identità d'oggetto (`useStableRecordKey`). Un consumer (CMS) che avvolge
+`Grid`/`Table` in un `Form`, legando le celle a `rows.{indice}.{campo}`,
+scopre che ogni keystroke clona la riga toccata in un **nuovo oggetto**
+(`Form.tsx` `cloneContainer`): senza `_key`, quel clone è un cache-miss nella
+WeakMap, la riga riceve una **nuova key React** e viene rimontata — un
+`<Input>` dentro perde il focus dopo il primo carattere digitato. `Grid` aveva
+già un prop `recordId` per la propria key interna, ma non lo inoltrava mai al
+`<Table>` che monta: quel prop non proteggeva affatto da questo caso.
+
+### Scope
+
+- `useStableRecordKey.ts` — nuovo parametro opzionale `recordId`
+  (`RecordKeyResolver<TRecord>`, nome campo o funzione), controllato PRIMA del
+  fallback `_key`/WeakMap.
+- `Table.tsx` — nuovo prop pubblico `recordId?: RecordKeyResolver<RecordProps>`,
+  inoltrato all'hook sopra.
+- `GridTableView.tsx` — inoltra il proprio `recordId` nel `<Table>` che monta
+  (prima non lo faceva — il bug reale).
+- Nuovo export pubblico: tipo `RecordKeyResolver<TRecord>`.
+- Showcase (`clients/showcase`): `TablePage.tsx` — `recordId` in props table +
+  playground, nuova sezione "Stable row identity" con demo live (riproduce il
+  bug e il fix a schermo); i18n aggiornato su tutte e 6 le lingue.
+
+### Checklist
+
+- [x] `useStableRecordKey.ts` — resolver `recordId`, controllato prima di `_key`/WeakMap
+- [x] `Table.tsx` — nuovo prop `recordId`
+- [x] `GridTableView.tsx` — inoltra `recordId` a `Table`
+- [x] Nuovo test di regressione in `tests/unit/components/Table.test.tsx`
+- [x] Showcase: props table, playground, sezione demo live, 6 lingue
+- [x] `npx tsc --noEmit` — 0 errori
+- [x] `npm test` — verde
+- [x] `npm run build` — bundle + dichiarazioni generati
+- [x] Issue GitHub collegata (#18)
+- [x] Versione SemVer (minor) e `npm publish` — 1.4.0
 
 ---
 

@@ -18,6 +18,7 @@ export default defineLocaleMessages({
                 dragReorder: { title: 'Tuozhuai paixu', description: 'Chuanru onReorder ji ke rang hang keyi tuozhuai. Huidiao hui fanhui xin de paixu records, ye shi chijiu hua genggai de heshi didian.' },
                 footerAndPaging: { title: 'Footer he fanye', description: 'Footer neirong zai tfoot, fanye jixu jiaogei gongyong Pagination zujian. Shiyong pagination.align jiang kongjian fang zai zuo, zhong huo you.' },
                 groupedRows: { title: 'Fenzu hang', description: 'Gei groupBy chuan yige ziduan ming, jiu neng zai ge fenzu zhijian charu fen ge biaotou hang. Tamen yu tong ziduan paixu peihe de hen ziran, ye zhichi duo ceng array.' },
+                stableRowIdentity: { title: 'Wending de hang shenfen', description: 'Moren qingkuang xia, meiyou _key/record[RECORD_KEY] de hang hui yong ziji de duixiang shenfen zuowei key. Ruguo mou ge waibu laiyuan mei ci gengxin dou chuanru quanxin de duixiang (biru bangding dao yige hang shuzu de Form), danshi zhi qishi meiyou bian, zhege huitui jizhi hui ba mei yige hang dang zuo xin de bing chongxin zhuangzai — zhengzai bianji de shurukuang hui shiqu jiaodian he yijing shuru de wenzi. Chuanru recordId (yige ziduan ming huo yige jiexi hanshu) rang hang tongguo yige nenggou jingde qi kelong de dongxi lai shibie.' },
             },
             labels: {
                 name: 'Name',
@@ -52,6 +53,10 @@ export default defineLocaleMessages({
                 selectionPayloadHint: 'Qing xian kaiqi shangfang multi checkbox, ranhou xuanze hang lai zai zheli chakan huidiao payload.',
                 reorderPayloadHint: 'Qing xian kaiqi shangfang drag, ranhou yidong hang lai chakan chongxin paixu jieguo he tuozhuai yuanshuju.',
                 record: 'record',
+                recordIdPinnedOn: 'recordId="id" (yi guding)',
+                recordIdPinnedOff: 'Wu recordId (moren)',
+                simulateExternalUpdate: 'Moni waibu gengxin',
+                recordIdDemoHint: 'Zai Name shurukuang li shuru wenzi, ranhou dianji "Moni waibu gengxin" — guding recordId hou shurukuang hui baochi jiaodian he wenzi; fouze hang hui bei chongxin zhuangzai, xiugai hui diushi.',
             },
             values: {
                 roles: { admin: 'Admin', editor: 'Editor', viewer: 'Viewer' },
@@ -64,6 +69,14 @@ export default defineLocaleMessages({
                 items: {
                     columns: { description: 'Optional column definitions. Each item describes a table column and can override sorting locally.' },
                     records: { description: 'Array of row records to render.' },
+                    recordId: {
+                        description: 'Field name or resolver function used to derive a stable per-row key, checked before the _key/object-identity fallback. Needed when records is re-supplied with new object references on every change but the values are otherwise the same.',
+                        placeholder: 'e.g. id or record => record.id',
+                        shortcuts: {
+                            idField: { label: 'id field', help: 'Key rows by their own "id" field.' },
+                            fnResolver: { label: 'fn resolver', help: 'Key rows with a custom function, e.g. record => record.id.' },
+                        },
+                    },
                     onReorder: { description: 'Called after drag reorder with the full reordered record set and moved row metadata.' },
                     selectedKeys: { description: 'Controlled selection state used with onSelectionChange to render multi-select checkboxes.' },
                     onSelectionChange: { description: 'Called whenever selected rows change.' },

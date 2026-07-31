@@ -48,6 +48,10 @@ export default defineLocaleMessages({
                     title: 'Gruppierte Zeilen',
                     description: 'Uebergib einen Feldnamen an groupBy, um Trennerzeilen zwischen Gruppen einzufuegen. Gruppierung passt gut zu Sortierung ueber dasselbe Feld. Ein Array aktiviert mehrere Ebenen.',
                 },
+                stableRowIdentity: {
+                    title: 'Stabile Zeilenidentitaet',
+                    description: 'Standardmaessig wird eine Zeile ohne _key/record[RECORD_KEY] ueber ihre eigene Objektidentitaet identifiziert. Wenn etwas records bei jeder Aenderung mit brandneuen Objekten neu liefert (z. B. ein an ein Array gebundenes Form), die Werte sich aber nicht wirklich geaendert haben, behandelt dieser Fallback jede Zeile als neu und montiert sie neu — ein Eingabefeld mitten in der Bearbeitung verliert Fokus und Text. Uebergib recordId (ein Feldname oder eine Resolver-Funktion), um Zeilen ueber etwas zu identifizieren, das das Klonen uebersteht.',
+                },
             },
             labels: {
                 name: 'Name',
@@ -82,6 +86,10 @@ export default defineLocaleMessages({
                 selectionPayloadHint: 'Aktiviere oben die Mehrfach-Checkbox und waehle dann Zeilen aus, um hier das Callback-Payload zu sehen.',
                 reorderPayloadHint: 'Aktiviere oben Drag und verschiebe dann Zeilen, um das neu geordnete Set und die Drag-Metadaten zu sehen.',
                 record: 'record',
+                recordIdPinnedOn: 'recordId="id" (fixiert)',
+                recordIdPinnedOff: 'Kein recordId (Standard)',
+                simulateExternalUpdate: 'Externes Update simulieren',
+                recordIdDemoHint: 'Tippe im Name-Feld, klicke dann auf "Externes Update simulieren" — mit fixiertem recordId behaelt das Eingabefeld Fokus und Text; ohne wird die Zeile neu montiert und die Aenderung geht verloren.',
             },
             values: {
                 roles: {
@@ -114,6 +122,14 @@ export default defineLocaleMessages({
                 items: {
                     columns: { description: 'Optionale Spaltendefinitionen. Jedes Element beschreibt eine Tabellenspalte und kann die Sortierung lokal ueberschreiben.' },
                     records: { description: 'Array der darzustellenden Zeilen-Records.' },
+                    recordId: {
+                        description: 'Feldname oder Resolver-Funktion zur Ableitung eines stabilen Zeilenschluessels, geprueft vor dem _key/Objektidentitaets-Fallback. Noetig, wenn records bei jeder Aenderung mit neuen Objektreferenzen neu geliefert wird (z. B. ein an ein Form gebundenes Array), die Werte aber gleich bleiben — sonst montiert jedes "neue" Objekt seine Zeile neu.',
+                        placeholder: 'z. B. id oder record => record.id',
+                        shortcuts: {
+                            idField: { label: 'id-Feld', help: 'Zeilen ueber ihr eigenes "id"-Feld identifizieren.' },
+                            fnResolver: { label: 'Funktion', help: 'Zeilen mit einer eigenen Funktion identifizieren, z. B. record => record.id.' },
+                        },
+                    },
                     onReorder: { description: 'Wird nach einem Drag-Reorder mit dem vollstaendig neu sortierten Record-Set und den Metadaten der verschobenen Zeile aufgerufen. Wenn vorhanden, wird Drag and Drop automatisch aktiviert.' },
                     selectedKeys: { description: 'Kontrollierter Auswahlzustand. Wenn du ihn zusammen mit onSelectionChange uebergibst, rendert die Tabelle Multi-Select-Checkboxen.' },
                     onSelectionChange: { description: 'Wird bei jeder Aenderung der ausgewaehlten Zeilen aufgerufen. Wenn vorhanden, erscheint automatisch die Auswahlspalte.' },

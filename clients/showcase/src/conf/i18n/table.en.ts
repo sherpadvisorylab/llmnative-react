@@ -48,6 +48,10 @@ export default defineLocaleMessages({
                     title: 'Grouped rows',
                     description: 'Pass a field name to groupBy to insert a separator header row between groups. Grouping pairs naturally with sorting on the same field. Pass an array for multi-level grouping.',
                 },
+                stableRowIdentity: {
+                    title: 'Stable row identity',
+                    description: 'By default a row without _key/record[RECORD_KEY] is keyed by its own object identity. If something re-supplies records with brand-new objects on every change (a Form bound to an array of rows, for instance) but the values are otherwise unchanged, that fallback treats every row as new and remounts it — an input mid-edit loses focus and the typed text. Pass recordId (a field name or a resolver function) to key rows by something that survives being cloned.',
+                },
             },
             labels: {
                 name: 'Name',
@@ -82,6 +86,10 @@ export default defineLocaleMessages({
                 selectionPayloadHint: 'Enable multi checkbox above, then select rows to see the callback payload here.',
                 reorderPayloadHint: 'Enable drag above, then move rows to inspect the reordered record set and drag metadata.',
                 record: 'record',
+                recordIdPinnedOn: 'recordId="id" (pinned)',
+                recordIdPinnedOff: 'No recordId (default)',
+                simulateExternalUpdate: 'Simulate external update',
+                recordIdDemoHint: 'Type in the Name field, then click "Simulate external update" — with recordId pinned the input keeps focus and your text; without it, the row remounts and the edit is lost.',
             },
             values: {
                 roles: {
@@ -114,6 +122,14 @@ export default defineLocaleMessages({
                 items: {
                     columns: { description: 'Optional column definitions. Each item describes a table column and can override sorting locally.' },
                     records: { description: 'Array of row records to render.' },
+                    recordId: {
+                        description: 'Field name or resolver function used to derive a stable per-row key, checked before the _key/object-identity fallback. Needed when records is re-supplied with new object references on every change (e.g. a Form-bound array) but the values are otherwise the same — without it, each "new" object remounts its row.',
+                        placeholder: 'e.g. id or record => record.id',
+                        shortcuts: {
+                            idField: { label: 'id field', help: 'Key rows by their own "id" field.' },
+                            fnResolver: { label: 'fn resolver', help: 'Key rows with a custom function, e.g. record => record.id.' },
+                        },
+                    },
                     onReorder: { description: 'Called after a drag reorder with the full reordered record set and the moved row metadata. When provided, drag and drop is enabled automatically.' },
                     selectedKeys: { description: 'Controlled selection state. When you provide it together with onSelectionChange, the table renders multi-select checkboxes.' },
                     onSelectionChange: { description: 'Called whenever selected rows change. When provided, the selection checkbox column appears automatically.' },

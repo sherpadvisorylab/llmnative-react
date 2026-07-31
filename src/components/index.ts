@@ -40,6 +40,7 @@ export { default as Tab } from './ui/Tab';
 export * from './ui/Tab';
 export { default as Table } from './ui/Table';
 export type { TableProps, TableHeaderProp, TableReorderHandler, TableReorderMeta, TableSelectionChangeHandler, TableSelectionState } from './ui/Table';
+export type { RecordKeyResolver } from './ui/useStableRecordKey';
 export { default as Icon } from './ui/Icon';
 export { LayoutBuilder } from './ui/LayoutBuilder';
 export * from './ui/fields/Input';

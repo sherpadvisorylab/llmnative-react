@@ -18,6 +18,7 @@ export default defineLocaleMessages({
                 dragReorder: { title: 'Peretaskivanie i poryadok', description: 'Peredayte onReorder, chtoby sdelat stroki peretaskivaemymi. Callback poluchaet novyy poryadok records i eto pravilnoe mesto dlya sokhraneniya izmeneniya.' },
                 footerAndPaging: { title: 'Footer i paginatsiya', description: 'Kontent footer zhivet v tfoot, a paginatsiya ostayetsya na obshchem komponente Pagination. Ispolzuyte pagination.align dlya razmeshcheniya sleva, po centru ili sprava.' },
                 groupedRows: { title: 'Gruppirovannye stroki', description: 'Peredayte imya polya v groupBy, chtoby vstavlyat razdelyayushchuyu stroku mezhdu gruppami. Gruppirovka estestvenno sochetaetsya s sortirovkoy po tomu zhe polyu.' },
+                stableRowIdentity: { title: 'Stabilnaya identichnost stroki', description: 'Po umolchaniyu stroka bez _key/record[RECORD_KEY] identifitsiruetsya po sobstvennoy identichnosti obyekta. Esli chto-to peresozdayet records s novymi obyektami pri kazhdom izmenenii (naprimer Form, privyazannyy k massivu strok), no znacheniya ne izmenilis, etot fallback schitaet kazhduyu stroku novoy i peremontiruyet ee — polye vvoda posredi redaktirovaniya teryaet fokus i vvedennyy tekst. Peredayte recordId (imya polya ili funktsiyu), chtoby identifitsirovat stroki chem-to, chto perezhivaet klonirovanie.' },
             },
             labels: {
                 name: 'Name',
@@ -52,6 +53,10 @@ export default defineLocaleMessages({
                 selectionPayloadHint: 'Vklyuchite multi checkbox vyshe, zatem vyberite stroki, chtoby uvidet payload callback zdes.',
                 reorderPayloadHint: 'Vklyuchite drag vyshe, zatem peremestite stroki, chtoby prosmotret novyy poryadok i metadannye drag.',
                 record: 'record',
+                recordIdPinnedOn: 'recordId="id" (zakrepleno)',
+                recordIdPinnedOff: 'Bez recordId (po umolchaniyu)',
+                simulateExternalUpdate: 'Simulirovat vneshnee obnovlenie',
+                recordIdDemoHint: 'Vvedite tekst v pole Name, zatem nazhmite "Simulirovat vneshnee obnovlenie" — s zakreplennym recordId pole sokhranyaet fokus i tekst; bez nego stroka peremontiruetsya i izmenenie teryaetsya.',
             },
             values: {
                 roles: { admin: 'Admin', editor: 'Editor', viewer: 'Viewer' },
@@ -64,6 +69,14 @@ export default defineLocaleMessages({
                 items: {
                     columns: { description: 'Optional column definitions. Each item describes a table column and can override sorting locally.' },
                     records: { description: 'Array of row records to render.' },
+                    recordId: {
+                        description: 'Field name or resolver function used to derive a stable per-row key, checked before the _key/object-identity fallback. Needed when records is re-supplied with new object references on every change but the values are otherwise the same.',
+                        placeholder: 'e.g. id or record => record.id',
+                        shortcuts: {
+                            idField: { label: 'id field', help: 'Key rows by their own "id" field.' },
+                            fnResolver: { label: 'fn resolver', help: 'Key rows with a custom function, e.g. record => record.id.' },
+                        },
+                    },
                     onReorder: { description: 'Called after drag reorder with the full reordered record set and moved row metadata. When provided, drag and drop is enabled automatically.' },
                     selectedKeys: { description: 'Controlled selection state. Together with onSelectionChange the table renders multi-select checkboxes.' },
                     onSelectionChange: { description: 'Called whenever selected rows change. When provided, the selection checkbox column appears automatically.' },
