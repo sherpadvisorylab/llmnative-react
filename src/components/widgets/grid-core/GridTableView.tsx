@@ -29,6 +29,10 @@ function GridTableView<TRecord extends RecordProps>({
     activeKey,
     groupBy,
     wrapperClassName,
+    className,
+    heightClassName,
+    scrollClassName,
+    headerClassName,
     before,
     after,
 }: GridTableViewProps<TRecord>) {
@@ -162,6 +166,10 @@ function GridTableView<TRecord extends RecordProps>({
             activeKey={activeKey}
             groupBy={groupBy as string | string[] | undefined}
             wrapperClassName={wrapperClassName}
+            className={className}
+            heightClassName={heightClassName}
+            scrollClassName={scrollClassName}
+            headerClassName={headerClassName}
             before={before}
             after={after}
         />

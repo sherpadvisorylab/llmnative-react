@@ -1,7 +1,7 @@
 # Project status
 
 > Snapshot verified against the real codebase, not against the historical plan.
-> Last reviewed: 2026-07-25
+> Last reviewed: 2026-08-02
 
 ---
 
@@ -208,6 +208,15 @@ Main real routes:
 
 ## Verification performed
 
+Real verification performed on 2026-08-02 (CR-075 Grid search/scroll/sticky-header + CR-076 Firebase auth/Firestore token refresh):
+
+| Command | Result |
+|---------|--------|
+| `npx tsc --noEmit` | Passes: 0 errors. |
+| `npm test` | 63 files, 684 tests — 682 passed, 2 failed (both `publicExports.contract.test.ts`, a known-flaky 5s filesystem-scan timeout unrelated to this release; re-run clean on isolated file). Two real test mocks fixed as part of this release (`FirestoreDataProvider.test.ts`'s `firebase/auth` mock, `FirebaseAuthProvider.test.ts`'s `firebase-init` mock) to match the `onIdTokenChanged`/`getFirestoreConfigurationState` production changes (CR-076). |
+| `npm run build` | Passes: Vite library build + declarations (`dist/types/src/index.d.ts` regenerated). |
+| `npm pack --dry-run --json` | Passes: 213 entries. |
+
 Real verification performed on 2026-07-29 (CR-071 drag&drop addition + CR-073):
 
 | Command | Result |
@@ -234,4 +243,5 @@ Real verification performed on 2026-07-29 (CR-071 drag&drop addition + CR-073):
 | 1.2.1 | Published on npm (`@llmnative/react@1.2.1`). CR-069 completa. Contiene anche CR-070 (unchanged provider no-op). |
 | 1.3.0 | Published on npm (`@llmnative/react@1.3.0`). CR-071 (Chatbot, incl. drag&drop) e CR-073 (log LLM dev-only, fix allegati opencode) complete. |
 | 1.4.0 | Published on npm (`@llmnative/react@1.4.0`). CR-074 (`Table`/`Grid` `recordId` — stable row identity) completa. |
+| 1.5.0 | Published on npm (`@llmnative/react@1.5.0`). CR-075 (Grid built-in search, internal scroll with sticky header, Card layout props) e CR-076 (Firebase Auth/Firestore ID token refresh reactivity + Firestore-only config fix) complete. |
 | 1.x / 2.0 | Roadmap: CR-051 (WorkflowAI), CR-040 (SchemaForm), CR-041 (SeoEnhancer), E2E. CR-072 deferito (TypeScript 6 regression upstream). |

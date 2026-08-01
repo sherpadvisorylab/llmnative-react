@@ -252,7 +252,18 @@ function Table({
         heightClassName ? `${heightClassName} overflow-auto` : "",
         scrollClassName || "",
     ].filter(Boolean).join(" ");
+    const isScrollable = !!heightClassName;
     const totalColumns = headers.length + (showSelection ? 1 : 0) + (reorderable ? 1 : 0);
+    // A bounded `heightClassName` makes the viewport div above (see `overflow-auto` appended to
+    // it) the actual scrolling element for the WHOLE `<table>` — standard `<thead>`/`<tbody>`/
+    // `<tfoot>`, nothing split apart. To keep the header/footer visually fixed while only the
+    // body rows scroll, `position: sticky` goes on each individual `<th>`/footer cell — NOT on
+    // `<thead>`/`<tfoot>` themselves. `<thead>`/`<tfoot>` are "internal table" display types
+    // (`table-header-group`/`table-footer-group`); browsers do not reliably honor `sticky` on
+    // that box type, only on `table-cell` boxes (`<th>`/`<td>`) — this is the one documented,
+    // standard technique for a sticky table header with no JS and no non-standard markup. `bg-
+    // card` (opaque) so scrolled-under rows don't show through beneath the pinned cells.
+    const stickyHeaderCellClass = isScrollable ? "sticky top-0 z-10 bg-card" : "";
 
     const renderDropIndicator = (
         key: string,
@@ -294,257 +305,265 @@ function Table({
         );
     };
 
+    const headerRow = (
+        <tr>
+            {showSelection && (
+                <th className={["px-3 py-2 font-semibold text-muted-foreground", stickyHeaderCellClass].filter(Boolean).join(" ")} style={{ width: '1%', whiteSpace: 'nowrap' }}>
+                    {selection !== 'single' ? (
+                        <div className="th-inner py-1">
+                            <input
+                                type="checkbox"
+                                aria-label={dict.selectAllRows}
+                                checked={selectionState.records.length > 0 && selectionState.records.length === rows.length}
+                                onChange={(event) => {
+                                    const nextKeys = event.target.checked
+                                        ? sortedBody.map((record, index) => getRecordKey(record, index))
+                                        : [];
+                                    updateSelection(nextKeys);
+                                }}
+                            />
+                        </div>
+                    ) : (
+                        <div className="th-inner py-1" />
+                    )}
+                </th>
+            )}
+            {reorderable && (
+                <th className={["px-3 py-2 font-semibold text-muted-foreground", stickyHeaderCellClass].filter(Boolean).join(" ")} style={{ width: '1%', whiteSpace: 'nowrap' }}>
+                    <div className="th-inner py-1" />
+                </th>
+            )}
+            {headers.map((hdr) => (
+                hdr.label ? (
+                    (() => {
+                        const isSortable = effectiveSortable && hdr.sort !== false;
+                        const isActiveSort = isSortable && currentOrder?.field === hdr.key;
+                        const ariaSort = !isActiveSort
+                            ? "none"
+                            : currentOrder?.dir === 'desc'
+                                ? "descending"
+                                : "ascending";
+
+                        return (
+                            <th
+                                key={hdr.key}
+                                className={["px-3 py-2 font-semibold text-muted-foreground", stickyHeaderCellClass, hdr.className || ""].filter(Boolean).join(" ")}
+                                aria-sort={ariaSort}
+                            >
+                                {isSortable ? (
+                                    <button
+                                        type="button"
+                                        className={
+                                            "th-inner group inline-flex w-full cursor-pointer items-center gap-2 rounded-sm border-0 bg-transparent px-0 py-1 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 " +
+                                            (isActiveSort
+                                                ? "font-semibold text-foreground"
+                                                : "text-muted-foreground hover:text-foreground")
+                                        }
+                                        onClick={() => setCurrentOrder((prev) => Order.toggle(prev, hdr.key))}
+                                        aria-label={
+                                            isActiveSort
+                                                ? interpolate(dict.sortByCurrent, { label: hdr.label, direction: currentOrder?.dir === 'desc' ? 'descending' : 'ascending' })
+                                                : interpolate(dict.sortBy, { label: hdr.label })
+                                        }
+                                        title={
+                                            isActiveSort
+                                                ? `${hdr.label}: ${currentOrder?.dir === 'desc' ? 'descending' : 'ascending'}`
+                                                : interpolate(dict.sortBy, { label: hdr.label })
+                                        }
+                                    >
+                                        <span
+                                            className={
+                                                "inline-flex h-4 w-4 flex-none items-center justify-center transition-colors " +
+                                                (isActiveSort
+                                                    ? "text-primary"
+                                                    : "text-muted-foreground/70 group-hover:text-foreground/80")
+                                            }
+                                            aria-hidden="true"
+                                        >
+                                            {isActiveSort ? (
+                                                currentOrder?.dir === 'desc' ? <ArrowDown size={14} /> : <ArrowUp size={14} />
+                                            ) : (
+                                                <ArrowUpDown size={14} />
+                                            )}
+                                        </span>
+                                        <span>{hdr.label}</span>
+                                    </button>
+                                ) : (
+                                    <div className="th-inner py-1">{hdr.label}</div>
+                                )}
+                            </th>
+                        );
+                    })()
+                ) : (
+                    <th key={hdr.key} className={["px-3 py-2 font-semibold text-muted-foreground", stickyHeaderCellClass].filter(Boolean).join(" ")} style={{ width: '1%', whiteSpace: 'nowrap' }}></th>
+                )
+            ))}
+        </tr>
+    );
+
+    const bodyContent = (
+        <Pagination
+            records={sortedBody}
+            appendTo={paginationNavEl}
+            wrapperClassName="px-3 pt-4 pb-2"
+            {...(pagination || {})}
+        >
+            {(pageRecords, pageOffset) => {
+                const groupFields = groupBy
+                    ? (Array.isArray(groupBy) ? groupBy : [groupBy])
+                    : null;
+                let prevGroupKey: string | undefined;
+                return pageRecords.map((record, index) => {
+                    const absoluteIndex = pageOffset + index;
+                    const rowKey = getRecordKey(record, absoluteIndex);
+                    const currentGroupKey = groupFields
+                        ? groupFields.map((f) => String(record[f] ?? '')).join(' · ')
+                        : undefined;
+                    const showGroupHeader = currentGroupKey !== undefined && currentGroupKey !== prevGroupKey;
+                    prevGroupKey = currentGroupKey;
+                    const isSelected = activeSelectedKeys.includes(rowKey);
+                    const isDraggedOver = dragOverKey === rowKey;
+                    const isDragged = draggedKey === rowKey;
+                    const resolvedActiveKey = activeKey === undefined ? activeRowKey : activeKey;
+                    const isActiveRow = activeClass && resolvedActiveKey === rowKey;
+
+                    return (
+                        <React.Fragment key={rowKey}>
+                            {showGroupHeader && (
+                                <tr aria-hidden="true">
+                                    <td
+                                        colSpan={totalColumns}
+                                        className="bg-muted/40 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+                                    >
+                                        {currentGroupKey}
+                                    </td>
+                                </tr>
+                            )}
+                            {renderDropIndicator(rowKey, 'before', record, absoluteIndex)}
+                            <tr
+                                draggable={reorderable}
+                                className={[
+                                    "odd:bg-muted/30 hover:bg-muted/20 transition-colors",
+                                    isDraggedOver ? "bg-muted/30" : "",
+                                    isActiveRow ? activeClass : "",
+                                ].filter(Boolean).join(" ") || undefined}
+                                style={{
+                                    cursor: onRowClick ? "pointer" : reorderable ? "grab" : "default",
+                                    opacity: isDragged ? 0.45 : 1,
+                                }}
+                                onClick={(e) => {
+                                    if (onRowClick) {
+                                        handleClick(e, record, absoluteIndex);
+                                    }
+                                }}
+                                onDragStart={() => {
+                                    setDraggedKey(rowKey);
+                                }}
+                                onDragOver={(event) => {
+                                    if (!reorderable) return;
+                                    event.preventDefault();
+                                    const rect = event.currentTarget.getBoundingClientRect();
+                                    const nextPosition: DropIndicatorPosition =
+                                        event.clientY < rect.top + rect.height / 2 ? 'before' : 'after';
+
+                                    if (dragOverKey !== rowKey) {
+                                        setDragOverKey(rowKey);
+                                    }
+
+                                    if (draggedKey !== rowKey) {
+                                        setDropIndicator((current) =>
+                                            current?.key === rowKey && current.position === nextPosition
+                                                ? current
+                                                : { key: rowKey, position: nextPosition }
+                                        );
+                                    }
+                                }}
+                                onDragLeave={() => {
+                                    if (dragOverKey === rowKey) {
+                                        setDragOverKey(null);
+                                    }
+                                }}
+                                onDragEnd={() => {
+                                    setDraggedKey(null);
+                                    setDragOverKey(null);
+                                    setDropIndicator(null);
+                                }}
+                                onDrop={(event) => {
+                                    if (!reorderable) return;
+                                    event.preventDefault();
+                                    handleDrop(record, absoluteIndex);
+                                }}
+                            >
+                                {showSelection && (
+                                    <td className="px-3 py-2 border-b border-border/50" style={{ width: '1%', whiteSpace: 'nowrap' }}>
+                                        <input
+                                            type={selection === 'single' ? 'radio' : 'checkbox'}
+                                            name={selection === 'single' ? singleSelectionGroupName : undefined}
+                                            aria-label={interpolate(dict.selectRow, { key: rowKey })}
+                                            checked={isSelected}
+                                            onChange={() => {
+                                                if (selection === 'single') {
+                                                    toggleSingleRowSelection(record, absoluteIndex);
+                                                    return;
+                                                }
+                                                toggleRowSelection(record, absoluteIndex);
+                                            }}
+                                            onClick={(event) => {
+                                                event.stopPropagation();
+                                                if (selection === 'single') {
+                                                    event.preventDefault();
+                                                    toggleSingleRowSelection(record, absoluteIndex);
+                                                }
+                                            }}
+                                        />
+                                    </td>
+                                )}
+                                {reorderable && (
+                                    <td className="px-3 py-2 border-b border-border/50" style={{ width: '1%', whiteSpace: 'nowrap' }}>
+                                        <button
+                                            type="button"
+                                            draggable={reorderable}
+                                            className="inline-flex cursor-grab items-center justify-center rounded-sm border-0 bg-transparent p-0 text-muted-foreground"
+                                            aria-label={interpolate(dict.reorderRow, { key: rowKey })}
+                                            onClick={(event) => event.preventDefault()}
+                                            onDragStart={(event) => {
+                                                event.stopPropagation();
+                                                setDraggedKey(rowKey);
+                                            }}
+                                            onDragEnd={(event) => {
+                                                event.stopPropagation();
+                                                setDraggedKey(null);
+                                                setDragOverKey(null);
+                                                setDropIndicator(null);
+                                            }}
+                                        >
+                                            <GripVertical size={14} />
+                                        </button>
+                                    </td>
+                                )}
+                                {headers.map((hdr) => (
+                                    <td key={hdr.key} className="px-3 py-2 border-b border-border/50">{getFieldComponent(record, hdr.key, absoluteIndex)}</td>
+                                ))}
+                            </tr>
+                            {renderDropIndicator(rowKey, 'after', record, absoluteIndex)}
+                        </React.Fragment>
+                    );
+                });
+            }}
+        </Pagination>
+    );
+
     return (
         <div className="flex items-stretch gap-3">
             {before && <div className="table-before flex shrink-0 items-center self-stretch">{before}</div>}
             <div ref={paginationNavRef} className={"min-w-0 flex-1 overflow-x-auto " + (wrapperClassName || theme.Table.wrapperClassName)}>
                 <div className={viewportClass}>
-                    <table className={"w-full min-w-full text-left text-sm border-collapse " + (className || theme.Table.className)}>
+                    <table className={"w-full text-left text-sm border-collapse " + (className || theme.Table.className)}>
                     <thead className={"border-b " + (headerClassName || theme.Table.headerClassName)}>
-                        <tr>
-                            {showSelection && (
-                                <th className="px-3 py-2 font-semibold text-muted-foreground" style={{ width: '1%', whiteSpace: 'nowrap' }}>
-                                    {selection !== 'single' ? (
-                                        <div className="th-inner py-1">
-                                            <input
-                                                type="checkbox"
-                                                aria-label={dict.selectAllRows}
-                                                checked={selectionState.records.length > 0 && selectionState.records.length === rows.length}
-                                                onChange={(event) => {
-                                                    const nextKeys = event.target.checked
-                                                        ? sortedBody.map((record, index) => getRecordKey(record, index))
-                                                        : [];
-                                                    updateSelection(nextKeys);
-                                                }}
-                                            />
-                                        </div>
-                                    ) : (
-                                        <div className="th-inner py-1" />
-                                    )}
-                                </th>
-                            )}
-                            {reorderable && (
-                                <th className="px-3 py-2 font-semibold text-muted-foreground" style={{ width: '1%', whiteSpace: 'nowrap' }}>
-                                    <div className="th-inner py-1" />
-                                </th>
-                            )}
-                            {headers.map((hdr) => (
-                                hdr.label ? (
-                                    (() => {
-                                        const isSortable = effectiveSortable && hdr.sort !== false;
-                                        const isActiveSort = isSortable && currentOrder?.field === hdr.key;
-                                        const ariaSort = !isActiveSort
-                                            ? "none"
-                                            : currentOrder?.dir === 'desc'
-                                                ? "descending"
-                                                : "ascending";
-
-                                        return (
-                                            <th
-                                                key={hdr.key}
-                                                className={"px-3 py-2 font-semibold text-muted-foreground" + (hdr.className ? " " + hdr.className : "")}
-                                                aria-sort={ariaSort}
-                                            >
-                                                {isSortable ? (
-                                                    <button
-                                                        type="button"
-                                                        className={
-                                                            "th-inner group inline-flex w-full cursor-pointer items-center gap-2 rounded-sm border-0 bg-transparent px-0 py-1 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 " +
-                                                            (isActiveSort
-                                                                ? "font-semibold text-foreground"
-                                                                : "text-muted-foreground hover:text-foreground")
-                                                        }
-                                                        onClick={() => setCurrentOrder((prev) => Order.toggle(prev, hdr.key))}
-                                                        aria-label={
-                                                            isActiveSort
-                                                                ? interpolate(dict.sortByCurrent, { label: hdr.label, direction: currentOrder?.dir === 'desc' ? 'descending' : 'ascending' })
-                                                                : interpolate(dict.sortBy, { label: hdr.label })
-                                                        }
-                                                        title={
-                                                            isActiveSort
-                                                                ? `${hdr.label}: ${currentOrder?.dir === 'desc' ? 'descending' : 'ascending'}`
-                                                                : interpolate(dict.sortBy, { label: hdr.label })
-                                                        }
-                                                    >
-                                                        <span
-                                                            className={
-                                                                "inline-flex h-4 w-4 flex-none items-center justify-center transition-colors " +
-                                                                (isActiveSort
-                                                                    ? "text-primary"
-                                                                    : "text-muted-foreground/70 group-hover:text-foreground/80")
-                                                            }
-                                                            aria-hidden="true"
-                                                        >
-                                                            {isActiveSort ? (
-                                                                currentOrder?.dir === 'desc' ? <ArrowDown size={14} /> : <ArrowUp size={14} />
-                                                            ) : (
-                                                                <ArrowUpDown size={14} />
-                                                            )}
-                                                        </span>
-                                                        <span>{hdr.label}</span>
-                                                    </button>
-                                                ) : (
-                                                    <div className="th-inner py-1">{hdr.label}</div>
-                                                )}
-                                            </th>
-                                        );
-                                    })()
-                                ) : (
-                                    <th key={hdr.key} className="px-3 py-2 font-semibold text-muted-foreground" style={{ width: '1%', whiteSpace: 'nowrap' }}></th>
-                                )
-                            ))}
-                        </tr>
+                        {headerRow}
                     </thead>
                     <tbody className={bodyClassName || theme.Table.bodyClassName}>
-                        <Pagination
-                            records={sortedBody}
-                            appendTo={paginationNavEl}
-                            wrapperClassName="px-3 pt-4 pb-2"
-                            {...(pagination || {})}
-                        >
-                            {(pageRecords, pageOffset) => {
-                                const groupFields = groupBy
-                                    ? (Array.isArray(groupBy) ? groupBy : [groupBy])
-                                    : null;
-                                let prevGroupKey: string | undefined;
-                                return pageRecords.map((record, index) => {
-                                    const absoluteIndex = pageOffset + index;
-                                    const rowKey = getRecordKey(record, absoluteIndex);
-                                    const currentGroupKey = groupFields
-                                        ? groupFields.map((f) => String(record[f] ?? '')).join(' · ')
-                                        : undefined;
-                                    const showGroupHeader = currentGroupKey !== undefined && currentGroupKey !== prevGroupKey;
-                                    prevGroupKey = currentGroupKey;
-                                    const isSelected = activeSelectedKeys.includes(rowKey);
-                                    const isDraggedOver = dragOverKey === rowKey;
-                                    const isDragged = draggedKey === rowKey;
-                                    const resolvedActiveKey = activeKey === undefined ? activeRowKey : activeKey;
-                                    const isActiveRow = activeClass && resolvedActiveKey === rowKey;
-
-                                    return (
-                                        <React.Fragment key={rowKey}>
-                                            {showGroupHeader && (
-                                                <tr aria-hidden="true">
-                                                    <td
-                                                        colSpan={totalColumns}
-                                                        className="bg-muted/40 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
-                                                    >
-                                                        {currentGroupKey}
-                                                    </td>
-                                                </tr>
-                                            )}
-                                            {renderDropIndicator(rowKey, 'before', record, absoluteIndex)}
-                                            <tr
-                                                draggable={reorderable}
-                                                className={[
-                                                    "odd:bg-muted/30 hover:bg-muted/20 transition-colors",
-                                                    isDraggedOver ? "bg-muted/30" : "",
-                                                    isActiveRow ? activeClass : "",
-                                                ].filter(Boolean).join(" ") || undefined}
-                                                style={{
-                                                    cursor: onRowClick ? "pointer" : reorderable ? "grab" : "default",
-                                                    opacity: isDragged ? 0.45 : 1,
-                                                }}
-                                                onClick={(e) => {
-                                                    if (onRowClick) {
-                                                        handleClick(e, record, absoluteIndex);
-                                                    }
-                                                }}
-                                                onDragStart={() => {
-                                                    setDraggedKey(rowKey);
-                                                }}
-                                                onDragOver={(event) => {
-                                                    if (!reorderable) return;
-                                                    event.preventDefault();
-                                                    const rect = event.currentTarget.getBoundingClientRect();
-                                                    const nextPosition: DropIndicatorPosition =
-                                                        event.clientY < rect.top + rect.height / 2 ? 'before' : 'after';
-
-                                                    if (dragOverKey !== rowKey) {
-                                                        setDragOverKey(rowKey);
-                                                    }
-
-                                                    if (draggedKey !== rowKey) {
-                                                        setDropIndicator((current) =>
-                                                            current?.key === rowKey && current.position === nextPosition
-                                                                ? current
-                                                                : { key: rowKey, position: nextPosition }
-                                                        );
-                                                    }
-                                                }}
-                                                onDragLeave={() => {
-                                                    if (dragOverKey === rowKey) {
-                                                        setDragOverKey(null);
-                                                    }
-                                                }}
-                                                onDragEnd={() => {
-                                                    setDraggedKey(null);
-                                                    setDragOverKey(null);
-                                                    setDropIndicator(null);
-                                                }}
-                                                onDrop={(event) => {
-                                                    if (!reorderable) return;
-                                                    event.preventDefault();
-                                                    handleDrop(record, absoluteIndex);
-                                                }}
-                                            >
-                                                {showSelection && (
-                                                    <td className="px-3 py-2 border-b border-border/50" style={{ width: '1%', whiteSpace: 'nowrap' }}>
-                                                        <input
-                                                            type={selection === 'single' ? 'radio' : 'checkbox'}
-                                                            name={selection === 'single' ? singleSelectionGroupName : undefined}
-                                                            aria-label={interpolate(dict.selectRow, { key: rowKey })}
-                                                            checked={isSelected}
-                                                            onChange={() => {
-                                                                if (selection === 'single') {
-                                                                    toggleSingleRowSelection(record, absoluteIndex);
-                                                                    return;
-                                                                }
-                                                                toggleRowSelection(record, absoluteIndex);
-                                                            }}
-                                                            onClick={(event) => {
-                                                                event.stopPropagation();
-                                                                if (selection === 'single') {
-                                                                    event.preventDefault();
-                                                                    toggleSingleRowSelection(record, absoluteIndex);
-                                                                }
-                                                            }}
-                                                        />
-                                                    </td>
-                                                )}
-                                                {reorderable && (
-                                                    <td className="px-3 py-2 border-b border-border/50" style={{ width: '1%', whiteSpace: 'nowrap' }}>
-                                                        <button
-                                                            type="button"
-                                                            draggable={reorderable}
-                                                            className="inline-flex cursor-grab items-center justify-center rounded-sm border-0 bg-transparent p-0 text-muted-foreground"
-                                                            aria-label={interpolate(dict.reorderRow, { key: rowKey })}
-                                                            onClick={(event) => event.preventDefault()}
-                                                            onDragStart={(event) => {
-                                                                event.stopPropagation();
-                                                                setDraggedKey(rowKey);
-                                                            }}
-                                                            onDragEnd={(event) => {
-                                                                event.stopPropagation();
-                                                                setDraggedKey(null);
-                                                                setDragOverKey(null);
-                                                                setDropIndicator(null);
-                                                            }}
-                                                        >
-                                                            <GripVertical size={14} />
-                                                        </button>
-                                                    </td>
-                                                )}
-                                                {headers.map((hdr) => (
-                                                    <td key={hdr.key} className="px-3 py-2 border-b border-border/50">{getFieldComponent(record, hdr.key, absoluteIndex)}</td>
-                                                ))}
-                                            </tr>
-                                            {renderDropIndicator(rowKey, 'after', record, absoluteIndex)}
-                                        </React.Fragment>
-                                    );
-                                });
-                            }}
-                        </Pagination>
+                        {bodyContent}
                     </tbody>
                     {footer && <tfoot className={footerClassName || theme.Table.footerClassName}>{footer}</tfoot>}
                     </table>

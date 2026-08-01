@@ -30,5 +30,5 @@ export interface AuthProviderAdapter extends ProviderConfigurable {
      * Read-only/UI convenience — never a security boundary, the server always
      * re-verifies the raw token itself rather than trusting client-read claims.
      */
-    getIdTokenClaims?(): Promise<Record<string, unknown> | null>;
+    getIdTokenClaims?(forceRefresh?: boolean): Promise<Record<string, unknown> | null>;
 }

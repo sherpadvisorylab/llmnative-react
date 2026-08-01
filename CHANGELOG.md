@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-08-02
+
+### Added
+- `Grid.searchable` — built-in search box in `Grid`'s own default header. `true` searches every string-valued field on each record; pass a `GridSearchConfig` (`{ fields?, placeholder? }`) to restrict which fields match or customize the placeholder. Filters the records actually rendered (sort/pagination/selection all see the filtered set). Only wired into the default header — a fully custom `header` prop bypasses it. New public export `GridSearchConfig<TRecord>`. (CR-075)
+- `Grid.cardClassName` / `Grid.bodyClassName` — control the `Card` root box and body div that `Grid` always renders inside, distinct from the existing `wrapperClassName` (the element around the Card). Needed together with `views.table.heightClassName` for a full-height `Grid` to scroll internally instead of growing past its container. (CR-075)
+- `Grid`'s `views.table.className` / `heightClassName` / `scrollClassName` / `headerClassName` are now actually forwarded to the underlying `Table` — previously silently dropped by `GridTableView`/`GridCore` even though `Table` itself already supported them. (CR-075)
+- `AuthProvider.getIdTokenClaims(forceRefresh?: boolean)` — optional parameter (backward-compatible) to force a fresh ID token fetch, e.g. after a server-side custom-claims change. (CR-076)
+
+### Fixed
+- `Table`: removed a hardcoded `min-w-full` class that had the same CSS specificity as a consumer-supplied `className` with its own `min-w-[...]` — depending on generated-stylesheet order, it could silently cancel the intended horizontal scroll. (CR-075)
+- `Table`: when `heightClassName` enables internal scrolling, the header (and footer, if present) now stay visually fixed while only the body rows scroll — `position: sticky` applied to each individual `<th>`/footer cell (not `<thead>`/`<tfoot>`, which browsers don't reliably honor for `sticky`). Automatic, no extra prop needed. (CR-075)
+- `Pagination`'s `sticky` wrapper no longer renders an empty, translucent bar pinned to the bottom of every table when there's nothing to paginate — now gated on `records.length > pageLimit`, not unconditionally on the theme's `sticky: true` default. (CR-075)
+- `FirestoreDataProvider.subscribe()` now reopens its data listener on `onIdTokenChanged`, not just `onAuthStateChanged` — Firestore security rules can depend on custom claims, which can change while the same user stays signed in; the listener previously kept using stale claims until the next sign-in/out. (CR-076)
+- `FirebaseAuthProvider.getConfigurationState()` no longer requires a Realtime Database `databaseURL` — it was incorrectly disabling `AuthButton` for apps that only use Firestore. (CR-076)
+- `AuthButton`'s avatar dropdown now closes when clicking outside it or pressing Escape; added `aria-expanded`/`aria-haspopup` to the trigger. (CR-076)
+
 ## [1.4.0] - 2026-08-01
 
 ### Added

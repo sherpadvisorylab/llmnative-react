@@ -76,6 +76,10 @@ interface ShowcaseGridI18n {
             single: ShowcaseExampleCopy;
             multiple: ShowcaseExampleCopy;
         }>;
+        searchable: ShowcaseExamplesGroup<{
+            all: ShowcaseExampleCopy;
+            fields: ShowcaseExampleCopy;
+        }>;
         actions: ShowcaseExamplesGroup<{
             crudPreset: ShowcaseExampleCopy;
             customKinds: ShowcaseExampleCopy;

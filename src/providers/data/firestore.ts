@@ -22,7 +22,7 @@ import {
     type WhereFilterOp,
     type QuerySnapshot,
 } from 'firebase/firestore';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onIdTokenChanged } from 'firebase/auth';
 import { consoleLog } from '../../constant';
 import { Config, onConfigChange } from '../../Config';
 import init, { getFirestoreConfigurationState, getSafeAuth } from '../firebase-init';
@@ -363,7 +363,10 @@ export class FirestoreDataProvider implements DataProviderAdapter {
         };
 
         let unsubscribeData: (() => void) | undefined;
-        const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+        // Firestore rules can depend on custom claims. Those claims may change while
+        // the same user remains signed in, so auth-state changes alone are not enough:
+        // reopen the data listener whenever Firebase refreshes the ID token.
+        const unsubscribeAuth = onIdTokenChanged(auth, (user) => {
             unsubscribeData?.();
             unsubscribeData = undefined;
             if (!user) {

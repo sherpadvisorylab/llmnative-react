@@ -122,6 +122,7 @@ export type {
     GridReorderMeta,
     GridRecordKey,
     GridProps,
+    GridSearchConfig,
     GridSelectionChangeHandler,
     GridSelectionMode,
     GridSelectionState,

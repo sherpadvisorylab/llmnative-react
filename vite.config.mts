@@ -35,7 +35,7 @@ export default defineConfig({
         rolldownOptions: {
             external,
         },
-        sourcemap: false,
+        sourcemap: true,
         emptyOutDir: true,
     },
 });

@@ -35,6 +35,26 @@ export type GridGalleryField<TRecord> = {
 export type GridTableViewConfig = {
     /** Show a built-in "Columns" dropdown letting the user show/hide table columns. Default `false`. */
     columnPicker?: boolean;
+    /** CSS classes on the underlying `<table>` element — forwarded to `Table`'s own `className`.
+     * A `<table>` with `table-layout: auto` (the default) shrinks its columns to fit the
+     * container instead of overflowing it, so wide/many-column content never triggers a
+     * horizontal scrollbar on its own — set a `min-w-[…]` here (combined with `views.table`'s
+     * ancestor allowing horizontal overflow, e.g. via `wrapperClassName="overflow-x-auto"`) to
+     * force the table wider than its container when needed. */
+    className?: string;
+    /** Tailwind height/max-height class for the inner viewport — forwarded to `Table`'s own
+     * `heightClassName`. When set, `Table` enables internal vertical scrolling automatically AND
+     * pins its own `<thead>`/`<tfoot>` to the top/bottom of that same scrolling viewport, so only
+     * the body rows move — no extra prop needed for that, it's `Table`'s own default behavior
+     * whenever it is height-bound. */
+    heightClassName?: string;
+    /** Additional class on the inner scrolling viewport — forwarded to `Table`'s own
+     * `scrollClassName`. Use as an addon for overflow styling or fine-grained tweaks. */
+    scrollClassName?: string;
+    /** Optional extra classes on `<thead>` — forwarded to `Table`'s own `headerClassName`. Purely
+     * cosmetic (e.g. extra padding/typography); the sticky-header-when-scrollable behavior itself
+     * is automatic (see `heightClassName` above) and does not depend on this prop being set. */
+    headerClassName?: string;
 };
 
 /** Gallery-specific view options, grouped under `views.gallery`. */
@@ -280,6 +300,22 @@ export type GridPresentation<TRecord> = {
     sticky?: GridSticky;
     /** CSS classes on the outermost wrapper element. */
     wrapperClassName?: string;
+    /** CSS classes on the Card's own root box — the bordered element itself (`ui/Card.tsx`'s
+     * `cardRootClassName`), distinct from `wrapperClassName` (the element AROUND the card,
+     * e.g. for `before`/`after` layout) and `bodyClassName` (the padded area inside the card).
+     * The root box has no `display: flex`/height by default — its body only actually gets a
+     * bounded height (and therefore an internal scrollbar) when THIS box is also a flex column
+     * with a real height, e.g. `"flex h-full min-h-0 flex-col"`. Needed together with
+     * `bodyClassName`/`views.table.heightClassName` for a full-height Grid to scroll internally
+     * instead of growing past its container. */
+    cardClassName?: string;
+    /** CSS classes on the Card body — the container directly around the table/gallery view.
+     * Grid always renders inside a `Card` (`ui/Card.tsx`); its body defaults to a fixed padding
+     * with no height constraint. Use this (typically with `flex-1 min-h-0 overflow-hidden p-0`,
+     * paired with `wrapperClassName`/`cardClassName` making the card itself a bounded flex
+     * column, and `views.table.heightClassName`) to make the table's own internal scroll fill
+     * the remaining height of a flex ancestor instead of growing the page. */
+    bodyClassName?: string;
     /** Show a loading skeleton instead of rows. */
     loading?: boolean;
     /** Title rendered in the Grid header area. */
@@ -288,6 +324,16 @@ export type GridPresentation<TRecord> = {
     before?: React.ReactNode;
     /** Content rendered after the Grid. */
     after?: React.ReactNode;
+};
+
+/** Config for `GridBehavior.searchable` beyond a plain `true` — restrict which fields match,
+ * or override the input's placeholder. */
+export type GridSearchConfig<TRecord> = {
+    /** Placeholder text for the search input — defaults to the localized `common.search`
+     * ("Search"). */
+    placeholder?: string;
+    /** Field keys to match against — omit to search every string-valued field on each record. */
+    fields?: Array<keyof TRecord | string>;
 };
 
 /** Interaction / behaviour props for `<Grid>`. */
@@ -306,6 +352,14 @@ export type GridBehavior<TRecord> = {
     onReorder?: GridReorderHandler<TRecord>;
     /** Group rows by a field or array of fields. */
     groupBy?: keyof TRecord | string | Array<keyof TRecord | string>;
+    /** Enable a built-in search box in Grid's own default header — filters the records actually
+     * rendered (table/gallery, and whatever they in turn compute: sort/pagination/selection all
+     * see the FILTERED set, not the original one) by a case-insensitive substring match. `true`
+     * searches every string-valued field on each record; pass a `GridSearchConfig` to restrict to
+     * specific fields or customize the placeholder. Only rendered as part of Grid's OWN default
+     * header — same as `views.table.columnPicker`/`views.toggle`, a fully custom `header` prop
+     * bypasses it entirely (render your own search input there instead). */
+    searchable?: boolean | GridSearchConfig<TRecord>;
 };
 
 /** Data-mutation hooks for `<Grid>`. */
@@ -406,6 +460,10 @@ export type GridTableViewProps<TRecord extends RecordProps> = {
     activeKey?: string | null;
     groupBy?: keyof TRecord | string | Array<keyof TRecord | string>;
     wrapperClassName?: string;
+    className?: string;
+    heightClassName?: string;
+    scrollClassName?: string;
+    headerClassName?: string;
     before?: React.ReactNode;
     after?: React.ReactNode;
 };

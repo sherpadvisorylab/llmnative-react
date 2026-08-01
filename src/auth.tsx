@@ -247,6 +247,7 @@ export const AuthButton = ({
     const [user, setUser] = React.useState<UserProfile | null>(() => isConfigured ? auth.getUser() : null);
     const [authenticated, setAuthenticated] = React.useState<boolean>(() => isConfigured && (auth.isAuthenticated?.() ?? !!auth.getUser()));
     const [avatarOpen, setAvatarOpen] = React.useState(false);
+    const avatarRef = React.useRef<HTMLDivElement>(null);
     const notConfiguredTitle = configurationState.reason
         || interpolate(dict.notConfigured, { provider: providerLabel });
 
@@ -266,6 +267,24 @@ export const AuthButton = ({
             setAuthenticated(auth.isAuthenticated?.() ?? !!nextUser);
         });
     }, [auth, getConfigurationState]);
+
+    React.useEffect(() => {
+        if (!avatarOpen) return () => {};
+
+        const closeOnOutsideInteraction = (event: PointerEvent) => {
+            if (!avatarRef.current?.contains(event.target as Node)) setAvatarOpen(false);
+        };
+        const closeOnEscape = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') setAvatarOpen(false);
+        };
+
+        document.addEventListener('pointerdown', closeOnOutsideInteraction);
+        document.addEventListener('keydown', closeOnEscape);
+        return () => {
+            document.removeEventListener('pointerdown', closeOnOutsideInteraction);
+            document.removeEventListener('keydown', closeOnEscape);
+        };
+    }, [avatarOpen]);
 
     const refreshState = () => {
         if (!getConfigurationState().configured) {
@@ -314,15 +333,18 @@ export const AuthButton = ({
 
         return (
             <div
+                ref={avatarRef}
                 className={className || theme.SignIn.className}
                 style={{ position: 'relative', display: 'inline-flex' }}
                 title={!isConfigured ? notConfiguredTitle : undefined}
             >
                 <button
                     type="button"
-                    className="border-0 bg-transparent p-0"
+                    className="cursor-pointer border-0 bg-transparent p-0"
                     title={!isConfigured ? notConfiguredTitle : displayName}
                     aria-label={displayName}
+                    aria-expanded={avatarOpen}
+                    aria-haspopup="menu"
                     disabled={!isConfigured || disabled}
                     aria-disabled={!isConfigured || disabled}
                     style={!isConfigured ? { opacity: 0.55, cursor: 'not-allowed' } : undefined}

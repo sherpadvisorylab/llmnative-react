@@ -29,7 +29,9 @@ let mockAuth = buildMockAuth();
 
 vi.mock('../../../src/providers/firebase-init', () => ({
     getSafeAuth: vi.fn(() => mockAuth),
-    getFirebaseConfigurationState: vi.fn(() => ({ configured: true, missingKeys: [] })),
+    // `FirebaseAuthProvider.getConfigurationState()` now checks Firestore config, not RTDB
+    // (CR-076 — a Firestore-only app shouldn't need `databaseURL` just for AuthButton).
+    getFirestoreConfigurationState: vi.fn(() => ({ configured: true, missingKeys: [] })),
     default: vi.fn(),
 }));
 

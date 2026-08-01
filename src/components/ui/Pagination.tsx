@@ -116,7 +116,15 @@ const Pagination = <T,>({
     // `false` is falsy and silently falls through to the theme default, making it impossible to
     // ever turn this off per-instance (the bug: an empty sticky/blurred bar stayed fixed to the
     // viewport bottom even with `sticky={false}` passed explicitly).
-    const isSticky = sticky ?? theme.Pagination.sticky;
+    //
+    // `hasPages &&` — `Table.tsx` always renders `<Pagination>`, even when the caller passes NO
+    // `pagination` prop at all (unpaginated, every record on one page): without this guard, the
+    // theme's `sticky: true` default gave EVERY table an empty `fixed bottom-0` blurred bar
+    // permanently pinned to the viewport bottom, with nothing inside it (the inner `<nav>` below
+    // already only renders when `records.length > pageLimit` — this makes the WRAPPER's sticky
+    // styling follow the same condition, not just its content).
+    const hasPages = records.length > pageLimit;
+    const isSticky = hasPages && (sticky ?? theme.Pagination.sticky);
     const nav = (
         <Wrapper className={(wrapperClassName || theme.Pagination.wrapperClassName) + (isSticky ? ` ${theme.Pagination.stickyClassName}` : '')}
             style={isSticky ? {backdropFilter: "blur(10px)", backgroundColor: "rgba(255, 255, 255, 0.1)"} : {}}

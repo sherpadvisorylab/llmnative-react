@@ -8,6 +8,7 @@ import { ActionButton, buttonPrimaryClass } from "../../ui/Buttons";
 import { Dropdown } from "../../blocks/Dropdown";
 import { type GalleryOverlay } from "../../ui/Gallery";
 import { getRecordValue } from "../../../libs/utils";
+import { cn } from "../../../libs/cn";
 import { type RecordProps } from "../../../providers/data/DataProvider";
 import GridGalleryView from "./GridGalleryView";
 import GridTableView from "./GridTableView";
@@ -64,6 +65,8 @@ function GridCore<TRecord extends RecordProps>({
     views,
     sticky,
     wrapperClassName,
+    cardClassName,
+    bodyClassName,
     loading = false,
     title,
     before,
@@ -75,6 +78,7 @@ function GridCore<TRecord extends RecordProps>({
     reorderable = false,
     onReorder,
     groupBy,
+    searchable,
     onSave,
     onDelete,
     onComplete,
@@ -83,10 +87,42 @@ function GridCore<TRecord extends RecordProps>({
 }: GridCoreProps<TRecord>) {
     const theme = useTheme("grid");
     const dict = useI18n('grid');
+    const commonDict = useI18n('common');
     const gridLabels = useMemo(() => ({ add: dict.buttonAdd }), [dict.buttonAdd]);
     const db = useDataProvider();
     const { preparedRecords, loading: preparedRecordsLoading } = useGridPreparedRecords({ records, onLoad });
     const inferredColumns = useGridColumns({ columns, records: preparedRecords, form });
+
+    // Opt-in via `searchable` — filters the records actually rendered (table/gallery, and
+    // whatever they compute downstream: sort/pagination/selection all see the FILTERED set).
+    // Only wired into Grid's OWN default header (see `resolvedHeader` below) — a fully custom
+    // `header` bypasses it entirely, same as the view toggle/column picker.
+    const searchConfig = searchable === true ? {} : (searchable || undefined);
+    const [searchTerm, setSearchTerm] = useState("");
+    const searchedRecords = useMemo(() => {
+        if (!searchConfig || !searchTerm.trim()) return preparedRecords;
+        const q = searchTerm.trim().toLowerCase();
+        const fieldKeys = searchConfig.fields?.map(String);
+        return preparedRecords.filter((record) => {
+            const keys = fieldKeys ?? Object.keys(record);
+            return keys.some((key) => {
+                const value = getRecordValue(record, key);
+                return typeof value === "string" && value.toLowerCase().includes(q);
+            });
+        });
+    }, [preparedRecords, searchConfig, searchTerm]);
+    const searchControl = searchConfig ? (
+        <div className="flex min-w-0 items-center gap-2">
+            <input
+                type="search"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder={searchConfig.placeholder ?? commonDict.search}
+                className="w-full max-w-xs rounded-md border border-input bg-background px-2 py-1 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+            <span className="shrink-0 text-xs text-muted-foreground">{searchedRecords.length} / {preparedRecords.length}</span>
+        </div>
+    ) : null;
 
     // Every Table/Gallery-view-switching concern lives under one `views` input instead of
     // a flat spray of booleans — `toggle` for the switch itself, `table`/`gallery` for the
@@ -350,11 +386,19 @@ function GridCore<TRecord extends RecordProps>({
         if (header !== undefined) {
             return typeof header === "function" ? header(headerContext) : header;
         }
-        if (!title && !headerActionKeys.length && !viewToggleControl && !columnPickerControl && !fieldPickerControl) return undefined;
+        if (!title && !searchControl && !headerActionKeys.length && !viewToggleControl && !columnPickerControl && !fieldPickerControl) return undefined;
 
         return (
             <>
-                {title || <span />}
+                {/* Only wrap title in the extra flex span when there's a search box to sit
+                    alongside it — keeps the exact previous markup (just `{title || <span />}`)
+                    for every existing Grid that doesn't use `searchable`, no layout change. */}
+                {searchControl ? (
+                    <span className="flex min-w-0 flex-1 items-center gap-3">
+                        {title}
+                        {searchControl}
+                    </span>
+                ) : (title || <span />)}
                 {(headerActionKeys.length || viewToggleControl || columnPickerControl || fieldPickerControl) ? (
                     <span className="flex flex-wrap items-center gap-2">
                         {columnPickerControl}
@@ -369,7 +413,7 @@ function GridCore<TRecord extends RecordProps>({
                 ) : null}
             </>
         );
-    }, [actionButton, header, headerActionKeys, headerContext, title, viewToggleControl, columnPickerControl, fieldPickerControl]);
+    }, [actionButton, header, headerActionKeys, headerContext, title, viewToggleControl, columnPickerControl, fieldPickerControl, searchControl]);
 
     const resolvedFooter = useMemo(() => {
         if (footer !== undefined) {
@@ -409,15 +453,15 @@ function GridCore<TRecord extends RecordProps>({
                 wrapperClassName={wrapperClassName}
                 header={resolvedHeader}
                 footer={resolvedFooter}
-                className={(theme.Grid.Card.className + (sticky ? ` sticky-${sticky}` : "")).trim()}
+                className={cn(theme.Grid.Card.className, sticky ? `sticky-${sticky}` : "", cardClassName)}
                 headerClassName={theme.Grid.Card.headerClassName}
-                bodyClassName={theme.Grid.Card.bodyClassName}
+                bodyClassName={cn(theme.Grid.Card.bodyClassName, bodyClassName)}
                 footerClassName={theme.Grid.Card.footerClassName}
                 loading={loading || preparedRecordsLoading}
             >
                 {resolvedView === "gallery" ? (
                     <GridGalleryView
-                        records={preparedRecords}
+                        records={searchedRecords}
                         recordId={recordId}
                         sortable={initialSort || sortable}
                         pagination={pagination}
@@ -434,7 +478,7 @@ function GridCore<TRecord extends RecordProps>({
                     />
                 ) : (
                     <GridTableView
-                        records={preparedRecords}
+                        records={searchedRecords}
                         recordId={recordId}
                         columns={displayedColumns}
                         runAction={runAction}
@@ -449,6 +493,10 @@ function GridCore<TRecord extends RecordProps>({
                         activeKey={activeKey}
                         groupBy={groupBy}
                         wrapperClassName={theme.Grid.Table.wrapperClassName}
+                        className={tableViewConfig.className}
+                        heightClassName={tableViewConfig.heightClassName}
+                        scrollClassName={tableViewConfig.scrollClassName}
+                        headerClassName={tableViewConfig.headerClassName}
                         before={before}
                         after={after}
                     />

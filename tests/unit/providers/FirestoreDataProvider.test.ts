@@ -25,7 +25,7 @@ vi.mock('../../../src/providers/firebase-init', () => ({
 // ── Mock firebase/auth ────────────────────────────────────────────────────────
 
 vi.mock('firebase/auth', () => ({
-    onAuthStateChanged: vi.fn((_auth: any, cb: any) => { cb({ uid: 'u1' }); return () => {}; }),
+    onIdTokenChanged: vi.fn((_auth: any, cb: any) => { cb({ uid: 'u1' }); return () => {}; }),
 }));
 
 // ── Mock firebase/firestore ───────────────────────────────────────────────────
@@ -210,7 +210,7 @@ describe('subscribe()', () => {
             cb(mockQuerySnap(docs));
             return () => {};
         });
-        vi.mocked(fbAuth.onAuthStateChanged).mockImplementationOnce((_auth: any, cb: any) => {
+        vi.mocked(fbAuth.onIdTokenChanged).mockImplementationOnce((_auth: any, cb: any) => {
             cb({ uid: 'u1' });
             return () => {};
         });
@@ -225,7 +225,7 @@ describe('subscribe()', () => {
 
     it('calls setRecords with empty array when user is null', () => {
         const setRecords = vi.fn();
-        vi.mocked(fbAuth.onAuthStateChanged).mockImplementationOnce((_auth: any, cb: any) => {
+        vi.mocked(fbAuth.onIdTokenChanged).mockImplementationOnce((_auth: any, cb: any) => {
             cb(null);
             return () => {};
         });
@@ -234,7 +234,7 @@ describe('subscribe()', () => {
     });
 
     it('returns an unsubscribe function', () => {
-        vi.mocked(fbAuth.onAuthStateChanged).mockImplementationOnce((_auth: any, cb: any) => {
+        vi.mocked(fbAuth.onIdTokenChanged).mockImplementationOnce((_auth: any, cb: any) => {
             cb({ uid: 'u1' });
             return () => {};
         });

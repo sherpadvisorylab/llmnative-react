@@ -10,7 +10,7 @@ import {
 import type { AuthProviderAdapter, AuthSignInOptions, UserProfile } from '../AuthProvider';
 import type { ProviderConfigurationState } from '../../ProviderConfiguration';
 import type { FirebaseConfig } from '../../../Config';
-import init, { getFirebaseConfigurationState, getSafeAuth } from '../../firebase-init';
+import init, { getFirestoreConfigurationState, getSafeAuth } from '../../firebase-init';
 
 // ── Sign-in options ────────────────────────────────────────────────────────────
 
@@ -92,7 +92,9 @@ export class FirebaseAuthProvider implements AuthProviderAdapter {
     }
 
     getConfigurationState(): ProviderConfigurationState {
-        return getFirebaseConfigurationState(this.appName);
+        // Firebase Authentication does not depend on Realtime Database. Requiring
+        // `databaseURL` here incorrectly disables AuthButton for Firestore-only apps.
+        return getFirestoreConfigurationState(this.appName);
     }
 
     isConfigured(): boolean {
@@ -197,11 +199,11 @@ export class FirebaseAuthProvider implements AuthProviderAdapter {
 
     // ── getIdTokenClaims ───────────────────────────────────────────────────────
 
-    async getIdTokenClaims(): Promise<Record<string, unknown> | null> {
+    async getIdTokenClaims(forceRefresh = false): Promise<Record<string, unknown> | null> {
         await this.initPromise;
         const auth = getSafeAuth(this.appName);
         if (!auth?.currentUser) return null;
-        const { claims } = await auth.currentUser.getIdTokenResult();
+        const { claims } = await auth.currentUser.getIdTokenResult(forceRefresh);
         return claims;
     }
 }

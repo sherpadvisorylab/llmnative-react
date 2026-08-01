@@ -198,6 +198,118 @@ veniva accettato dalla UI ma non arrivava mai al modello, senza errore.
 
 ---
 
+## CR-076 — Firebase Auth/Firestore — reattività al refresh dell'ID token + fix config Firestore-only
+
+**Stato:** ✅ done — rilasciato in 1.5.0
+**Issue:** [#20](https://github.com/sherpadvisorylab/llmnative-react/issues/20)
+**Priorità:** Media
+**Dipende da:** —
+
+### Motivazione
+
+Tre problemi correlati nel provider Firebase: (1) `FirestoreDataProvider`'s
+subscription si riattaccava solo su `onAuthStateChanged` (sign-in/sign-out) —
+ma le regole Firestore possono dipendere da custom claims, che possono
+cambiare mentre lo stesso utente resta autenticato; (2)
+`FirebaseAuthProvider.getConfigurationState()` richiedeva `databaseURL`
+(Realtime Database) anche per app che usano solo Firestore, disabilitando
+`AuthButton` senza motivo; (3) `getIdTokenClaims()` non permetteva di forzare
+un refresh dei claims. Inoltre `AuthButton`: il dropdown dell'avatar non si
+chiudeva cliccando fuori o con Escape.
+
+### Scope
+
+- `firestore.ts`: `onAuthStateChanged` → `onIdTokenChanged` — il listener
+  Firestore si riattacca anche quando Firebase aggiorna l'ID token (claims
+  cambiati), non solo su login/logout.
+- `FirebaseAuthProvider.ts`: `getConfigurationState()` usa
+  `getFirestoreConfigurationState` invece di `getFirebaseConfigurationState` —
+  non richiede più `databaseURL` per app Firestore-only. `getIdTokenClaims
+  (forceRefresh?: boolean)` — nuovo parametro opzionale.
+- `AuthProvider.ts`: firma `getIdTokenClaims` aggiornata di conseguenza
+  (backward-compatible, parametro opzionale).
+- `auth.tsx` (`AuthButton`): il dropdown avatar si chiude cliccando fuori
+  (`pointerdown` su documento) o con `Escape`; aggiunto
+  `aria-expanded`/`aria-haspopup` e `cursor-pointer` sul trigger.
+
+### Checklist
+
+- [x] `firestore.ts` — `onIdTokenChanged` invece di `onAuthStateChanged`
+- [x] `FirebaseAuthProvider.ts` — config check Firestore-only, `getIdTokenClaims(forceRefresh)`
+- [x] `AuthProvider.ts` — firma aggiornata
+- [x] `auth.tsx` — chiusura dropdown su click-outside/Escape, attributi ARIA
+- [x] `npx tsc --noEmit` — 0 errori
+- [x] `npm test` — verde
+- [x] `npm run build` — bundle + dichiarazioni generati
+- [x] Issue GitHub collegata (#20)
+- [x] Versione SemVer (minor, cumulata con CR-075) e `npm publish` — 1.5.0
+
+---
+
+## CR-075 — Grid: ricerca integrata, scroll interno con header sticky, prop layout Card
+
+**Stato:** ✅ done — rilasciato in 1.5.0
+**Issue:** [#19](https://github.com/sherpadvisorylab/llmnative-react/issues/19)
+**Priorità:** Media
+**Dipende da:** —
+
+### Motivazione
+
+Un consumer (CMS) aveva bisogno di: (1) uno scroll interno del body di
+`Table`/`Grid` con header/footer sempre visibili, senza replicare la logica
+lato consumer; (2) controllo sul box radice/body della `Card` che `Grid`
+renderizza sempre, per far cascare un'altezza flessibile reale; (3) una
+ricerca integrata nell'header di default di `Grid`, invece di un `<input>`
+scritto a mano ogni volta lato consumer; (4) un bug di scroll orizzontale
+(`min-w-full` hardcoded in `Table` vinceva sempre su un `className` custom
+con `min-w-[...]`, stessa specificità CSS, annullando lo scroll orizzontale
+voluto); (5) una barra di paginazione `sticky` vuota/traslucida mostrata
+SEMPRE (anche senza pagine) quando il tema ha `Pagination.sticky: true` di
+default.
+
+### Scope
+
+- `Table.tsx`: rimosso `min-w-full` hardcoded (conflitto di specificità con
+  un `className` consumer). Quando `heightClassName` è impostato (scroll
+  interno abilitato), ogni `<th>`/cella del footer riceve `position: sticky`
+  individualmente (non su `<thead>`/`<tfoot>`, "internal table" display
+  types su cui i browser non garantiscono sticky) — header/footer restano
+  fissi mentre solo il body scrolla, automatico, nessun prop aggiuntivo
+  richiesto.
+- `Pagination.tsx`: il wrapper `sticky` ora si attiva solo quando
+  `records.length > pageLimit` (`hasPages`), non incondizionatamente dal
+  default del tema.
+- `grid-core/types.ts`: `GridTableViewConfig` ora inoltra
+  `className`/`heightClassName`/`scrollClassName`/`headerClassName` a
+  `Table` (prima silenziosamente scartati da `Grid`). Nuovi prop `Grid`
+  top-level: `cardClassName` (box radice della Card), `bodyClassName` (div
+  body della Card). Nuovo `GridBehavior.searchable?: boolean |
+  GridSearchConfig<TRecord>` — ricerca case-insensitive su sottostringa,
+  integrata nell'header di default di Grid.
+- `GridTableView.tsx`/`GridCore.tsx`: inoltrano i nuovi prop; `GridCore`
+  implementa il filtro/l'input di ricerca.
+- Nuovo export pubblico: `GridSearchConfig<TRecord>`.
+- Showcase (`clients/showcase`): `GridPage.tsx` — righe props table per
+  `cardClassName`/`bodyClassName`/`searchable`/`views` (quest'ultimo mai
+  documentato prima, gap preesistente colmato insieme), playground, esempio
+  live per `searchable`; i18n aggiornato su tutte e 6 le lingue.
+
+### Checklist
+
+- [x] `Table.tsx` — fix `min-w-full`, sticky per-cella su header/footer quando scrollabile
+- [x] `Pagination.tsx` — `hasPages` gate sul wrapper sticky
+- [x] `grid-core/types.ts` — `views.table.*` inoltrati, `cardClassName`/`bodyClassName`/`searchable`/`GridSearchConfig`
+- [x] `GridTableView.tsx`/`GridCore.tsx` — inoltro prop + implementazione ricerca
+- [x] Export pubblico `GridSearchConfig`
+- [x] Showcase: props table, playground, esempio live, 6 lingue (`GridPage.tsx` + `grid.*.ts`)
+- [x] `npx tsc --noEmit` — 0 errori
+- [x] `npm test` — verde
+- [x] `npm run build` — bundle + dichiarazioni generati
+- [x] Issue GitHub collegata (#19)
+- [x] Versione SemVer (minor, cumulata con CR-076) e `npm publish` — 1.5.0
+
+---
+
 ## CR-074 — Table recordId — identità di riga stabile
 
 **Stato:** ✅ done — rilasciato in 1.4.0

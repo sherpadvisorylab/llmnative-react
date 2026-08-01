@@ -45,18 +45,22 @@ type GridDocSurface = {
     fieldMap: unknown;
     columns: unknown;
     view: unknown;
+    views: unknown;
     sortable: unknown;
     pagination: unknown;
     groupBy: unknown;
     loading: unknown;
     sticky: unknown;
     wrapperClassName: unknown;
+    cardClassName: unknown;
+    bodyClassName: unknown;
     title: unknown;
     header: unknown;
     footer: unknown;
     form: unknown;
     actions: unknown;
     selection: unknown;
+    searchable: unknown;
     onRowClick: unknown;
     reorderable: unknown;
     onReorder: unknown;
@@ -784,6 +788,34 @@ function MultipleSelectionPreview() {
     );
 }
 
+function SearchableGridPreview() {
+    const t = useGridI18n();
+    return (
+        <GridArray
+            records={toArrayRecords()}
+            recordId="_key"
+            title={t.playground.titleDefault}
+            wrapperClassName="w-full"
+            searchable
+            pagination={{ limit: 4, align: 'end', sticky: false }}
+        />
+    );
+}
+
+function SearchableFieldsGridPreview() {
+    const t = useGridI18n();
+    return (
+        <GridArray
+            records={toArrayRecords()}
+            recordId="_key"
+            title={t.playground.titleDefault}
+            wrapperClassName="w-full"
+            searchable={{ fields: ['name', 'team'], placeholder: 'Search name or team…' }}
+            pagination={{ limit: 4, align: 'end', sticky: false }}
+        />
+    );
+}
+
 function CrudPresetPreview({ provider }: { provider: MockDataProvider }) {
     const t = useGridI18n();
     const explicitCompactColumns = React.useMemo(() => getExplicitCompactColumns(t), [t]);
@@ -1047,6 +1079,39 @@ const buildGridPropDocs = (t: ShowcaseI18n) => definePropDocs<GridDocSurface>()(
     },
     { name: 'view', type: '"table" | "gallery"', default: '"table"', description: t.propsDocs.items.view.description, category: t.propsDocs.categories.display },
     {
+        name: 'views',
+        type: 'GridViewsConfig<TRecord>',
+        shape: `{
+  toggle?: boolean
+  table?: {
+    columnPicker?: boolean
+    className?: string
+    heightClassName?: string
+    scrollClassName?: string
+    headerClassName?: string
+  }
+  gallery?: {
+    columns?: 1 | 2 | 3 | 4 | 6
+    fields?: Array<{
+      key: keyof TRecord | string
+      label: string
+      position?: "topLeft" | "topRight" | "bottomLeft" | "bottomRight" | "middleLeft" | "middleRight"
+      defaultVisible?: boolean
+      render?: (value: unknown, record: TRecord) => React.ReactNode
+    }>
+    fieldPicker?: boolean
+    overlays?: GalleryOverlay[]
+  }
+}`,
+        example: `views={{
+  toggle: true,
+  table: { columnPicker: true, heightClassName: 'max-h-[480px]' },
+  gallery: { columns: 3, fieldPicker: true },
+}}`,
+        description: t.propsDocs.items.views.description,
+        category: t.propsDocs.categories.display,
+    },
+    {
         name: 'sortable',
         type: 'boolean | OrderConfig',
         shape: `{
@@ -1071,6 +1136,8 @@ const buildGridPropDocs = (t: ShowcaseI18n) => definePropDocs<GridDocSurface>()(
     { name: 'loading', type: 'boolean', default: 'false', description: t.propsDocs.items.loading.description, category: t.propsDocs.categories.display },
     { name: 'sticky', type: '"top" | "bottom"', description: t.propsDocs.items.sticky.description, category: t.propsDocs.categories.display },
     { name: 'wrapperClassName', type: 'string', description: t.propsDocs.items.wrapperClassName.description, category: t.propsDocs.categories.display },
+    { name: 'cardClassName', type: 'string', description: t.propsDocs.items.cardClassName.description, category: t.propsDocs.categories.display },
+    { name: 'bodyClassName', type: 'string', description: t.propsDocs.items.bodyClassName.description, category: t.propsDocs.categories.display },
     { name: 'before', type: 'ReactNode', description: t.propsDocs.items.before.description, category: t.propsDocs.categories.layout },
     { name: 'after', type: 'ReactNode', description: t.propsDocs.items.after.description, category: t.propsDocs.categories.layout },
     { name: 'title', type: 'ReactNode', description: t.propsDocs.items.title.description, category: t.propsDocs.categories.layout },
@@ -1208,6 +1275,21 @@ type GridSelectionState<TRecord> = {
         description: t.propsDocs.items.selection.description,
         category: t.propsDocs.categories.behavior,
     },
+    {
+        name: 'searchable',
+        type: 'boolean | GridSearchConfig<TRecord>',
+        shape: `// shorthand — search every string-valued field
+true
+
+// object form — restrict fields and/or override the placeholder
+{
+  placeholder?: string
+  fields?: Array<keyof TRecord | string>
+}`,
+        default: 'false',
+        description: t.propsDocs.items.searchable.description,
+        category: t.propsDocs.categories.behavior,
+    },
     { name: 'onRowClick', type: '(record) => void', description: t.propsDocs.items.onRowClick.description, category: t.propsDocs.categories.behavior },
     { name: 'reorderable', type: 'boolean', default: 'false', description: t.propsDocs.items.reorderable.description, category: t.propsDocs.categories.behavior },
     { name: 'onReorder', type: 'GridReorderHandler<TRecord>', description: t.propsDocs.items.onReorder.description, shape: `type GridReorderHandler<TRecord> = (
@@ -1313,6 +1395,20 @@ function GridPlaygroundPreview({ p }: { p: Record<string, any> }) {
     const loading = p.loading as boolean | undefined;
     const sticky = (p.sticky as string) || undefined;
     const wrapperClassName = typeof p.wrapperClassName === 'string' ? p.wrapperClassName : '';
+    const cardClassName = typeof p.cardClassName === 'string' && p.cardClassName ? p.cardClassName : undefined;
+    const bodyClassName = typeof p.bodyClassName === 'string' && p.bodyClassName ? p.bodyClassName : undefined;
+    const searchable = React.useMemo(() => {
+        const val = p.searchable;
+        if (!val || val === 'false') return undefined;
+        if (val === true || val === 'true') return true;
+        if (typeof val === 'object' && (val.placeholder || (Array.isArray(val.fields) && val.fields.length))) return val;
+        return undefined;
+    }, [p.searchable]);
+    const views = React.useMemo(() => {
+        const val = p.views;
+        if (!val || typeof val !== 'object' || Array.isArray(val) || Object.keys(val).length === 0) return undefined;
+        return val;
+    }, [p.views]);
     const actions = React.useMemo(() => buildPlaygroundActions(t, p.actions), [p.actions, t]);
     const hasPreviewAction = React.useMemo(() => hasPlaygroundAction(t, p.actions, 'preview'), [p.actions, t]);
     const resolvedHeaderNode = React.useMemo(() => resolvePlaygroundNode<any>(p.header), [p.header]);
@@ -1403,14 +1499,18 @@ function GridPlaygroundPreview({ p }: { p: Record<string, any> }) {
                     header={resolvedHeaderNode}
                     footer={resolvedFooterNode}
                     view={previewView}
+                    views={views as any}
                     loading={loading}
                     sticky={sticky as any}
                     wrapperClassName={wrapperClassName}
+                    cardClassName={cardClassName}
+                    bodyClassName={bodyClassName}
                     before={resolvedBeforeNode}
                     after={resolvedAfterNode}
                     form={actions ? <GridUserForm /> : undefined}
                     actions={actions as any}
                     selection={resolvedSelection}
+                    searchable={searchable as any}
                     onRowClick={p.onRowClick ? (record) => setClickedRecord(record as UserRecord) : undefined}
                     sortable={effectiveSortable}
                     groupBy={groupBy}
@@ -1452,15 +1552,19 @@ function GridPlaygroundPreview({ p }: { p: Record<string, any> }) {
                     header={resolvedHeaderNode}
                     footer={resolvedFooterNode}
                     view={previewView}
+                    views={views as any}
                     loading={loading}
                     sticky={sticky as any}
                     wrapperClassName={wrapperClassName}
+                    cardClassName={cardClassName}
+                    bodyClassName={bodyClassName}
                     before={resolvedBeforeNode}
                     after={resolvedAfterNode}
                     onLoad={onLoadRecords as any}
                     form={actions ? <GridUserForm /> : undefined}
                     actions={actions as any}
                     selection={resolvedSelection}
+                    searchable={searchable as any}
                     onRowClick={p.onRowClick ? (record) => setClickedRecord(record as UserRecord) : undefined}
                     sortable={effectiveSortable}
                     groupBy={groupBy}
@@ -1607,6 +1711,22 @@ const buildPlayground = (t: ShowcaseI18n): PlaygroundConfig => ({
         },
         { name: 'view', type: '"table" | "gallery"', default: '"table"', description: t.playground.props.view.description, control: 'select', options: ['table', 'gallery'] },
         {
+            name: 'views',
+            type: 'GridViewsConfig<TRecord>',
+            default: '{}',
+            description: t.playground.props.views.description,
+            help: t.playground.props.views.help,
+            control: 'json',
+            rows: 6,
+            shortcuts: [
+                { label: t.playground.props.views.shortcuts?.off.label ?? 'off', value: {}, help: t.playground.props.views.shortcuts?.off.help ?? '' },
+                { label: t.playground.props.views.shortcuts?.toggle.label ?? 'toggle', value: { toggle: true }, help: t.playground.props.views.shortcuts?.toggle.help ?? '' },
+                { label: t.playground.props.views.shortcuts?.columnPicker.label ?? 'columnPicker', value: { toggle: true, table: { columnPicker: true } }, help: t.playground.props.views.shortcuts?.columnPicker.help ?? '' },
+                { label: t.playground.props.views.shortcuts?.scrollable.label ?? 'scrollable', value: { table: { heightClassName: 'max-h-[360px]' } }, help: t.playground.props.views.shortcuts?.scrollable.help ?? '' },
+                { label: t.playground.props.views.shortcuts?.gallery.label ?? 'gallery fields', value: { toggle: true, gallery: { columns: 3, fieldPicker: true } }, help: t.playground.props.views.shortcuts?.gallery.help ?? '' },
+            ],
+        },
+        {
             name: 'sortable',
             type: 'boolean | OrderConfig',
             default: 'true',
@@ -1667,6 +1787,8 @@ const buildPlayground = (t: ShowcaseI18n): PlaygroundConfig => ({
         { name: 'loading', type: 'boolean', default: 'false', description: t.playground.props.loading.description, control: 'boolean' },
         { name: 'sticky', type: '"top" | "bottom"', default: '""', description: t.playground.props.sticky.description, control: 'select', options: ['', 'top', 'bottom'] },
         { name: 'wrapperClassName', type: 'string', default: '""', description: t.playground.props.wrapperClassName.description, control: 'text' },
+        { name: 'cardClassName', type: 'string', default: '""', description: t.playground.props.cardClassName.description, control: 'text' },
+        { name: 'bodyClassName', type: 'string', default: '""', description: t.playground.props.bodyClassName.description, control: 'text' },
         {
             name: 'before',
             type: 'ReactNode',
@@ -1756,6 +1878,21 @@ const buildPlayground = (t: ShowcaseI18n): PlaygroundConfig => ({
                 { label: t.playground.props.selection.shortcuts?.multiKeys.label ?? 'multi+keys', value: { mode: 'multiple', defaultKeys: ['u1', 'u5'] }, help: t.playground.props.selection.shortcuts?.multiKeys.help ?? '' },
             ],
         },
+        {
+            name: 'searchable',
+            type: 'boolean | GridSearchConfig<TRecord>',
+            default: 'false',
+            description: t.playground.props.searchable.description,
+            help: t.playground.props.searchable.help,
+            control: 'json',
+            rows: 3,
+            shortcuts: [
+                { label: t.playground.props.searchable.shortcuts?.off.label ?? 'off', value: false, help: t.playground.props.searchable.shortcuts?.off.help ?? '' },
+                { label: t.playground.props.searchable.shortcuts?.on.label ?? 'true', value: true, help: t.playground.props.searchable.shortcuts?.on.help ?? '' },
+                { label: t.playground.props.searchable.shortcuts?.fields.label ?? 'fields', value: { fields: ['name', 'email'] }, help: t.playground.props.searchable.shortcuts?.fields.help ?? '' },
+                { label: t.playground.props.searchable.shortcuts?.placeholder.label ?? 'placeholder', value: { placeholder: 'Find a teammate…' }, help: t.playground.props.searchable.shortcuts?.placeholder.help ?? '' },
+            ],
+        },
         { name: 'onRowClick', type: '(record) => void', default: 'false', description: t.playground.props.onRowClick.description, control: 'boolean' },
         { name: 'onReorder', type: 'GridReorderHandler<TRecord>', description: t.playground.props.onReorder.description, readOnly: true, hidden: (props) => !resolvePlaygroundBoolean(props.reorderable) },
         { name: 'editDeepLink', type: 'boolean', default: 'false', description: t.playground.props.editDeepLink.description, control: 'boolean', hidden: (props) => !hasPlaygroundAction(t, props.actions, 'edit') || props.view === 'gallery' || props.source === 'array' },
@@ -1770,9 +1907,11 @@ const buildPlayground = (t: ShowcaseI18n): PlaygroundConfig => ({
         source: 'db',
         recordId: '_key',
         view: 'table',
+        views: {},
         columns: getPlaygroundColumnsBase(t),
         actions: getPlaygroundCustomActionsSeed(t),
         selection: false,
+        searchable: false,
         sortable: true,
         groupBy: '',
         where: {},
@@ -1782,6 +1921,8 @@ const buildPlayground = (t: ShowcaseI18n): PlaygroundConfig => ({
         loading: false,
         sticky: '',
         wrapperClassName: '',
+        cardClassName: '',
+        bodyClassName: '',
         before: '',
         after: '',
         title: t.playground.titleDefault,
@@ -2102,6 +2243,35 @@ const [selectedRecords, setSelectedRecords] = useState<RecordArray>([]);
       ),
     },
   }}
+/>`,
+                    },
+                ]}
+            />
+
+            <TabbedSection
+                title={t.examples.searchable.title}
+                description={t.examples.searchable.description}
+                tabs={[
+                    {
+                        label: t.examples.searchable.items.all.tab,
+                        title: t.examples.searchable.items.all.title,
+                        description: t.examples.searchable.items.all.description,
+                        preview: <SearchableGridPreview />,
+                        code: `<GridArray
+  records={records}
+  recordId="_key"
+  searchable
+/>`,
+                    },
+                    {
+                        label: t.examples.searchable.items.fields.tab,
+                        title: t.examples.searchable.items.fields.title,
+                        description: t.examples.searchable.items.fields.description,
+                        preview: <SearchableFieldsGridPreview />,
+                        code: `<GridArray
+  records={records}
+  recordId="_key"
+  searchable={{ fields: ["name", "team"], placeholder: "Search name or team…" }}
 />`,
                     },
                 ]}
