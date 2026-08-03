@@ -288,6 +288,12 @@ export interface ThemeConfig {
         wrapperClassName?: string;
         className?: string;
     };
+    AddressAutocomplete?: {
+        wrapperClassName?: string;
+        className?: string;
+        menuClassName?: string;
+        itemClassName?: string;
+    };
     Form?: {
         wrapperClassName?: string;
         buttonSaveClass?: string;

@@ -162,6 +162,13 @@ export interface I18nDict {
         dragToResize: string;
         dragHere:     string;
     };
+    addressAutocomplete: {
+        placeholder:     string;
+        noResults:       string;
+        searching:       string;
+        notConfigured:   string;
+        loadError:       string;
+    };
 }
 
 type DeepPartial<T> = { [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K] };

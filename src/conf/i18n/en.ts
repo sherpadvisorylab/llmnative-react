@@ -157,4 +157,11 @@ export const en: I18nDict = {
         dragToResize: 'Drag to resize',
         dragHere: 'Drag an element here',
     },
+    addressAutocomplete: {
+        placeholder: 'Search an address...',
+        noResults: 'No matching address',
+        searching: 'Searching...',
+        notConfigured: 'Address search is not configured (missing Google Maps API key).',
+        loadError: 'Could not load address search.',
+    },
 };

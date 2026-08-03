@@ -82,4 +82,11 @@ export const zh: I18nDict = {
         dragToMove: '拖拽移动', remove: '删除',
         dragToResize: '拖拽调整大小', dragHere: '拖拽元素到此处',
     },
+    addressAutocomplete: {
+        placeholder: '搜索地址...',
+        noResults: '未找到匹配地址',
+        searching: '搜索中...',
+        notConfigured: '地址搜索未配置（缺少 Google Maps API 密钥）。',
+        loadError: '无法加载地址搜索。',
+    },
 };

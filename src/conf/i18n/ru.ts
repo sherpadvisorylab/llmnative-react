@@ -82,4 +82,11 @@ export const ru: I18nDict = {
         dragToMove: 'Перетащить для перемещения', remove: 'Удалить',
         dragToResize: 'Перетащить для изменения размера', dragHere: 'Перетащите элемент сюда',
     },
+    addressAutocomplete: {
+        placeholder: 'Поиск адреса...',
+        noResults: 'Нет подходящего адреса',
+        searching: 'Поиск...',
+        notConfigured: 'Поиск адресов не настроен (отсутствует ключ Google Maps API).',
+        loadError: 'Не удалось загрузить поиск адресов.',
+    },
 };

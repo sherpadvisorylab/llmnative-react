@@ -17,6 +17,8 @@ export interface CardProps extends UIProps {
     footerClassName?: string;
     /** Show a loading skeleton instead of content. */
     loading?: boolean;
+    /** Minimum height reserved for the loading overlay. Defaults to `200px`. */
+    loaderMinHeight?: string | number;
     before?: React.ReactNode;
     after?: React.ReactNode;
 }
@@ -32,6 +34,7 @@ const Card = ({
     header = undefined,
     footer = undefined,
     loading = undefined,
+    loaderMinHeight = undefined,
     wrapperClassName = undefined,
     className = undefined,
     headerClassName = undefined,
@@ -57,7 +60,7 @@ const Card = ({
                 ) : null}
 
                 <div className={cn(cardBodyClassName, theme.Card.bodyClassName, bodyClassName)}>
-                    <Loader show={loading ?? theme.Card.loading}>
+                    <Loader show={loading ?? theme.Card.loading} {...(loaderMinHeight !== undefined ? { minHeight: loaderMinHeight } : {})}>
                         {children}
                     </Loader>
                 </div>

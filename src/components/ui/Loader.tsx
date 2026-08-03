@@ -12,6 +12,8 @@ interface LoaderProps extends UIProps {
     icon?: string;
     title?: string;
     description?: string;
+    /** Minimum height reserved for the overlay while there is no content to size against. Defaults to `200px`. */
+    minHeight?: string | number;
 }
 
 function Loader({
@@ -20,6 +22,7 @@ function Loader({
                     icon            = undefined,
                     title           = undefined,
                     description     = undefined,
+                    minHeight       = "200px",
                     before            = undefined,
                     after           = undefined,
                     wrapperClassName      = undefined,
@@ -32,9 +35,8 @@ function Loader({
 
     return show ? (
         <Wrapper className={wrapperClassName || theme.Loader.wrapperClassName}>
-            <div className={"relative " + (className || theme.Loader.className)} style={{minHeight: "200px"}}>
-                <div className="absolute top-0 bottom-0 left-0 right-0"
-                    style={{zIndex:10, backdropFilter: "blur(2px)", background:"rgba(255, 255, 255, 0.5)"}}>
+            <div className={"relative " + (className || theme.Loader.className)} style={{minHeight}}>
+                <div className="absolute top-0 bottom-0 left-0 right-0 z-10 bg-background/60 backdrop-blur-[2px]">
                     {before}
                     {(icon || title || description) && <div className="flex flex-col items-center justify-center gap-2 p-4 text-center">
                         {icon && <Icon name={icon} size={32} className="animate-spin text-primary" />}

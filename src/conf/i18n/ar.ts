@@ -82,4 +82,11 @@ export const ar: I18nDict = {
         dragToMove: 'اسحب للتحريك', remove: 'إزالة',
         dragToResize: 'اسحب لتغيير الحجم', dragHere: 'اسحب عنصرًا إلى هنا',
     },
+    addressAutocomplete: {
+        placeholder: 'ابحث عن عنوان...',
+        noResults: 'لا يوجد عنوان مطابق',
+        searching: 'جارٍ البحث...',
+        notConfigured: 'البحث عن العناوين غير مُعد (مفتاح Google Maps API مفقود).',
+        loadError: 'تعذر تحميل البحث عن العناوين.',
+    },
 };

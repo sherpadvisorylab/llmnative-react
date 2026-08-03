@@ -183,6 +183,9 @@ export { PhosphorIconProvider } from './providers/icon/PhosphorIconProvider';
 export type { PhosphorWeight } from './providers/icon/PhosphorIconProvider';
 export { IconProvider, useIconProvider, useIconController } from './providers/icon/IconProviderContext';
 export type { AppIconProviderConfig, IconController } from './providers/icon/IconProviderContext';
+export { GoogleMapsProvider, useGoogleMapsConfig } from './providers/googleMaps/GoogleMapsProviderContext';
+export { loadGoogleMaps } from './providers/googleMaps/loadGoogleMaps';
+export type { GoogleMapsConfig } from './providers/googleMaps/loadGoogleMaps';
 export { useEmailProvider, EmailProvider } from './providers/email/EmailProviderContext';
 export { GmailEmailProvider } from './providers/email/google/GmailEmailProvider';
 export type {

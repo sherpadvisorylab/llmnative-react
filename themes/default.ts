@@ -332,6 +332,12 @@ export const components: Theme = {
         wrapperClassName: '',
         className: '',
     },
+    AddressAutocomplete: {
+        wrapperClassName: '',
+        className: '',
+        menuClassName: 'border-border/60 bg-popover/95 shadow-xl shadow-black/5 backdrop-blur supports-[backdrop-filter]:bg-popover/90 dark:shadow-black/20',
+        itemClassName: '',
+    },
     Form: {
         wrapperClassName: '',
         buttonSaveClass: 'btn-outline-primary',

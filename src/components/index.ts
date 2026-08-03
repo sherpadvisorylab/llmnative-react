@@ -45,6 +45,7 @@ export { default as Icon } from './ui/Icon';
 export { LayoutBuilder } from './ui/LayoutBuilder';
 export * from './ui/fields/Input';
 export * from './ui/fields/Select';
+export * from './ui/fields/AddressAutocomplete';
 export * from './ui/fields/Upload';
 export * from './ui/fields/Crop';
 export * from './ui/fields/UploadCSV';

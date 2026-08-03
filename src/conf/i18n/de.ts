@@ -82,4 +82,11 @@ export const de: I18nDict = {
         dragToMove: 'Zum Verschieben ziehen', remove: 'Entfernen',
         dragToResize: 'Zum Verkleinern ziehen', dragHere: 'Element hierher ziehen',
     },
+    addressAutocomplete: {
+        placeholder: 'Adresse suchen...',
+        noResults: 'Keine passende Adresse',
+        searching: 'Suche läuft...',
+        notConfigured: 'Adresssuche ist nicht konfiguriert (Google Maps API-Schlüssel fehlt).',
+        loadError: 'Adresssuche konnte nicht geladen werden.',
+    },
 };

@@ -42,6 +42,8 @@ import { EmailProvider } from "./providers/email/EmailProviderContext";
 import type { CredentialsAdapter } from "./providers/credentials/CredentialsProvider";
 import { CredentialsProvider } from "./providers/credentials/CredentialsProviderContext";
 import { IconProvider, type AppIconProviderConfig } from "./providers/icon/IconProviderContext";
+import { GoogleMapsProvider } from "./providers/googleMaps/GoogleMapsProviderContext";
+import type { GoogleMapsConfig } from "./providers/googleMaps/loadGoogleMaps";
 import { HeadProvider } from "./Head";
 import { I18nProvider, type I18nConfig } from "./I18n";
 import {
@@ -128,6 +130,8 @@ export type AppProviderProps = {
     providers?: AppProvidersConfig;
     /** Icon provider registry config. String shorthand selects the default provider id. */
     iconProvider?: AppIconProviderConfig;
+    /** Google Maps/Places config consumed by `<AddressAutocomplete>`. Omit to leave it unconfigured. */
+    googleMaps?: GoogleMapsConfig;
     /** Theme registry config. String shorthand selects the active theme id. */
     themeProvider?: AppThemeProviderConfig;
     /** Internationalization config: locale and per-locale translation overrides. */
@@ -233,8 +237,8 @@ export const getContextMenu = (): string[] => {
  *
  * Wraps children with: ErrorBoundary → BrowserRouter → RuntimeProvider →
  * AuthProvider → CredentialsProvider → DataProvider → StorageProvider →
- * EmailProvider → AIProvider → IconProvider → HeadProvider → I18nProvider →
- * ThemeProvider → [contextProviders] → children.
+ * EmailProvider → AIProvider → IconProvider → GoogleMapsProvider → HeadProvider →
+ * I18nProvider → ThemeProvider → [contextProviders] → children.
  *
  * `contextProviders` runs inside DataProvider, so vertical-specific providers
  * mounted there can call `useDataProvider()`, `useI18n()`, etc. directly.
@@ -248,6 +252,7 @@ export function AppProvider({
     appName = 'LLM Native',
     scrapeConfig,
     iconProvider,
+    googleMaps,
     themeProvider,
     i18n,
     children,
@@ -316,6 +321,7 @@ export function AppProvider({
                             <EmailProvider {...registries.email}>
                                 <AIProvider {...registries.ai}>
                                     <IconProvider config={iconProvider}>
+                                        <GoogleMapsProvider config={googleMaps}>
                                         <HeadProvider appName={appName}>
                                             <I18nProvider config={i18n}>
                                             <ThemeProvider config={themeProvider}>
@@ -325,6 +331,7 @@ export function AppProvider({
                                             </ThemeProvider>
                                             </I18nProvider>
                                         </HeadProvider>
+                                        </GoogleMapsProvider>
                                     </IconProvider>
                                 </AIProvider>
                             </EmailProvider>

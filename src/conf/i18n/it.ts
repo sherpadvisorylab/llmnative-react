@@ -82,4 +82,11 @@ export const it: I18nDict = {
         dragToMove: 'Trascina per spostare', remove: 'Rimuovi',
         dragToResize: 'Trascina per ridimensionare', dragHere: 'Trascina un elemento qui dentro',
     },
+    addressAutocomplete: {
+        placeholder: 'Cerca un indirizzo...',
+        noResults: 'Nessun indirizzo corrispondente',
+        searching: 'Ricerca in corso...',
+        notConfigured: 'La ricerca indirizzi non è configurata (manca la API key Google Maps).',
+        loadError: 'Impossibile caricare la ricerca indirizzi.',
+    },
 };
