@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-08-25
+
+### Added
+- `UploadImage.allowUrl` — shows a link icon on the drop zone that opens a dialog for pasting an image URL instead of uploading a file. The confirmed URL is stored as a file entry (`progress: 100`, no upload) using the same `FileProps` shape and preview as a real upload — indistinguishable to the Form field either way. Inline URL validation. (CR-077)
+
 ## [1.5.0] - 2026-08-02
 
 ### Added

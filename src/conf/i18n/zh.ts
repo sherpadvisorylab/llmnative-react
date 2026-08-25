@@ -34,6 +34,8 @@ export const zh: I18nDict = {
         uploadMore: '添加更多文件', editFileName: '编辑文件名',
         editorImage: '图片编辑器', loaded: '已加载', removeFile: '删除',
         uploadAnother: '上传另一个文件', dropToParse: '松开解析',
+        insertFromUrl: '通过URL插入', urlPlaceholder: 'https://…/image.png',
+        invalidUrl: '请输入有效的URL',
     },
     notifications: { title: '通知', seeAll: '查看全部' },
     code: { copyCode: '复制代码', copy: '复制', copied: '已复制！', codeLanguageDefault: '文本' },

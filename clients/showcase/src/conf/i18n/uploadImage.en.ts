@@ -28,6 +28,10 @@ export default defineLocaleMessages({
                     title: 'Responsive images (srcset)',
                     description: 'Pass generateSrcset together with an uploadPath to auto-generate canvas-resized 400w and 800w variants. Each variant is uploaded to storage with a _400w / _800w filename suffix. The resulting srcset and sizes strings land in the Form record alongside the original URL — ready to drop into an <img> tag. The demo below uses an in-memory mock storage so uploads are visible without a cloud backend.',
                 },
+                insertFromUrl: {
+                    title: 'Insert from URL',
+                    description: 'Add allowUrl to show a link icon on the drop zone, opening a dialog to paste an image URL instead of uploading a file. The URL is stored with the same file descriptor shape a real upload produces, so the preview and Form record are identical either way.',
+                },
             },
             labels: {
                 avatar: 'Avatar',
@@ -35,6 +39,7 @@ export default defineLocaleMessages({
                 coverPhotoEditable: 'Cover photo (editable)',
                 pngOnly: 'PNG only',
                 heroImage: 'Hero image',
+                logoUrl: 'Logo (upload or URL)',
             },
             propsDocs: {
                 title: 'UploadImage props',
@@ -55,6 +60,7 @@ export default defineLocaleMessages({
                     wrapperClassName: { description: 'CSS classes on the outer wrapper' },
                     uploadPath: { description: 'Storage path prefix for uploaded files. Requires a StorageProvider ancestor. When generateSrcset is also set, each width variant is stored at <uploadPath>/<name>_400w.<ext>.' },
                     srcsetWidths: { description: 'Array of pixel widths for responsive variants (e.g. [400, 800]). Each variant is stored as <name>_<width>w.<ext> and populates srcset/sizes in the Form record. Requires uploadPath and a StorageProvider.' },
+                    allowUrl: { description: 'Show a link icon that opens a dialog for pasting an image URL instead of uploading a file', default: 'false' },
                 },
             },
             playground: {

@@ -28,6 +28,10 @@ export default defineLocaleMessages({
                     title: 'Адаптивные изображения (srcset)',
                     description: 'Передайте generateSrcset вместе с uploadPath, чтобы компонент автоматически создавал canvas-масштабированные варианты 400w и 800w. Каждый вариант сохраняется в хранилище с суффиксом _400w / _800w в имени файла. Итоговые значения srcset и sizes сохраняются в записи Form рядом с исходным URL. Демо использует in-memory mock хранилище.',
                 },
+                insertFromUrl: {
+                    title: 'Вставка по URL',
+                    description: 'Добавьте allowUrl, чтобы показать иконку ссылки в области загрузки, открывающую диалог для вставки URL изображения вместо загрузки файла. URL сохраняется в том же формате дескриптора файла, что и при реальной загрузке — предпросмотр и запись Form идентичны в обоих случаях.',
+                },
             },
             labels: {
                 avatar: 'Аватар',
@@ -35,6 +39,7 @@ export default defineLocaleMessages({
                 coverPhotoEditable: 'Фото обложки (редактируемое)',
                 pngOnly: 'Только PNG',
                 heroImage: 'Главное изображение',
+                logoUrl: 'Логотип (загрузка или URL)',
             },
             propsDocs: {
                 title: 'Свойства UploadImage',
@@ -55,6 +60,7 @@ export default defineLocaleMessages({
                     wrapperClassName: { description: 'CSS-классы внешнего wrapper' },
                     uploadPath: { description: 'Префикс пути хранилища для загружаемых файлов. Требует StorageProvider-предка. При generateSrcset каждый вариант ширины сохраняется как <uploadPath>/<name>_400w.<ext>.' },
                     srcsetWidths: { description: 'Массив пиксельных ширин для адаптивных вариантов (например, [400, 800]). Каждый вариант сохраняется как <имя>_<ширина>w.<расш> и заполняет srcset/sizes в записи Form. Требует uploadPath и StorageProvider.' },
+                    allowUrl: { description: 'Показывает иконку ссылки, открывающую диалог для вставки URL изображения вместо загрузки файла', default: 'false' },
                 },
             },
             playground: {

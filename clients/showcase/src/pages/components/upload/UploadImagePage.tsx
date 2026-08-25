@@ -146,6 +146,7 @@ const PlaygroundRenderer = React.memo(function PlaygroundRenderer({
                         uploadPath={(p.uploadPath as string) || undefined}
                         srcsetWidths={srcsetWidths}
                         onChange={srcsetWidths ? handleImageChange : undefined}
+                        allowUrl={p.allowUrl as boolean}
                         className={(p.className as string) || undefined}
                         wrapperClassName={(p.wrapperClassName as string) || undefined}
                     />
@@ -178,6 +179,7 @@ export default function UploadImagePage() {
             { label: '400, 800, 1200', value: '400, 800, 1200', help: 'Three breakpoints including full-width desktop (1200px).' },
             { label: '2x retina', value: '800, 1600', help: 'Retina-ready pair: 1× (800px) and 2× (1600px).' },
         ] },
+        { name: 'allowUrl', type: 'boolean', default: t.propsDocs.items.allowUrl.default, description: t.propsDocs.items.allowUrl.description, control: 'boolean' },
         { name: 'onChange', type: 'FieldOnChange', description: t.propsDocs.items.onChange.description },
         { name: 'before', type: 'ReactNode', description: t.propsDocs.items.before.description },
         { name: 'after', type: 'ReactNode', description: t.propsDocs.items.after.description },
@@ -200,6 +202,7 @@ export default function UploadImagePage() {
             required: false,
             uploadPath: '/uploads/demo',
             srcsetWidths: '',
+            allowUrl: false,
             className: '',
             wrapperClassName: '',
         },
@@ -358,6 +361,33 @@ const storage = new FirebaseStorageProvider({ bucket: 'my-app.appspot.com' });
 //   srcset: 'https://cdn.../photo_400w.jpg 400w, https://cdn.../photo_800w.jpg 800w',
 //   sizes: '(max-width: 640px) 100vw, 800px',
 // }`}
+            />
+
+            <Section
+                title={t.sections.insertFromUrl.title}
+                description={t.sections.insertFromUrl.description}
+                preview={
+                    <div className="w-full max-w-sm">
+                        <Form appearance="empty">
+                            <UploadImage
+                                name="logo"
+                                label={t.labels.logoUrl}
+                                allowUrl
+                                previewHeight={88}
+                                previewWidth={88}
+                            />
+                        </Form>
+                    </div>
+                }
+                code={`<Form appearance="empty">
+  <UploadImage
+    name="logo"
+    label="Logo"
+    allowUrl
+    previewHeight={88}
+    previewWidth={88}
+  />
+</Form>`}
             />
 
             <PropDocsTable props={propsConfig} title={t.propsDocs.title} />

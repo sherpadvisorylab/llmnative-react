@@ -85,6 +85,7 @@
 | [CR-072](#cr-072--fix-errori-tsc---noemit-in-clientsshowcase) | Fix errori `tsc --noEmit` in `clients/showcase` | Bassa | — | ⬜ |
 | [CR-073](#cr-073--dev-only-llm-requestresponse-file-logging-e-fix-allegati) | Dev-only LLM request/response file logging e fix allegati | Media | CR-069 | ✅ |
 | [CR-074](#cr-074--table-recordid--identita-di-riga-stabile) | Table recordId — identità di riga stabile | Media | — | ✅ |
+| [CR-077](#cr-077--uploadimage-inserimento-logoimmagine-da-url) | UploadImage — inserimento logo/immagine da URL (`allowUrl`) | Media | — | ✅ |
 
 ---
 
@@ -195,6 +196,61 @@ veniva accettato dalla UI ma non arrivava mai al modello, senza errore.
 - [x] `npm run build` — bundle + dichiarazioni generati
 - [x] Issue GitHub collegata (#17)
 - [x] Versione SemVer (minor, cumulata con CR-071) e `npm publish` — 1.3.0
+
+---
+
+## CR-077 — UploadImage: inserimento logo/immagine da URL
+
+**Stato:** ✅ done — rilasciato in 1.6.0
+**Issue:** [#21](https://github.com/sherpadvisorylab/llmnative-react/issues/21)
+**Priorità:** Media
+**Dipende da:** —
+
+### Motivazione
+
+Un consumer (CRM) doveva impostare il logo di un'anagrafica sia tramite
+upload file sia incollando un URL già esistente (es. un favicon/logo ospitato
+altrove). `UploadImage` supportava solo l'upload; `Url` (campo stringa
+generico) non produce lo stesso descrittore `FileProps` né la stessa
+anteprima, quindi comporre i due componenti lato consumer avrebbe duplicato
+la UI di preview/rimozione che `UploadImage` già offre.
+
+### Scope
+
+- `Upload.tsx`: nuovo prop `allowUrl?: boolean` su `UploadImageProps`
+  (default `false`). Quando attivo, un'icona link compare sull'angolo del box
+  di upload; il click apre una `Modal` con un input URL nativo (pattern
+  "pure HTML, no Form context dependency" già usato da
+  `NativeFileNameEditor` in `Crop.tsx`, dato che la Modal condivide il
+  contesto React con il Form del consumer). Alla conferma l'URL è validato
+  (`new URL(...)`) e salvato tramite `setFiles` con la stessa forma
+  `FileProps` (`progress: 100`) prodotta da un vero upload — l'anteprima e il
+  valore nel Form record sono quindi identici indipendentemente dal percorso
+  scelto.
+- i18n: nuove chiavi `insertFromUrl`/`urlPlaceholder`/`invalidUrl` nel
+  namespace `upload` di `I18n.tsx` e in tutte e 6 le lingue
+  (`conf/i18n/{ar,de,en,it,ru,zh}.ts`).
+- Showcase (`clients/showcase`): nuova sezione "Insert from URL" in
+  `UploadImagePage.tsx` (preview live, snippet, entry nella props table),
+  prop `allowUrl` nel playground interattivo; i18n aggiornato in
+  `uploadImage.*.ts` per tutte e 6 le lingue e nel tipo
+  `types/i18n.d.ts` (nuova sezione `insertFromUrl` + label `logoUrl`).
+- Test: 3 nuovi in `tests/unit/components/Upload.test.tsx` (icona nascosta
+  di default, inserimento URL valido, rifiuto URL non valido senza chiudere
+  il dialog).
+
+### Checklist
+
+- [x] `Upload.tsx` — prop `allowUrl`, icona overlay, modale, validazione URL
+- [x] i18n framework — `I18n.tsx` + 6 lingue
+- [x] Test — `Upload.test.tsx` (3 nuovi casi)
+- [x] Showcase — `UploadImagePage.tsx`, `uploadImage.*.ts` (6 lingue), `types/i18n.d.ts`
+- [x] `npx tsc --noEmit` — 0 errori
+- [x] `npm test` — 687/687 verde
+- [x] `npm run build` — bundle + dichiarazioni generati (`allowUrl` presente in `dist/types`)
+- [x] `cd clients/showcase && npm run build` — Vite build verde (0 errori)
+- [x] Issue GitHub collegata (#21)
+- [x] Versione SemVer (minor) e `npm publish` — 1.6.0
 
 ---
 

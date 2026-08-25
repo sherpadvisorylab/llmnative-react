@@ -92,6 +92,7 @@
 | CR-071 | Done | `Chatbot` component estratto da `Prompt` (textarea, allegati con drag&drop, model picker, dropdown opzionali), `PromptRun` refattorizzato per consumarlo con zero breaking change. Issue #13 chiusa. |
 | CR-073 | Done | Log file LLM opzionale (dev-only, un file per conversazione) nel proxy Vite; fix allegati ignorati dal provider `opencode`; `libs/csv.ts`. Issue #17 chiusa. |
 | CR-074 | Done | `Table`/`Grid` — nuovo prop `recordId` per una key di riga stabile sotto churn di identità d'oggetto (fix: `GridTableView` ora lo inoltra a `Table`, prima no); risolve il remount-on-keystroke di una riga Form-bound. Showcase aggiornato (props/playground/demo, 6 lingue). Issue #18 chiusa. |
+| CR-077 | Done | `UploadImage` — nuovo prop `allowUrl` per inserire un'immagine da URL invece di caricarla, stessa forma `FileProps`/preview di un upload reale. i18n 6 lingue, 3 nuovi test, showcase aggiornato (sezione dedicata + playground + 6 lingue). Issue #21 chiusa. |
 
 ---
 
@@ -244,4 +245,5 @@ Real verification performed on 2026-07-29 (CR-071 drag&drop addition + CR-073):
 | 1.3.0 | Published on npm (`@llmnative/react@1.3.0`). CR-071 (Chatbot, incl. drag&drop) e CR-073 (log LLM dev-only, fix allegati opencode) complete. |
 | 1.4.0 | Published on npm (`@llmnative/react@1.4.0`). CR-074 (`Table`/`Grid` `recordId` — stable row identity) completa. |
 | 1.5.0 | Published on npm (`@llmnative/react@1.5.0`). CR-075 (Grid built-in search, internal scroll with sticky header, Card layout props) e CR-076 (Firebase Auth/Firestore ID token refresh reactivity + Firestore-only config fix) complete. |
+| 1.6.0 | Published on npm (`@llmnative/react@1.6.0`). CR-077 (`UploadImage` insert-from-URL) completa. |
 | 1.x / 2.0 | Roadmap: CR-051 (WorkflowAI), CR-040 (SchemaForm), CR-041 (SeoEnhancer), E2E. CR-072 deferito (TypeScript 6 regression upstream). |

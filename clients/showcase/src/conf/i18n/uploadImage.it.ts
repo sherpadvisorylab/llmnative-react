@@ -28,6 +28,10 @@ export default defineLocaleMessages({
                     title: 'Immagini responsive (srcset)',
                     description: 'Passa generateSrcset insieme a uploadPath per far generare al componente varianti canvas-ridimensionate a 400w e 800w. Ogni variante viene caricata nello storage con suffisso _400w / _800w nel nome file. I valori srcset e sizes risultanti vengono salvati nel Form record insieme all\'URL originale, pronti per un tag <img>. La demo usa uno storage in-memory, quindi gli upload sono visibili senza un backend cloud.',
                 },
+                insertFromUrl: {
+                    title: 'Inserimento da URL',
+                    description: 'Aggiungi allowUrl per mostrare un\'icona a forma di link sul box di upload, che apre una finestra per incollare l\'URL di un\'immagine invece di caricare un file. L\'URL viene salvato con la stessa forma di descrittore file prodotta da un vero upload, quindi anteprima e Form record sono identici in entrambi i casi.',
+                },
             },
             labels: {
                 avatar: 'Avatar',
@@ -35,6 +39,7 @@ export default defineLocaleMessages({
                 coverPhotoEditable: 'Foto copertina (modificabile)',
                 pngOnly: 'Solo PNG',
                 heroImage: 'Immagine hero',
+                logoUrl: 'Logo (upload o URL)',
             },
             propsDocs: {
                 title: 'Props di UploadImage',
@@ -55,6 +60,7 @@ export default defineLocaleMessages({
                     wrapperClassName: { description: 'Classi CSS sul wrapper esterno' },
                     uploadPath: { description: 'Prefisso del percorso storage per i file caricati. Richiede un antenato StorageProvider. Con generateSrcset attivo, ogni variante e salvata come <uploadPath>/<nome>_400w.<ext>.' },
                     srcsetWidths: { description: 'Array di larghezze in pixel per le varianti responsive (es. [400, 800]). Ogni variante e salvata come <nome>_<larghezza>w.<ext> e popola srcset/sizes nel Form record. Richiede uploadPath e un StorageProvider.' },
+                    allowUrl: { description: 'Mostra un\'icona a forma di link che apre una finestra per incollare l\'URL di un\'immagine invece di caricare un file', default: 'false' },
                 },
             },
             playground: {

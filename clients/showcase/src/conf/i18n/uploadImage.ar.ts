@@ -28,6 +28,10 @@ export default defineLocaleMessages({
                     title: 'صور متجاوبة (srcset)',
                     description: 'مرر generateSrcset مع uploadPath لتوليد نسخ مقاس 400w و 800w تلقائيا عبر canvas. يُرفع كل نسخة بلاحقة _400w / _800w في اسم الملف. تُحفظ قيم srcset و sizes الناتجة في سجل Form مع الرابط الأصلي جاهزة لوسم <img>. تستخدم العرض التوضيحي تخزينا وهميا في الذاكرة.',
                 },
+                insertFromUrl: {
+                    title: 'إدراج من رابط',
+                    description: 'أضف allowUrl لإظهار أيقونة رابط على منطقة الرفع، تفتح نافذة للصق رابط صورة بدلا من رفع ملف. يُحفظ الرابط بنفس شكل واصف الملف الذي ينتجه الرفع الحقيقي، لذا تكون المعاينة وسجل Form متطابقين في الحالتين.',
+                },
             },
             labels: {
                 avatar: 'الصورة الرمزية',
@@ -35,6 +39,7 @@ export default defineLocaleMessages({
                 coverPhotoEditable: 'صورة الغلاف (قابلة للتحرير)',
                 pngOnly: 'PNG فقط',
                 heroImage: 'الصورة الرئيسية',
+                logoUrl: 'الشعار (رفع أو رابط)',
             },
             propsDocs: {
                 title: 'خصائص UploadImage',
@@ -55,6 +60,7 @@ export default defineLocaleMessages({
                     wrapperClassName: { description: 'فئات CSS على الغلاف الخارجي' },
                     uploadPath: { description: 'بادئة مسار التخزين للملفات المرفوعة. يتطلب عنصر StorageProvider سلف. مع generateSrcset تُحفظ كل نسخة عرض كـ <uploadPath>/<name>_400w.<ext>.' },
                     srcsetWidths: { description: 'مصفوفة من عرض البكسل للنسخ المتجاوبة (مثل [400, 800]). تُحفظ كل نسخة كـ <name>_<width>w.<ext> وتملأ srcset و sizes في سجل Form. يتطلب uploadPath و StorageProvider.' },
+                    allowUrl: { description: 'يعرض أيقونة رابط تفتح نافذة للصق رابط صورة بدلا من رفع ملف', default: 'false' },
                 },
             },
             playground: {

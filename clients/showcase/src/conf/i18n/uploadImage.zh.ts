@@ -28,6 +28,10 @@ export default defineLocaleMessages({
                     title: '响应式图片（srcset）',
                     description: '同时传入 generateSrcset 和 uploadPath，组件会自动生成 canvas 缩放的 400w 和 800w 变体。每个变体以 _400w / _800w 后缀上传到存储。生成的 srcset 和 sizes 字符串与原始 URL 一起保存在 Form 记录中，可直接用于 <img> 标签。演示使用内存模拟存储。',
                 },
+                insertFromUrl: {
+                    title: '通过URL插入',
+                    description: '添加 allowUrl 后，上传区域会显示一个链接图标，点击后打开对话框粘贴图片 URL，而不是上传文件。该 URL 会以与真实上传相同的文件描述对象形式保存，因此两种方式的预览和 Form 记录完全一致。',
+                },
             },
             labels: {
                 avatar: '头像',
@@ -35,6 +39,7 @@ export default defineLocaleMessages({
                 coverPhotoEditable: '封面图（可编辑）',
                 pngOnly: '仅 PNG',
                 heroImage: '主图',
+                logoUrl: '徽标（上传或 URL）',
             },
             propsDocs: {
                 title: 'UploadImage 属性',
@@ -55,6 +60,7 @@ export default defineLocaleMessages({
                     wrapperClassName: { description: '外层 wrapper 上的 CSS 类' },
                     uploadPath: { description: '上传文件的存储路径前缀。需要 StorageProvider 祖先组件。当同时设置 generateSrcset 时，每个宽度变体保存为 <uploadPath>/<name>_400w.<ext>。' },
                     srcsetWidths: { description: '响应式变体的像素宽度数组（如 [400, 800]）。每个变体保存为 <name>_<width>w.<ext>，并填充 Form 记录中的 srcset 和 sizes。需要 uploadPath 和 StorageProvider。' },
+                    allowUrl: { description: '显示一个链接图标，点击后打开对话框粘贴图片 URL，而不是上传文件', default: 'false' },
                 },
             },
             playground: {

@@ -34,6 +34,8 @@ export const ar: I18nDict = {
         uploadMore: 'إضافة المزيد من الملفات', editFileName: 'تعديل اسم الملف',
         editorImage: 'محرر الصور', loaded: 'محمّل', removeFile: 'إزالة',
         uploadAnother: 'تحميل ملف آخر', dropToParse: 'أفلت للتحليل',
+        insertFromUrl: 'إدراج من رابط', urlPlaceholder: 'https://…/image.png',
+        invalidUrl: 'أدخل رابطًا صالحًا',
     },
     notifications: { title: 'الإشعارات', seeAll: 'عرض الكل' },
     code: { copyCode: 'نسخ الكود', copy: 'نسخ', copied: 'تم النسخ!', codeLanguageDefault: 'نص' },

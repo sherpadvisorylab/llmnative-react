@@ -110,6 +110,49 @@ describe('UploadImage', () => {
         expect(screen.getByText('Photos')).toBeInTheDocument();
         expect(screen.getByAltText('preview-0')).toHaveAttribute('src', 'https://example.test/avatar.png');
     });
+
+    it('does not show an insert-from-URL affordance by default', () => {
+        renderWithProviders(
+            <Form defaultValues={{ photos: [] }}>
+                <UploadImage name="photos" />
+            </Form>
+        );
+
+        expect(screen.queryByTitle('Insert from URL')).not.toBeInTheDocument();
+    });
+
+    it('adds a pasted URL as a completed file entry, same as an upload', () => {
+        renderWithProviders(
+            <Form defaultValues={{ photos: [] }}>
+                <UploadImage name="photos" allowUrl />
+            </Form>
+        );
+
+        fireEvent.click(screen.getByTitle('Insert from URL'));
+        fireEvent.change(screen.getByPlaceholderText('https://…/image.png'), {
+            target: { value: 'https://example.test/logo.png' },
+        });
+        fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+        expect(screen.getByAltText('preview-0')).toHaveAttribute('src', 'https://example.test/logo.png');
+    });
+
+    it('rejects an invalid URL without closing the dialog', () => {
+        renderWithProviders(
+            <Form defaultValues={{ photos: [] }}>
+                <UploadImage name="photos" allowUrl />
+            </Form>
+        );
+
+        fireEvent.click(screen.getByTitle('Insert from URL'));
+        fireEvent.change(screen.getByPlaceholderText('https://…/image.png'), {
+            target: { value: 'not-a-url' },
+        });
+        fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+        expect(screen.getByText('Enter a valid URL')).toBeInTheDocument();
+        expect(screen.queryByAltText('preview-0')).not.toBeInTheDocument();
+    });
 });
 
 describe('getFileUrl', () => {

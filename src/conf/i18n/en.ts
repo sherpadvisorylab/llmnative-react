@@ -72,6 +72,9 @@ export const en: I18nDict = {
         removeFile: 'Remove',
         uploadAnother: 'Upload another file',
         dropToParse: 'Drop to parse',
+        insertFromUrl: 'Insert from URL',
+        urlPlaceholder: 'https://…/image.png',
+        invalidUrl: 'Enter a valid URL',
     },
     notifications: {
         title: 'Notifications',

@@ -34,6 +34,8 @@ export const de: I18nDict = {
         uploadMore: 'Weitere Dateien hinzufügen', editFileName: 'Dateiname bearbeiten',
         editorImage: 'Bildeditor', loaded: 'Geladen', removeFile: 'Entfernen',
         uploadAnother: 'Eine weitere Datei hochladen', dropToParse: 'Loslassen zum Analysieren',
+        insertFromUrl: 'Von URL einfügen', urlPlaceholder: 'https://…/bild.png',
+        invalidUrl: 'Gültige URL eingeben',
     },
     notifications: { title: 'Benachrichtigungen', seeAll: 'Alle anzeigen' },
     code: { copyCode: 'Code kopieren', copy: 'Kopieren', copied: 'Kopiert!', codeLanguageDefault: 'Text' },

@@ -1662,6 +1662,7 @@ interface ShowcaseUploadImageI18n {
         editableCrop: ShowcasePageSectionCopy;
         acceptFilter: ShowcasePageSectionCopy;
         responsiveSrcset: ShowcasePageSectionCopy;
+        insertFromUrl: ShowcasePageSectionCopy;
     };
     labels: {
         avatar: string;
@@ -1669,6 +1670,7 @@ interface ShowcaseUploadImageI18n {
         coverPhotoEditable: string;
         pngOnly: string;
         heroImage: string;
+        logoUrl: string;
     };
     propsDocs: {
         title: string;

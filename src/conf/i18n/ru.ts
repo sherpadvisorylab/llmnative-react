@@ -34,6 +34,8 @@ export const ru: I18nDict = {
         uploadMore: 'Добавить ещё файлы', editFileName: 'Изменить имя файла',
         editorImage: 'Редактор изображений', loaded: 'Загружено', removeFile: 'Удалить',
         uploadAnother: 'Загрузить ещё один файл', dropToParse: 'Отпустите для анализа',
+        insertFromUrl: 'Вставить по URL', urlPlaceholder: 'https://…/image.png',
+        invalidUrl: 'Введите корректный URL',
     },
     notifications: { title: 'Уведомления', seeAll: 'Смотреть все' },
     code: { copyCode: 'Копировать код', copy: 'Копировать', copied: 'Скопировано!', codeLanguageDefault: 'Текст' },

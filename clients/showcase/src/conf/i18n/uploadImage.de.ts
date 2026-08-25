@@ -28,6 +28,10 @@ export default defineLocaleMessages({
                     title: 'Responsive Bilder (srcset)',
                     description: 'Ubergebe generateSrcset zusammen mit uploadPath, um canvas-skalierte 400w- und 800w-Varianten automatisch zu erzeugen. Jede Variante wird mit dem Suffix _400w / _800w im Dateinamen im Storage gespeichert. Die resultierenden srcset- und sizes-Werte landen im Form-Datensatz neben der Original-URL. Die Demo nutzt einen In-Memory-Mock-Storage.',
                 },
+                insertFromUrl: {
+                    title: 'Von URL einfugen',
+                    description: 'Fuge allowUrl hinzu, um ein Link-Symbol auf dem Upload-Bereich anzuzeigen, das einen Dialog zum Einfugen einer Bild-URL statt eines Datei-Uploads offnet. Die URL wird mit derselben Dateideskriptor-Form gespeichert, die ein echter Upload erzeugt — Vorschau und Form-Datensatz sind in beiden Fallen identisch.',
+                },
             },
             labels: {
                 avatar: 'Avatar',
@@ -35,6 +39,7 @@ export default defineLocaleMessages({
                 coverPhotoEditable: 'Titelbild (bearbeitbar)',
                 pngOnly: 'Nur PNG',
                 heroImage: 'Hero-Bild',
+                logoUrl: 'Logo (Upload oder URL)',
             },
             propsDocs: {
                 title: 'UploadImage-Props',
@@ -55,6 +60,7 @@ export default defineLocaleMessages({
                     wrapperClassName: { description: 'CSS-Klassen fur den ausseren Wrapper' },
                     uploadPath: { description: 'Pfad-Prafix fur hochgeladene Dateien im Storage. Erfordert einen StorageProvider-Vorfahren. Mit generateSrcset wird jede Breitenvariante als <uploadPath>/<name>_400w.<ext> gespeichert.' },
                     srcsetWidths: { description: 'Array von Pixelbreiten fur responsive Varianten (z. B. [400, 800]). Jede Variante wird als <Name>_<Breite>w.<Ext> gespeichert und belegt srcset/sizes im Form-Datensatz. Erfordert uploadPath und einen StorageProvider.' },
+                    allowUrl: { description: 'Zeigt ein Link-Symbol, das einen Dialog zum Einfugen einer Bild-URL statt eines Datei-Uploads offnet', default: 'false' },
                 },
             },
             playground: {

@@ -248,6 +248,13 @@ export interface UploadImageProps extends UploadDocumentProps {
     feedback?: string;
     /** Pixel widths for responsive variants. Set with uploadPath to generate <name>_400w.jpg etc. and populate srcset/sizes in the Form record. */
     srcsetWidths?: number[];
+    /**
+     * Show a small link icon on the drop zone that opens a dialog for pasting an image URL
+     * instead of uploading a file. The confirmed URL is stored as a file entry (progress 100,
+     * no upload) — same shape and preview as a real upload, indistinguishable to the Form field.
+     * Default `false`.
+     */
+    allowUrl?: boolean;
 }
 
 interface FileEditorProps {
@@ -484,13 +491,14 @@ export const UploadImage = ({
     srcsetWidths     = undefined,
     storageKey       = undefined,
     storageProvider  = undefined,
+    allowUrl         = false,
     before           = undefined,
     after            = undefined,
     wrapperClassName = undefined,
     className        = undefined,
 }: UploadImageProps) => {
     const {
-        files, currentFile, fileInputRef, formWrapClass,
+        files, setFiles, currentFile, fileInputRef, formWrapClass,
         handleUploadChange, handleUpload, handleRemove,
         handleSave, handleEdit, handleClose,
     } = useFileUpload(name, onChange, wrapperClassName, uploadPath, srcsetWidths, storageKey, storageProvider);
@@ -501,6 +509,25 @@ export const UploadImage = ({
     // Keys of images whose natural dimensions are smaller than the preview box.
     // Those get object-contain + checkerboard; larger images get object-cover.
     const [smallImageKeys, setSmallImageKeys] = useState<Set<string>>(new Set());
+
+    const [urlModalOpen, setUrlModalOpen] = useState(false);
+    const [urlDraft,     setUrlDraft]     = useState('');
+    const [urlError,     setUrlError]     = useState<string | undefined>(undefined);
+
+    const handleUrlSave = async (): Promise<boolean> => {
+        const trimmed = urlDraft.trim();
+        try { new URL(trimmed); } catch { setUrlError(dict.invalidUrl); return false; }
+        const entry: FileProps = {
+            key: trimmed, fileName: trimmed.split('/').pop() || 'image',
+            size: 0, type: '', progress: 100, url: trimmed, base64: '', variants: {},
+        };
+        setFiles(prev => multiple ? [...prev, entry] : [entry]);
+        setUrlDraft('');
+        setUrlError(undefined);
+        setUrlModalOpen(false);
+        return true;
+    };
+    const closeUrlModal = () => { setUrlModalOpen(false); setUrlDraft(''); setUrlError(undefined); };
 
     const handleImgLoad = (e: React.SyntheticEvent<HTMLImageElement>, key: string) => {
         const el = e.currentTarget;
@@ -599,13 +626,22 @@ export const UploadImage = ({
                     ))}
 
                     {isUploadable(files, max, multiple) && (
-                        <ImageFilePlaceholder
-                            name={name} fileInputRef={fileInputRef} accept={accept}
-                            onUpload={handleUpload} onChange={handleUploadChange}
-                            required={required} multiple={multiple}
-                            height={previewHeight} width={previewWidth}
-                            feedback={feedback}
-                        />
+                        <div className="relative" style={{ width: previewWidth, height: previewHeight }}>
+                            <ImageFilePlaceholder
+                                name={name} fileInputRef={fileInputRef} accept={accept}
+                                onUpload={handleUpload} onChange={handleUploadChange}
+                                required={required} multiple={multiple}
+                                height={previewHeight} width={previewWidth}
+                                feedback={feedback}
+                            />
+                            {allowUrl && (
+                                <button type="button" onClick={() => setUrlModalOpen(true)}
+                                    title={dict.insertFromUrl} aria-label={dict.insertFromUrl}
+                                    className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-sm transition-colors hover:text-primary">
+                                    <Icon name="link" className="w-3.5 h-3.5" />
+                                </button>
+                            )}
+                        </div>
                     )}
                 </div>
                 {error && <FieldError message={error} />}
@@ -614,6 +650,20 @@ export const UploadImage = ({
             {editable && currentFile && (
                 <FileEditor title={dict.editorImage} file={currentFile} type="img"
                             onSave={handleSave} onClose={handleClose} />
+            )}
+            {allowUrl && urlModalOpen && (
+                <Modal title={dict.insertFromUrl} onSave={handleUrlSave} onClose={closeUrlModal} size="sm">
+                    {/* Pure HTML — no Form context dependency. Modal shares React context with the
+                        parent Form, so a framework field here would write into the parent's own
+                        record via useFormContext instead of staying local to this dialog. */}
+                    <div className="flex flex-col gap-1">
+                        <input type="url" autoFocus value={urlDraft}
+                            onChange={e => { setUrlDraft(e.target.value); setUrlError(undefined); }}
+                            placeholder={dict.urlPlaceholder}
+                            className="h-9 w-full rounded-md border border-input bg-background px-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-ring" />
+                        {urlError && <FieldError message={urlError} />}
+                    </div>
+                </Modal>
             )}
             {after}
         </Wrapper>

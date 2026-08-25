@@ -77,6 +77,9 @@ export interface I18nDict {
         removeFile:    string;
         uploadAnother: string;
         dropToParse:   string;
+        insertFromUrl: string;
+        urlPlaceholder: string;
+        invalidUrl:    string;
     };
     notifications: {
         title:  string;
