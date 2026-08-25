@@ -637,7 +637,7 @@ export const UploadImage = ({
                             {allowUrl && (
                                 <button type="button" onClick={() => setUrlModalOpen(true)}
                                     title={dict.insertFromUrl} aria-label={dict.insertFromUrl}
-                                    className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-sm transition-colors hover:text-primary">
+                                    className="absolute -right-2 -top-2 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-sm transition-colors hover:text-primary">
                                     <Icon name="link" className="w-3.5 h-3.5" />
                                 </button>
                             )}

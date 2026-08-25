@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.1] - 2026-08-25
+
+### Fixed
+- `UploadImage`'s `allowUrl` icon button was missing `cursor-pointer` (Tailwind v4 resets `<button>` to `cursor: default`), so hovering it showed the regular arrow cursor instead of a pointer despite being clickable. (CR-077)
+
 ## [1.6.0] - 2026-08-25
 
 ### Added

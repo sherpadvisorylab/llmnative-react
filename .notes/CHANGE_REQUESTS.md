@@ -251,6 +251,7 @@ la UI di preview/rimozione che `UploadImage` già offre.
 - [x] `cd clients/showcase && npm run build` — Vite build verde (0 errori)
 - [x] Issue GitHub collegata (#21)
 - [x] Versione SemVer (minor) e `npm publish` — 1.6.0
+- [x] Fix follow-up (patch 1.6.1): icona `allowUrl` senza `cursor-pointer` (Tailwind v4 resetta `<button>` a `cursor: default`)
 
 ---
 
