@@ -338,6 +338,7 @@ export default defineLocaleMessages({
                     actions: { description: 'Action catalog.' },
                     selection: { description: 'Enable row selection.' },
                     searchable: { description: '在 Grid 自带的默认表头中启用内置搜索框，以不区分大小写的子字符串匹配过滤已渲染的记录（排序/分页/选择等后续计算看到的都是过滤后的集合）。true 会搜索所有字符串字段；传入 GridSearchConfig 可限定字段或设置自定义占位符。' },
+                    filters: { description: '在 Grid 自带的默认表头中渲染的切换复选框，与 searchable 相邻。每个过滤器的 predicate(record, value) 根据复选框的当前状态决定是否保留某条记录 —— 在搜索词之前应用。' },
                     onRowClick: { description: 'Called with the original record after row or card click.' },
                     reorderable: { description: 'Turn on row drag in table mode when used together with `onReorder`.' },
                     onReorder: { description: 'Receive the reordered source records and drag metadata.' },

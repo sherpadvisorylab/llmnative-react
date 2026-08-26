@@ -659,4 +659,90 @@ describe('Grid - event payloads', () => {
     });
 });
 
+describe('Grid - filters', () => {
+    const PRODUCTS = [
+        { _key: 'p1', name: 'Widget', hidden: false },
+        { _key: 'p2', name: 'Gadget', hidden: true },
+        { _key: 'p3', name: 'Gizmo', hidden: false },
+    ];
+    const PRODUCT_COLUMNS = [{ key: 'name', label: 'Name', sortable: true }];
+
+    it('applies the default (unchecked) filter value, hiding matching records', async () => {
+        renderWithProviders(
+            <Grid
+                records={PRODUCTS}
+                recordId="_key"
+                columns={PRODUCT_COLUMNS}
+                filters={[{ key: 'showHidden', label: 'Show hidden', predicate: (record, value) => value || !record.hidden }]}
+            />
+        );
+
+        await waitFor(() => expect(screen.getByText('Widget')).toBeInTheDocument());
+        expect(screen.getByText('Gizmo')).toBeInTheDocument();
+        expect(screen.queryByText('Gadget')).not.toBeInTheDocument();
+    });
+
+    it('shows filtered-out records once the checkbox is toggled on', async () => {
+        const user = userEvent.setup();
+        renderWithProviders(
+            <Grid
+                records={PRODUCTS}
+                recordId="_key"
+                columns={PRODUCT_COLUMNS}
+                filters={[{ key: 'showHidden', label: 'Show hidden', predicate: (record, value) => value || !record.hidden }]}
+            />
+        );
+
+        await waitFor(() => expect(screen.getByText('Widget')).toBeInTheDocument());
+        expect(screen.queryByText('Gadget')).not.toBeInTheDocument();
+
+        await user.click(screen.getByLabelText('Show hidden'));
+
+        await waitFor(() => expect(screen.getByText('Gadget')).toBeInTheDocument());
+    });
+
+    it('honors defaultValue: true, showing every record until toggled off', async () => {
+        const user = userEvent.setup();
+        renderWithProviders(
+            <Grid
+                records={PRODUCTS}
+                recordId="_key"
+                columns={PRODUCT_COLUMNS}
+                filters={[{ key: 'showHidden', label: 'Show hidden', defaultValue: true, predicate: (record, value) => value || !record.hidden }]}
+            />
+        );
+
+        await waitFor(() => expect(screen.getByText('Gadget')).toBeInTheDocument());
+
+        await user.click(screen.getByLabelText('Show hidden'));
+
+        await waitFor(() => expect(screen.queryByText('Gadget')).not.toBeInTheDocument());
+    });
+
+    it('combines with searchable, applying filters before the search term', async () => {
+        renderWithProviders(
+            <Grid
+                records={PRODUCTS}
+                recordId="_key"
+                columns={PRODUCT_COLUMNS}
+                filters={[{ key: 'showHidden', label: 'Show hidden', predicate: (record, value) => value || !record.hidden }]}
+                searchable={{ fields: ['name'] }}
+            />
+        );
+
+        await waitFor(() => expect(screen.getByText('Widget')).toBeInTheDocument());
+
+        const search = screen.getByPlaceholderText('Search');
+        await act(async () => {
+            fireEvent.change(search, { target: { value: 'giz' } });
+        });
+
+        await waitFor(() => {
+            expect(screen.getByText('Gizmo')).toBeInTheDocument();
+            expect(screen.queryByText('Widget')).not.toBeInTheDocument();
+            expect(screen.queryByText('Gadget')).not.toBeInTheDocument();
+        });
+    });
+});
+
 

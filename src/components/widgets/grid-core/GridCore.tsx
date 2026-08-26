@@ -16,6 +16,7 @@ import {
     type GridAction,
     type GridActionContext,
     type GridCoreProps,
+    type GridFilterConfig,
     type GridFooterContext,
     type GridGalleryField,
     type GridHeaderContext,
@@ -79,6 +80,7 @@ function GridCore<TRecord extends RecordProps>({
     onReorder,
     groupBy,
     searchable,
+    filters,
     onSave,
     onDelete,
     onComplete,
@@ -93,24 +95,55 @@ function GridCore<TRecord extends RecordProps>({
     const { preparedRecords, loading: preparedRecordsLoading } = useGridPreparedRecords({ records, onLoad });
     const inferredColumns = useGridColumns({ columns, records: preparedRecords, form });
 
+    // Opt-in via `filters` — toggle checkboxes rendered in Grid's own default header, applied
+    // BEFORE `searchable` (see pipeline below). Same extension point as `searchable`: only
+    // wired into Grid's OWN default header, a fully custom `header` bypasses it entirely.
+    const [filterValues, setFilterValues] = useState<Record<string, boolean>>(
+        () => Object.fromEntries((filters ?? []).map((f) => [f.key, f.defaultValue ?? false]))
+    );
+    const toggleFilter = useCallback((key: string) => {
+        setFilterValues((prev) => ({ ...prev, [key]: !prev[key] }));
+    }, []);
+    const filteredRecords = useMemo(() => {
+        if (!filters || filters.length === 0) return preparedRecords;
+        return preparedRecords.filter((record) =>
+            filters.every((f) => f.predicate(record, filterValues[f.key] ?? f.defaultValue ?? false))
+        );
+    }, [preparedRecords, filters, filterValues]);
+    const filterControl = filters && filters.length > 0 ? (
+        <div className="flex flex-wrap items-center gap-3">
+            {filters.map((f: GridFilterConfig<TRecord>) => (
+                <label key={f.key} className="flex shrink-0 items-center gap-1.5 text-sm text-muted-foreground">
+                    <input
+                        type="checkbox"
+                        checked={filterValues[f.key] ?? f.defaultValue ?? false}
+                        onChange={() => toggleFilter(f.key)}
+                    />
+                    {f.label}
+                </label>
+            ))}
+        </div>
+    ) : null;
+
     // Opt-in via `searchable` — filters the records actually rendered (table/gallery, and
     // whatever they compute downstream: sort/pagination/selection all see the FILTERED set).
     // Only wired into Grid's OWN default header (see `resolvedHeader` below) — a fully custom
-    // `header` bypasses it entirely, same as the view toggle/column picker.
+    // `header` bypasses it entirely, same as the view toggle/column picker. Applied AFTER
+    // `filters` — see `filteredRecords` above.
     const searchConfig = searchable === true ? {} : (searchable || undefined);
     const [searchTerm, setSearchTerm] = useState("");
     const searchedRecords = useMemo(() => {
-        if (!searchConfig || !searchTerm.trim()) return preparedRecords;
+        if (!searchConfig || !searchTerm.trim()) return filteredRecords;
         const q = searchTerm.trim().toLowerCase();
         const fieldKeys = searchConfig.fields?.map(String);
-        return preparedRecords.filter((record) => {
+        return filteredRecords.filter((record) => {
             const keys = fieldKeys ?? Object.keys(record);
             return keys.some((key) => {
                 const value = getRecordValue(record, key);
                 return typeof value === "string" && value.toLowerCase().includes(q);
             });
         });
-    }, [preparedRecords, searchConfig, searchTerm]);
+    }, [filteredRecords, searchConfig, searchTerm]);
     const searchControl = searchConfig ? (
         <div className="flex min-w-0 items-center gap-2">
             <input
@@ -120,7 +153,7 @@ function GridCore<TRecord extends RecordProps>({
                 placeholder={searchConfig.placeholder ?? commonDict.search}
                 className="w-full max-w-xs rounded-md border border-input bg-background px-2 py-1 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             />
-            <span className="shrink-0 text-xs text-muted-foreground">{searchedRecords.length} / {preparedRecords.length}</span>
+            <span className="shrink-0 text-xs text-muted-foreground">{searchedRecords.length} / {filteredRecords.length}</span>
         </div>
     ) : null;
 
@@ -386,17 +419,19 @@ function GridCore<TRecord extends RecordProps>({
         if (header !== undefined) {
             return typeof header === "function" ? header(headerContext) : header;
         }
-        if (!title && !searchControl && !headerActionKeys.length && !viewToggleControl && !columnPickerControl && !fieldPickerControl) return undefined;
+        if (!title && !searchControl && !filterControl && !headerActionKeys.length && !viewToggleControl && !columnPickerControl && !fieldPickerControl) return undefined;
 
         return (
             <>
-                {/* Only wrap title in the extra flex span when there's a search box to sit
-                    alongside it — keeps the exact previous markup (just `{title || <span />}`)
-                    for every existing Grid that doesn't use `searchable`, no layout change. */}
-                {searchControl ? (
+                {/* Only wrap title in the extra flex span when there's a search box and/or
+                    filter controls to sit alongside it — keeps the exact previous markup (just
+                    `{title || <span />}`) for every existing Grid that doesn't use
+                    `searchable`/`filters`, no layout change. */}
+                {(searchControl || filterControl) ? (
                     <span className="flex min-w-0 flex-1 items-center gap-3">
                         {title}
                         {searchControl}
+                        {filterControl}
                     </span>
                 ) : (title || <span />)}
                 {(headerActionKeys.length || viewToggleControl || columnPickerControl || fieldPickerControl) ? (
@@ -413,7 +448,7 @@ function GridCore<TRecord extends RecordProps>({
                 ) : null}
             </>
         );
-    }, [actionButton, header, headerActionKeys, headerContext, title, viewToggleControl, columnPickerControl, fieldPickerControl, searchControl]);
+    }, [actionButton, header, headerActionKeys, headerContext, title, viewToggleControl, columnPickerControl, fieldPickerControl, searchControl, filterControl]);
 
     const resolvedFooter = useMemo(() => {
         if (footer !== undefined) {

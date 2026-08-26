@@ -1290,6 +1290,19 @@ true
         description: t.propsDocs.items.searchable.description,
         category: t.propsDocs.categories.behavior,
     },
+    {
+        name: 'filters',
+        type: 'GridFilterConfig<TRecord>[]',
+        shape: `type GridFilterConfig<TRecord> = {
+  key: string
+  label: string
+  defaultValue?: boolean
+  predicate: (record: TRecord, value: boolean) => boolean
+}`,
+        default: 'undefined',
+        description: t.propsDocs.items.filters.description,
+        category: t.propsDocs.categories.behavior,
+    },
     { name: 'onRowClick', type: '(record) => void', description: t.propsDocs.items.onRowClick.description, category: t.propsDocs.categories.behavior },
     { name: 'reorderable', type: 'boolean', default: 'false', description: t.propsDocs.items.reorderable.description, category: t.propsDocs.categories.behavior },
     { name: 'onReorder', type: 'GridReorderHandler<TRecord>', description: t.propsDocs.items.onReorder.description, shape: `type GridReorderHandler<TRecord> = (

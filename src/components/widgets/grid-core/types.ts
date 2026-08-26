@@ -336,6 +336,21 @@ export type GridSearchConfig<TRecord> = {
     fields?: Array<keyof TRecord | string>;
 };
 
+/** A single toggle filter rendered as a checkbox in Grid's own default header, next to the
+ * search box (see `GridBehavior.filters`). */
+export type GridFilterConfig<TRecord> = {
+    /** Unique key identifying this filter — used as the React key and to track its checkbox
+     * state, so it must be stable and unique within the `filters` array. */
+    key: string;
+    /** Label rendered next to the checkbox. */
+    label: string;
+    /** Initial checkbox state. Defaults to `false`. */
+    defaultValue?: boolean;
+    /** Return `true` to keep `record` given the filter's current checkbox `value`. Called for
+     * every record on every render of the filtered set — keep it cheap and pure. */
+    predicate: (record: TRecord, value: boolean) => boolean;
+};
+
 /** Interaction / behaviour props for `<Grid>`. */
 export type GridBehavior<TRecord> = {
     /** Enable global sorting. Pass an `OrderConfig` to set a default sort. */
@@ -360,6 +375,11 @@ export type GridBehavior<TRecord> = {
      * header — same as `views.table.columnPicker`/`views.toggle`, a fully custom `header` prop
      * bypasses it entirely (render your own search input there instead). */
     searchable?: boolean | GridSearchConfig<TRecord>;
+    /** Toggle filters (checkboxes) rendered in Grid's OWN default header, next to the search
+     * box — applied BEFORE `searchable` (filters → search → sort → pagination/selection all see
+     * the FILTERED set). Same extension point as `searchable`: a fully custom `header` prop
+     * bypasses it entirely (render your own filter controls there instead). */
+    filters?: GridFilterConfig<TRecord>[];
 };
 
 /** Data-mutation hooks for `<Grid>`. */

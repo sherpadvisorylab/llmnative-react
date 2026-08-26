@@ -338,6 +338,7 @@ export default defineLocaleMessages({
                     actions: { description: 'Action catalog. Use the array shortcut for standard CRUD, or the record form for explicit modal, route, external, inline and delete actions.' },
                     selection: { description: 'Enable row selection. Use the string shorthand when Grid only needs selection UI, or the object form for `defaultKeys` and `onChange`.' },
                     searchable: { description: 'Enable a built-in search box in Grid\'s own default header, filtering the rendered records (and everything they compute — sort/pagination/selection see the filtered set) by a case-insensitive substring match. `true` searches every string field; pass a `GridSearchConfig` to restrict to specific fields or set a custom placeholder.' },
+                    filters: { description: 'Toggle checkboxes rendered in Grid\'s own default header, next to `searchable`. Each filter\'s `predicate(record, value)` decides whether to keep a record given the checkbox\'s current state — applied before the search term.' },
                     onRowClick: { description: 'Called with the original record after row or card click.' },
                     reorderable: { description: 'Turn on row drag in table mode when used together with `onReorder`.' },
                     onReorder: { description: 'Receive the reordered source records and drag metadata.' },

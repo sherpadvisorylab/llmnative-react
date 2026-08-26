@@ -220,6 +220,8 @@ export class RestDataProvider implements DataProviderAdapter {
 | `title` | `ReactNode` | Titolo header grid |
 | `before` / `after` | `ReactNode` | Slot prima/dopo il contenuto |
 | `header` / `footer` | `ReactNode \| ((ctx) => ReactNode)` | Header/footer custom |
+| `searchable` | `boolean \| GridSearchConfig` | Search box nell'header default — `{ fields?, placeholder? }` |
+| `filters` | `GridFilterConfig[]` | Checkbox toggle nell'header default, applicati PRIMA di `searchable` — `{ key, label, defaultValue?, predicate(record, value) }` |
 
 **GridAction kind:** `'modal'` (default), `'route'`, `'external'`, `'inline'`, `'delete'`
 

@@ -112,6 +112,7 @@ export type {
     GridGalleryField,
     GridGalleryViewProps,
     GridGalleryViewConfig,
+    GridFilterConfig,
     GridHeaderContext,
     GridLayout,
     GridMutationDeleteArgs,

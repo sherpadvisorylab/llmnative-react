@@ -338,6 +338,7 @@ export default defineLocaleMessages({
                     actions: { description: 'Action catalog.' },
                     selection: { description: 'Enable row selection.' },
                     searchable: { description: 'تفعيل مربع بحث مدمج في الترويسة الافتراضية لـ Grid، يصفي السجلات المعروضة (وكل ما يُحسب منها — الترتيب/الترقيم/التحديد يرى المجموعة المصفاة) بمطابقة سلسلة فرعية غير حساسة لحالة الأحرف. true يبحث في كل حقل نصي؛ مرر GridSearchConfig لتقييد الحقول أو تعيين نص بديل مخصص.' },
+                    filters: { description: 'مربعات اختيار تبديل تُعرض في الترويسة الافتراضية لـ Grid، بجانب searchable. يقرر predicate(record, value) لكل فلتر ما إذا كان سيُبقي السجل بناءً على حالة مربع الاختيار الحالية — يُطبَّق قبل مصطلح البحث.' },
                     onRowClick: { description: 'Called with the original record after row or card click.' },
                     reorderable: { description: 'Turn on row drag in table mode when used together with `onReorder`.' },
                     onReorder: { description: 'Receive the reordered source records and drag metadata.' },

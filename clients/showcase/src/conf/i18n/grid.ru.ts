@@ -338,6 +338,7 @@ export default defineLocaleMessages({
                     actions: { description: 'Action catalog.' },
                     selection: { description: 'Enable row selection.' },
                     searchable: { description: 'Включает встроенное поле поиска в собственном заголовке Grid по умолчанию, фильтруя отображаемые записи (и все, что из них вычисляется - сортировка/пагинация/выбор видят отфильтрованный набор) по совпадению подстроки без учета регистра. true ищет по каждому строковому полю; передайте GridSearchConfig, чтобы ограничить поля или задать собственный плейсхолдер.' },
+                    filters: { description: 'Переключаемые чекбоксы в собственном заголовке Grid по умолчанию, рядом с searchable. predicate(record, value) каждого фильтра решает, оставить ли запись, исходя из текущего состояния чекбокса - применяется до поискового запроса.' },
                     onRowClick: { description: 'Called with the original record after row or card click.' },
                     reorderable: { description: 'Turn on row drag in table mode when used together with `onReorder`.' },
                     onReorder: { description: 'Receive the reordered source records and drag metadata.' },

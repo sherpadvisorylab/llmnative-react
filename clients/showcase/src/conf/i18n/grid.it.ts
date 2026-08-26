@@ -338,6 +338,7 @@ export default defineLocaleMessages({
                     actions: { description: 'Action catalog.' },
                     selection: { description: 'Enable row selection.' },
                     searchable: { description: 'Abilita un campo di ricerca integrato nell\'intestazione predefinita di Grid, filtrando i record renderizzati (e tutto cio che ne deriva - ordinamento/paginazione/selezione vedono il set filtrato) con una corrispondenza case-insensitive su sottostringa. true cerca in ogni campo stringa; passa un GridSearchConfig per limitare i campi o impostare un placeholder personalizzato.' },
+                    filters: { description: 'Checkbox di filtro renderizzate nell\'intestazione predefinita di Grid, accanto a searchable. Il predicate(record, value) di ogni filtro decide se mantenere un record in base allo stato corrente della checkbox - applicato prima del termine di ricerca.' },
                     onRowClick: { description: 'Called with the original record after row or card click.' },
                     reorderable: { description: 'Turn on row drag in table mode when used together with `onReorder`.' },
                     onReorder: { description: 'Receive the reordered source records and drag metadata.' },

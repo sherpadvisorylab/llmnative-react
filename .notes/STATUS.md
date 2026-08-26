@@ -246,4 +246,5 @@ Real verification performed on 2026-07-29 (CR-071 drag&drop addition + CR-073):
 | 1.4.0 | Published on npm (`@llmnative/react@1.4.0`). CR-074 (`Table`/`Grid` `recordId` — stable row identity) completa. |
 | 1.5.0 | Published on npm (`@llmnative/react@1.5.0`). CR-075 (Grid built-in search, internal scroll with sticky header, Card layout props) e CR-076 (Firebase Auth/Firestore ID token refresh reactivity + Firestore-only config fix) complete. |
 | 1.6.0 | Published on npm (`@llmnative/react@1.6.0`). CR-077 (`UploadImage` insert-from-URL) completa. |
+| 1.7.0 | Published on npm (`@llmnative/react@1.7.0`). CR-078 (`Grid.filters` — toggle filters in header) completa. |
 | 1.x / 2.0 | Roadmap: CR-051 (WorkflowAI), CR-040 (SchemaForm), CR-041 (SeoEnhancer), E2E. CR-072 deferito (TypeScript 6 regression upstream). |

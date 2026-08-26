@@ -86,6 +86,7 @@
 | [CR-073](#cr-073--dev-only-llm-requestresponse-file-logging-e-fix-allegati) | Dev-only LLM request/response file logging e fix allegati | Media | CR-069 | ✅ |
 | [CR-074](#cr-074--table-recordid--identita-di-riga-stabile) | Table recordId — identità di riga stabile | Media | — | ✅ |
 | [CR-077](#cr-077--uploadimage-inserimento-logoimmagine-da-url) | UploadImage — inserimento logo/immagine da URL (`allowUrl`) | Media | — | ✅ |
+| [CR-078](#cr-078--grid-filtri-toggle-nellheader-filters) | Grid — filtri toggle nell'header (`filters`) | Media | — | ✅ |
 
 ---
 
@@ -252,6 +253,49 @@ la UI di preview/rimozione che `UploadImage` già offre.
 - [x] Issue GitHub collegata (#21)
 - [x] Versione SemVer (minor) e `npm publish` — 1.6.0
 - [x] Fix follow-up (patch 1.6.1): icona `allowUrl` senza `cursor-pointer` (Tailwind v4 resetta `<button>` a `cursor: default`)
+
+---
+
+## CR-078 — Grid: filtri toggle nell'header (`filters`)
+
+**Stato:** ✅ done — rilasciato in 1.7.0
+**Issue:** [#22](https://github.com/sherpadvisorylab/llmnative-react/issues/22)
+**Priorità:** Media
+**Dipende da:** —
+
+### Motivazione
+
+Un consumer (CRM) aveva bisogno di un filtro "mostra/nascondi record nascosti"
+dentro l'header della griglia, accanto alla ricerca. `Grid` supportava solo
+`searchable` (ricerca testuale libera); non esisteva un modo dichiarativo per
+aggiungere filtri toggle (checkbox) su un campo booleano/derivato, costringendo
+i consumer a gestire lo stato del filtro fuori dalla griglia.
+
+### Scope
+
+- Nuova prop `filters?: GridFilterConfig<TRecord>[]` su `GridBehavior`
+  (`types.ts`), disponibile su `<Grid>` sia array-backed che DB-backed.
+- Ogni filtro: `{ key, label, defaultValue?, predicate(record, value) }` —
+  una checkbox per filtro, renderizzata nell'header di default accanto alla
+  ricerca (stesso punto di estensione di `searchable`; un `header` custom la
+  bypassa, come già per la search box).
+- Pipeline: filtri applicati PRIMA della ricerca testuale (filters → search →
+  sort → pagination/selezione); il contatore "N / M" nell'header riflette il
+  totale POST-filtri, PRE-ricerca.
+- Test unitari in `GridCore`/`Grid`, changelog.
+
+### Checklist
+
+- [x] `types.ts` — `GridFilterConfig<TRecord>`, prop `filters` su `GridBehavior`
+- [x] `GridCore.tsx` — stato filtri, pipeline filters→search, checkbox nell'header
+- [x] Export pubblico `GridFilterConfig` in `src/index.ts`
+- [x] Test — 4 nuovi casi in `tests/unit/components/Grid.test.tsx` (default, toggle on, `defaultValue: true`, combinato con `searchable`)
+- [x] `npx tsc --noEmit` — 0 errori
+- [x] `npm test` — 63 file, 691/691 verdi
+- [x] `npm run build` — bundle + dichiarazioni generati (`GridFilterConfig` presente in `dist/types`)
+- [x] `npm pack --dry-run --json` — 216 entries
+- [x] Issue GitHub collegata (#22)
+- [x] Versione SemVer (minor) e `npm publish` — 1.7.0
 
 ---
 

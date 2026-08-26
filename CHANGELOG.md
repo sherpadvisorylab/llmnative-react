@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-08-26
+
+### Added
+- `Grid.filters` — toggle checkboxes rendered in `Grid`'s own default header, next to `searchable`. Each filter is `{ key, label, defaultValue?, predicate(record, value) }`; applied BEFORE the search term (filters → search → sort → pagination/selection all see the filtered set). Only wired into the default header — a fully custom `header` prop bypasses it. New public export `GridFilterConfig<TRecord>`. (CR-078)
+
 ## [1.6.1] - 2026-08-25
 
 ### Fixed
