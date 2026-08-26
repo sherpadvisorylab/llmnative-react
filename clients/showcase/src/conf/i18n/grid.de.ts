@@ -72,6 +72,13 @@ export default defineLocaleMessages({
                         fields: { tab: 'Eingeschraenkte Felder', title: 'Bestimmte Felder mit eigenem Platzhalter durchsuchen', description: 'Uebergib eine `GridSearchConfig`, um die Suche auf `name`/`team` zu beschraenken und den Platzhalter zu aendern.', placeholder: 'Name oder Team suchen...' },
                     },
                 },
+                filters: {
+                    title: 'Umschalt-Filter',
+                    description: 'filters rendert neben dem Suchfeld eine Checkbox pro Eintrag, angewendet auf die Datensaetze VOR der Suche. Das predicate jedes Filters entscheidet anhand des aktuellen Checkbox-Werts, ob ein Datensatz behalten wird.',
+                    items: {
+                        toggle: { tab: 'Nur aktiv', title: 'Nach Status mit einer Checkbox filtern', description: 'Nicht angehakt zeigt jeden Datensatz; mit angehaktem "Nur aktiv" werden alle mit anderem Status ausgeblendet.' },
+                    },
+                },
                 actions: {
                     title: 'Aktionen und Bearbeitung',
                     description: 'Beginne mit dem Preset, wenn du nur CRUD brauchst. Wechsle zu expliziten Action-Kinds, wenn du Absicht, Modal-Haltung und benutzerdefinierte Workflows zeigen willst.',
@@ -290,6 +297,7 @@ export default defineLocaleMessages({
                             placeholder: { label: 'placeholder', help: 'Eigener Platzhaltertext, durchsucht weiterhin alle Felder.' },
                         },
                     },
+                    filters: { description: 'Umschalt-Checkboxen neben dem Suchfeld, angewendet bevor dieses greift. Eine Funktions-Prop (predicate), daher hier nicht editierbar - siehe das Live-Beispiel unter der Props-Tabelle.' },
                     onRowClick: { description: 'Called with the full record on row or card click.' },
                     onReorder: { description: 'Receives the reordered record array and drag metadata.' },
                     editDeepLink: { description: 'Sync edit modal to the URL hash so the workflow survives reload.' },

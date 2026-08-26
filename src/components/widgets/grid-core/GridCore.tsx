@@ -110,18 +110,41 @@ function GridCore<TRecord extends RecordProps>({
             filters.every((f) => f.predicate(record, filterValues[f.key] ?? f.defaultValue ?? false))
         );
     }, [preparedRecords, filters, filterValues]);
+    // Rendered as a toggle switch (same visual as the `Switch` field), not a square checkbox —
+    // deliberately hand-rolled here rather than reusing `Switch` itself, which is a Form field
+    // (`useCheckboxField`) and would require wrapping the whole default header in a `<Form>`.
     const filterControl = filters && filters.length > 0 ? (
         <div className="flex flex-wrap items-center gap-3">
-            {filters.map((f: GridFilterConfig<TRecord>) => (
-                <label key={f.key} className="flex shrink-0 items-center gap-1.5 text-sm text-muted-foreground">
-                    <input
-                        type="checkbox"
-                        checked={filterValues[f.key] ?? f.defaultValue ?? false}
-                        onChange={() => toggleFilter(f.key)}
-                    />
-                    {f.label}
-                </label>
-            ))}
+            {filters.map((f: GridFilterConfig<TRecord>) => {
+                const checked = filterValues[f.key] ?? f.defaultValue ?? false;
+                return (
+                    <label key={f.key} className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 select-none">
+                        <span className="relative inline-flex h-5 w-9 shrink-0 items-center">
+                            <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={() => toggleFilter(f.key)}
+                                className="peer absolute inset-0 m-0 h-full w-full cursor-pointer opacity-0"
+                            />
+                            <span
+                                aria-hidden="true"
+                                className={cn(
+                                    "pointer-events-none absolute inset-0 rounded-full transition-colors duration-200 ease-out peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2",
+                                    checked ? "bg-primary" : "bg-muted-foreground/35"
+                                )}
+                            >
+                                <span
+                                    className={cn(
+                                        "pointer-events-none absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-background shadow-sm transition-transform duration-200 ease-out",
+                                        checked && "translate-x-4"
+                                    )}
+                                />
+                            </span>
+                        </span>
+                        <span className="text-sm text-muted-foreground">{f.label}</span>
+                    </label>
+                );
+            })}
         </div>
     ) : null;
 

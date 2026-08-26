@@ -80,6 +80,9 @@ interface ShowcaseGridI18n {
             all: ShowcaseExampleCopy;
             fields: ShowcaseExampleCopy;
         }>;
+        filters: ShowcaseExamplesGroup<{
+            toggle: ShowcaseExampleCopy;
+        }>;
         actions: ShowcaseExamplesGroup<{
             crudPreset: ShowcaseExampleCopy;
             customKinds: ShowcaseExampleCopy;

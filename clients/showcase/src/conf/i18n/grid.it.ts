@@ -72,6 +72,13 @@ export default defineLocaleMessages({
                         fields: { tab: 'Campi limitati', title: 'Cerca campi specifici con un placeholder personalizzato', description: 'Passa un `GridSearchConfig` per limitare la ricerca a `name`/`team` e sostituire il placeholder dell\'input.', placeholder: 'Cerca nome o team...' },
                     },
                 },
+                filters: {
+                    title: 'Filtri toggle',
+                    description: 'filters renderizza una checkbox per ogni voce accanto al campo di ricerca, applicata al set di record PRIMA della ricerca. Il predicate di ogni filtro decide se mantenere un record in base al valore corrente della checkbox.',
+                    items: {
+                        toggle: { tab: 'Solo attivi', title: 'Filtra per stato con una checkbox', description: 'Senza spunta mostra tutti i record; spuntando "Solo attivi" nasconde chi non ha stato attivo.' },
+                    },
+                },
                 actions: {
                     title: 'Azioni e modifica',
                     description: 'Parti dal preset quando ti serve solo CRUD. Passa a tipi di azione espliciti quando vuoi mostrare intenzione, postura del modal e workflow personalizzati.',
@@ -290,6 +297,7 @@ export default defineLocaleMessages({
                             placeholder: { label: 'placeholder', help: 'Placeholder personalizzato, ricerca comunque su tutti i campi.' },
                         },
                     },
+                    filters: { description: 'Checkbox toggle renderizzate accanto al campo di ricerca, applicate prima di esso. E una prop a funzione (predicate), quindi non editabile qui - vedi l\'esempio live sotto la tabella delle prop.' },
                     onRowClick: { description: 'Called with the full record on row or card click.' },
                     onReorder: { description: 'Receives the reordered record array and drag metadata.' },
                     editDeepLink: { description: 'Sync edit modal to the URL hash so the workflow survives reload.' },

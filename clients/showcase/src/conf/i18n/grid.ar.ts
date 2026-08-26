@@ -72,6 +72,13 @@ export default defineLocaleMessages({
                         fields: { tab: 'حقول مقيدة', title: 'البحث في حقول محددة مع نص بديل مخصص', description: 'مرر GridSearchConfig لتقييد المطابقة على name/team واستبدال النص البديل لحقل الإدخال.', placeholder: 'ابحث بالاسم أو الفريق…' },
                     },
                 },
+                filters: {
+                    title: 'فلاتر التبديل',
+                    description: 'تعرض filters مربع اختيار واحد لكل عنصر بجانب مربع البحث، تُطبَّق على مجموعة السجلات قبل البحث. يقرر predicate كل فلتر ما إذا كان سيُبقي السجل بناءً على القيمة الحالية لمربع الاختيار.',
+                    items: {
+                        toggle: { tab: 'النشط فقط', title: 'التصفية حسب الحالة بمربع اختيار', description: 'بدون تحديد تُعرض كل السجلات؛ عند تحديد "النشط فقط" تُخفى كل السجلات التي حالتها ليست نشطة.' },
+                    },
+                },
                 actions: {
                     title: 'الإجراءات والتحرير',
                     description: 'ابدأ من preset عندما تحتاج فقط إلى CRUD. وانتقل إلى action kinds صريحة عندما تريد إظهار النية ووضعية modal وسير العمل المخصص.',
@@ -290,6 +297,7 @@ export default defineLocaleMessages({
                             placeholder: { label: 'placeholder', help: 'نص بديل مخصص، مع البحث في جميع الحقول.' },
                         },
                     },
+                    filters: { description: 'مربعات اختيار تبديل تُعرض بجانب مربع البحث، تُطبَّق قبله. هذه prop دالة (predicate)، لذا لا يمكن تعديلها هنا — راجع المثال الحي أسفل جدول الخصائص.' },
                     onRowClick: { description: 'Called with the full record on row or card click.' },
                     onReorder: { description: 'Receives the reordered record array and drag metadata.' },
                     editDeepLink: { description: 'Sync edit modal to the URL hash so the workflow survives reload.' },

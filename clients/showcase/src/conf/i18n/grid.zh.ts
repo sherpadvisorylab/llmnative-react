@@ -72,6 +72,13 @@ export default defineLocaleMessages({
                         fields: { tab: '限定字段', title: '搜索特定字段并自定义占位符', description: '传入 `GridSearchConfig` 可将匹配范围限制为 `name`/`team`，并覆盖输入框的占位符文本。', placeholder: '搜索姓名或团队…' },
                     },
                 },
+                filters: {
+                    title: '切换过滤器',
+                    description: 'filters 会在搜索框旁为每一项渲染一个复选框，在搜索之前应用于记录集。每个过滤器的 predicate 根据复选框的当前值决定是否保留某条记录。',
+                    items: {
+                        toggle: { tab: '仅显示活跃', title: '用复选框按状态过滤', description: '未勾选时显示所有记录；勾选"仅显示活跃"会隐藏状态不是活跃的记录。' },
+                    },
+                },
                 actions: {
                     title: '动作与编辑',
                     description: '如果你只需要 CRUD，就从 preset 开始。如果你想展示更明确的意图、modal 姿态和自定义 workflow，再切换到显式的 action kinds。',
@@ -290,6 +297,7 @@ export default defineLocaleMessages({
                             placeholder: { label: 'placeholder', help: '自定义占位符文本，仍搜索所有字段。' },
                         },
                     },
+                    filters: { description: '在搜索框旁渲染的切换复选框，在搜索之前应用。这是一个函数类型的 prop（predicate），因此此处不可编辑 —— 请查看 props 表格下方的实时示例。' },
                     onRowClick: { description: 'Called with the full record on row or card click.' },
                     onReorder: { description: 'Receives the reordered record array and drag metadata.' },
                     editDeepLink: { description: 'Sync edit modal to the URL hash so the workflow survives reload.' },

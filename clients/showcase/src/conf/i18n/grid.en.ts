@@ -72,6 +72,13 @@ export default defineLocaleMessages({
                         fields: { tab: 'Restricted fields', title: 'Search specific fields with a custom placeholder', description: 'Pass a `GridSearchConfig` to restrict matching to `name`/`team` and override the input placeholder.', placeholder: 'Search name or team…' },
                     },
                 },
+                filters: {
+                    title: 'Toggle filters',
+                    description: 'filters renders one checkbox per entry next to the search box, applied to the record set BEFORE search runs. Each filter\'s predicate decides whether to keep a record given the checkbox\'s current value.',
+                    items: {
+                        toggle: { tab: 'Only active', title: 'Filter by status with a checkbox', description: 'Unchecked shows every record; checking "Only active" hides everyone whose status isn\'t active.' },
+                    },
+                },
                 actions: {
                     title: 'Actions and editing',
                     description: 'Start from the preset when all you need is CRUD. Switch to explicit action kinds when you want to demonstrate intent, modal posture and custom workflows.',
@@ -290,6 +297,7 @@ export default defineLocaleMessages({
                             placeholder: { label: 'placeholder', help: 'Custom placeholder text, still searching every field.' },
                         },
                     },
+                    filters: { description: 'Toggle checkboxes rendered next to the search box, applied before it. A function prop (predicate), so not editable here — see the live example below the props table.' },
                     onRowClick: { description: 'Called with the full record on row or card click. Enable it to inspect the payload below.' },
                     onReorder: { description: 'Receives the reordered record array and drag metadata. Handled internally by the playground when reorderable is true.' },
                     editDeepLink: { description: 'Sync edit modal to the URL hash so the workflow survives reload and can be bookmarked.' },

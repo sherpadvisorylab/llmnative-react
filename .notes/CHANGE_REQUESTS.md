@@ -296,6 +296,7 @@ i consumer a gestire lo stato del filtro fuori dalla griglia.
 - [x] `npm pack --dry-run --json` — 216 entries
 - [x] Issue GitHub collegata (#22)
 - [x] Versione SemVer (minor) e `npm publish` — 1.7.0
+- [x] Follow-up (patch 1.7.1): checkbox dei filtri renderizzata con lo stile toggle-switch (stessa resa visiva di `Switch`, senza dipendere da `Form`/`useCheckboxField`, dato che l'header di default non ha un `Form` attorno); showcase completato con sezione esempio live (`FiltersGridPreview`) + voce nel playground (`readOnly`, essendo `predicate` una funzione non serializzabile in JSON) + i18n 6 lingue
 
 ---
 

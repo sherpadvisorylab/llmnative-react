@@ -816,6 +816,22 @@ function SearchableFieldsGridPreview() {
     );
 }
 
+function FiltersGridPreview() {
+    const t = useGridI18n();
+    return (
+        <GridArray
+            records={toArrayRecords()}
+            recordId="_key"
+            title={t.playground.titleDefault}
+            wrapperClassName="w-full"
+            filters={[
+                { key: 'onlyActive', label: 'Only active', predicate: (record, value) => !value || record.status === 'active' },
+            ]}
+            pagination={{ limit: 4, align: 'end', sticky: false }}
+        />
+    );
+}
+
 function CrudPresetPreview({ provider }: { provider: MockDataProvider }) {
     const t = useGridI18n();
     const explicitCompactColumns = React.useMemo(() => getExplicitCompactColumns(t), [t]);
@@ -1906,6 +1922,7 @@ const buildPlayground = (t: ShowcaseI18n): PlaygroundConfig => ({
                 { label: t.playground.props.searchable.shortcuts?.placeholder.label ?? 'placeholder', value: { placeholder: 'Find a teammate…' }, help: t.playground.props.searchable.shortcuts?.placeholder.help ?? '' },
             ],
         },
+        { name: 'filters', type: 'GridFilterConfig<TRecord>[]', description: t.playground.props.filters.description, readOnly: true },
         { name: 'onRowClick', type: '(record) => void', default: 'false', description: t.playground.props.onRowClick.description, control: 'boolean' },
         { name: 'onReorder', type: 'GridReorderHandler<TRecord>', description: t.playground.props.onReorder.description, readOnly: true, hidden: (props) => !resolvePlaygroundBoolean(props.reorderable) },
         { name: 'editDeepLink', type: 'boolean', default: 'false', description: t.playground.props.editDeepLink.description, control: 'boolean', hidden: (props) => !hasPlaygroundAction(t, props.actions, 'edit') || props.view === 'gallery' || props.source === 'array' },
@@ -2285,6 +2302,30 @@ const [selectedRecords, setSelectedRecords] = useState<RecordArray>([]);
   records={records}
   recordId="_key"
   searchable={{ fields: ["name", "team"], placeholder: "Search name or team…" }}
+/>`,
+                    },
+                ]}
+            />
+
+            <TabbedSection
+                title={t.examples.filters.title}
+                description={t.examples.filters.description}
+                tabs={[
+                    {
+                        label: t.examples.filters.items.toggle.tab,
+                        title: t.examples.filters.items.toggle.title,
+                        description: t.examples.filters.items.toggle.description,
+                        preview: <FiltersGridPreview />,
+                        code: `<GridArray
+  records={records}
+  recordId="_key"
+  filters={[
+    {
+      key: "onlyActive",
+      label: "Only active",
+      predicate: (record, value) => !value || record.status === "active",
+    },
+  ]}
 />`,
                     },
                 ]}

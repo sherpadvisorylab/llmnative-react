@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.1] - 2026-08-26
+
+### Changed
+- `Grid.filters` checkboxes now render with the same toggle-switch visual as the `Switch` field, instead of a plain square checkbox — hand-rolled markup, not the `Switch` component itself, since `Switch` is a Form field and the default header has no `Form` around it. (CR-078)
+
+### Docs
+- Showcase (`clients/showcase`): `GridPage.tsx` now has a live example for `filters` (mirroring the existing `searchable` example) and a `readOnly` entry in the playground props list (the `predicate` function can't be represented in the playground's JSON editor, same treatment as `onSave`/`onDelete`/`form`); i18n updated across all 6 languages. (CR-078)
+
 ## [1.7.0] - 2026-08-26
 
 ### Added

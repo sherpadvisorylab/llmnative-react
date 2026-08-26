@@ -93,7 +93,7 @@
 | CR-073 | Done | Log file LLM opzionale (dev-only, un file per conversazione) nel proxy Vite; fix allegati ignorati dal provider `opencode`; `libs/csv.ts`. Issue #17 chiusa. |
 | CR-074 | Done | `Table`/`Grid` — nuovo prop `recordId` per una key di riga stabile sotto churn di identità d'oggetto (fix: `GridTableView` ora lo inoltra a `Table`, prima no); risolve il remount-on-keystroke di una riga Form-bound. Showcase aggiornato (props/playground/demo, 6 lingue). Issue #18 chiusa. |
 | CR-077 | Done | `UploadImage` — nuovo prop `allowUrl` per inserire un'immagine da URL invece di caricarla, stessa forma `FileProps`/preview di un upload reale. i18n 6 lingue, 3 nuovi test, showcase aggiornato (sezione dedicata + playground + 6 lingue). Issue #21 chiusa. |
-| CR-078 | Done | `Grid` — nuovo prop `filters?: GridFilterConfig<TRecord>[]`: checkbox toggle nell'header di default, accanto a `searchable`, applicate PRIMA della ricerca testuale. Nuovo export pubblico `GridFilterConfig`. 4 nuovi test, props table showcase aggiornata (6 lingue). Issue #22 chiusa. |
+| CR-078 | Done | `Grid` — nuovo prop `filters?: GridFilterConfig<TRecord>[]`: checkbox toggle nell'header di default, accanto a `searchable`, applicate PRIMA della ricerca testuale. Nuovo export pubblico `GridFilterConfig`. 4 nuovi test, props table showcase aggiornata (6 lingue). Follow-up (1.7.1): resa visiva a toggle-switch, esempio live + playground (readOnly) nello showcase (6 lingue). Issue #22 chiusa. |
 
 ---
 
@@ -248,4 +248,5 @@ Real verification performed on 2026-07-29 (CR-071 drag&drop addition + CR-073):
 | 1.5.0 | Published on npm (`@llmnative/react@1.5.0`). CR-075 (Grid built-in search, internal scroll with sticky header, Card layout props) e CR-076 (Firebase Auth/Firestore ID token refresh reactivity + Firestore-only config fix) complete. |
 | 1.6.0 | Published on npm (`@llmnative/react@1.6.0`). CR-077 (`UploadImage` insert-from-URL) completa. |
 | 1.7.0 | Published on npm (`@llmnative/react@1.7.0`). CR-078 (`Grid.filters` — toggle filters in header) completa. |
+| 1.7.1 | Published on npm (`@llmnative/react@1.7.1`). CR-078 follow-up: toggle-switch visual, showcase live example + playground entry (6 lingue). |
 | 1.x / 2.0 | Roadmap: CR-051 (WorkflowAI), CR-040 (SchemaForm), CR-041 (SeoEnhancer), E2E. CR-072 deferito (TypeScript 6 regression upstream). |
