@@ -73,10 +73,10 @@ export default defineLocaleMessages({
                     },
                 },
                 filters: {
-                    title: '切换过滤器',
-                    description: 'filters 会在搜索框旁为每一项渲染一个复选框，在搜索之前应用于记录集。每个过滤器的 predicate 根据复选框的当前值决定是否保留某条记录。',
+                    title: '筛选面板',
+                    description: 'filters 会在搜索框旁打开一个"筛选"按钮。每一项——复选框、下拉框、多选列表、日期范围或数字范围——都位于面板内；已激活的筛选项会以可移除的标签形式显示在表头行上，并在搜索之前应用于记录集。',
                     items: {
-                        toggle: { tab: '仅显示活跃', title: '用复选框按状态过滤', description: '未勾选时显示所有记录；勾选"仅显示活跃"会隐藏状态不是活跃的记录。' },
+                        toggle: { tab: '切换 + 下拉', title: '组合复选框和下拉筛选', description: '打开"筛选"勾选"仅显示活跃"和/或选择一个角色——两者一起生效，激活后各自显示自己的标签。' },
                     },
                 },
                 actions: {
@@ -297,7 +297,7 @@ export default defineLocaleMessages({
                             placeholder: { label: 'placeholder', help: '自定义占位符文本，仍搜索所有字段。' },
                         },
                     },
-                    filters: { description: '在搜索框旁渲染的切换复选框，在搜索之前应用。这是一个函数类型的 prop（predicate），因此此处不可编辑 —— 请查看 props 表格下方的实时示例。' },
+                    filters: { description: '在搜索框旁打开一个"筛选"面板（复选框 / 下拉框 / 多选 / 日期范围 / 数字范围），在搜索之前应用。这是一个函数类型的 prop（每个过滤器一个 predicate），因此此处不可编辑 —— 请查看 props 表格下方的实时示例。' },
                     onRowClick: { description: 'Called with the full record on row or card click.' },
                     onReorder: { description: 'Receives the reordered record array and drag metadata.' },
                     editDeepLink: { description: 'Sync edit modal to the URL hash so the workflow survives reload.' },
@@ -346,7 +346,7 @@ export default defineLocaleMessages({
                     actions: { description: 'Action catalog.' },
                     selection: { description: 'Enable row selection.' },
                     searchable: { description: '在 Grid 自带的默认表头中启用内置搜索框，以不区分大小写的子字符串匹配过滤已渲染的记录（排序/分页/选择等后续计算看到的都是过滤后的集合）。true 会搜索所有字符串字段；传入 GridSearchConfig 可限定字段或设置自定义占位符。' },
-                    filters: { description: '在 Grid 自带的默认表头中渲染的切换复选框，与 searchable 相邻。每个过滤器的 predicate(record, value) 根据复选框的当前状态决定是否保留某条记录 —— 在搜索词之前应用。' },
+                    filters: { description: '通过 Grid 自带默认表头中的"筛选"按钮打开的过滤器（复选框 / 下拉框 / 多选 / 日期范围 / 数字范围），与 searchable 相邻。每个过滤器的 predicate 根据其当前值决定是否保留某条记录；已激活的过滤器会显示为可移除的标签 —— 在搜索词之前应用。' },
                     onRowClick: { description: 'Called with the original record after row or card click.' },
                     reorderable: { description: 'Turn on row drag in table mode when used together with `onReorder`.' },
                     onReorder: { description: 'Receive the reordered source records and drag metadata.' },

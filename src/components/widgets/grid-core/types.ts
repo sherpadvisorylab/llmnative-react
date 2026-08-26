@@ -336,20 +336,74 @@ export type GridSearchConfig<TRecord> = {
     fields?: Array<keyof TRecord | string>;
 };
 
-/** A single toggle filter rendered as a checkbox in Grid's own default header, next to the
- * search box (see `GridBehavior.filters`). */
-export type GridFilterConfig<TRecord> = {
-    /** Unique key identifying this filter — used as the React key and to track its checkbox
-     * state, so it must be stable and unique within the `filters` array. */
-    key: string;
-    /** Label rendered next to the checkbox. */
+/** One `{ label, value }` choice for a `'select'`/`'multiselect'` filter. */
+export type GridFilterOption = {
     label: string;
+    value: string;
+};
+
+interface GridFilterBase {
+    /** Unique key identifying this filter — used as the React key and to track its state, so
+     * it must be stable and unique within the `filters` array. */
+    key: string;
+    /** Label shown in the filters panel, and as the prefix of the filter's chip once active. */
+    label: string;
+}
+
+/** A checkbox filter. `kind` may be omitted — it defaults to `'toggle'` (the original,
+ * pre-1.8 shape of `GridFilterConfig`). */
+export type GridFilterToggleConfig<TRecord> = GridFilterBase & {
+    kind?: 'toggle';
     /** Initial checkbox state. Defaults to `false`. */
     defaultValue?: boolean;
     /** Return `true` to keep `record` given the filter's current checkbox `value`. Called for
      * every record on every render of the filtered set — keep it cheap and pure. */
     predicate: (record: TRecord, value: boolean) => boolean;
 };
+
+/** A single-choice dropdown filter. */
+export type GridFilterSelectConfig<TRecord> = GridFilterBase & {
+    kind: 'select';
+    options: GridFilterOption[];
+    /** Return `true` to keep `record`. `value` is `''` when nothing is selected — treat that as
+     * "no constraint" (match every record). */
+    predicate: (record: TRecord, value: string) => boolean;
+};
+
+/** A multi-choice filter, rendered as a checkbox list in the filters panel. */
+export type GridFilterMultiSelectConfig<TRecord> = GridFilterBase & {
+    kind: 'multiselect';
+    options: GridFilterOption[];
+    /** Return `true` to keep `record`. `values` is `[]` when nothing is selected — treat that
+     * as "no constraint" (match every record). */
+    predicate: (record: TRecord, values: string[]) => boolean;
+};
+
+/** A `from`/`to` date-range filter, rendered as two native date inputs. */
+export type GridFilterDateRangeConfig<TRecord> = GridFilterBase & {
+    kind: 'dateRange';
+    /** Return `true` to keep `record`. `from`/`to` are `''` when that bound isn't set —
+     * treat an empty bound as unconstrained on that side. */
+    predicate: (record: TRecord, range: { from: string; to: string }) => boolean;
+};
+
+/** A `min`/`max` numeric-range filter, rendered as two native number inputs. */
+export type GridFilterNumberRangeConfig<TRecord> = GridFilterBase & {
+    kind: 'numberRange';
+    /** Return `true` to keep `record`. `min`/`max` are `undefined` when that bound isn't set —
+     * treat an unset bound as unconstrained on that side. */
+    predicate: (record: TRecord, range: { min: number | undefined; max: number | undefined }) => boolean;
+};
+
+/** One entry of `GridBehavior.filters` — a checkbox, dropdown, multi-choice list, date range,
+ * or numeric range, all rendered together in the filters panel opened from Grid's own default
+ * header (see `GridBehavior.filters`). */
+export type GridFilterConfig<TRecord> =
+    | GridFilterToggleConfig<TRecord>
+    | GridFilterSelectConfig<TRecord>
+    | GridFilterMultiSelectConfig<TRecord>
+    | GridFilterDateRangeConfig<TRecord>
+    | GridFilterNumberRangeConfig<TRecord>;
 
 /** Interaction / behaviour props for `<Grid>`. */
 export type GridBehavior<TRecord> = {
@@ -375,10 +429,12 @@ export type GridBehavior<TRecord> = {
      * header — same as `views.table.columnPicker`/`views.toggle`, a fully custom `header` prop
      * bypasses it entirely (render your own search input there instead). */
     searchable?: boolean | GridSearchConfig<TRecord>;
-    /** Toggle filters (checkboxes) rendered in Grid's OWN default header, next to the search
-     * box — applied BEFORE `searchable` (filters → search → sort → pagination/selection all see
-     * the FILTERED set). Same extension point as `searchable`: a fully custom `header` prop
-     * bypasses it entirely (render your own filter controls there instead). */
+    /** Filters (checkbox / select / multiselect / date range / number range) opened from a
+     * "Filters" button in Grid's OWN default header, next to the search box — applied BEFORE
+     * `searchable` (filters → search → sort → pagination/selection all see the FILTERED set).
+     * Each active filter shows as a removable chip on the header row. Same extension point as
+     * `searchable`: a fully custom `header` prop bypasses it entirely (render your own filter
+     * controls there instead). */
     filters?: GridFilterConfig<TRecord>[];
 };
 

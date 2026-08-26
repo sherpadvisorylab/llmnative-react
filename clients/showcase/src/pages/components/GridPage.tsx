@@ -826,6 +826,17 @@ function FiltersGridPreview() {
             wrapperClassName="w-full"
             filters={[
                 { key: 'onlyActive', label: 'Only active', predicate: (record, value) => !value || record.status === 'active' },
+                {
+                    key: 'role',
+                    label: 'Role',
+                    kind: 'select',
+                    options: [
+                        { label: 'Admin', value: 'admin' },
+                        { label: 'Editor', value: 'editor' },
+                        { label: 'Viewer', value: 'viewer' },
+                    ],
+                    predicate: (record, value) => !value || record.role === value,
+                },
             ]}
             pagination={{ limit: 4, align: 'end', sticky: false }}
         />
@@ -2324,6 +2335,17 @@ const [selectedRecords, setSelectedRecords] = useState<RecordArray>([]);
       key: "onlyActive",
       label: "Only active",
       predicate: (record, value) => !value || record.status === "active",
+    },
+    {
+      key: "role",
+      label: "Role",
+      kind: "select",
+      options: [
+        { label: "Admin", value: "admin" },
+        { label: "Editor", value: "editor" },
+        { label: "Viewer", value: "viewer" },
+      ],
+      predicate: (record, value) => !value || record.role === value,
     },
   ]}
 />`,

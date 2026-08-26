@@ -682,7 +682,7 @@ describe('Grid - filters', () => {
         expect(screen.queryByText('Gadget')).not.toBeInTheDocument();
     });
 
-    it('shows filtered-out records once the checkbox is toggled on', async () => {
+    it('shows filtered-out records once the toggle is checked in the filters panel, and shows a chip', async () => {
         const user = userEvent.setup();
         renderWithProviders(
             <Grid
@@ -695,13 +695,17 @@ describe('Grid - filters', () => {
 
         await waitFor(() => expect(screen.getByText('Widget')).toBeInTheDocument());
         expect(screen.queryByText('Gadget')).not.toBeInTheDocument();
+        expect(screen.queryByText('Show hidden')).not.toBeInTheDocument();
 
+        await user.click(screen.getByRole('button', { name: /filters/i }));
         await user.click(screen.getByLabelText('Show hidden'));
+        await user.click(screen.getByRole('button', { name: 'Close' }));
 
         await waitFor(() => expect(screen.getByText('Gadget')).toBeInTheDocument());
+        expect(screen.getByText('Show hidden')).toBeInTheDocument();
     });
 
-    it('honors defaultValue: true, showing every record until toggled off', async () => {
+    it('honors defaultValue: true, showing every record until toggled off, and clears via the chip', async () => {
         const user = userEvent.setup();
         renderWithProviders(
             <Grid
@@ -713,13 +717,52 @@ describe('Grid - filters', () => {
         );
 
         await waitFor(() => expect(screen.getByText('Gadget')).toBeInTheDocument());
+        expect(screen.queryByText('Show hidden')).not.toBeInTheDocument();
 
+        await user.click(screen.getByRole('button', { name: /filters/i }));
         await user.click(screen.getByLabelText('Show hidden'));
+        await user.click(screen.getByRole('button', { name: 'Close' }));
 
         await waitFor(() => expect(screen.queryByText('Gadget')).not.toBeInTheDocument());
+        expect(screen.getByText('Show hidden')).toBeInTheDocument();
+
+        await user.click(screen.getByRole('button', { name: /show hidden/i }));
+
+        await waitFor(() => expect(screen.getByText('Gadget')).toBeInTheDocument());
+        expect(screen.queryByText('Show hidden')).not.toBeInTheDocument();
+    });
+
+    it('supports a select filter, showing a chip with the chosen option label', async () => {
+        const user = userEvent.setup();
+        renderWithProviders(
+            <Grid
+                records={PRODUCTS}
+                recordId="_key"
+                columns={PRODUCT_COLUMNS}
+                filters={[{
+                    key: 'visibility',
+                    label: 'Visibility',
+                    kind: 'select',
+                    options: [{ label: 'Hidden only', value: 'hidden' }, { label: 'Visible only', value: 'visible' }],
+                    predicate: (record, value) => !value || (value === 'hidden' ? record.hidden : !record.hidden),
+                }]}
+            />
+        );
+
+        await waitFor(() => expect(screen.getByText('Widget')).toBeInTheDocument());
+
+        await user.click(screen.getByRole('button', { name: /filters/i }));
+        await user.selectOptions(screen.getByLabelText('Visibility'), 'hidden');
+
+        await waitFor(() => {
+            expect(screen.getByText('Gadget')).toBeInTheDocument();
+            expect(screen.queryByText('Widget')).not.toBeInTheDocument();
+        });
+        expect(screen.getByText('Visibility: Hidden only')).toBeInTheDocument();
     });
 
     it('combines with searchable, applying filters before the search term', async () => {
+        const user = userEvent.setup();
         renderWithProviders(
             <Grid
                 records={PRODUCTS}

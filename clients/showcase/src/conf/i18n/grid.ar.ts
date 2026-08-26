@@ -73,10 +73,10 @@ export default defineLocaleMessages({
                     },
                 },
                 filters: {
-                    title: 'فلاتر التبديل',
-                    description: 'تعرض filters مربع اختيار واحد لكل عنصر بجانب مربع البحث، تُطبَّق على مجموعة السجلات قبل البحث. يقرر predicate كل فلتر ما إذا كان سيُبقي السجل بناءً على القيمة الحالية لمربع الاختيار.',
+                    title: 'لوحة الفلاتر',
+                    description: 'تفتح filters زر "الفلاتر" بجانب مربع البحث. كل عنصر - مربع اختيار، قائمة منسدلة، اختيار متعدد، نطاق تاريخ، أو نطاق رقمي - يعيش داخل اللوحة؛ الفلاتر النشطة تظهر كشرائح قابلة للإزالة في صف الترويسة، وتُطبَّق على مجموعة السجلات قبل البحث.',
                     items: {
-                        toggle: { tab: 'النشط فقط', title: 'التصفية حسب الحالة بمربع اختيار', description: 'بدون تحديد تُعرض كل السجلات؛ عند تحديد "النشط فقط" تُخفى كل السجلات التي حالتها ليست نشطة.' },
+                        toggle: { tab: 'تبديل + قائمة', title: 'اجمع بين مربع اختيار وفلتر قائمة منسدلة', description: 'افتح "الفلاتر" لتحديد "النشط فقط" و/أو اختيار دور - يُطبَّقان معًا، كل منهما بشريحته الخاصة عند التفعيل.' },
                     },
                 },
                 actions: {
@@ -297,7 +297,7 @@ export default defineLocaleMessages({
                             placeholder: { label: 'placeholder', help: 'نص بديل مخصص، مع البحث في جميع الحقول.' },
                         },
                     },
-                    filters: { description: 'مربعات اختيار تبديل تُعرض بجانب مربع البحث، تُطبَّق قبله. هذه prop دالة (predicate)، لذا لا يمكن تعديلها هنا — راجع المثال الحي أسفل جدول الخصائص.' },
+                    filters: { description: 'تفتح لوحة "فلاتر" بجانب مربع البحث (مربع اختيار / قائمة منسدلة / اختيار متعدد / نطاق تاريخ / نطاق رقمي)، تُطبَّق قبله. هذه prop دالة (predicate لكل فلتر)، لذا لا يمكن تعديلها هنا — راجع المثال الحي أسفل جدول الخصائص.' },
                     onRowClick: { description: 'Called with the full record on row or card click.' },
                     onReorder: { description: 'Receives the reordered record array and drag metadata.' },
                     editDeepLink: { description: 'Sync edit modal to the URL hash so the workflow survives reload.' },
@@ -346,7 +346,7 @@ export default defineLocaleMessages({
                     actions: { description: 'Action catalog.' },
                     selection: { description: 'Enable row selection.' },
                     searchable: { description: 'تفعيل مربع بحث مدمج في الترويسة الافتراضية لـ Grid، يصفي السجلات المعروضة (وكل ما يُحسب منها — الترتيب/الترقيم/التحديد يرى المجموعة المصفاة) بمطابقة سلسلة فرعية غير حساسة لحالة الأحرف. true يبحث في كل حقل نصي؛ مرر GridSearchConfig لتقييد الحقول أو تعيين نص بديل مخصص.' },
-                    filters: { description: 'مربعات اختيار تبديل تُعرض في الترويسة الافتراضية لـ Grid، بجانب searchable. يقرر predicate(record, value) لكل فلتر ما إذا كان سيُبقي السجل بناءً على حالة مربع الاختيار الحالية — يُطبَّق قبل مصطلح البحث.' },
+                    filters: { description: 'فلاتر (مربع اختيار / قائمة منسدلة / اختيار متعدد / نطاق تاريخ / نطاق رقمي) تُفتح من زر "فلاتر" في الترويسة الافتراضية لـ Grid، بجانب searchable. يقرر predicate كل فلتر ما إذا كان سيُبقي السجل بناءً على قيمته الحالية؛ الفلاتر النشطة تظهر كشرائح قابلة للإزالة — يُطبَّق قبل مصطلح البحث.' },
                     onRowClick: { description: 'Called with the original record after row or card click.' },
                     reorderable: { description: 'Turn on row drag in table mode when used together with `onReorder`.' },
                     onReorder: { description: 'Receive the reordered source records and drag metadata.' },

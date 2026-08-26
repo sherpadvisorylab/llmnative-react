@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-08-26
+
+### Added
+- `Grid.filters` now supports `kind: 'select' | 'multiselect' | 'dateRange' | 'numberRange'` alongside the original `'toggle'` (default when `kind` is omitted, fully backward-compatible with the 1.7.x shape). Filters are opened from a new "Filters" button in Grid's own default header (badge shows the active-filter count) and rendered in a side panel (`Modal position="right"`, no `Form` dependency) — a checkbox switch, native `<select>`, checkbox list, date-range pair, or number-range pair depending on `kind`. Each active filter shows as a removable chip on the header row, next to search. New public exports: `GridFilterOption`, `GridFilterToggleConfig`, `GridFilterSelectConfig`, `GridFilterMultiSelectConfig`, `GridFilterDateRangeConfig`, `GridFilterNumberRangeConfig`. (CR-079)
+
 ## [1.7.1] - 2026-08-26
 
 ### Changed

@@ -53,6 +53,15 @@ export interface I18nDict {
         buttonAdd:     string;
         deleteConfirm: string;
         emptyState:    string;
+        filtersButton:              string;
+        filtersPanelTitle:          string;
+        filtersClearAll:            string;
+        filtersSelectPlaceholder:   string;
+        filtersRangeFrom:           string;
+        filtersRangeTo:             string;
+        filtersRangeMin:            string;
+        filtersRangeMax:            string;
+        filtersSelectedCountTemplate: string;
     };
     select: {
         placeholder: string;

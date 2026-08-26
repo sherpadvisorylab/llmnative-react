@@ -73,10 +73,10 @@ export default defineLocaleMessages({
                     },
                 },
                 filters: {
-                    title: 'Umschalt-Filter',
-                    description: 'filters rendert neben dem Suchfeld eine Checkbox pro Eintrag, angewendet auf die Datensaetze VOR der Suche. Das predicate jedes Filters entscheidet anhand des aktuellen Checkbox-Werts, ob ein Datensatz behalten wird.',
+                    title: 'Filter-Panel',
+                    description: 'filters oeffnet eine Schaltflaeche "Filter" neben dem Suchfeld. Jeder Eintrag - Checkbox, Dropdown, Mehrfachauswahl, Datumsbereich oder Zahlenbereich - lebt im Panel; aktive Filter werden als entfernbare Chips in der Kopfzeile angezeigt, angewendet auf die Datensaetze VOR der Suche.',
                     items: {
-                        toggle: { tab: 'Nur aktiv', title: 'Nach Status mit einer Checkbox filtern', description: 'Nicht angehakt zeigt jeden Datensatz; mit angehaktem "Nur aktiv" werden alle mit anderem Status ausgeblendet.' },
+                        toggle: { tab: 'Toggle + Auswahl', title: 'Eine Checkbox und einen Dropdown-Filter kombinieren', description: 'Oeffne "Filter", um "Nur aktiv" anzuhaken und/oder eine Rolle zu waehlen - beide wirken zusammen, jeder mit eigenem Chip sobald aktiv.' },
                     },
                 },
                 actions: {
@@ -297,7 +297,7 @@ export default defineLocaleMessages({
                             placeholder: { label: 'placeholder', help: 'Eigener Platzhaltertext, durchsucht weiterhin alle Felder.' },
                         },
                     },
-                    filters: { description: 'Umschalt-Checkboxen neben dem Suchfeld, angewendet bevor dieses greift. Eine Funktions-Prop (predicate), daher hier nicht editierbar - siehe das Live-Beispiel unter der Props-Tabelle.' },
+                    filters: { description: 'Oeffnet ein Filter-Panel neben dem Suchfeld (Checkbox / Dropdown / Mehrfachauswahl / Datumsbereich / Zahlenbereich), angewendet bevor dieses greift. Eine Funktions-Prop (predicate pro Filter), daher hier nicht editierbar - siehe das Live-Beispiel unter der Props-Tabelle.' },
                     onRowClick: { description: 'Called with the full record on row or card click.' },
                     onReorder: { description: 'Receives the reordered record array and drag metadata.' },
                     editDeepLink: { description: 'Sync edit modal to the URL hash so the workflow survives reload.' },
@@ -346,7 +346,7 @@ export default defineLocaleMessages({
                     actions: { description: 'Action catalog.' },
                     selection: { description: 'Enable row selection.' },
                     searchable: { description: 'Aktiviert ein eingebautes Suchfeld in Grids eigener Standard-Kopfzeile, das die gerenderten Datensaetze (und alles, was daraus berechnet wird - Sortierung/Paginierung/Auswahl sehen die gefilterte Menge) per Gross-/Kleinschreibung-unabhaengigem Teilstring-Abgleich filtert. true durchsucht jedes String-Feld; uebergib eine GridSearchConfig, um Felder einzuschraenken oder einen eigenen Platzhalter zu setzen.' },
-                    filters: { description: 'Umschalt-Checkboxen in Grids eigener Standard-Kopfzeile, neben searchable. Das predicate(record, value) jedes Filters entscheidet anhand des aktuellen Checkbox-Zustands, ob ein Datensatz behalten wird - wird vor dem Suchbegriff angewendet.' },
+                    filters: { description: 'Filter (Checkbox / Dropdown / Mehrfachauswahl / Datumsbereich / Zahlenbereich), geoeffnet ueber eine "Filter"-Schaltflaeche in Grids eigener Standard-Kopfzeile, neben searchable. Das predicate jedes Filters entscheidet anhand seines aktuellen Werts, ob ein Datensatz behalten wird; aktive Filter erscheinen als entfernbare Chips - wird vor dem Suchbegriff angewendet.' },
                     onRowClick: { description: 'Called with the original record after row or card click.' },
                     reorderable: { description: 'Turn on row drag in table mode when used together with `onReorder`.' },
                     onReorder: { description: 'Receive the reordered source records and drag metadata.' },

@@ -87,6 +87,7 @@
 | [CR-074](#cr-074--table-recordid--identita-di-riga-stabile) | Table recordId — identità di riga stabile | Media | — | ✅ |
 | [CR-077](#cr-077--uploadimage-inserimento-logoimmagine-da-url) | UploadImage — inserimento logo/immagine da URL (`allowUrl`) | Media | — | ✅ |
 | [CR-078](#cr-078--grid-filtri-toggle-nellheader-filters) | Grid — filtri toggle nell'header (`filters`) | Media | — | ✅ |
+| [CR-079](#cr-079--grid-pannello-filtri-selectmultiselectdaterangenumberrange-con-chip-rimovibili) | Grid — pannello filtri (select/multiselect/dateRange/numberRange) con chip rimovibili | Media | CR-078 | ✅ |
 
 ---
 
@@ -297,6 +298,70 @@ i consumer a gestire lo stato del filtro fuori dalla griglia.
 - [x] Issue GitHub collegata (#22)
 - [x] Versione SemVer (minor) e `npm publish` — 1.7.0
 - [x] Follow-up (patch 1.7.1): checkbox dei filtri renderizzata con lo stile toggle-switch (stessa resa visiva di `Switch`, senza dipendere da `Form`/`useCheckboxField`, dato che l'header di default non ha un `Form` attorno); showcase completato con sezione esempio live (`FiltersGridPreview`) + voce nel playground (`readOnly`, essendo `predicate` una funzione non serializzabile in JSON) + i18n 6 lingue
+
+---
+
+## CR-079 — Grid: pannello filtri (select/multiselect/dateRange/numberRange) con chip rimovibili
+
+**Stato:** ✅ done — rilasciato in 1.8.0
+**Issue:** [#23](https://github.com/sherpadvisorylab/llmnative-react/issues/23)
+**Priorità:** Media
+**Dipende da:** CR-078
+
+### Motivazione
+
+CR-078 (1.7.x) aveva introdotto `Grid.filters` come semplice checkbox
+toggle, inline nell'header. Un consumer (CRM) aveva bisogno di filtri più
+ricchi (stato multi-selezione, tipo acquirente, range di date, range di
+prezzo) organizzati con un pattern standard nei prodotti SaaS: un bottone
+"Filtri" che apre un pannello, con i filtri attivi mostrati come chip
+rimovibili sulla riga della ricerca — non più checkbox sparse inline.
+
+### Scope
+
+- `GridFilterConfig<TRecord>` (`types.ts`) diventa una union discriminata
+  per `kind`: `'toggle'` (default se omesso, retrocompatibile con la forma
+  1.7.x — stessa firma `predicate(record, value: boolean)`), `'select'`
+  (`predicate(record, value: string)`), `'multiselect'`
+  (`predicate(record, values: string[])`), `'dateRange'`
+  (`predicate(record, { from, to })`), `'numberRange'`
+  (`predicate(record, { min, max })`).
+- `GridCore.tsx`: nuovo bottone "Filtri" nell'header di default (badge con
+  conteggio filtri attivi) che apre un pannello laterale
+  (`Modal position="right"`, no `Form`) con un controllo nativo per ogni
+  filtro (checkbox-switch, `<select>`, lista di checkbox, due `<input
+  type="date">`, due `<input type="number">`). Applicazione istantanea,
+  footer con "Cancella tutti".
+- Ogni filtro attivo appare come chip (`label: valore`) con "×" sulla riga
+  della ricerca, rimovibile singolarmente senza riaprire il pannello.
+- Nuovi export pubblici: `GridFilterOption`, `GridFilterToggleConfig`,
+  `GridFilterSelectConfig`, `GridFilterMultiSelectConfig`,
+  `GridFilterDateRangeConfig`, `GridFilterNumberRangeConfig`.
+- i18n: nuove chiavi nel namespace `grid` (`filtersButton`,
+  `filtersPanelTitle`, `filtersClearAll`, `filtersSelectPlaceholder`,
+  `filtersRangeFrom/To/Min/Max`, `filtersSelectedCountTemplate`) in tutte
+  e 6 le lingue.
+- Showcase (`clients/showcase`): `FiltersGridPreview` estesa con un
+  filtro `select` oltre al `toggle` esistente; props table, playground
+  (`readOnly`, `predicate` è una funzione) e i18n aggiornati (6 lingue).
+- Test: `Grid.test.tsx` — riscritti i 4 test filtri esistenti per la
+  nuova UI (bottone → pannello → chip), aggiunto un test per il filtro
+  `select`.
+
+### Checklist
+
+- [x] `types.ts` — `GridFilterConfig` union discriminata per `kind`, 5 nuovi export pubblici
+- [x] `GridCore.tsx` — bottone Filtri + pannello (`Modal`) + chip rimovibili, pipeline filters→search invariata
+- [x] `I18n.tsx` + 6 lingue (`conf/i18n/*.ts`) — namespace `grid.filters*`
+- [x] Export pubblici in `src/index.ts`
+- [x] Test — `Grid.test.tsx` riscritto (26 test totali nel file)
+- [x] `npx tsc --noEmit` — 0 errori
+- [x] `npm test` — 63 file, 692/692 verdi
+- [x] `npm run build` — bundle + dichiarazioni generati
+- [x] `cd clients/showcase && npm run build` — verde
+- [x] `npm pack --dry-run --json` — 216 entries
+- [x] Issue GitHub collegata (#23)
+- [x] Versione SemVer (minor) e `npm publish` — 1.8.0
 
 ---
 

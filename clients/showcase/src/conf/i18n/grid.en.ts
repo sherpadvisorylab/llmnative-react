@@ -73,10 +73,10 @@ export default defineLocaleMessages({
                     },
                 },
                 filters: {
-                    title: 'Toggle filters',
-                    description: 'filters renders one checkbox per entry next to the search box, applied to the record set BEFORE search runs. Each filter\'s predicate decides whether to keep a record given the checkbox\'s current value.',
+                    title: 'Filters panel',
+                    description: 'filters opens a "Filters" button next to the search box. Each entry — a checkbox, dropdown, multi-choice list, date range, or number range — lives in the panel; active ones show as removable chips on the header row, applied to the record set BEFORE search runs.',
                     items: {
-                        toggle: { tab: 'Only active', title: 'Filter by status with a checkbox', description: 'Unchecked shows every record; checking "Only active" hides everyone whose status isn\'t active.' },
+                        toggle: { tab: 'Toggle + select', title: 'Combine a checkbox and a dropdown filter', description: 'Open "Filters" to check "Only active" and/or pick a Role — both apply together, each showing its own chip once active.' },
                     },
                 },
                 actions: {
@@ -297,7 +297,7 @@ export default defineLocaleMessages({
                             placeholder: { label: 'placeholder', help: 'Custom placeholder text, still searching every field.' },
                         },
                     },
-                    filters: { description: 'Toggle checkboxes rendered next to the search box, applied before it. A function prop (predicate), so not editable here — see the live example below the props table.' },
+                    filters: { description: 'Opens a "Filters" panel next to the search box (checkbox / dropdown / multi-choice / date range / number range), applied before it. A function prop (predicate per filter), so not editable here — see the live example below the props table.' },
                     onRowClick: { description: 'Called with the full record on row or card click. Enable it to inspect the payload below.' },
                     onReorder: { description: 'Receives the reordered record array and drag metadata. Handled internally by the playground when reorderable is true.' },
                     editDeepLink: { description: 'Sync edit modal to the URL hash so the workflow survives reload and can be bookmarked.' },
@@ -346,7 +346,7 @@ export default defineLocaleMessages({
                     actions: { description: 'Action catalog. Use the array shortcut for standard CRUD, or the record form for explicit modal, route, external, inline and delete actions.' },
                     selection: { description: 'Enable row selection. Use the string shorthand when Grid only needs selection UI, or the object form for `defaultKeys` and `onChange`.' },
                     searchable: { description: 'Enable a built-in search box in Grid\'s own default header, filtering the rendered records (and everything they compute — sort/pagination/selection see the filtered set) by a case-insensitive substring match. `true` searches every string field; pass a `GridSearchConfig` to restrict to specific fields or set a custom placeholder.' },
-                    filters: { description: 'Toggle checkboxes rendered in Grid\'s own default header, next to `searchable`. Each filter\'s `predicate(record, value)` decides whether to keep a record given the checkbox\'s current state — applied before the search term.' },
+                    filters: { description: 'Filters (checkbox / dropdown / multi-choice / date range / number range) opened from a "Filters" button in Grid\'s own default header, next to `searchable`. Each filter\'s `predicate` decides whether to keep a record given its current value; active filters show as removable chips — applied before the search term.' },
                     onRowClick: { description: 'Called with the original record after row or card click.' },
                     reorderable: { description: 'Turn on row drag in table mode when used together with `onReorder`.' },
                     onReorder: { description: 'Receive the reordered source records and drag metadata.' },

@@ -73,10 +73,10 @@ export default defineLocaleMessages({
                     },
                 },
                 filters: {
-                    title: 'Переключаемые фильтры',
-                    description: 'filters отображает по одному чекбоксу для каждого элемента рядом с полем поиска, применяется к записям ДО поиска. predicate каждого фильтра решает, оставить ли запись, исходя из текущего значения чекбокса.',
+                    title: 'Панель фильтров',
+                    description: 'filters открывает кнопку «Фильтры» рядом с полем поиска. Каждый элемент — чекбокс, выпадающий список, множественный выбор, диапазон дат или диапазон чисел — находится в панели; активные фильтры отображаются как удаляемые чипы в строке заголовка, применяются к записям ДО поиска.',
                     items: {
-                        toggle: { tab: 'Только активные', title: 'Фильтрация по статусу с помощью чекбокса', description: 'Без отметки показываются все записи; отметив "Только активные", вы скроете все записи с другим статусом.' },
+                        toggle: { tab: 'Тумблер + выбор', title: 'Комбинируйте чекбокс и фильтр-список', description: 'Откройте «Фильтры», чтобы отметить «Только активные» и/или выбрать роль — они применяются вместе, каждый со своим чипом после активации.' },
                     },
                 },
                 actions: {
@@ -297,7 +297,7 @@ export default defineLocaleMessages({
                             placeholder: { label: 'placeholder', help: 'Собственный текст плейсхолдера, поиск по-прежнему по всем полям.' },
                         },
                     },
-                    filters: { description: 'Переключаемые чекбоксы рядом с полем поиска, применяются до него. Это prop-функция (predicate), поэтому здесь не редактируется - см. живой пример под таблицей props.' },
+                    filters: { description: 'Открывает панель «Фильтры» рядом с полем поиска (чекбокс / выпадающий список / множественный выбор / диапазон дат / диапазон чисел), применяется до него. Это prop-функция (predicate для каждого фильтра), поэтому здесь не редактируется - см. живой пример под таблицей props.' },
                     onRowClick: { description: 'Called with the full record on row or card click.' },
                     onReorder: { description: 'Receives the reordered record array and drag metadata.' },
                     editDeepLink: { description: 'Sync edit modal to the URL hash so the workflow survives reload.' },
@@ -346,7 +346,7 @@ export default defineLocaleMessages({
                     actions: { description: 'Action catalog.' },
                     selection: { description: 'Enable row selection.' },
                     searchable: { description: 'Включает встроенное поле поиска в собственном заголовке Grid по умолчанию, фильтруя отображаемые записи (и все, что из них вычисляется - сортировка/пагинация/выбор видят отфильтрованный набор) по совпадению подстроки без учета регистра. true ищет по каждому строковому полю; передайте GridSearchConfig, чтобы ограничить поля или задать собственный плейсхолдер.' },
-                    filters: { description: 'Переключаемые чекбоксы в собственном заголовке Grid по умолчанию, рядом с searchable. predicate(record, value) каждого фильтра решает, оставить ли запись, исходя из текущего состояния чекбокса - применяется до поискового запроса.' },
+                    filters: { description: 'Фильтры (чекбокс / выпадающий список / множественный выбор / диапазон дат / диапазон чисел), открываемые кнопкой «Фильтры» в собственном заголовке Grid по умолчанию, рядом с searchable. predicate каждого фильтра решает, оставить ли запись, исходя из его текущего значения; активные фильтры отображаются как удаляемые чипы - применяется до поискового запроса.' },
                     onRowClick: { description: 'Called with the original record after row or card click.' },
                     reorderable: { description: 'Turn on row drag in table mode when used together with `onReorder`.' },
                     onReorder: { description: 'Receive the reordered source records and drag metadata.' },

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTheme } from "../../../Theme";
-import { useI18n } from "../../../I18n";
+import { useI18n, type I18nDict } from "../../../I18n";
 import { useDataProvider } from "../../../providers/data/DataProviderContext";
 import Card from "../../ui/Card";
 import Modal from "../../ui/Modal";
@@ -52,6 +52,174 @@ const buildActionTitle = <TRecord extends RecordProps>(
     return getActionLabel(actionKey, action, labels);
 };
 
+type GridFilterValue = boolean | string | string[] | { from: string; to: string } | { min: number | undefined; max: number | undefined };
+type GridFiltersDict = I18nDict["grid"];
+
+const neutralFilterValue = <TRecord extends RecordProps>(f: GridFilterConfig<TRecord>): GridFilterValue => {
+    switch (f.kind) {
+        case "select": return "";
+        case "multiselect": return [];
+        case "dateRange": return { from: "", to: "" };
+        case "numberRange": return { min: undefined, max: undefined };
+        default: return f.defaultValue ?? false;
+    }
+};
+
+const isFilterActive = <TRecord extends RecordProps>(f: GridFilterConfig<TRecord>, value: GridFilterValue): boolean => {
+    switch (f.kind) {
+        case "select": return typeof value === "string" && value !== "";
+        case "multiselect": return Array.isArray(value) && value.length > 0;
+        case "dateRange": {
+            const range = value as { from: string; to: string };
+            return Boolean(range?.from) || Boolean(range?.to);
+        }
+        case "numberRange": {
+            const range = value as { min: number | undefined; max: number | undefined };
+            return range?.min !== undefined || range?.max !== undefined;
+        }
+        default: return Boolean(value) !== Boolean(f.defaultValue ?? false);
+    }
+};
+
+const runFilterPredicate = <TRecord extends RecordProps>(f: GridFilterConfig<TRecord>, record: TRecord, value: GridFilterValue): boolean => {
+    switch (f.kind) {
+        case "select": return f.predicate(record, value as string);
+        case "multiselect": return f.predicate(record, value as string[]);
+        case "dateRange": return f.predicate(record, value as { from: string; to: string });
+        case "numberRange": return f.predicate(record, value as { min: number | undefined; max: number | undefined });
+        default: return f.predicate(record, value as boolean);
+    }
+};
+
+const filterChipLabel = <TRecord extends RecordProps>(f: GridFilterConfig<TRecord>, value: GridFilterValue, dict: GridFiltersDict): string => {
+    switch (f.kind) {
+        case "select": {
+            const option = f.options.find((o) => o.value === value);
+            return `${f.label}: ${option?.label ?? String(value)}`;
+        }
+        case "multiselect": {
+            const values = value as string[];
+            if (values.length === 1) {
+                const option = f.options.find((o) => o.value === values[0]);
+                return `${f.label}: ${option?.label ?? values[0]}`;
+            }
+            return `${f.label}: ${dict.filtersSelectedCountTemplate.replace("{count}", String(values.length))}`;
+        }
+        case "dateRange": {
+            const range = value as { from: string; to: string };
+            if (range.from && range.to) return `${f.label}: ${range.from} → ${range.to}`;
+            if (range.from) return `${f.label}: ${dict.filtersRangeFrom} ${range.from}`;
+            return `${f.label}: ${dict.filtersRangeTo} ${range.to}`;
+        }
+        case "numberRange": {
+            const range = value as { min: number | undefined; max: number | undefined };
+            if (range.min !== undefined && range.max !== undefined) return `${f.label}: ${range.min}–${range.max}`;
+            if (range.min !== undefined) return `${f.label}: ${dict.filtersRangeMin} ${range.min}`;
+            return `${f.label}: ${dict.filtersRangeMax} ${range.max}`;
+        }
+        default: return f.label;
+    }
+};
+
+const filterFieldControlClass = "w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring";
+
+function FilterField<TRecord extends RecordProps>({ filter, value, onChange, dict }: {
+    filter: GridFilterConfig<TRecord>;
+    value: GridFilterValue;
+    onChange: (value: GridFilterValue) => void;
+    dict: GridFiltersDict;
+}) {
+    if (filter.kind === "select") {
+        return (
+            <label className="flex flex-col gap-1.5">
+                <span className="text-sm font-medium text-foreground">{filter.label}</span>
+                <select className={filterFieldControlClass} value={value as string} onChange={(e) => onChange(e.target.value)}>
+                    <option value="">{dict.filtersSelectPlaceholder}</option>
+                    {filter.options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+            </label>
+        );
+    }
+
+    if (filter.kind === "multiselect") {
+        const values = value as string[];
+        const toggleValue = (v: string) => onChange(values.includes(v) ? values.filter((x) => x !== v) : [...values, v]);
+        return (
+            <div className="flex flex-col gap-1.5">
+                <span className="text-sm font-medium text-foreground">{filter.label}</span>
+                <div className="flex flex-col gap-1">
+                    {filter.options.map((o) => (
+                        <label key={o.value} className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground">
+                            <input type="checkbox" checked={values.includes(o.value)} onChange={() => toggleValue(o.value)} />
+                            {o.label}
+                        </label>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+
+    if (filter.kind === "dateRange") {
+        const range = value as { from: string; to: string };
+        return (
+            <div className="flex flex-col gap-1.5">
+                <span className="text-sm font-medium text-foreground">{filter.label}</span>
+                <div className="flex items-center gap-2">
+                    <input type="date" aria-label={`${filter.label} ${dict.filtersRangeFrom}`} className={filterFieldControlClass} value={range.from} onChange={(e) => onChange({ ...range, from: e.target.value })} />
+                    <span className="shrink-0 text-xs text-muted-foreground">{dict.filtersRangeTo}</span>
+                    <input type="date" aria-label={`${filter.label} ${dict.filtersRangeTo}`} className={filterFieldControlClass} value={range.to} onChange={(e) => onChange({ ...range, to: e.target.value })} />
+                </div>
+            </div>
+        );
+    }
+
+    if (filter.kind === "numberRange") {
+        const range = value as { min: number | undefined; max: number | undefined };
+        return (
+            <div className="flex flex-col gap-1.5">
+                <span className="text-sm font-medium text-foreground">{filter.label}</span>
+                <div className="flex items-center gap-2">
+                    <input type="number" placeholder={dict.filtersRangeMin} aria-label={`${filter.label} ${dict.filtersRangeMin}`} className={filterFieldControlClass} value={range.min ?? ""} onChange={(e) => onChange({ ...range, min: e.target.value === "" ? undefined : Number(e.target.value) })} />
+                    <span className="shrink-0 text-xs text-muted-foreground">–</span>
+                    <input type="number" placeholder={dict.filtersRangeMax} aria-label={`${filter.label} ${dict.filtersRangeMax}`} className={filterFieldControlClass} value={range.max ?? ""} onChange={(e) => onChange({ ...range, max: e.target.value === "" ? undefined : Number(e.target.value) })} />
+                </div>
+            </div>
+        );
+    }
+
+    // "toggle" (or omitted `kind`) — same switch visual as the `Switch` field, hand-rolled
+    // rather than reusing `Switch` itself, which is a Form field (`useCheckboxField`) and would
+    // require wrapping the whole filters panel in a `<Form>`.
+    const checked = value as boolean;
+    return (
+        <label className="inline-flex cursor-pointer items-center gap-2 select-none">
+            <span className="relative inline-flex h-5 w-9 shrink-0 items-center">
+                <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={() => onChange(!checked)}
+                    className="peer absolute inset-0 m-0 h-full w-full cursor-pointer opacity-0"
+                />
+                <span
+                    aria-hidden="true"
+                    className={cn(
+                        "pointer-events-none absolute inset-0 rounded-full transition-colors duration-200 ease-out peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2",
+                        checked ? "bg-primary" : "bg-muted-foreground/35"
+                    )}
+                >
+                    <span
+                        className={cn(
+                            "pointer-events-none absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-background shadow-sm transition-transform duration-200 ease-out",
+                            checked && "translate-x-4"
+                        )}
+                    />
+                </span>
+            </span>
+            <span className="text-sm text-foreground">{filter.label}</span>
+        </label>
+    );
+}
+
 function GridCore<TRecord extends RecordProps>({
     records,
     recordId,
@@ -95,57 +263,76 @@ function GridCore<TRecord extends RecordProps>({
     const { preparedRecords, loading: preparedRecordsLoading } = useGridPreparedRecords({ records, onLoad });
     const inferredColumns = useGridColumns({ columns, records: preparedRecords, form });
 
-    // Opt-in via `filters` — toggle checkboxes rendered in Grid's own default header, applied
-    // BEFORE `searchable` (see pipeline below). Same extension point as `searchable`: only
-    // wired into Grid's OWN default header, a fully custom `header` bypasses it entirely.
-    const [filterValues, setFilterValues] = useState<Record<string, boolean>>(
-        () => Object.fromEntries((filters ?? []).map((f) => [f.key, f.defaultValue ?? false]))
+    // Opt-in via `filters` — checkbox / select / multiselect / date-range / number-range filters
+    // opened from a "Filters" button in Grid's own default header, applied BEFORE `searchable`
+    // (see pipeline below). Same extension point as `searchable`: only wired into Grid's OWN
+    // default header, a fully custom `header` bypasses it entirely.
+    const [filterValues, setFilterValues] = useState<Record<string, GridFilterValue>>(
+        () => Object.fromEntries((filters ?? []).map((f) => [f.key, neutralFilterValue(f)]))
     );
-    const toggleFilter = useCallback((key: string) => {
-        setFilterValues((prev) => ({ ...prev, [key]: !prev[key] }));
+    const [filterPanelOpen, setFilterPanelOpen] = useState(false);
+    const setFilterValue = useCallback((key: string, value: GridFilterValue) => {
+        setFilterValues((prev) => ({ ...prev, [key]: value }));
     }, []);
+    const resetFilter = useCallback((f: GridFilterConfig<TRecord>) => {
+        setFilterValues((prev) => ({ ...prev, [f.key]: neutralFilterValue(f) }));
+    }, []);
+    const activeFilters = (filters ?? []).filter((f) => isFilterActive(f, filterValues[f.key] ?? neutralFilterValue(f)));
     const filteredRecords = useMemo(() => {
         if (!filters || filters.length === 0) return preparedRecords;
         return preparedRecords.filter((record) =>
-            filters.every((f) => f.predicate(record, filterValues[f.key] ?? f.defaultValue ?? false))
+            filters.every((f) => runFilterPredicate(f, record, filterValues[f.key] ?? neutralFilterValue(f)))
         );
     }, [preparedRecords, filters, filterValues]);
-    // Rendered as a toggle switch (same visual as the `Switch` field), not a square checkbox —
-    // deliberately hand-rolled here rather than reusing `Switch` itself, which is a Form field
-    // (`useCheckboxField`) and would require wrapping the whole default header in a `<Form>`.
-    const filterControl = filters && filters.length > 0 ? (
-        <div className="flex flex-wrap items-center gap-3">
-            {filters.map((f: GridFilterConfig<TRecord>) => {
-                const checked = filterValues[f.key] ?? f.defaultValue ?? false;
-                return (
-                    <label key={f.key} className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 select-none">
-                        <span className="relative inline-flex h-5 w-9 shrink-0 items-center">
-                            <input
-                                type="checkbox"
-                                checked={checked}
-                                onChange={() => toggleFilter(f.key)}
-                                className="peer absolute inset-0 m-0 h-full w-full cursor-pointer opacity-0"
-                            />
-                            <span
-                                aria-hidden="true"
-                                className={cn(
-                                    "pointer-events-none absolute inset-0 rounded-full transition-colors duration-200 ease-out peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2",
-                                    checked ? "bg-primary" : "bg-muted-foreground/35"
-                                )}
-                            >
-                                <span
-                                    className={cn(
-                                        "pointer-events-none absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-background shadow-sm transition-transform duration-200 ease-out",
-                                        checked && "translate-x-4"
-                                    )}
-                                />
-                            </span>
-                        </span>
-                        <span className="text-sm text-muted-foreground">{f.label}</span>
-                    </label>
-                );
-            })}
+
+    const filterButtonAndChips = filters && filters.length > 0 ? (
+        <div className="flex flex-wrap items-center gap-2">
+            <ActionButton
+                icon="filter"
+                label={dict.filtersButton}
+                variant="outline-secondary"
+                badge={activeFilters.length > 0 ? activeFilters.length : undefined}
+                onClick={() => setFilterPanelOpen(true)}
+            />
+            {activeFilters.map((f) => (
+                <span key={f.key} className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+                    {filterChipLabel(f, filterValues[f.key] ?? neutralFilterValue(f), dict)}
+                    <button
+                        type="button"
+                        aria-label={`${dict.filtersClearAll} ${f.label}`}
+                        className="opacity-60 transition-opacity hover:opacity-100"
+                        onClick={() => resetFilter(f)}
+                    >
+                        ×
+                    </button>
+                </span>
+            ))}
         </div>
+    ) : null;
+
+    const filterControl = filters && filters.length > 0 ? filterButtonAndChips : null;
+
+    const filterPanel = filterPanelOpen && filters && filters.length > 0 ? (
+        <Modal
+            title={dict.filtersPanelTitle}
+            size="sm"
+            position="right"
+            onClose={() => setFilterPanelOpen(false)}
+            footer={(
+                <ActionButton
+                    label={dict.filtersClearAll}
+                    variant="link"
+                    disabled={activeFilters.length === 0}
+                    onClick={() => setFilterValues(Object.fromEntries(filters.map((f) => [f.key, neutralFilterValue(f)])))}
+                />
+            )}
+        >
+            <div className="flex flex-col gap-5">
+                {filters.map((f) => (
+                    <FilterField key={f.key} filter={f} value={filterValues[f.key] ?? neutralFilterValue(f)} onChange={(value) => setFilterValue(f.key, value)} dict={dict} />
+                ))}
+            </div>
+        </Modal>
     ) : null;
 
     // Opt-in via `searchable` — filters the records actually rendered (table/gallery, and
@@ -560,6 +747,7 @@ function GridCore<TRecord extends RecordProps>({
                     />
                 )}
             </Card>
+            {filterPanel}
             {activeAction && activeActionConfig && (activeActionConfig.kind === "modal" || activeActionConfig.kind === "delete") && (
                 <Modal
                     size={
