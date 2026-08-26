@@ -347,7 +347,7 @@ function Table({
                         return (
                             <th
                                 key={hdr.key}
-                                className={["px-3 py-2 font-semibold text-muted-foreground", stickyHeaderCellClass, hdr.className || ""].filter(Boolean).join(" ")}
+                                className={["px-3 py-2 font-semibold text-muted-foreground whitespace-nowrap", stickyHeaderCellClass, hdr.className || ""].filter(Boolean).join(" ")}
                                 aria-sort={ariaSort}
                             >
                                 {isSortable ? (

@@ -364,6 +364,7 @@ rimovibili sulla riga della ricerca — non più checkbox sparse inline.
 - [x] Versione SemVer (minor) e `npm publish` — 1.8.0
 - [x] Follow-up (patch 1.8.1), da feedback UX diretto su un consumer: bottone Filtri icon-only affiancato alla search box (non più bottone con label separato) invece che dopo di essa; chip/badge dei filtri attivi ricostruiti con `Badge` + `ActionButton` reali (non più `<span>`/`<button>` custom) per cursore/focus coerenti; pannello filtri allargato a `size="md"` e le due date/i due numeri di `dateRange`/`numberRange` impilati verticalmente invece che affiancati, per non forzare uno scroll orizzontale del pannello
 - [x] Follow-up (patch 1.8.2): riordinati gli elementi accanto alla search box — il contatore "N / M" ora segue le chip dei filtri attivi invece di stare tra il bottone Filtri e le sue stesse chip (ordine: search+icona Filtri → chip attive → contatore)
+- [x] Follow-up (patch 1.8.3): il denominatore del contatore ora è sempre il totale NON filtrato (`preparedRecords.length`), non più il totale post-filtri — con un filtro attivo e nessun testo di ricerca il contatore leggeva sempre `120 / 120` (numeratore sempre uguale al denominatore), privo di significato; ora resta un riepilogo stabile "X di Y totali". Fix generale (non specifico ai filtri): le intestazioni colonna di `Table` non vanno più a capo (`whitespace-nowrap`)
 
 ---
 

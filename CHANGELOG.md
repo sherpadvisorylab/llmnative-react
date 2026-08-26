@@ -9,7 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.8.2] - 2026-08-26
+## [1.8.3] - 2026-08-26
+
+### Fixed
+- `Grid`'s search match count now reads `X / total unfiltered records` instead of `X / records after filters` — with an active `Grid.filters` chip and no search term, the count previously always read as e.g. `120 / 120` (numerator always equal to denominator), which is meaningless. It now stays a stable "showing X of Y total" summary regardless of filters. (CR-079)
+- `Table` column headers no longer wrap onto multiple lines (`whitespace-nowrap`) — a header like "Shipped at" broke into two lines given a narrow column, mis-aligning the sort icon from the label.
 
 ### Changed
 - Reordered the elements next to `Grid`'s search box: the match count now trails after the active-filter chips instead of sitting between the "Filters" button and its own chips, which read as if the count belonged to the button rather than to the result set. New order: search + Filters icon → active chips → count. (CR-079)

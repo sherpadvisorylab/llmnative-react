@@ -399,7 +399,7 @@ function GridCore<TRecord extends RecordProps>({
                 {filterButton}
             </div>
             {filterChips}
-            <span className="shrink-0 text-xs text-muted-foreground">{searchedRecords.length} / {filteredRecords.length}</span>
+            <span className="shrink-0 text-xs text-muted-foreground">{searchedRecords.length} / {preparedRecords.length}</span>
         </div>
     ) : null;
 
