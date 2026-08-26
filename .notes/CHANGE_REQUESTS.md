@@ -363,6 +363,7 @@ rimovibili sulla riga della ricerca — non più checkbox sparse inline.
 - [x] Issue GitHub collegata (#23)
 - [x] Versione SemVer (minor) e `npm publish` — 1.8.0
 - [x] Follow-up (patch 1.8.1), da feedback UX diretto su un consumer: bottone Filtri icon-only affiancato alla search box (non più bottone con label separato) invece che dopo di essa; chip/badge dei filtri attivi ricostruiti con `Badge` + `ActionButton` reali (non più `<span>`/`<button>` custom) per cursore/focus coerenti; pannello filtri allargato a `size="md"` e le due date/i due numeri di `dateRange`/`numberRange` impilati verticalmente invece che affiancati, per non forzare uno scroll orizzontale del pannello
+- [x] Follow-up (patch 1.8.2): riordinati gli elementi accanto alla search box — il contatore "N / M" ora segue le chip dei filtri attivi invece di stare tra il bottone Filtri e le sue stesse chip (ordine: search+icona Filtri → chip attive → contatore)
 
 ---
 

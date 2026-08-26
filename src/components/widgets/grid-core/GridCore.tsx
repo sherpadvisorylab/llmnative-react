@@ -382,6 +382,10 @@ function GridCore<TRecord extends RecordProps>({
             });
         });
     }, [filteredRecords, searchConfig, searchTerm]);
+    // Order matters here: search+filter trigger, then that trigger's own active-filter chips
+    // right next to it (same visual group), and the match count trailing last as a summary of
+    // the whole row — not sandwiched between the Filters button and its own chips, which reads
+    // as if the count belonged to the button rather than the result set.
     const searchControl = searchConfig ? (
         <div className="flex min-w-0 flex-wrap items-center gap-2">
             <div className="flex min-w-0 items-center gap-1">
@@ -394,8 +398,8 @@ function GridCore<TRecord extends RecordProps>({
                 />
                 {filterButton}
             </div>
-            <span className="shrink-0 text-xs text-muted-foreground">{searchedRecords.length} / {filteredRecords.length}</span>
             {filterChips}
+            <span className="shrink-0 text-xs text-muted-foreground">{searchedRecords.length} / {filteredRecords.length}</span>
         </div>
     ) : null;
 

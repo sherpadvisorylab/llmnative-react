@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.2] - 2026-08-26
+
+### Changed
+- Reordered the elements next to `Grid`'s search box: the match count now trails after the active-filter chips instead of sitting between the "Filters" button and its own chips, which read as if the count belonged to the button rather than to the result set. New order: search + Filters icon → active chips → count. (CR-079)
+
 ## [1.8.1] - 2026-08-26
 
 ### Changed
