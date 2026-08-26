@@ -93,6 +93,7 @@
 | CR-073 | Done | Log file LLM opzionale (dev-only, un file per conversazione) nel proxy Vite; fix allegati ignorati dal provider `opencode`; `libs/csv.ts`. Issue #17 chiusa. |
 | CR-074 | Done | `Table`/`Grid` — nuovo prop `recordId` per una key di riga stabile sotto churn di identità d'oggetto (fix: `GridTableView` ora lo inoltra a `Table`, prima no); risolve il remount-on-keystroke di una riga Form-bound. Showcase aggiornato (props/playground/demo, 6 lingue). Issue #18 chiusa. |
 | CR-077 | Done | `UploadImage` — nuovo prop `allowUrl` per inserire un'immagine da URL invece di caricarla, stessa forma `FileProps`/preview di un upload reale. i18n 6 lingue, 3 nuovi test, showcase aggiornato (sezione dedicata + playground + 6 lingue). Issue #21 chiusa. |
+| CR-078 | Done | `Grid` — nuovo prop `filters?: GridFilterConfig<TRecord>[]`: checkbox toggle nell'header di default, accanto a `searchable`, applicate PRIMA della ricerca testuale. Nuovo export pubblico `GridFilterConfig`. 4 nuovi test, props table showcase aggiornata (6 lingue). Issue #22 chiusa. |
 
 ---
 
