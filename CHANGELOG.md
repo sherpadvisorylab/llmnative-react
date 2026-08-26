@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.1] - 2026-08-26
+
+### Changed
+- The "Filters" trigger in `Grid`'s default header is now icon-only and sits directly next to the search input (instead of a separately labeled button positioned after it). Active-filter chips are now built from real `Badge` + `ActionButton` components instead of hand-rolled `<span>`/`<button>` markup, so the remove control gets proper cursor/focus/disabled styling for free. The filters panel is wider (`size="md"`, was `"sm"`) and the two inputs of a `dateRange`/`numberRange` filter now stack vertically instead of sitting side by side, so the panel never needs a horizontal scrollbar. (CR-079)
+
 ## [1.8.0] - 2026-08-26
 
 ### Added

@@ -4,6 +4,7 @@ import { useI18n, type I18nDict } from "../../../I18n";
 import { useDataProvider } from "../../../providers/data/DataProviderContext";
 import Card from "../../ui/Card";
 import Modal from "../../ui/Modal";
+import Badge from "../../ui/Badge";
 import { ActionButton, buttonPrimaryClass } from "../../ui/Buttons";
 import { Dropdown } from "../../blocks/Dropdown";
 import { type GalleryOverlay } from "../../ui/Gallery";
@@ -160,14 +161,22 @@ function FilterField<TRecord extends RecordProps>({ filter, value, onChange, dic
     }
 
     if (filter.kind === "dateRange") {
+        // Two full-width rows, not side-by-side — a native date input's own calendar affordance
+        // already wants real width, and stacking avoids forcing a minimum panel width (or a
+        // horizontal scrollbar) just to fit two of them next to each other.
         const range = value as { from: string; to: string };
         return (
             <div className="flex flex-col gap-1.5">
                 <span className="text-sm font-medium text-foreground">{filter.label}</span>
-                <div className="flex items-center gap-2">
-                    <input type="date" aria-label={`${filter.label} ${dict.filtersRangeFrom}`} className={filterFieldControlClass} value={range.from} onChange={(e) => onChange({ ...range, from: e.target.value })} />
-                    <span className="shrink-0 text-xs text-muted-foreground">{dict.filtersRangeTo}</span>
-                    <input type="date" aria-label={`${filter.label} ${dict.filtersRangeTo}`} className={filterFieldControlClass} value={range.to} onChange={(e) => onChange({ ...range, to: e.target.value })} />
+                <div className="flex flex-col gap-2">
+                    <label className="flex flex-col gap-1">
+                        <span className="text-xs text-muted-foreground">{dict.filtersRangeFrom}</span>
+                        <input type="date" className={filterFieldControlClass} value={range.from} onChange={(e) => onChange({ ...range, from: e.target.value })} />
+                    </label>
+                    <label className="flex flex-col gap-1">
+                        <span className="text-xs text-muted-foreground">{dict.filtersRangeTo}</span>
+                        <input type="date" className={filterFieldControlClass} value={range.to} onChange={(e) => onChange({ ...range, to: e.target.value })} />
+                    </label>
                 </div>
             </div>
         );
@@ -178,10 +187,15 @@ function FilterField<TRecord extends RecordProps>({ filter, value, onChange, dic
         return (
             <div className="flex flex-col gap-1.5">
                 <span className="text-sm font-medium text-foreground">{filter.label}</span>
-                <div className="flex items-center gap-2">
-                    <input type="number" placeholder={dict.filtersRangeMin} aria-label={`${filter.label} ${dict.filtersRangeMin}`} className={filterFieldControlClass} value={range.min ?? ""} onChange={(e) => onChange({ ...range, min: e.target.value === "" ? undefined : Number(e.target.value) })} />
-                    <span className="shrink-0 text-xs text-muted-foreground">–</span>
-                    <input type="number" placeholder={dict.filtersRangeMax} aria-label={`${filter.label} ${dict.filtersRangeMax}`} className={filterFieldControlClass} value={range.max ?? ""} onChange={(e) => onChange({ ...range, max: e.target.value === "" ? undefined : Number(e.target.value) })} />
+                <div className="flex flex-col gap-2">
+                    <label className="flex flex-col gap-1">
+                        <span className="text-xs text-muted-foreground">{dict.filtersRangeMin}</span>
+                        <input type="number" className={filterFieldControlClass} value={range.min ?? ""} onChange={(e) => onChange({ ...range, min: e.target.value === "" ? undefined : Number(e.target.value) })} />
+                    </label>
+                    <label className="flex flex-col gap-1">
+                        <span className="text-xs text-muted-foreground">{dict.filtersRangeMax}</span>
+                        <input type="number" className={filterFieldControlClass} value={range.max ?? ""} onChange={(e) => onChange({ ...range, max: e.target.value === "" ? undefined : Number(e.target.value) })} />
+                    </label>
                 </div>
             </div>
         );
@@ -285,37 +299,51 @@ function GridCore<TRecord extends RecordProps>({
         );
     }, [preparedRecords, filters, filterValues]);
 
-    const filterButtonAndChips = filters && filters.length > 0 ? (
-        <div className="flex flex-wrap items-center gap-2">
-            <ActionButton
-                icon="filter"
-                label={dict.filtersButton}
-                variant="outline-secondary"
-                badge={activeFilters.length > 0 ? activeFilters.length : undefined}
-                onClick={() => setFilterPanelOpen(true)}
-            />
+    // Icon-only, sitting right next to the search box (or standalone if `searchable` is off) —
+    // matches the common SaaS convention of a filter glyph grouped with search, not a separate
+    // labeled button competing for header space.
+    const filterButton = filters && filters.length > 0 ? (
+        <ActionButton
+            icon="filter"
+            ariaLabel={dict.filtersButton}
+            title={dict.filtersButton}
+            variant="link"
+            badge={activeFilters.length > 0 ? activeFilters.length : undefined}
+            onClick={() => setFilterPanelOpen(true)}
+        />
+    ) : null;
+
+    // Real framework components, not hand-rolled markup: `Badge` for the pill, `ActionButton`
+    // for the remove control — so it inherits the app's real button behavior (cursor, focus
+    // ring, disabled state) instead of a bespoke `<button>×</button>`.
+    const filterChips = (filters ?? []).length > 0 && activeFilters.length > 0 ? (
+        <div className="flex flex-wrap items-center gap-1.5">
             {activeFilters.map((f) => (
-                <span key={f.key} className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+                <Badge key={f.key} variant="info" className="inline-flex items-center gap-1">
                     {filterChipLabel(f, filterValues[f.key] ?? neutralFilterValue(f), dict)}
-                    <button
-                        type="button"
-                        aria-label={`${dict.filtersClearAll} ${f.label}`}
-                        className="opacity-60 transition-opacity hover:opacity-100"
+                    <ActionButton
+                        icon="x"
+                        variant="link"
+                        ariaLabel={`${dict.filtersClearAll} ${f.label}`}
+                        title={`${dict.filtersClearAll} ${f.label}`}
                         onClick={() => resetFilter(f)}
-                    >
-                        ×
-                    </button>
-                </span>
+                    />
+                </Badge>
             ))}
         </div>
     ) : null;
 
-    const filterControl = filters && filters.length > 0 ? filterButtonAndChips : null;
+    const filterControl = !searchable && filterButton ? (
+        <div className="flex flex-wrap items-center gap-2">
+            {filterButton}
+            {filterChips}
+        </div>
+    ) : null;
 
     const filterPanel = filterPanelOpen && filters && filters.length > 0 ? (
         <Modal
             title={dict.filtersPanelTitle}
-            size="sm"
+            size="md"
             position="right"
             onClose={() => setFilterPanelOpen(false)}
             footer={(
@@ -355,15 +383,19 @@ function GridCore<TRecord extends RecordProps>({
         });
     }, [filteredRecords, searchConfig, searchTerm]);
     const searchControl = searchConfig ? (
-        <div className="flex min-w-0 items-center gap-2">
-            <input
-                type="search"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder={searchConfig.placeholder ?? commonDict.search}
-                className="w-full max-w-xs rounded-md border border-input bg-background px-2 py-1 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-            />
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <div className="flex min-w-0 items-center gap-1">
+                <input
+                    type="search"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder={searchConfig.placeholder ?? commonDict.search}
+                    className="w-full max-w-xs rounded-md border border-input bg-background px-2 py-1 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+                {filterButton}
+            </div>
             <span className="shrink-0 text-xs text-muted-foreground">{searchedRecords.length} / {filteredRecords.length}</span>
+            {filterChips}
         </div>
     ) : null;
 
