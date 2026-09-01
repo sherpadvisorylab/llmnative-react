@@ -26,17 +26,6 @@ const OPENCODE_FALLBACK_MODELS = [
 
 type OpenCodeModelEntry = {
     id?: string;
-    endpoint?: string;
-    ai_sdk_package?: string;
-    aiSdkPackage?: string;
-};
-
-const isChatCompletionsModel = (entry: OpenCodeModelEntry) => {
-    const endpoint = entry.endpoint || '';
-    const sdkPackage = entry.ai_sdk_package || entry.aiSdkPackage || '';
-
-    return endpoint.includes('/chat/completions')
-        || sdkPackage.includes('openai-compatible');
 };
 
 export const OPENCODE_PROVIDER_DEFINITION: AIProviderDefinition = {
@@ -65,8 +54,18 @@ export const OPENCODE_PROVIDER_DEFINITION: AIProviderDefinition = {
                     ? response
                     : [];
 
+        // Every model `/zen/v1/models` lists is already invokable through the one Zen gateway
+        // endpoint above (OPENCODE_CHAT_URL) — Zen normalizes all of them to the same
+        // OpenAI-compatible chat-completions wire format regardless of the underlying provider
+        // (xAI, NVIDIA, MiniMax, ...), so there is no real per-model compatibility check to make
+        // here. A previous filter tried to check `entry.endpoint`/`entry.ai_sdk_package`, fields
+        // this endpoint's response never actually carries (verified against the live response —
+        // every entry is just `{id, object, created, owned_by}`) — it silently matched nothing,
+        // so `discoverModels` always returned an empty array and every caller fell back to
+        // `OPENCODE_FALLBACK_MODELS` unconditionally (see `AIProvider.getCapabilities` in
+        // shared.ts: falls back only when `discovered.length === 0`). Real discovery never
+        // actually ran; this list was always the static fallback in practice.
         return items
-            .filter((entry: OpenCodeModelEntry) => isChatCompletionsModel(entry))
             .map((entry: OpenCodeModelEntry) => entry.id)
             .filter((value: unknown): value is string => typeof value === 'string' && value.length > 0);
     },

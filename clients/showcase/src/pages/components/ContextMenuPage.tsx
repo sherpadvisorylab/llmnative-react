@@ -56,7 +56,7 @@ export default function ContextMenuPage() {
         >
             <Section
                 title="Slash commands"
-                description="Type / in the textarea to open a menu of quick-insert items. Selecting an item replaces the trigger and any text typed after it."
+                description="Type / in the textarea to open a menu of quick-insert items. Selecting an item replaces the trigger and any text typed after it. Enough items here to overflow the menu's max height — scroll it to see each group's ContextMenu.Heading stick to the top while its own items scroll past, instead of scrolling away with them."
                 preview={(
                     <div className="w-full max-w-lg">
                         <ContextMenu trigger="/">
@@ -64,13 +64,18 @@ export default function ContextMenuPage() {
                             <ContextMenu.Item label="Heading 1" value="# " icon="heading" />
                             <ContextMenu.Item label="Heading 2" value="## " icon="heading" />
                             <ContextMenu.Item label="Heading 3" value="### " icon="heading" />
+                            <ContextMenu.Item label="Heading 4" value="#### " icon="heading" />
                             <ContextMenu.Separator />
                             <ContextMenu.Heading>Format</ContextMenu.Heading>
                             <ContextMenu.Item label="Bold" value="**bold**" icon="bold" />
                             <ContextMenu.Item label="Italic" value="_italic_" icon="italic" />
+                            <ContextMenu.Item label="Strikethrough" value="~~strike~~" icon="strikethrough" />
+                            <ContextMenu.Item label="Code" value="`code`" icon="code" />
                             <ContextMenu.Separator />
+                            <ContextMenu.Heading>Lists</ContextMenu.Heading>
                             <ContextMenu.Item label="Bullet list" value="- " icon="list" />
                             <ContextMenu.Item label="Numbered list" value="1. " icon="list" />
+                            <ContextMenu.Item label="Checklist" value="- [ ] " icon="list-checks" />
                             <textarea
                                 className={textareaBase}
                                 placeholder="Type / to see commands..."
@@ -84,6 +89,7 @@ export default function ContextMenuPage() {
     <ContextMenu.Heading>Headings</ContextMenu.Heading>
     <ContextMenu.Item label="Heading 1" value="# " icon="heading" />
     <ContextMenu.Separator />
+    <ContextMenu.Heading>Format</ContextMenu.Heading>
     <ContextMenu.Item label="Bold" value="**bold**" icon="bold" />
     <textarea placeholder="Type / to see commands..." />
 </ContextMenu>`}

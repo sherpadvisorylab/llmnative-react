@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.4] - 2026-09-02
+
+### Fixed
+- `AIProviderDefinition` for `opencode`: `discoverModels` filtered the live `/zen/v1/models` response through a check (`entry.endpoint`/`entry.ai_sdk_package`) the endpoint's real response never actually carries — every entry there is just `{id, object, created, owned_by}`. The filter matched nothing, so discovery always returned an empty array and every caller silently fell back to the static `OPENCODE_FALLBACK_MODELS` list (11 models) instead of the full, current catalog (60+ models) OpenCode Zen actually serves. Removed the filter — Zen already normalizes every listed model to the same OpenAI-compatible chat-completions endpoint (`OPENCODE_CHAT_URL`), so there was no real per-model compatibility check to make.
+- `ContextMenu.Heading`: made sticky (`sticky top-0`) within its menu's own scrollable list, so a group's heading stays visible while its items scroll past instead of scrolling away with them (affects any grouped `ContextMenu`, e.g. `CodeEditor`'s variable-insertion picker). Moved the menu's `p-1` padding from the scrolling container itself onto an inner wrapper — sticky's `top: 0` resolves against the scrolling ancestor's padding edge, so padding directly on that ancestor left a gap items could still scroll through, in front of the "stuck" heading, before disappearing.
+
 ## [1.8.3] - 2026-08-26
 
 ### Fixed

@@ -192,7 +192,13 @@ const MenuItem: React.FC<ContextMenuItemProps & { onSelect?: (item: ContextMenuI
 };
 
 const ContextMenuHeading: React.FC<ContextMenuHeadingProps> = ({ children, className }) => (
-    <div className={cn('px-2 py-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground', className)}>
+    // `sticky top-0` relative to the menu's own `overflow-y-auto` container (the `role="menu"`
+    // div below) — pins each group's heading while its items scroll past, so a long grouped
+    // list (variable autocomplete, etc.) never scrolls a heading out of view while its items are
+    // still on screen. `bg-popover` (same as the menu's own background) is required for sticky
+    // positioning to actually occlude the items scrolling underneath, not just float over them
+    // transparently; `z-10` keeps it above sibling items within the menu's own stacking context.
+    <div className={cn('sticky top-0 z-10 bg-popover px-2 py-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground', className)}>
         {children}
     </div>
 );
@@ -651,14 +657,24 @@ const ContextMenu = forwardRef<ContextMenuHandle, ContextMenuProps>(({
                     ref={menuRef}
                     role="menu"
                     id={menuId}
-                    className="fixed z-[200] min-w-44 overflow-y-auto rounded-md border bg-popover p-1 text-popover-foreground shadow-md outline-none"
+                    // No padding directly on this element on purpose — it's the scrolling
+                    // ancestor a sticky `ContextMenu.Heading`'s `top: 0` resolves against. Padding
+                    // here would sit ABOVE that resolved 0px point (sticky offsets are measured
+                    // from the padding edge, but a scrolling box's own top padding is still part
+                    // of its scrollable area), leaving a gap the previous group's items could
+                    // still scroll up through, in front of/above the "stuck" heading, before
+                    // being clipped. The padding moves to the inner wrapper below instead, which
+                    // isn't the scrolling ancestor, so it plays no part in that calculation.
+                    className="fixed z-[200] min-w-44 overflow-y-auto rounded-md border bg-popover text-popover-foreground shadow-md outline-none"
                     style={{
                         top: runtimeState.anchorPosition.top,
                         left: runtimeState.anchorPosition.left,
                         maxHeight: 240,
                     }}
                 >
-                    {renderedItems}
+                    <div className="p-1">
+                        {renderedItems}
+                    </div>
                 </div>,
                 document.body,
             )}

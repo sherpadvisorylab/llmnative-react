@@ -211,6 +211,15 @@ Main real routes:
 
 ## Verification performed
 
+Real verification performed on 2026-09-02 (1.8.4 — opencode discoverModels fix, ContextMenu.Heading sticky fix):
+
+| Command | Result |
+|---------|--------|
+| `npx tsc --noEmit` | Passes: 0 errors. |
+| `npm test` | Passes: 63 files, 692 tests. |
+| `npm run build` | Passes: Vite library build + declarations. |
+| `npm pack --dry-run --json` | Passes: 216 entries. |
+
 Real verification performed on 2026-08-02 (CR-075 Grid search/scroll/sticky-header + CR-076 Firebase auth/Firestore token refresh):
 
 | Command | Result |
@@ -254,4 +263,5 @@ Real verification performed on 2026-07-29 (CR-071 drag&drop addition + CR-073):
 | 1.8.1 | Published on npm (`@llmnative/react@1.8.1`). CR-079 follow-up: icon-only Filters trigger next to search, real Badge/ActionButton chips, wider panel, stacked range inputs. |
 | 1.8.2 | Published on npm (`@llmnative/react@1.8.2`). CR-079 follow-up: match count reordered to trail active-filter chips. |
 | 1.8.3 | Published on npm (`@llmnative/react@1.8.3`). CR-079 follow-up: match count denominator fixed to total unfiltered records; Table column headers no longer wrap. |
+| 1.8.4 | Published on npm (`@llmnative/react@1.8.4`). Minor fix release (no CR): `opencode` provider's `discoverModels` filter matched nothing against the real `/zen/v1/models` response shape, so it silently always fell back to the static model list; `ContextMenu.Heading` sticky positioning fix (grouped menu headers were scrolling away with their items instead of staying pinned). |
 | 1.x / 2.0 | Roadmap: CR-051 (WorkflowAI), CR-040 (SchemaForm), CR-041 (SeoEnhancer), E2E. CR-072 deferito (TypeScript 6 regression upstream). |
