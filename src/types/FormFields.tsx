@@ -7,12 +7,14 @@ import {
     DateTime,
     Email,
     Number,
+    Range,
     String,
     Switch,
     TextArea,
     Time, TextAreaProps, CheckboxProps,
     Password,
     Color,
+    Url,
     Week,
     Month
 } from "../components/ui/fields/Input";
@@ -21,6 +23,7 @@ import {ImageField, ImageFieldProps} from "../components/ui/fields/ImageField";
 import {UploadDocument, UploadDocumentProps, UploadImage, UploadImageProps} from "../components/ui/fields/Upload";
 import { Prompt, PromptProps } from "../components/widgets/Prompt";
 import { CodeEditor, CodeEditorProps } from "../components/ui/fields/CodeEditor";
+import { RichText, RichTextProps } from "../components/ui/fields/RichText";
 
 export interface ComponentFormFieldsMap {
     string: FieldFactory<Partial<InputProps>>;
@@ -28,12 +31,15 @@ export interface ComponentFormFieldsMap {
     email: FieldFactory<Partial<InputProps>>;
     password: FieldFactory<Partial<InputProps>>;
     color: FieldFactory<Partial<InputProps>>;
+    url: FieldFactory<Partial<InputProps>>;
+    range: FieldFactory<Partial<InputProps>>;
     date: FieldFactory<Partial<InputProps>>;
     time: FieldFactory<Partial<InputProps>>;
     datetime: FieldFactory<Partial<InputProps>>;
     week: FieldFactory<Partial<InputProps>>;
     month: FieldFactory<Partial<InputProps>>;
     textarea: FieldFactory<Partial<TextAreaProps>>;
+    richtext: FieldFactory<Partial<RichTextProps>>;
     checkbox: FieldFactory<Partial<CheckboxProps>>;
     switch: FieldFactory<Partial<CheckboxProps>>;
     select: FieldFactory<Partial<SelectProps>>;
@@ -73,6 +79,16 @@ const componentFormFields: ComponentFormFieldsMap = {
         getDefaults: (name) => ({[name]: props.defaultValue}),
         render: ({name, label, ...rest} = {} as FieldRenderProps) => <Color key={name ?? props.name} name={(name ?? props.name) as string} label={label ?? props.label ?? name} {...props} {...rest} />
     }),
+    url: (props = {}) => ({
+        __props: props,
+        getDefaults: (name) => ({[name]: props.defaultValue}),
+        render: ({name, label, ...rest} = {} as FieldRenderProps) => <Url key={name ?? props.name} name={(name ?? props.name) as string} label={label ?? props.label ?? name} {...props} {...rest} />
+    }),
+    range: (props = {}) => ({
+        __props: props,
+        getDefaults: (name) => ({[name]: props.defaultValue}),
+        render: ({name, label, ...rest} = {} as FieldRenderProps) => <Range key={name ?? props.name} name={(name ?? props.name) as string} label={label ?? props.label ?? name} {...props} {...rest} />
+    }),
     date: (props = {}) => ({
         __props: props,
         getDefaults: (name) => ({[name]: props.defaultValue}),
@@ -102,6 +118,11 @@ const componentFormFields: ComponentFormFieldsMap = {
         __props: props,
         getDefaults: (name) => ({[name]: props.defaultValue}),
         render: ({name, label, ...rest} = {} as FieldRenderProps) => <TextArea key={name ?? props.name} name={(name ?? props.name) as string} label={label ?? props.label ?? name} {...props} {...rest} />
+    }),
+    richtext: (props = {}) => ({
+        __props: props,
+        getDefaults: (name) => ({[name]: props.defaultValue}),
+        render: ({name, label, ...rest} = {} as FieldRenderProps) => <RichText key={name ?? props.name} name={(name ?? props.name) as string} label={label ?? props.label ?? name} {...props} {...rest} />
     }),
     checkbox: (props = {}) => ({
         __props: props,

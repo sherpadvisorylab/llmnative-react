@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-09-04
+
+### Added
+- `Component.input`: added `richtext`, `range`, `url` — the three field
+  components the framework already exported (`RichText`, `Range`, `Url`)
+  but that were missing from the type→component dispatch table (CR-080,
+  follow-up to CR-049). Closes the gap that kept a consumer from using
+  `Component.input` as the single source of truth for dynamic field
+  rendering.
+
 ## [1.8.4] - 2026-09-02
 
 ### Fixed

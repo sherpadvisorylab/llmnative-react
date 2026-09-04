@@ -88,6 +88,7 @@
 | [CR-077](#cr-077--uploadimage-inserimento-logoimmagine-da-url) | UploadImage — inserimento logo/immagine da URL (`allowUrl`) | Media | — | ✅ |
 | [CR-078](#cr-078--grid-filtri-toggle-nellheader-filters) | Grid — filtri toggle nell'header (`filters`) | Media | — | ✅ |
 | [CR-079](#cr-079--grid-pannello-filtri-selectmultiselectdaterangenumberrange-con-chip-rimovibili) | Grid — pannello filtri (select/multiselect/dateRange/numberRange) con chip rimovibili | Media | CR-078 | ✅ |
+| [CR-080](#cr-080--componentinput-richtextrangeurl) | Component.input: richtext/range/url | Media | CR-049 | ✅ |
 
 ---
 
@@ -365,6 +366,51 @@ rimovibili sulla riga della ricerca — non più checkbox sparse inline.
 - [x] Follow-up (patch 1.8.1), da feedback UX diretto su un consumer: bottone Filtri icon-only affiancato alla search box (non più bottone con label separato) invece che dopo di essa; chip/badge dei filtri attivi ricostruiti con `Badge` + `ActionButton` reali (non più `<span>`/`<button>` custom) per cursore/focus coerenti; pannello filtri allargato a `size="md"` e le due date/i due numeri di `dateRange`/`numberRange` impilati verticalmente invece che affiancati, per non forzare uno scroll orizzontale del pannello
 - [x] Follow-up (patch 1.8.2): riordinati gli elementi accanto alla search box — il contatore "N / M" ora segue le chip dei filtri attivi invece di stare tra il bottone Filtri e le sue stesse chip (ordine: search+icona Filtri → chip attive → contatore)
 - [x] Follow-up (patch 1.8.3): il denominatore del contatore ora è sempre il totale NON filtrato (`preparedRecords.length`), non più il totale post-filtri — con un filtro attivo e nessun testo di ricerca il contatore leggeva sempre `120 / 120` (numeratore sempre uguale al denominatore), privo di significato; ora resta un riepilogo stabile "X di Y totali". Fix generale (non specifico ai filtri): le intestazioni colonna di `Table` non vanno più a capo (`whitespace-nowrap`)
+
+---
+
+## CR-080 — Component.input: richtext/range/url
+
+**Stato:** ✅ done — rilasciato in 1.9.0
+**Issue:** [#24](https://github.com/sherpadvisorylab/llmnative-react/issues/24)
+**Priorità:** Media
+**Dipende da:** CR-049
+
+### Motivazione
+
+`Component.input` (CR-049) copre 19 tipi di campo ma manca `richtext`,
+`range` e `url` — tre componenti già esportati dal framework (`RichText`,
+`Range`, `Url`) ma mai aggiunti alla dispatch table type→componente.
+
+Un consumer (`llmnative-cms`) vuole `Component.input` come UNICA sorgente
+di verità per il rendering dinamico dei campi (sia nel form di contenuto
+reale sia in un'anteprima read-only), eliminando uno switch hand-written
+locale che duplica la stessa mappa — questi tre buchi lo impedivano.
+
+### Scope
+
+- `src/types/FormFields.tsx`: aggiunte `richtext`, `range`, `url` a
+  `ComponentFormFieldsMap` e a `componentFormFields`, stesso pattern
+  delle entry esistenti (factory `FieldAdapter`, nessuna logica nuova).
+- Non toccato `Component.schema` (CR-049, meta-layer per configurare le
+  proprietà di un campo) — fuori scope, nessun consumer lo richiede oggi.
+- Non aggiunti equivalenti per `relation`/`link`/`list`: sono concetti
+  domain-specifici del CMS (riferimento a una Collection, link editoriale
+  entry/URL, sotto-schema annidato), non leaf-component del framework —
+  restano composizioni CMS-side di `Component.input.autocomplete`/`url`/
+  `switch` + `Repeat` (già framework-generico), coerente col principio
+  "framework vendor-opaco" del CMS.
+
+### Checklist
+
+- [x] `ComponentFormFieldsMap` — 3 nuove chiavi
+- [x] `componentFormFields` — 3 nuove factory
+- [x] `npx tsc --noEmit` — 0 errori
+- [x] `npm test` — 63 file, 692/692 verdi
+- [x] `npm run build` — bundle + dichiarazioni generati
+- [x] `npm pack --dry-run --json` — 216 entries
+- [x] Issue GitHub collegata (#24)
+- [x] Versione SemVer (minor) e `npm publish` — 1.9.0
 
 ---
 
