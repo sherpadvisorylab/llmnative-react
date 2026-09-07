@@ -144,11 +144,23 @@ export const getAIModelCatalog = async (
     registry: Record<string, AIProviderAdapter>,
     forceRefresh = false
 ): Promise<AIModelCatalog> => {
+    // BUG FISSATO: un `Promise.all` senza isolamento per-provider faceva sì che il fallimento
+    // di UN SOLO provider (`getCapabilities()` rigettato per un errore imprevisto e non protetto
+    // — RuntimeAIProvider.getCapabilities() è già ben schermato per il discovery, ma non copre
+    // ogni possibile eccezione sincrona a monte) facesse rigettare l'INTERA funzione — azzerando
+    // silenziosamente il catalogo di TUTTI i provider registrati, anche quelli sani, nel
+    // chiamante (`useAIModelCatalog.ts` nel consumer CMS, il cui `.catch` non logga nulla).
+    // Isolare ogni provider nel proprio try/catch garantisce che un adapter rotto non nasconda
+    // mai gli altri, indipendentemente da quanto sia difensiva la SUA implementazione.
     const entries = await Promise.all(
-        Object.entries(registry).map(async ([providerId, provider]) => [
-            providerId,
-            await provider.getCapabilities(forceRefresh),
-        ] as const)
+        Object.entries(registry).map(async ([providerId, provider]) => {
+            try {
+                return [providerId, await provider.getCapabilities(forceRefresh)] as [string, AIProviderCapabilities];
+            } catch (error) {
+                console.warn(`getAIModelCatalog: provider "${providerId}" getCapabilities() failed`, error);
+                return [providerId, { models: [] }] as [string, AIProviderCapabilities];
+            }
+        })
     );
 
     const capabilitiesByProvider = entries.reduce<Record<string, AIProviderCapabilities>>((acc, [providerId, capabilities]) => {

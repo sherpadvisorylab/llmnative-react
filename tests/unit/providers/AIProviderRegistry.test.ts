@@ -75,4 +75,34 @@ describe('AI provider registry', () => {
         expect(catalog.capabilitiesByProvider.alpha.supportsTemperature).toBe(true);
         expect(catalog.capabilitiesByProvider.beta.supportsTemperature).toBe(false);
     });
+
+    // BUG FISSATO: getAIModelCatalog usava un Promise.all senza isolamento per-provider — se
+    // UN SOLO provider rigettava, l'intera funzione rigettava, azzerando silenziosamente il
+    // catalogo anche dei provider sani nel chiamante. Questo test blocca esplicitamente la
+    // garanzia opposta: un provider rotto non deve mai nascondere gli altri.
+    it('isolates a provider whose getCapabilities() rejects, keeping the other providers\' models intact', async () => {
+        const healthy: AIProviderAdapter = {
+            id: 'healthy',
+            label: 'Healthy',
+            defaultModel: 'h1',
+            getCapabilities: async () => ({
+                models: [{ id: 'healthy/h1', provider: 'healthy', model: 'h1', label: 'Healthy / h1' }],
+            }),
+            complete: async () => null,
+        };
+
+        const broken: AIProviderAdapter = {
+            id: 'broken',
+            label: 'Broken',
+            defaultModel: 'b1',
+            getCapabilities: async () => { throw new Error('boom'); },
+            complete: async () => null,
+        };
+
+        const catalog = await getAIModelCatalog({ healthy, broken });
+
+        expect(catalog.modelsByProvider.healthy.map((model) => model.id)).toEqual(['healthy/h1']);
+        expect(catalog.modelsByProvider.broken).toEqual([]);
+        expect(catalog.models.map((model) => model.id)).toEqual(['healthy/h1']);
+    });
 });

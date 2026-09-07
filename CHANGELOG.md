@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.2] - 2026-09-08
+
+### Fixed
+- `getAIModelCatalog`: isolates each provider's `getCapabilities()` call in
+  its own try/catch instead of a single unguarded `Promise.all`. Before,
+  one provider rejecting (an unexpected, unprotected exception — normal
+  discovery failures were already caught inside `RuntimeAIProvider`) made
+  the *entire* catalog reject, and the consumer's `.catch` silently reset
+  every provider's models to empty — including healthy, fully-configured
+  ones — with no error logged anywhere. A broken provider now degrades to
+  an empty model list for itself only (with a `console.warn` naming it),
+  never hiding another provider's models.
+
 ## [1.10.1] - 2026-09-07
 
 ### Fixed
