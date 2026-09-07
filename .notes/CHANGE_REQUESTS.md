@@ -89,7 +89,7 @@
 | [CR-078](#cr-078--grid-filtri-toggle-nellheader-filters) | Grid — filtri toggle nell'header (`filters`) | Media | — | ✅ |
 | [CR-079](#cr-079--grid-pannello-filtri-selectmultiselectdaterangenumberrange-con-chip-rimovibili) | Grid — pannello filtri (select/multiselect/dateRange/numberRange) con chip rimovibili | Media | CR-078 | ✅ |
 | [CR-080](#cr-080--componentinput-richtextrangeurl) | Component.input: richtext/range/url | Media | CR-049 | ✅ |
-| [CR-081](#cr-081--form-sottoscrizione-selettiva-per-path) | Form: sottoscrizione selettiva per-path | Alta | — | 🔄 |
+| [CR-081](#cr-081--form-sottoscrizione-selettiva-per-path) | Form: sottoscrizione selettiva per-path | Alta | — | ✅ |
 
 ---
 
@@ -372,7 +372,7 @@ rimovibili sulla riga della ricerca — non più checkbox sparse inline.
 
 ## CR-081 — Form: sottoscrizione selettiva per-path
 
-**Stato:** 🔄 in progress
+**Stato:** ✅ done — rilasciato in 1.10.0
 **Issue:** [#25](https://github.com/sherpadvisorylab/llmnative-react/issues/25)
 **Priorità:** Alta
 **Dipende da:** —
