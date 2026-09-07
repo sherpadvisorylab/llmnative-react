@@ -424,7 +424,11 @@ const PromptRun = ({
     actions,
     statusItems,
 }: PromptRunProps) => {
-    const { handleChange, record } = useFormContext({ name });
+    // CR-081: opt-in esplicito — `resolvedPreview` sotto interpola `{{variabile}}` nel testo del
+    // prompt leggendo QUALSIASI altro campo del form (nome deciso dal contenuto del template, non
+    // noto a priori), quindi deve continuare a reagire a un cambiamento in un campo sibling
+    // qualunque, non solo al proprio `name`.
+    const { handleChange, record } = useFormContext({ name, subscribeToFullRecord: true });
     const theme = useTheme("prompt");
     const dict = useI18n('prompt');
     const caption = label || name;

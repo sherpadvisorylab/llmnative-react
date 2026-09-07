@@ -9,7 +9,7 @@ vi.mock('../../../src/Config', () => ({
 }));
 vi.mock('../../../src/providers/firebase-init', () => ({ default: vi.fn(), getSafeAuth: vi.fn() }));
 
-import { trimSlash, trimPath, normalizePath, normalizeKey, sanitizeKey, isEmpty, safeClone } from '../../../src/libs/utils';
+import { trimSlash, trimPath, normalizePath, normalizeKey, sanitizeKey, isEmpty, safeClone, recordsEqual } from '../../../src/libs/utils';
 
 describe('trimSlash', () => {
     it('removes leading slash from string', () => {
@@ -127,5 +127,60 @@ describe('safeClone', () => {
         expect(clone.meta.featured).toBe(true);
         expect(React.isValidElement(clone.media)).toBe(true);
         expect(clone.media).toBe(original.media);
+    });
+});
+
+describe('recordsEqual', () => {
+    it('returns true for the same reference', () => {
+        const record = { title: 'Widget' };
+        expect(recordsEqual(record, record)).toBe(true);
+    });
+
+    it('returns true for structurally identical plain objects', () => {
+        expect(recordsEqual({ a: 1, b: 'x' }, { a: 1, b: 'x' })).toBe(true);
+    });
+
+    it('returns false when a leaf value differs', () => {
+        expect(recordsEqual({ a: 1, b: 'x' }, { a: 1, b: 'y' })).toBe(false);
+    });
+
+    it('treats an undefined value the same as an absent key (same tolerance as cleanRecord)', () => {
+        expect(recordsEqual({ a: 1, b: undefined }, { a: 1 })).toBe(true);
+        expect(recordsEqual({ a: 1 }, { a: 1, b: undefined })).toBe(true);
+    });
+
+    it('compares File objects by name/type/size/lastModified', () => {
+        const a = new File(['x'], 'a.txt', { type: 'text/plain', lastModified: 1000 });
+        const b = new File(['x'], 'a.txt', { type: 'text/plain', lastModified: 1000 });
+        const c = new File(['x'], 'b.txt', { type: 'text/plain', lastModified: 1000 });
+        expect(recordsEqual(a, b)).toBe(true);
+        expect(recordsEqual(a, c)).toBe(false);
+    });
+
+    it('compares nested arrays of objects recursively, filtering out undefined items', () => {
+        expect(recordsEqual(
+            { items: [{ x: 1 }, undefined, { x: 2 }] },
+            { items: [{ x: 1 }, { x: 2 }] },
+        )).toBe(true);
+        expect(recordsEqual(
+            { items: [{ x: 1 }, { x: 2 }] },
+            { items: [{ x: 1 }, { x: 3 }] },
+        )).toBe(false);
+    });
+
+    it('treats a different element order in an array as a real difference (no sorting)', () => {
+        expect(recordsEqual({ items: [1, 2] }, { items: [2, 1] })).toBe(false);
+    });
+
+    it('returns false for a difference deep inside a nested object tree', () => {
+        const a = { level1: { level2: { level3: { value: 'deep' } } } };
+        const b = { level1: { level2: { level3: { value: 'different' } } } };
+        expect(recordsEqual(a, b)).toBe(false);
+    });
+
+    it('returns true for deeply nested identical trees', () => {
+        const a = { level1: { level2: { level3: { value: 'deep', list: [1, 2, { x: 'y' }] } } } };
+        const b = { level1: { level2: { level3: { value: 'deep', list: [1, 2, { x: 'y' }] } } } };
+        expect(recordsEqual(a, b)).toBe(true);
     });
 });

@@ -9,6 +9,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.0] - 2026-09-07
+
+### Added
+- `useFormContext`: new optional `subscribeToFullRecord` parameter (default
+  `false`, backward compatible). `Form`'s record now lives in an external
+  store (`useSyncExternalStore`, same pattern already used by
+  `form-controller.ts`) instead of a plain `useState` propagated through a
+  flat React Context — by default, a field consumer now re-renders only
+  when its own path changes, not on every keystroke anywhere else in the
+  form. Consumers that genuinely need to react to any other field
+  (cross-field reads) opt in explicitly with `subscribeToFullRecord: true`
+  — migrated `Prompt.tsx` (its live `{{variable}}` interpolation reads
+  arbitrary sibling fields by name). A consumer subscribed to a parent
+  (non-leaf) path still reacts to any change in a descendant field with no
+  opt-in needed, since `applyChangeToRecord` clones every container along
+  the edited path up to the root. (CR-081)
+
+### Fixed
+- `CodeEditor`: `onUpdate` is no longer a dependency of the CodeMirror
+  mount effect (which creates/destroys the whole `EditorView`) — it's now
+  read from a ref updated on every render instead. `onUpdate` depended on
+  `handleChange`, which changes identity whenever the surrounding `Form`
+  re-runs its own validation (e.g. after every save, via `setErrors({})`
+  always producing a new object) — even for a field that isn't `required`
+  and wasn't touched by the save. The editor was destroying and
+  re-creating its `EditorView` on every save, which looked like the whole
+  code box flashing empty and reappearing with the same content.
+
 ## [1.9.0] - 2026-09-04
 
 ### Added

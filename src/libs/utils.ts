@@ -468,6 +468,51 @@ export const cleanRecord = (record: RecordProps | undefined): RecordProps => {
     return cleaned;
 }
 
+const fileSignature = (f: File): string => `${f.name} ${f.type} ${f.size} ${f.lastModified}`;
+
+/** Confronto di uguaglianza con la STESSA semantica di normalizzazione di `cleanRecord` (chiave
+ * con valore `undefined` = assente, `File` confrontato per `name/type/size/lastModified`, array
+ * mappati e filtrati ricorsivamente, oggetti ricorsivi) ma SENZA cloni/allocazioni intermedie:
+ * ritorna `false` non appena trova la prima differenza. Usata da `Form.tsx` per `isDirty` — a
+ * differenza di `createRecordSnapshot`/`cleanRecord` (clone ricorsivo completo + JSON.stringify
+ * dell'INTERO record, anche quando è cambiato un solo campo), qui il costo è proporzionale a
+ * quanto viaggia prima di trovare la prima differenza, tipicamente il campo appena editato. */
+export function recordsEqual(a: unknown, b: unknown): boolean {
+    if (a === b) return true;
+
+    if (a instanceof File || b instanceof File) {
+        return a instanceof File && b instanceof File && fileSignature(a) === fileSignature(b);
+    }
+
+    if (Array.isArray(a) || Array.isArray(b)) {
+        if (!Array.isArray(a) || !Array.isArray(b)) return false;
+        const aArr = a.filter((item) => item !== undefined);
+        const bArr = b.filter((item) => item !== undefined);
+        if (aArr.length !== bArr.length) return false;
+        for (let i = 0; i < aArr.length; i++) {
+            if (!recordsEqual(aArr[i], bArr[i])) return false;
+        }
+        return true;
+    }
+
+    const aIsObj = !!a && typeof a === 'object';
+    const bIsObj = !!b && typeof b === 'object';
+    if (aIsObj !== bIsObj) return false;
+    if (!aIsObj) return a === b;
+
+    const aRec = a as Record<string, unknown>;
+    const bRec = b as Record<string, unknown>;
+    const keys = new Set([...Object.keys(aRec), ...Object.keys(bRec)]);
+    for (const key of keys) {
+        if (!key) continue;
+        const av = aRec[key];
+        const bv = bRec[key];
+        if (av === undefined && bv === undefined) continue;
+        if (!recordsEqual(av, bv)) return false;
+    }
+    return true;
+}
+
 export const smartTypeCast = (value: unknown): string | number | boolean | null | undefined => {
     if (value === null || value === undefined || value === "" || typeof value !== "string") return value as string | number | boolean | null | undefined;
     if (/^(true|false)$/i.test(value)) return value.toLowerCase() === "true";

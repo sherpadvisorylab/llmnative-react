@@ -89,6 +89,7 @@
 | [CR-078](#cr-078--grid-filtri-toggle-nellheader-filters) | Grid — filtri toggle nell'header (`filters`) | Media | — | ✅ |
 | [CR-079](#cr-079--grid-pannello-filtri-selectmultiselectdaterangenumberrange-con-chip-rimovibili) | Grid — pannello filtri (select/multiselect/dateRange/numberRange) con chip rimovibili | Media | CR-078 | ✅ |
 | [CR-080](#cr-080--componentinput-richtextrangeurl) | Component.input: richtext/range/url | Media | CR-049 | ✅ |
+| [CR-081](#cr-081--form-sottoscrizione-selettiva-per-path) | Form: sottoscrizione selettiva per-path | Alta | — | 🔄 |
 
 ---
 
@@ -366,6 +367,79 @@ rimovibili sulla riga della ricerca — non più checkbox sparse inline.
 - [x] Follow-up (patch 1.8.1), da feedback UX diretto su un consumer: bottone Filtri icon-only affiancato alla search box (non più bottone con label separato) invece che dopo di essa; chip/badge dei filtri attivi ricostruiti con `Badge` + `ActionButton` reali (non più `<span>`/`<button>` custom) per cursore/focus coerenti; pannello filtri allargato a `size="md"` e le due date/i due numeri di `dateRange`/`numberRange` impilati verticalmente invece che affiancati, per non forzare uno scroll orizzontale del pannello
 - [x] Follow-up (patch 1.8.2): riordinati gli elementi accanto alla search box — il contatore "N / M" ora segue le chip dei filtri attivi invece di stare tra il bottone Filtri e le sue stesse chip (ordine: search+icona Filtri → chip attive → contatore)
 - [x] Follow-up (patch 1.8.3): il denominatore del contatore ora è sempre il totale NON filtrato (`preparedRecords.length`), non più il totale post-filtri — con un filtro attivo e nessun testo di ricerca il contatore leggeva sempre `120 / 120` (numeratore sempre uguale al denominatore), privo di significato; ora resta un riepilogo stabile "X di Y totali". Fix generale (non specifico ai filtri): le intestazioni colonna di `Table` non vanno più a capo (`whitespace-nowrap`)
+
+---
+
+## CR-081 — Form: sottoscrizione selettiva per-path
+
+**Stato:** 🔄 in progress
+**Issue:** [#25](https://github.com/sherpadvisorylab/llmnative-react/issues/25)
+**Priorità:** Alta
+**Dipende da:** —
+
+### Motivazione
+
+`useFormContext` (`Form.tsx`) espone il record del form tramite un React
+Context "piatto": il `value` del Provider (`formCtx`) si ricrea ad ogni
+keystroke su QUALUNQUE campo (per definizione, `record` è immutabile).
+React Context non fa subscription selettiva — ogni consumer di
+`useFormContext` nel form si ri-renderizza ad ogni carattere digitato,
+indipendentemente dal fatto che il proprio campo sia cambiato.
+
+Un consumer (`llmnative-cms`) ha riportato un lag di digitazione
+percepibile nell'editor di un Component con schema/variabili numerose,
+dove più campi (incluse istanze CodeMirror) restano montati nello stesso
+Form e si ri-renderizzano tutti ad ogni carattere digitato in uno solo di
+essi.
+
+### Scope
+
+- Store esterno per il record del Form (`useSyncExternalStore`, stesso
+  pattern già in uso in `form-controller.ts` per lo stato del
+  controller), sostituisce `useState` come sorgente di `record`.
+- `FormContext`'s value diventa stabile (porta il riferimento allo store,
+  non il record stesso) — la reattività passa da `useSyncExternalStore`
+  con selettore per-path, non più da `useContext`.
+- Nuovo parametro opzionale `subscribeToFullRecord?: boolean` su
+  `useFormContext` (default `false`, retrocompatibile) per i pochi
+  consumer che leggono cross-field: `Prompt.tsx` (interpolazione
+  `{{variabile}}` da qualunque campo del form).
+- Nessuna modifica al contratto pubblico per i consumer esistenti che
+  leggono solo il proprio path (la maggioranza — Input/Select/Upload/
+  CodeEditor/RichText/Repeat/LayoutBuilder/TabDynamic/
+  AddressAutocomplete, verificato via censimento).
+- Un consumer che si sottoscrive a un path "genitore" (non un leaf, es.
+  un blocco di campi annidati) continua a reagire a qualunque cambiamento
+  sotto quel path senza bisogno dell'opt-in: `applyChangeToRecord` clona
+  ogni container lungo il percorso dalla radice alla chiave finale,
+  quindi il valore al path genitore cambia riferimento comunque quando
+  un suo discendente cambia.
+
+### Checklist
+
+- [x] `createRecordStore` (useSyncExternalStore)
+- [x] `FormContext` value stabile (store, non record)
+- [x] `useFormContext` selettivo + opt-in `subscribeToFullRecord`
+- [x] Migrazione `Prompt.tsx`
+- [x] Test di regressione (nessun re-render cross-field senza opt-in) — `Form.selective-context.test.tsx`
+- [x] Test opt-in (re-render cross-field con opt-in, comportamento Prompt invariato)
+- [x] Test path-parent (reattività al subtree senza opt-in)
+- [x] `npx tsc --noEmit` — 0 errori
+- [x] `npm test` — 64 file, 704/704 verdi
+- [x] `npm run build` — bundle + dichiarazioni generati
+- [x] `npm pack --dry-run --json` — 216 entries
+- [x] Issue GitHub collegata (#25)
+- [ ] Versione SemVer (minor) e `npm publish` — sospeso finché non richiesto esplicitamente
+
+### Note
+
+Consumer CMS (`llmnative-cms`, repo sibling) migrati contestualmente allo stesso opt-in:
+`AreaEditorPage.tsx:243`, `PageEditorPage.tsx:546` (stesso pattern di `Prompt.tsx` — leggono
+l'intero record per decidere visibilità cross-field). Verificato anche
+`SchemaFieldRenderer.tsx` (CMS): nessuna migrazione necessaria, la sottoscrizione al path
+genitore copre già la reattività al subtree (vedi test path-parent sopra). CMS: `npx tsc
+--noEmit` 0 errori, `npx vitest run components pages areas sites` 184/184, suite completa
+344/345 (unico fallimento: test di integrazione AI live su provider esterno, non correlato).
 
 ---
 

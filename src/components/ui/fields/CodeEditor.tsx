@@ -468,6 +468,20 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
         currentValueRef.current = newValue;
         handleChange({ target: { name, value: newValue } });
     }, [handleChange, name]);
+    // BUG FISSATO: `onUpdate` è una dipendenza del mount-effect pesante di CodeMirror sotto
+    // (crea/distrugge l'intera `EditorView`) — ma `handleChange` (da cui `onUpdate` dipende)
+    // cambia identità ogni volta che il Form circostante rifà la validazione (es. dopo OGNI
+    // Save, anche quando non tocca affatto questo campo — vedi Form.tsx `setErrors({})`, che
+    // crea sempre un oggetto nuovo). Il risultato era che salvare un Component-o qualunque
+    // form con un CodeEditor dentro-faceva distruggere e ricreare l'editor sottostante ad ogni
+    // save: il box spariva per un istante e poi ricompariva con lo stesso contenuto (mai perso,
+    // solo un remount visibile). Tenere `onUpdate` in un ref sincronizzato ad ogni render (stesso
+    // pattern già usato per `commandSessionRef` sopra) e farlo leggere dal listener di CodeMirror
+    // invece che dalle dipendenze dell'effect elimina il remount: l'effect pesante ora dipende
+    // solo da cose che cambiano davvero la CONFIGURAZIONE dell'editor (lingua, extension,
+    // disabled, ...), mai dalla mera identità della callback di validazione a monte.
+    const onUpdateRef = useRef(onUpdate);
+    onUpdateRef.current = onUpdate;
 
     const closeCommandMenu = useCallback(() => {
         setCommandSession({
@@ -580,7 +594,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
                 viewTheme,
                 cm.EditorView.updateListener.of((update: { docChanged: boolean; state: { doc: { toString: () => string } } }) => {
                     if (update.docChanged) {
-                        onUpdate(update.state.doc.toString());
+                        onUpdateRef.current(update.state.doc.toString());
                     }
                 }),
                 ...(customExtensions ?? []),
@@ -717,7 +731,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
                 viewRef.current = null;
             }
         };
-    }, [closeCommandMenu, customExtensions, disabled, language, onUpdate, placeholder, resolvedCommandsTrigger]);
+    }, [closeCommandMenu, customExtensions, disabled, language, placeholder, resolvedCommandsTrigger]);
 
     useEffect(() => {
         const externalValue = (value as string) ?? '';

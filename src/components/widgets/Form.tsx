@@ -1,9 +1,9 @@
-import React, { createContext, useContext, useEffect, useState, useRef, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef, useCallback, useMemo, useSyncExternalStore } from 'react';
 import { flushSync } from 'react-dom';
 
 import { useLocation } from "react-router-dom";
 import { Wrapper } from "../ui/GridSystem";
-import { trimSlash, cleanRecord, normalizeKey, safeClone } from "../../libs/utils";
+import { trimSlash, cleanRecord, normalizeKey, safeClone, recordsEqual } from "../../libs/utils";
 import { useDataProvider } from "../../providers/data/DataProviderContext";
 import Card from "../ui/Card";
 import { ActionButton, BackLink, LoadingButton } from "../ui/Buttons";
@@ -31,9 +31,12 @@ export type ChangeHandler =
     | { target: { name: string; value?: FieldValue } };
 
 type FormHandleChange = (event: ChangeHandler) => void;
+// CR-081: il Context porta solo il riferimento allo store (stabile per tutta la vita del Form,
+// vedi createRecordStore sotto) e wrapperClassName — mai `record` direttamente, altrimenti il
+// `value` del Provider cambierebbe ad ogni keystroke come prima. La reattività per-campo passa
+// da useSyncExternalStore dentro useFormContext, non più da questo Context.
 interface FormProviderProps {
-    record: RecordProps | undefined;
-    setRecord: React.Dispatch<React.SetStateAction<RecordProps | undefined>>;
+    store: RecordStore;
     wrapperClassName?: string;
 }
 export type FieldOnChange = (params: {event: ChangeHandler, name: string, value: FieldValue, record: RecordProps, onChange: FormHandleChange}) => void;
@@ -47,6 +50,14 @@ interface FormContextProps {
     inputType?: InputType;
     defaultValue?: FieldValue;
     inheritWrapperClassName?: boolean;
+    /** Opt-in esplicito per i pochi consumer che leggono ALTRI campi del form (cross-field), non
+     * solo il proprio `name` — es. interpolazione `{{variabile}}` da qualunque campo (Prompt.tsx).
+     * Default `false`: il consumer si ri-renderizza solo quando cambia il proprio `name`, non ad
+     * ogni cambiamento nel form. Un consumer che sottoscrive un path "genitore" (non-leaf, es. un
+     * blocco di campi annidati) NON ha bisogno di questo flag: reagisce già a qualunque discendente
+     * cambi, perché applyChangeToRecord clona ogni container lungo il percorso dalla radice alla
+     * chiave finale, quindi il valore al path genitore cambia riferimento comunque. */
+    subscribeToFullRecord?: boolean;
 }
 interface FormContextResult {
     value: FieldValue;
@@ -169,14 +180,23 @@ export const useFieldValidation = (name: string, constraints: FieldValidationCon
     return ctx?.errors[name];
 };
 
-export const useFormContext = ({name, onChange, wrapperClassName, inputType = "text", defaultValue, inheritWrapperClassName = true}: FormContextProps): FormContextResult => {
+export const useFormContext = ({name, onChange, wrapperClassName, inputType = "text", defaultValue, inheritWrapperClassName = true, subscribeToFullRecord = false}: FormContextProps): FormContextResult => {
     const ctx = useContext(FormContext);
     if (!ctx) throw new Error("useFormContext must be used within a FormContext.Provider");
     if (!name) throw new Error("useFormContext: name is required");
 
     const validationCtx = useContext(FormValidationContext);
 
-    const value = useMemo(() => {
+    // CR-081: selettore per-path invece di leggere l'intero record — getSnapshot ritorna lo
+    // STESSO riferimento di prima quando il percorso `name` non è stato toccato dall'ultimo
+    // edit (applyChangeToRecord clona solo il ramo del path scritto, mai i fratelli), quindi
+    // useSyncExternalStore fa bail-out del re-render con Object.is, esattamente il meccanismo
+    // che un useContext puro non può offrire. `subscribeToFullRecord` è l'opt-in esplicito per i
+    // pochi consumer che devono reagire a QUALUNQUE campo (vedi il commento su
+    // FormContextProps.subscribeToFullRecord).
+    const getSnapshot = useCallback(() => {
+        const record = ctx.store.getRecord();
+        if (subscribeToFullRecord) return record ?? EMPTY_RECORD;
         const currentValue = name.split(".").reduce<FieldValue | undefined>(
             (acc, key) => {
                 if (acc === null || acc === undefined) return undefined;
@@ -187,18 +207,24 @@ export const useFormContext = ({name, onChange, wrapperClassName, inputType = "t
                 if (typeof acc !== 'object') return undefined;
                 return (acc as RecordProps)[key];
             },
-            ctx.record
+            record
         );
-        if (currentValue === undefined && defaultValue !== undefined) {
+        return currentValue;
+    }, [ctx.store, name, subscribeToFullRecord]);
+
+    const rawValue = useSyncExternalStore(ctx.store.subscribe, getSnapshot);
+
+    const value = useMemo(() => {
+        if (rawValue === undefined && defaultValue !== undefined) {
             return defaultValue ?? '';
         }
-        return currentValue ?? '';
-    }, [name, ctx.record, defaultValue]);
+        return (rawValue as FieldValue | undefined) ?? '';
+    }, [rawValue, defaultValue]);
 
     const handleChange = useCallback((event: ChangeHandler) => {
         validationCtx?.clearFieldError(event.target.name);
         let nextRecord: RecordProps | undefined;
-        ctx.setRecord((prev) => {
+        ctx.store.setRecord((prev) => {
             nextRecord = applyChangeToRecord(prev, event, inputType);
             return nextRecord;
         });
@@ -208,16 +234,16 @@ export const useFormContext = ({name, onChange, wrapperClassName, inputType = "t
             value: event.target.value,
             record: nextRecord ?? {},
             onChange: (nextEvent) => {
-                ctx.setRecord((prev) => applyChangeToRecord(prev, nextEvent, inputType));
+                ctx.store.setRecord((prev) => applyChangeToRecord(prev, nextEvent, inputType));
             }
         });
-    }, [validationCtx, ctx.setRecord, onChange, name, inputType]);
+    }, [validationCtx, ctx.store, onChange, name, inputType]);
 
     return {
         value,
         handleChange,
         formWrapClass: [wrapperClassName, inheritWrapperClassName ? ctx.wrapperClassName : undefined].filter(Boolean).join(" "),
-        record: ctx.record ?? {},
+        record: (subscribeToFullRecord ? rawValue as RecordProps : ctx.store.getRecord()) ?? {},
     };
 };
 
@@ -494,6 +520,45 @@ const parseDraftRecord = (raw: string | null): RecordProps | undefined => {
     return undefined;
 };
 
+// CR-081: store esterno per il record del Form, stesso pattern già in uso in form-controller.ts
+// (useSyncExternalStore). Prima `record` viveva in un useState di FormData e veniva propagato ai
+// campi tramite un React Context il cui `value` si ricreava ad ogni keystroke — React Context non
+// fa subscription selettiva, quindi OGNI consumer di useFormContext (anche su un campo diverso da
+// quello appena editato) si ri-renderizzava ad ogni carattere digitato in QUALUNQUE punto del
+// form. Spostare il record in questo store disaccoppia "chi possiede il dato" (questo store) da
+// "chi lo consuma" (useFormContext, sotto, con un selettore per-path via useSyncExternalStore) —
+// FormData stesso continua a sottoscriversi con un selettore identità (nessun cambio di
+// comportamento per la sua logica interna: isDirty, draft, controllerStore, handleSave restano
+// tutti invariati, solo la fonte del dato cambia da useState a questo store).
+type RecordUpdater = RecordProps | undefined | ((prev: RecordProps | undefined) => RecordProps | undefined);
+interface RecordStore {
+    getRecord: () => RecordProps | undefined;
+    setRecord: (updater: RecordUpdater) => void;
+    subscribe: (listener: () => void) => () => void;
+}
+function createRecordStore(initial: RecordProps | undefined): RecordStore {
+    let record = initial;
+    const listeners = new Set<() => void>();
+    return {
+        getRecord: () => record,
+        setRecord: (updater) => {
+            record = typeof updater === 'function'
+                ? (updater as (prev: RecordProps | undefined) => RecordProps | undefined)(record)
+                : updater;
+            listeners.forEach((listener) => listener());
+        },
+        subscribe: (listener) => {
+            listeners.add(listener);
+            return () => listeners.delete(listener);
+        },
+    };
+}
+// Riferimento stabile per il selettore "record intero" (subscribeToFullRecord) quando il record è
+// undefined — mai un `{}` letterale nuovo ad ogni chiamata di getSnapshot, altrimenti
+// useSyncExternalStore vedrebbe uno snapshot "diverso" ad ogni render (Object.is su due oggetti
+// letterali distinti è sempre false) e ri-renderizzerebbe all'infinito.
+const EMPTY_RECORD: RecordProps = {};
+
 const FormData = ({
     children,
     appearance = undefined,
@@ -526,7 +591,13 @@ const FormData = ({
     const formController = useFormController(controller);
     const controllerStore = getFormControllerStore(formController);
 
-    const [record, setRecord] = useState<RecordProps | undefined>(defaultValues);
+    const recordStoreRef = useRef<RecordStore | undefined>(undefined);
+    if (!recordStoreRef.current) recordStoreRef.current = createRecordStore(defaultValues);
+    const recordStore = recordStoreRef.current;
+    // Selettore identità: FormData possiede il record, deve reagire a QUALSIASI cambiamento —
+    // stesso identico comportamento di prima (`useState`), solo la fonte del dato cambia.
+    const record = useSyncExternalStore(recordStore.subscribe, recordStore.getRecord);
+    const setRecord = recordStore.setRecord;
     const [isSaving, setIsSaving] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const isNewRecord = !defaultValues?.[RECORD_KEY];
@@ -551,9 +622,18 @@ const FormData = ({
 
     const canSave = Boolean(onSave || path || !isNewRecord);
     const canDelete = Boolean(onDelete || !isNewRecord);
+    // BUG FISSATO: girava `createRecordSnapshot` (clone ricorsivo completo di TUTTO il record +
+    // JSON.stringify) dentro un useMemo con `record` come dep — quindi ad OGNI keystroke su
+    // QUALUNQUE campo, anche il più piccolo, anche quando il record contiene blocchi di codice
+    // lunghi (Template/CSS/JS) e uno schema esteso. Non può diventare debounced (un test esistente,
+    // Form.test.tsx "lets an external button reuse native dirty state...", verifica che il
+    // bottone Save si abiliti SINCRONAMENTE subito dopo un change, senza waitFor) — quindi la
+    // comparazione resta sincrona, ma `recordsEqual` (stessa semantica di normalizzazione di
+    // cleanRecord, nessuna allocazione) esce alla prima differenza trovata invece di clonare e
+    // serializzare l'intero albero ad ogni carattere.
     const isDirty = useMemo(
-        () => createRecordSnapshot(record) !== baselineSnapshot,
-        [record, baselineSnapshot]
+        () => !recordsEqual(record, baselineRecordRef.current),
+        [record, baselineRecordRef.current]
     );
     const noChangesToSave = dict.noChangesToSave ?? 'No changes to save';
     const draftRestoreTitle = dict.draftRestoreTitle ?? 'Unsaved changes found';
@@ -904,7 +984,10 @@ const FormData = ({
         errors,
     }), [registerField, unregisterField, clearFieldError, errors]);
 
-    const formCtx = useMemo(() => ({ record, setRecord, wrapperClassName: "mb-3" as const }), [record, setRecord]);
+    // CR-081: `store` è stabile per tutta la vita del Form (creato una sola volta in un ref) —
+    // questo `useMemo` quindi non ricrea più `formCtx` ad ogni keystroke come prima (quando
+    // dipendeva da `record`), eliminando il fan-out di re-render sui consumer di useFormContext.
+    const formCtx = useMemo(() => ({ store: recordStore, wrapperClassName: "mb-3" as const }), [recordStore]);
 
     const components = useMemo(() => (
         <FormControllerContext.Provider value={formController}>
