@@ -2,7 +2,7 @@
 import { useTheme } from "../../Theme";
 import { useI18n, interpolate } from "../../I18n";
 import { Prompt as PromptConf, PromptVariables, PROMPT_CLEANUP, PROMPT_NO_REFERENCE } from '../../conf/Prompt';
-import { type AIProviderCapabilities, type AIProviderAdapter, type AIRequestOptions, type AIAttachment, parseAIModelRef, formatAIModelRef } from '../../providers/ai/AIProvider';
+import { type AIProviderCapabilities, type AIProviderAdapter, type AIRequestOptions, type AIAttachment, parseAIModelRef } from '../../providers/ai/AIProvider';
 import { useAIProvider, useAIProviderRegistry } from '../../providers/ai/AIProviderContext';
 import { getAIModelCatalog } from '../../providers/ai/shared';
 import { RecordProps } from '../../providers/data/DataProvider';
@@ -438,9 +438,19 @@ const PromptRun = ({
     const [runStats, setRunStats] = useState<PromptRunStats | null>(null);
     const ai = useAIProvider();
     const aiRegistry = useAIProviderRegistry();
-    const defaultModelRef = (typeof localStorage !== 'undefined' && localStorage.getItem('prompt.model'))
-        || (ai ? formatAIModelRef(ai.id, ai.defaultModel) : '');
     const { modelOptions } = usePromptCapabilities();
+    // BUG FISSATO: ricadeva sul `defaultModel` hardcoded del provider (scritto a mano nel file
+    // del provider framework) sia quando localStorage era vuoto, sia — implicitamente — anche
+    // quando conteneva un modello NON PIÙ presente nel catalogo live (nessuna validazione contro
+    // `modelOptions`). I modelli disponibili cambiano lato provider molto più spesso di quanto
+    // un default scritto nel codice possa restare aggiornato; un default sempre "vero" (anche
+    // quando stantio) nasconde silenziosamente il problema invece di far scegliere all'utente
+    // un modello che esiste DAVVERO oggi. Ora: nessun fallback al defaultModel — se il valore in
+    // localStorage non è (più) tra i modelli disponibili, la selezione resta vuota, e
+    // `usePromptAvailability` sotto la tratta come "non configurato" finché l'utente non ne
+    // sceglie uno esplicitamente dal menu (che poi lo ri-salva in localStorage).
+    const storedModelRef = typeof localStorage !== 'undefined' ? localStorage.getItem('prompt.model') : null;
+    const defaultModelRef = storedModelRef && modelOptions.some((m) => m.value === storedModelRef) ? storedModelRef : '';
     const resolvedPromptOptions = React.useMemo(
         () => buildPromptOptions(value?.prompt, defaultValue),
         [defaultValue, value?.prompt],
@@ -449,7 +459,14 @@ const PromptRun = ({
     const selectedModelRef = resolvedPromptOptions.model || defaultModelRef;
     const fieldId = useId();
     const availability = usePromptAvailability(selectedModelRef, Boolean(onRunPrompt));
-    const runDisabled = !availability.configured;
+    // BUG FISSATO: `availability.configured` verifica solo che UN provider abbia credenziali
+    // valide, mai che un MODELLO sia stato scelto — con `defaultModelRef` ora potenzialmente
+    // vuoto (vedi sopra), senza questo `selectedModelRef` check il Run restava abilitato e la
+    // richiesta partiva con `model: ''`, facendo rientrare silenziosamente il defaultModel
+    // hardcoded dentro AIProvider.complete() (shared.ts). Non si applica quando c'è un
+    // `onRunPrompt` custom (executor esterno, che potrebbe non aver bisogno di un modello AI
+    // affatto — vedi il bypass in usePromptAvailability sopra).
+    const runDisabled = !availability.configured || (!onRunPrompt && !selectedModelRef);
     const [runError, setRunError] = useState<string | null>(null);
     const customUnavailableNotice = !runError && !availability.configured
         ? renderAIUnavailable?.({

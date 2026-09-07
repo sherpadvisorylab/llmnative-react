@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.1] - 2026-09-07
+
+### Fixed
+- `Prompt` (RUN mode): no longer falls back to the provider's hardcoded
+  `defaultModel` when no model is explicitly selected. Previously, a
+  `localStorage['prompt.model']` value from a model that's no longer in
+  the live catalog (or no stored value at all) silently resolved to
+  `ai.defaultModel` — a value hand-written in the provider's own file,
+  which goes stale every time the provider's actually-available models
+  change upstream (far more often than the code gets updated). Now: the
+  stored model is validated against the live catalog on every render: if
+  it's missing or no longer listed, the selection stays empty and Run
+  stays disabled until the user picks a model that's genuinely available
+  today — same principle already applied to Agentico's own model catalog
+  and composer in the `llmnative-cms` consumer.
+
 ## [1.10.0] - 2026-09-07
 
 ### Added

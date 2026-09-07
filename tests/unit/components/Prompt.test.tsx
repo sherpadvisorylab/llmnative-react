@@ -291,11 +291,26 @@ describe('Prompt', () => {
             </AIProvider>
         );
 
-        fireEvent.click(screen.getByRole('button', { name: /Run/i }));
+        // CR-081-adjacent fix: Prompt no longer falls back to a hardcoded defaultModel when no
+        // model is explicitly selected (localStorage empty, no per-field model saved) — Run stays
+        // disabled until a model is chosen, so this test (which exercises complete() throwing,
+        // not model-selection UX) pre-selects the one available model exactly as a real user
+        // would after choosing it once from the dropdown.
+        localStorage.setItem('prompt.model', 'failing/default');
+        try {
+            // The model catalog resolves asynchronously (usePromptCapabilities) — Run stays
+            // disabled until 'failing/default' is confirmed present in modelOptions.
+            await waitFor(() => {
+                expect(screen.getByRole('button', { name: /Run/i })).not.toBeDisabled();
+            });
+            fireEvent.click(screen.getByRole('button', { name: /Run/i }));
 
-        await waitFor(() => {
-            expect(screen.getByText('Provider exploded')).toBeInTheDocument();
-        });
+            await waitFor(() => {
+                expect(screen.getByText('Provider exploded')).toBeInTheDocument();
+            });
+        } finally {
+            localStorage.removeItem('prompt.model');
+        }
     });
 
     it('opens slash commands from the textarea and applies the highlighted command with Enter', async () => {
