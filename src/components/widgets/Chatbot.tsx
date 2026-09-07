@@ -75,6 +75,13 @@ export interface ChatbotProps {
     models?: ChatbotModelOption[];
     selectedModel?: string;
     onModelChange?: (id: string) => void;
+    /** Testo del trigger del selettore modello quando `selectedModel` è vuoto — default
+     * `dict.defaultOption` ("Default"), la stessa stringa generica riusata dagli altri
+     * selettori (ruolo/lingua/voce/stile). Un consumer che non fornisce mai un default
+     * automatico per il modello (nessun `defaultModel` implicito, l'utente DEVE scegliere)
+     * può passare qui un testo più esplicito, es. "Scegli un modello…", senza dover
+     * cambiare `dict.defaultOption` per tutti gli altri selettori. */
+    modelPlaceholder?: string;
     /** Dropdown ruolo/lingua/voce/stile/temperatura — stato interno non controllato
      * (seedato da default*), incluso nel payload di ogni submit. Default `false`: un
      * consumer di chat libera (Agentico) non ne ha bisogno. */
@@ -116,6 +123,7 @@ export function Chatbot({
     models = [],
     selectedModel,
     onModelChange,
+    modelPlaceholder,
     showSettings = false,
     defaultRole = '',
     defaultVoice = '',
@@ -398,7 +406,7 @@ export function Chatbot({
 
                     {models.length > 0 && (
                         <Dropdown
-                            trigger={{ icon: 'cpu', text: modelLabel ?? dict.defaultOption }}
+                            trigger={{ icon: 'cpu', text: modelLabel ?? modelPlaceholder ?? dict.defaultOption }}
                             placement="top"
                             position="start"
                             triggerClassName={chatbotModelTrigger}
