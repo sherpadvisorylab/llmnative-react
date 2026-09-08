@@ -39,7 +39,24 @@ export interface SideNavProps {
     menuKey?: string;
     /** Explicit items — alternative to menuKey */
     items?: SideNavItemDef[];
+    /** Initial collapsed state for UNCONTROLLED usage (ignored once `collapsed` is passed —
+     * see below). Default false. */
     defaultCollapsed?: boolean;
+    /**
+     * Controlled collapsed state — pass this (together with `onCollapsedChange`) when the
+     * consumer needs to decide collapse state itself, e.g. auto-collapsing to icon-only once
+     * its own layout detects the content area has gotten too narrow (a sibling panel opened,
+     * a responsive breakpoint, ...). SideNav has no notion of viewport/layout on its own by
+     * design (a reusable block can't assume what surrounds it) — the consumer computes the
+     * decision and controls this component the standard React way. Omit both props (the
+     * default) for the previous uncontrolled behavior, driven entirely by the footer toggle
+     * button and `defaultCollapsed`. */
+    collapsed?: boolean;
+    /** Required together with `collapsed` — called with the next value on every user action
+     * that would otherwise flip internal state (the footer toggle button). The consumer owns
+     * the state and decides whether/how to apply it (e.g. only honoring the toggle when its
+     * own auto-collapse condition isn't currently forcing collapsed). */
+    onCollapsedChange?: (collapsed: boolean) => void;
     /** Show icon slot. Default true. */
     showIcons?: boolean;
     /** Show collapse/expand toggle button in the footer. Default true. */
@@ -302,6 +319,8 @@ export default function SideNav({
     menuKey,
     items: itemsProp,
     defaultCollapsed = false,
+    collapsed: collapsedProp,
+    onCollapsedChange,
     showIcons = true,
     showCollapseButton = true,
     footer,
@@ -313,7 +332,15 @@ export default function SideNav({
     const menuItems = useMenu(menuKey ?? '');
     const resolvedItems: SideNavItemDef[] = itemsProp ?? (menuKey ? mapMenuItems(menuItems) : []);
 
-    const [collapsed, setCollapsed] = useState(defaultCollapsed);
+    const isControlled = collapsedProp !== undefined;
+    const [uncontrolledCollapsed, setUncontrolledCollapsed] = useState(defaultCollapsed);
+    const collapsed: boolean = collapsedProp !== undefined ? collapsedProp : uncontrolledCollapsed;
+    const setCollapsed = useCallback((updater: boolean | ((prev: boolean) => boolean)) => {
+        const next = typeof updater === 'function' ? updater(collapsed) : updater;
+        if (isControlled) onCollapsedChange?.(next);
+        else setUncontrolledCollapsed(next);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isControlled, collapsed, onCollapsedChange]);
     const [hovered, setHovered] = useState(false);
     const [openItems, setOpenItems] = useState<Set<string>>(new Set());
     const leaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);

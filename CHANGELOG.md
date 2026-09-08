@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.11.0] - 2026-09-08
+
+### Added
+- `SideNav`: new optional controlled-collapse props `collapsed`/
+  `onCollapsedChange`, standard controlled/uncontrolled component pattern.
+  Omitting both keeps the previous behavior unchanged (internal state
+  driven by `defaultCollapsed` and the footer toggle button). Passing them
+  lets a consumer decide the collapsed state itself — e.g. auto-collapsing
+  to icon-only once its own layout detects the content area has gotten too
+  narrow (a sibling panel opened, a responsive breakpoint reached) — since
+  `SideNav` has no notion of viewport/layout on its own by design (a
+  reusable block can't assume what surrounds it). The footer toggle button
+  still works when controlled: it calls `onCollapsedChange` instead of
+  flipping internal state, so the consumer stays the single source of
+  truth.
+
 ## [1.10.3] - 2026-09-08
 
 ### Added
