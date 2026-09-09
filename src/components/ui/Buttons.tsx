@@ -193,7 +193,7 @@ export const ActionButton = ({
             {before}
             <span
                 title={disabled ? title : undefined}
-                style={disabled ? { cursor: 'not-allowed', display: 'inline-flex' } : undefined}
+                style={disabled ? { cursor: 'not-allowed' } : undefined}
             >
                 <BadgeOverlay badge={badge}>{button}</BadgeOverlay>
             </span>
