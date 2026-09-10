@@ -157,7 +157,13 @@ sulla stessa card tramite `Grid`.
       `npm pack --dry-run --json` (216 entries)
 - [x] `cd clients/showcase && npm run build` — verde
 - [x] Issue GitHub collegata (#26)
-- [ ] Versione SemVer (minor) e `npm publish` — 1.12.0, pubblicazione in corso
+- [x] Versione SemVer (minor) e `npm publish` — 1.12.0 pubblicata su npm, verificata via `npm view`
+
+### Note
+
+Consumer CMS (`llmnative-cms`, repo sibling) migra su questa capability separatamente
+(bump dipendenza a `^1.12.0`, poi Library/Site Components unificate sulla stessa card
+tramite `views.gallery.renderItem`) — commit CMS autonomo, non incluso qui.
 
 ---
 
