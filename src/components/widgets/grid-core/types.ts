@@ -1,7 +1,7 @@
 ﻿import React from "react";
 import { type OrderConfig } from "../../../libs/order";
 import { type PaginationParams } from "../../ui/Pagination";
-import { type GalleryOverlay } from "../../ui/Gallery";
+import { type GalleryItemRenderContext, type GalleryOverlay } from "../../ui/Gallery";
 import { type DatabaseOptions, type RecordProps } from "../../../providers/data/DataProvider";
 
 export type GridLayout = "table" | "gallery";
@@ -78,6 +78,14 @@ export type GridGalleryViewConfig<TRecord> = {
      * simply stack, with the custom overlay rendered first.
      */
     overlays?: GalleryOverlay[];
+    /**
+     * Full replacement for a card's default content (image + `fields`/`overlays`) — for a card
+     * with no image at all (icon/text/badges), forwarded to `<Gallery renderItem>`. Mutually
+     * exclusive in effect with `fields`/`overlays`: when set, `Gallery` renders ONLY this for
+     * every item (see `GalleryItemRender`'s doc comment in `ui/Gallery.tsx`) — `fields`/`overlays`
+     * are ignored, not merged, since there is no default image left to overlay them onto.
+     */
+    renderItem?: (record: TRecord, index: number, ctx: GalleryItemRenderContext) => React.ReactNode;
 };
 
 /**
@@ -561,5 +569,7 @@ export type GridGalleryViewProps<TRecord extends RecordProps> = {
     columns?: 1 | 2 | 3 | 4 | 6;
     /** Overlay badges/render-props for each card — forwarded to `<Gallery overlays>`. */
     overlays?: GalleryOverlay[];
+    /** Full replacement for a card's default content — forwarded to `<Gallery renderItem>`. */
+    renderItem?: (record: TRecord, index: number, ctx: GalleryItemRenderContext) => React.ReactNode;
 };
 

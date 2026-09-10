@@ -99,6 +99,7 @@ export default defineLocaleMessages({
                     items: {
                         table: { tab: 'Table', title: 'تخطيط الجدول', description: 'السطح الافتراضي للقوائم. يستخدم نفس records الموجودة في gallery tab، لذلك يكون التغيير الوحيد هو السطح.' },
                         gallery: { tab: 'Gallery', title: 'تخطيط المعرض', description: 'نفس records ولكنها معروضة كبطاقات. تبقى التسميات والترتيب والبيانات متوافقة مع table tab.' },
+                        customCard: { tab: 'Gallery (بطاقة مخصصة)', title: 'بطاقة مخصصة، بدون صورة', description: 'views.gallery.renderItem (يُمرَّر إلى Gallery، انظر صفحة Gallery) يستبدل بطاقة الصورة الافتراضية بالكامل — لبطاقة بدون أي صورة (أيقونة، نص، badge)، بنفس records الموجودة في التبويبات الأخرى.' },
                     },
                 },
             },

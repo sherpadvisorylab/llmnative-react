@@ -24,6 +24,10 @@ export default defineLocaleMessages({
                     title: 'Grouped and paged',
                     description: 'Pass a field name to groupBy to group cards into labelled sections. Pairing it with sortable on the same field clusters records naturally. Pass an array for multi-level grouping.',
                 },
+                customCard: {
+                    title: 'Custom card (no image)',
+                    description: 'renderItem fully replaces an item\'s default image + overlays with your own markup — for a card with no image at all (icon, text, badges). Selection, click-handling and grid sizing stay owned by Gallery.',
+                },
             },
             labels: {
                 assets: 'Assets',
@@ -83,6 +87,7 @@ export default defineLocaleMessages({
                         status: { label: 'status', help: 'Status-oriented overlays.' },
                         brand: { label: 'brand', help: 'Category-based brand badge.' },
                     } },
+                    renderItem: { description: 'Replaces an item\'s entire default content (image + overlays) with custom markup — for a card with no image. Selection checkbox, click-handling and grid sizing stay owned by Gallery.' },
                     onRowClick: { description: 'Called when the user clicks a record card.' },
                     onSelectionChange: { description: 'Called whenever selected items change. When provided, selection checkboxes appear automatically.' },
                     selectedKeys: { description: 'Controlled selection state shared with external bulk commands.' },

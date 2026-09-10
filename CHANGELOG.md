@@ -9,6 +9,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.12.0] - 2026-09-10
+
+### Added
+- `Gallery`: new optional `renderItem` prop — fully replaces an item's default
+  content (the mandatory `<img>` + `overlays`) with custom markup, for a card
+  with no image at all (icon/text/badges). Selection checkbox, click-handling
+  (bubbling to `onRowClick`, same bail-out on interactive descendants as the
+  default image) and grid item sizing stay owned by `Gallery`. Purely additive
+  and backward compatible: omitting it leaves every existing `img`/`thumbnail`/
+  `overlays` consumer unaffected.
+- `Grid`/`GridCore`: `views.gallery.renderItem` threads the same capability
+  through `GridGalleryView` — when set, it takes over the card entirely
+  (`fields`/`overlays` are not computed/merged, since there is no default image
+  left for them to sit on).
+- (CR-082)
+
+## [1.11.1] - 2026-09-10
+
+### Fixed
+- `ActionButton`: the disabled-only wrapper switched `display` to
+  `inline-flex`, which establishes its own formatting context and shrinks
+  to fit content — a button with `className="w-full"` (or
+  `wrapperClassName`) correctly stretched to its container while enabled,
+  then visibly shrank the instant it became disabled (e.g. during an async
+  submit). Dropped the display override (keeping only the disabled
+  cursor), matching the enabled case's default inline layout.
+
 ## [1.11.0] - 2026-09-08
 
 ### Added

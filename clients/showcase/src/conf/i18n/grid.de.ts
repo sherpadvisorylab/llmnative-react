@@ -99,6 +99,7 @@ export default defineLocaleMessages({
                     items: {
                         table: { tab: 'Table', title: 'Table-Layout', description: 'Die Standardflaeche fuer Listen. Sie verwendet dieselben Records wie der Gallery-Tab, sodass nur die Oberflaeche wechselt.' },
                         gallery: { tab: 'Gallery', title: 'Gallery-Layout', description: 'Dieselben Records werden als Karten gerendert. Labels, Reihenfolge und Daten bleiben mit dem Table-Tab abgestimmt.' },
+                        customCard: { tab: 'Gallery (eigene Karte)', title: 'Eigene Karte, ohne Bild', description: 'views.gallery.renderItem (an Gallery weitergereicht, siehe die Gallery-Seite) ersetzt die standardmaessige bildbasierte Karte vollstaendig — fuer eine Karte ganz ohne Bild (Icon, Text, Badges), dieselben Records wie in den anderen Tabs.' },
                     },
                 },
             },

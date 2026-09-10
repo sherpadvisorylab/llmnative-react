@@ -24,6 +24,10 @@ export default defineLocaleMessages({
                     title: 'Raggruppata e paginata',
                     description: 'Passa un nome campo a groupBy per raggruppare le card in sezioni etichettate. Abbinandolo a sortable sullo stesso campo ottieni cluster naturali. Passa un array per raggruppamenti multi-livello.',
                 },
+                customCard: {
+                    title: 'Card personalizzata (senza immagine)',
+                    description: 'renderItem sostituisce interamente l immagine + gli overlay di default di un item con markup arbitrario — per una card senza alcuna immagine (icona, testo, badge). Selezione, gestione del click e sizing della griglia restano gestiti da Gallery.',
+                },
             },
             labels: {
                 assets: 'Asset',
@@ -83,6 +87,7 @@ export default defineLocaleMessages({
                         status: { label: 'status', help: 'Overlay orientati allo stato.' },
                         brand: { label: 'brand', help: 'Badge brand basato sulla categoria.' },
                     } },
+                    renderItem: { description: 'Sostituisce interamente il contenuto di default di un item (immagine + overlay) con markup personalizzato — per una card senza immagine. Checkbox di selezione, gestione del click e sizing della griglia restano gestiti da Gallery.' },
                     onRowClick: { description: 'Chiamata quando l utente clicca una card record.' },
                     onSelectionChange: { description: 'Chiamata ogni volta che cambia la selezione. Quando presente, le checkbox di selezione compaiono automaticamente.' },
                     selectedKeys: { description: 'Stato di selezione controllato condiviso con comandi bulk esterni.' },

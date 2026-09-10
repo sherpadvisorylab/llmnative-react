@@ -24,6 +24,10 @@ export default defineLocaleMessages({
                     title: 'Gruppiert und paginiert',
                     description: 'Uebergib einen Feldnamen an groupBy, um Karten in beschriftete Bereiche zu gruppieren. Mit sortable auf demselben Feld entstehen natuerliche Cluster. Fuer mehrstufige Gruppierung kann ein Array uebergeben werden.',
                 },
+                customCard: {
+                    title: 'Eigene Karte (ohne Bild)',
+                    description: 'renderItem ersetzt das Standardbild + die Overlays eines Items vollstaendig durch eigenes Markup — fuer eine Karte ganz ohne Bild (Icon, Text, Badges). Auswahl, Klick-Handling und Grid-Groessenberechnung bleiben bei Gallery.',
+                },
             },
             labels: {
                 assets: 'Assets',
@@ -83,6 +87,7 @@ export default defineLocaleMessages({
                         status: { label: 'status', help: 'Statusbezogene Overlays.' },
                         brand: { label: 'brand', help: 'Kategoriebezogenes Brand-Badge.' },
                     } },
+                    renderItem: { description: 'Ersetzt den gesamten Standardinhalt eines Items (Bild + Overlays) durch eigenes Markup — fuer eine Karte ohne Bild. Auswahl-Checkbox, Klick-Handling und Grid-Groessenberechnung bleiben bei Gallery.' },
                     onRowClick: { description: 'Wird aufgerufen, wenn der Benutzer auf eine Datensatzkarte klickt.' },
                     onSelectionChange: { description: 'Wird bei jeder Aenderung der Auswahl aufgerufen. Wenn gesetzt, erscheinen Auswahl-Checkboxen automatisch.' },
                     selectedKeys: { description: 'Kontrollierter Auswahlstatus fuer externe Bulk-Aktionen.' },

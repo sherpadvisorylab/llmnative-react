@@ -99,6 +99,7 @@ export default defineLocaleMessages({
                     items: {
                         table: { tab: 'Table', title: 'Table layout', description: 'Поверхность по умолчанию для списков. Она использует те же records, что и gallery tab, поэтому меняется только способ отображения.' },
                         gallery: { tab: 'Gallery', title: 'Gallery layout', description: 'Те же records, но отрисованные как карточки. Метки, порядок и данные остаются согласованными с table tab.' },
+                        customCard: { tab: 'Gallery (своя card)', title: 'Своя card, без изображения', description: 'views.gallery.renderItem (передаётся в Gallery, см. страницу Gallery) полностью заменяет card на основе изображения по умолчанию — для card вообще без изображения (иконка, текст, badge), те же records, что и в других tab.' },
                     },
                 },
             },

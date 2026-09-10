@@ -35,6 +35,23 @@ const ASSET_DEFS = [
     { _key: 'guide', nameKey: 'guide', categoryKey: 'docs', statusKey: 'draft', color: '475569', accent: 'cbd5e1' },
 ] as const;
 
+/** No `<img>` at all — a bordered card (icon-like color swatch + name + category + status
+ * badge) demonstrating `renderItem` (CR-082): the escape hatch for a card with no image,
+ * replacing `Gallery`'s default `<img>` + `overlays` entirely. `isSelected` comes straight from
+ * the render context `Gallery` passes in — no local selection bookkeeping needed here. */
+function AssetCard({ asset, isSelected }: { asset: GalleryAsset; isSelected: boolean }) {
+    return (
+        <div className={`flex items-center gap-3 rounded-lg border p-3 text-left transition-colors ${isSelected ? 'border-primary ring-1 ring-primary' : 'border-border hover:border-foreground/30'}`}>
+            <div className="h-9 w-9 shrink-0 rounded-md" style={{ background: `#${asset.color}` }} />
+            <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold">{asset.name}</p>
+                <p className="truncate text-xs text-muted-foreground">{asset.category}</p>
+            </div>
+            <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium uppercase">{asset.status}</span>
+        </div>
+    );
+}
+
 function svgAsset(name: string, color: string, accent: string) {
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="320" height="220" viewBox="0 0 320 220"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#${color}"/><stop offset="1" stop-color="#111827"/></linearGradient></defs><rect width="320" height="220" rx="18" fill="url(#g)"/><circle cx="256" cy="54" r="34" fill="#${accent}" opacity=".36"/><rect x="22" y="24" width="170" height="10" rx="5" fill="#fff" opacity=".22"/><rect x="22" y="164" width="220" height="16" rx="8" fill="#fff" opacity=".18"/><rect x="22" y="188" width="148" height="10" rx="5" fill="#fff" opacity=".26"/><text x="22" y="118" font-family="Arial" font-size="24" font-weight="700" fill="white">${name}</text></svg>`;
     return `data:image/svg+xml,${encodeURIComponent(svg)}`;
@@ -127,6 +144,9 @@ function GalleryPlaygroundPreview({
                 footer={p.footer || undefined}
                 sortable={p.sortable}
                 overlays={Array.isArray(p.overlays) ? p.overlays : undefined}
+                renderItem={p.renderItem ? (item, _index, ctx) => (
+                    <AssetCard asset={item as unknown as GalleryAsset} isSelected={ctx.isSelected} />
+                ) : undefined}
                 selectedKeys={selectionEnabled ? playgroundSelectedKeys : undefined}
                 onSelectionChange={selectionEnabled ? ((selection) => {
                     setPlaygroundSelectedKeys(selection.keys);
@@ -191,6 +211,14 @@ export default function GalleryPage() {
   when?: Record<string, unknown>;
   className?: string;
 }>` },
+        {
+            name: 'renderItem', type: 'GalleryItemRender', description: t.propsDocs.items.renderItem.description, control: 'boolean',
+            shape: `type GalleryItemRender = (
+  item: GalleryRecord,
+  index: number,
+  ctx: { isSelected: boolean; toggleSelection: () => void }
+) => ReactNode`,
+        },
         { name: 'onRowClick', type: '(record: GalleryRecord) => void', description: t.propsDocs.items.onRowClick.description },
         {
             name: 'onSelectionChange',
@@ -259,6 +287,7 @@ type GallerySelectionState = ${GALLERY_SELECTION_STATE_TYPE}`,
             columns: '2',
             groupBy: '',
             selectedClassName: '',
+            renderItem: false,
         },
         render: (p) => <GalleryPlaygroundPreview p={p} t={t} seedAssets={assets} />,
     }), [assets, galleryProps, t]);
@@ -435,6 +464,36 @@ const [exportOpen, setExportOpen] = useState(false);
   sortable={{ field: 'category', dir: 'asc' }}
   groupBy={['category', 'status']}
   columns={2}
+/>`}
+            />
+
+            <Section
+                title={t.sections.customCard.title}
+                description={t.sections.customCard.description}
+                preview={
+                    <Gallery
+                        records={assets as unknown as GalleryRecord[]}
+                        header={t.labels.assets}
+                        columns={2}
+                        selectedKeys={selectedKeys}
+                        onSelectionChange={(selection) => setSelectedKeys(selection.keys)}
+                        renderItem={(item, _index, ctx) => (
+                            <AssetCard asset={item as unknown as GalleryAsset} isSelected={ctx.isSelected} />
+                        )}
+                    />
+                }
+                code={`<Gallery
+  records={records}
+  selectedKeys={selectedKeys}
+  onSelectionChange={(selection) => setSelectedKeys(selection.keys)}
+  renderItem={(item, index, { isSelected, toggleSelection }) => (
+    <div onClick={toggleSelection} className={isSelected ? 'ring-1 ring-primary' : ''}>
+      <span style={{ background: item.color }} />
+      <p>{item.name}</p>
+      <p>{item.category}</p>
+      <span>{item.status}</span>
+    </div>
+  )}
 />`}
             />
 

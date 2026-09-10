@@ -99,6 +99,7 @@ export default defineLocaleMessages({
                     items: {
                         table: { tab: 'Table', title: '表格布局', description: '列表的默认展示表面。它与 gallery tab 使用相同的 records，因此唯一变化的就是表面。' },
                         gallery: { tab: 'Gallery', title: '画廊布局', description: '同样的 records，但以 card 形式渲染。标签、顺序和数据依旧与 table tab 保持对齐。' },
+                        customCard: { tab: 'Gallery（自定义卡片）', title: '自定义卡片，无图片', description: 'views.gallery.renderItem（转发给 Gallery，参见 Gallery 页面）完全替换默认的基于图片的 card —— 用于完全没有图片的 card（图标、文字、badge），与其他 tab 使用相同的 records。' },
                     },
                 },
             },

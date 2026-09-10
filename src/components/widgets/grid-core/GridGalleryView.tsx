@@ -19,6 +19,7 @@ function GridGalleryView<TRecord extends RecordProps>({
     after,
     columns,
     overlays,
+    renderItem,
 }: GridGalleryViewProps<TRecord>) {
     const getRecordKey = useMemo(() => getRecordKeyResolver(recordId), [recordId]);
     const sourceByKey = useMemo(() => {
@@ -42,6 +43,7 @@ function GridGalleryView<TRecord extends RecordProps>({
         <Gallery
             records={keyedRecords}
             overlays={overlays}
+            renderItem={renderItem ? (record, index, ctx) => renderItem(record as TRecord, index, ctx) : undefined}
             sortable={sortable}
             pagination={pagination}
             selectedKeys={selection ? selectedKeys : undefined}

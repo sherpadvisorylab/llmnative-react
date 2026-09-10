@@ -209,3 +209,93 @@ describe('Gallery overlays', () => {
     });
 });
 
+describe('Gallery renderItem', () => {
+    it('replaces the default image + overlays entirely — no <img>, custom content only', () => {
+        renderWithI18n(
+            <Gallery
+                records={body}
+                overlays={[{ position: 'topRight', badge: 'ignored-when-renderItem-is-set' }]}
+                renderItem={(item) => <div data-testid={`card-${item._key}`}>{item.name}</div>}
+            />
+        );
+
+        expect(screen.queryByRole('img')).not.toBeInTheDocument();
+        expect(screen.queryByText('ignored-when-renderItem-is-set')).not.toBeInTheDocument();
+        expect(screen.getByTestId('card-hero')).toHaveTextContent('Hero');
+        expect(screen.getByTestId('card-launch')).toHaveTextContent('Launch');
+    });
+
+    it('routes a click anywhere in the custom card to onRowClick (no image to anchor the click to)', () => {
+        const clicks: string[] = [];
+
+        renderWithI18n(
+            <Gallery
+                records={body}
+                onRowClick={(record) => clicks.push(record._key || '')}
+                renderItem={(item) => <div>{item.name}</div>}
+            />
+        );
+
+        fireEvent.click(screen.getByText('Hero'));
+        expect(clicks).toEqual(['hero']);
+    });
+
+    it('does not let a click on an interactive descendant (e.g. a button) trigger onRowClick', () => {
+        const clicks: string[] = [];
+
+        renderWithI18n(
+            <Gallery
+                records={body}
+                onRowClick={(record) => clicks.push(record._key || '')}
+                renderItem={(item) => <button type="button">{item.name}</button>}
+            />
+        );
+
+        fireEvent.click(screen.getByRole('button', { name: 'Hero' }));
+        expect(clicks).toEqual([]);
+    });
+
+    it('passes isSelected/toggleSelection through the render context and keeps them in sync with selection state', () => {
+        const selections: string[][] = [];
+
+        renderWithI18n(
+            <Gallery
+                records={body}
+                onSelectionChange={(selection) => selections.push(selection.keys)}
+                renderItem={(item, _index, ctx) => (
+                    <button type="button" onClick={ctx.toggleSelection} data-selected={ctx.isSelected}>
+                        {item.name}
+                    </button>
+                )}
+            />
+        );
+
+        const heroButton = screen.getByRole('button', { name: 'Hero' });
+        expect(heroButton).toHaveAttribute('data-selected', 'false');
+
+        fireEvent.click(heroButton);
+
+        expect(selections.at(-1)).toEqual(['hero']);
+        expect(screen.getByRole('button', { name: 'Hero' })).toHaveAttribute('data-selected', 'true');
+    });
+
+    it('re-renders fresh custom content when the record changes (no stale cache across renders)', () => {
+        const { rerender } = renderWithI18n(
+            <Gallery records={body} renderItem={(item) => <div>{item.name}</div>} />
+        );
+        expect(screen.getByText('Hero')).toBeInTheDocument();
+
+        rerender(
+            <I18nProvider>
+                <Gallery
+                    records={[{ ...body[0], name: 'Hero Renamed' }, body[1]]}
+                    renderItem={(item) => <div>{item.name}</div>}
+                />
+            </I18nProvider>
+        );
+
+        expect(screen.queryByText('Hero')).not.toBeInTheDocument();
+        expect(screen.getByText('Hero Renamed')).toBeInTheDocument();
+    });
+});
+

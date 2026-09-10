@@ -460,6 +460,11 @@ function GridCore<TRecord extends RecordProps>({
     // `position` (default "bottomLeft") into one overlay block per position; positions
     // used by both `overlays` and `fields` simply stack (custom overlay rendered first).
     const resolvedGalleryOverlays: GalleryOverlay[] | undefined = useMemo(() => {
+        // `renderItem` replaces the card's content entirely — there is no default image left
+        // for `fields`/`overlays` to sit on top of, so computing them here would be dead work
+        // `Gallery` will never render anyway (it ignores `overlays` whenever `renderItem` is
+        // passed, see Gallery.tsx).
+        if (galleryViewConfig.renderItem) return undefined;
         const fieldOverlays: GalleryOverlay[] = [];
         if (visibleGalleryFields.length) {
             const byPosition = new Map<string, GridGalleryField<TRecord>[]>();
@@ -486,7 +491,7 @@ function GridCore<TRecord extends RecordProps>({
         }
         const combined = [...(galleryViewConfig.overlays ?? []), ...fieldOverlays];
         return combined.length ? combined : undefined;
-    }, [galleryViewConfig.overlays, visibleGalleryFields]);
+    }, [galleryViewConfig.overlays, galleryViewConfig.renderItem, visibleGalleryFields]);
     const { mode: selectionMode, activeSelectionKeys, selectionState, handleSelectionChange } = useGridSelection({ selection });
     const {
         normalizedActions,
@@ -756,6 +761,7 @@ function GridCore<TRecord extends RecordProps>({
                         after={after}
                         columns={galleryViewConfig.columns}
                         overlays={resolvedGalleryOverlays}
+                        renderItem={galleryViewConfig.renderItem}
                     />
                 ) : (
                     <GridTableView

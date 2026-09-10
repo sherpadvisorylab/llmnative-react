@@ -99,6 +99,7 @@ export default defineLocaleMessages({
                     items: {
                         table: { tab: 'Table', title: 'Table layout', description: 'The default surface for lists. It uses the same records as the gallery tab so the only change is the surface.' },
                         gallery: { tab: 'Gallery', title: 'Gallery layout', description: 'The same records rendered as cards. Labels, order and data stay aligned with the table tab.' },
+                        customCard: { tab: 'Gallery (custom card)', title: 'Custom card, no image', description: 'views.gallery.renderItem (forwarded to Gallery, see the Gallery page) replaces the default image-based card entirely — for a card with no image at all (icon, text, badges), same records as the other tabs.' },
                     },
                 },
             },

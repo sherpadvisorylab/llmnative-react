@@ -55,6 +55,19 @@ export type GalleryOverlay = {
     style?: React.CSSProperties;
 };
 
+export interface GalleryItemRenderContext {
+    isSelected: boolean;
+    toggleSelection: () => void;
+}
+
+/** Full replacement for an item's default content (`<img>` + `overlays`) — for a card with no
+ * image at all (icon/text/badges). The selection checkbox, click-handling (bubbling from
+ * whatever's clicked inside up to `onRowClick`, same bail-out on interactive descendants as the
+ * default image) and the grid item's own sizing stay owned by `Gallery`; only what goes INSIDE
+ * that box is up to the caller. Purely additive: omitting it leaves every existing
+ * `img`/`thumbnail`/`overlays` consumer unaffected. */
+export type GalleryItemRender = (item: GalleryRecord, index: number, ctx: GalleryItemRenderContext) => React.ReactNode;
+
 type GalleryRenderedRecord =
     | { kind: "item"; item: GalleryRecord; index: number }
     | { kind: "group"; groupName: string; items: Array<{ item: GalleryRecord; index: number }> };
@@ -77,6 +90,9 @@ export interface GalleryProps extends UIProps {
     footer?: string | React.ReactNode;
     /** Overlay badges rendered on each gallery item. */
     overlays?: GalleryOverlay[];
+    /** Replaces an item's entire default content (image + overlays) with custom markup — see
+     * `GalleryItemRender`. Omit for the existing image-based card. */
+    renderItem?: GalleryItemRender;
     onRowClick?: (record: GalleryRecord) => void;
     onSelectionChange?: GallerySelectionChangeHandler;
     /** Enable sorting, optionally with a default sort config. */
@@ -99,6 +115,7 @@ const Gallery = ({
     header = undefined,
     footer = undefined,
     overlays = undefined,
+    renderItem = undefined,
     onRowClick = undefined,
     onSelectionChange = undefined,
     sortable = false,
@@ -353,11 +370,20 @@ const Gallery = ({
         return visuals;
     }, [getRecordKey, onRowClick, overlays]);
 
-    const renderItem = (index: number, item: GalleryRecord) => {
+    const renderGalleryItem = (index: number, item: GalleryRecord) => {
         const recordKey = getRecordKey(item, index);
         const isSelected = activeSelectedKeys.includes(recordKey);
         const activeClasses = activeClass?.split(/\s+/).filter(Boolean) || [];
-        const visuals = getItemVisuals(item, index);
+        // Default path (no `renderItem`) keeps its own memoized image/overlays exactly as
+        // before. Custom path renders fresh every time — no cache: unlike the mandatory
+        // `<img>` clone/overlay-position computation this exists to avoid, a caller's own card
+        // is typically a handful of cheap elements, and adding `isSelected` (which changes on
+        // every selection toggle, not just record/index) to the cache-key comparison would
+        // buy little for the extra bookkeeping.
+        const visuals = renderItem ? null : getItemVisuals(item, index);
+        const customContent = renderItem
+            ? renderItem(item, index, { isSelected, toggleSelection: () => toggleSelection(item, index) })
+            : null;
 
         return (
             <div
@@ -368,7 +394,16 @@ const Gallery = ({
                     maxWidth: itemWidth,
                 }}
             >
-                <div className="relative overflow-hidden rounded-lg">
+                <div
+                    className={cn("relative", !renderItem && "overflow-hidden rounded-lg", renderItem && onRowClick && "cursor-pointer")}
+                    // The default path's click target is the `<img>` itself (see `getImage`) —
+                    // deliberately unchanged here, existing consumers keep the exact same click
+                    // region. A custom card has no mandatory image to anchor a click handler to,
+                    // so for THAT path only, the whole box becomes the click target — same
+                    // `handleClick` (bails out on A/BUTTON/INPUT/LABEL descendants, so the card's
+                    // own interactive elements still work untouched).
+                    onClick={renderItem && onRowClick ? (e) => handleClick(e, item) : undefined}
+                >
                     {showSelection && (
                         <label className="absolute left-3 top-3 z-20 inline-flex items-center rounded bg-background/90 px-2 py-1 shadow-sm">
                             <input
@@ -380,8 +415,7 @@ const Gallery = ({
                             />
                         </label>
                     )}
-                    {visuals.image}
-                    {visuals.overlays}
+                    {renderItem ? customContent : (<>{visuals!.image}{visuals!.overlays}</>)}
                 </div>
             </div>
         );
@@ -446,11 +480,11 @@ const Gallery = ({
                                                         {record.groupName}
                                                     </h3>
                                                     <div className={cn("flex flex-wrap items-center")} style={{ gap: itemGap }}>
-                                                        {record.items.map(({ item, index }) => renderItem(index, item))}
+                                                        {record.items.map(({ item, index }) => renderGalleryItem(index, item))}
                                                     </div>
                                                 </section>
                                             )
-                                            : renderItem(record.index, record.item)
+                                            : renderGalleryItem(record.index, record.item)
                                     ))}
                                 </div>
                             </div>

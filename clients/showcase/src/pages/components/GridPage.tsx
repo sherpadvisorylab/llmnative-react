@@ -2593,6 +2593,50 @@ const [selectedRecords, setSelectedRecords] = useState<RecordArray>([]);
   pagination={{ limit: 4, align: "end", sticky: false }}
 />`,
                     },
+                    {
+                        label: t.examples.layout.items.customCard.tab,
+                        title: t.examples.layout.items.customCard.title,
+                        description: t.examples.layout.items.customCard.description,
+                        preview: (
+                            <GridArray
+                                records={layoutRecords}
+                                recordId="_key"
+                                wrapperClassName="w-full"
+                                view="gallery"
+                                pagination={{ limit: 4, align: 'end', sticky: false }}
+                                views={{ gallery: { renderItem: (record: UserRecord) => (
+                                    <div className="flex items-center gap-3 rounded-lg border p-3 text-left">
+                                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-semibold uppercase">
+                                            {record.name.slice(0, 2)}
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <p className="truncate text-sm font-semibold">{record.name}</p>
+                                            <p className="truncate text-xs text-muted-foreground">{record.team} · {record.city}</p>
+                                        </div>
+                                        <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium uppercase">{record.role}</span>
+                                    </div>
+                                ) } }}
+                            />
+                        ),
+                        code: `<GridArray
+  records={records}
+  recordId="_key"
+  view="gallery"
+  pagination={{ limit: 4, align: "end", sticky: false }}
+  views={{
+    gallery: {
+      renderItem: (record) => (
+        <div>
+          <span>{record.name.slice(0, 2)}</span>
+          <p>{record.name}</p>
+          <p>{record.team} · {record.city}</p>
+          <span>{record.role}</span>
+        </div>
+      ),
+    },
+  }}
+/>`,
+                    },
                 ]}
             />
 

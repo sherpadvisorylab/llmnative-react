@@ -12,6 +12,7 @@ export default defineLocaleMessages({
                 recordClick: { title: 'Record click', description: 'onRowClick now receives the clicked record, so consumers can use record._key directly.' },
                 bulkSelection: { title: 'Bulk selection', description: 'Gallery mirrors Table semantics: selectedKeys controls selection, and onSelectionChange exposes the selected records. External bulk commands stay outside the component.' },
                 groupedPaged: { title: 'Grouped and paged', description: 'Pass a field name to groupBy to group cards into labelled sections. Pairing it with sortable on the same field clusters records naturally. Pass an array for multi-level grouping.' },
+                customCard: { title: 'Custom card (no image)', description: 'renderItem fully replaces an item\'s default image + overlays with your own markup — for a card with no image at all (icon, text, badges). Selection, click-handling and grid sizing stay owned by Gallery.' },
             },
             labels: {
                 assets: 'Assets',
@@ -63,6 +64,7 @@ export default defineLocaleMessages({
                     footer: { description: 'Footer content below the gallery.' },
                     sortable: { description: 'Gallery has no sortable header UI, but you can pass an OrderConfig object to sort the incoming record set before rendering.' },
                     overlays: { description: 'Overlay rules based on position and record filters.' },
+                    renderItem: { description: 'Replaces an item\'s entire default content (image + overlays) with custom markup — for a card with no image. Selection checkbox, click-handling and grid sizing stay owned by Gallery.' },
                     onRowClick: { description: 'Called when the user clicks a record card.' },
                     onSelectionChange: { description: 'Called whenever selected items change. When provided, selection checkboxes appear automatically.' },
                     selectedKeys: { description: 'Controlled selection state shared with external bulk commands.' },

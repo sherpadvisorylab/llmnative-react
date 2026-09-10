@@ -90,6 +90,74 @@
 | [CR-079](#cr-079--grid-pannello-filtri-selectmultiselectdaterangenumberrange-con-chip-rimovibili) | Grid — pannello filtri (select/multiselect/dateRange/numberRange) con chip rimovibili | Media | CR-078 | ✅ |
 | [CR-080](#cr-080--componentinput-richtextrangeurl) | Component.input: richtext/range/url | Media | CR-049 | ✅ |
 | [CR-081](#cr-081--form-sottoscrizione-selettiva-per-path) | Form: sottoscrizione selettiva per-path | Alta | — | ✅ |
+| [CR-082](#cr-082--gallery-renderitem-custom-item-renderer) | Gallery: `renderItem` (custom item renderer) | Media | — | ✅ |
+
+---
+
+## CR-082 — Gallery: `renderItem` (custom item renderer)
+
+**Stato:** ✅ done — rilasciato in 1.12.0
+**Issue:** [#26](https://github.com/sherpadvisorylab/llmnative-react/issues/26)
+**Priorità:** Media
+**Dipende da:** —
+
+### Motivazione
+
+`Gallery` (e `views.gallery` di `Grid`/`GridCore`) renderizza sempre un'immagine come
+base della card (`getImage()` — fallback a un pixel trasparente se `item.thumbnail`
+è assente), con `overlays` come badge assoluti sopra. Non esiste un modo di
+sostituire l'intera card con contenuto arbitrario (es. una card senza immagine:
+icona + testo + badge).
+
+Un consumer (`llmnative-cms`) ha due gallerie per lo stesso tipo di elemento
+(Component) rese diversamente per questo vincolo — una scritta a mano fuori da
+`Grid`, una tramite `Grid`/`Gallery` con thumbnail sintetico — e vuole unificarle
+sulla stessa card tramite `Grid`.
+
+### Scope
+
+- Nuova prop opzionale `renderItem` su `Gallery` (`GalleryItemRender`), additiva e
+  retrocompatibile: quando presente, sostituisce interamente `<img>` + `overlays`
+  di quell'item. Checkbox di selezione, click-handling e sizing di griglia restano
+  gestiti da `Gallery`.
+- Threading attraverso `GridGalleryViewConfig<TRecord>`/`GridGalleryViewProps<TRecord>`
+  (`grid-core/types.ts`) → `GridGalleryView.tsx` → `GridCore.tsx`
+  (`views.gallery.renderItem`).
+- Il path custom (`renderItem` presente) NON usa la cache `visualCacheRef`
+  esistente (quella resta invariata per il path di default) — renderizzato
+  fresco a ogni giro, deliberatamente: a differenza del clone/posizionamento
+  dell'`<img>` che quella cache esiste per evitare, il contenuto di un
+  consumer è tipicamente pochi elementi economici, e mettere in cache-key
+  anche `isSelected` (che cambia a ogni toggle selezione, non solo per
+  record/index) avrebbe comprato poco a fronte della bookkeeping in più.
+- Nessuna modifica al contratto pubblico esistente: `overlays`/`img`/`thumbnail`
+  restano invariati quando `renderItem` è assente.
+
+### Checklist
+
+- [x] `GalleryItemRender`/`GalleryItemRenderContext` in `Gallery.tsx`
+- [x] Threading in `grid-core/types.ts` / `GridGalleryView.tsx` / `GridCore.tsx`
+- [x] Export pubblico dei tipi da `src/index.ts` (via `export * from './ui/Gallery'`
+      in `components/index.ts` — già copriva `GalleryOverlay`, copre anche i nuovi
+      tipi automaticamente; `GridGalleryViewProps`/`GridGalleryViewConfig` erano
+      già esportati per nome, `renderItem` vi si aggiunge senza altre modifiche)
+- [x] Test `Gallery.test.tsx` (niente `<img>` quando `renderItem` è presente,
+      selezione/click invariati, click su discendente interattivo non propaga,
+      contenuto sempre fresco — 5 nuovi test)
+- [x] Test `Grid.test.tsx` — prima copertura end-to-end di `view="gallery"`
+      con `views.gallery.renderItem` (3 nuovi test; ha anche scoperto e corretto
+      un mock del tema del file di test errato — mai esercitato prima da nessun
+      test esistente, da qui il gap)
+- [x] Showcase: nuova Section "Custom card (no image)" in `GalleryPage.tsx`
+      (`AssetCard`, niente `<img>`), `PropDocsTable` (`renderItem`, control
+      boolean), toggle nel Playground, i18n (ar/de/en/it/ru/zh); nuovo tab
+      "Gallery (custom card)" in `GridPage.tsx` con lo stesso pattern, i18n
+      6 lingue
+- [x] `npx tsc --noEmit` (0 errori), `npm test` (64 file, 713/713), `npm run build`,
+      `npm pack --dry-run --json` (216 entries)
+- [x] `cd clients/showcase && npm run build` — verde
+- [x] Issue GitHub collegata (#26)
+- [ ] Versione SemVer (minor) e `npm publish` — 1.12.0, pubblicazione in corso
 
 ---
 

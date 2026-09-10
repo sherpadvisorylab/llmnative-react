@@ -21,6 +21,13 @@ vi.mock('../../../src/Theme', () => ({
         Badge:         { className: '' },
         Alert:         { className: '' },
         Table:         { wrapClass: '', scrollClass: '', className: '', headerClass: '', bodyClass: '', footerClass: '', selectedClass: '' },
+        // `Gallery.tsx` calls `useTheme("gallery")`, but this mock's `useTheme` ignores its
+        // `_scope` arg like the real one (see Theme.tsx) and always returns this WHOLE object —
+        // so `theme.Gallery.*` inside `Gallery.tsx` reads THIS top-level key, not `Grid.Gallery`
+        // below (that one is Grid's own copy, read directly by `GridCore.tsx` when it forwards
+        // `wrapperClassName` to `<GridGalleryView>`). Missing until the gallery-view tests below
+        // (CR-082) — no prior Grid test ever actually mounted `<Gallery>` through `Grid`.
+        Gallery:       { wrapperClassName: '', scrollClassName: '', headerClassName: '', bodyClassName: '', footerClassName: '', selectedClassName: '', className: '', gap: 2, rowCols: 3 },
         Pagination:    { wrapClass: '', className: '', stickyClass: '', scrollToTop: false, scrollBehavior: 'auto', maxItems: 5, sticky: false, align: 'end' },
         Select:        { wrapClass: '', className: '' },
         Autocomplete:  { wrapClass: '', className: '' },
@@ -33,7 +40,7 @@ vi.mock('../../../src/Theme', () => ({
         Grid: {
             i18n: { buttonAdd: 'Add', headerAdd: 'Add record', headerEdit: 'Edit record' },
             Table:   { wrapClass: '', className: '', headerClass: '', bodyClass: '', footerClass: '', scrollClass: '', selectedClass: '' },
-            Gallery: { wrapClass: '', scrollClass: '', headerClass: '', bodyClass: '', footerClass: '', selectedClass: '', gutterSize: 0, rowCols: 3 },
+            Gallery: { wrapperClassName: '', scrollClassName: '', headerClassName: '', bodyClassName: '', footerClassName: '', selectedClassName: '', className: '', gap: 2, rowCols: 3 },
             Card:    { className: '', headerClass: '', bodyClass: '', footerClass: '' },
             Modal:   { size: 'md', position: 'center', wrapClass: '', className: '', headerClass: '', titleClass: '', bodyClass: '', footerClass: '' },
         },
@@ -784,6 +791,67 @@ describe('Grid - filters', () => {
             expect(screen.getByText('Gizmo')).toBeInTheDocument();
             expect(screen.queryByText('Widget')).not.toBeInTheDocument();
             expect(screen.queryByText('Gadget')).not.toBeInTheDocument();
+        });
+    });
+});
+
+// BUG FISSATO (2026-09-10): `view="gallery"` non aveva MAI una copertura end-to-end da `Grid` —
+// solo `GridGalleryView`/`Gallery` erano testati isolatamente. Prima copertura reale del percorso
+// `Grid` → `views.gallery` → `GridGalleryView` → `Gallery`, verificando anche che il nuovo
+// `renderItem` (CR-082) arrivi fino in fondo invariato.
+describe('Grid - gallery view', () => {
+    const CARDS = [
+        { _key: 'c1', name: 'Widget' },
+        { _key: 'c2', name: 'Gadget' },
+    ];
+
+    it('renders custom card content via views.gallery.renderItem, reaching Gallery through GridCore/GridGalleryView', async () => {
+        renderWithProviders(
+            <Grid
+                view="gallery"
+                records={CARDS}
+                recordId="_key"
+                views={{ gallery: { renderItem: (record) => <div data-testid={`card-${record._key}`}>{record.name}</div> } }}
+            />
+        );
+
+        await waitFor(() => {
+            expect(screen.getByTestId('card-c1')).toHaveTextContent('Widget');
+            expect(screen.getByTestId('card-c2')).toHaveTextContent('Gadget');
+        });
+        expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    });
+
+    it('routes onRowClick through the custom card the same way as the default image-based card', async () => {
+        const clicks: string[] = [];
+        renderWithProviders(
+            <Grid
+                view="gallery"
+                records={CARDS}
+                recordId="_key"
+                onRowClick={(record) => clicks.push(record._key as string)}
+                views={{ gallery: { renderItem: (record) => <div>{record.name}</div> } }}
+            />
+        );
+
+        await waitFor(() => expect(screen.getByText('Widget')).toBeInTheDocument());
+        fireEvent.click(screen.getByText('Widget'));
+        expect(clicks).toEqual(['c1']);
+    });
+
+    it('falls back to the default image-based card when renderItem is not set (existing overlays behavior unaffected)', async () => {
+        renderWithProviders(
+            <Grid
+                view="gallery"
+                records={CARDS}
+                recordId="_key"
+                views={{ gallery: { overlays: [{ position: 'topRight', badge: 'tag' }] } }}
+            />
+        );
+
+        await waitFor(() => {
+            expect(screen.getAllByText('tag')).toHaveLength(2);
+            expect(screen.getAllByRole('img')).toHaveLength(2);
         });
     });
 });

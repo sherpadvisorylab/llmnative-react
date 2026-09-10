@@ -99,6 +99,7 @@ export default defineLocaleMessages({
                     items: {
                         table: { tab: 'Table', title: 'Layout tabella', description: 'La superficie predefinita per le liste. Usa gli stessi record del tab gallery, quindi cambia solo la superficie.' },
                         gallery: { tab: 'Gallery', title: 'Layout gallery', description: 'Gli stessi record renderizzati come card. Etichette, ordine e dati restano allineati al tab table.' },
+                        customCard: { tab: 'Gallery (card personalizzata)', title: 'Card personalizzata, senza immagine', description: 'views.gallery.renderItem (inoltrato a Gallery, vedi la pagina Gallery) sostituisce interamente la card basata su immagine di default — per una card senza alcuna immagine (icona, testo, badge), stessi record degli altri tab.' },
                     },
                 },
             },
