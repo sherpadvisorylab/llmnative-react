@@ -468,6 +468,11 @@ export const components: Theme = {
         wrapperClassName: '',
         className: '',
     },
+    Repeat: {
+        itemClassName: '',
+        inlineItemClassName: '',
+        addButtonClassName: '',
+    },
 };
 
 const definition: ThemeDefinition = { preset, motion, components };

@@ -141,6 +141,7 @@ package-lock.json
 .env
 .cursor
 .claude
+.mcp.json
 
 # Local dot-directories (escluse quelle che devono stare in git)
 .*/

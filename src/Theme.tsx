@@ -169,6 +169,21 @@ export interface GalleryTheme {
     rowCols?: 1 | 2 | 3 | 4 | 6;
 }
 
+export interface RepeatTheme {
+    /** Extra classes merged (via twMerge — later wins on conflicting utilities) onto the
+     * per-item shell of every `Repeat`, on top of its hardcoded default (rounded card + border).
+     * Applies app-wide to every `Repeat`, regardless of `layout`. */
+    itemClassName?: string;
+    /** Same as `itemClassName`, but only for `layout="inline"` — merged AFTER `itemClassName`, so
+     * it wins on any conflicting utility. Lets a consumer keep the bordered/carded look for
+     * `horizontal`/`vertical` repeats (e.g. content list fields) while flattening only the compact
+     * inline ones (e.g. inline chip-like rows nested inside an already-bordered popover/card). */
+    inlineItemClassName?: string;
+    /** Extra classes merged onto the "Add" button rendered when `label` + `labelPosition="bottom"`
+     * are set. */
+    addButtonClassName?: string;
+}
+
 export interface ModalTheme {
     size?: "sm" | "md" | "lg" | "xl" | "fullscreen";
     position?: "center" | "top" | "left" | "right" | "bottom";
@@ -362,6 +377,7 @@ export interface ThemeConfig {
         wrapperClassName?: string;
         className?: string;
     };
+    Repeat?: RepeatTheme;
 }
 
 type DeepRequired<T> = {

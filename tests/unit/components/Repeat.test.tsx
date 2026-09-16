@@ -34,6 +34,7 @@ vi.mock('../../../src/Theme', () => ({
             Card:    { className: '', headerClass: '', bodyClass: '', footerClass: '' },
             Modal:   { size: 'md', position: 'center', wrapClass: '', className: '', headerClass: '', titleClass: '', bodyClass: '', footerClass: '' },
         },
+        Repeat: { itemClassName: '', inlineItemClassName: '', addButtonClassName: '' },
     })),
     ThemeProvider: ({ children }: any) => children,
 }));

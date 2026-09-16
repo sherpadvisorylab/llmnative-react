@@ -3,6 +3,7 @@ import { ActionButton } from './Buttons';
 import { FieldOnChange, setFormFieldsName, useFormContext } from '../widgets/Form';
 import { RecordProps } from '../../providers/data/DataProvider';
 import { cn } from '../../libs/cn';
+import { useTheme } from '../../Theme';
 
 export interface RepeatCallbackArgs {
     record: RecordProps;
@@ -27,7 +28,6 @@ interface RepeatProps {
     readOnly?: boolean;
 }
 
-const itemShellClass = "rounded-xl border border-border/60 bg-card/80 shadow-sm";
 const itemHeaderClass = "flex items-center justify-between gap-3 border-b border-border/50 px-3 py-2";
 const itemIndexClass = "text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground";
 const itemBodyClass = "px-3 py-3";
@@ -50,6 +50,8 @@ const Repeat = ({
 }: RepeatProps) => {
     const { value, handleChange } = useFormContext({ name, onChange });
     const records = Array.isArray(value) ? value as RecordProps[] : [];
+    const theme = useTheme('repeat');
+    const itemShellClass = cn("rounded-xl border border-border/60 bg-card/80 shadow-sm", theme.Repeat.itemClassName);
 
     const renderChildren = (index: number, wrapperClassName?: string) => {
         return setFormFieldsName({
@@ -84,7 +86,7 @@ const Repeat = ({
                 return <></>
             case 'inline':
                 return (
-                    <div className={cn(itemShellClass, "px-3 py-2")}>
+                    <div className={cn(itemShellClass, "px-3 py-2", theme.Repeat.inlineItemClassName)}>
                         <div className="flex items-start gap-2">
                             <div className="flex-1 min-w-0">
                                 {renderChildren(index, '!mb-0')}
@@ -135,7 +137,10 @@ const Repeat = ({
                         icon='plus'
                         label={label}
                         variant='link'
-                        className="w-full justify-start gap-1 rounded-lg border border-dashed border-border/60 px-3 py-2 text-sm text-muted-foreground hover:border-border hover:bg-muted/40 hover:text-foreground"
+                        className={cn(
+                            "w-full justify-start gap-1 rounded-lg border border-dashed border-border/60 px-3 py-2 text-sm text-muted-foreground hover:border-border hover:bg-muted/40 hover:text-foreground",
+                            theme.Repeat.addButtonClassName,
+                        )}
                         onClick={handleAdd}
                     />
                 );
@@ -144,12 +149,12 @@ const Repeat = ({
                 icon='plus'
                 label={label ? undefined : 'Add'}
                 variant={label ? 'link' : 'secondary'}
-                className={label ? 'h-8 w-8 rounded-lg p-0 text-muted-foreground hover:bg-muted/50 hover:text-foreground' : undefined}
+                className={label ? cn('h-8 w-8 rounded-lg p-0 text-muted-foreground hover:bg-muted/50 hover:text-foreground', theme.Repeat.addButtonClassName) : undefined}
                 onClick={handleAdd}
             />
         }
         return null;
-    }, [readOnly, maxItems, components.length, label, labelPosition]);
+    }, [readOnly, maxItems, components.length, label, labelPosition, theme.Repeat.addButtonClassName]);
 
     return (
         <div className={cn("space-y-3", className)}>

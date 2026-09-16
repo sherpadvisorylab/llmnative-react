@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.13.0] - 2026-09-16
+
+### Added
+- `Repeat`: new theme section (`theme.Repeat`) with `itemClassName` (applies to
+  every item shell), `inlineItemClassName` (applies only when
+  `layout="inline"`, merged after `itemClassName` so it wins on conflicting
+  utilities — lets a consumer flatten the compact inline variant, e.g. inside
+  an already-bordered popover, while keeping the carded look for
+  `horizontal`/`vertical` repeats) and `addButtonClassName` (the "Add" button
+  shown when `label` + `labelPosition="bottom"` are set). Purely additive:
+  every field defaults to `''` in the built-in themes (`default`/`flat`/
+  `cyber`), so omitting a `themeOverride.Repeat` entry keeps prior behavior
+  unchanged.
+
 ## [1.12.0] - 2026-09-10
 
 ### Added
