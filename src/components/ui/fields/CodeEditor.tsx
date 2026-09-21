@@ -228,6 +228,18 @@ export interface CodeEditorProps extends FormFieldProps {
     feedback?: string;
     labelClassName?: string;
     validateSyntax?: boolean;
+    /** Overrides the built-in `language`-based syntax check used by `validateSyntax` — for a
+     * consumer whose content embeds a foreign template syntax inside `language` (e.g. Liquid
+     * tags inside a `'css'` block: `.x { color: {{ tone | default: "#000" }}; }`). The stock
+     * single-language parser has no notion of the embedded syntax and false-positives on it
+     * (a `|` filter pipe isn't valid CSS). Receives the current raw value and must return the
+     * same shape as `getCodeValidationResult`; typically that means running the embedded
+     * syntax's OWN parser (e.g. Liquid via `getCodeValidationResult(code, 'liquid')`, which
+     * only inspects `{{ }}`/`{% %}` tags and ignores surrounding text) plus the base language's
+     * parser against a copy with the foreign tags masked out (same length, so reported
+     * line/column stay accurate) — see `getCodeValidationResult`. Omit to keep the default
+     * `language`-only check unchanged. */
+    validate?: (code: string) => Promise<CodeValidationResult>;
     validator?: (value: FieldValue) => string | undefined | Promise<string | undefined>;
     extensions?: unknown[];
     commands?: EditorCommand[];
@@ -367,6 +379,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
     feedback,
     labelClassName,
     validateSyntax = true,
+    validate,
     validator,
     extensions: customExtensions,
     commands,
@@ -390,13 +403,11 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
             const nextValue = typeof fieldValue === 'string' ? fieldValue : `${fieldValue ?? ''}`;
 
             if (validateSyntax) {
-                try {
-                    await validateCodeSyntax(nextValue, language);
-                } catch (validationError) {
-                    if (validationError instanceof CodeSyntaxError) {
-                        return validationError.message;
-                    }
-                    throw validationError;
+                const result = validate
+                    ? await validate(nextValue)
+                    : await getCodeValidationResult(nextValue, language);
+                if (!result.valid) {
+                    return result.error?.message ?? `Invalid ${language} code.`;
                 }
             }
 

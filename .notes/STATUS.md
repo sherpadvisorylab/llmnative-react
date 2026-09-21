@@ -214,6 +214,15 @@ Main real routes:
 
 ## Verification performed
 
+Real verification performed on 2026-09-21 (1.14.0 — `CodeEditor.validate` override prop):
+
+| Command | Result |
+|---------|--------|
+| `npx tsc --noEmit` | Passes: 0 errors. |
+| `npm test` | 64 files, 713 tests — 712 passed, 1 failed (`publicExports.contract.test.ts`, the same known-flaky 5s filesystem-scan timeout as prior releases, unrelated to this change; re-run clean in isolation — 1 file, 3 tests, all passed). |
+| `npm run build` | Passes: Vite library build + declarations. |
+| `npm pack --dry-run --json` | Passes: 216 entries. |
+
 Real verification performed on 2026-09-08 (1.11.0 — `SideNav` controlled-collapse props):
 
 | Command | Result |
@@ -294,4 +303,5 @@ Real verification performed on 2026-07-29 (CR-071 drag&drop addition + CR-073):
 | 1.11.1 | Published on npm (`@llmnative/react@1.11.1`). Minor fix (no CR): `ActionButton`'s disabled-only wrapper forced `display: inline-flex`, which shrank a `w-full` button the instant it became disabled (e.g. mid-submit) instead of keeping the enabled case's stretch. Dropped the display override. |
 | 1.12.0 | Published on npm (`@llmnative/react@1.12.0`). CR-082 (`Gallery.renderItem` — custom item renderer, threaded through `Grid`/`GridCore`'s `views.gallery`) completa. |
 | 1.13.0 | Published on npm (`@llmnative/react@1.13.0`). Minor addition (no CR): `Repeat` gained a `theme.Repeat` section (`itemClassName`/`inlineItemClassName`/`addButtonClassName`) — lets a consumer flatten the compact `layout="inline"` variant (e.g. nested in an already-bordered popover) via the theme system instead of a per-instance prop, requested by a CMS consumer. Fully backward compatible: every field defaults to `''` in the built-in themes. |
+| 1.14.0 | Published on npm (`@llmnative/react@1.14.0`). Minor addition (no CR, GH issue #27): `CodeEditor` gained an optional `validate` prop overriding the built-in `language`-based syntax check — lets a consumer whose content embeds a foreign template syntax inside `language` (e.g. Liquid tags inside a `'css'` block) supply its own check instead of false-positiving on the embedded syntax. Fully backward compatible: omitting it keeps the exact previous `language`-only check, now routed through the already-exported `getCodeValidationResult` instead of a local try/catch (same observable behavior). Requested by a CMS consumer (Liquid-templated Component CSS false-positiving on `{{ x | default: ... }}`). |
 | 1.x / 2.0 | Roadmap: CR-051 (WorkflowAI), CR-040 (SchemaForm), CR-041 (SeoEnhancer), E2E. CR-072 deferito (TypeScript 6 regression upstream). |

@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.14.0] - 2026-09-21
+
+### Added
+- `CodeEditor`: new optional `validate` prop — overrides the built-in
+  `language`-based syntax check used by `validateSyntax` for a field whose
+  content embeds a foreign template syntax inside `language` (e.g. Liquid
+  tags inside a `'css'` block: `.x { color: {{ tone | default: "#000" }}; }`,
+  where the stock single-language CSS parser has no notion of Liquid and
+  false-positives on the `|` filter pipe). Receives the current raw value and
+  must return the same shape as the already-exported `getCodeValidationResult`.
+  Purely additive: omitting it keeps the exact previous `language`-only check
+  unchanged (now routed through `getCodeValidationResult` internally instead
+  of a local try/catch around `validateCodeSyntax`, same observable behavior).
+
 ## [1.13.0] - 2026-09-16
 
 ### Added
