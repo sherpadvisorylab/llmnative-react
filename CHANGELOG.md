@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.15.1] - 2026-09-22
+## [1.15.2] - 2026-09-22
 
 ### Fixed
 - `UploadImage`/`UploadDocument`: the icon-only buttons (remove, crop/edit
