@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { screen, fireEvent, waitFor } from '@testing-library/react';
+import { screen, fireEvent, waitFor, act } from '@testing-library/react';
 import React from 'react';
 
 vi.mock('../../../src/Config', () => ({
@@ -41,6 +41,9 @@ vi.mock('../../../src/Theme', () => ({
 import Form from '../../../src/components/widgets/Form';
 import { ActionButton } from '../../../src/components/ui/Buttons';
 import { Input, TextArea } from '../../../src/components/ui/fields/Input';
+import { UploadImage } from '../../../src/components/ui/fields/Upload';
+import { StorageProvider } from '../../../src/providers/storage/StorageProviderContext';
+import type { StorageProviderAdapter } from '../../../src/providers/storage/StorageProvider';
 import { MockDataProvider } from '../../../src/providers/data/mock';
 import { renderWithProviders } from '../../helpers/renderWithProviders';
 import { useFormController } from '../../../src/components/widgets/form-controller';
@@ -414,6 +417,66 @@ describe('Form — draft restore', () => {
         expect(await screen.findByText(/could not save a local draft/i)).toBeInTheDocument();
 
         setItemSpy.mockRestore();
+    });
+
+    it('restores an UploadImage field whose real upload finished well before leaving the page', async () => {
+        let resolveUpload: (url: string) => void = () => {};
+        const storage: StorageProviderAdapter = {
+            upload: vi.fn(() => new Promise<string>(resolve => { resolveUpload = resolve; })),
+            createUpload: () => ({ url: Promise.resolve(undefined), pause: () => {}, resume: () => {}, cancel: () => {} }),
+            rename: async () => false,
+            move: async () => 0,
+            getURL: async () => undefined,
+            getFileInfo: async () => undefined,
+            download: async () => undefined,
+            delete: async () => 0,
+            list: async () => [],
+        };
+        // A local (not https://) URL on purpose — an <img src="https://..."> triggers happy-dom's
+        // real resource-fetch simulation, unrelated noise this test isn't about.
+        const remoteUrl = 'blob:uploads-pg1-hero-hero.png';
+
+        // No `path` prop — mirrors PageEditorPage.tsx, which relies on location.pathname as the
+        // draft identity instead (Form.tsx: `path || location.pathname + location.hash`).
+        const initial = (
+            <StorageProvider registry={{ demo: storage }} defaultKey="demo">
+                <Form defaultValues={{ components: [{ data: { backgroundImage: [] } }] }} draftBucket="pages:site-a">
+                    <UploadImage name="components.0.data.backgroundImage" uploadPath="uploads/pg1/hero" editable />
+                </Form>
+            </StorageProvider>
+        );
+
+        // A non-root route: with no `path` prop, draftStorageKey falls back to
+        // location.pathname, and `/` normalizes to an EMPTY identity (trimSlash('/') === ''),
+        // which would make draftStorageKey undefined and silently disable drafts entirely —
+        // an edge case of the fallback itself, not of anything Upload-related, but easy to
+        // trip in a test if the route isn't set explicitly like a real page URL always is.
+        const route = '/sites/site-a/pages/page-chi-siamo';
+        const firstRender = renderWithProviders(initial, { route });
+        const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+        const file = new File(['bytes'], 'hero.png', { type: 'image/png' });
+        fireEvent.change(fileInput, { target: { files: [file] } });
+
+        await waitFor(() => expect(storage.upload).toHaveBeenCalled());
+        await act(async () => { resolveUpload(remoteUrl); });
+
+        // Real thumbnail visible == progress reached 100 — this is what a user explicitly waits
+        // for before navigating away, expecting the upload to be "done".
+        await waitFor(() => {
+            expect(screen.getByAltText('preview-0')).toHaveAttribute('src', remoteUrl);
+        });
+
+        // Ample time for the 150ms debounced draft-save to fire before "leaving the page".
+        await new Promise(resolve => setTimeout(resolve, 400));
+        firstRender.unmount();
+
+        renderWithProviders(initial, { route });
+        expect(await screen.findByText(/unsaved changes found/i)).toBeInTheDocument();
+        fireEvent.click(screen.getByRole('button', { name: /restore/i }));
+
+        await waitFor(() => {
+            expect(screen.getByAltText('preview-0')).toHaveAttribute('src', remoteUrl);
+        });
     });
 });
 
