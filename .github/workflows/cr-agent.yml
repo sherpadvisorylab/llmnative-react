@@ -1,0 +1,253 @@
+name: CR agent
+
+# Issue aperta → triage (raffina la CR sulla issue) → fix (implementa e apre la PR).
+# Prompt: .github/cr-agent/triage.md e .github/cr-agent/fix.md
+# Secrets: OPENCODE_API_KEY (OpenCode Zen), CR_AGENT_TOKEN opzionale (PAT/App token,
+# necessario perché la PR aperta dall'agente faccia partire ci.yml).
+# Variables opzionali: TRIAGE_MODEL, FIX_MODEL.
+
+on:
+  issues:
+    types: [opened]
+
+concurrency:
+  group: cr-agent-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  ISSUE_NUMBER: ${{ github.event.issue.number }}
+  TRIAGE_MODEL: ${{ vars.TRIAGE_MODEL || 'opencode/deepseek-v4.1-flash' }}
+  FIX_MODEL: ${{ vars.FIX_MODEL || 'opencode/deepseek-v4.1-flash' }}
+  # Rete, directory esterne, git/gh e release sono bloccati per l'agente.
+  OPENCODE_PERMISSION: >-
+    {"webfetch":"deny","websearch":"deny","external_directory":"deny",
+    "bash":{"*":"allow","git *":"deny","gh *":"deny","curl *":"deny","wget *":"deny",
+    "npm publish*":"deny","npm version*":"deny"}}
+
+jobs:
+  gate:
+    name: Check author permission
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      allowed: ${{ steps.check.outputs.allowed }}
+    steps:
+      - id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          AUTHOR: ${{ github.event.issue.user.login }}
+          ASSOCIATION: ${{ github.event.issue.author_association }}
+        run: |
+          perm=$(gh api "repos/${GITHUB_REPOSITORY}/collaborators/${AUTHOR}/permission" -q .permission 2>/dev/null || echo "")
+          echo "author=${AUTHOR} permission=${perm:-unknown} association=${ASSOCIATION}"
+          case "$perm" in
+            admin|write) allowed=true ;;
+            "") case "$ASSOCIATION" in OWNER|MEMBER|COLLABORATOR) allowed=true ;; *) allowed=false ;; esac ;;
+            *) allowed=false ;;
+          esac
+          echo "allowed=${allowed}" >> "$GITHUB_OUTPUT"
+
+  triage:
+    name: Triage (${{ vars.TRIAGE_MODEL || 'opencode/deepseek-v4.1-flash' }})
+    needs: gate
+    if: needs.gate.outputs.allowed == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      issues: write
+    outputs:
+      ready: ${{ steps.apply.outputs.ready }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24.18.0'
+
+      - name: Install OpenCode
+        run: npm install -g opencode-ai@latest
+
+      - name: Collect issue context
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p .agent
+          gh issue view "$ISSUE_NUMBER" --json number,title,body,author > .agent/issue.json
+          gh issue list --state all --limit 500 --json number,title,state,labels > .agent/issues.json
+
+      - name: Run triage agent
+        env:
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+        run: opencode run --auto --model "$TRIAGE_MODEL" "$(cat .github/cr-agent/triage.md)"
+
+      - name: Apply triage to issue
+        id: apply
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if ! jq -e '.status and .title and .body' .agent/triage.json > /dev/null 2>&1; then
+            gh issue comment "$ISSUE_NUMBER" --body "⚠️ CR agent: il triage non ha prodotto un output valido. Vedi il run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            exit 1
+          fi
+
+          status=$(jq -r .status .agent/triage.json)
+          classification=$(jq -r .classification .agent/triage.json)
+          cr=$(jq -r '.cr // "—"' .agent/triage.json)
+
+          if [ "$status" = "ready" ]; then
+            {
+              jq -r .body .agent/triage.json
+              printf '\n\n---\n<details><summary>Testo originale della issue</summary>\n\n'
+              jq -r '.body // ""' .agent/issue.json
+              printf '\n</details>\n'
+            } > .agent/new-body.md
+            gh issue edit "$ISSUE_NUMBER" \
+              --title "$(jq -r .title .agent/triage.json)" \
+              --body-file .agent/new-body.md \
+              --add-label in-progress
+            gh issue edit "$ISSUE_NUMBER" --remove-label pending 2>/dev/null || true
+            gh issue comment "$ISSUE_NUMBER" --body "🤖 Triage completato — classificazione: \`${classification}\`, CR: \`${cr}\`. Parte l'agente di fix."
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            gh label create needs-info --color d876e3 --description "Il CR agent ha bisogno di chiarimenti" 2>/dev/null || true
+            gh issue edit "$ISSUE_NUMBER" --add-label needs-info
+            {
+              echo "🤖 Triage: servono chiarimenti prima di procedere."
+              echo
+              jq -r '.questions[]? | "- " + .' .agent/triage.json
+            } > .agent/comment.md
+            gh issue comment "$ISSUE_NUMBER" --body-file .agent/comment.md
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/upload-artifact@v4
+        if: steps.apply.outputs.ready == 'true'
+        with:
+          name: triage
+          path: .agent/triage.json
+
+  fix:
+    name: Fix (${{ vars.FIX_MODEL || 'opencode/deepseek-v4.1-flash' }})
+    needs: triage
+    if: needs.triage.outputs.ready == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    env:
+      BRANCH: cr/${{ github.event.issue.number }}
+      PUSH_TOKEN: ${{ secrets.CR_AGENT_TOKEN || github.token }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24.18.0'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Install OpenCode
+        run: npm install -g opencode-ai@latest
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: triage
+          path: .agent
+
+      - name: Prepare branch and context
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          echo ".agent/" >> .git/info/exclude
+          gh issue view "$ISSUE_NUMBER" --json number,title,body > .agent/issue.json
+          auth="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$PUSH_TOKEN" | base64 -w0)"
+          # Un solo branch per issue: se esiste già (re-run) si riparte da lì.
+          if git -c http.https://github.com/.extraheader="$auth" fetch origin "$BRANCH" 2>/dev/null; then
+            git checkout -B "$BRANCH" FETCH_HEAD
+          else
+            git checkout -b "$BRANCH"
+          fi
+
+      - name: Run fix agent
+        env:
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+        run: opencode run --auto --model "$FIX_MODEL" "$(cat .github/cr-agent/fix.md)"
+
+      - name: Guard rails
+        run: |
+          set -euo pipefail
+          # L'agente non può modificare workflow/prompt né fare release.
+          git checkout HEAD -- .github
+          git clean -fdq .github
+          base=$(git show origin/main:package.json | jq -r .version)
+          now=$(jq -r .version package.json)
+          if [ "$base" != "$now" ]; then
+            jq --arg v "$base" '.version = $v' package.json > package.json.tmp && mv package.json.tmp package.json
+            echo "::warning::version bump rimosso (${now} → ${base})"
+          fi
+
+      - name: Verify
+        id: verify
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          { npx tsc --noEmit && npm test && npm run build; } 2>&1 | tee .agent/verify.log
+
+      - name: Commit, push and open PR
+        env:
+          GH_TOKEN: ${{ env.PUSH_TOKEN }}
+          VERIFY: ${{ steps.verify.outcome }}
+        run: |
+          set -euo pipefail
+          if [ -z "$(git status --porcelain)" ]; then
+            gh issue comment "$ISSUE_NUMBER" --body "⚠️ CR agent: l'agente di fix non ha prodotto modifiche. Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            exit 1
+          fi
+
+          title=$(jq -r .title .agent/issue.json)
+          git config user.name "cr-agent[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "${title}" -m "Refs #${ISSUE_NUMBER}" -m "Generated by CR agent (${FIX_MODEL})."
+
+          auth="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$PUSH_TOKEN" | base64 -w0)"
+          git -c http.https://github.com/.extraheader="$auth" push origin "HEAD:refs/heads/${BRANCH}"
+
+          {
+            if [ "$VERIFY" = "success" ]; then
+              echo "✅ \`tsc --noEmit\`, \`npm test\`, \`npm run build\` passati nel run dell'agente."
+            else
+              echo "❌ Verifica fallita nel run dell'agente — PR in draft. Log: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            fi
+            echo
+            cat .agent/summary.md 2>/dev/null || echo "_Nessun summary prodotto dall'agente._"
+            echo
+            echo "Closes #${ISSUE_NUMBER}"
+            echo
+            echo "> Nessuna release eseguita: versione, tag e publish restano da fare dopo il merge."
+          } > .agent/pr-body.md
+
+          existing=$(gh pr list --head "$BRANCH" --state open --json number -q '.[0].number')
+          if [ -n "$existing" ]; then
+            gh pr edit "$existing" --body-file .agent/pr-body.md
+            gh pr comment "$existing" --body "🤖 CR agent: branch aggiornato (verify: ${VERIFY})."
+          else
+            draft=""
+            [ "$VERIFY" = "success" ] || draft="--draft"
+            gh pr create --base main --head "$BRANCH" --title "$title" --body-file .agent/pr-body.md $draft
+          fi
