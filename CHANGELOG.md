@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `README.md`: CI status badge for the `ci.yml` workflow on `main` and npm
   version badge for `@llmnative/react`, both linked to their respective
   Actions and npm pages. Documentation-only change (GH issue #38).
+- `README.md`: Apache-2.0 license badge linked to the repo `LICENSE` file,
+  displayed alongside the existing CI and npm badges. Documentation-only change
+  (GH issue #41).
 
 ## [1.15.4] - 2026-09-22
 
