@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.15.1] - 2026-09-22
+
+### Fixed
+- `UploadImage`/`UploadDocument`: the icon-only buttons (remove, crop/edit
+  pencil, "upload more") never had an explicit `cursor-pointer` — Tailwind v4
+  preflight, unlike Bootstrap/Normalize, no longer defaults `<button>` to a
+  pointer cursor, so they rendered with the browser's default arrow cursor.
+  Minor fix, no CR — no behavior change.
+
 ## [1.15.0] - 2026-09-22
 
 ### Added

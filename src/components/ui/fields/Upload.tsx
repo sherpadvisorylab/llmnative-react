@@ -436,7 +436,7 @@ export const UploadDocument = ({
                                         <td className="px-3 py-2.5 w-10 text-right">
                                             <button type="button"
                                                 onClick={e => { e.stopPropagation(); handleRemove(file.key); }}
-                                                className="flex items-center justify-center w-6 h-6 rounded-full text-muted-foreground hover:bg-red-50 hover:text-red-500 transition-colors ml-auto"
+                                                className="flex items-center justify-center w-6 h-6 rounded-full text-muted-foreground hover:bg-red-50 hover:text-red-500 transition-colors ml-auto cursor-pointer"
                                             >
                                                 <Icon name="x" className="w-3.5 h-3.5" />
                                             </button>
@@ -450,7 +450,7 @@ export const UploadDocument = ({
                             <div className={`px-3 py-2 border-t border-border bg-muted/20 ${dragOver ? 'bg-primary/5' : ''}`}
                                  onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}>
                                 <button type="button" onClick={handleUpload}
-                                    className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors">
+                                    className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors cursor-pointer">
                                     <Icon name="upload" className="w-3.5 h-3.5" />
                                     {dict.uploadMore}
                                 </button>
@@ -604,13 +604,13 @@ export const UploadImage = ({
                                             </a>
                                             {editable && (
                                                 <button type="button" onClick={() => handleEdit(img)}
-                                                    className="flex items-center justify-center w-7 h-7 rounded-full bg-white/20 hover:bg-white/35 text-white transition-colors">
+                                                    className="flex items-center justify-center w-7 h-7 rounded-full bg-white/20 hover:bg-white/35 text-white transition-colors cursor-pointer">
                                                     <Icon name="pencil" className="w-4 h-4" />
                                                 </button>
                                             )}
                                             <button type="button"
                                                 onClick={e => { e.preventDefault(); e.stopPropagation(); handleRemove(img.key); }}
-                                                className="flex items-center justify-center w-7 h-7 rounded-full bg-red-500/70 hover:bg-red-500/90 text-white transition-colors">
+                                                className="flex items-center justify-center w-7 h-7 rounded-full bg-red-500/70 hover:bg-red-500/90 text-white transition-colors cursor-pointer">
                                                 <Icon name="x" className="w-4 h-4" />
                                             </button>
                                         </div>
