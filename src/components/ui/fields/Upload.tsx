@@ -10,6 +10,7 @@ import { base64ToUrl, render2Base64 } from "../../../libs/utils";
 import { PLACEHOLDER_IMAGE } from "../../../Theme";
 import Icon from "../Icon";
 import { FormFieldProps, FieldOnChange, useFormContext, useFieldValidation } from "../../widgets/Form";
+import type { FieldValue } from "../../../providers/data/DataProvider";
 import { FieldError } from "./Input";
 import { useStorageProvider } from "../../../providers/storage/StorageProviderContext";
 import type { StorageProviderAdapter } from "../../../providers/storage/StorageProvider";
@@ -217,14 +218,33 @@ const useFileUpload = (
     const { value, handleChange, formWrapClass } = useFormContext({ name, onChange, wrapperClassName });
     const [currentFile, setCurrentFile] = useState<FileProps | null>(null);
 
+    // Tracks the last `files` array *this hook itself* wrote out via onFilesChange, so the
+    // effect below can tell "value changed because I just emitted it" (every upload progress
+    // tick, every crop save) apart from "value changed some other way" (a Form draft Restore/
+    // Discard, or any other external setRecord/reset of this exact field) — only the latter
+    // needs to flow back into `files`. Without this, `files` is seeded from `value` once at
+    // mount and never again: an external reset updates the Form record correctly, but the
+    // rendered thumbnails silently keep showing the pre-reset state forever.
+    const lastEmittedRef = useRef<FieldValue | undefined>(value);
+
     const core = useFileUploadCore({
         initialFiles:   Array.isArray(value) ? (value as FileProps[]) : [],
-        onFilesChange:  (files) => handleChange({ target: { name, value: files } }),
+        onFilesChange:  (files) => {
+            lastEmittedRef.current = files;
+            handleChange({ target: { name, value: files } });
+        },
         uploadPath,
         srcsetWidths,
         storageKey,
         storageProvider,
     });
+
+    useEffect(() => {
+        if (value === lastEmittedRef.current) return;
+        lastEmittedRef.current = value;
+        core.setFiles(Array.isArray(value) ? (value as FileProps[]) : []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [value]);
 
     const handleSave = (updates: Partial<FileProps>) => {
         if (!currentFile) return;

@@ -14,6 +14,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   version badge for `@llmnative/react`, both linked to their respective
   Actions and npm pages. Documentation-only change (GH issue #38).
 
+## [1.15.5] - 2026-09-23
+
+### Fixed
+- `UploadImage`/`UploadDocument`: an external reset of the field's Form value
+  (a draft Restore/Discard, or any other `setRecord` not caused by the field
+  itself) never reached the rendered thumbnails. `files` was seeded from
+  `value` once at mount and never re-synced — the Form's own record was
+  correctly restored, but the field kept showing whatever it had before the
+  reset, indefinitely. This is the actual root cause behind "I uploaded an
+  image, waited for it to finish, left the page, came back, clicked Restore,
+  and the image is gone" even with 1.15.3/1.15.4 in place — the record itself
+  was right, the field's own displayed state just never picked it up.
+
 ## [1.15.4] - 2026-09-22
 
 ### Fixed
