@@ -1,5 +1,8 @@
 # LLM Native
 
+[![CI](https://github.com/sherpadvisorylab/llmnative-react/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/sherpadvisorylab/llmnative-react/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/@llmnative/react)](https://www.npmjs.com/package/@llmnative/react)
+
 **AI-first React framework built for deterministic code generation.**  
 Data-driven by default. Schema-driven optional. Token-optimized for AI agents.
 
