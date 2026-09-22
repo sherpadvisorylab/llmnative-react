@@ -40,8 +40,11 @@ vi.mock('../../../src/Theme', () => ({
     ThemeProvider: ({ children }: any) => children,
 }));
 
+import { waitFor } from '@testing-library/react';
 import Form from '../../../src/components/widgets/Form';
 import { UploadDocument, UploadImage, FileProps, getFileUrl } from '../../../src/components/ui/fields/Upload';
+import { StorageProvider } from '../../../src/providers/storage/StorageProviderContext';
+import type { StorageProviderAdapter } from '../../../src/providers/storage/StorageProvider';
 import { renderWithProviders } from '../../helpers/renderWithProviders';
 
 const fileRecord = (overrides: Partial<FileProps> = {}): FileProps => ({
@@ -184,6 +187,47 @@ describe('UploadImage', () => {
 
         expect(latestFiles?.[0].alt).toBe('A cute avatar');
         expect(latestFiles?.[0].fileName).toBe('avatar.png'); // untouched — alt is independent of the filename/variants path
+    });
+
+    it('clears the base64 payload once a real upload lands, so the record does not stay heavy forever', async () => {
+        const remoteUrl = 'https://cdn.example.test/uploads/photo.png';
+        const storage: StorageProviderAdapter = {
+            upload: vi.fn(async () => remoteUrl),
+            createUpload: () => ({ url: Promise.resolve(undefined), pause: () => {}, resume: () => {}, cancel: () => {} }),
+            rename: async () => false,
+            move: async () => 0,
+            getURL: async () => undefined,
+            getFileInfo: async () => undefined,
+            download: async () => undefined,
+            delete: async () => 0,
+            list: async () => [],
+        };
+
+        let latestFiles: FileProps[] | undefined;
+        const handleImageChange = ({ value }: { value: unknown }) => {
+            latestFiles = value as FileProps[];
+        };
+
+        renderWithProviders(
+            <StorageProvider registry={{ demo: storage }} defaultKey="demo">
+                <Form defaultValues={{ photos: [] }}>
+                    <UploadImage name="photos" label="Photos" uploadPath="uploads/pg1" onChange={handleImageChange} />
+                </Form>
+            </StorageProvider>
+        );
+
+        const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+        const file = new File(['fake-bytes'], 'photo.png', { type: 'image/png' });
+        fireEvent.change(fileInput, { target: { files: [file] } });
+
+        // Final state: the real remote URL landed, so the base64 stand-in is dropped — a record
+        // carrying both forever is exactly what blows the Form draft-autosave's localStorage
+        // quota (see Form.tsx's draftStorageKey write) even after the upload succeeded.
+        await waitFor(() => {
+            expect(latestFiles?.[0]?.url).toBe(remoteUrl);
+        });
+        expect(latestFiles?.[0]?.base64).toBeUndefined();
+        expect(storage.upload).toHaveBeenCalledWith(expect.stringMatching(/^data:image\/png;base64,/), 'uploads/pg1/photo.png');
     });
 });
 

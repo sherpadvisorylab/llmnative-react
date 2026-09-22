@@ -138,9 +138,17 @@ export const useFileUploadCore = ({
                         // Handle original (full-size): upload with _Xw suffix or convert to blob URL
                         const ext = file.name.split('.').pop() ?? 'jpg';
                         const baseName = file.name.replace(/\.[^/.]+$/, '');
-                        const originalUrl = storage && uploadPath
-                            ? ((await storage.upload(dataUri, `${uploadPath}/${baseName}_${naturalWidth}w.${ext}`)) ?? dataUri)
-                            : URL.createObjectURL(await fetch(dataUri).then(r => r.blob()));
+                        // `uploaded` stays undefined both when there's no storage/uploadPath and
+                        // when storage.upload() resolves falsy — only a truthy result is a real,
+                        // persisted remote asset. `originalUrl` falls back to a data:/blob: URL in
+                        // every other case, which is NOT persisted across a reload — base64 (the
+                        // form getFileUrl() actually falls back to) must stay in that case.
+                        const uploaded = storage && uploadPath
+                            ? await storage.upload(dataUri, `${uploadPath}/${baseName}_${naturalWidth}w.${ext}`)
+                            : undefined;
+                        const originalUrl = uploaded ?? (storage && uploadPath
+                            ? dataUri
+                            : URL.createObjectURL(await fetch(dataUri).then(r => r.blob())));
                         const allEntries = [...resizedEntries, { url: originalUrl, width: naturalWidth }];
                         if (allEntries.length > 0) {
                             updateFile(file.name, {
@@ -148,6 +156,12 @@ export const useFileUploadCore = ({
                                 srcset:   buildSrcset(allEntries),
                                 sizes:    '(max-width: 640px) 100vw, 800px',
                                 progress: 100,
+                                // Persisted remote asset now carries the image — the base64 copy
+                                // in the record was only ever a transport stand-in for it. Left
+                                // uncleared, every record keeps its heaviest payload forever,
+                                // which is exactly what blows the Form draft-autosave's
+                                // localStorage quota (see Form.tsx's draftStorageKey write).
+                                ...(uploaded ? { base64: undefined } : {}),
                             });
                             return;
                         }
@@ -156,7 +170,7 @@ export const useFileUploadCore = ({
                     try {
                         const url = await storage.upload(dataUri, `${uploadPath}/${file.name}`);
                         if (url) {
-                            updateFile(file.name, { url, progress: 100 });
+                            updateFile(file.name, { url, progress: 100, base64: undefined });
                             return;
                         }
                     } catch { /* fall through to fallback */ }

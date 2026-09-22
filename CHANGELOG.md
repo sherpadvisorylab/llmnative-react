@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.15.4] - 2026-09-22
+
+### Fixed
+- `UploadImage`: once a file finished uploading to a real `StorageProvider`
+  (`uploadPath` set), the FileProps entry kept its base64 payload forever
+  alongside the real `url` — `updateFile()` never cleared it. Every record
+  with an uploaded image stayed as heavy as an unsent one, which is exactly
+  what routinely exceeds the Form draft-autosave's localStorage quota (see
+  1.15.3) even for a successfully persisted upload. `base64` is now cleared
+  the moment a real remote URL lands, in both the plain-upload and the
+  `srcsetWidths` variants path — a data:/blob: URL fallback (no storage
+  configured, or the upload call resolved falsy) still keeps its base64,
+  since that's the only persisted form `getFileUrl()` has to fall back to.
+
 ## [1.15.3] - 2026-09-22
 
 ### Fixed
