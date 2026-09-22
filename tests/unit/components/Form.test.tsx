@@ -398,6 +398,23 @@ describe('Form — draft restore', () => {
         expect(screen.queryByText(/unsaved changes found/i)).not.toBeInTheDocument();
         expect(screen.getByDisplayValue('Original')).toBeInTheDocument();
     });
+
+    it('surfaces a notice instead of crashing when the local draft is too large to store', async () => {
+        const setItemSpy = vi.spyOn(window.localStorage, 'setItem').mockImplementation(() => {
+            throw new DOMException('Quota exceeded', 'QuotaExceededError');
+        });
+
+        renderWithProviders(
+            <Form path="/drafts/oversized" defaultValues={{ title: 'Original' }} draftBucket="tenant-a">
+                <Input name="title" label="Title" />
+            </Form>
+        );
+        fireEvent.change(screen.getByRole('textbox'), { target: { name: 'title', value: 'Too big for storage' } });
+
+        expect(await screen.findByText(/could not save a local draft/i)).toBeInTheDocument();
+
+        setItemSpy.mockRestore();
+    });
 });
 
 // ── validation — required fields block submit ─────────────────────────────────

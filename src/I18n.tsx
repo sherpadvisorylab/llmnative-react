@@ -48,6 +48,7 @@ export interface I18nDict {
         draftDiscardAction?:  string;
         draftRestoredTitle?:  string;
         draftRestoredMessage?: string;
+        draftSaveError?:      string;
     };
     grid: {
         buttonAdd:     string;

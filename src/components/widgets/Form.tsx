@@ -909,11 +909,21 @@ const FormData = ({
         }
 
         const timer = window.setTimeout(() => {
-            localStorage.setItem(draftStorageKey, JSON.stringify(cleanRecord(record)));
+            try {
+                localStorage.setItem(draftStorageKey, JSON.stringify(cleanRecord(record)));
+            } catch {
+                // Most commonly QuotaExceededError — a record with an unsent base64 file upload
+                // (no StorageProvider/uploadPath wired for that field) can easily exceed the
+                // ~5-10MB localStorage budget on its own. Left uncaught, this silently stops
+                // updating the draft: localStorage keeps the last write that DID fit, so a later
+                // "Restore" brings back a state from before the oversized change — not a partial
+                // one, since nothing partial was ever written.
+                notice({ type: 'warning', message: dict.draftSaveError ?? 'Could not save a local draft — the change is too large for browser storage (e.g. an unsent image upload). Save the form to keep it.' });
+            }
         }, 150);
 
         return () => window.clearTimeout(timer);
-    }, [baselineSnapshot, draftStorageKey, isDirty, readStoredDraft, record]);
+    }, [baselineSnapshot, draftStorageKey, isDirty, notice, readStoredDraft, record]);
 
     // The debounced write above keeps typing cheap, but route changes can unmount a form before
     // its timer fires. Keep the latest dirty snapshot separately and flush it on unmount so a
@@ -929,7 +939,12 @@ const FormData = ({
     useEffect(() => () => {
         const { storageKey, record: draftRecord, isDirty: hasDirtyDraft } = draftFlushRef.current;
         if (!storageKey || !hasDirtyDraft || !draftRecord || typeof localStorage === 'undefined') return;
-        localStorage.setItem(storageKey, JSON.stringify(cleanRecord(draftRecord)));
+        // Same quota risk as the debounced write above, but this runs on unmount (route change) —
+        // no UI left to notify, so this is a best-effort flush: swallow and let the last
+        // successful draft stand rather than throw during teardown.
+        try {
+            localStorage.setItem(storageKey, JSON.stringify(cleanRecord(draftRecord)));
+        } catch { /* best-effort flush on unmount — nothing to notify */ }
     }, []);
 
     useEffect(() => {

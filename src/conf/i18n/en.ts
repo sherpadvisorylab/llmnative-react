@@ -43,6 +43,7 @@ export const en: I18nDict = {
         draftDiscardAction: 'Discard',
         draftRestoredTitle: 'Draft restored',
         draftRestoredMessage: 'The local draft has been restored. You can still discard it for a few seconds.',
+        draftSaveError: 'Could not save a local draft — the change is too large for browser storage (e.g. an unsent image upload). Save the form to keep it.',
     },
     grid: {
         buttonAdd: 'Add',

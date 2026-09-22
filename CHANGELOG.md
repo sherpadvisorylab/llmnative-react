@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.15.3] - 2026-09-22
+
+### Fixed
+- `Form`: the local draft autosave (`localStorage.setItem`) had no error
+  handling. A record with an unsent base64 file upload (a field with no
+  `StorageProvider`/`uploadPath` wired) can easily exceed the ~5-10MB
+  localStorage budget on its own — the write then threw uncaught, silently
+  stopping the draft from updating. `localStorage` kept the last write that
+  DID fit, so a later "Restore" brought back the state from before the
+  oversized change, not a partial one. Now caught and surfaced via the
+  existing notice banner (new `dict.draftSaveError`, English-only for now,
+  same as the other `draft*` keys); the unmount flush swallows the same
+  error silently (no UI left to notify during teardown).
+
 ## [1.15.2] - 2026-09-22
 
 ### Fixed
