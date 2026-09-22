@@ -58,6 +58,7 @@ export const ru: I18nDict = {
         enableCrop: 'Включить обрезку в масштабе {scale}', variants: 'Варианты',
         outputFile: 'Выходной файл', active: 'Активно',
         removeVariant: 'Удалить вариант {scale}', fileName: 'Имя файла',
+        altText: 'Альтернативный текст', altTextPlaceholder: 'Опишите это изображение…',
     },
     imageEditor: {
         title: 'Редактор изображений', save: 'Сохранить', undo: 'Отменить', redo: 'Повторить',

@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.15.0] - 2026-09-22
+
+### Added
+- `UploadImage`/`FileProps`: new optional `alt?: string` field (CR-083),
+  editable from the existing crop editor (pencil icon on hover, when
+  `editable`) — a new textarea alongside the file name. Deliberately
+  independent of `srcset`/`variants`: those are responsive width variants of
+  the same image, `alt` is one description per file entry regardless of how
+  many width variants exist. New `crop.altText`/`crop.altTextPlaceholder`
+  i18n keys in all 6 framework languages. Purely additive — no change to
+  existing `UploadImage`/`FileProps` behavior when `alt` is unused.
+
 ## [1.14.0] - 2026-09-21
 
 ### Added

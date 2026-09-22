@@ -18,7 +18,7 @@ export default defineLocaleMessages({
                 },
                 editableCrop: {
                     title: 'Bearbeitbar (Zuschneiden)',
-                    description: 'Fuge editable hinzu, um beim Hover ein Stiftsymbol anzuzeigen. Ein Klick offnet den Bildeditor mit Zuschneiden- und Skalierungswerkzeugen, und die erzeugten Varianten werden in diesem Dateieintrag des Form-Datensatzes gespeichert.',
+                    description: 'Fuge editable hinzu, um beim Hover ein Stiftsymbol anzuzeigen. Ein Klick offnet den Bildeditor mit Zuschneiden- und Skalierungswerkzeugen sowie einem Alt-Text-Feld (unabhangig von srcset/Varianten — eine Beschreibung pro Bild), und alles wird in diesem Dateieintrag des Form-Datensatzes gespeichert.',
                 },
                 acceptFilter: {
                     title: 'Accept-Filter',

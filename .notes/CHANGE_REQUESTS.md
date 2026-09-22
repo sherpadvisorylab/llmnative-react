@@ -91,6 +91,69 @@
 | [CR-080](#cr-080--componentinput-richtextrangeurl) | Component.input: richtext/range/url | Media | CR-049 | ✅ |
 | [CR-081](#cr-081--form-sottoscrizione-selettiva-per-path) | Form: sottoscrizione selettiva per-path | Alta | — | ✅ |
 | [CR-082](#cr-082--gallery-renderitem-custom-item-renderer) | Gallery: `renderItem` (custom item renderer) | Media | — | ✅ |
+| [CR-083](#cr-083--uploadimage-alt-text-field-indipendente-da-srcsetvarianti) | UploadImage: alt text field (indipendente da srcset/varianti) | Media | — | ✅ |
+
+---
+
+## CR-083 — UploadImage: alt text field (indipendente da srcset/varianti)
+
+**Stato:** ✅ done — rilasciato in 1.15.0
+**Issue:** [#28](https://github.com/sherpadvisorylab/llmnative-react/issues/28)
+**Priorità:** Media
+**Dipende da:** —
+
+### Motivazione
+
+`FileProps`/`UploadImage` non hanno mai avuto un campo per il testo alternativo
+dell'immagine. Un consumer (`llmnative-cms`) ha bisogno di un alt text
+per-immagine per i meta tag SEO/accessibilità delle pagine pubblicate — oggi
+può solo salvare un pattern di default a livello pagina (`page.seo.imageAltPattern`),
+senza un vero campo per-immagine nel framework.
+
+### Scope
+
+- Nuovo campo opzionale `FileProps.alt?: string` (`Upload.tsx`) — deliberatamente
+  ortogonale a `srcset`/`variants`: quelli sono varianti di larghezza della
+  stessa immagine per il responsive, l'alt è un solo valore descrittivo per
+  entry indipendentemente da quante varianti di larghezza esistano.
+- Editabile dall'editor immagine esistente (`CropImage`, aperto dal pulsante
+  matita quando `editable`) — nuovo campo textarea nella sidebar, accanto al
+  nome file. Nessuna nuova prop pubblica su `UploadImage`: l'alt è solo un
+  altro campo di `FileProps`, già propagato genericamente da `FileEditor`/
+  `useFileUpload.handleSave` (`Partial<FileProps>`).
+- `CropImage.handleSave` (imperative handle) ritorna `alt` insieme a
+  `fileName`/`variants` — anche nel path di fallback (canvas/context non
+  disponibili) l'alt viene comunque restituito.
+- i18n: nuove chiavi `crop.altText`/`crop.altTextPlaceholder` in tutte le 6
+  lingue del framework (`en`/`it`/`de`/`ru`/`zh`/`ar`) e nell'`I18nDict`.
+- Nessuna modifica al contratto pubblico esistente: `alt` è opzionale, i
+  consumer che non lo leggono/scrivono non sono impattati.
+
+### Checklist
+
+- [x] `FileProps.alt?: string` in `Upload.tsx`
+- [x] `FileEditorProps.onSave`/`cropRef` tipizzati con `alt?: string`
+- [x] Campo alt text in `CropImage` (`Crop.tsx`), incluso nel return di
+      `handleSave` (anche nel branch di fallback senza canvas)
+- [x] i18n `crop.altText`/`crop.altTextPlaceholder` — `I18nDict` (`I18n.tsx`)
+      + 6 lingue (`en`/`it`/`de`/`ru`/`zh`/`ar`)
+- [x] Test `Upload.test.tsx` — apre l'editor via hover+click, edita l'alt,
+      salva, verifica che l'alt sia propagato e che `fileName` resti
+      invariato (prova esplicita dell'indipendenza da fileName/variants)
+- [x] Showcase — descrizione sezione "Editable (crop)" aggiornata in
+      `uploadImage.*.ts` (6 lingue) per menzionare il nuovo campo
+- [x] `npx tsc --noEmit` (0 errori), `npm test` (64 file, 714/714),
+      `npm run build`, `npm pack --dry-run --json` (216 entries)
+- [x] `cd clients/showcase && npm run build` — verde
+- [x] Issue GitHub collegata (#28)
+- [x] Versione SemVer (minor) e `npm publish` — 1.15.0 pubblicata su npm, verificata via `npm view`
+
+### Note
+
+Consumer CMS (`llmnative-cms`, repo sibling) migra su questa capability
+separatamente (bump dipendenza, poi collega `alt` al fallback
+`site.seo.imageAlt.pattern`/`page.seo.imageAltPattern` nel build engine) —
+commit CMS autonomo, non incluso qui.
 
 ---
 

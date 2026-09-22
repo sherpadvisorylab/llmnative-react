@@ -113,6 +113,8 @@ export const en: I18nDict = {
         active: 'active',
         removeVariant: 'Remove {scale} variant',
         fileName: 'File name',
+        altText: 'Alt text',
+        altTextPlaceholder: 'Describe this image…',
     },
     imageEditor: {
         title: 'Image Editor',

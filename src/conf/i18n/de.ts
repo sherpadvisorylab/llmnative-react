@@ -58,6 +58,7 @@ export const de: I18nDict = {
         enableCrop: 'Zuschnitt mit Skalierung {scale} aktivieren', variants: 'Varianten',
         outputFile: 'Ausgabedatei', active: 'Aktiv',
         removeVariant: 'Variante {scale} entfernen', fileName: 'Dateiname',
+        altText: 'Alt-Text', altTextPlaceholder: 'Beschreiben Sie dieses Bild…',
     },
     imageEditor: {
         title: 'Bildeditor', save: 'Speichern', undo: 'Rückgängig', redo: 'Wiederherstellen',

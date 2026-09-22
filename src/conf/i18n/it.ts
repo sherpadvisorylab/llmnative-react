@@ -58,6 +58,7 @@ export const it: I18nDict = {
         enableCrop: 'Abilita ritaglio a scala {scale}', variants: 'Varianti',
         outputFile: 'File di output', active: 'Attivo',
         removeVariant: 'Rimuovi variante {scale}', fileName: 'Nome file',
+        altText: 'Testo alternativo', altTextPlaceholder: 'Descrivi questa immagine…',
     },
     imageEditor: {
         title: 'Editor immagine', save: 'Salva', undo: 'Annulla', redo: 'Ripristina',

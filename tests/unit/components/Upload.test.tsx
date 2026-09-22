@@ -153,6 +153,38 @@ describe('UploadImage', () => {
         expect(screen.getByText('Enter a valid URL')).toBeInTheDocument();
         expect(screen.queryByAltText('preview-0')).not.toBeInTheDocument();
     });
+
+    it('saves alt text edited in the crop editor, independent of crop/scale variants', () => {
+        let latestFiles: FileProps[] | undefined;
+        const handleImageChange = ({ value }: { value: unknown }) => {
+            latestFiles = value as FileProps[];
+        };
+
+        renderWithProviders(
+            <Form defaultValues={{ photos: [fileRecord({
+                key: 'avatar.png',
+                fileName: 'avatar.png',
+                type: 'image/png',
+                url: 'https://example.test/avatar.png',
+            })] }}>
+                <UploadImage name="photos" label="Photos" editable onChange={handleImageChange} />
+            </Form>
+        );
+
+        // Overlay actions (edit/remove) are display:none until hovered.
+        fireEvent.mouseEnter(screen.getByAltText('preview-0').parentElement!);
+        const editButton = screen.getAllByRole('button')[0];
+        fireEvent.click(editButton);
+
+        const altInput = screen.getByPlaceholderText('Describe this image…');
+        fireEvent.change(altInput, { target: { value: 'A cute avatar' } });
+        fireEvent.blur(altInput);
+
+        fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+        expect(latestFiles?.[0].alt).toBe('A cute avatar');
+        expect(latestFiles?.[0].fileName).toBe('avatar.png'); // untouched — alt is independent of the filename/variants path
+    });
 });
 
 describe('getFileUrl', () => {

@@ -18,7 +18,7 @@ export default defineLocaleMessages({
                 },
                 editableCrop: {
                     title: 'Editable (crop)',
-                    description: 'Add editable to show a pencil icon on hover. Clicking it opens the image editor with crop and scale tools, and the generated variants are saved on that file entry in the Form record.',
+                    description: 'Add editable to show a pencil icon on hover. Clicking it opens the image editor with crop and scale tools plus an alt text field (independent of srcset/variants — one description per image), and everything is saved on that file entry in the Form record.',
                 },
                 acceptFilter: {
                     title: 'Accept filter',

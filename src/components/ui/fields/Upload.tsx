@@ -26,6 +26,8 @@ export interface FileProps {
     variants: Record<string, any>; /* CR-042: heterogeneous crop/scale variant objects */
     srcset?: string;   // width-based srcset string, populated when srcsetWidths is set
     sizes?: string;    // CSS sizes attribute for srcset
+    /** Accessible/SEO description of the image. Independent of srcset/variants — one value per entry regardless of how many width variants exist. */
+    alt?: string;
 }
 
 // ── CORE UPLOAD HOOK ──────────────────────────────────────────────────────────
@@ -261,7 +263,7 @@ interface FileEditorProps {
     title: string;
     file: FileProps;
     type: 'img' | 'document';
-    onSave?: (result: { fileName: string; variants: Record<string, any> /* CR-042 */ }) => void;
+    onSave?: (result: { fileName: string; alt?: string; variants: Record<string, any> /* CR-042 */ }) => void;
     onClose?: () => void;
 }
 
@@ -307,7 +309,7 @@ const ImageFilePlaceholder = ({
 const FileEditor = ({ title, file, type, onSave, onClose }: FileEditorProps) => {
     const [fileName, setFileName] = useState(file.fileName);
     const cropRef = useRef<{
-        handleSave: () => { fileName: string; variants: Record<string, any> };
+        handleSave: () => { fileName: string; alt?: string; variants: Record<string, any> };
     }>(null);
 
     const handleSave = async (): Promise<boolean> => {

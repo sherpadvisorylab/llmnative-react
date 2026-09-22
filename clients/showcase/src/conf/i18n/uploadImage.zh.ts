@@ -18,7 +18,7 @@ export default defineLocaleMessages({
                 },
                 editableCrop: {
                     title: '可编辑（裁剪）',
-                    description: '添加 editable 后，悬停时会显示铅笔图标。点击后会打开带裁剪和缩放工具的图片编辑器，生成的变体会保存在 Form 记录中的该文件项里。',
+                    description: '添加 editable 后，悬停时会显示铅笔图标。点击后会打开带裁剪、缩放工具以及替代文本字段（独立于 srcset/变体——每张图片一个描述）的图片编辑器，所有内容都会保存在 Form 记录中的该文件项里。',
                 },
                 acceptFilter: {
                     title: 'accept 过滤',

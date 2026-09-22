@@ -18,7 +18,7 @@ export default defineLocaleMessages({
                 },
                 editableCrop: {
                     title: 'Modificabile (crop)',
-                    description: 'Aggiungi editable per mostrare l\'icona matita al passaggio del mouse. Il click apre l\'editor immagini con strumenti di crop e scala, e le varianti generate vengono salvate in quell\'entry del Form record.',
+                    description: 'Aggiungi editable per mostrare l\'icona matita al passaggio del mouse. Il click apre l\'editor immagini con strumenti di crop e scala oltre a un campo testo alternativo (indipendente da srcset/varianti — una descrizione per immagine), e tutto viene salvato in quell\'entry del Form record.',
                 },
                 acceptFilter: {
                     title: 'Filtro accept',

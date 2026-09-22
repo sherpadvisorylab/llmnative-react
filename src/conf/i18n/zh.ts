@@ -58,6 +58,7 @@ export const zh: I18nDict = {
         enableCrop: '启用{scale}比例裁剪', variants: '变体',
         outputFile: '输出文件', active: '活跃',
         removeVariant: '删除变体{scale}', fileName: '文件名',
+        altText: '替代文本', altTextPlaceholder: '描述此图片…',
     },
     imageEditor: {
         title: '图片编辑器', save: '保存', undo: '撤销', redo: '重做',

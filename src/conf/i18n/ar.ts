@@ -58,6 +58,7 @@ export const ar: I18nDict = {
         enableCrop: 'تفعيل الاقتصاص بمقياس {scale}', variants: 'المتغيرات',
         outputFile: 'ملف الإخراج', active: 'نشط',
         removeVariant: 'إزالة المتغير {scale}', fileName: 'اسم الملف',
+        altText: 'النص البديل', altTextPlaceholder: 'صف هذه الصورة…',
     },
     imageEditor: {
         title: 'محرر الصور', save: 'حفظ', undo: 'تراجع', redo: 'إعادة',

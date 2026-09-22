@@ -112,12 +112,14 @@ export interface I18nDict {
         selectItem: string;
     };
     crop: {
-        enableCrop:    string;
-        variants:      string;
-        outputFile:    string;
-        active:        string;
-        removeVariant: string;
-        fileName:      string;
+        enableCrop:         string;
+        variants:           string;
+        outputFile:         string;
+        active:             string;
+        removeVariant:      string;
+        fileName:           string;
+        altText:            string;
+        altTextPlaceholder: string;
     };
     imageEditor: {
         title:          string;

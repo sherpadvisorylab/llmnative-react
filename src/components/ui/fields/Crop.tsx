@@ -88,6 +88,7 @@ export const CropImage = forwardRef(({
     const [selectedScales,   setSelectedScales  ] = useState<string[]>(initSelected);
     const [activeScale,      setActiveScale     ] = useState<string>(() => initSelected()[0] ?? Object.keys(SCALES)[0]);
     const [originalFileName, setOriginalFileName] = useState<string>(img.fileName);
+    const [altText,          setAltText         ] = useState<string>(img.alt ?? '');
     const [cropData,         setCropData        ] = useState<Record<string, CropProps>>(img.variants ?? {});
     const [imgBounds,        setImgBounds       ] = useState<Bounds | null>(null);
     const [imgReady,         setImgReady        ] = useState<boolean>(false);
@@ -229,11 +230,11 @@ export const CropImage = forwardRef(({
 
     // ── Imperative save ───────────────────────────────────────────────────────
     useImperativeHandle(ref, () => ({
-        handleSave: (): { fileName: string; variants: Record<string, CropProps> } => {
+        handleSave: (): { fileName: string; alt: string; variants: Record<string, CropProps> } => {
             const canvas = canvasRef.current;
             const ctx    = canvas?.getContext('2d');
             const el     = imgRef.current;
-            if (!canvas || !ctx || !el) return { fileName: originalFileNameRef.current, variants: {} };
+            if (!canvas || !ctx || !el) return { fileName: originalFileNameRef.current, alt: altText, variants: {} };
 
             const bounds   = imgBoundsRef.current;
             const variants: Record<string, CropProps> = {};
@@ -252,7 +253,7 @@ export const CropImage = forwardRef(({
                 variants[scale] = { ...data, base64: canvas.toDataURL(data.type) };
             }
 
-            return { fileName: originalFileNameRef.current, variants };
+            return { fileName: originalFileNameRef.current, alt: altText, variants };
         },
     }));
 
@@ -363,6 +364,18 @@ export const CropImage = forwardRef(({
                             value={originalFileName}
                             onChange={setOriginalFileName}
                             label={dict.fileName}
+                        />
+                    </div>
+
+                    {/* Alt text — independent of srcset/variants: one description per image regardless of width variants */}
+                    <div className="flex flex-col gap-1 shrink-0">
+                        <label className="text-xs font-medium text-muted-foreground">{dict.altText}</label>
+                        <textarea
+                            defaultValue={altText}
+                            onBlur={e => setAltText(e.target.value)}
+                            placeholder={dict.altTextPlaceholder}
+                            rows={2}
+                            className="w-full min-w-0 resize-none rounded-md border border-input bg-background px-2.5 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                         />
                     </div>
 
