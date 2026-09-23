@@ -50,6 +50,14 @@ export type AIConfig = {
     anthropicApiKey?: string;
     mistralApiKey?: string;
     glmApiKey?: string;
+    /** Cloudflare Workers AI — both apiToken and accountId are required (the account id is part of every URL). */
+    cloudflare?: {
+        apiToken?: string;
+        accountId?: string;
+        defaultModel?: string;
+        /** Keep models that require the Workers Paid plan in model discovery. Default: false. */
+        includePaidModels?: boolean;
+    };
     openAICompatible?: {
         apiKey?: string;
         baseUrl?: string;

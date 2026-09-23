@@ -19,6 +19,7 @@ import type { EmailProviderAdapter } from './email/EmailProvider';
 import type { AIConfig, DropboxConfig, FirebaseConfig, GoogleOAuth2, GoogleServiceAccount, SupabaseConfig } from '../Config';
 import { RuntimeAIProvider } from './ai/shared';
 import { ANTHROPIC_PROVIDER_DEFINITION } from './ai/anthropic';
+import { createCloudflareProviderDefinition } from './ai/cloudflare';
 import { DEEPSEEK_PROVIDER_DEFINITION } from './ai/deepseek';
 import { GEMINI_PROVIDER_DEFINITION } from './ai/gemini';
 import { MISTRAL_PROVIDER_DEFINITION } from './ai/mistral';
@@ -120,6 +121,19 @@ export const AI_MANIFEST: DriverManifest<AIConfig> = {
     gemini:     toAIDriver(GEMINI_PROVIDER_DEFINITION, 'geminiApiKey'),
     anthropic:  toAIDriver(ANTHROPIC_PROVIDER_DEFINITION, 'anthropicApiKey'),
     mistral:    toAIDriver(MISTRAL_PROVIDER_DEFINITION, 'mistralApiKey'),
+    // Two credentials: the definition is built per account id, the token is the adapter's apiKey.
+    cloudflare: {
+        service: 'ai',
+        create: (cfg) => new RuntimeAIProvider(
+            createCloudflareProviderDefinition({
+                accountId: cfg?.cloudflare?.accountId?.trim() || '',
+                defaultModel: cfg?.cloudflare?.defaultModel?.trim() || undefined,
+                includePaidModels: cfg?.cloudflare?.includePaidModels,
+            }),
+            cfg?.cloudflare?.apiToken?.trim() || '',
+        ),
+        when: (cfg) => !!cfg?.cloudflare?.apiToken?.trim() && !!cfg?.cloudflare?.accountId?.trim(),
+    },
 };
 
 // ── Central registry - adding a provider = one new entry here ────────────────
@@ -139,7 +153,7 @@ export type DataDriverName    = 'dbRealtime' | 'firestoreDb' | 'supabaseDb' | 'm
 export type StorageDriverName = 'firestorage' | 'supabaseStorage';
 export type AuthDriverName        = 'googleAuth' | 'firebaseAuth' | 'dropboxAuth' | 'supabaseAuth';
 export type EmailDriverName       = 'gmail';
-export type AIDriverName          = 'openai' | 'openrouter' | 'opencode' | 'openai-compatible' | 'deepseek' | 'gemini' | 'anthropic' | 'mistral';
+export type AIDriverName          = 'openai' | 'openrouter' | 'opencode' | 'openai-compatible' | 'deepseek' | 'gemini' | 'anthropic' | 'mistral' | 'cloudflare';
 export type CredentialsDriverName = 'googleServiceAccount';
 
 export type ServicesConfig = {

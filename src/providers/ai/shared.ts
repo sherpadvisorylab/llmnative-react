@@ -17,7 +17,7 @@ import type {
 } from './AIProvider';
 import { formatAIModelRef } from './AIProvider';
 
-export type BuiltInAIProviderId = 'openai' | 'openrouter' | 'opencode' | 'openai-compatible' | 'deepseek' | 'gemini' | 'anthropic' | 'mistral' | 'glm';
+export type BuiltInAIProviderId = 'openai' | 'openrouter' | 'opencode' | 'openai-compatible' | 'deepseek' | 'gemini' | 'anthropic' | 'mistral' | 'glm' | 'cloudflare';
 
 export type AIProviderDefinition = {
     id: BuiltInAIProviderId;
@@ -70,6 +70,11 @@ export const extractProviderError = (err: unknown): string => {
             if (typeof inner.type === 'string') return inner.type;
         }
         if (typeof e.error === 'string') return e.error;
+        // Cloudflare API envelope: { success: false, errors: [{ code, message }] }
+        if (Array.isArray(e.errors) && e.errors.length > 0) {
+            const first = e.errors[0] as Record<string, unknown> | null;
+            if (first && typeof first.message === 'string') return first.message;
+        }
         if (typeof e.message === 'string') return e.message;
         if (typeof e.detail === 'string') return e.detail;
         if (typeof e.status === 'number') return `HTTP ${e.status}`;

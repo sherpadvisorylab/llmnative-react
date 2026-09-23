@@ -51,7 +51,7 @@ import '@llmnative/react/dist/index.css'  // necessario una volta sola
 | storage | `firestorage`, `supabaseStorage` | no |
 | auth | `googleAuth`, `firebaseAuth`, `supabaseAuth`, `dropboxAuth` | sì (fallback: googleAuth) |
 | email | `gmail` | no |
-| ai | `openai`, `gemini`, `anthropic`, `deepseek`, `mistral`, `openrouter`, `opencode` | no |
+| ai | `openai`, `gemini`, `anthropic`, `deepseek`, `mistral`, `openrouter`, `opencode`, `cloudflare` | no |
 | credentials | `googleServiceAccount` | no |
 
 ```tsx

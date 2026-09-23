@@ -92,6 +92,83 @@
 | [CR-081](#cr-081--form-sottoscrizione-selettiva-per-path) | Form: sottoscrizione selettiva per-path | Alta | — | ✅ |
 | [CR-082](#cr-082--gallery-renderitem-custom-item-renderer) | Gallery: `renderItem` (custom item renderer) | Media | — | ✅ |
 | [CR-083](#cr-083--uploadimage-alt-text-field-indipendente-da-srcsetvarianti) | UploadImage: alt text field (indipendente da srcset/varianti) | Media | — | ✅ |
+| [CR-084](#cr-084--ai-provider-cloudflare-workers-ai) | AI provider: Cloudflare Workers AI | Media | CR-058 | ✅ |
+
+---
+
+## CR-084 — AI provider: Cloudflare Workers AI
+
+**Stato:** ✅ done — rilasciato in 1.16.0
+**Issue:** [#43](https://github.com/sherpadvisorylab/llmnative-react/issues/43)
+**Priorità:** Media
+**Dipende da:** CR-058 (tool calling)
+
+### Motivazione
+
+Cloudflare Workers AI espone LLM open-weight (Llama 3.3/4, GPT-OSS, Qwen3, Gemma,
+GLM, Mistral…) tramite un endpoint compatibile OpenAI, con 10.000 Neurons/giorno
+gratuiti anche sul piano Free. Un consumer (`llmnative-cms`) vuole offrirlo come
+provider AI a costo zero con le stesse capability degli altri: chat, tool calling
+multi-turno, visione, temperature, abort, log id.
+
+### Verifica live (2026-09-23, piano Free)
+
+- `POST /accounts/{accountId}/ai/v1/chat/completions`: testo, system role,
+  temperature, tool calling (`tools` → `tool_calls` standard) su
+  llama-3.3-70b, gpt-oss-120b, qwen3-30b, glm-4.7-flash; visione (`image_url`
+  data URI) su llama-4-scout.
+- `/ai/v1/models` non esiste (405): discovery via
+  `GET /accounts/{accountId}/ai/models/search?task=Text Generation`
+  (`result[].name` = `@cf/...`, `properties[]` con `function_calling`,
+  `vision`, `require_workers_paid`, …).
+- Nel turno dopo una tool call, il messaggio assistant con `tool_calls` deve
+  avere `content: ''`: con `null` (quello che invia `toOpenAIMessages`)
+  l'API risponde 5006 su llama-3.3, gpt-oss e qwen3.
+- Errori nel formato `{ errors: [{ code, message }] }` (5035 modello Workers
+  Paid su piano Free, 10000 account errato) — `extractProviderError` non lo
+  gestiva e mostrava il JSON grezzo.
+- Il preflight CORS è rifiutato (405): nel browser serve il proxy, come per gli
+  altri provider.
+
+### Scope
+
+- `src/providers/ai/cloudflare.ts`: `createCloudflareProviderDefinition({ accountId, defaultModel?, includePaidModels? })`
+  sopra `createOpenAICompatibleProviderDefinition` (stesso wire format, tool
+  calling, allegati, logId, abort). Costruita per account perché
+  `complete()`/`discoverModels()` ricevono solo il token.
+- `AIConfig.cloudflare: { apiToken, accountId, defaultModel?, includePaidModels? }`;
+  registrazione solo con entrambe le credenziali in `createAIProviderRegistry`
+  (definizione dinamica, come `openai-compatible`) e nel driver `AI_MANIFEST.cloudflare`.
+- `discoverModels`: `ai/models/search` paginato, senza modelli sperimentali,
+  classificatori (`*-guard-*`) e `require_workers_paid` (salvo `includePaidModels`).
+- `validateApiKey`: `ai/models/search?per_page=1` — verifica token, account
+  id e permesso Workers AI in una sola chiamata.
+- History: assistant `content` vuoto normalizzato a `''` solo per Cloudflare
+  (il mapper condiviso resta invariato per gli altri provider).
+- `extractProviderError`: supporto a `errors[0].message`.
+- Export pubblici: `CLOUDFLARE_PROVIDER_DESCRIPTOR` (incluso in
+  `AI_PROVIDER_DESCRIPTORS`, campi `apiKey` + `accountId`),
+  `createCloudflareProviderDefinition`, tipo `CloudflareProviderOptions`.
+- Nessuna breaking change: nuovi campi opzionali, nuovo id nelle union.
+
+### Checklist
+
+- [x] Adapter `cloudflare.ts` + `AIConfig.cloudflare` + registry + driver manifest + descriptor
+- [x] `extractProviderError` con envelope `errors[]`
+- [x] Test unit `tests/unit/providers/CloudflareAIProvider.test.ts`
+- [x] Verifica live con token reale (validate ok/account errato/token errato,
+      catalogo 24 modelli, testo, tool calling 2 turni su 3 modelli, visione,
+      errore leggibile su modello Workers Paid)
+- [x] Docs: `docs/providers/ai.md`, `docs/getting-started/app-configuration.md`,
+      `llms.txt`, `llms-full.txt`; CHANGELOG
+- [x] Gate: `npx tsc --noEmit` (0 errori), `npm test` (65 file, 730/730), `npm run build`, `npm pack --dry-run --json` (217 entries)
+- [x] Versione SemVer (minor) e `npm publish` — 1.16.0
+
+### Note
+
+Consumer CMS (`llmnative-cms`) collega il provider separatamente (secret
+tenant con `accountId`, `buildAIConfig`, form di collegamento) — commit CMS
+autonomo, non incluso qui.
 
 ---
 

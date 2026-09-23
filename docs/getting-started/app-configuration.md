@@ -68,7 +68,7 @@ interface AppProps {
 | `storage` | Upload, download, delete, file URL | `Upload`, `useStorageProvider` | `firestorage`, `supabaseStorage` |
 | `auth` | Current user, sign-in/out, access token | `AuthButton`, `useAuthProvider` | `googleAuth`, `dropboxAuth`, `firebaseAuth`, `supabaseAuth` |
 | `email` | Outbound email | `useEmailProvider` | `gmail` |
-| `ai` | Prompt execution and model orchestration | `Prompt`, `WorkflowAI`, `AI.fetch(...)`, `useAIProvider` | `openai`, `openrouter`, `opencode`, `openai-compatible`, `deepseek`, `gemini`, `anthropic`, `mistral`, `glm` |
+| `ai` | Prompt execution and model orchestration | `Prompt`, `WorkflowAI`, `AI.fetch(...)`, `useAIProvider` | `openai`, `openrouter`, `opencode`, `openai-compatible`, `deepseek`, `gemini`, `anthropic`, `mistral`, `glm`, `cloudflare` |
 | `credentials` | Service account credentials and token generation | `useCredentialsProvider`, `getAccessToken` | `googleServiceAccount` |
 | `proxy` | Same-origin relay for browser-safe external requests | `proxyFetch(...)`, `useProxyProvider` | `viteDevProxy`, `expressProxy` |
 
@@ -112,7 +112,7 @@ interface AppProvidersConfig {
     storage?: 'firestorage' | 'supabaseStorage' | string;
     auth?: 'googleAuth' | 'dropboxAuth' | 'firebaseAuth' | 'supabaseAuth' | string;
     email?: 'gmail' | string;
-    ai?: 'openai' | 'openrouter' | 'opencode' | 'openai-compatible' | 'deepseek' | 'gemini' | 'anthropic' | 'mistral' | 'glm' | string;
+    ai?: 'openai' | 'openrouter' | 'opencode' | 'openai-compatible' | 'deepseek' | 'gemini' | 'anthropic' | 'mistral' | 'glm' | 'cloudflare' | string;
     credentials?: 'googleServiceAccount' | string;
     proxy?: 'viteDevProxy' | 'expressProxy' | string;
   };
@@ -201,6 +201,12 @@ interface AIConfig {
   deepSeekApiKey?: string;
   mistralApiKey?: string;
   glmApiKey?: string;
+  cloudflare?: {               // Cloudflare Workers AI — needs both apiToken and accountId
+    apiToken?: string;
+    accountId?: string;
+    defaultModel?: string;     // default: '@cf/meta/llama-3.3-70b-instruct-fp8-fast'
+    includePaidModels?: boolean; // keep Workers Paid-only models in discovery (default: false)
+  };
   openAICompatible?: {
     apiKey?: string;
     baseUrl?: string;

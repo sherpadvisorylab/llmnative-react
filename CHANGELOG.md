@@ -9,7 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.16.0] - 2026-09-23
+
 ### Added
+- AI provider `cloudflare` — Cloudflare Workers AI (CR-084, GH issue #43).
+  Configure with `aiConfig.cloudflare: { apiToken, accountId }` (the account id
+  is part of every Workers AI URL, so the provider registers only when both are
+  set). Uses the OpenAI-compatible `/ai/v1/chat/completions` endpoint: chat,
+  system role, temperature, multi-turn tool calling, vision, abort and log id
+  work like the other built-in providers. Model discovery uses
+  `/ai/models/search?task=Text Generation` (Workers AI has no `/models`) and
+  hides experimental models, safety classifiers and Workers Paid-only models
+  (opt back in with `includePaidModels: true`). `validateApiKey()` checks
+  token, account id and permission in one call. New exports:
+  `CLOUDFLARE_PROVIDER_DESCRIPTOR` (also appended to `AI_PROVIDER_DESCRIPTORS`,
+  credential fields `apiKey` + `accountId`), `createCloudflareProviderDefinition`,
+  `CloudflareProviderOptions`.
+- `extractProviderError` now reads the `{ errors: [{ message }] }` envelope
+  (Cloudflare API) instead of returning the raw JSON.
 - `README.md`: CI status badge for the `ci.yml` workflow on `main` and npm
   version badge for `@llmnative/react`, both linked to their respective
   Actions and npm pages. Documentation-only change (GH issue #38).

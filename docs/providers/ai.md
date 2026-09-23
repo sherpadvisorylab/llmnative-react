@@ -25,6 +25,7 @@ The goal is the same as for `data`, `storage`, `auth` and `email`: keep the exte
 | `anthropic` | Anthropic API | Claude models |
 | `mistral` | Mistral API | Mistral-hosted text models |
 | `glm` | ZhipuAI API | GLM chat models |
+| `cloudflare` | Cloudflare Workers AI | Open-weight models (Llama, GPT-OSS, Qwen, Gemma…) with a free daily allowance |
 | custom | Your adapter | internal gateways, proxy routers, vendor aggregators |
 
 For complete configuration, see [AppProvidersConfig](/docs/app-configuration#appprovidersconfig) and [AIConfig](/docs/app-configuration#aiconfig--centralized-api-keys-for-the-ai-service).
@@ -48,6 +49,7 @@ Examples:
 - `anthropic/claude-opus-4.1`
 - `mistral/mistral-large-latest`
 - `glm/glm-4-plus`
+- `cloudflare/@cf/meta/llama-3.3-70b-instruct-fp8-fast`
 
 This avoids ambiguity and keeps stored prompt settings deterministic even when multiple providers are configured at the same time.
 
@@ -101,6 +103,7 @@ Built-in AI providers expose configuration state like the other service provider
 - `anthropic` checks `ai.anthropicApiKey`
 - `mistral` checks `ai.mistralApiKey`
 - `glm` checks `ai.glmApiKey`
+- `cloudflare` checks `ai.cloudflare.apiToken` and `ai.cloudflare.accountId`
 
 That lets UI stay visible but disabled when a provider is not configured.
 
@@ -131,6 +134,7 @@ All built-in providers now follow this pattern:
 - `gemini` -> `GET /v1beta/models`
 - `anthropic` -> `GET /v1/models`
 - `opencode` -> `GET /zen/v1/models`, filtered to the `chat/completions`-compatible subset
+- `cloudflare` -> `GET /accounts/{accountId}/ai/models/search?task=Text Generation` (Workers AI has no OpenAI-style `/models`), without experimental, Workers Paid-only and safety-classifier models
 
 ## Public unified catalog
 
@@ -194,12 +198,41 @@ Built-in AI adapters now live one file per provider inside `src/providers/ai/`:
 - `gemini.ts`
 - `anthropic.ts`
 - `mistral.ts`
+- `cloudflare.ts`
 - `shared.ts` for the common runtime adapter/cache helpers
 - `index.ts` to assemble the built-in registry
 
 This keeps the public API unchanged while making the provider layer easier to extend and audit.
 
 `openrouter` is implemented as a dedicated preset on top of the shared `openaiCompatible.ts` base adapter. `opencode` uses the official Zen model catalog, then filters to the `chat/completions`-compatible subset so the prompt UI only offers models that match the current transport.
+
+## Cloudflare Workers AI
+
+`cloudflare` talks to the Workers AI OpenAI-compatible endpoint
+(`https://api.cloudflare.com/client/v4/accounts/{accountId}/ai/v1`). It needs two credentials,
+because the account id is part of every URL:
+
+```tsx
+<App
+  aiConfig={{
+    cloudflare: {
+      apiToken: import.meta.env.VITE_CLOUDFLARE_API_TOKEN,   // token with Workers AI Read
+      accountId: import.meta.env.VITE_CLOUDFLARE_ACCOUNT_ID,
+    },
+  }}
+  providers={{ services: { ai: 'cloudflare', proxy: 'viteDevProxy' } }}
+/>
+```
+
+- Chat, system role, temperature, tool calling (multi-turn) and vision (`image_url` on vision
+  models such as `@cf/meta/llama-4-scout-17b-16e-instruct`) work like the other providers.
+- Free plan: 10,000 Neurons/day shared across models. Models flagged `require_workers_paid`
+  (e.g. Kimi, GLM 5.x, DeepSeek V4) fail with a 403 on the Free plan, so discovery hides them
+  unless `includePaidModels: true`.
+- `validateApiKey()` checks token, account id and the Workers AI permission in one catalog call.
+- The API rejects browser CORS preflight: enable the proxy in browser apps.
+- `CLOUDFLARE_PROVIDER_DESCRIPTOR` (also in `AI_PROVIDER_DESCRIPTORS`) describes the two
+  credential fields (`apiKey` = API token, `accountId`) for a "connect" UI.
 
 ## Use AI directly in custom workflows
 

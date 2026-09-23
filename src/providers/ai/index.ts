@@ -2,6 +2,7 @@ import type { AIConfig } from '../../Config';
 import type { ProviderDescriptor } from '../ProviderDescriptor';
 import type { AIProviderAdapter } from './AIProvider';
 import { ANTHROPIC_PROVIDER_DEFINITION } from './anthropic';
+import { CLOUDFLARE_PROVIDER_DESCRIPTOR, createCloudflareProviderDefinition } from './cloudflare';
 import { DEEPSEEK_PROVIDER_DEFINITION } from './deepseek';
 import { GEMINI_PROVIDER_DEFINITION } from './gemini';
 import { MISTRAL_PROVIDER_DEFINITION } from './mistral';
@@ -19,6 +20,8 @@ export type {
 export { formatAIModelRef, parseAIModelRef } from './AIProvider';
 export type { AIModelCatalog, AIProviderDefinition } from './shared';
 export { getAIModelCatalog } from './shared';
+export { CLOUDFLARE_PROVIDER_DESCRIPTOR, createCloudflareProviderDefinition } from './cloudflare';
+export type { CloudflareProviderOptions } from './cloudflare';
 
 export const AI_PROVIDER_DEFINITIONS: AIProviderDefinition[] = [
     OPENAI_PROVIDER_DEFINITION,
@@ -43,7 +46,13 @@ export const toProviderDescriptor = (definition: AIProviderDefinition): Provider
     credentialsHint: definition.credentialsHint,
 });
 
-export const AI_PROVIDER_DESCRIPTORS: ProviderDescriptor[] = AI_PROVIDER_DEFINITIONS.map(toProviderDescriptor);
+/** Includes Cloudflare: like openai-compatible its working definition needs a second credential
+ * (the account id) before it can be built, but unlike openai-compatible it is a fixed, named
+ * vendor — a "connect" UI should list it alongside the others. */
+export const AI_PROVIDER_DESCRIPTORS: ProviderDescriptor[] = [
+    ...AI_PROVIDER_DEFINITIONS.map(toProviderDescriptor),
+    CLOUDFLARE_PROVIDER_DESCRIPTOR,
+];
 
 /** The user-configurable "bring your own endpoint" slot — metadata-only counterpart of the
  * dynamic definition getDynamicAIProviderDefinitions() builds once a baseUrl is actually
@@ -60,10 +69,22 @@ export const OPENAI_COMPATIBLE_PROVIDER_DESCRIPTOR: ProviderDescriptor = {
 };
 
 const getDynamicAIProviderDefinitions = (aiConfig?: AIConfig): AIProviderDefinition[] => {
+    const definitions: AIProviderDefinition[] = [];
+
+    const cloudflareAccountId = aiConfig?.cloudflare?.accountId?.trim();
+    if (cloudflareAccountId) {
+        definitions.push(createCloudflareProviderDefinition({
+            accountId: cloudflareAccountId,
+            defaultModel: aiConfig?.cloudflare?.defaultModel?.trim() || undefined,
+            includePaidModels: aiConfig?.cloudflare?.includePaidModels,
+        }));
+    }
+
     const baseUrl = aiConfig?.openAICompatible?.baseUrl?.trim();
-    if (!baseUrl) return [];
+    if (!baseUrl) return definitions;
 
     return [
+        ...definitions,
         createOpenAICompatibleProviderDefinition({
             id: 'openai-compatible',
             label: aiConfig?.openAICompatible?.label?.trim() || 'OpenAI-compatible',
@@ -90,6 +111,8 @@ export const createAIProviderRegistry = (aiConfig?: AIConfig): Record<string, AI
     return definitions.reduce<Record<string, AIProviderAdapter>>((registry, definition) => {
         const apiKey = definition.id === 'openai-compatible'
             ? aiConfig.openAICompatible?.apiKey?.trim() || ''
+            : definition.id === 'cloudflare'
+            ? aiConfig.cloudflare?.apiToken?.trim() || ''
             : typeof definition.configKey === 'string' && typeof aiConfig[definition.configKey as keyof AIConfig] === 'string'
                 ? String(aiConfig[definition.configKey as keyof AIConfig] || '').trim()
                 : '';
