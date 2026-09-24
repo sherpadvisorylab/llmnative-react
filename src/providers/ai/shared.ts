@@ -11,13 +11,19 @@ import type {
     AICompleteResult,
     AIKeyValidationResult,
     AIModelDescriptor,
+    AIModelPricing,
     AIProviderAdapter,
     AIProviderCapabilities,
     AIRequestOptions,
 } from './AIProvider';
 import { formatAIModelRef } from './AIProvider';
+import { getModelsDevIndex, isModelsDevProvider, lookupModelsDevPricing } from './modelsDev';
 
 export type BuiltInAIProviderId = 'openai' | 'openrouter' | 'opencode' | 'openai-compatible' | 'deepseek' | 'gemini' | 'anthropic' | 'mistral' | 'glm' | 'cloudflare';
+
+/** Una entry di discovery: o il solo id (retrocompatibile con gli array di stringhe), o un
+ * oggetto con il prezzo nativo del listing. */
+export type DiscoveredAIModel = string | { model: string; pricing?: AIModelPricing };
 
 export type AIProviderDefinition = {
     id: BuiltInAIProviderId;
@@ -37,7 +43,7 @@ export type AIProviderDefinition = {
     /** Short guidance on where in the dashboard to find the credential. */
     credentialsHint?: string;
     capabilities?: Omit<AIProviderCapabilities, 'models'>;
-    discoverModels: (apiKey: string) => Promise<string[]>;
+    discoverModels: (apiKey: string) => Promise<DiscoveredAIModel[]>;
     complete: (
         apiKey: string,
         request: Required<Pick<AICompleteRequest, 'prompt' | 'model'>> & AIRequestOptions & Pick<AICompleteRequest, 'history' | 'tools' | 'signal' | 'logId'>,
@@ -57,7 +63,8 @@ export type AIModelCatalog = {
     capabilitiesByProvider: Record<string, AIProviderCapabilities>;
 };
 
-const MODEL_CACHE_PREFIX = 'ai.models.';
+// v2: le cache 1.x (prive di prezzi) vengono ignorate e ricostruite con il pricing.
+const MODEL_CACHE_PREFIX = 'ai.models.v2.';
 const MODEL_CACHE_TTL_MS = 1000 * 60 * 60 * 24;
 
 export const extractProviderError = (err: unknown): string => {
@@ -136,14 +143,38 @@ const setCachedModels = (provider: string, items: AIModelDescriptor[]) => {
     }
 };
 
-const normalizeModels = (provider: BuiltInAIProviderId, label: string, models: string[]): AIModelDescriptor[] => (
-    models.map((model) => ({
-        id: formatAIModelRef(provider, model),
-        provider,
-        model,
-        label: `${label} / ${model}`,
-    }))
+const normalizeModels = (provider: BuiltInAIProviderId, label: string, models: DiscoveredAIModel[]): AIModelDescriptor[] => (
+    models.map((entry) => {
+        const model = typeof entry === 'string' ? entry : entry.model;
+        const pricing = typeof entry === 'string' ? undefined : entry.pricing;
+        return {
+            id: formatAIModelRef(provider, model),
+            provider,
+            model,
+            label: `${label} / ${model}`,
+            ...(pricing ? { pricing } : {}),
+        };
+    })
 );
+
+/** Arricchisce con il fallback `models.dev` i soli modelli built-in mappabili che il listing
+ * nativo ha lasciato senza prezzo. Best-effort: un errore di rete lascia i modelli intatti. */
+const enrichModelsWithPricing = async (
+    provider: BuiltInAIProviderId,
+    models: AIModelDescriptor[]
+): Promise<AIModelDescriptor[]> => {
+    if (!isModelsDevProvider(provider)) return models;
+    if (models.length === 0 || models.every((model) => model.pricing)) return models;
+
+    const index = await getModelsDevIndex();
+    if (Object.keys(index).length === 0) return models;
+
+    return models.map((model) => {
+        if (model.pricing) return model;
+        const pricing = lookupModelsDevPricing(index, provider, model.model);
+        return pricing ? { ...model, pricing } : model;
+    });
+};
 
 export const getAIModelCatalog = async (
     registry: Record<string, AIProviderAdapter>,
@@ -244,6 +275,8 @@ export class RuntimeAIProvider implements AIProviderAdapter {
         } catch (error) {
             console.warn(`AIProvider:${this.id} model discovery failed`, error);
         }
+
+        items = await enrichModelsWithPricing(this.id, items);
 
         setCachedModels(this.id, items);
 

@@ -38,6 +38,9 @@ const model = (name: string, props: Record<string, string> = {}) => ({
     properties: Object.entries(props).map(([property_id, value]) => ({ property_id, value })),
 });
 
+const modelNames = (models: Array<string | { model: string }>) =>
+    models.map((entry) => (typeof entry === 'string' ? entry : entry.model));
+
 beforeEach(() => vi.clearAllMocks());
 
 describe('createCloudflareProviderDefinition()', () => {
@@ -110,7 +113,7 @@ describe('createCloudflareProviderDefinition()', () => {
 
         const models = await definition.discoverModels('cf-token');
 
-        expect(models).toEqual(['@cf/openai/gpt-oss-120b', '@cf/qwen/qwen3-30b-a3b-fp8']);
+        expect(modelNames(models)).toEqual(['@cf/openai/gpt-oss-120b', '@cf/qwen/qwen3-30b-a3b-fp8']);
         const url = new URL(fetchJson().mock.calls[0][0]);
         expect(url.origin + url.pathname).toBe(`${ACCOUNT_URL}/ai/models/search`);
         expect(url.searchParams.get('task')).toBe('Text Generation');
@@ -123,7 +126,43 @@ describe('createCloudflareProviderDefinition()', () => {
 
         const paid = createCloudflareProviderDefinition({ accountId: ACCOUNT, includePaidModels: true });
 
-        expect(await paid.discoverModels('cf-token')).toEqual(['@cf/moonshotai/kimi-k2.6']);
+        expect(modelNames(await paid.discoverModels('cf-token'))).toEqual(['@cf/moonshotai/kimi-k2.6']);
+    });
+
+    it('reads the native price from properties[].price (input/output)', async () => {
+        fetchJson().mockResolvedValue({
+            success: true,
+            result: [
+                {
+                    name: '@cf/openai/gpt-oss-120b',
+                    properties: [
+                        { property_id: 'function_calling', value: 'true' },
+                        { property_id: 'price_in', price: 0.35 },
+                        { property_id: 'price_out', price: 1.4 },
+                    ],
+                },
+                {
+                    name: '@cf/free/model',
+                    properties: [{ property_id: 'price', price: 0 }],
+                },
+            ],
+        });
+
+        const models = await definition.discoverModels('cf-token');
+
+        expect(models).toEqual([
+            { model: '@cf/openai/gpt-oss-120b', pricing: { input: 0.35, output: 1.4 } },
+            { model: '@cf/free/model', pricing: { input: 0, output: 0 } },
+        ]);
+    });
+
+    it('ignores variable/negative prices instead of falsifying them', async () => {
+        fetchJson().mockResolvedValue({
+            success: true,
+            result: [{ name: '@cf/router/model', properties: [{ property_id: 'price_in', price: -1 }] }],
+        });
+
+        expect(await definition.discoverModels('cf-token')).toEqual(['@cf/router/model']);
     });
 
     it('follows catalog pagination while pages are full', async () => {

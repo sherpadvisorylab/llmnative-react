@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { Prompt as PromptConf } from '../../conf/Prompt';
-import { useI18n } from '../../I18n';
+import { useI18n, interpolate } from '../../I18n';
+import type { AIModelPricing } from '../../providers/ai/AIProvider';
+import { isFreeAIModel } from '../../providers/ai/AIProvider';
 import { Dropdown, DropdownItem } from '../blocks/Dropdown';
 import Icon from '../ui/Icon';
 import {
@@ -50,6 +52,8 @@ export interface ChatbotSubmitPayload {
 export interface ChatbotModelOption {
     label: string;
     value: string;
+    /** Prezzo input/output in USD per 1M token — assente = prezzo non trovato. */
+    pricing?: AIModelPricing;
 }
 
 export interface ChatbotProps {
@@ -106,6 +110,12 @@ function modelShortLabel(modelRef?: string): string | null {
     if (!modelRef) return null;
     const afterSlash = modelRef.includes('/') ? modelRef.split('/').pop() : modelRef;
     return afterSlash || modelRef;
+}
+
+/** `$` per 1M token, con più decimali sui prezzi sotto $1 (es. 0.075 → $0.0750). */
+function formatModelPrice(value?: number): string {
+    if (value === undefined) return '—';
+    return `$${value >= 1 ? value.toFixed(2) : value.toFixed(4)}`;
 }
 
 export function Chatbot({
@@ -411,11 +421,36 @@ export function Chatbot({
                             position="start"
                             triggerClassName={chatbotModelTrigger}
                         >
-                            {models.map((opt) => (
-                                <DropdownItem key={opt.value} onClick={() => onModelChange?.(opt.value)}>
-                                    {opt.label}
-                                </DropdownItem>
-                            ))}
+                            {models.map((opt) => {
+                                const free = isFreeAIModel({ pricing: opt.pricing });
+                                return (
+                                    <DropdownItem
+                                        key={opt.value}
+                                        onClick={() => onModelChange?.(opt.value)}
+                                        className={free ? 'bg-success/10 hover:bg-success/20' : undefined}
+                                    >
+                                        <span className="flex w-full min-w-0 items-center justify-between gap-4">
+                                            <span className="min-w-0 truncate">{opt.label}</span>
+                                            {free ? (
+                                                <span className="shrink-0 rounded bg-success/20 px-1.5 py-0.5 text-[11px] font-medium text-success">
+                                                    {dict.modelPriceFree}
+                                                </span>
+                                            ) : opt.pricing ? (
+                                                <span className="shrink-0 font-mono text-[11px] text-muted-foreground">
+                                                    {interpolate(dict.modelPricePair, {
+                                                        input: formatModelPrice(opt.pricing.input),
+                                                        output: formatModelPrice(opt.pricing.output),
+                                                    })}
+                                                </span>
+                                            ) : (
+                                                <span className="shrink-0 text-[11px] italic text-muted-foreground/70">
+                                                    {dict.modelPriceNotFound}
+                                                </span>
+                                            )}
+                                        </span>
+                                    </DropdownItem>
+                                );
+                            })}
                         </Dropdown>
                     )}
 

@@ -2,7 +2,7 @@
 import { useTheme } from "../../Theme";
 import { useI18n, interpolate } from "../../I18n";
 import { Prompt as PromptConf, PromptVariables, PROMPT_CLEANUP, PROMPT_NO_REFERENCE } from '../../conf/Prompt';
-import { type AIProviderCapabilities, type AIProviderAdapter, type AIRequestOptions, type AIAttachment, parseAIModelRef } from '../../providers/ai/AIProvider';
+import { type AIProviderCapabilities, type AIProviderAdapter, type AIRequestOptions, type AIAttachment, type AIModelPricing, parseAIModelRef } from '../../providers/ai/AIProvider';
 import { useAIProvider, useAIProviderRegistry } from '../../providers/ai/AIProviderContext';
 import { getAIModelCatalog } from '../../providers/ai/shared';
 import { RecordProps } from '../../providers/data/DataProvider';
@@ -116,8 +116,10 @@ type PromptAvailabilityState = {
     reason?: string;
 }
 
+type PromptModelOption = { label: string; value: string; pricing?: AIModelPricing };
+
 type PromptCapabilitiesState = {
-    modelOptions: Array<{ label: string; value: string }>;
+    modelOptions: PromptModelOption[];
     capabilitiesByProvider: Record<string, AIProviderCapabilities>;
 };
 
@@ -184,10 +186,11 @@ function usePromptCapabilities() {
 
             if (cancelled) return;
 
-            const modelOptions = catalog.models
+            const modelOptions: PromptModelOption[] = catalog.models
                 .map((model) => ({
                     label: model.label,
                     value: model.id,
+                    ...(model.pricing ? { pricing: model.pricing } : {}),
                 }));
 
             setState({

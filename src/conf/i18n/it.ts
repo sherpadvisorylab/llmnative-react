@@ -87,6 +87,9 @@ export const it: I18nDict = {
         noResponse: 'Il provider AI non ha restituito alcuna risposta.',
         promptLabel: 'Prompt: ',
         defaultOption: 'Predefinito',
+        modelPricePair: '{input} / {output}',
+        modelPriceFree: 'Gratis',
+        modelPriceNotFound: 'Prezzo non disponibile',
     },
     layout: {
         maxElements: 'Hai già 12 elementi nella riga: rimuovine uno prima.',

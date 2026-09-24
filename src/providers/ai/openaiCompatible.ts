@@ -3,9 +3,9 @@ import { fetchJson } from '../../libs/fetch';
 import { proxyFetch } from '../proxy';
 import { PromptUtils } from '../../libs/promptUtils';
 import { LLM_LOG_ID_HEADER } from '../proxy/logHeader';
-import type { AIProviderDefinition, BuiltInAIProviderId } from './shared';
+import type { AIProviderDefinition, BuiltInAIProviderId, DiscoveredAIModel } from './shared';
 import { parseTextResponse, createBrowserTransportError, extractProviderError } from './shared';
-import type { AIConversationTurn, AICompleteResult, AIToolDefinition } from './AIProvider';
+import type { AIModelPricing, AIConversationTurn, AICompleteResult, AIToolDefinition } from './AIProvider';
 
 type OpenAICompatibleDefinitionOptions = {
     id: BuiltInAIProviderId;
@@ -22,9 +22,50 @@ type OpenAICompatibleDefinitionOptions = {
     credentialsHint?: string;
     /** Override the default validateApiKey when the models endpoint is public or uses a non-standard error format. */
     validateApiKey?: AIProviderDefinition['validateApiKey'];
+    /** Mappa una entry del listing `/models` in una `DiscoveredAIModel`. Default:
+     * `mapOpenAICompatibleModelEntry` (solo `id`, nessun prezzo). */
+    mapModelEntry?: (entry: unknown) => DiscoveredAIModel | null;
 };
 
 const trimTrailingSlash = (value: string) => value.replace(/\/+$/, '');
+
+const PRICE_PER_TOKEN_TO_MILLION = 1_000_000;
+
+const pricePerMillion = (value: unknown): number | undefined => {
+    const parsed = typeof value === 'string' ? Number(value) : typeof value === 'number' ? value : Number.NaN;
+    if (!Number.isFinite(parsed) || parsed < 0) return undefined;
+    return parsed * PRICE_PER_TOKEN_TO_MILLION;
+};
+
+/** Entry del listing di un endpoint OpenAI-compatible "puro": solo l'id, nessun prezzo
+ * affidabile (la forma del costo cambia da vendor a vendor). */
+export const mapOpenAICompatibleModelEntry = (entry: unknown): DiscoveredAIModel | null => {
+    if (!entry || typeof entry !== 'object') return null;
+    const id = (entry as Record<string, unknown>).id;
+    return typeof id === 'string' && id ? id : null;
+};
+
+/** Entry del listing OpenRouter (`/models`): `pricing.prompt`/`pricing.completion` sono USD
+ * per token, convertiti in USD per 1M token. I router a prezzo variabile riportano `-1`: quel
+ * lato viene omesso, mai interpretato come prezzo (né come gratis). */
+export const mapOpenRouterModelEntry = (entry: unknown): DiscoveredAIModel | null => {
+    if (!entry || typeof entry !== 'object') return null;
+    const record = entry as Record<string, unknown>;
+    const id = typeof record.id === 'string' ? record.id : undefined;
+    if (!id) return null;
+
+    const raw = record.pricing && typeof record.pricing === 'object'
+        ? record.pricing as { prompt?: unknown; completion?: unknown }
+        : {};
+
+    const input = pricePerMillion(raw.prompt);
+    const output = pricePerMillion(raw.completion);
+    const pricing: AIModelPricing | undefined = input === undefined && output === undefined
+        ? undefined
+        : { ...(input !== undefined ? { input } : {}), ...(output !== undefined ? { output } : {}) };
+
+    return pricing ? { model: id, pricing } : { model: id };
+};
 
 /** Esportate per riuso da provider "chat completions"-simili ma non costruiti tramite
  * createOpenAICompatibleProviderDefinition (vedi opencode.ts) — stesso wire format OpenAI,
@@ -101,6 +142,7 @@ export const createOpenAICompatibleProviderDefinition = ({
     dashboardUrl,
     credentialsHint,
     validateApiKey: validateApiKeyOverride,
+    mapModelEntry = mapOpenAICompatibleModelEntry,
 }: OpenAICompatibleDefinitionOptions): AIProviderDefinition => {
     const normalizedBaseUrl = trimTrailingSlash(baseUrl);
     const resolvedModelsUrl = modelsUrl || `${normalizedBaseUrl}/models`;
@@ -146,9 +188,10 @@ export const createOpenAICompatibleProviderDefinition = ({
                     Authorization: `Bearer ${apiKey}`,
                 },
             }, proxyFetch);
-            return Array.isArray(response?.data)
-                ? response.data.map((entry: { id?: string }) => entry.id).filter(Boolean)
-                : [];
+            const data: unknown[] = Array.isArray(response?.data) ? response.data : [];
+            return data
+                .map((entry) => mapModelEntry(entry))
+                .filter((entry): entry is DiscoveredAIModel => entry !== null);
         },
         complete: async (apiKey, request) => {
             const attachments = request.attachments ?? [];

@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- AI model pricing in the `Chatbot`/`Prompt` model picker (CR-085). New public
+  `AIModelPricing` type and optional `AIModelDescriptor.pricing` (USD per 1M
+  tokens; absent = price not found), plus the `isFreeAIModel()` helper (true only
+  when both sides are exactly `0`). `discoverModels` now accepts and returns
+  `DiscoveredAIModel` (`string | { model, pricing? }`) without breaking providers
+  that still return plain id arrays. OpenRouter and Cloudflare Workers AI expose
+  their native listing prices (variable `-1` sides are omitted, never falsified);
+  the other built-in providers are enriched from the public `models.dev` catalog
+  with a single shared fetch and a compact 24h `localStorage` index, falling back
+  to the model id without its date suffix. Model discovery cache moved to
+  `ai.models.v2.*` so older price-less entries are rebuilt. The picker shows
+  `$in / $out`, highlights free models with `bg-success/10` and shows
+  "Price not found" for the rest; new i18n keys in all six locales.
+
 ## [1.16.0] - 2026-09-23
 
 ### Added

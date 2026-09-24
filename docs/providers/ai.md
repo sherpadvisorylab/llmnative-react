@@ -122,8 +122,9 @@ At runtime the orchestrator:
 
 - enables only providers with a configured API key;
 - calls the provider model-list endpoint when available;
-- normalizes the result into `{ id, provider, model, label }`;
-- caches it in `localStorage` for 24 hours;
+- normalizes the result into `{ id, provider, model, label, pricing? }`;
+- enriches the models that lack a native price with the public `models.dev` catalog;
+- caches it in `localStorage` (`ai.models.v2.*`) for 24 hours;
 - falls back to a minimal static list if discovery fails.
 
 This is what powers the `Prompt` model selector.
@@ -135,6 +136,34 @@ All built-in providers now follow this pattern:
 - `anthropic` -> `GET /v1/models`
 - `opencode` -> `GET /zen/v1/models`, filtered to the `chat/completions`-compatible subset
 - `cloudflare` -> `GET /accounts/{accountId}/ai/models/search?task=Text Generation` (Workers AI has no OpenAI-style `/models`), without experimental, Workers Paid-only and safety-classifier models
+
+`discoverModels` keeps accepting plain model-id arrays, but a provider can return
+`{ model, pricing }` entries to attach a native price. `AIModelPricing` is expressed in
+**USD per 1M tokens**; a side is omitted when the price is variable (e.g. the `-1` routers of
+OpenRouter) and `AIModelDescriptor.pricing` is absent when no price is known at all.
+
+## Model pricing
+
+Every `AIModelDescriptor` may carry `pricing?: { input?, output? }` (USD per 1M tokens), and
+the public helper `isFreeAIModel(model)` is `true` only when both sides are exactly `0`.
+
+- **Native prices**: OpenRouter (`pricing.prompt`/`pricing.completion`, converted from
+  USD/token) and Cloudflare Workers AI (the listing `properties[].price`) expose their own
+  prices. Variable-priced sides are left out rather than falsified.
+- **`models.dev` fallback**: providers whose listing has no price (OpenAI, Anthropic, Gemini,
+  DeepSeek, Mistral, GLM, OpenCode) are enriched from `https://models.dev/api.json`
+  (`cost.input`/`cost.output`, already USD per 1M tokens). A single shared fetch builds a
+  compact index cached in `localStorage` for 24h; the lookup matches the exact model id first,
+  then the id without its `-YYYY-MM-DD` suffix. The fallback is best-effort: on any error the
+  models stay in the catalog, just without a price.
+- **UI**: the `Chatbot`/`Prompt` model picker shows `$in / $out` on each row, highlights free
+  models with a green `bg-success/10` row, and shows "Price not found" for the rest.
+
+```ts
+import { isFreeAIModel } from '@llmnative/react';
+
+const cheap = catalog.models.filter((m) => isFreeAIModel(m));
+```
 
 ## Public unified catalog
 

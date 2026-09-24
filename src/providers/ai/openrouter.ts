@@ -1,7 +1,7 @@
 import { fetchJson } from '../../libs/fetch';
 import { proxyFetch } from '../proxy';
 import { extractProviderError } from './shared';
-import { createOpenAICompatibleProviderDefinition } from './openaiCompatible';
+import { createOpenAICompatibleProviderDefinition, mapOpenRouterModelEntry } from './openaiCompatible';
 
 export const OPENROUTER_PROVIDER_DEFINITION = createOpenAICompatibleProviderDefinition({
     id: 'openrouter',
@@ -13,6 +13,8 @@ export const OPENROUTER_PROVIDER_DEFINITION = createOpenAICompatibleProviderDefi
     baseUrl: 'https://openrouter.ai/api/v1',
     dashboardUrl: 'https://openrouter.ai/settings/keys',
     credentialsHint: 'OpenRouter → Settings → API Keys → Create Key.',
+    // Il listing OpenRouter espone `pricing.prompt`/`pricing.completion` (USD/token).
+    mapModelEntry: mapOpenRouterModelEntry,
     // OpenRouter's /models endpoint is public — use /auth/key which requires a valid key
     validateApiKey: async (apiKey) => {
         try {

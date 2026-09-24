@@ -93,6 +93,83 @@
 | [CR-082](#cr-082--gallery-renderitem-custom-item-renderer) | Gallery: `renderItem` (custom item renderer) | Media | — | ✅ |
 | [CR-083](#cr-083--uploadimage-alt-text-field-indipendente-da-srcsetvarianti) | UploadImage: alt text field (indipendente da srcset/varianti) | Media | — | ✅ |
 | [CR-084](#cr-084--ai-provider-cloudflare-workers-ai) | AI provider: Cloudflare Workers AI | Media | CR-058 | ✅ |
+| [CR-085](#cr-085--ai-model-pricing-prezzi-inputoutput-nel-model-picker) | AI model pricing: prezzi input/output nel model picker | Media | CR-058 | 🔄 |
+
+---
+
+## CR-085 — AI model pricing: prezzi input/output nel model picker
+
+**Stato:** 🔄 in progress
+**Issue:** refinata dall'agente di triage
+**Priorità:** Media
+**Dipende da:** CR-058 (tool calling)
+
+### Motivazione
+
+Nel model picker di `Chatbot`/`Prompt` si sceglie tra decine di modelli di provider
+diversi senza sapere quanto costano. Il consumer (`llmnative-cms`) vuole vedere per
+ogni modello il costo di input e output e riconoscere subito quelli gratuiti, per
+tutti i provider AI built-in. Nessun `AIModelDescriptor`/`ChatbotModelOption`
+espone oggi un prezzo: nel framework esiste solo la tabella statica `PRICING` di
+`src/libs/promptUtils.ts` usata per la stima dei token, non collegata al catalogo
+modelli.
+
+Verifica live (2026-09-24): solo **OpenRouter** (`/models` → `pricing.prompt`/
+`pricing.completion`, USD per token come stringa, `-1` sui router a prezzo variabile)
+e **Cloudflare** (`properties[].price` in `ai/models/search`) riportano i prezzi nel
+listing. OpenAI, Anthropic, Gemini, DeepSeek, Mistral, GLM e OpenCode no.
+`https://models.dev/api.json` è un catalogo pubblico (CORS `*`, `cost.input`/
+`cost.output` in USD per 1M token) che copre i provider built-in.
+
+### Scope
+
+- `AIModelPricing` (input/output, USD per 1M token) + `AIModelDescriptor.pricing?`
+  + helper pubblico `isFreeAIModel()` (`src/providers/ai/AIProvider.ts`).
+- `DiscoveredAIModel` (`string | { model, pricing? }`): `discoverModels` resta
+  retrocompatibile con gli array di id; `normalizeModels` propaga il pricing;
+  `RuntimeAIProvider.getCapabilities` lo veicola nel descriptor; cache portata a
+  `ai.models.v2.*`; `getAIModelCatalog` invariato nella forma pubblica.
+- Prezzi nativi: OpenRouter via `mapModelEntry`/`mapOpenRouterModelEntry` in
+  `openaiCompatible.ts` (per-token → per-1M, `-1` omesso), Cloudflare da
+  `properties[].price` in `discoverModels`.
+- Fallback `models.dev`: una fetch condivisa, indice compatto in `localStorage`
+  TTL 24h, match esatto poi senza suffisso data; nessun modello scartato on error.
+- `ChatbotModelOption.pricing?` + rendering nel picker (`$in / $out`, righe free
+  `bg-success/10`, "Price not found" per i mancanti); `Prompt` passa il pricing dal
+  catalogo.
+- i18n delle nuove stringhe in `src/I18n.tsx` + 6 lingue.
+- Test unit pricing/fallback/Cloudflare/rendering; docs `docs/providers/ai.md`,
+  `llms-full.txt`; CHANGELOG.
+
+### Fuori scope
+
+- Bump di versione, sezione di versione nel changelog, tag e `npm publish`.
+- Migrazione lato consumer `llmnative-cms` (commit autonomo).
+- Stima del costo di una conversazione: la tabella statica `PRICING` di
+  `src/libs/promptUtils.ts` resta invariata.
+
+### Checklist
+
+- [x] `AIModelPricing` + `AIModelDescriptor.pricing?` + `isFreeAIModel()` esportati da `src/index.ts`
+- [x] `discoverModels` accetta/restituisce `DiscoveredAIModel` mantenendo la retrocompatibilità; `normalizeModels`/`getCapabilities` propagano il pricing
+- [x] OpenRouter e Cloudflare espongono il prezzo nativo; i casi `-1` non producono un prezzo falsato
+- [x] Fallback `models.dev` (fetch condivisa, indice compatto `localStorage` TTL 24h, match esatto poi senza data, modelli mai scartati)
+- [x] Cache modelli su `ai.models.v2.*`
+- [x] `ChatbotModelOption.pricing` renderizzato (`$in / $out`, free `bg-success/10`, "Price not found")
+- [x] `Prompt` passa il pricing del catalogo a `Chatbot`
+- [x] i18n nuove chiavi in `I18n.tsx` + `en`/`it`/`de`/`ru`/`zh`/`ar`
+- [x] Test unit pricing nativo, fallback `models.dev`, rendering opzione
+- [x] Docs `docs/providers/ai.md` e `llms-full.txt`
+- [x] Voce `CHANGELOG.md` sotto `## [Unreleased]`
+- [x] Gate: `npx tsc --noEmit`, `npm test`, `npm run build`
+- [ ] Verifica umana + release (fuori scope agente)
+
+### Note
+
+Unità `AIModelPricing` = USD per 1M token (stessa della tabella `PRICING`). Il
+prezzo nativo Cloudflare è letto in modo difensivo da `properties[].price` (id
+property `*_in`/`*_out`, oppure `price` a livello modello): la forma esatta del
+listing non è riproducibile nei test, che coprono le varianti supportate.
 
 ---
 

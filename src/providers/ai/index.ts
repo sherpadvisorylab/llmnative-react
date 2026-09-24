@@ -14,11 +14,11 @@ import { OPENROUTER_PROVIDER_DEFINITION } from './openrouter';
 import { getAIModelCatalog, type AIProviderDefinition, type AIModelCatalog, RuntimeAIProvider } from './shared';
 
 export type {
-    AIProviderAdapter, AIKeyValidationResult, AIModelDescriptor, AIProviderCapabilities, AIRequestOptions, AIAttachment,
+    AIProviderAdapter, AIKeyValidationResult, AIModelDescriptor, AIModelPricing, AIProviderCapabilities, AIRequestOptions, AIAttachment,
     AICompleteRequest, AICompleteResult, AIConversationTurn, AIToolDefinition, AIToolCall, AIToolResult,
 } from './AIProvider';
-export { formatAIModelRef, parseAIModelRef } from './AIProvider';
-export type { AIModelCatalog, AIProviderDefinition } from './shared';
+export { formatAIModelRef, parseAIModelRef, isFreeAIModel } from './AIProvider';
+export type { AIModelCatalog, AIProviderDefinition, DiscoveredAIModel } from './shared';
 export { getAIModelCatalog } from './shared';
 export { CLOUDFLARE_PROVIDER_DESCRIPTOR, createCloudflareProviderDefinition } from './cloudflare';
 export type { CloudflareProviderOptions } from './cloudflare';

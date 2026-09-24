@@ -1,8 +1,8 @@
 import { fetchJson } from '../../libs/fetch';
 import { proxyFetch } from '../proxy';
 import type { ProviderDescriptor } from '../ProviderDescriptor';
-import type { AIConversationTurn } from './AIProvider';
-import { extractProviderError, type AIProviderDefinition } from './shared';
+import type { AIModelPricing, AIConversationTurn } from './AIProvider';
+import { extractProviderError, type AIProviderDefinition, type DiscoveredAIModel } from './shared';
 import { createOpenAICompatibleProviderDefinition } from './openaiCompatible';
 
 const CLOUDFLARE_API_BASE = 'https://api.cloudflare.com/client/v4';
@@ -21,9 +21,68 @@ const CREDENTIAL_FIELDS: ProviderDescriptor['credentialFields'] = [
     { key: 'accountId', label: 'Account ID', type: 'text', placeholder: '32-character account id' },
 ];
 
-type CloudflareModelProperty = { property_id?: string; value?: unknown };
-type CloudflareModel = { name?: string; properties?: CloudflareModelProperty[] };
+type CloudflareModelProperty = { property_id?: string; value?: unknown; price?: unknown };
+type CloudflareModel = { name?: string; properties?: CloudflareModelProperty[]; price?: unknown };
 type CloudflareSearchResponse = { success?: boolean; result?: CloudflareModel[]; errors?: unknown[] };
+
+const INPUT_PROPERTY_IDS = new Set(['in', 'input', 'prompt', 'price_in', 'input_price', 'prompt_price', 'input_cost']);
+const OUTPUT_PROPERTY_IDS = new Set(['out', 'output', 'completion', 'price_out', 'output_price', 'completion_price', 'output_cost']);
+
+const toPriceNumber = (value: unknown): number | undefined => {
+    const parsed = typeof value === 'string' ? Number(value) : typeof value === 'number' ? value : Number.NaN;
+    return Number.isFinite(parsed) && parsed >= 0 ? parsed : undefined;
+};
+
+const toPricingPair = (input?: number, output?: number): AIModelPricing | undefined => (
+    input === undefined && output === undefined
+        ? undefined
+        : { ...(input !== undefined ? { input } : {}), ...(output !== undefined ? { output } : {}) }
+);
+
+const readPricingObject = (value: unknown): AIModelPricing | undefined => {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
+    const record = value as Record<string, unknown>;
+    const input = toPriceNumber(record.input) ?? toPriceNumber(record.prompt);
+    const output = toPriceNumber(record.output) ?? toPriceNumber(record.completion);
+    return toPricingPair(input, output);
+};
+
+/** Prezzo nativo dal listing Cloudflare. Il catalogo espone il prezzo nelle `properties`
+ * (`properties[].price`), con l'id della property che indica input/output; supportiamo anche
+ * un `price` a livello modello. Valori negativi/non numerici (es. prezzo variabile) vengono
+ * ignorati, mai falsati. */
+const readCloudflarePricing = (model: CloudflareModel): AIModelPricing | undefined => {
+    const direct = toPriceNumber(model.price);
+    if (direct !== undefined) return { input: direct, output: direct };
+    const directObject = readPricingObject(model.price);
+    if (directObject) return directObject;
+
+    let input: number | undefined;
+    let output: number | undefined;
+
+    for (const property of model.properties ?? []) {
+        const id = (property.property_id ?? '').toLowerCase();
+
+        const nested = readPricingObject(property.price);
+        if (nested) {
+            input = input ?? nested.input;
+            output = output ?? nested.output;
+            continue;
+        }
+
+        const price = toPriceNumber(property.price);
+        if (price === undefined) continue;
+
+        if (OUTPUT_PROPERTY_IDS.has(id)) output = output ?? price;
+        else if (INPUT_PROPERTY_IDS.has(id)) input = input ?? price;
+        else {
+            input = input ?? price;
+            output = output ?? price;
+        }
+    }
+
+    return toPricingPair(input, output);
+};
 
 export type CloudflareProviderOptions = {
     accountId: string;
@@ -91,14 +150,18 @@ export const createCloudflareProviderDefinition = ({
         ...base,
         credentialFields: CREDENTIAL_FIELDS,
         discoverModels: async (apiKey) => {
-            const models: string[] = [];
+            const models: DiscoveredAIModel[] = [];
             for (let page = 1; page <= MODELS_MAX_PAGES; page++) {
                 const response = await searchModels(apiKey, page, MODELS_PAGE_SIZE);
                 const result = Array.isArray(response?.result) ? response.result : [];
                 result
                     .filter((model) => !NON_CHAT_MODEL_PATTERN.test(model.name ?? ''))
                     .filter((model) => includePaidModels || !hasProperty(model, 'require_workers_paid'))
-                    .forEach((model) => { if (model.name) models.push(model.name); });
+                    .forEach((model) => {
+                        if (!model.name) return;
+                        const pricing = readCloudflarePricing(model);
+                        models.push(pricing ? { model: model.name, pricing } : model.name);
+                    });
                 if (result.length < MODELS_PAGE_SIZE) break;
             }
             return models;

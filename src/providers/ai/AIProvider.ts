@@ -1,13 +1,32 @@
 import type { PromptVariables } from '../../conf/Prompt';
 import type { ProviderConfigurable } from '../ProviderConfiguration';
 
+/** Prezzo di un modello in USD per 1M token. Ogni lato è opzionale: un prezzo a prezzo
+ * variabile (es. i router OpenRouter con `-1`) lascia il lato assente invece di falsarlo.
+ * Tipicamente derivato dal listing nativo del provider (OpenRouter/Cloudflare) o dal
+ * fallback pubblico `models.dev`. */
+export interface AIModelPricing {
+    input?: number;
+    output?: number;
+}
+
 export interface AIModelDescriptor {
     id: string;
     provider: string;
     model: string;
     label: string;
     deprecated?: boolean;
+    /** Prezzo input/output in USD per 1M token — assente = prezzo non trovato. */
+    pricing?: AIModelPricing;
 }
+
+/** `true` solo quando sono noti e valgono esattamente zero entrambi i lati del prezzo.
+ * Un prezzo assente o parziale non è "gratis": non si assume nulla che non sia verificato. */
+export const isFreeAIModel = (model: Pick<AIModelDescriptor, 'pricing'>): boolean => {
+    const pricing = model.pricing;
+    if (!pricing) return false;
+    return pricing.input === 0 && pricing.output === 0;
+};
 
 export interface AIProviderCapabilities {
     models: AIModelDescriptor[];
