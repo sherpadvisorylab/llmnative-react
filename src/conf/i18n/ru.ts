@@ -87,6 +87,9 @@ export const ru: I18nDict = {
         noResponse: 'AI-провайдер не вернул ответа.',
         promptLabel: 'Промпт: ',
         defaultOption: 'По умолчанию',
+        modelPricePair: '{input} / {output}',
+        modelPriceFree: 'Бесплатно',
+        modelPriceNotFound: 'Цена не найдена',
     },
     layout: {
         maxElements: 'В строке уже 12 элементов: сначала удалите один.',

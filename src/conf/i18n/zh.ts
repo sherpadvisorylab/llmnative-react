@@ -87,6 +87,9 @@ export const zh: I18nDict = {
         noResponse: 'AI提供商未返回任何响应。',
         promptLabel: 'Prompt: ',
         defaultOption: '默认',
+        modelPricePair: '{input} / {output}',
+        modelPriceFree: '免费',
+        modelPriceNotFound: '未找到价格',
     },
     layout: {
         maxElements: '行中已有12个元素：请先删除一个。',

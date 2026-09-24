@@ -163,6 +163,9 @@ export const en: I18nDict = {
         noResponse: 'The AI provider returned no response.',
         promptLabel: 'Prompt: ',
         defaultOption: 'Default',
+        modelPricePair: '{input} / {output}',
+        modelPriceFree: 'Free',
+        modelPriceNotFound: 'Price not found',
     },
     layout: {
         maxElements: 'You already have 12 items in the row: remove one before adding another.',

@@ -87,6 +87,9 @@ export const ar: I18nDict = {
         noResponse: 'لم يُرجع مزود AI أي استجابة.',
         promptLabel: 'أمر: ',
         defaultOption: 'افتراضي',
+        modelPricePair: '{input} / {output}',
+        modelPriceFree: 'مجاني',
+        modelPriceNotFound: 'السعر غير متوفر',
     },
     layout: {
         maxElements: 'الصف يحتوي بالفعل على 12 عنصرًا: احذف عنصرًا أولاً.',

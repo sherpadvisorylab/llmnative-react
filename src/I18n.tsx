@@ -168,6 +168,9 @@ export interface I18nDict {
         noResponse:             string;
         promptLabel:            string;
         defaultOption:          string;
+        modelPricePair:         string;
+        modelPriceFree:         string;
+        modelPriceNotFound:     string;
     };
     layout: {
         maxElements:  string;

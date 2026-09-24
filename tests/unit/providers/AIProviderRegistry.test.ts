@@ -76,6 +76,26 @@ describe('AI provider registry', () => {
         expect(catalog.capabilitiesByProvider.beta.supportsTemperature).toBe(false);
     });
 
+    it('preserves the pricing attached to each model in the unified catalog', async () => {
+        const alpha: AIProviderAdapter = {
+            id: 'alpha',
+            label: 'Alpha',
+            defaultModel: 'a1',
+            getCapabilities: async () => ({
+                models: [
+                    { id: 'alpha/a1', provider: 'alpha', model: 'a1', label: 'Alpha / a1', pricing: { input: 3, output: 15 } },
+                    { id: 'alpha/a2', provider: 'alpha', model: 'a2', label: 'Alpha / a2' },
+                ],
+            }),
+            complete: async () => null,
+        };
+
+        const catalog = await getAIModelCatalog({ alpha });
+
+        expect(catalog.models[0].pricing).toEqual({ input: 3, output: 15 });
+        expect(catalog.models[1].pricing).toBeUndefined();
+    });
+
     // BUG FISSATO: getAIModelCatalog usava un Promise.all senza isolamento per-provider — se
     // UN SOLO provider rigettava, l'intera funzione rigettava, azzerando silenziosamente il
     // catalogo anche dei provider sani nel chiamante. Questo test blocca esplicitamente la

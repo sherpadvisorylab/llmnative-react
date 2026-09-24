@@ -856,7 +856,8 @@ import { useAIProvider, getAIModelCatalog, createAIProviderRegistry } from '@llm
 // Hooks
 const provider  = useAIProvider()           // provider di default
 const registry  = useAIProviderRegistry()   // tutti i provider AI registrati
-const catalog   = getAIModelCatalog()       // modelli disponibili
+const catalog   = getAIModelCatalog()       // modelli disponibili (con pricing?, USD/1M token)
+isFreeAIModel(catalog.models[0])            // true solo se input e output sono esattamente 0
 
 // Provider adapter restituito da useAIProvider()
 const text  = await provider.fetch("Scrivi un titolo per: {keyword}", { keyword: "React" })
@@ -875,6 +876,8 @@ const registry = createAIProviderRegistry(definitions)
 ```
 
 Configurazione API key in `Config.tsx`: `geminiApiKey`, `openaiApiKey`, `anthropicApiKey`, `deepSeekApiKey`, `mistralApiKey`, `openRouterApiKey`, `cloudflare: { apiToken, accountId }` (Cloudflare Workers AI: l'account id fa parte dell'URL; discovery via `ai/models/search`, modelli Workers Paid esclusi salvo `includePaidModels`).
+
+Pricing (CR-085): `AIModelDescriptor.pricing?: { input?, output? }` in USD per 1M token, `isFreeAIModel()` pubblico. OpenRouter e Cloudflare espongono il prezzo nativo dal listing; per gli altri provider built-in c'è il fallback `models.dev` (una fetch condivisa, indice compatto in localStorage 24h, match esatto poi senza suffisso data). `discoverModels` può restituire `{ model, pricing }` (`DiscoveredAIModel`) oltre agli id. Il model picker di `Chatbot`/`Prompt` mostra `$in / $out`, evidenzia i modelli gratis e indica "Price not found" quando manca.
 
 ---
 

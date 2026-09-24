@@ -107,6 +107,7 @@
 
 | CR | Real state | What is missing |
 |----|-----------|-----------------|
+| CR-085 | 🔄 **in progress** | AI model pricing nel model picker: `AIModelPricing`/`AIModelDescriptor.pricing`/`isFreeAIModel`, `DiscoveredAIModel` con prezzi nativi OpenRouter/Cloudflare, fallback `models.dev`, cache `ai.models.v2.*`, `ChatbotModelOption.pricing` + rendering picker, i18n 6 lingue. Codice+test+docs fatti; manca la verifica umana e la release. |
 | CR-072 | **Diagnosed — not fixable via config alone** | 890 `tsc --noEmit` errori in `clients/showcase` causati da TypeScript 6.0.3: named exports da `.d.ts` files fuori dallo scope del progetto (`include: ["src"]`) non sono visibili in modalità named import (`import { Icon }`), mentre `import * as` e `typeof import()` funzionano. Tentate: `paths`, `moduleResolution: node10/bundler`, `include` espanso, `.ts` proxy, `.d.ts` proxy, skipLibCheck toggle — stesso risultato. Root cause: regressione TS 6.0.3 nel cross-project type resolution. `npm run build` (Vite/esbuild) è l'unico gate reale e passa. 15 errori prismjs risolti (wildcard declaration in `vite-env.d.ts`). Issue #14 aperta. |
 | CR-037 | ⬜ | Component Builder System — `useImage()` pattern non ancora standardizzato. |
 | CR-040 | **0% — spec written** | SchemaForm (form generation from JSON schema/factory); spec in `CHANGE_REQUESTS.md`. No implementation. |
