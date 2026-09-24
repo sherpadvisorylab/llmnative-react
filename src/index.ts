@@ -94,6 +94,8 @@ export type { OrderConfig, OrderDirection } from './libs/order';
 export { Order } from './libs/order';
 export { PromptUtils } from './libs/promptUtils';
 export type { PromptAction, PromptStatusItem, PromptRunStats } from './components/widgets/Prompt';
+export type { ChatbotModelOption, ChatbotModelOptionGroup } from './components/widgets/Chatbot';
+export { groupModelOptions } from './components/widgets/Chatbot';
 export type { TableHeaderProp, TableReorderHandler, TableReorderMeta, TableSelectionChangeHandler, TableSelectionState } from './components/ui/Table';
 export type { GalleryRecord, GallerySelectionChangeHandler, GallerySelectionState } from './components/ui/Gallery';
 export type {

@@ -63,9 +63,11 @@ function ModelPickerDemo() {
                 value={value}
                 onChange={setValue}
                 models={[
-                    { label: t.labels.modelClaude, value: 'anthropic/claude-sonnet-4-0' },
-                    { label: t.labels.modelGpt, value: 'openai/gpt-4o' },
-                    { label: t.labels.modelGemini, value: 'gemini/gemini-2.5-pro' },
+                    { label: t.labels.modelClaude, value: 'anthropic/claude-sonnet-4-0', group: 'Anthropic' },
+                    { label: t.labels.modelClaudeHaiku, value: 'anthropic/claude-haiku-4-0', group: 'Anthropic' },
+                    { label: t.labels.modelGpt, value: 'openai/gpt-4o', group: 'OpenAI' },
+                    { label: t.labels.modelGptMini, value: 'openai/gpt-4o-mini', group: 'OpenAI' },
+                    { label: t.labels.modelGemini, value: 'gemini/gemini-2.5-pro', group: 'Google' },
                 ]}
                 selectedModel={model}
                 onModelChange={setModel}
@@ -124,7 +126,7 @@ export default function ChatbotPage() {
         { name: 'attachments', type: 'boolean', default: t.propsDocs.items.attachments.default, description: t.propsDocs.items.attachments.description },
         { name: 'commands', type: 'EditorCommand[]', description: t.propsDocs.items.commands.description },
         { name: 'commandsTrigger', type: 'string', default: t.propsDocs.items.commandsTrigger.default, description: t.propsDocs.items.commandsTrigger.description },
-        { name: 'models', type: '{ label: string; value: string }[]', description: t.propsDocs.items.models.description },
+        { name: 'models', type: '{ label: string; value: string; group?: string }[]', description: t.propsDocs.items.models.description },
         { name: 'selectedModel', type: 'string', description: t.propsDocs.items.selectedModel.description },
         { name: 'onModelChange', type: '(id: string) => void', description: t.propsDocs.items.onModelChange.description },
         { name: 'showSettings', type: 'boolean', default: t.propsDocs.items.showSettings.default, description: t.propsDocs.items.showSettings.description },
@@ -165,8 +167,8 @@ export default function ChatbotPage() {
   value={value}
   onChange={setValue}
   models={[
-    { label: 'Claude Sonnet', value: 'anthropic/claude-sonnet-4-0' },
-    { label: 'GPT-4o', value: 'openai/gpt-4o' },
+    { label: 'Claude Sonnet', value: 'anthropic/claude-sonnet-4-0', group: 'Anthropic' },
+    { label: 'GPT-4o', value: 'openai/gpt-4o', group: 'OpenAI' },
   ]}
   selectedModel={selectedModel}
   onModelChange={setSelectedModel}

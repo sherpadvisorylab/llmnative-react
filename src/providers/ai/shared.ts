@@ -64,8 +64,9 @@ export type AIModelCatalog = {
 };
 
 // Bumped whenever discovery output changes shape or content, so stale lists are not served for
-// up to a day: v2 added `pricing`, v3 drops OpenCode's free-tier models (unusable via API).
-const MODEL_CACHE_PREFIX = 'ai.models.v3.';
+// up to a day: v2 added `pricing`, v3 drops OpenCode's free-tier models (unusable via API),
+// v4 adds `providerLabel` (the picker groups by provider; v3 lists have no group to restore).
+const MODEL_CACHE_PREFIX = 'ai.models.v4.';
 const MODEL_CACHE_TTL_MS = 1000 * 60 * 60 * 24;
 
 export const extractProviderError = (err: unknown): string => {
@@ -116,7 +117,7 @@ export const parseTextResponse = (value: unknown): string | null => {
     return null;
 };
 
-const getCachedModels = (provider: string): AIModelDescriptor[] | null => {
+const getCachedModels = (provider: string, providerLabel: string): AIModelDescriptor[] | null => {
     if (typeof localStorage === 'undefined') return null;
 
     try {
@@ -125,7 +126,9 @@ const getCachedModels = (provider: string): AIModelDescriptor[] | null => {
         const cached = JSON.parse(raw) as { fetchedAt?: number; items?: AIModelDescriptor[] };
         if (!cached.fetchedAt || !Array.isArray(cached.items)) return null;
         if (Date.now() - cached.fetchedAt > MODEL_CACHE_TTL_MS) return null;
-        return cached.items;
+        // A cache entry written before `providerLabel` existed (or by a version that omitted it)
+        // must stay groupable: backfill it from the definition's label.
+        return cached.items.map((item) => (item.providerLabel ? item : { ...item, providerLabel }));
     } catch {
         return null;
     }
@@ -152,6 +155,7 @@ const normalizeModels = (provider: BuiltInAIProviderId, label: string, models: A
             provider,
             model,
             label: `${label} / ${model}`,
+            providerLabel: label,
             ...(pricing ? { pricing } : {}),
         };
     })
@@ -238,7 +242,7 @@ export class RuntimeAIProvider implements AIProviderAdapter {
     }
 
     async getCapabilities(forceRefresh = false): Promise<AIProviderCapabilities> {
-        const cached = !forceRefresh ? getCachedModels(this.id) : null;
+        const cached = !forceRefresh ? getCachedModels(this.id, this.label) : null;
         if (cached) {
             return {
                 ...this.definition.capabilities,

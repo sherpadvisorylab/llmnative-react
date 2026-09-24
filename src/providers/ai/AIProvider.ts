@@ -16,6 +16,9 @@ export interface AIModelDescriptor {
     provider: string;
     model: string;
     label: string;
+    /** Human-readable provider name (the definition's `label`, e.g. "OpenRouter"), for grouping
+     * the model picker by provider. Additive/optional: custom adapters may omit it. */
+    providerLabel?: string;
     deprecated?: boolean;
     /** Absent = price not found (neither in the provider listing nor on models.dev). */
     pricing?: AIModelPricing;

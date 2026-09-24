@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Model picker grouped by provider with sticky headers (CR-086, GH issue #46):
+  `AIModelDescriptor.providerLabel` (the definition's readable label) is attached by
+  built-in discovery, `ChatbotModelOption.group` lets a consumer place a model under a
+  provider section, and the exported `groupModelOptions()` splits options into sections
+  in first-appearance order (`ChatbotModelOptionGroup`). With at least one `group` the
+  picker shows one sticky header per provider while its models scroll under it; without
+  `group` the list stays flat. `Prompt` maps `group = providerLabel` and shows only the
+  model name on each row.
+
+### Changed
+- Model catalog localStorage cache key is now `ai.models.v4.<provider>` (v3 lists have no
+  `providerLabel`); a cached entry missing `providerLabel` is backfilled on read.
+
 ## [1.17.1] - 2026-09-24
 
 ### Fixed

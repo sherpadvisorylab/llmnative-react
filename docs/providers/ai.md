@@ -122,9 +122,9 @@ At runtime the orchestrator:
 
 - enables only providers with a configured API key;
 - calls the provider model-list endpoint when available;
-- normalizes the result into `{ id, provider, model, label, pricing? }`;
+- normalizes the result into `{ id, provider, model, label, providerLabel?, pricing? }`;
 - attaches token prices (see [Model pricing](#model-pricing));
-- caches it in `localStorage` for 24 hours (`ai.models.v3.<provider>`);
+- caches it in `localStorage` for 24 hours (`ai.models.v4.<provider>`);
 - falls back to a minimal static list if discovery fails.
 
 This is what powers the `Prompt` model selector.
@@ -163,6 +163,37 @@ free models' rows and flags models without a price as "Price not found". A consu
 passing its own `models` to `Chatbot` sets `ChatbotModelOption.pricing`: an
 `AIModelPricing`, `null` (looked up, not found) or omitted (no indication at all).
 
+## Grouping the model picker by provider
+
+Every descriptor discovered by a built-in provider also carries `providerLabel`
+(the definition's readable `label`, e.g. `"OpenRouter"`). `Prompt` maps it to
+`ChatbotModelOption.group`, so with more than one provider configured the picker
+renders one section per provider — in order of first appearance — with a **sticky**
+header that stays pinned to the top of the scrollable menu while its models scroll
+underneath (same technique as `ContextMenu.Heading`).
+
+The grouping is purely a presentation concern of `Chatbot`: the provider layer only
+attaches `providerLabel`, it never groups. Consumers that build their own
+`ChatbotModelOption[]` can set `group` themselves, or use the exported helper:
+
+```ts
+import { groupModelOptions } from '@llmnative/react';
+
+groupModelOptions([
+    { label: 'gpt-4o', value: 'openai/gpt-4o', group: 'OpenAI' },
+    { label: 'claude-sonnet', value: 'anthropic/claude-sonnet-4-0', group: 'Anthropic' },
+    { label: 'gpt-4.1', value: 'openai/gpt-4.1', group: 'OpenAI' },
+]);
+// [
+//   { group: 'OpenAI', options: [gpt-4o, gpt-4.1] },
+//   { group: 'Anthropic', options: [claude-sonnet] },
+// ]
+```
+
+`group` is additive and optional: when no option sets it, the picker stays the same
+flat list as before. Ungrouped options mixed with grouped ones end up in an anonymous
+section with no header.
+
 ## Public unified catalog
 
 If multiple AI providers are configured, use the public catalog helper to get one merged model list plus provider-grouped breakdown.
@@ -188,6 +219,7 @@ Each item already carries its provider:
   provider: 'openrouter',
   model: 'openai/gpt-4',
   label: 'OpenRouter / openai/gpt-4',
+  providerLabel: 'OpenRouter',
   pricing: { input: 30, output: 60, currency: 'USD', source: 'provider' }
 }
 ```

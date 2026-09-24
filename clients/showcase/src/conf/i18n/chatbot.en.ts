@@ -18,7 +18,7 @@ export default defineLocaleMessages({
                 },
                 modelPicker: {
                     title: 'Model picker',
-                    description: 'Pass models (a flat {label, value}[] list) plus selectedModel/onModelChange to let the user pick which model a turn should use — the same shape useAgent.modelsByProvider flattens to in the CMS consumer (Agentico).',
+                    description: 'Pass models (a flat {label, value, group?}[] list) plus selectedModel/onModelChange to let the user pick which model a turn should use. Set group to render one section per provider with a sticky header — the same grouping Prompt derives from each model\'s providerLabel in the CMS consumer (Agentico).',
                 },
                 runningAndStop: {
                     title: 'Running / stop',
@@ -32,7 +32,9 @@ export default defineLocaleMessages({
             labels: {
                 placeholder: 'Ask something…',
                 modelClaude: 'Claude Sonnet',
+                modelClaudeHaiku: 'Claude Haiku',
                 modelGpt: 'GPT-4o',
+                modelGptMini: 'GPT-4o mini',
                 modelGemini: 'Gemini 2.5 Pro',
                 stopHint: 'Click the button while running to interrupt.',
                 disabledHint: 'Send stays disabled until the caller says otherwise.',
@@ -50,7 +52,7 @@ export default defineLocaleMessages({
                     attachments: { default: 'false', description: 'Enables the paperclip + file picker. Files are reported raw in onSubmit.' },
                     commands: { description: 'Slash-commands, same EditorCommand[] shape as Prompt (reuses ContextMenu as-is).' },
                     commandsTrigger: { default: '/', description: 'Trigger character for commands.' },
-                    models: { description: 'Flat {label, value}[] list — omit to hide the model dropdown entirely.' },
+                    models: { description: 'Flat {label, value, group?, pricing?}[] list — omit to hide the model dropdown entirely. Set group to render provider sections with sticky headers.' },
                     selectedModel: { description: 'Currently selected model id — controlled.' },
                     onModelChange: { description: 'Called with the new model id when the user picks one.' },
                     showSettings: { default: 'false', description: 'Shows role/language/voice/style/temperature dropdowns (uncontrolled, reported via onSubmit).' },

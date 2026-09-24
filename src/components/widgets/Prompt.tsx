@@ -186,9 +186,10 @@ function usePromptCapabilities() {
 
             const modelOptions = catalog.models
                 .map((model) => ({
-                    label: model.label,
+                    label: model.model,
                     value: model.id,
                     pricing: model.pricing ?? null,
+                    ...(model.providerLabel ? { group: model.providerLabel } : {}),
                 }));
 
             setState({

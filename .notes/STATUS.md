@@ -108,6 +108,7 @@
 
 | CR | Real state | What is missing |
 |----|-----------|-----------------|
+| CR-086 | **In progress — implemented in working tree** | Model picker di `Chatbot`/`Prompt` raggruppato per provider con header sticky: `AIModelDescriptor.providerLabel`, `ChatbotModelOption.group`, `ChatbotModelOptionGroup`, helper `groupModelOptions()`, cache modelli v4 con backfill. Test e docs aggiornati. Mancano verifica visiva nel consumer `llmnative-cms` e release npm. Issue #46 aperta. |
 | CR-072 | **Diagnosed — not fixable via config alone** | 890 `tsc --noEmit` errori in `clients/showcase` causati da TypeScript 6.0.3: named exports da `.d.ts` files fuori dallo scope del progetto (`include: ["src"]`) non sono visibili in modalità named import (`import { Icon }`), mentre `import * as` e `typeof import()` funzionano. Tentate: `paths`, `moduleResolution: node10/bundler`, `include` espanso, `.ts` proxy, `.d.ts` proxy, skipLibCheck toggle — stesso risultato. Root cause: regressione TS 6.0.3 nel cross-project type resolution. `npm run build` (Vite/esbuild) è l'unico gate reale e passa. 15 errori prismjs risolti (wildcard declaration in `vite-env.d.ts`). Issue #14 aperta. |
 | CR-037 | ⬜ | Component Builder System — `useImage()` pattern non ancora standardizzato. |
 | CR-040 | **0% — spec written** | SchemaForm (form generation from JSON schema/factory); spec in `CHANGE_REQUESTS.md`. No implementation. |
@@ -216,6 +217,16 @@ Main real routes:
 ---
 
 ## Verification performed
+
+Real verification performed on 2026-09-24 (CR-086 — model picker raggruppato per provider):
+
+| Command | Result |
+|---------|--------|
+| `npx tsc --noEmit` | Passes: 0 errors. |
+| `npm test` | Passes: 67 files, 751 tests (nuovi: `AIModelProviderLabel.test.ts` + 5 test in `Chatbot.test.tsx`). |
+| `npm run build` | Passes: Vite library build + declarations. |
+| `publicExports.contract.test.ts` | Passes: `groupModelOptions` raggiungibile dal root bundle. |
+| Verifica visiva nel consumer `llmnative-cms` | Da fare dopo il merge. |
 
 Real verification performed on 2026-09-24 (1.17.1 — OpenCode free-tier models removed from discovery):
 

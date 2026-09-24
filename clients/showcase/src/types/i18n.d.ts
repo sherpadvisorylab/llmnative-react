@@ -1409,7 +1409,9 @@ interface ShowcaseChatbotI18n {
     labels: {
         placeholder: string;
         modelClaude: string;
+        modelClaudeHaiku: string;
         modelGpt: string;
+        modelGptMini: string;
         modelGemini: string;
         stopHint: string;
         disabledHint: string;

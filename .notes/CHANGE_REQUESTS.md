@@ -94,6 +94,53 @@
 | [CR-083](#cr-083--uploadimage-alt-text-field-indipendente-da-srcsetvarianti) | UploadImage: alt text field (indipendente da srcset/varianti) | Media | — | ✅ |
 | [CR-084](#cr-084--ai-provider-cloudflare-workers-ai) | AI provider: Cloudflare Workers AI | Media | CR-058 | ✅ |
 | [CR-085](#cr-085--ai-model-pricing-prezzi-inputoutput-nel-model-picker) | AI model pricing: prezzi input/output nel model picker | Media | CR-084 | ✅ |
+| [CR-086](#cr-086--model-picker-modelli-raggruppati-per-provider-con-header-sticky) | Model picker: modelli raggruppati per provider con header sticky | Media | CR-085 | 🔄 |
+
+---
+
+## CR-086 — Model picker: modelli raggruppati per provider con header sticky
+
+**Stato:** 🔄 in progress
+**Issue:** [#46](https://github.com/sherpadvisorylab/llmnative-react/issues/46)
+**Priorità:** Media
+**Dipende da:** CR-085
+
+### Motivazione
+
+Con più provider AI configurati il model picker di `Chatbot` (e quindi di `Prompt`, che
+lo consuma in modalità RUN) è una lista piatta di righe `"Provider / modello"`. Su liste
+lunghe l'utente non distingue dove finisce un provider e inizia il successivo mentre
+scorre. Richiesto dal consumer `llmnative-cms` (Agentico: OpenCode, DeepSeek, Cloudflare).
+
+### Scope
+
+- `AIModelDescriptor.providerLabel?: string` — nome leggibile del provider, additivo/opzionale;
+  `normalizeModels()` lo valorizza con il `label` della definition.
+- Cache modelli bumpata a `ai.models.v4.*`; una cache letta priva di `providerLabel` viene
+  comunque ripristinata (backfill dal label della definition) così il catalogo resta raggruppabile.
+- `ChatbotModelOption.group?: string`, `ChatbotModelOptionGroup`, helper esportato
+  `groupModelOptions()` (sezioni nell'ordine di prima comparsa; opzioni senza gruppo in una
+  sezione anonima senza header).
+- Rendering di `Chatbot`: con almeno un `group` valorizzato una sezione per gruppo con header
+  **sticky** (`sticky top-0 z-10 bg-popover`, stessa tecnica di `ContextMenu.Heading`); senza
+  `group` la lista resta piatta. Pricing/free-row/"Price not found" invariati nella sezione.
+- `Prompt`: `group = model.providerLabel`, sulla riga il solo nome del modello; `value`
+  (`provider/model`) e i flussi `selectedModel`/`onModelChange`/`localStorage['prompt.model']`/
+  `parseAIModelRef` invariati.
+- Test, docs (`docs/providers/ai.md`, `llms-full.txt`) e showcase aggiornati.
+
+### Checklist
+
+- [x] `providerLabel` in `AIProvider.ts` + `normalizeModels()` + cache v4/backfill
+- [x] `ChatbotModelOption.group`, `groupModelOptions()` e rendering a sezioni con header sticky
+- [x] `Prompt` con `group = providerLabel` e label di riga = solo nome del modello
+- [x] Export pubblici dal root bundle
+- [x] Test: `Chatbot.test.tsx` (gruppi/header/ordine/path piatto/pricing), `AIModelProviderLabel.test.ts`
+- [x] Docs `docs/providers/ai.md` + `llms-full.txt`, voce `CHANGELOG.md` `[Unreleased]`
+- [x] Showcase (`ChatbotPage.tsx` + i18n 6 lingue + `i18n.d.ts`)
+- [x] Gate `npx tsc --noEmit`, `npm test`, `npm run build`
+- [ ] Verifica visiva nel consumer `llmnative-cms`
+- [ ] Release minor + npm publish
 
 ---
 

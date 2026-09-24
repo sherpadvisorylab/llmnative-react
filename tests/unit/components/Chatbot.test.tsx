@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
-import { Chatbot } from '../../../src/components/widgets/Chatbot';
-import type { ChatbotSubmitPayload } from '../../../src/components/widgets/Chatbot';
+import { Chatbot, groupModelOptions } from '../../../src/components/widgets/Chatbot';
+import type { ChatbotModelOption, ChatbotSubmitPayload } from '../../../src/components/widgets/Chatbot';
 import { renderWithProviders } from '../../helpers/renderWithProviders';
 
 /** Wrapper controllato minimale — Chatbot non ha uno stato di testo proprio, chi lo
@@ -110,6 +110,98 @@ describe('Chatbot', () => {
         expect(screen.getByText('Paid').closest('button')?.className).not.toContain('bg-success/10');
         expect(screen.getAllByText('Price not found')).toHaveLength(1);
         expect(screen.getByText('Unknown').closest('button')).toHaveTextContent('Price not found');
+    });
+
+    describe('groupModelOptions()', () => {
+        it('groups in first-appearance order, keeping ungrouped options in one anonymous section', () => {
+            const options: ChatbotModelOption[] = [
+                { label: 'a1', value: 'a/a1', group: 'Alpha' },
+                { label: 'b1', value: 'b/b1', group: 'Beta' },
+                { label: 'plain', value: 'plain' },
+                { label: 'a2', value: 'a/a2', group: 'Alpha' },
+            ];
+
+            expect(groupModelOptions(options)).toEqual([
+                { group: 'Alpha', options: [options[0], options[3]] },
+                { group: 'Beta', options: [options[1]] },
+                { options: [options[2]] },
+            ]);
+        });
+
+        it('returns a single anonymous section when no option carries a group', () => {
+            const options: ChatbotModelOption[] = [
+                { label: 'a', value: 'a' },
+                { label: 'b', value: 'b' },
+            ];
+            expect(groupModelOptions(options)).toEqual([{ options }]);
+        });
+    });
+
+    it('renders one sticky header per group, in first-appearance order, with the models below', () => {
+        renderWithProviders(
+            <ControlledChatbot
+                onSubmit={vi.fn()}
+                models={[
+                    { label: 'gpt-4o', value: 'openai/gpt-4o', group: 'OpenAI' },
+                    { label: 'claude-sonnet', value: 'anthropic/claude-sonnet-4-0', group: 'Anthropic' },
+                    { label: 'gpt-4.1', value: 'openai/gpt-4.1', group: 'OpenAI' },
+                ]}
+                modelPlaceholder="Choose a model"
+            />
+        );
+
+        fireEvent.click(screen.getByText('Choose a model'));
+
+        const openaiHeader = screen.getByText('OpenAI');
+        const anthropicHeader = screen.getByText('Anthropic');
+        expect(openaiHeader.className).toContain('sticky');
+        expect(anthropicHeader.className).toContain('sticky');
+        expect(openaiHeader.compareDocumentPosition(anthropicHeader) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        expect(screen.getByText('gpt-4o')).toBeInTheDocument();
+        expect(screen.getByText('gpt-4.1')).toBeInTheDocument();
+        expect(screen.getByText('claude-sonnet')).toBeInTheDocument();
+    });
+
+    it('keeps the flat list (no headers) when no option has a group', () => {
+        renderWithProviders(
+            <ControlledChatbot
+                onSubmit={vi.fn()}
+                models={[
+                    { label: 'Claude Sonnet', value: 'anthropic/claude-sonnet-4-0' },
+                    { label: 'GPT-4o', value: 'openai/gpt-4o' },
+                ]}
+                modelPlaceholder="Choose a model"
+            />
+        );
+
+        fireEvent.click(screen.getByText('Choose a model'));
+
+        expect(screen.getByText('Claude Sonnet')).toBeInTheDocument();
+        expect(screen.getByText('GPT-4o')).toBeInTheDocument();
+        expect(screen.queryByText('anthropic')).not.toBeInTheDocument();
+    });
+
+    it('keeps pricing rendering identical inside grouped sections', () => {
+        renderWithProviders(
+            <ControlledChatbot
+                onSubmit={vi.fn()}
+                models={[
+                    { label: 'Paid', value: 'openai/gpt-5-mini', group: 'OpenAI', pricing: { input: 0.25, output: 2, currency: 'USD', source: 'models.dev' } },
+                    { label: 'Free', value: 'opencode/big-pickle', group: 'OpenCode', pricing: { input: 0, output: 0, currency: 'USD', source: 'models.dev' } },
+                    { label: 'Unknown', value: 'glm/glm-z1-preview', group: 'GLM', pricing: null },
+                    { label: 'No pricing data', value: 'custom/x', group: 'Custom' },
+                ]}
+                modelPlaceholder="Choose a model"
+            />
+        );
+
+        fireEvent.click(screen.getByText('Choose a model'));
+
+        expect(screen.getByText('$0.25 / $2')).toBeInTheDocument();
+        expect(screen.getByText('$0 / $0')).toBeInTheDocument();
+        expect(screen.getByText('Free').closest('button')?.className).toContain('bg-success/10');
+        expect(screen.getAllByText('Price not found')).toHaveLength(1);
+        expect(screen.getByText('OpenAI').className).toContain('sticky');
     });
 
     it('shows a disabled spinner while running without an onStop handler (no abort capability)', () => {
