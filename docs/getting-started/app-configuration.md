@@ -201,6 +201,7 @@ interface AIConfig {
   deepSeekApiKey?: string;
   mistralApiKey?: string;
   glmApiKey?: string;
+  groqApiKey?: string;
   cloudflare?: {               // Cloudflare Workers AI — needs both apiToken and accountId
     apiToken?: string;
     accountId?: string;

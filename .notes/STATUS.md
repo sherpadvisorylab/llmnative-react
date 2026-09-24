@@ -113,6 +113,7 @@
 | CR-040 | **0% — spec written** | SchemaForm (form generation from JSON schema/factory); spec in `CHANGE_REQUESTS.md`. No implementation. |
 | CR-041 | **0% — proposal written** | SeoEnhancer (HTML filter applying technical SEO, structured report); proposal in `CHANGE_REQUESTS.md`. No implementation. |
 | CR-045 | ⬜ | AI Adoption: piano di distribuzione e visibilità. |
+| CR-087 | **🔄 in progress — implementato, in attesa di verifica/release** | AI provider `groq` (Groq, OpenAI-compatible): `AIConfig.groqApiKey`, `AI_PROVIDER_DEFINITIONS`/`AI_MANIFEST.groq`/`AIDriverName`, discovery `/models` filtrata (inattivi, whisper, TTS/Orpheus, guard/safeguard), prezzi via models.dev, docs + showcase. Issue #47 aperta. Manca la release. |
 | CR-051 | **0% — spec written** | WorkflowAI declarative multi-step pipeline; spec in `CHANGE_REQUESTS.md`. No implementation. |
 
 ---
@@ -216,6 +217,16 @@ Main real routes:
 ---
 
 ## Verification performed
+
+Real verification performed on 2026-09-24 (CR-087 — AI provider Groq):
+
+| Command | Result |
+|---------|--------|
+| `npx tsc --noEmit` | Passes: 0 errors. |
+| `npm test` | Passes: 67 files, 763 tests. |
+| `npm run build` | Passes: Vite library build + declarations. |
+| `npm pack --dry-run --json` | Passes: 219 entries. |
+| Live Groq API | Non eseguita: nessuna API key disponibile (fuori scope, non blocca). |
 
 Real verification performed on 2026-09-24 (1.17.1 — OpenCode free-tier models removed from discovery):
 

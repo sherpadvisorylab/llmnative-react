@@ -65,6 +65,7 @@ root.render(
                 anthropicApiKey: env.VITE_ANTHROPIC_API_KEY,
                 deepSeekApiKey: env.VITE_DEEPSEEK_API_KEY,
                 mistralApiKey: env.VITE_MISTRAL_API_KEY,
+                groqApiKey: env.VITE_GROQ_API_KEY,
                 openAICompatible: env.VITE_OPENAI_COMPATIBLE_BASE_URL ? {
                     apiKey: env.VITE_OPENAI_COMPATIBLE_API_KEY,
                     baseUrl: env.VITE_OPENAI_COMPATIBLE_BASE_URL,

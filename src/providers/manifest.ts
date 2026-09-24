@@ -22,6 +22,7 @@ import { ANTHROPIC_PROVIDER_DEFINITION } from './ai/anthropic';
 import { createCloudflareProviderDefinition } from './ai/cloudflare';
 import { DEEPSEEK_PROVIDER_DEFINITION } from './ai/deepseek';
 import { GEMINI_PROVIDER_DEFINITION } from './ai/gemini';
+import { GROQ_PROVIDER_DEFINITION } from './ai/groq';
 import { MISTRAL_PROVIDER_DEFINITION } from './ai/mistral';
 import { OPENAI_PROVIDER_DEFINITION } from './ai/openai';
 import { OPENCODE_PROVIDER_DEFINITION } from './ai/opencode';
@@ -121,6 +122,7 @@ export const AI_MANIFEST: DriverManifest<AIConfig> = {
     gemini:     toAIDriver(GEMINI_PROVIDER_DEFINITION, 'geminiApiKey'),
     anthropic:  toAIDriver(ANTHROPIC_PROVIDER_DEFINITION, 'anthropicApiKey'),
     mistral:    toAIDriver(MISTRAL_PROVIDER_DEFINITION, 'mistralApiKey'),
+    groq:       toAIDriver(GROQ_PROVIDER_DEFINITION, 'groqApiKey'),
     // Two credentials: the definition is built per account id, the token is the adapter's apiKey.
     cloudflare: {
         service: 'ai',
@@ -153,7 +155,7 @@ export type DataDriverName    = 'dbRealtime' | 'firestoreDb' | 'supabaseDb' | 'm
 export type StorageDriverName = 'firestorage' | 'supabaseStorage';
 export type AuthDriverName        = 'googleAuth' | 'firebaseAuth' | 'dropboxAuth' | 'supabaseAuth';
 export type EmailDriverName       = 'gmail';
-export type AIDriverName          = 'openai' | 'openrouter' | 'opencode' | 'openai-compatible' | 'deepseek' | 'gemini' | 'anthropic' | 'mistral' | 'cloudflare';
+export type AIDriverName          = 'openai' | 'openrouter' | 'opencode' | 'openai-compatible' | 'deepseek' | 'gemini' | 'anthropic' | 'mistral' | 'cloudflare' | 'groq';
 export type CredentialsDriverName = 'googleServiceAccount';
 
 export type ServicesConfig = {

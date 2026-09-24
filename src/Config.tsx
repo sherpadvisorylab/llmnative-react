@@ -50,6 +50,7 @@ export type AIConfig = {
     anthropicApiKey?: string;
     mistralApiKey?: string;
     glmApiKey?: string;
+    groqApiKey?: string;
     /** Cloudflare Workers AI — both apiToken and accountId are required (the account id is part of every URL). */
     cloudflare?: {
         apiToken?: string;

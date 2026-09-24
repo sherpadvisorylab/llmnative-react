@@ -14,9 +14,9 @@ import {
 } from './promptDocs';
 import { useShowcasePromptLiveI18n, useShowcasePromptSharedI18n } from '../../../showcase/i18n';
 
-const PLAYGROUND_PROVIDER_OPTIONS = ['openai', 'openrouter', 'opencode', 'openai-compatible', 'deepseek', 'gemini', 'anthropic', 'mistral'] as const;
+const PLAYGROUND_PROVIDER_OPTIONS = ['openai', 'openrouter', 'opencode', 'openai-compatible', 'deepseek', 'gemini', 'anthropic', 'mistral', 'groq'] as const;
 
-const PLAYGROUND_AI_CONFIG_KEY: Record<Exclude<(typeof PLAYGROUND_PROVIDER_OPTIONS)[number], 'openai-compatible'>, 'openaiApiKey' | 'openRouterApiKey' | 'openCodeApiKey' | 'deepSeekApiKey' | 'geminiApiKey' | 'anthropicApiKey' | 'mistralApiKey'> = {
+const PLAYGROUND_AI_CONFIG_KEY: Record<Exclude<(typeof PLAYGROUND_PROVIDER_OPTIONS)[number], 'openai-compatible'>, 'openaiApiKey' | 'openRouterApiKey' | 'openCodeApiKey' | 'deepSeekApiKey' | 'geminiApiKey' | 'anthropicApiKey' | 'mistralApiKey' | 'groqApiKey'> = {
     openai: 'openaiApiKey',
     openrouter: 'openRouterApiKey',
     opencode: 'openCodeApiKey',
@@ -24,6 +24,7 @@ const PLAYGROUND_AI_CONFIG_KEY: Record<Exclude<(typeof PLAYGROUND_PROVIDER_OPTIO
     gemini: 'geminiApiKey',
     anthropic: 'anthropicApiKey',
     mistral: 'mistralApiKey',
+    groq: 'groqApiKey',
 };
 
 function PromptRunPlaygroundPreview({

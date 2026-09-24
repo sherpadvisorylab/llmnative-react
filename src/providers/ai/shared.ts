@@ -19,7 +19,7 @@ import type {
 import { formatAIModelRef } from './AIProvider';
 import { withModelsDevPricing } from './modelsDevPricing';
 
-export type BuiltInAIProviderId = 'openai' | 'openrouter' | 'opencode' | 'openai-compatible' | 'deepseek' | 'gemini' | 'anthropic' | 'mistral' | 'glm' | 'cloudflare';
+export type BuiltInAIProviderId = 'openai' | 'openrouter' | 'opencode' | 'openai-compatible' | 'deepseek' | 'gemini' | 'anthropic' | 'mistral' | 'glm' | 'cloudflare' | 'groq';
 
 /** A discovered model carrying the price its provider listing already reports (OpenRouter,
  * Cloudflare). Models discovered as a bare id get their price from models.dev instead. */

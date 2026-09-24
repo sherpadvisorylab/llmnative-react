@@ -11,6 +11,7 @@ import { createOpenAICompatibleProviderDefinition } from './openaiCompatible';
 import { GLM_PROVIDER_DEFINITION } from './glm';
 import { OPENCODE_PROVIDER_DEFINITION } from './opencode';
 import { OPENROUTER_PROVIDER_DEFINITION } from './openrouter';
+import { GROQ_PROVIDER_DEFINITION } from './groq';
 import { getAIModelCatalog, type AIProviderDefinition, type AIModelCatalog, RuntimeAIProvider } from './shared';
 
 export type {
@@ -33,6 +34,7 @@ export const AI_PROVIDER_DEFINITIONS: AIProviderDefinition[] = [
     ANTHROPIC_PROVIDER_DEFINITION,
     MISTRAL_PROVIDER_DEFINITION,
     GLM_PROVIDER_DEFINITION,
+    GROQ_PROVIDER_DEFINITION,
 ];
 
 /** Generic "connect this provider" view of an AIProviderDefinition — the shape a CMS/admin

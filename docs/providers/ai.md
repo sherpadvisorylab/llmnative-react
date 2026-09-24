@@ -26,6 +26,7 @@ The goal is the same as for `data`, `storage`, `auth` and `email`: keep the exte
 | `mistral` | Mistral API | Mistral-hosted text models |
 | `glm` | ZhipuAI API | GLM chat models |
 | `cloudflare` | Cloudflare Workers AI | Open-weight models (Llama, GPT-OSS, Qwen, Gemma…) with a free daily allowance |
+| `groq` | Groq API | Fast inference on open-weight models (GPT-OSS, Qwen, Llama…) |
 | custom | Your adapter | internal gateways, proxy routers, vendor aggregators |
 
 For complete configuration, see [AppProvidersConfig](/docs/app-configuration#appprovidersconfig) and [AIConfig](/docs/app-configuration#aiconfig--centralized-api-keys-for-the-ai-service).
@@ -50,6 +51,7 @@ Examples:
 - `mistral/mistral-large-latest`
 - `glm/glm-4-plus`
 - `cloudflare/@cf/meta/llama-3.3-70b-instruct-fp8-fast`
+- `groq/llama-3.3-70b-versatile`
 
 This avoids ambiguity and keeps stored prompt settings deterministic even when multiple providers are configured at the same time.
 
@@ -104,6 +106,7 @@ Built-in AI providers expose configuration state like the other service provider
 - `mistral` checks `ai.mistralApiKey`
 - `glm` checks `ai.glmApiKey`
 - `cloudflare` checks `ai.cloudflare.apiToken` and `ai.cloudflare.accountId`
+- `groq` checks `ai.groqApiKey`
 
 That lets UI stay visible but disabled when a provider is not configured.
 
@@ -136,6 +139,7 @@ All built-in providers now follow this pattern:
 - `anthropic` -> `GET /v1/models`
 - `opencode` -> `GET /zen/v1/models`, without free-tier models (`*-free`, `big-pickle`): Zen rejects them outside the OpenCode app
 - `cloudflare` -> `GET /accounts/{accountId}/ai/models/search?task=Text Generation` (Workers AI has no OpenAI-style `/models`), without experimental, Workers Paid-only and safety-classifier models
+- `groq` -> `GET /models`, without inactive entries and non-chat models (whisper, TTS/Orpheus, guard/safeguard classifiers)
 
 ## Model pricing
 
@@ -227,6 +231,7 @@ Built-in AI adapters now live one file per provider inside `src/providers/ai/`:
 - `anthropic.ts`
 - `mistral.ts`
 - `cloudflare.ts`
+- `groq.ts`
 - `shared.ts` for the common runtime adapter/cache helpers
 - `index.ts` to assemble the built-in registry
 
@@ -261,6 +266,29 @@ because the account id is part of every URL:
 - The API rejects browser CORS preflight: enable the proxy in browser apps.
 - `CLOUDFLARE_PROVIDER_DESCRIPTOR` (also in `AI_PROVIDER_DESCRIPTORS`) describes the two
   credential fields (`apiKey` = API token, `accountId`) for a "connect" UI.
+
+## Groq
+
+`groq` talks to the OpenAI-compatible endpoint `https://api.groq.com/openai/v1` and
+needs a single credential:
+
+```tsx
+<App
+  aiConfig={{
+    groqApiKey: import.meta.env.VITE_GROQ_API_KEY,   // from console.groq.com/keys
+  }}
+  providers={{ services: { ai: 'groq', proxy: 'viteDevProxy' } }}
+/>
+```
+
+- Chat, system role, temperature, tool calling (multi-turn), attachments (image inline,
+  decoded text, placeholder for the rest), abort and the `x-llmnative-log-id` header work
+  like the other OpenAI-compatible providers (all inherited from the shared factory).
+- Discovery via `GET /models` keeps only active chat models: it drops `active: false`
+  entries, speech-to-text (`whisper-*`), TTS (`playai-tts*`, Orpheus) and safety
+  classifiers (`*-guard-*`, `gpt-oss-safeguard-*`). Groq's listing reports no prices, so
+  pricing comes from models.dev (`groq`).
+- If discovery fails, the static `fallbackModels` list stays available.
 
 ## Use AI directly in custom workflows
 

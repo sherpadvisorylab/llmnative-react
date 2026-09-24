@@ -94,6 +94,63 @@
 | [CR-083](#cr-083--uploadimage-alt-text-field-indipendente-da-srcsetvarianti) | UploadImage: alt text field (indipendente da srcset/varianti) | Media | — | ✅ |
 | [CR-084](#cr-084--ai-provider-cloudflare-workers-ai) | AI provider: Cloudflare Workers AI | Media | CR-058 | ✅ |
 | [CR-085](#cr-085--ai-model-pricing-prezzi-inputoutput-nel-model-picker) | AI model pricing: prezzi input/output nel model picker | Media | CR-084 | ✅ |
+| [CR-087](#cr-087--ai-provider-groq) | AI provider: Groq | Media | CR-058 | 🔄 |
+
+---
+
+## CR-087 — AI provider: Groq
+
+**Stato:** 🔄 in progress
+**Issue:** [#47](https://github.com/sherpadvisorylab/llmnative-react/issues/47)
+**Priorità:** Media
+**Dipende da:** CR-058 (tool calling), CR-085 (pricing)
+
+### Motivazione
+
+Groq offre inferenza ad alta velocità su modelli open-weight (GPT-OSS, Qwen,
+Llama…) con un piano gratuito senza carta, tramite un endpoint compatibile OpenAI
+(`https://api.groq.com/openai/v1`). Il consumer `llmnative-cms` vuole offrirlo
+come provider AI accanto a Cloudflare e agli altri già supportati, con le stesse
+capability: chat, tool calling, allegati, abort e log id.
+
+### Scope
+
+- `src/providers/ai/groq.ts` (nuovo): `GROQ_PROVIDER_DEFINITION` costruita con
+  `createOpenAICompatibleProviderDefinition` — id `groq`, label `Groq`,
+  `configKey: 'groqApiKey'`, base URL `https://api.groq.com/openai/v1`,
+  `defaultModel`/`fallbackModels`, `dashboardUrl`/`credentialsHint` verso la
+  console Groq; `mapModelEntry` che scarta `active: false` e i modelli non-chat
+  (whisper, TTS/Orpheus, guard/safeguard).
+- `src/providers/ai/shared.ts`: `'groq'` in `BuiltInAIProviderId`.
+- `src/Config.tsx`: `AIConfig.groqApiKey?: string`.
+- `src/providers/ai/index.ts`: definizione in `AI_PROVIDER_DEFINITIONS`.
+- `src/providers/manifest.ts`: `AI_MANIFEST.groq` via `toAIDriver(...)`
+  con `when` gating, e `'groq'` in `AIDriverName`.
+- `src/providers/ai/modelsDevPricing.ts`: `groq: ['groq']`.
+- Docs: `docs/providers/ai.md`, `llms.txt`, `llms-full.txt`.
+- Showcase: provider nel playground Prompt (`index.tsx`, `PromptLivePage.tsx`,
+  `.env.example`).
+- `.notes/CHANGE_REQUESTS.md`, `.notes/STATUS.md`.
+
+### Fuori scope
+
+- GitHub Models: non implementabile (ritirato da GitHub il 30/07/2026).
+- Modifiche al consumer `llmnative-cms` (commit separato).
+- Bump di versione, sezione di versione nel `CHANGELOG.md`, tag e `npm publish`.
+- Verifica live con API key reale (nessuna chiave disponibile); non blocca
+  l'implementazione.
+
+### Checklist
+
+- [x] Adapter `groq.ts` + `AIConfig.groqApiKey` + `AI_PROVIDER_DEFINITIONS` + `AI_MANIFEST.groq` + `AIDriverName`
+- [x] `MODELS_DEV_PROVIDER_KEYS.groq`; nessun modello scartato per mancanza prezzo
+- [x] Discovery `/models`: solo modelli chat attivi; fallback ai `fallbackModels` su discovery fallita
+- [x] Test: `GroqAIProvider.test.ts` (nuovo), `AIProviderDefinitions.test.ts` (log id), `ModelPricing.test.ts` (`groq`)
+- [x] Docs: `docs/providers/ai.md`, `llms.txt`, `llms-full.txt`
+- [x] Showcase: provider Groq nel playground Prompt + `.env.example`
+- [x] Gate: `npx tsc --noEmit` (0 errori), `npm test`, `npm run build`
+- [ ] Verifica live con API key reale (nessuna chiave disponibile)
+- [ ] Release minor + `npm publish` (dopo il merge)
 
 ---
 

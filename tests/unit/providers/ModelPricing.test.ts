@@ -30,7 +30,7 @@ describe('models.dev pricing index', () => {
     const index = buildPricingIndex(CATALOG);
 
     it('keeps only the mapped providers and models that carry both prices', () => {
-        expect(index.groq).toBeUndefined();
+        expect(index.groq).toEqual({ 'llama-3.3-70b': [0.59, 0.79] });
         expect(index.openai).toEqual({ 'gpt-4o-mini': [0.15, 0.6] });
     });
 
@@ -42,6 +42,10 @@ describe('models.dev pricing index', () => {
 
     it('walks every models.dev key of a provider (glm: zhipuai, then zai)', () => {
         expect(lookupModelsDevPricing(index, 'glm', 'glm-4.6')).toMatchObject({ input: 0.6, output: 2.2 });
+    });
+
+    it('prices groq models from the groq catalog', () => {
+        expect(lookupModelsDevPricing(index, 'groq', 'llama-3.3-70b')).toMatchObject({ input: 0.59, output: 0.79, source: 'models.dev' });
     });
 
     it('returns undefined for unknown models and for openai-compatible', () => {

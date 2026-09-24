@@ -36,6 +36,7 @@ import '@llmnative/react/dist/index.css'
     ai: {                              // AIConfig — NON una prop separata di <App>
       openaiApiKey, geminiApiKey, anthropicApiKey,
       deepSeekApiKey, mistralApiKey, openRouterApiKey,
+      groqApiKey, // Groq (OpenAI-compatible, console.groq.com/keys)
       cloudflare: { apiToken, accountId }, // Cloudflare Workers AI
     },
     proxy: { enable: true, route: '/api/proxy' },
@@ -90,7 +91,7 @@ Built-in themes: `default`, `flat`, `cyber`.
 | storage | `StorageProviderAdapter` | `firestorage`, `supabaseStorage` | `providers.firebase/supabase` | no |
 | auth | `AuthProviderAdapter` | `googleAuth`, `firebaseAuth`, `supabaseAuth`, `dropboxAuth` | `providers.google/firebase/supabase/dropbox` | sì (fallback: googleAuth) |
 | email | `EmailProviderAdapter` | `gmail` | `providers.google` | no |
-| ai | `AIProviderAdapter` | `openai`, `gemini`, `anthropic`, `deepseek`, `mistral`, `openrouter`, `opencode`, `cloudflare` | `Config.tsx AIConfig` | no |
+| ai | `AIProviderAdapter` | `openai`, `gemini`, `anthropic`, `deepseek`, `mistral`, `openrouter`, `opencode`, `cloudflare`, `groq` | `Config.tsx AIConfig` | no |
 | credentials | `CredentialsAdapter` | `googleServiceAccount` | `providers.google.serviceAccount` | no |
 
 ### Hooks
@@ -878,7 +879,7 @@ class MyAIProvider implements AIProviderAdapter {
 const registry = createAIProviderRegistry(definitions)
 ```
 
-Configurazione API key in `Config.tsx`: `geminiApiKey`, `openaiApiKey`, `anthropicApiKey`, `deepSeekApiKey`, `mistralApiKey`, `openRouterApiKey`, `cloudflare: { apiToken, accountId }` (Cloudflare Workers AI: l'account id fa parte dell'URL; discovery via `ai/models/search`, modelli Workers Paid esclusi salvo `includePaidModels`).
+Configurazione API key in `Config.tsx`: `geminiApiKey`, `openaiApiKey`, `anthropicApiKey`, `deepSeekApiKey`, `mistralApiKey`, `openRouterApiKey`, `groqApiKey`, `cloudflare: { apiToken, accountId }` (Cloudflare Workers AI: l'account id fa parte dell'URL; discovery via `ai/models/search`, modelli Workers Paid esclusi salvo `includePaidModels`). Groq (`groqApiKey`, base URL `https://api.groq.com/openai/v1`) usa la discovery `/models` scartando i modelli non-chat (whisper, TTS/Orpheus, guard/safeguard) e gli inattivi; prezzi via models.dev.
 
 ---
 

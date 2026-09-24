@@ -33,6 +33,7 @@ import { ANTHROPIC_PROVIDER_DEFINITION } from '../../../src/providers/ai/anthrop
 import { createOpenAICompatibleProviderDefinition } from '../../../src/providers/ai/openaiCompatible';
 import { GEMINI_PROVIDER_DEFINITION } from '../../../src/providers/ai/gemini';
 import { OPENCODE_PROVIDER_DEFINITION, isOpenCodeFreeTierModel } from '../../../src/providers/ai/opencode';
+import { GROQ_PROVIDER_DEFINITION } from '../../../src/providers/ai/groq';
 import * as fetchLib from '../../../src/libs/fetch';
 import * as proxy from '../../../src/providers/proxy';
 
@@ -582,5 +583,48 @@ describe('OPENCODE_PROVIDER_DEFINITION', () => {
             const headers = mockFetchJson().mock.calls[0][1].headers as Record<string, string>;
             expect(headers).not.toHaveProperty('x-llmnative-log-id');
         });
+    });
+});
+
+// ── GROQ_PROVIDER_DEFINITION ──────────────────────────────────────────────────
+
+describe('GROQ_PROVIDER_DEFINITION', () => {
+    const req = { prompt: 'Say hi', model: 'llama-3.3-70b-versatile' };
+
+    it('has the correct id, label, configKey and base URL', () => {
+        expect(GROQ_PROVIDER_DEFINITION.id).toBe('groq');
+        expect(GROQ_PROVIDER_DEFINITION.label).toBe('Groq');
+        expect(GROQ_PROVIDER_DEFINITION.configKey).toBe('groqApiKey');
+        expect(GROQ_PROVIDER_DEFINITION.defaultModel).toBe('llama-3.3-70b-versatile');
+    });
+
+    it('sends chat completions to the Groq OpenAI-compatible endpoint', async () => {
+        mockFetchJson().mockResolvedValueOnce({ choices: [{ message: { content: 'ok' } }] });
+
+        await GROQ_PROVIDER_DEFINITION.complete('gsk-key', req);
+
+        expect(mockFetchJson()).toHaveBeenCalledWith(
+            'https://api.groq.com/openai/v1/chat/completions',
+            expect.anything(),
+            undefined,
+        );
+    });
+
+    it('includes the log id header when logId is provided', async () => {
+        mockFetchJson().mockResolvedValueOnce({ choices: [{ message: { content: 'ok' } }] });
+
+        await GROQ_PROVIDER_DEFINITION.complete('gsk-key', { ...req, logId: 'conv-123' });
+
+        const headers = mockFetchJson().mock.calls[0][1].headers as Record<string, string>;
+        expect(headers['x-llmnative-log-id']).toBe('conv-123');
+    });
+
+    it('omits the log id header when logId is not provided', async () => {
+        mockFetchJson().mockResolvedValueOnce({ choices: [{ message: { content: 'ok' } }] });
+
+        await GROQ_PROVIDER_DEFINITION.complete('gsk-key', req);
+
+        const headers = mockFetchJson().mock.calls[0][1].headers as Record<string, string>;
+        expect(headers).not.toHaveProperty('x-llmnative-log-id');
     });
 });
