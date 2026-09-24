@@ -11,13 +11,19 @@ import type {
     AICompleteResult,
     AIKeyValidationResult,
     AIModelDescriptor,
+    AIModelPricing,
     AIProviderAdapter,
     AIProviderCapabilities,
     AIRequestOptions,
 } from './AIProvider';
 import { formatAIModelRef } from './AIProvider';
+import { withModelsDevPricing } from './modelsDevPricing';
 
 export type BuiltInAIProviderId = 'openai' | 'openrouter' | 'opencode' | 'openai-compatible' | 'deepseek' | 'gemini' | 'anthropic' | 'mistral' | 'glm' | 'cloudflare';
+
+/** A discovered model carrying the price its provider listing already reports (OpenRouter,
+ * Cloudflare). Models discovered as a bare id get their price from models.dev instead. */
+export type DiscoveredAIModel = { model: string; pricing?: AIModelPricing };
 
 export type AIProviderDefinition = {
     id: BuiltInAIProviderId;
@@ -37,7 +43,7 @@ export type AIProviderDefinition = {
     /** Short guidance on where in the dashboard to find the credential. */
     credentialsHint?: string;
     capabilities?: Omit<AIProviderCapabilities, 'models'>;
-    discoverModels: (apiKey: string) => Promise<string[]>;
+    discoverModels: (apiKey: string) => Promise<Array<string | DiscoveredAIModel>>;
     complete: (
         apiKey: string,
         request: Required<Pick<AICompleteRequest, 'prompt' | 'model'>> & AIRequestOptions & Pick<AICompleteRequest, 'history' | 'tools' | 'signal' | 'logId'>,
@@ -57,7 +63,9 @@ export type AIModelCatalog = {
     capabilitiesByProvider: Record<string, AIProviderCapabilities>;
 };
 
-const MODEL_CACHE_PREFIX = 'ai.models.';
+// v2: entries now carry `pricing` — v1 entries (no prices) would read as "price not found"
+// for up to a day, so they are simply no longer read.
+const MODEL_CACHE_PREFIX = 'ai.models.v2.';
 const MODEL_CACHE_TTL_MS = 1000 * 60 * 60 * 24;
 
 export const extractProviderError = (err: unknown): string => {
@@ -136,13 +144,17 @@ const setCachedModels = (provider: string, items: AIModelDescriptor[]) => {
     }
 };
 
-const normalizeModels = (provider: BuiltInAIProviderId, label: string, models: string[]): AIModelDescriptor[] => (
-    models.map((model) => ({
-        id: formatAIModelRef(provider, model),
-        provider,
-        model,
-        label: `${label} / ${model}`,
-    }))
+const normalizeModels = (provider: BuiltInAIProviderId, label: string, models: Array<string | DiscoveredAIModel>): AIModelDescriptor[] => (
+    models.map((entry) => {
+        const { model, pricing } = typeof entry === 'string' ? { model: entry, pricing: undefined } : entry;
+        return {
+            id: formatAIModelRef(provider, model),
+            provider,
+            model,
+            label: `${label} / ${model}`,
+            ...(pricing ? { pricing } : {}),
+        };
+    })
 );
 
 export const getAIModelCatalog = async (
@@ -245,6 +257,7 @@ export class RuntimeAIProvider implements AIProviderAdapter {
             console.warn(`AIProvider:${this.id} model discovery failed`, error);
         }
 
+        items = await withModelsDevPricing(this.id, items);
         setCachedModels(this.id, items);
 
         return {

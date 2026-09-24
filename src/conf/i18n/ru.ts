@@ -75,7 +75,7 @@ export const ru: I18nDict = {
         toggleOnTitle: 'Промпт ВКЛЮЧЁН. Текст используется как шаблон и может быть выполнен.',
         toggleOffTitle: 'Промпт ВЫКЛЮЧЕН. Текст используется напрямую без AI.',
         closeEditor: 'Закрыть редактор', editSettings: 'Изменить настройки',
-        attachFiles: 'Прикрепить файлы', dropFilesHere: 'Перетащите файлы сюда, чтобы прикрепить', attachmentsNotSupported: 'Выбранный AI-провайдер не поддерживает изображения или документы.',
+        attachFiles: 'Прикрепить файлы', dropFilesHere: 'Перетащите файлы сюда, чтобы прикрепить', modelPricing: 'Ввод / вывод, USD за 1 млн токенов', modelPriceNotFound: 'Цена не найдена', attachmentsNotSupported: 'Выбранный AI-провайдер не поддерживает изображения или документы.',
         run: 'Запустить', runFailed: 'Ошибка выполнения промпта.',
         noMatchingCommands: 'Нет подходящих команд',
         tokenUsage: 'Использование токенов', tokenInput: 'Вход: {count} tok',

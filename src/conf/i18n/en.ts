@@ -146,6 +146,8 @@ export const en: I18nDict = {
         editSettings: 'Edit prompt settings',
         attachFiles: 'Attach files',
         dropFilesHere: 'Drop files to attach',
+        modelPricing: 'Input / output, USD per 1M tokens',
+        modelPriceNotFound: 'Price not found',
         attachmentsNotSupported: 'The selected AI provider does not support image or document attachments.',
         run: 'Run prompt',
         runFailed: 'Prompt execution failed.',

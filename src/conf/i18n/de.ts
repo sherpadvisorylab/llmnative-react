@@ -75,7 +75,7 @@ export const de: I18nDict = {
         toggleOnTitle: 'Prompt AKTIV. Der Text wird als Vorlage verwendet und kann ausgeführt werden.',
         toggleOffTitle: 'Prompt INAKTIV. Der Text wird direkt ohne AI-Verarbeitung verwendet.',
         closeEditor: 'Editor schließen', editSettings: 'Einstellungen bearbeiten',
-        attachFiles: 'Dateien anhängen', dropFilesHere: 'Dateien zum Anhängen hier ablegen', attachmentsNotSupported: 'Der ausgewählte AI-Provider unterstützt keine Bild- oder Dokumentanlagen.',
+        attachFiles: 'Dateien anhängen', dropFilesHere: 'Dateien zum Anhängen hier ablegen', modelPricing: 'Input / Output, USD pro 1 Mio. Token', modelPriceNotFound: 'Preis nicht gefunden', attachmentsNotSupported: 'Der ausgewählte AI-Provider unterstützt keine Bild- oder Dokumentanlagen.',
         run: 'Ausführen', runFailed: 'Prompt-Ausführung fehlgeschlagen.',
         noMatchingCommands: 'Keine passenden Befehle',
         tokenUsage: 'Token-Nutzung', tokenInput: 'Eingabe: {count} tok',

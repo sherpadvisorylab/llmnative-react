@@ -88,6 +88,30 @@ describe('Chatbot', () => {
         expect(onSubmit.mock.calls[0][0]).toMatchObject({ model: 'anthropic/claude-sonnet-4-0' });
     });
 
+    it('shows per-1M input/output prices, highlights free models and flags missing prices', () => {
+        renderWithProviders(
+            <ControlledChatbot
+                onSubmit={vi.fn()}
+                models={[
+                    { label: 'Paid', value: 'openai/gpt-5-mini', pricing: { input: 0.25, output: 2, currency: 'USD', source: 'models.dev' } },
+                    { label: 'Free', value: 'opencode/big-pickle', pricing: { input: 0, output: 0, currency: 'USD', source: 'models.dev' } },
+                    { label: 'Unknown', value: 'glm/glm-z1-preview', pricing: null },
+                    { label: 'No pricing data', value: 'custom/x' },
+                ]}
+                modelPlaceholder="Choose a model"
+            />
+        );
+
+        fireEvent.click(screen.getByText('Choose a model'));
+
+        expect(screen.getByText('$0.25 / $2')).toBeInTheDocument();
+        expect(screen.getByText('$0 / $0')).toBeInTheDocument();
+        expect(screen.getByText('Free').closest('button')?.className).toContain('bg-success/10');
+        expect(screen.getByText('Paid').closest('button')?.className).not.toContain('bg-success/10');
+        expect(screen.getAllByText('Price not found')).toHaveLength(1);
+        expect(screen.getByText('Unknown').closest('button')).toHaveTextContent('Price not found');
+    });
+
     it('shows a disabled spinner while running without an onStop handler (no abort capability)', () => {
         renderWithProviders(<ControlledChatbot onSubmit={vi.fn()} value="working…" running />);
         expect(screen.getByRole('button', { name: /Stop/i })).toBeDisabled();

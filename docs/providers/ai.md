@@ -122,8 +122,9 @@ At runtime the orchestrator:
 
 - enables only providers with a configured API key;
 - calls the provider model-list endpoint when available;
-- normalizes the result into `{ id, provider, model, label }`;
-- caches it in `localStorage` for 24 hours;
+- normalizes the result into `{ id, provider, model, label, pricing? }`;
+- attaches token prices (see [Model pricing](#model-pricing));
+- caches it in `localStorage` for 24 hours (`ai.models.v2.<provider>`);
 - falls back to a minimal static list if discovery fails.
 
 This is what powers the `Prompt` model selector.
@@ -135,6 +136,32 @@ All built-in providers now follow this pattern:
 - `anthropic` -> `GET /v1/models`
 - `opencode` -> `GET /zen/v1/models`, filtered to the `chat/completions`-compatible subset
 - `cloudflare` -> `GET /accounts/{accountId}/ai/models/search?task=Text Generation` (Workers AI has no OpenAI-style `/models`), without experimental, Workers Paid-only and safety-classifier models
+
+## Model pricing
+
+Every model descriptor can carry `pricing: { input, output, currency: 'USD', source }`,
+in USD per **1M tokens**:
+
+- `source: 'provider'`: the provider listing reports prices itself, as OpenRouter
+  (`/models` → `pricing.prompt`/`pricing.completion`, converted from per-token) and
+  Cloudflare (`price` property of the catalog) do;
+- `source: 'models.dev'`: for every other model, the public
+  [models.dev](https://models.dev) catalog (`https://models.dev/api.json`, CORS-open),
+  fetched once, reduced to the built-in providers and cached in `localStorage` for 24h
+  (`ai.pricing.modelsdev`). Ids are matched exactly, then without a trailing release date.
+
+A model whose price is found nowhere keeps `pricing` undefined and is **still listed**.
+`openai-compatible` never gets a price (its endpoint is arbitrary). OpenRouter routers
+with a variable price (`-1`, e.g. `openrouter/auto`) count as not found.
+`isFreeAIModel(model)` is true when both prices are 0.
+
+Custom definitions can return prices from `discoverModels` as
+`{ model, pricing }` entries (type `DiscoveredAIModel`) next to plain ids.
+
+The model picker of `Prompt` and `Chatbot` shows `$input / $output` on each row, tints
+free models' rows and flags models without a price as "Price not found". A consumer
+passing its own `models` to `Chatbot` sets `ChatbotModelOption.pricing`: an
+`AIModelPricing`, `null` (looked up, not found) or omitted (no indication at all).
 
 ## Public unified catalog
 
@@ -160,7 +187,8 @@ Each item already carries its provider:
   id: 'openrouter/openai/gpt-4',
   provider: 'openrouter',
   model: 'openai/gpt-4',
-  label: 'OpenRouter / openai/gpt-4'
+  label: 'OpenRouter / openai/gpt-4',
+  pricing: { input: 30, output: 60, currency: 'USD', source: 'provider' }
 }
 ```
 

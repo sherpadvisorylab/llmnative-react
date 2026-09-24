@@ -1,8 +1,8 @@
 import { fetchJson } from '../../libs/fetch';
 import { proxyFetch } from '../proxy';
 import type { ProviderDescriptor } from '../ProviderDescriptor';
-import type { AIConversationTurn } from './AIProvider';
-import { extractProviderError, type AIProviderDefinition } from './shared';
+import type { AIConversationTurn, AIModelPricing } from './AIProvider';
+import { extractProviderError, type AIProviderDefinition, type DiscoveredAIModel } from './shared';
 import { createOpenAICompatibleProviderDefinition } from './openaiCompatible';
 
 const CLOUDFLARE_API_BASE = 'https://api.cloudflare.com/client/v4';
@@ -34,6 +34,21 @@ export type CloudflareProviderOptions = {
 
 const hasProperty = (model: CloudflareModel, propertyId: string) =>
     (model.properties ?? []).some((p) => p.property_id === propertyId && String(p.value) === 'true');
+
+/** The catalog's `price` property: `[{ unit: 'per M input tokens', price, currency }, { unit:
+ * 'per M output tokens', … }]`. Anything else resolves to undefined and models.dev fills in. */
+export const parseCloudflarePricing = (model: CloudflareModel): AIModelPricing | undefined => {
+    const entries = (model.properties ?? []).find((p) => p.property_id === 'price')?.value;
+    if (!Array.isArray(entries)) return undefined;
+    const priceFor = (kind: 'input' | 'output') => {
+        const entry = entries.find((e) => typeof e?.unit === 'string' && e.unit.toLowerCase().includes(kind));
+        return entry && (entry.currency === undefined || entry.currency === 'USD') ? Number(entry.price) : NaN;
+    };
+    const input = priceFor('input');
+    const output = priceFor('output');
+    if (!Number.isFinite(input) || !Number.isFinite(output)) return undefined;
+    return { input, output, currency: 'USD', source: 'provider' };
+};
 
 /** Workers AI rejects `content: null` on an assistant turn that carries tool_calls (error 5006
  * on llama-3.3, gpt-oss, qwen3 — verified live), while every model accepts `''`. The shared
@@ -91,14 +106,14 @@ export const createCloudflareProviderDefinition = ({
         ...base,
         credentialFields: CREDENTIAL_FIELDS,
         discoverModels: async (apiKey) => {
-            const models: string[] = [];
+            const models: DiscoveredAIModel[] = [];
             for (let page = 1; page <= MODELS_MAX_PAGES; page++) {
                 const response = await searchModels(apiKey, page, MODELS_PAGE_SIZE);
                 const result = Array.isArray(response?.result) ? response.result : [];
                 result
                     .filter((model) => !NON_CHAT_MODEL_PATTERN.test(model.name ?? ''))
                     .filter((model) => includePaidModels || !hasProperty(model, 'require_workers_paid'))
-                    .forEach((model) => { if (model.name) models.push(model.name); });
+                    .forEach((model) => { if (model.name) models.push({ model: model.name, pricing: parseCloudflarePricing(model) }); });
                 if (result.length < MODELS_PAGE_SIZE) break;
             }
             return models;

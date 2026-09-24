@@ -3,7 +3,7 @@ import { fetchJson } from '../../libs/fetch';
 import { proxyFetch } from '../proxy';
 import { PromptUtils } from '../../libs/promptUtils';
 import { LLM_LOG_ID_HEADER } from '../proxy/logHeader';
-import type { AIProviderDefinition, BuiltInAIProviderId } from './shared';
+import type { AIProviderDefinition, BuiltInAIProviderId, DiscoveredAIModel } from './shared';
 import { parseTextResponse, createBrowserTransportError, extractProviderError } from './shared';
 import type { AIConversationTurn, AICompleteResult, AIToolDefinition } from './AIProvider';
 
@@ -22,7 +22,11 @@ type OpenAICompatibleDefinitionOptions = {
     credentialsHint?: string;
     /** Override the default validateApiKey when the models endpoint is public or uses a non-standard error format. */
     validateApiKey?: AIProviderDefinition['validateApiKey'];
+    /** Maps one `/models` entry — for providers whose listing also reports prices (OpenRouter). */
+    mapModelEntry?: (entry: Record<string, unknown>) => string | DiscoveredAIModel | undefined;
 };
+
+const defaultMapModelEntry = (entry: Record<string, unknown>) => (typeof entry.id === 'string' ? entry.id : undefined);
 
 const trimTrailingSlash = (value: string) => value.replace(/\/+$/, '');
 
@@ -101,6 +105,7 @@ export const createOpenAICompatibleProviderDefinition = ({
     dashboardUrl,
     credentialsHint,
     validateApiKey: validateApiKeyOverride,
+    mapModelEntry = defaultMapModelEntry,
 }: OpenAICompatibleDefinitionOptions): AIProviderDefinition => {
     const normalizedBaseUrl = trimTrailingSlash(baseUrl);
     const resolvedModelsUrl = modelsUrl || `${normalizedBaseUrl}/models`;
@@ -147,7 +152,9 @@ export const createOpenAICompatibleProviderDefinition = ({
                 },
             }, proxyFetch);
             return Array.isArray(response?.data)
-                ? response.data.map((entry: { id?: string }) => entry.id).filter(Boolean)
+                ? response.data
+                    .map((entry: Record<string, unknown>) => mapModelEntry(entry ?? {}))
+                    .filter((entry: string | DiscoveredAIModel | undefined): entry is string | DiscoveredAIModel => Boolean(entry))
                 : [];
         },
         complete: async (apiKey, request) => {

@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { Prompt as PromptConf } from '../../conf/Prompt';
 import { useI18n } from '../../I18n';
+import type { AIModelPricing } from '../../providers/ai/AIProvider';
 import { Dropdown, DropdownItem } from '../blocks/Dropdown';
 import Icon from '../ui/Icon';
 import {
@@ -50,7 +51,20 @@ export interface ChatbotSubmitPayload {
 export interface ChatbotModelOption {
     label: string;
     value: string;
+    /** Input/output price per 1M tokens, shown next to the label; a free model (both 0) gets
+     * a highlighted row. `null` = price looked up but not found (flagged in the row);
+     * omitted = the consumer has no pricing at all, nothing is shown. */
+    pricing?: AIModelPricing | null;
 }
+
+const formatModelPrice = (value: number) => {
+    if (value === 0) return '0';
+    if (value < 0.01) return String(Number(value.toPrecision(2)));
+    return String(Number(value.toFixed(value < 1 ? 3 : 2)));
+};
+
+export const isFreeModelOption = (option: ChatbotModelOption) =>
+    Boolean(option.pricing && option.pricing.input === 0 && option.pricing.output === 0);
 
 export interface ChatbotProps {
     /** Attributo `name` nativo sulla textarea sottostante — puro attributo DOM, MAI un
@@ -99,6 +113,10 @@ export interface ChatbotProps {
 }
 
 const chatbotGhostIcon = 'h-7 w-7 cursor-pointer rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground';
+const chatbotModelItem = 'gap-3';
+const chatbotModelItemFree = 'gap-3 bg-success/10 hover:bg-success/20 focus:bg-success/20';
+const chatbotModelPrice = 'ml-auto shrink-0 whitespace-nowrap text-xs tabular-nums text-muted-foreground';
+const chatbotModelPriceMissing = 'ml-auto shrink-0 whitespace-nowrap text-xs italic text-warning';
 const chatbotModelTrigger = 'h-7 max-w-[140px] rounded-md px-2 text-xs gap-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground truncate';
 const chatbotTextareaClass = 'w-full resize-none border-0 bg-transparent px-4 py-3 text-sm shadow-none outline-none focus-visible:ring-0 placeholder:text-muted-foreground';
 
@@ -412,8 +430,19 @@ export function Chatbot({
                             triggerClassName={chatbotModelTrigger}
                         >
                             {models.map((opt) => (
-                                <DropdownItem key={opt.value} onClick={() => onModelChange?.(opt.value)}>
-                                    {opt.label}
+                                <DropdownItem
+                                    key={opt.value}
+                                    onClick={() => onModelChange?.(opt.value)}
+                                    className={isFreeModelOption(opt) ? chatbotModelItemFree : opt.pricing !== undefined ? chatbotModelItem : undefined}
+                                >
+                                    <span className="min-w-0">{opt.label}</span>
+                                    {opt.pricing ? (
+                                        <span className={chatbotModelPrice} title={dict.modelPricing}>
+                                            ${formatModelPrice(opt.pricing.input)} / ${formatModelPrice(opt.pricing.output)}
+                                        </span>
+                                    ) : opt.pricing === null ? (
+                                        <span className={chatbotModelPriceMissing}>{dict.modelPriceNotFound}</span>
+                                    ) : null}
                                 </DropdownItem>
                             ))}
                         </Dropdown>

@@ -110,7 +110,7 @@ describe('createCloudflareProviderDefinition()', () => {
 
         const models = await definition.discoverModels('cf-token');
 
-        expect(models).toEqual(['@cf/openai/gpt-oss-120b', '@cf/qwen/qwen3-30b-a3b-fp8']);
+        expect(models.map((m) => (typeof m === 'string' ? m : m.model))).toEqual(['@cf/openai/gpt-oss-120b', '@cf/qwen/qwen3-30b-a3b-fp8']);
         const url = new URL(fetchJson().mock.calls[0][0]);
         expect(url.origin + url.pathname).toBe(`${ACCOUNT_URL}/ai/models/search`);
         expect(url.searchParams.get('task')).toBe('Text Generation');
@@ -123,7 +123,28 @@ describe('createCloudflareProviderDefinition()', () => {
 
         const paid = createCloudflareProviderDefinition({ accountId: ACCOUNT, includePaidModels: true });
 
-        expect(await paid.discoverModels('cf-token')).toEqual(['@cf/moonshotai/kimi-k2.6']);
+        expect(await paid.discoverModels('cf-token')).toEqual([{ model: '@cf/moonshotai/kimi-k2.6', pricing: undefined }]);
+    });
+
+    it("reads the catalog's per-1M-token price property, leaving pricing undefined without it", async () => {
+        fetchJson().mockResolvedValue({
+            success: true,
+            result: [
+                {
+                    name: '@cf/openai/gpt-oss-120b',
+                    properties: [{ property_id: 'price', value: [
+                        { unit: 'per M input tokens', price: 0.35, currency: 'USD' },
+                        { unit: 'per M output tokens', price: 0.75, currency: 'USD' },
+                    ] }],
+                },
+                model('@cf/qwen/qwen3-30b-a3b-fp8'),
+            ],
+        });
+
+        expect(await definition.discoverModels('cf-token')).toEqual([
+            { model: '@cf/openai/gpt-oss-120b', pricing: { input: 0.35, output: 0.75, currency: 'USD', source: 'provider' } },
+            { model: '@cf/qwen/qwen3-30b-a3b-fp8', pricing: undefined },
+        ]);
     });
 
     it('follows catalog pagination while pages are full', async () => {

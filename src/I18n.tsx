@@ -151,6 +151,8 @@ export interface I18nDict {
         editSettings:           string;
         attachFiles:            string;
         dropFilesHere:          string;
+        modelPricing:           string;
+        modelPriceNotFound:     string;
         attachmentsNotSupported: string;
         run:                    string;
         runFailed:              string;

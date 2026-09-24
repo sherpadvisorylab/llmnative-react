@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.17.0] - 2026-09-24
+
+### Added
+- AI model pricing (CR-085, GH issue #44): `AIModelDescriptor.pricing` (`AIModelPricing`, USD
+  per 1M input/output tokens) from the provider listing when it reports prices
+  (OpenRouter, Cloudflare) and from the public models.dev catalog otherwise
+  (cached 24h in localStorage). Models without a price are kept, with `pricing`
+  undefined. `discoverModels` may now return `{ model, pricing }` entries next to
+  plain ids. New exports: `AIModelPricing`, `DiscoveredAIModel`, `isFreeAIModel`.
+- `ChatbotModelOption.pricing`: the model picker of `Chatbot` and `Prompt` shows
+  `$input / $output` per model, highlights free models with a tinted row and
+  flags models whose price was not found. New i18n keys
+  `prompt.modelPricing`, `prompt.modelPriceNotFound`.
+
+### Changed
+- Model catalog localStorage cache key is now `ai.models.v2.<provider>`.
+
 ## [1.16.0] - 2026-09-23
 
 ### Added

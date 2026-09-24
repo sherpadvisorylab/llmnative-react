@@ -93,6 +93,67 @@
 | [CR-082](#cr-082--gallery-renderitem-custom-item-renderer) | Gallery: `renderItem` (custom item renderer) | Media | — | ✅ |
 | [CR-083](#cr-083--uploadimage-alt-text-field-indipendente-da-srcsetvarianti) | UploadImage: alt text field (indipendente da srcset/varianti) | Media | — | ✅ |
 | [CR-084](#cr-084--ai-provider-cloudflare-workers-ai) | AI provider: Cloudflare Workers AI | Media | CR-058 | ✅ |
+| [CR-085](#cr-085--ai-model-pricing-prezzi-inputoutput-nel-model-picker) | AI model pricing: prezzi input/output nel model picker | Media | CR-084 | ✅ |
+
+---
+
+## CR-085 — AI model pricing: prezzi input/output nel model picker
+
+**Stato:** ✅ done — rilasciato in 1.17.0
+**Issue:** [#44](https://github.com/sherpadvisorylab/llmnative-react/issues/44)
+**Priorità:** Media
+**Dipende da:** CR-084
+
+### Motivazione
+
+Nel model picker di `Chatbot`/`Prompt` l'utente sceglie tra decine di modelli di
+provider diversi senza sapere quanto costano. Il consumer (`llmnative-cms`) vuole
+vedere per ogni modello il costo di input e output e riconoscere a colpo d'occhio
+quelli gratuiti, per tutti i provider AI built-in.
+
+### Verifica live (2026-09-24)
+
+- Solo OpenRouter (`/models` → `pricing.prompt`/`pricing.completion`, USD per
+  token come stringa; `-1` sui router a prezzo variabile) e Cloudflare
+  (`properties[].price` nel catalogo `ai/models/search`) riportano i prezzi nel
+  listing modelli. OpenAI, Anthropic, Gemini, DeepSeek, Mistral, GLM e OpenCode no.
+- `https://models.dev/api.json`: catalogo pubblico, `access-control-allow-origin: *`,
+  ~4.9 MB, `cost.input`/`cost.output` in USD per 1M token; copre tutti i provider
+  built-in (`google` = gemini, `zhipuai`/`zai` = glm, `cloudflare-workers-ai`);
+  i modelli free di OpenCode hanno costo 0.
+
+### Scope
+
+- `AIModelPricing { input, output, currency: 'USD', source: 'provider' | 'models.dev' }`
+  (per 1M token) e `AIModelDescriptor.pricing?` (assente = prezzo non trovato);
+  helper `isFreeAIModel()`.
+- `AIProviderDefinition.discoverModels` può restituire `string | DiscoveredAIModel`
+  (`{ model, pricing? }`) — compatibile con le definizioni che restituiscono `string[]`.
+- Prezzi nativi: OpenRouter (`parseOpenRouterPricing`, via nuova opzione
+  `mapModelEntry` di `createOpenAICompatibleProviderDefinition`) e Cloudflare
+  (`parseCloudflarePricing`).
+- `modelsDevPricing.ts`: fallback models.dev per i modelli senza prezzo nativo —
+  una fetch condivisa, indice compatto (solo provider mappati) in localStorage per
+  24h, match esatto poi alias senza data; fetch fallita = nessun prezzo, non in cache.
+  `openai-compatible` escluso (endpoint arbitrario).
+- Nessun modello viene mai scartato per mancanza di prezzo.
+- Cache modelli portata a `ai.models.v2.*` (le voci v1 non hanno prezzi).
+- `ChatbotModelOption.pricing?: AIModelPricing | null`: prezzo `$in / $out` a
+  destra della riga (tooltip "per 1M token"), riga free con sfondo `bg-success/10`,
+  `null` = "Price not found" evidenziato; omesso = nessuna indicazione.
+  `Prompt` passa il pricing del catalogo. i18n `prompt.modelPricing`,
+  `prompt.modelPriceNotFound` in 6 lingue.
+
+### Checklist
+
+- [x] Tipi + discovery con prezzi nativi (OpenRouter, Cloudflare)
+- [x] Fallback models.dev con cache
+- [x] Rendering nel picker di Chatbot + Prompt
+- [x] Test: `ModelPricing.test.ts`, `CloudflareAIProvider.test.ts`, `Chatbot.test.tsx`
+- [x] Docs: `docs/providers/ai.md` (sezione Model pricing), `llms-full.txt`
+- [x] `npx tsc --noEmit`, `npm test` (66 file / 743 test), `npm run build`, `npm pack --dry-run` (218 entries)
+- [x] Verifica nel consumer `llmnative-cms` (picker Agentico con OpenCode/DeepSeek/Cloudflare): prezzi, righe free evidenziate, "Price not found"
+- [x] GitHub Issue #44, release 1.17.0, pubblicazione npm
 
 ---
 

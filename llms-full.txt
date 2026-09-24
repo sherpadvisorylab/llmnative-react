@@ -857,6 +857,10 @@ import { useAIProvider, getAIModelCatalog, createAIProviderRegistry } from '@llm
 const provider  = useAIProvider()           // provider di default
 const registry  = useAIProviderRegistry()   // tutti i provider AI registrati
 const catalog   = getAIModelCatalog()       // modelli disponibili
+// ogni modello: { id, provider, model, label, pricing? } — pricing in USD per 1M token
+// { input, output, currency: 'USD', source: 'provider' | 'models.dev' }; assente = prezzo
+// non trovato (il modello resta in lista). isFreeAIModel(m) → input e output a 0.
+// Il model picker di Prompt/Chatbot mostra "$in / $out", evidenzia i free, segnala i mancanti.
 
 // Provider adapter restituito da useAIProvider()
 const text  = await provider.fetch("Scrivi un titolo per: {keyword}", { keyword: "React" })

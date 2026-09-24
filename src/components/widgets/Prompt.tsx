@@ -14,7 +14,7 @@ import { Wrapper } from '../ui/GridSystem';
 import { Label, Switch, TextArea } from '../ui/fields/Input';
 import { FormFieldProps, useFormContext } from './Form';
 import { PromptUtils } from '../../libs/promptUtils';
-import { Chatbot, type ChatbotAction, type ChatbotSubmitPayload } from './Chatbot';
+import { Chatbot, type ChatbotAction, type ChatbotModelOption, type ChatbotSubmitPayload } from './Chatbot';
 
 export enum PromptMode {
     EDIT = "edit",
@@ -117,7 +117,7 @@ type PromptAvailabilityState = {
 }
 
 type PromptCapabilitiesState = {
-    modelOptions: Array<{ label: string; value: string }>;
+    modelOptions: ChatbotModelOption[];
     capabilitiesByProvider: Record<string, AIProviderCapabilities>;
 };
 
@@ -125,7 +125,7 @@ const promptBodyClass = "space-y-2";
 const promptHeaderClass = "flex items-center justify-between gap-3";
 const promptTitleClass = "mb-0 min-w-0 text-sm font-medium leading-5 text-foreground";
 const promptActionClass = "ml-auto shrink-0";
-const getFallbackModelOptions = (): Array<{ label: string; value: string }> => [];
+const getFallbackModelOptions = (): ChatbotModelOption[] => [];
 const getPromptRunErrorMessage = (error: unknown, fallback = "Prompt execution failed.") => {
     if (error instanceof Error && error.message) return error.message;
     if (typeof error === 'string') return error;
@@ -188,6 +188,7 @@ function usePromptCapabilities() {
                 .map((model) => ({
                     label: model.label,
                     value: model.id,
+                    pricing: model.pricing ?? null,
                 }));
 
             setState({

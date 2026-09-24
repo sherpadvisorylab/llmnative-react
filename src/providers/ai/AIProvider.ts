@@ -1,13 +1,28 @@
 import type { PromptVariables } from '../../conf/Prompt';
 import type { ProviderConfigurable } from '../ProviderConfiguration';
 
+/** Token prices of a model, in `currency` per 1M tokens. `input === 0 && output === 0` means
+ * the model is free. */
+export interface AIModelPricing {
+    input: number;
+    output: number;
+    currency: 'USD';
+    /** Where the price comes from: the provider's own model listing, or the models.dev catalog. */
+    source: 'provider' | 'models.dev';
+}
+
 export interface AIModelDescriptor {
     id: string;
     provider: string;
     model: string;
     label: string;
     deprecated?: boolean;
+    /** Absent = price not found (neither in the provider listing nor on models.dev). */
+    pricing?: AIModelPricing;
 }
+
+export const isFreeAIModel = (model: Pick<AIModelDescriptor, 'pricing'>): boolean =>
+    model.pricing !== undefined && model.pricing.input === 0 && model.pricing.output === 0;
 
 export interface AIProviderCapabilities {
     models: AIModelDescriptor[];
