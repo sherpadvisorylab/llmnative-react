@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.17.1] - 2026-09-24
+
+### Fixed
+- `opencode`: model discovery no longer offers Zen free-tier models (`*-free`,
+  `big-pickle`). Zen now rejects them outside the OpenCode app ("OpenCode's free
+  tier can only be used from within OpenCode", verified live on all of them), so
+  the picker showed them as free models that always failed.
+- `opencode`: `defaultModel` was `deepseek-v4-flash-free`, which Zen no longer
+  lists; it is now `deepseek-v4.1-flash`. The fallback list is rebuilt from the
+  live catalog, without free-tier and removed ids.
+
+### Changed
+- Model catalog localStorage cache key is now `ai.models.v3.<provider>`, so lists
+  cached before this fix (with the free-tier models) are not served for up to a day.
+- `docs/providers/ai.md`: the OpenCode section no longer describes a
+  `chat/completions` filter the adapter stopped applying.
+
 ## [1.17.0] - 2026-09-24
 
 ### Added

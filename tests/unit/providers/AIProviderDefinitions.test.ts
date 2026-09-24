@@ -32,7 +32,7 @@ import { parseTextResponse, createBrowserTransportError } from '../../../src/pro
 import { ANTHROPIC_PROVIDER_DEFINITION } from '../../../src/providers/ai/anthropic';
 import { createOpenAICompatibleProviderDefinition } from '../../../src/providers/ai/openaiCompatible';
 import { GEMINI_PROVIDER_DEFINITION } from '../../../src/providers/ai/gemini';
-import { OPENCODE_PROVIDER_DEFINITION } from '../../../src/providers/ai/opencode';
+import { OPENCODE_PROVIDER_DEFINITION, isOpenCodeFreeTierModel } from '../../../src/providers/ai/opencode';
 import * as fetchLib from '../../../src/libs/fetch';
 import * as proxy from '../../../src/providers/proxy';
 
@@ -513,11 +513,20 @@ describe('GEMINI_PROVIDER_DEFINITION', () => {
 describe('OPENCODE_PROVIDER_DEFINITION', () => {
     it('has the correct id and defaultModel', () => {
         expect(OPENCODE_PROVIDER_DEFINITION.id).toBe('opencode');
-        expect(OPENCODE_PROVIDER_DEFINITION.defaultModel).toBe('deepseek-v4-flash-free');
+        expect(OPENCODE_PROVIDER_DEFINITION.defaultModel).toBe('deepseek-v4.1-flash');
+    });
+
+    it('never offers free-tier models (Zen rejects them outside the OpenCode app)', async () => {
+        mockFetchJson().mockResolvedValueOnce({ data: [
+            { id: 'big-pickle' }, { id: 'mimo-v2.5-free' }, { id: 'deepseek-v4.1-flash' }, { id: 'kimi-k3' },
+        ] });
+
+        expect(await OPENCODE_PROVIDER_DEFINITION.discoverModels('key')).toEqual(['deepseek-v4.1-flash', 'kimi-k3']);
+        expect(OPENCODE_PROVIDER_DEFINITION.fallbackModels.some(isOpenCodeFreeTierModel)).toBe(false);
     });
 
     describe('complete()', () => {
-        const req = { prompt: 'Say hi', model: 'deepseek-v4-flash-free' };
+        const req = { prompt: 'Say hi', model: 'deepseek-v4.1-flash' };
 
         it('sends the prompt as plain string content when there are no attachments', async () => {
             mockFetchJson().mockResolvedValueOnce({ choices: [{ message: { content: 'ok' } }] });

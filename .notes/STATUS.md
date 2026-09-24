@@ -21,7 +21,7 @@
 | TypeScript | `strict: true`; `npm run build` generates bundle + declarations. CR-042 done: `any` count → 6 justified exceptions, all annotated. | No remaining structural gap. |
 | Dead code | Removed: `Helper.tsx` (1696 lines), `Blog.tsx`, `Template.tsx`, `FormEnhancer.tsx`, `AssistantAI.tsx`, `BlogPost.tsx`, `Component.tsx` dead exports, `libs/log.ts`, `libs/cache.ts`, `libs/database.ts`, `libs/storage.ts`, `libs/seo.ts`, `Command.tsx`. Log logic inlined in `Form.tsx` via `useDataProvider()`. Cache logic inlined in `scrape/index.ts` via `DataProviderAdapter`. | No remaining structural gap. |
 | Tests | 61 unit/component files / 649 tests + 10 Firebase emulator + 8 Supabase emulator integration tests + 16 Playwright E2E (all pass). Suites: libs (utils, converter, path, sanitizer, fetch, promptUtils), providers (Mock, Firebase RTDB, Firestore, FirebaseStorage, Supabase, SupabaseStorage, SupabaseAuth, AIProviders, DropboxStorage, Gmail, Google Service Account, Scrape, ProxyRegistry), App, theme/icon, motion, auth, Form/Grid/Input/Select/Upload/Repeat/MarkdownReader/Table/Modal/Dropdown/Gallery/Buttons/Prompt + form-controller + smoke tests (blocks, switchers, fields, ui, widgets) plus the public export contract and proxy runtime e2e. Integration: Firebase RTDB/Firestore/Storage emulator CRUD + Supabase Postgres CRUD + Auth. E2E: 16 Playwright tests covering 30+ showcase pages (smoke + navigation + CRUD flow). GitHub Actions CI present (test + build + showcase jobs). | Google OAuth E2E ancora assente. |
-| Library build | `npm run build` passes. Output: `dist/index.js`, `dist/index.mjs`, `dist/index.css`, `dist/types`. `ImageEditor` heavy runtime is now split into a separate lazy chunk (`dist/ImageEditorImpl-*`) instead of being forced into the root bundle. Published as `@llmnative/react@1.17.0` on npm. | No structural gap. |
+| Library build | `npm run build` passes. Output: `dist/index.js`, `dist/index.mjs`, `dist/index.css`, `dist/types`. `ImageEditor` heavy runtime is now split into a separate lazy chunk (`dist/ImageEditorImpl-*`) instead of being forced into the root bundle. Published as `@llmnative/react@1.17.1` on npm. | No structural gap. |
 | Showcase app | `clients/showcase` is a real Vite consumer. Pages: Auth, Alert, Badge, Buttons, Card, Code, Dropdown, Gallery, GridSystem, Icon, Image, ImageAvatar, ImageField, ImageEditor, Loader, LocaleSwitcher, Modal (incl. ModalYesNo/ModalOk sub-pages), Motion, Notifications, Pagination, Prompt, Search, Select, Autocomplete, Checklist, Upload, Form, Grid, GridArray, GridDB, MarkdownReader, Repeat, LayoutBuilder. SideNav collapsible with icon-only mode. | Stub routes remain for concrete provider demos and application examples. |
 | Markdown docs | `AI_REFERENCE.md` and `PROMPT_TEMPLATE.md` added for LLM consumption of the full API surface. Docs with frontmatter load in showcase via `import.meta.glob`. | Operational docs (STATUS, ROADMAP, CHANGE_REQUESTS) remain maintainer-only. |
 
@@ -217,6 +217,16 @@ Main real routes:
 
 ## Verification performed
 
+Real verification performed on 2026-09-24 (1.17.1 — OpenCode free-tier models removed from discovery):
+
+| Command | Result |
+|---------|--------|
+| `npx tsc --noEmit` | Passes: 0 errors. |
+| `npm test` | Passes: 66 files, 744 tests. |
+| `npm run build` | Passes: Vite library build + declarations. |
+| `npm pack --dry-run --json` | Passes: 218 entries. |
+| Live OpenCode Zen | `/zen/v1/models` no longer lists `deepseek-v4-flash-free`; every free-tier model (`big-pickle`, `*-free`) answers "OpenCode's free tier can only be used from within OpenCode". |
+
 Real verification performed on 2026-09-24 (1.17.0 — CR-085, AI model pricing):
 
 | Command | Result |
@@ -330,4 +340,5 @@ Real verification performed on 2026-07-29 (CR-071 drag&drop addition + CR-073):
 | 1.14.0 | Published on npm (`@llmnative/react@1.14.0`). Minor addition (no CR, GH issue #27): `CodeEditor` gained an optional `validate` prop overriding the built-in `language`-based syntax check — lets a consumer whose content embeds a foreign template syntax inside `language` (e.g. Liquid tags inside a `'css'` block) supply its own check instead of false-positiving on the embedded syntax. Fully backward compatible: omitting it keeps the exact previous `language`-only check, now routed through the already-exported `getCodeValidationResult` instead of a local try/catch (same observable behavior). Requested by a CMS consumer (Liquid-templated Component CSS false-positiving on `{{ x | default: ... }}`). |
 | 1.16.0 | Published on npm (`@llmnative/react@1.16.0`). CR-084 (AI provider `cloudflare` — Cloudflare Workers AI) completa. Includes the unreleased README badges (GH issues #38, #41). |
 | 1.17.0 | Published on npm (`@llmnative/react@1.17.0`). CR-085 (AI model pricing nel model picker) completa. |
+| 1.17.1 | Published on npm (`@llmnative/react@1.17.1`). Minor fix (no CR): OpenCode discovery drops the Zen free-tier models (rejected outside the OpenCode app), `defaultModel` `deepseek-v4-flash-free` (no longer listed) → `deepseek-v4.1-flash`, model cache key `ai.models.v3.*`. |
 | 1.x / 2.0 | Roadmap: CR-051 (WorkflowAI), CR-040 (SchemaForm), CR-041 (SeoEnhancer), E2E. CR-072 deferito (TypeScript 6 regression upstream). |

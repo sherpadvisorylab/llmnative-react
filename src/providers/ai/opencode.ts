@@ -10,19 +10,29 @@ import { toOpenAITool, toOpenAIMessages, parseOpenAIResponse } from './openaiCom
 const OPENCODE_MODELS_URL = 'https://opencode.ai/zen/v1/models';
 const OPENCODE_CHAT_URL = 'https://opencode.ai/zen/v1/chat/completions';
 
+const OPENCODE_DEFAULT_MODEL = 'deepseek-v4.1-flash';
+
+/** Ids present in the live `/zen/v1/models` listing on 2026-09-24, free-tier ones excluded. */
 const OPENCODE_FALLBACK_MODELS = [
-    'big-pickle',
-    'deepseek-v4-flash-free',
-    'glm-5',
-    'glm-5.1',
+    OPENCODE_DEFAULT_MODEL,
+    'deepseek-v4-pro',
+    'glm-5.3',
+    'glm-5.3-flash',
     'grok-build-0.1',
-    'kimi-k2.5',
-    'kimi-k2.6',
-    'mimo-v2.5-free',
-    'minimax-m2.5',
-    'minimax-m2.7',
-    'nemotron-3-super-free',
+    'kimi-k3',
+    'minimax-m3',
+    'qwen3.8-flash',
 ];
+
+/** Zen's free tier answers every API call with "OpenCode's free tier can only be used from
+ * within OpenCode" (verified live 2026-09-24 on all of them), so offering these models in a
+ * picker only leads to a failed run. The listing carries no flag for it: free models are the
+ * `-free` suffixed ids plus `big-pickle` (0/0 on models.dev). */
+const OPENCODE_FREE_TIER_PATTERN = /-free$/;
+const OPENCODE_FREE_TIER_IDS = new Set(['big-pickle']);
+
+export const isOpenCodeFreeTierModel = (id: string) =>
+    OPENCODE_FREE_TIER_PATTERN.test(id) || OPENCODE_FREE_TIER_IDS.has(id);
 
 type OpenCodeModelEntry = {
     id?: string;
@@ -33,7 +43,7 @@ export const OPENCODE_PROVIDER_DEFINITION: AIProviderDefinition = {
     label: 'OpenCode',
     description: 'OpenCode Zen — a curated set of coding-focused models.',
     configKey: 'openCodeApiKey',
-    defaultModel: 'deepseek-v4-flash-free',
+    defaultModel: OPENCODE_DEFAULT_MODEL,
     fallbackModels: OPENCODE_FALLBACK_MODELS,
     dashboardUrl: 'https://opencode.ai',
     credentialsHint: 'OpenCode Zen dashboard → API Keys → Create Key.',
@@ -67,7 +77,8 @@ export const OPENCODE_PROVIDER_DEFINITION: AIProviderDefinition = {
         // actually ran; this list was always the static fallback in practice.
         return items
             .map((entry: OpenCodeModelEntry) => entry.id)
-            .filter((value: unknown): value is string => typeof value === 'string' && value.length > 0);
+            .filter((value: unknown): value is string => typeof value === 'string' && value.length > 0)
+            .filter((id: string) => !isOpenCodeFreeTierModel(id));
     },
     complete: async (apiKey, request) => {
         // Stesso wire format OpenAI Chat Completions dell'endpoint Zen (vedi

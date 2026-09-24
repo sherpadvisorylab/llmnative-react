@@ -43,7 +43,7 @@ Examples:
 - `openai/gpt-5`
 - `openai/gpt-5-mini`
 - `openrouter/openai/gpt-4`
-- `opencode/kimi-k2.6`
+- `opencode/kimi-k3`
 - `deepseek/deepseek-chat`
 - `gemini/gemini-2.5-pro`
 - `anthropic/claude-opus-4.1`
@@ -124,7 +124,7 @@ At runtime the orchestrator:
 - calls the provider model-list endpoint when available;
 - normalizes the result into `{ id, provider, model, label, pricing? }`;
 - attaches token prices (see [Model pricing](#model-pricing));
-- caches it in `localStorage` for 24 hours (`ai.models.v2.<provider>`);
+- caches it in `localStorage` for 24 hours (`ai.models.v3.<provider>`);
 - falls back to a minimal static list if discovery fails.
 
 This is what powers the `Prompt` model selector.
@@ -134,7 +134,7 @@ All built-in providers now follow this pattern:
 - `openai`, `openrouter`, `deepseek`, `mistral`, `openai-compatible` -> `GET /models`
 - `gemini` -> `GET /v1beta/models`
 - `anthropic` -> `GET /v1/models`
-- `opencode` -> `GET /zen/v1/models`, filtered to the `chat/completions`-compatible subset
+- `opencode` -> `GET /zen/v1/models`, without free-tier models (`*-free`, `big-pickle`): Zen rejects them outside the OpenCode app
 - `cloudflare` -> `GET /accounts/{accountId}/ai/models/search?task=Text Generation` (Workers AI has no OpenAI-style `/models`), without experimental, Workers Paid-only and safety-classifier models
 
 ## Model pricing
@@ -232,7 +232,7 @@ Built-in AI adapters now live one file per provider inside `src/providers/ai/`:
 
 This keeps the public API unchanged while making the provider layer easier to extend and audit.
 
-`openrouter` is implemented as a dedicated preset on top of the shared `openaiCompatible.ts` base adapter. `opencode` uses the official Zen model catalog, then filters to the `chat/completions`-compatible subset so the prompt UI only offers models that match the current transport.
+`openrouter` is implemented as a dedicated preset on top of the shared `openaiCompatible.ts` base adapter. `opencode` uses the official Zen model catalog (every listed model speaks the same chat-completions wire format through the Zen gateway) and drops the free-tier models, which Zen answers with "OpenCode's free tier can only be used from within OpenCode".
 
 ## Cloudflare Workers AI
 

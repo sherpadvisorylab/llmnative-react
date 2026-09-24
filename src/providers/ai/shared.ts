@@ -63,9 +63,9 @@ export type AIModelCatalog = {
     capabilitiesByProvider: Record<string, AIProviderCapabilities>;
 };
 
-// v2: entries now carry `pricing` — v1 entries (no prices) would read as "price not found"
-// for up to a day, so they are simply no longer read.
-const MODEL_CACHE_PREFIX = 'ai.models.v2.';
+// Bumped whenever discovery output changes shape or content, so stale lists are not served for
+// up to a day: v2 added `pricing`, v3 drops OpenCode's free-tier models (unusable via API).
+const MODEL_CACHE_PREFIX = 'ai.models.v3.';
 const MODEL_CACHE_TTL_MS = 1000 * 60 * 60 * 24;
 
 export const extractProviderError = (err: unknown): string => {
