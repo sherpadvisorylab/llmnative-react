@@ -16,6 +16,8 @@ export interface AIModelDescriptor {
     provider: string;
     model: string;
     label: string;
+    /** Display name of the provider (e.g. 'OpenRouter'), for grouping models by provider. */
+    providerLabel?: string;
     deprecated?: boolean;
     /** Absent = price not found (neither in the provider listing nor on models.dev). */
     pricing?: AIModelPricing;

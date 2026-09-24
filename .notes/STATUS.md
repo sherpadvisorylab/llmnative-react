@@ -21,7 +21,7 @@
 | TypeScript | `strict: true`; `npm run build` generates bundle + declarations. CR-042 done: `any` count → 6 justified exceptions, all annotated. | No remaining structural gap. |
 | Dead code | Removed: `Helper.tsx` (1696 lines), `Blog.tsx`, `Template.tsx`, `FormEnhancer.tsx`, `AssistantAI.tsx`, `BlogPost.tsx`, `Component.tsx` dead exports, `libs/log.ts`, `libs/cache.ts`, `libs/database.ts`, `libs/storage.ts`, `libs/seo.ts`, `Command.tsx`. Log logic inlined in `Form.tsx` via `useDataProvider()`. Cache logic inlined in `scrape/index.ts` via `DataProviderAdapter`. | No remaining structural gap. |
 | Tests | 61 unit/component files / 649 tests + 10 Firebase emulator + 8 Supabase emulator integration tests + 16 Playwright E2E (all pass). Suites: libs (utils, converter, path, sanitizer, fetch, promptUtils), providers (Mock, Firebase RTDB, Firestore, FirebaseStorage, Supabase, SupabaseStorage, SupabaseAuth, AIProviders, DropboxStorage, Gmail, Google Service Account, Scrape, ProxyRegistry), App, theme/icon, motion, auth, Form/Grid/Input/Select/Upload/Repeat/MarkdownReader/Table/Modal/Dropdown/Gallery/Buttons/Prompt + form-controller + smoke tests (blocks, switchers, fields, ui, widgets) plus the public export contract and proxy runtime e2e. Integration: Firebase RTDB/Firestore/Storage emulator CRUD + Supabase Postgres CRUD + Auth. E2E: 16 Playwright tests covering 30+ showcase pages (smoke + navigation + CRUD flow). GitHub Actions CI present (test + build + showcase jobs). | Google OAuth E2E ancora assente. |
-| Library build | `npm run build` passes. Output: `dist/index.js`, `dist/index.mjs`, `dist/index.css`, `dist/types`. `ImageEditor` heavy runtime is now split into a separate lazy chunk (`dist/ImageEditorImpl-*`) instead of being forced into the root bundle. Published as `@llmnative/react@1.17.1` on npm. | No structural gap. |
+| Library build | `npm run build` passes. Output: `dist/index.js`, `dist/index.mjs`, `dist/index.css`, `dist/types`. `ImageEditor` heavy runtime is now split into a separate lazy chunk (`dist/ImageEditorImpl-*`) instead of being forced into the root bundle. Published as `@llmnative/react@1.18.0` on npm. | No structural gap. |
 | Showcase app | `clients/showcase` is a real Vite consumer. Pages: Auth, Alert, Badge, Buttons, Card, Code, Dropdown, Gallery, GridSystem, Icon, Image, ImageAvatar, ImageField, ImageEditor, Loader, LocaleSwitcher, Modal (incl. ModalYesNo/ModalOk sub-pages), Motion, Notifications, Pagination, Prompt, Search, Select, Autocomplete, Checklist, Upload, Form, Grid, GridArray, GridDB, MarkdownReader, Repeat, LayoutBuilder. SideNav collapsible with icon-only mode. | Stub routes remain for concrete provider demos and application examples. |
 | Markdown docs | `AI_REFERENCE.md` and `PROMPT_TEMPLATE.md` added for LLM consumption of the full API surface. Docs with frontmatter load in showcase via `import.meta.glob`. | Operational docs (STATUS, ROADMAP, CHANGE_REQUESTS) remain maintainer-only. |
 
@@ -56,6 +56,8 @@
 | CR-035 | Done | `SupabaseStorageProvider` (upload/delete/rename/download/list/getFileInfo/createUpload); `supabaseStorage` driver registered. Unit tests (23) present. |
 | CR-036 | Done | `SupabaseAuthProvider` (password/magic_link/oauth/anonymous, `onAuthChange`, `getAccessToken`); `supabaseAuth` driver registered. Unit tests (14) present. |
 | CR-037 | ⬜ | Component Builder System — `useImage()` pattern non ancora standardizzato. |
+| CR-087 | Done | Provider AI `groq` (OpenAI-compatible, `AIConfig.groqApiKey`), discovery solo modelli chat attivi, prezzi da models.dev. Test `GroqAIProvider.test.ts`. Pubblicato in 1.18.0. Issue #47 chiusa. Verifica live con chiave reale ancora da fare. GitHub Models scartato: ritirato da GitHub il 2026-07-30. |
+| CR-086 | Done | Model picker di `Chatbot`/`Prompt` raggruppato per provider (`ChatbotModelOption.group`, `AIModelDescriptor.providerLabel`) con header sticky. Test in `Chatbot.test.tsx`. Pubblicato in 1.18.0. Issue #46 chiusa. |
 | CR-085 | Done | AI model pricing: `AIModelDescriptor.pricing` (USD per 1M token) da listing nativo (OpenRouter, Cloudflare) o models.dev (cache 24h), `DiscoveredAIModel`, `isFreeAIModel`; model picker di `Chatbot`/`Prompt` con `$in / $out`, righe free evidenziate, "Price not found" senza mai nascondere modelli. Test `ModelPricing.test.ts`. Pubblicato in 1.17.0. Issue #44 chiusa. |
 | CR-084 | Done | Provider AI `cloudflare` (Cloudflare Workers AI): `AIConfig.cloudflare { apiToken, accountId }`, discovery via `ai/models/search`, tool calling multi-turno e visione verificati live, `CLOUDFLARE_PROVIDER_DESCRIPTOR` in `AI_PROVIDER_DESCRIPTORS`, `extractProviderError` con envelope `errors[]`. Test `CloudflareAIProvider.test.ts`. Pubblicato in 1.16.0. Issue #43 chiusa. |
 | CR-083 | Done | `FileProps.alt?: string` (indipendente da srcset/variants), editabile dall'editor crop esistente (`Crop.tsx`). i18n 6 lingue. Test `Upload.test.tsx`. Pubblicato in 1.15.0. |
@@ -217,6 +219,18 @@ Main real routes:
 
 ## Verification performed
 
+Real verification performed on 2026-09-24 (1.18.0 — CR-086 grouped model picker, CR-087 Groq):
+
+| Command | Result |
+|---------|--------|
+| `npx tsc --noEmit` | Passes: 0 errors. |
+| `npm test` | Passes: 67 files, 749 tests. |
+| `npm run build` | Passes: Vite library build + declarations. |
+| `npm pack --dry-run --json` | Passes: 219 entries. |
+| Consumer `llmnative-cms` | Agentico picker grouped by provider with sticky headers (visual check). |
+| Live Groq | Not performed: no API key available. |
+| GitHub Models | Retired by GitHub on 2026-07-30 (docs + changelog); `models.github.ai/catalog/models` answers `OK` text/plain. Not implemented. |
+
 Real verification performed on 2026-09-24 (1.17.1 — OpenCode free-tier models removed from discovery):
 
 | Command | Result |
@@ -341,4 +355,5 @@ Real verification performed on 2026-07-29 (CR-071 drag&drop addition + CR-073):
 | 1.16.0 | Published on npm (`@llmnative/react@1.16.0`). CR-084 (AI provider `cloudflare` — Cloudflare Workers AI) completa. Includes the unreleased README badges (GH issues #38, #41). |
 | 1.17.0 | Published on npm (`@llmnative/react@1.17.0`). CR-085 (AI model pricing nel model picker) completa. |
 | 1.17.1 | Published on npm (`@llmnative/react@1.17.1`). Minor fix (no CR): OpenCode discovery drops the Zen free-tier models (rejected outside the OpenCode app), `defaultModel` `deepseek-v4-flash-free` (no longer listed) → `deepseek-v4.1-flash`, model cache key `ai.models.v3.*`. |
+| 1.18.0 | Published on npm (`@llmnative/react@1.18.0`). CR-086 (model picker raggruppato per provider, header sticky) e CR-087 (AI provider `groq`) complete. |
 | 1.x / 2.0 | Roadmap: CR-051 (WorkflowAI), CR-040 (SchemaForm), CR-041 (SeoEnhancer), E2E. CR-072 deferito (TypeScript 6 regression upstream). |

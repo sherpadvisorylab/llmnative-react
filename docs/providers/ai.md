@@ -26,6 +26,7 @@ The goal is the same as for `data`, `storage`, `auth` and `email`: keep the exte
 | `mistral` | Mistral API | Mistral-hosted text models |
 | `glm` | ZhipuAI API | GLM chat models |
 | `cloudflare` | Cloudflare Workers AI | Open-weight models (Llama, GPT-OSS, Qwen, Gemma…) with a free daily allowance |
+| `groq` | Groq API | Very fast inference on open-weight models (GPT-OSS, Qwen…), with a free tier |
 | custom | Your adapter | internal gateways, proxy routers, vendor aggregators |
 
 For complete configuration, see [AppProvidersConfig](/docs/app-configuration#appprovidersconfig) and [AIConfig](/docs/app-configuration#aiconfig--centralized-api-keys-for-the-ai-service).
@@ -104,6 +105,7 @@ Built-in AI providers expose configuration state like the other service provider
 - `mistral` checks `ai.mistralApiKey`
 - `glm` checks `ai.glmApiKey`
 - `cloudflare` checks `ai.cloudflare.apiToken` and `ai.cloudflare.accountId`
+- `groq` checks `ai.groqApiKey`
 
 That lets UI stay visible but disabled when a provider is not configured.
 
@@ -136,6 +138,7 @@ All built-in providers now follow this pattern:
 - `anthropic` -> `GET /v1/models`
 - `opencode` -> `GET /zen/v1/models`, without free-tier models (`*-free`, `big-pickle`): Zen rejects them outside the OpenCode app
 - `cloudflare` -> `GET /accounts/{accountId}/ai/models/search?task=Text Generation` (Workers AI has no OpenAI-style `/models`), without experimental, Workers Paid-only and safety-classifier models
+- `groq` -> `GET /openai/v1/models`, active chat models only (no whisper, TTS or guard/safeguard classifiers)
 
 ## Model pricing
 
@@ -162,6 +165,11 @@ The model picker of `Prompt` and `Chatbot` shows `$input / $output` on each row,
 free models' rows and flags models without a price as "Price not found". A consumer
 passing its own `models` to `Chatbot` sets `ChatbotModelOption.pricing`: an
 `AIModelPricing`, `null` (looked up, not found) or omitted (no indication at all).
+
+The picker groups models by provider: `Prompt` sets `ChatbotModelOption.group` to the
+descriptor's `providerLabel` and shows only the model name on the row. Each group gets a
+header that stays sticky at the top of the menu while its models scroll. A consumer passing
+its own `models` opts in by setting `group`; without it the list stays flat.
 
 ## Public unified catalog
 

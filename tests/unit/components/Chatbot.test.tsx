@@ -112,6 +112,33 @@ describe('Chatbot', () => {
         expect(screen.getByText('Unknown').closest('button')).toHaveTextContent('Price not found');
     });
 
+    it('lists grouped models under one sticky header per group, in first-appearance order', () => {
+        const onModelChange = vi.fn();
+        renderWithProviders(
+            <ControlledChatbot
+                onSubmit={vi.fn()}
+                models={[
+                    { label: 'gpt-oss-120b', value: 'groq/openai/gpt-oss-120b', group: 'Groq' },
+                    { label: 'deepseek-flash', value: 'deepseek/deepseek-flash', group: 'DeepSeek' },
+                    { label: 'gpt-oss-20b', value: 'groq/openai/gpt-oss-20b', group: 'Groq' },
+                ]}
+                onModelChange={onModelChange}
+                modelPlaceholder="Choose a model"
+            />
+        );
+
+        fireEvent.click(screen.getByText('Choose a model'));
+
+        const menu = screen.getByRole('menu');
+        const texts = Array.from(menu.querySelectorAll('div, button')).map((el) => el.textContent).filter((t) => t && !t.includes('\n'));
+        expect(texts.filter((t) => ['Groq', 'DeepSeek', 'gpt-oss-120b', 'gpt-oss-20b', 'deepseek-flash'].includes(t!)))
+            .toEqual(['Groq', 'gpt-oss-120b', 'gpt-oss-20b', 'DeepSeek', 'deepseek-flash']);
+        expect(screen.getByText('Groq').className).toContain('sticky');
+
+        fireEvent.click(screen.getByText('gpt-oss-20b'));
+        expect(onModelChange).toHaveBeenCalledWith('groq/openai/gpt-oss-20b');
+    });
+
     it('shows a disabled spinner while running without an onStop handler (no abort capability)', () => {
         renderWithProviders(<ControlledChatbot onSubmit={vi.fn()} value="working…" running />);
         expect(screen.getByRole('button', { name: /Stop/i })).toBeDisabled();

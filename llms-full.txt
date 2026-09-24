@@ -36,6 +36,7 @@ import '@llmnative/react/dist/index.css'
     ai: {                              // AIConfig — NON una prop separata di <App>
       openaiApiKey, geminiApiKey, anthropicApiKey,
       deepSeekApiKey, mistralApiKey, openRouterApiKey,
+      groqApiKey,
       cloudflare: { apiToken, accountId }, // Cloudflare Workers AI
     },
     proxy: { enable: true, route: '/api/proxy' },
@@ -90,7 +91,7 @@ Built-in themes: `default`, `flat`, `cyber`.
 | storage | `StorageProviderAdapter` | `firestorage`, `supabaseStorage` | `providers.firebase/supabase` | no |
 | auth | `AuthProviderAdapter` | `googleAuth`, `firebaseAuth`, `supabaseAuth`, `dropboxAuth` | `providers.google/firebase/supabase/dropbox` | sì (fallback: googleAuth) |
 | email | `EmailProviderAdapter` | `gmail` | `providers.google` | no |
-| ai | `AIProviderAdapter` | `openai`, `gemini`, `anthropic`, `deepseek`, `mistral`, `openrouter`, `opencode`, `cloudflare` | `Config.tsx AIConfig` | no |
+| ai | `AIProviderAdapter` | `openai`, `gemini`, `anthropic`, `deepseek`, `mistral`, `openrouter`, `opencode`, `cloudflare`, `groq` | `Config.tsx AIConfig` | no |
 | credentials | `CredentialsAdapter` | `googleServiceAccount` | `providers.google.serviceAccount` | no |
 
 ### Hooks
@@ -860,7 +861,8 @@ const catalog   = getAIModelCatalog()       // modelli disponibili
 // ogni modello: { id, provider, model, label, pricing? } — pricing in USD per 1M token
 // { input, output, currency: 'USD', source: 'provider' | 'models.dev' }; assente = prezzo
 // non trovato (il modello resta in lista). isFreeAIModel(m) → input e output a 0.
-// Il model picker di Prompt/Chatbot mostra "$in / $out", evidenzia i free, segnala i mancanti.
+// Il model picker di Prompt/Chatbot mostra "$in / $out", evidenzia i free, segnala i mancanti,
+// e raggruppa per provider (ChatbotModelOption.group = providerLabel) con header sticky.
 
 // Provider adapter restituito da useAIProvider()
 const text  = await provider.fetch("Scrivi un titolo per: {keyword}", { keyword: "React" })
@@ -878,7 +880,7 @@ class MyAIProvider implements AIProviderAdapter {
 const registry = createAIProviderRegistry(definitions)
 ```
 
-Configurazione API key in `Config.tsx`: `geminiApiKey`, `openaiApiKey`, `anthropicApiKey`, `deepSeekApiKey`, `mistralApiKey`, `openRouterApiKey`, `cloudflare: { apiToken, accountId }` (Cloudflare Workers AI: l'account id fa parte dell'URL; discovery via `ai/models/search`, modelli Workers Paid esclusi salvo `includePaidModels`).
+Configurazione API key in `Config.tsx`: `geminiApiKey`, `openaiApiKey`, `anthropicApiKey`, `deepSeekApiKey`, `mistralApiKey`, `openRouterApiKey`, `groqApiKey`, `cloudflare: { apiToken, accountId }` (Cloudflare Workers AI: l'account id fa parte dell'URL; discovery via `ai/models/search`, modelli Workers Paid esclusi salvo `includePaidModels`).
 
 ---
 

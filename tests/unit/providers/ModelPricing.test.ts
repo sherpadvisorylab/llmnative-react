@@ -19,7 +19,7 @@ const CATALOG = {
     openai: { models: { 'gpt-4o-mini': { cost: { input: 0.15, output: 0.6 } }, 'chatgpt-image-latest': {} } },
     opencode: { models: { 'big-pickle': { cost: { input: 0, output: 0, cache_read: 0 } } } },
     zai: { models: { 'glm-4.6': { cost: { input: 0.6, output: 2.2 } } } },
-    groq: { models: { 'llama-3.3-70b': { cost: { input: 0.59, output: 0.79 } } } },
+    cerebras: { models: { 'llama-3.3-70b': { cost: { input: 0.59, output: 0.79 } } } },
 };
 
 const descriptor = (provider: string, model: string, extra: Partial<AIModelDescriptor> = {}): AIModelDescriptor => ({
@@ -30,7 +30,7 @@ describe('models.dev pricing index', () => {
     const index = buildPricingIndex(CATALOG);
 
     it('keeps only the mapped providers and models that carry both prices', () => {
-        expect(index.groq).toBeUndefined();
+        expect(index.cerebras).toBeUndefined();
         expect(index.openai).toEqual({ 'gpt-4o-mini': [0.15, 0.6] });
     });
 

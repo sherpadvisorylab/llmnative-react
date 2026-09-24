@@ -20,6 +20,7 @@ const MODELS_DEV_PROVIDER_KEYS: Record<string, string[]> = {
     // The GLM adapter targets open.bigmodel.cn (zhipuai); `zai` is the international twin.
     glm: ['zhipuai', 'zai'],
     cloudflare: ['cloudflare-workers-ai'],
+    groq: ['groq'],
 };
 
 /** Compact cache shape: providerKey → modelId → [input, output]. The raw catalog is ~5 MB,

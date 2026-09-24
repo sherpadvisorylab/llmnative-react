@@ -94,6 +94,75 @@
 | [CR-083](#cr-083--uploadimage-alt-text-field-indipendente-da-srcsetvarianti) | UploadImage: alt text field (indipendente da srcset/varianti) | Media | — | ✅ |
 | [CR-084](#cr-084--ai-provider-cloudflare-workers-ai) | AI provider: Cloudflare Workers AI | Media | CR-058 | ✅ |
 | [CR-085](#cr-085--ai-model-pricing-prezzi-inputoutput-nel-model-picker) | AI model pricing: prezzi input/output nel model picker | Media | CR-084 | ✅ |
+| [CR-086](#cr-086--model-picker-modelli-raggruppati-per-provider-con-header-sticky) | Model picker: modelli raggruppati per provider con header sticky | Media | CR-085 | ✅ |
+| [CR-087](#cr-087--ai-provider-groq) | AI provider: Groq | Media | CR-085 | ✅ |
+
+---
+
+## CR-086 — Model picker: modelli raggruppati per provider con header sticky
+
+**Stato:** ✅ done — rilasciato in 1.18.0
+**Issue:** [#46](https://github.com/sherpadvisorylab/llmnative-react/issues/46)
+**Priorità:** Media
+**Dipende da:** CR-085
+
+### Motivazione
+
+Con più provider configurati il picker di `Chatbot`/`Prompt` era una lista lunga di righe
+"Provider / modello": scorrendo non si capiva dove finisse un provider e iniziasse l'altro.
+Richiesto dal consumer `llmnative-cms`.
+
+### Scope
+
+- `ChatbotModelOption.group?`: con almeno un gruppo, una sezione per gruppo (ordine di prima
+  comparsa) con header sticky in cima al menu (`-top-1`/`-mx-1` compensano il `p-1` del menu,
+  sfondo opaco); senza `group` la lista resta piatta. `groupModelOptions()` esportata.
+- `AIModelDescriptor.providerLabel`, impostato da `normalizeModels` e anche sulle liste già in
+  cache (`RuntimeAIProvider.getCapabilities`), senza cambiare la chiave della cache.
+- `Prompt`: `group = providerLabel ?? provider`, sulla riga solo il nome del modello.
+
+### Checklist
+
+- [x] Rendering a gruppi + header sticky
+- [x] `providerLabel` nel catalogo, anche da cache
+- [x] Test `Chatbot.test.tsx`
+- [x] Docs `docs/providers/ai.md`, `llms-full.txt`
+- [x] Verifica visiva nel consumer `llmnative-cms` (picker Agentico: header per OpenCode, DeepSeek, Cloudflare Workers AI, sticky durante lo scroll)
+- [x] Release 1.18.0
+
+---
+
+## CR-087 — AI provider: Groq
+
+**Stato:** ✅ done — rilasciato in 1.18.0 (verifica live ancora da fare, vedi checklist)
+**Issue:** [#47](https://github.com/sherpadvisorylab/llmnative-react/issues/47)
+**Priorità:** Media
+**Dipende da:** CR-085
+
+### Motivazione
+
+Groq offre inferenza molto veloce su modelli open-weight con un piano gratuito senza carta,
+tramite un endpoint compatibile OpenAI. Il consumer `llmnative-cms` lo vuole tra i provider AI.
+GitHub Models, valutato insieme, non è implementabile: GitHub lo ha ritirato il 2026-07-30
+(catalogo e inferenza spenti; `models.github.ai/catalog/models` risponde solo `OK` text/plain).
+
+### Scope
+
+- `src/providers/ai/groq.ts` su `createOpenAICompatibleProviderDefinition`
+  (`https://api.groq.com/openai/v1`), default `openai/gpt-oss-120b`.
+- `AIConfig.groqApiKey`, `AI_PROVIDER_DEFINITIONS`, `AI_MANIFEST.groq`, `AIDriverName`,
+  `BuiltInAIProviderId`.
+- Discovery `/models` via `mapModelEntry`: solo modelli chat attivi (esclusi whisper,
+  orpheus/TTS, llama-guard/prompt-guard/gpt-oss-safeguard, `active: false`).
+- Prezzi via models.dev (chiave `groq`).
+
+### Checklist
+
+- [x] Adapter + config + registry + manifest
+- [x] Test `GroqAIProvider.test.ts`
+- [x] Docs `docs/providers/ai.md`, `docs/getting-started/app-configuration.md`, `llms.txt`, `llms-full.txt`
+- [x] Release 1.18.0
+- [ ] Verifica live con API key reale (catalogo, testo, tool calling multi-turno): nessuna chiave disponibile al rilascio — follow-up
 
 ---
 

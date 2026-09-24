@@ -19,7 +19,7 @@ import type {
 import { formatAIModelRef } from './AIProvider';
 import { withModelsDevPricing } from './modelsDevPricing';
 
-export type BuiltInAIProviderId = 'openai' | 'openrouter' | 'opencode' | 'openai-compatible' | 'deepseek' | 'gemini' | 'anthropic' | 'mistral' | 'glm' | 'cloudflare';
+export type BuiltInAIProviderId = 'openai' | 'openrouter' | 'opencode' | 'openai-compatible' | 'deepseek' | 'gemini' | 'anthropic' | 'mistral' | 'glm' | 'cloudflare' | 'groq';
 
 /** A discovered model carrying the price its provider listing already reports (OpenRouter,
  * Cloudflare). Models discovered as a bare id get their price from models.dev instead. */
@@ -152,6 +152,7 @@ const normalizeModels = (provider: BuiltInAIProviderId, label: string, models: A
             provider,
             model,
             label: `${label} / ${model}`,
+            providerLabel: label,
             ...(pricing ? { pricing } : {}),
         };
     })
@@ -242,7 +243,8 @@ export class RuntimeAIProvider implements AIProviderAdapter {
         if (cached) {
             return {
                 ...this.definition.capabilities,
-                models: cached,
+                // Lists cached before providerLabel existed still group under the right name.
+                models: cached.map((model) => (model.providerLabel ? model : { ...model, providerLabel: this.label })),
             };
         }
 

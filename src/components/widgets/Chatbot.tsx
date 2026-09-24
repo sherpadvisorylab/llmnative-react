@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { Prompt as PromptConf } from '../../conf/Prompt';
 import { useI18n } from '../../I18n';
 import type { AIModelPricing } from '../../providers/ai/AIProvider';
-import { Dropdown, DropdownItem } from '../blocks/Dropdown';
+import { Dropdown, DropdownHeader, DropdownItem } from '../blocks/Dropdown';
 import Icon from '../ui/Icon';
 import {
     buildTextCommandContext,
@@ -55,7 +55,22 @@ export interface ChatbotModelOption {
      * a highlighted row. `null` = price looked up but not found (flagged in the row);
      * omitted = the consumer has no pricing at all, nothing is shown. */
     pricing?: AIModelPricing | null;
+    /** Section the option is listed under (e.g. its provider). When any option has one, the
+     * picker renders one sticky header per group, in order of first appearance. */
+    group?: string;
 }
+
+/** Consecutive-or-not options sharing a `group` end up in one section, keeping the order in
+ * which each group first appears; options without a group form an unnamed leading section. */
+export const groupModelOptions = (options: ChatbotModelOption[]): Array<{ group?: string; options: ChatbotModelOption[] }> => {
+    const sections = new Map<string | undefined, ChatbotModelOption[]>();
+    for (const option of options) {
+        const section = sections.get(option.group);
+        if (section) section.push(option);
+        else sections.set(option.group, [option]);
+    }
+    return [...sections].map(([group, items]) => ({ group, options: items }));
+};
 
 const formatModelPrice = (value: number) => {
     if (value === 0) return '0';
@@ -113,6 +128,9 @@ export interface ChatbotProps {
 }
 
 const chatbotGhostIcon = 'h-7 w-7 cursor-pointer rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground';
+// Sticky inside the menu's scroll box: `-top-1`/`-mx-1` cancel the menu's `p-1`, so scrolled
+// items never show through above or beside the header; opaque background for the same reason.
+const chatbotModelGroupHeader = 'sticky -top-1 z-10 -mx-1 border-b border-border/60 bg-popover px-3 py-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground';
 const chatbotModelItem = 'gap-3';
 const chatbotModelItemFree = 'gap-3 bg-success/10 hover:bg-success/20 focus:bg-success/20';
 const chatbotModelPrice = 'ml-auto shrink-0 whitespace-nowrap text-xs tabular-nums text-muted-foreground';
@@ -429,21 +447,26 @@ export function Chatbot({
                             position="start"
                             triggerClassName={chatbotModelTrigger}
                         >
-                            {models.map((opt) => (
-                                <DropdownItem
-                                    key={opt.value}
-                                    onClick={() => onModelChange?.(opt.value)}
-                                    className={isFreeModelOption(opt) ? chatbotModelItemFree : opt.pricing !== undefined ? chatbotModelItem : undefined}
-                                >
-                                    <span className="min-w-0">{opt.label}</span>
-                                    {opt.pricing ? (
-                                        <span className={chatbotModelPrice} title={dict.modelPricing}>
-                                            ${formatModelPrice(opt.pricing.input)} / ${formatModelPrice(opt.pricing.output)}
-                                        </span>
-                                    ) : opt.pricing === null ? (
-                                        <span className={chatbotModelPriceMissing}>{dict.modelPriceNotFound}</span>
-                                    ) : null}
-                                </DropdownItem>
+                            {groupModelOptions(models).map(({ group, options }) => (
+                                <React.Fragment key={group ?? ''}>
+                                    {group !== undefined && <DropdownHeader className={chatbotModelGroupHeader}>{group}</DropdownHeader>}
+                                    {options.map((opt) => (
+                                        <DropdownItem
+                                            key={opt.value}
+                                            onClick={() => onModelChange?.(opt.value)}
+                                            className={isFreeModelOption(opt) ? chatbotModelItemFree : opt.pricing !== undefined ? chatbotModelItem : undefined}
+                                        >
+                                            <span className="min-w-0">{opt.label}</span>
+                                            {opt.pricing ? (
+                                                <span className={chatbotModelPrice} title={dict.modelPricing}>
+                                                    ${formatModelPrice(opt.pricing.input)} / ${formatModelPrice(opt.pricing.output)}
+                                                </span>
+                                            ) : opt.pricing === null ? (
+                                                <span className={chatbotModelPriceMissing}>{dict.modelPriceNotFound}</span>
+                                            ) : null}
+                                        </DropdownItem>
+                                    ))}
+                                </React.Fragment>
                             ))}
                         </Dropdown>
                     )}

@@ -9,6 +9,7 @@ import { MISTRAL_PROVIDER_DEFINITION } from './mistral';
 import { OPENAI_PROVIDER_DEFINITION } from './openai';
 import { createOpenAICompatibleProviderDefinition } from './openaiCompatible';
 import { GLM_PROVIDER_DEFINITION } from './glm';
+import { GROQ_PROVIDER_DEFINITION } from './groq';
 import { OPENCODE_PROVIDER_DEFINITION } from './opencode';
 import { OPENROUTER_PROVIDER_DEFINITION } from './openrouter';
 import { getAIModelCatalog, type AIProviderDefinition, type AIModelCatalog, RuntimeAIProvider } from './shared';
@@ -33,6 +34,7 @@ export const AI_PROVIDER_DEFINITIONS: AIProviderDefinition[] = [
     ANTHROPIC_PROVIDER_DEFINITION,
     MISTRAL_PROVIDER_DEFINITION,
     GLM_PROVIDER_DEFINITION,
+    GROQ_PROVIDER_DEFINITION,
 ];
 
 /** Generic "connect this provider" view of an AIProviderDefinition — the shape a CMS/admin

@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.18.0] - 2026-09-24
+
+### Added
+- Model picker grouped by provider (CR-086, GH issue #46): `ChatbotModelOption.group`
+  renders one section per group with a header that stays sticky at the top of the menu
+  while its models scroll; without `group` the list stays flat. `Prompt` groups by the
+  new `AIModelDescriptor.providerLabel` and shows only the model name on each row.
+  `providerLabel` is also set on model lists already cached. New export:
+  `groupModelOptions`.
+- AI provider `groq` (CR-087, GH issue #47): OpenAI-compatible Groq API
+  (`https://api.groq.com/openai/v1`), configured with `aiConfig.groqApiKey`. Discovery
+  keeps only active chat models (no whisper, TTS or guard/safeguard classifiers);
+  prices from models.dev.
+
 ## [1.17.1] - 2026-09-24
 
 ### Fixed
