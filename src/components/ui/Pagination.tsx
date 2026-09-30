@@ -55,6 +55,17 @@ const Pagination = <T,>({
 
     const [currentPage, setCurrentPage] = useState(page || 1);
 
+    // Back to the first page whenever the record count changes: a Grid search or filter that
+    // narrows the set (e.g. from page 3 of 1430 rows to 2 matches) otherwise kept the old offset
+    // and rendered an empty page — with no page bar left to go back, since everything now fits on
+    // one page. Adjusted during render (React's "derive state from props" pattern), not in an
+    // effect, so the stale empty page is never painted.
+    const [seenLength, setSeenLength] = useState(records.length);
+    if (records.length !== seenLength) {
+        setSeenLength(records.length);
+        setCurrentPage(1);
+    }
+
     // ✅ sync se page cambia dall'esterno
    /* useEffect(() => {
         if (page && page !== currentPage) {

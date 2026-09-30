@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 
@@ -54,6 +54,21 @@ describe('Pagination', () => {
             </Pagination>
         );
         expect(screen.getByText('1')).toBeInTheDocument();
+    });
+
+    it('goes back to the first page when the records shrink (search/filter)', () => {
+        const all = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+        const renderList = (records: number[]) => (
+            <Pagination records={records} limit={5}>
+                {(pageRecords) => <div data-testid="page">{pageRecords.join(',')}</div>}
+            </Pagination>
+        );
+        const { rerender } = render(renderList(all));
+        fireEvent.click(screen.getByText('3'));
+        expect(screen.getByTestId('page')).toHaveTextContent('11,12');
+
+        rerender(renderList([4, 9]));
+        expect(screen.getByTestId('page')).toHaveTextContent('4,9');
     });
 });
 

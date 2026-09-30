@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.18.1] - 2026-10-01
+
+### Fixed
+- `Pagination` (and every paginated `Grid`/`Table`/`Gallery`): the current page is reset to
+  the first one whenever the record count changes. A search or filter that narrowed the set
+  (e.g. from page 3 of 1430 rows to 2 matches) kept the old offset and rendered an empty page,
+  with no page bar left to go back since everything fit on one page. Minor fix, no CR.
+
 ## [1.18.0] - 2026-09-24
 
 ### Added
