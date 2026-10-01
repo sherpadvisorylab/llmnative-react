@@ -184,6 +184,14 @@ export interface RepeatTheme {
     addButtonClassName?: string;
 }
 
+export interface DescriptionListTheme {
+    wrapperClassName?: string;
+    className?: string;
+    itemClassName?: string;
+    labelClassName?: string;
+    valueClassName?: string;
+}
+
 export interface ModalTheme {
     size?: "sm" | "md" | "lg" | "xl" | "fullscreen";
     position?: "center" | "top" | "left" | "right" | "bottom";
@@ -352,6 +360,7 @@ export interface ThemeConfig {
         wrapperClassName?: string;
         className?: string;
     };
+    DescriptionList?: DescriptionListTheme;
     Tab?: {
         wrapperClassName?: string;
         className?: string;

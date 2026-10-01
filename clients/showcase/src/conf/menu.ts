@@ -30,6 +30,7 @@ const CardPage = lazyPage(() => import('../pages/components/CardPage'));
 const CarouselPage = lazyPage(() => import('../pages/components/CarouselPage'));
 const CheckboxPage = lazyPage(() => import('../pages/components/CheckboxPage'));
 const CodePage = lazyPage(() => import('../pages/components/CodePage'));
+const DescriptionListPage = lazyPage(() => import('../pages/components/DescriptionListPage'));
 const ContextMenuPage = lazyPage(() => import('../pages/components/ContextMenuPage'));
 const LoaderPage = lazyPage(() => import('../pages/components/LoaderPage'));
 const LocaleSwitcherPage = lazyPage(() => import('../pages/components/LocaleSwitcherPage'));
@@ -148,6 +149,7 @@ export const menu = {
         },
         { path: '/components/card', title: 'Card', page: CardPage, group: 'UI Primitives' },
         { path: '/components/code', title: 'Code', page: CodePage, group: 'UI Primitives' },
+        { path: '/components/description-list', title: 'DescriptionList', page: DescriptionListPage, group: 'UI Primitives' },
         { path: '/components/dropdown', title: 'Dropdown', page: DropdownPage, group: 'UI Primitives' },
         { path: '/components/async-dropdown', title: 'AsyncDropdown', page: AsyncDropdownPage, group: 'UI Primitives' },
         { path: '/components/gallery', title: 'Gallery', page: GalleryPage, group: 'UI Primitives' },

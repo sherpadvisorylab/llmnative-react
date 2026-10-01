@@ -96,6 +96,58 @@
 | [CR-085](#cr-085--ai-model-pricing-prezzi-inputoutput-nel-model-picker) | AI model pricing: prezzi input/output nel model picker | Media | CR-084 | ✅ |
 | [CR-086](#cr-086--model-picker-modelli-raggruppati-per-provider-con-header-sticky) | Model picker: modelli raggruppati per provider con header sticky | Media | CR-085 | ✅ |
 | [CR-087](#cr-087--ai-provider-groq) | AI provider: Groq | Media | CR-085 | ✅ |
+| [CR-088](#cr-088--descriptionlist-coppie-etichetta--valore-in-sola-lettura) | DescriptionList: coppie etichetta → valore in sola lettura | Media | — | 🔄 in progress |
+
+---
+
+## CR-088 — DescriptionList: coppie etichetta → valore in sola lettura
+
+**Stato:** 🔄 in progress
+**Issue:** [#50](https://github.com/sherpadvisorylab/llmnative-react/issues/50)
+**Priorità:** Media
+
+### Motivazione
+
+I consumer devono mostrare dati in sola lettura come coppie etichetta → valore (profilo utente,
+scheda di un record, riepiloghi). Il framework non offriva alcun componente per questo: i
+consumer componevano a mano `<dl>`/`<dt>`/`<dd>` con classi proprie, violando la regola "nessun
+sostituto HTML/CSS" della direttiva UI consumer. Caso reale: CRM Voltab Energy (pagina Profilo,
+scheda prodotto).
+
+### Scope
+
+- `src/components/ui/DescriptionList.tsx` (nuovo): lista di coppie con semantica
+  `<dl>`/`<dt>`/`<dd>`; prop `items`, `layout`, `columns`, `labelWidth`, `emptyValue`, `truncate`;
+  `extends UIProps`.
+- Export pubblici `DescriptionList`, `DescriptionListItem`, `DescriptionListProps`,
+  `DescriptionListLayout` da `src/components/index.ts`.
+- `DescriptionListTheme` + chiave `DescriptionList` in `src/Theme.tsx`; implementazione completa
+  in `themes/default.ts`, `themes/flat.ts`, `themes/cyber.ts` (gli altri temi ereditano da `default`).
+- Test `tests/unit/components/DescriptionList.test.tsx`.
+- Showcase: pagina `DescriptionListPage.tsx`, route `/components/description-list`, i18n 6 lingue.
+- Docs `llms.txt`, `llms-full.txt`; `CHANGELOG.md` sotto `[Unreleased]`.
+
+### Fuori scope
+
+- Bump di versione, sezione di versione in `CHANGELOG.md`, tag e `npm publish` (workflow di release).
+- Varianti editabili, form-bound o di selezione: `DescriptionList` è di sola lettura.
+- Migrazione dei consumer (`llmnative-cms`, CRM Voltab Energy).
+
+### Checklist
+
+- [x] Componente `DescriptionList` in `src/components/ui/DescriptionList.tsx`, markup semantico `<dl>`/`<dt>`/`<dd>`
+- [x] Export pubblici da `src/components/index.ts` (`DescriptionList`, `DescriptionListItem`, `DescriptionListProps`, `DescriptionListLayout`)
+- [x] `layout="horizontal"` affianca etichetta e valore (impilato su mobile) e rispetta `labelWidth`; `layout="stacked"` mette l'etichetta sopra
+- [x] `columns` (1–6) applica una griglia responsive solo in `stacked`
+- [x] `emptyValue` per `value` `null`/`undefined`/`''` (default `'—'`)
+- [x] `truncate` su una riga con ellissi + `title` nativo per i valori testuali
+- [x] Chiave di tema `DescriptionList` in `Theme.tsx` e nei temi `default`/`flat`/`cyber`
+- [x] Test unitari (semantica, layout, colonne, valori vuoti, truncate, chiavi di tema) — 11 test
+- [x] Pagina showcase + route + i18n 6 lingue
+- [x] `llms.txt` e `llms-full.txt`
+- [x] `CHANGELOG.md` sotto `[Unreleased]`
+- [x] Gate: `npx tsc --noEmit`, `npm test` (761), `npm run build`, `clients/showcase && npm run build`, `npm pack --dry-run --json`
+- [ ] Verifica umana post-merge e release
 
 ---
 

@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `DescriptionList` (CR-088, GH issue #50): read-only label → value pairs with native
+  `<dl>`/`<dt>`/`<dd>` semantics. Props: `items`, `layout` (`'horizontal'` | `'stacked'`),
+  `columns` (1–6, stacked only), `labelWidth` (horizontal only), `emptyValue` (default `'—'`),
+  `truncate` (single line + ellipsis, native `title` on text values). New exports:
+  `DescriptionList`, `DescriptionListItem`, `DescriptionListProps`, `DescriptionListLayout`.
+  New theme key `DescriptionList` (`wrapperClassName`, `className`, `itemClassName`,
+  `labelClassName`, `valueClassName`).
+
 ## [1.18.1] - 2026-10-01
 
 ### Fixed

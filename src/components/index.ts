@@ -22,6 +22,8 @@ export * from './ui/Buttons';
 export { default as Card } from './ui/Card';
 export type { CardProps } from './ui/Card';
 export { default as Code } from './ui/Code';
+export { default as DescriptionList } from './ui/DescriptionList';
+export type { DescriptionListItem, DescriptionListProps, DescriptionListLayout } from './ui/DescriptionList';
 export { default as Gallery} from './ui/Gallery';
 export * from './ui/Gallery';
 export type { GallerySelectionChangeHandler, GallerySelectionState } from './ui/Gallery';

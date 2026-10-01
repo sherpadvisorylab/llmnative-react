@@ -660,6 +660,35 @@ Quando `commands` e presente in `mode="run"`, `Prompt` monta internamente `Conte
 </Pagination>
 ```
 
+### DescriptionList
+```tsx
+<DescriptionList
+  layout="horizontal"
+  labelWidth="10rem"
+  items={[
+    { label: 'Email', value: 'a@b.it' },
+    { label: 'Ruolo', value: <Badge variant="info">Admin</Badge> },
+  ]}
+/>
+<DescriptionList layout="stacked" columns={3} truncate items={items} />
+```
+
+| Prop | Tipo | Default |
+|---|---|---|
+| `items` | `DescriptionListItem[]` (`{ label: ReactNode; value?: ReactNode }`) | — |
+| `layout` | `'horizontal' \| 'stacked'` | `'horizontal'` |
+| `columns` | `1 \| 2 \| 3 \| 4 \| 5 \| 6` | `1` (solo `stacked`) |
+| `labelWidth` | `string` | — (solo `horizontal`) |
+| `emptyValue` | `ReactNode` | `'—'` |
+| `truncate` | `boolean` | `false` |
+
+Semantica nativa `<dl>`/`<dt>`/`<dd>`. `layout="horizontal"` affianca etichetta e valore
+(impilati su mobile) e rispetta `labelWidth`; `layout="stacked"` mette l'etichetta sopra il
+valore e usa `columns` per una griglia responsive. `value` `null`/`undefined`/`''` rende
+`emptyValue`; `truncate` limita il valore a una riga con ellissi e imposta `title` se è testo.
+Tema `DescriptionList`: `wrapperClassName`, `className`, `itemClassName`, `labelClassName`,
+`valueClassName`.
+
 ### Percentage
 ```tsx
 <Percentage value={75} appearance="bar" variant="success" showText />
