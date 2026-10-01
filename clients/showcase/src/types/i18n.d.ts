@@ -732,6 +732,32 @@ interface ShowcasePaginationI18n {
     };
 }
 
+interface ShowcaseDescriptionListI18n {
+    page: { title: string; description: string; };
+    sections: {
+        horizontal: ShowcasePageSectionCopy;
+        stacked: ShowcasePageSectionCopy;
+    };
+    labels: {
+        email: string;
+        role: string;
+        dealer: string;
+        phone: string;
+        status: string;
+        buyer: string;
+        shipped: string;
+        price: string;
+        admin: string;
+        delivered: string;
+    };
+    propsDocs: {
+        items: Record<string, ShowcasePaginationPropDoc>;
+    };
+    playground: {
+        title: string;
+    };
+}
+
 interface ShowcasePercentageI18n {
     page: { title: string; description: string; };
     sections: {
@@ -2452,6 +2478,7 @@ declare module '@llmnative/react' {
             modalOk:                      ShowcaseModalOkI18n;
             pagination:                   ShowcasePaginationI18n;
             percentage:                   ShowcasePercentageI18n;
+            descriptionList:              ShowcaseDescriptionListI18n;
             localeSwitcher:               ShowcaseLocaleSwitcherI18n;
             tab:                          ShowcaseTabI18n;
             dropdown:                     ShowcaseDropdownI18n;

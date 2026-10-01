@@ -352,6 +352,13 @@ export interface ThemeConfig {
         wrapperClassName?: string;
         className?: string;
     };
+    DescriptionList?: {
+        wrapperClassName?: string;
+        className?: string;
+        itemClassName?: string;
+        labelClassName?: string;
+        valueClassName?: string;
+    };
     Tab?: {
         wrapperClassName?: string;
         className?: string;

@@ -132,6 +132,33 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
+## CR-088 — DescriptionList: coppie etichetta → valore in sola lettura
+
+**Stato:** ✅ done — rilasciato in 1.19.0
+**Issue:** [#50](https://github.com/sherpadvisorylab/llmnative-react/issues/50)
+**Priorità:** Media
+
+### Motivazione
+
+I consumer devono mostrare dati in sola lettura come coppie etichetta → valore (profilo utente,
+scheda di un record, riepiloghi). Il framework non aveva un componente per farlo e i consumer
+scrivevano `<dl>`/`<dt>`/`<dd>` a mano, contro la direttiva UI consumer. Caso reale: CRM Voltab
+Energy (pagina Profilo, scheda prodotto).
+
+### API
+
+`<DescriptionList items layout columns labelWidth emptyValue truncate />` — vedi `llms-full.txt`.
+Semantica `<dl>`, token `--rf-*`, tema `DescriptionList`.
+
+### Checklist
+
+- [x] `src/components/ui/DescriptionList.tsx`, export pubblico da `@llmnative/react`
+- [x] Chiavi di tema `DescriptionList` (default, flat, cyber)
+- [x] Test `tests/unit/components/DescriptionList.test.tsx` (6: semantica, valori vuoti, labelWidth, colonne, truncate, classi)
+- [x] Pagina showcase `/components/description-list` (en, it; le altre lingue ricadono su en)
+- [x] Docs `llms.txt`, `llms-full.txt`, CHANGELOG, STATUS
+- [x] Release 1.19.0
+
 ## CR-087 — AI provider: Groq
 
 **Stato:** ✅ done — rilasciato in 1.18.0 (verifica live ancora da fare, vedi checklist)

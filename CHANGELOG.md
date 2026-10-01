@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.19.0] - 2026-10-01
+
+### Added
+- `DescriptionList` (CR-088, GH issue #50): read-only label → value pairs rendered as a
+  semantic `<dl>`/`<dt>`/`<dd>`, for profile data, the facts of a record and summaries.
+  `layout="horizontal"` (label column, `labelWidth`, stacked on small screens) or
+  `layout="stacked"` (label above the value, `columns` 1–6); `emptyValue` for `null`,
+  `undefined` and `''`; `truncate` with the string value as tooltip. Theme keys
+  `DescriptionList.{wrapperClassName,className,itemClassName,labelClassName,valueClassName}`.
+  New exports: `DescriptionList` and the types `DescriptionListItem`, `DescriptionListLayout`,
+  `DescriptionListColumns`, `DescriptionListProps`. Showcase page `/components/description-list`.
+
 ## [1.18.1] - 2026-10-01
 
 ### Fixed

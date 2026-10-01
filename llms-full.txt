@@ -680,6 +680,23 @@ Quando `commands` e presente in `mode="run"`, `Prompt` monta internamente `Conte
 | `fontSize` | `number` | — |
 | `label` | `string` | — |
 
+### DescriptionList
+Coppie etichetta → valore in sola lettura (profilo, dati di un record, riepiloghi), rese come `<dl>`/`<dt>`/`<dd>`. Da usare al posto di markup `<dl>` scritto a mano; per dati modificabili usare i campi di `<Form>`, per molti record `<Table>`/`<Grid>`.
+```tsx
+<DescriptionList items={[{ label: 'Email', value: 'a@b.it' }, { label: 'Telefono', value: null }]} />
+<DescriptionList layout="stacked" columns={4} truncate items={[{ label: 'Stato', value: <Badge variant="success">Spedito</Badge> }]} />
+```
+
+| Prop | Tipo | Default |
+|---|---|---|
+| `items` | `DescriptionListItem[]` — `{ key?, label, value?, title? }` | — |
+| `layout` | `'horizontal' \| 'stacked'` | `'horizontal'` (etichette a sinistra, impilate su mobile) |
+| `columns` | `1 \| 2 \| 3 \| 4 \| 5 \| 6` | `1` (solo `stacked`, dal breakpoint `lg`) |
+| `labelWidth` | `string` (lunghezza CSS) | `'12rem'` (solo `horizontal`) |
+| `emptyValue` | `ReactNode` | `'—'` per `null` / `undefined` / `''` (lo `0` resta) |
+| `truncate` | `boolean` | `false`; un valore testuale diventa il suo `title` |
+| Classi | `wrapperClassName`, `className`, `itemClassName`, `labelClassName`, `valueClassName` | tema `DescriptionList` |
+
 ### Dropdown
 ```tsx
 <Dropdown trigger={<Icon name="menu" />} position="end">

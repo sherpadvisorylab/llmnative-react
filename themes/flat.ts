@@ -443,6 +443,13 @@ export const components: Theme = {
         wrapperClassName: '',
         className: '',
     },
+    DescriptionList: {
+        wrapperClassName: '',
+        className: '',
+        itemClassName: '',
+        labelClassName: '',
+        valueClassName: '',
+    },
     Tab: {
         wrapperClassName: '',
         className: '',
