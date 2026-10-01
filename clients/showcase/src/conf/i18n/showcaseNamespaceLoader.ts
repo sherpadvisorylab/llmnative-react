@@ -32,6 +32,7 @@ export type ShowcaseNamespace =
     | 'modalOk'
     | 'pagination'
     | 'percentage'
+    | 'descriptionList'
     | 'localeSwitcher'
     | 'tab'
     | 'dropdown'

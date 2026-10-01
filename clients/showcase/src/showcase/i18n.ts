@@ -50,6 +50,7 @@ export const useShowcaseModalYesNoI18n = () => useShowcaseSlice('modalYesNo');
 export const useShowcaseModalOkI18n = () => useShowcaseSlice('modalOk');
 export const useShowcasePaginationI18n = () => useShowcaseSlice('pagination');
 export const useShowcasePercentageI18n = () => useShowcaseSlice('percentage');
+export const useShowcaseDescriptionListI18n = () => useShowcaseSlice('descriptionList');
 export const useShowcaseLocaleSwitcherI18n = () => useShowcaseSlice('localeSwitcher');
 export const useShowcaseTabI18n = () => useShowcaseSlice('tab');
 export const useShowcaseDropdownI18n = () => useShowcaseSlice('dropdown');
