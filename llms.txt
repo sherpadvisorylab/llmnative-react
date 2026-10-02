@@ -6,6 +6,8 @@
 
 ## Install
 
+Requisito: **Node.js 24 LTS** (`>=24.18.0 <25`, `engines` del pacchetto).
+
 ```bash
 npm install @llmnative/react
 npx @llmnative/react create        # scaffold progetto Vite completo

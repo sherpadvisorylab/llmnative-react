@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const ts = require('typescript');
+const ts = require('@typescript/typescript6');
 
 const componentsDir = path.join(__dirname, '../src/components');
 const readmeFilePath = path.join(__dirname, '../README.md');

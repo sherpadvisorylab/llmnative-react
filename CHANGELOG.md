@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.19.1] - 2026-10-02
+
+### Changed
+- Node.js 24 LTS stated as a requirement in README, `llms.txt` and the installation guide
+  (`engines` stays `>=24.18.0 <25`; Node 26 is still "Current" and not yet supported).
+- Dependencies updated to their latest releases: tiptap 3.31, CodeMirror (commands 6.11,
+  view 6.43.13, state 6.7.6), liquidjs 10.30, papaparse 5.7, tailwind-merge 3.7. Dev
+  tooling: TypeScript 7.0, Vitest 5.0 (and coverage-v8), Vite 8.3, jsdom 30, Playwright 1.63,
+  firebase 12.19, supabase-js 2.117, React 19.3. Showcase aligned (gpt-tokenizer 4).
+- TypeScript 7 no longer ships the JS compiler API: the scripts that parse sources
+  (VS Code theme compiler, README generator, public export contract test) use
+  `@typescript/typescript6`. Generated declaration files are identical to 1.19.0.
+  Minor change, no CR.
+
 ## [1.19.0] - 2026-10-01
 
 ### Added

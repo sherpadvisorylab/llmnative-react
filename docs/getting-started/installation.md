@@ -10,6 +10,11 @@ description: Choose between the scaffold for new projects and manual setup for e
 
 There are two supported ways to get started with `@llmnative/react`.
 
+## Requirements
+
+- **Node.js 24 LTS** (`>=24.18.0 <25`), declared in the package `engines` and written by the scaffold into the generated `package.json`. Node 26 is not supported until it becomes LTS and the framework is verified on it.
+- npm 11 or later.
+
 ---
 
 ## Scaffold - recommended for new projects

@@ -51,6 +51,8 @@ import { GridDB, Badge } from '@llmnative/react'
 
 ## Install
 
+Requires **Node.js 24 LTS** (`>=24.18.0 <25`, declared in `engines`).
+
 ```bash
 npm install @llmnative/react
 ```

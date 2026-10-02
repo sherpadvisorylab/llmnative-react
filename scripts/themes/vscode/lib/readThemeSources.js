@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const ts = require("typescript");
+const ts = require("@typescript/typescript6");
 const { SOURCES_DIR } = require("./paths");
 const SOURCE_MANIFEST_FILE = "index.json";
 
