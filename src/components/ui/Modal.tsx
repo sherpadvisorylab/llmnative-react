@@ -1,4 +1,4 @@
-﻿import React, {useState} from 'react';
+﻿import React, {useId, useState} from 'react';
 import { createPortal } from 'react-dom';
 import {useTheme} from "../../Theme";
 import { useI18n } from "../../I18n";
@@ -133,6 +133,13 @@ const ModalDefault = ({
     const closeTimerRef = React.useRef<number | undefined>(undefined);
 
     const [sizeClass, setSizeClass] = useState(size);
+
+    // Stable per-instance id for the title element, so concurrent modals rendered
+    // through their own portals never share an `aria-labelledby` target.
+    const titleId = useId();
+    const hasTitle = Boolean(title);
+    const hasStringHeader = !hasTitle && typeof header === 'string' && header.length > 0;
+    const dialogLabelledBy = hasTitle || hasStringHeader ? titleId : undefined;
 
     const dialogSizeClass = {
         sm: "max-w-sm",
@@ -306,6 +313,9 @@ const ModalDefault = ({
         >
             <div
                 className={pos.dialogClass}
+                role="dialog"
+                aria-modal={stackedBehind ? undefined : true}
+                aria-labelledby={dialogLabelledBy}
                 style={{
                     ...dialogStyle,
                     ...stackedTransform,
@@ -318,9 +328,9 @@ const ModalDefault = ({
                 <div className={pos.contentClass}>
                     {(header || title || allowFullscreen || onClose || closeSlot) && <div className={pos.headerClassName}>
                         <div className="min-w-0">
-                            {title && <h3 className={pos.titleClassName}>{title}</h3>}
+                            {title && <h3 id={titleId} className={pos.titleClassName}>{title}</h3>}
                             {(title && header) && <div className={pos.subtitleClassName}>{header}</div>}
-                            {!title && header && (typeof header === "string" ? <h3 className={pos.titleClassName}>{header}</h3> : header)}
+                            {!title && header && (typeof header === "string" ? <h3 id={titleId} className={pos.titleClassName}>{header}</h3> : header)}
                         </div>
                         {(allowFullscreen || onClose || closeSlot) && <div className="ml-auto flex shrink-0 items-center gap-1">
                             {allowFullscreen && <button

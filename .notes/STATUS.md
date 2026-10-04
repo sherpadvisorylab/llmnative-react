@@ -119,6 +119,7 @@
 | CR-041 | **0% — proposal written** | SeoEnhancer (HTML filter applying technical SEO, structured report); proposal in `CHANGE_REQUESTS.md`. No implementation. |
 | CR-045 | ⬜ | AI Adoption: piano di distribuzione e visibilità. |
 | CR-051 | **0% — spec written** | WorkflowAI declarative multi-step pipeline; spec in `CHANGE_REQUESTS.md`. No implementation. |
+| CR-091 | **🔄 in progress** | Modal: semantica di dialog accessibile (`role="dialog"`, `aria-modal`, `aria-labelledby`). Implementazione e test presenti; verifica gate in corso. Issue #56. |
 
 ---
 

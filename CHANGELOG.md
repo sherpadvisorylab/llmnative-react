@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- `Modal` now exposes proper dialog semantics (CR-091): the dialog container has `role="dialog"` and
+  `aria-modal="true"` (omitted for a `stackedBehind` modal, which is not the active one) and is linked
+  to its title via `aria-labelledby` whenever a `title` or a string `header` is rendered. A modal with
+  neither no longer emits an orphan `aria-labelledby`. `ModalYesNo` and `ModalOk` inherit the same
+  semantics through `ModalDefault`.
+
 ## [1.19.2] - 2026-10-04
 
 ### Fixed

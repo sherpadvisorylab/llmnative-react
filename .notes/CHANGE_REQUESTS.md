@@ -99,6 +99,54 @@
 | [CR-088](#cr-088--descriptionlist-coppie-etichetta--valore-in-sola-lettura) | DescriptionList: coppie etichetta → valore in sola lettura | Media | — | ✅ |
 | [CR-089](#cr-089--scaffold-pacchetto-npm-cli-e-template-allineati-allapi) | Scaffold: pacchetto npm, CLI e template allineati all'API | Alta | CR-005 | ✅ |
 | [CR-090](#cr-090--app-la-rotta-di-fallback--non-copre-la-pagina-del-consumer) | App: la rotta di fallback `/` non copre la pagina del consumer | Alta | — | ✅ |
+| [CR-091](#cr-091--modal-semantica-di-dialog-accessibile) | Modal: semantica di dialog accessibile | Alta | — | 🔄 |
+
+---
+
+## CR-091 — Modal: semantica di dialog accessibile
+
+**Stato:** 🔄 in progress
+**Issue:** [#56](https://github.com/sherpadvisorylab/llmnative-react/issues/56)
+**Priorità:** Alta
+
+### Motivazione
+
+`Modal` non espone la semantica di finestra modale: il contenitore del dialog
+(`src/components/ui/Modal.tsx`) era un `<div>` senza `role="dialog"`, senza
+`aria-modal` e senza collegamento al titolo. Screen reader e query per ruolo
+(`getByRole('dialog')` di Testing Library/Playwright) non lo riconoscevano come
+dialog. Emerso verificando con Playwright lo scaffold 1.19.2 in
+`llmnative/playbook` (drawer di navigazione mobile in `Modal position="left"`).
+
+### Scope
+
+- `src/components/ui/Modal.tsx`: sul contenitore del dialog
+  (`className={pos.dialogClass}`) aggiunti `role="dialog"`, `aria-modal="true"`
+  (omesso quando `stackedBehind`) e `aria-labelledby` verso l'`<h3>` del titolo
+  (id da `useId`) quando esiste `title` oppure un `header` stringa. Nessun
+  `aria-labelledby` (né id orfano) quando non c'è né `title` né `header` stringa.
+  `ModalYesNo` e `ModalOk` ereditano la semantica via `ModalDefault`.
+- `tests/unit/components/Modal.test.tsx`: nuovi test per ruolo dialog + nome
+  accessibile, presenza/assenza di `aria-modal`, assenza di `aria-labelledby`
+  senza titolo e semantica di `ModalYesNo`/`ModalOk`.
+- `CHANGELOG.md`, `.notes/STATUS.md`.
+
+### Fuori scope
+
+- Chiusura con `Esc`, focus trap e ripristino del focus all'elemento che ha
+  aperto il modal: comportamento nuovo, da valutare in una CR separata.
+- Nuove prop pubbliche.
+- Bump di versione, sezione di versione nel changelog, tag e publish.
+
+### Checklist
+
+- [x] `role="dialog"` sul contenitore del dialog
+- [x] `aria-modal="true"` quando attivo, omesso con `stackedBehind`
+- [x] `aria-labelledby` verso il titolo con `title` o `header` stringa
+- [x] Nessun `aria-labelledby` senza titolo né header stringa
+- [x] Test in `tests/unit/components/Modal.test.tsx`
+- [x] `npx tsc --noEmit`, `npm test`, `npm run build` verdi
+- [x] `CHANGELOG.md`, `.notes/STATUS.md` aggiornati
 
 ---
 
