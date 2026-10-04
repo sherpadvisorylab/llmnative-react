@@ -1,5 +1,5 @@
 import React from 'react';
-import { Grid, Badge, Input, Select } from '@llmnative/react';
+import { Grid, Badge, Input, Select, type BadgeType } from '@llmnative/react';
 
 const roleOptions = [
     { label: 'Administrator', value: 'admin' },
@@ -12,7 +12,7 @@ const statusOptions = [
     { label: 'Inactive', value: 'inactive' },
 ];
 
-const roleVariant: Record<string, string> = {
+const roleVariant: Record<string, BadgeType> = {
     admin:  'danger',
     editor: 'primary',
     viewer: 'secondary',
@@ -27,12 +27,12 @@ export default function UsersPage() {
                 { key: 'email',     label: 'Email' },
                 { key: 'role',      label: 'Role',
                     render: ({ value }) => (
-                        <Badge variant={roleVariant[value] ?? 'secondary'}>{value}</Badge>
+                        <Badge variant={roleVariant[String(value)] ?? 'secondary'}>{String(value)}</Badge>
                     ),
                 },
                 { key: 'status',    label: 'Status',
                     render: ({ value }) => (
-                        <Badge variant={value === 'active' ? 'success' : 'secondary'}>{value}</Badge>
+                        <Badge variant={value === 'active' ? 'success' : 'secondary'}>{String(value)}</Badge>
                     ),
                 },
                 { key: 'createdAt', label: 'Created', render: 'date' },
@@ -41,15 +41,14 @@ export default function UsersPage() {
             view="table"
             sortable
             pagination={{ limit: 25 }}
-        >
-            {() => (
+            form={() => (
                 <>
                     <Input  name="name"   label="Full name" required />
-                    <Input  name="email"  label="Email"     inputType="email" required />
+                    <Input  name="email"  label="Email"     type="email" required />
                     <Select name="role"   label="Role"      options={roleOptions} />
                     <Select name="status" label="Status"    options={statusOptions} />
                 </>
             )}
-        </Grid>
+        />
     );
 }

@@ -13,11 +13,11 @@ export default function SettingsPage() {
         <div className="mx-auto max-w-2xl px-2 py-4">
             <Form
                 path="/settings"
-                recordId="app"
+                keyGenerator={() => 'app'}
                 appearance="card"
             >
                 <Input name="siteName" label="Site name" required />
-                <Input name="supportEmail" label="Support email" inputType="email" />
+                <Input name="supportEmail" label="Support email" type="email" />
                 <Select name="timezone" label="Timezone" options={timezoneOptions} />
             </Form>
         </div>

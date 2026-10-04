@@ -37,6 +37,8 @@ function resetProjectDirectory() {
         '.env.example',
         '.firebaserc',
         'database.rules.json',
+        'firestore.rules',
+        'firestore.indexes.json',
         'firebase.json',
         'storage.rules',
         'index.html',
@@ -200,7 +202,7 @@ function createPackageJson(params) {
             '@vitejs/plugin-react': '^6.0.4',
             autoprefixer: '^10.5.4',
             postcss: '^8.5.23',
-            typescript: '6.0.3',
+            typescript: '^7.0.2',
             vite: '^8.1.5',
         },
     }, null, 2));
@@ -293,7 +295,11 @@ function createFirebaseConfig(params) {
     const hostingSite = params.hosting === '' ? params.projectname : params.hosting;
 
     ensureFile(path.join(root, 'firebase.json'), JSON.stringify({
-        database: { rules: 'database.rules.json' },
+        firestore: {
+            rules: 'firestore.rules',
+            indexes: 'firestore.indexes.json',
+        },
+        storage: { rules: 'storage.rules' },
         ...(includeHosting && {
             hosting: {
                 site: normalizeFirebaseProjectId(hostingSite),
@@ -305,11 +311,21 @@ function createFirebaseConfig(params) {
         }),
     }, null, 2));
 
-    ensureFile(path.join(root, 'database.rules.json'), JSON.stringify({
-        rules: {
-            '.read': 'auth != null',
-            '.write': 'auth != null',
-        },
+    ensureFile(path.join(root, 'firestore.rules'), `
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
+    `);
+
+    ensureFile(path.join(root, 'firestore.indexes.json'), JSON.stringify({
+        indexes: [],
+        fieldOverrides: [],
     }, null, 2));
 
     ensureFile(path.join(root, 'storage.rules'), `
@@ -348,9 +364,25 @@ function substituteProjectName(filePath, projectname) {
     if (updated !== content) fs.writeFileSync(filePath, updated);
 }
 
+function resolveTemplateDir(template) {
+    const templatesRoot = path.resolve(__dirname, '../../templates');
+    const templateSrc = path.resolve(templatesRoot, template);
+    if (!fs.existsSync(templateSrc) || !fs.statSync(templateSrc).isDirectory()) {
+        const available = fs.existsSync(templatesRoot)
+            ? fs.readdirSync(templatesRoot, { withFileTypes: true })
+                .filter((entry) => entry.isDirectory() && !entry.name.startsWith('_'))
+                .map((entry) => entry.name)
+            : [];
+        throw new Error(
+            `Unknown template "${template}". Available templates: ${available.join(', ') || 'none'}.`
+        );
+    }
+    return templateSrc;
+}
+
 function copyTemplateFiles(params) {
     const sharedSrc  = path.resolve(__dirname, '../../templates/_shared');
-    const templateSrc = path.resolve(__dirname, `../../templates/${params.template}`);
+    const templateSrc = resolveTemplateDir(params.template);
 
     // Copy shared layouts and sections
     copyDir(path.join(sharedSrc, 'layouts'),  path.join(root, 'src/layouts'));
@@ -429,7 +461,7 @@ body {
     `);
 
     ensureFile(path.join(root, 'src/conf/app.ts'), `
-import type { AIConfig, AppProvidersConfig } from '@llmnative/react';
+import type { AppProvidersConfig } from '@llmnative/react';
 import { mockData } from '../data/mockData';
 
 const env = import.meta.env;
@@ -437,7 +469,7 @@ const selectedProvider = env.VITE_PROVIDER ?? '${params.provider}';
 const selectedAIProvider = env.VITE_AI_PROVIDER ?? '${params.aiProvider ?? 'none'}';
 
 const dataDriver =
-  selectedProvider === 'firebase' ? 'dbRealtime'
+  selectedProvider === 'firebase' ? 'firestoreDb'
     : selectedProvider === 'supabase' ? 'supabaseDb'
       : 'mock';
 
@@ -445,6 +477,11 @@ const storageDriver =
   selectedProvider === 'firebase' ? 'firestorage'
     : selectedProvider === 'supabase' ? 'supabaseStorage'
       : undefined;
+
+const authDriver =
+  selectedProvider === 'firebase' ? 'firebaseAuth'
+    : selectedProvider === 'supabase' ? 'supabaseAuth'
+      : 'googleAuth';
 
 const aiDriver = selectedAIProvider !== 'none'
   ? selectedAIProvider
@@ -456,22 +493,6 @@ export const appConfig = {
   iconProvider: env.VITE_ICON_PROVIDER ?? '${params.iconProvider}',
   theme:        env.VITE_THEME        ?? '${params.theme}',
   locale:       env.VITE_LOCALE       ?? '${params.locale}',
-};
-
-export const aiConfig: AIConfig = {
-  openaiApiKey:    env.VITE_OPENAI_API_KEY ?? '',
-  openRouterApiKey: env.VITE_OPENROUTER_API_KEY ?? '',
-  openCodeApiKey:  env.VITE_OPENCODE_API_KEY ?? '',
-  geminiApiKey:    env.VITE_GEMINI_API_KEY ?? '',
-  anthropicApiKey: env.VITE_ANTHROPIC_API_KEY ?? '',
-  deepSeekApiKey:  env.VITE_DEEPSEEK_API_KEY ?? '',
-  mistralApiKey:   env.VITE_MISTRAL_API_KEY ?? '',
-  ...(env.VITE_OPENAI_COMPATIBLE_BASE_URL ? {
-    openAICompatible: {
-      apiKey:  env.VITE_OPENAI_COMPATIBLE_API_KEY ?? '',
-      baseUrl: env.VITE_OPENAI_COMPATIBLE_BASE_URL,
-    },
-  } : {}),
 };
 
 export const providers: AppProvidersConfig = {
@@ -503,10 +524,25 @@ export const providers: AppProvidersConfig = {
     clientId: env.VITE_DROPBOX_CLIENT_ID ?? '',
     rootPath: env.VITE_DROPBOX_ROOT_PATH ?? '',
   },
+  ai: {
+    openaiApiKey:    env.VITE_OPENAI_API_KEY ?? '',
+    openRouterApiKey: env.VITE_OPENROUTER_API_KEY ?? '',
+    openCodeApiKey:  env.VITE_OPENCODE_API_KEY ?? '',
+    geminiApiKey:    env.VITE_GEMINI_API_KEY ?? '',
+    anthropicApiKey: env.VITE_ANTHROPIC_API_KEY ?? '',
+    deepSeekApiKey:  env.VITE_DEEPSEEK_API_KEY ?? '',
+    mistralApiKey:   env.VITE_MISTRAL_API_KEY ?? '',
+    ...(env.VITE_OPENAI_COMPATIBLE_BASE_URL ? {
+      openAICompatible: {
+        apiKey:  env.VITE_OPENAI_COMPATIBLE_API_KEY ?? '',
+        baseUrl: env.VITE_OPENAI_COMPATIBLE_BASE_URL,
+      },
+    } : {}),
+  },
   services: {
     data: dataDriver,
     ...(storageDriver ? { storage: storageDriver } : {}),
-    auth: 'googleAuth',
+    auth: authDriver,
     ...(aiDriver ? { ai: aiDriver } : {}),
   },
 };
@@ -518,10 +554,9 @@ import { createRoot } from 'react-dom/client';
 import { App } from '@llmnative/react';
 import './styles/globals.css';
 
-import { aiConfig, appConfig, providers } from './conf/app';
+import { appConfig, providers } from './conf/app';
 import { menu } from './conf/menu';
-
-const env = import.meta.env;
+import Default from './layouts/Default';
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
@@ -529,7 +564,7 @@ createRoot(document.getElementById('root')!).render(
       importPage={(pageSource) => import(/* @vite-ignore */ pageSource)}
       menuConfig={menu}
       providers={providers}
-      aiConfig={aiConfig}
+      LayoutDefault={Default}
       iconProvider={appConfig.iconProvider}
       themeProvider={{
         theme: appConfig.theme,
@@ -592,6 +627,8 @@ function scaffoldProject() {
             },
         };
 
+        resolveTemplateDir(params.template);
+
         if (shouldReset) resetProjectDirectory();
 
         console.log(`\nCreating project: ${params.projectname} | theme: ${params.theme} | template: ${params.template}\n`);
@@ -606,6 +643,8 @@ function scaffoldProject() {
     }
 
     askInteractive((params) => {
+        resolveTemplateDir(params.template);
+
         if (shouldReset) resetProjectDirectory();
 
         console.log(`\nCreating project: ${params.projectname} | theme: ${params.theme} | template: ${params.template}\n`);

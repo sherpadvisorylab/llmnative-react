@@ -43,7 +43,7 @@ Built-in `add` and `edit` actions already open the framework modal. If you need 
   form={() => (
     <>
       <Input name="name" label="Name" required />
-      <Input.Email name="email" label="Email" />
+      <Input name="email" label="Email" type="email" />
       <Select name="role" label="Role" options={roleOptions} />
     </>
   )}
@@ -68,7 +68,7 @@ export default function UserEdit() {
 
       <Form controller={form} path="/users/user_1" appearance="card" showBack draftBucket="workspace/acme">
         <Input name="name" label="Name" required />
-        <Input.Email name="email" label="Email" />
+        <Input name="email" label="Email" type="email" />
         <Select
           name="role"
           label="Role"
@@ -116,7 +116,7 @@ export default function UserEdit() {
   keyGenerator={() => `prod_${crypto.randomUUID()}`}
 >
   <Input name="title" label="Title" required />
-  <Input.Number name="price" label="Price" />
+  <Input name="price" label="Price" type="number" />
 </Form>
 ```
 

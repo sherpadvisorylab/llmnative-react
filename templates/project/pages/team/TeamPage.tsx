@@ -13,14 +13,13 @@ export default function TeamPage() {
             actions={['add', 'edit', 'delete']}
             view="table"
             sortable
-        >
-            {() => (
+            form={() => (
                 <>
                     <Input name="name" label="Full name" required />
                     <Input name="role" label="Role" />
-                    <Input name="email" label="Email" inputType="email" />
+                    <Input name="email" label="Email" type="email" />
                 </>
             )}
-        </Grid>
+        />
     );
 }

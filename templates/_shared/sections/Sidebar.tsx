@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu } from '@llmnative/react';
+import { ActionButton, SideNav } from '@llmnative/react';
 
 type SidebarProps = {
     open: boolean;
@@ -9,11 +9,9 @@ type SidebarProps = {
 export default function Sidebar({ open, onClose }: SidebarProps) {
     return (
         <>
-            <aside className="hidden lg:flex flex-col w-64 shrink-0 border-r bg-background overflow-y-auto">
-                <nav className="p-3">
-                    <Menu context="sidebar" />
-                </nav>
-            </aside>
+            <div className="hidden lg:block">
+                <SideNav menuKey="main" />
+            </div>
 
             {open && (
                 <div className="fixed inset-0 z-50 lg:hidden">
@@ -21,11 +19,15 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                     <aside className="relative flex flex-col w-64 h-full bg-background border-r overflow-y-auto">
                         <div className="flex items-center justify-between px-4 h-14 border-b shrink-0">
                             <span className="font-semibold">Menu</span>
-                            <button className="btn btn-outline-secondary border-0 p-1" onClick={onClose} aria-label="Close sidebar">✕</button>
+                            <ActionButton
+                                className="border-0"
+                                variant="outline-secondary"
+                                icon="x"
+                                ariaLabel="Close sidebar"
+                                onClick={onClose}
+                            />
                         </div>
-                        <nav className="p-3 flex-1">
-                            <Menu context="sidebar" />
-                        </nav>
+                        <SideNav menuKey="main" embedded />
                     </aside>
                 </div>
             )}

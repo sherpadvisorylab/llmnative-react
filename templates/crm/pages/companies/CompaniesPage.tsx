@@ -29,15 +29,14 @@ export default function CompaniesPage() {
             view="table"
             sortable
             pagination={{ limit: 20 }}
-        >
-            {() => (
+            form={() => (
                 <>
                     <Input name="name" label="Company name" required />
                     <Select name="industry" label="Industry" options={industryOptions} />
                     <Input name="website" label="Website" />
-                    <Input name="employees" label="Employees" inputType="number" />
+                    <Input name="employees" label="Employees" type="number" />
                 </>
             )}
-        </Grid>
+        />
     );
 }
