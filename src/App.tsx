@@ -233,6 +233,18 @@ export const getContextMenu = (): string[] => {
 };
 
 /**
+ * True when any entry of the menu tree (any key, and recursively inside
+ * `children`) already declares the root path `/`. Used to avoid injecting the
+ * internal filling route `default: [{ path: "/" }]`, which would otherwise be
+ * declared first and win over the consumer's page for `/`.
+ */
+function hasRootRoute(menuConfig: MenuConfig): boolean {
+    const scan = (items: MenuItem[]): boolean =>
+        items.some(item => item.path === "/" || (item.children ? scan(item.children) : false));
+    return Object.values(menuConfig).some(scan);
+}
+
+/**
  * The full framework provider stack as a standalone component.
  *
  * Wraps children with: ErrorBoundary → BrowserRouter → RuntimeProvider →
@@ -419,14 +431,13 @@ function App({
                 <Route path={AUTH_REDIRECT_URI} element={<Authorize />}></Route>
                 <>
                     {renderRoutes({
-                        default: [{ path: "/" }], ...{
-                            ...menu,
-                            _auth: [{
-                                path: "/users",
-                                page: Users,
-                                layout: LayoutDefault
-                            }]
-                        }
+                        ...(hasRootRoute(menu) ? {} : { default: [{ path: "/" }] }),
+                        ...menu,
+                        _auth: [{
+                            path: "/users",
+                            page: Users,
+                            layout: LayoutDefault
+                        }]
                     })}
                 </>
                 <Route path='*' element={<NotFound />}></Route>

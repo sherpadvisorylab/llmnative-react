@@ -96,6 +96,52 @@
 | [CR-085](#cr-085--ai-model-pricing-prezzi-inputoutput-nel-model-picker) | AI model pricing: prezzi input/output nel model picker | Media | CR-084 | ✅ |
 | [CR-086](#cr-086--model-picker-modelli-raggruppati-per-provider-con-header-sticky) | Model picker: modelli raggruppati per provider con header sticky | Media | CR-085 | ✅ |
 | [CR-087](#cr-087--ai-provider-groq) | AI provider: Groq | Media | CR-085 | ✅ |
+| [CR-090](#cr-090--app-la-rotta-di-fallback--non-copre-la-pagina-del-consumer) | App: la rotta di fallback `/` non copre la pagina del consumer | Alta | — | 🔄 |
+
+---
+
+## CR-090 — App: la rotta di fallback / non copre la pagina del consumer
+
+**Stato:** 🔄 in progress
+**Issue:** [#53](https://github.com/sherpadvisorylab/llmnative-react/issues/53) (report originale [#32](https://github.com/sherpadvisorylab/llmnative-react/issues/32))
+**Priorità:** Alta
+
+### Motivazione
+
+`App()` inietta sempre la rotta di riempimento `default: [{ path: "/" }]` (senza `page`)
+**prima** del `menuConfig` del consumer. `renderRoutes` itera le chiavi nell'ordine di
+inserzione, quindi il fallback viene dichiarato per primo; a parità di path React Router
+sceglie la prima rotta dichiarata, la pagina che il consumer assegna a `/` viene ignorata e
+il framework prova a caricare `./pages/Home.js` per convenzione: 404 e
+`Missing Page: ./pages/Home.js`. Riprodotto in `mybblo-marketing-solution` (1.15.3), dove era
+stato aggirato con uno shim `pages/Home.tsx`. Cambiamento del comportamento del runtime
+`App()`, distinto dai fix dello scaffold (CR-089, GH issue #52).
+
+### Scope
+
+- `src/App.tsx`: iniettare la rotta di riempimento `/` solo se nessuna voce del menu (in
+  qualunque chiave e anche annidata in `children`, ricorsivamente) definisce già `path: "/"`.
+  La rotta resta il default per i menu senza `/`.
+- `tests/unit/App.test.tsx`: test di regressione (voce `/` in una chiave qualsiasi, `/`
+  annidata in `children`, fallback invariato senza voci `/`).
+- `llms-full.txt`: rimossa la riga Gotcha su `/` (il workaround con lo spread di `default`
+  non serve più).
+- `CHANGELOG.md`, `.notes/CHANGE_REQUESTS.md`, `.notes/STATUS.md`.
+
+### Fuori scope
+
+- Altre convenzioni di risoluzione delle pagine (`item.component`, path → `./pages/*.js`).
+- I fix dello scaffold/CLI (CR-089 / GH issue #52) e le altre issue sullo scaffold (#29–#37).
+- Bump di versione, tag e `npm publish` (workflow di release).
+
+### Checklist
+
+- [x] `src/App.tsx` — iniezione condizionata del fallback `/` (scansione ricorsiva di tutte le chiavi e di `children`)
+- [x] Test di regressione in `tests/unit/App.test.tsx` (3 casi)
+- [x] Riga Gotcha su `/` rimossa da `llms-full.txt`
+- [x] Voce in `CHANGELOG.md` sotto `## [Unreleased]`
+- [x] Verifica finale `npx tsc --noEmit` (0 errori), `npm test` (68 file, 759 test), `npm run build` (Vite + declarations)
+- [ ] Release (a carico del workflow di release)
 
 ---
 

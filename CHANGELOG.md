@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- `App` (CR-090, GH issue #53, report originale #32): la rotta di riempimento
+  `default: [{ path: "/" }]` viene iniettata solo se nessuna voce del menu (in qualunque
+  chiave, anche annidata in `children`) definisce già `path: "/"`. Prima veniva sempre
+  dichiarata per prima e, a parità di path, React Router sceglieva il fallback: la `page`
+  assegnata dal consumer a `/` era ignorata e il framework caricava per convenzione
+  `./pages/Home.js` (404, `Missing Page: ./pages/Home.js`). I menu senza una voce `/`
+  mantengono invariato il comportamento di riempimento.
+
 ## [1.19.1] - 2026-10-02
 
 ### Changed

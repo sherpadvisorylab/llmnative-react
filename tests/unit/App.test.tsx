@@ -187,8 +187,8 @@ function DocumentAssetsPwaHeadProbePage() {
     return null;
 }
 
-function renderApp(props: Partial<React.ComponentProps<typeof App>> = {}) {
-    window.history.pushState({}, '', '/probe');
+function renderApp(props: Partial<React.ComponentProps<typeof App>> = {}, path = '/probe') {
+    window.history.pushState({}, '', path);
 
     return render(
         <App
@@ -422,5 +422,58 @@ describe('App provider orchestration', () => {
         expect(document.querySelector('meta[name="theme-color"]')).toHaveAttribute('content', '#ffffff');
         expect(document.querySelector('meta[name="color-scheme"]')).toHaveAttribute('content', 'light dark');
         expect(document.querySelector('link[rel="apple-touch-icon"]')).toHaveAttribute('href', '/apple-touch-icon.png');
+    });
+});
+
+describe('App root route fallback', () => {
+    function HomePage() {
+        return <div data-testid="home-page">Home page</div>;
+    }
+
+    function DocsPage() {
+        return <div data-testid="docs-page">Docs page</div>;
+    }
+
+    it('renders the consumer page for "/" instead of the internal fallback', () => {
+        const importPage = vi.fn(() => Promise.reject(new Error('importPage must not be called')));
+
+        renderApp({
+            importPage,
+            menuConfig: { main: [{ path: '/', page: HomePage }] },
+        }, '/');
+
+        expect(screen.getByTestId('home-page')).toBeInTheDocument();
+        expect(importPage).not.toHaveBeenCalledWith('./pages/Home.js');
+    });
+
+    it('detects a "/" entry nested in children', () => {
+        const importPage = vi.fn(() => Promise.reject(new Error('importPage must not be called')));
+
+        renderApp({
+            importPage,
+            menuConfig: {
+                main: [{
+                    path: '/docs',
+                    page: DocsPage,
+                    children: [{ path: '/', page: HomePage }],
+                }],
+            },
+        }, '/');
+
+        expect(screen.getByTestId('home-page')).toBeInTheDocument();
+        expect(importPage).not.toHaveBeenCalledWith('./pages/Home.js');
+    });
+
+    it('keeps the internal filling route when the menu has no "/" entry', async () => {
+        const FallbackHome = () => <div data-testid="fallback-home">Fallback home</div>;
+        const importPage = vi.fn(() => Promise.resolve({ default: FallbackHome }));
+
+        renderApp({
+            importPage,
+            menuConfig: { main: [{ path: '/about', page: DocsPage }] },
+        }, '/');
+
+        expect(importPage).toHaveBeenCalledWith('./pages/Home.js');
+        await waitFor(() => expect(screen.getByTestId('fallback-home')).toBeInTheDocument());
     });
 });
