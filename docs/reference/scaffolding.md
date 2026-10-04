@@ -88,37 +88,61 @@ No proxy relay file is generated.
 
 ## `conf/app.ts`
 
-`conf/app.ts` is the central wiring layer for the scaffolded app.
+`conf/app.ts` is the central wiring layer for the scaffolded app. It maps env into `appConfig`
+(icon provider, theme, locale) and `providers` — including `providers.ai` (the AI keys; there is
+no `aiConfig` prop on `<App>`) and `providers.services`.
 
-This is where the scaffold maps env into:
+`VITE_PROVIDER` selects coherent drivers for every service:
 
-- `aiConfig`
-- `providers`
-- `services`
-
-The generated file now treats proxy as a real service slot:
+| `VITE_PROVIDER` | `data` | `storage` | `auth` |
+|---|---|---|---|
+| `firebase` | `firestoreDb` | `firestorage` | `firebaseAuth` |
+| `supabase` | `supabaseDb` | `supabaseStorage` | `supabaseAuth` |
+| `mock` / `custom` | `mock` | — | `googleAuth` |
 
 ```ts
-const selectedProxyProvider = env.VITE_PROXY_PROVIDER ?? 'none';
-const proxyDriver = selectedProxyProvider !== 'none'
-  ? selectedProxyProvider
-  : undefined;
-
 export const providers: AppProvidersConfig = {
-  proxy: {
-    enabled: env.VITE_PROXY_ENABLED === 'true',
-    route: env.VITE_PROXY_ROUTE ?? '/api/proxy',
-  },
+  proxy: { enabled: env.VITE_PROXY_ENABLED === 'true' },
+  mock: { data: mockData },
+  firebase: { /* VITE_FIREBASE_* */ },
+  supabase: { /* VITE_SUPABASE_* */ },
+  google: { /* VITE_GOOGLE_* */ },
+  ai: aiConfig,
   services: {
     data: dataDriver,
-    auth: 'googleAuth',
+    ...(storageDriver ? { storage: storageDriver } : {}),
+    auth: authDriver,
     ...(aiDriver ? { ai: aiDriver } : {}),
-    ...(proxyDriver ? { proxy: proxyDriver } : {}),
   },
 };
 ```
 
+With `--provider=firebase` the scaffold also writes `firebase.json`, `.firebaserc`,
+`firestore.rules`, `firestore.indexes.json` and `storage.rules` (authenticated read/write).
+
 Pages and UI components should consume hooks or framework widgets, not instantiate providers directly.
+
+---
+
+## `index.tsx`, layout and sections
+
+`src/index.tsx` mounts `<App>` with `menuConfig`, `providers`, `iconProvider`, `themeProvider`,
+`i18n` and `LayoutDefault={Default}`, so every menu entry renders inside the default layout
+without a per-item `layout`.
+
+Layout and sections are shared by all templates (`templates/_shared`) and built only from public
+framework components, as the consumer UI directive requires:
+
+| File | Components |
+|---|---|
+| `layouts/Default.tsx` | header, sidebar, page header, main area, footer |
+| `sections/Header.tsx` | `ActionButton` (mobile navigation toggle), `Brand`, `AuthButton` |
+| `sections/Sidebar.tsx` | `SideNav menuKey="main"`; on small screens inside a `Modal position="left"` |
+| `sections/PageHeader.tsx` | `Breadcrumbs` |
+| `sections/Footer.tsx` | static footer text |
+
+Template pages use `Grid` with the `form` prop for the add/edit modal and `<Input type="…">` for
+typed fields.
 
 ---
 
@@ -129,23 +153,14 @@ Scaffolded apps include:
 ```env
 VITE_PROVIDER=mock
 VITE_AI_PROVIDER=none
-VITE_PROXY_PROVIDER=none
-VITE_PROXY_ENABLED=false
-VITE_PROXY_ROUTE=/api/proxy
 VITE_ICON_PROVIDER=lucide
 VITE_THEME=default
+VITE_LOCALE=en
+VITE_PROXY_PROVIDER=none
+VITE_PROXY_ENABLED=false
 ```
 
-The proxy env is intentionally split into:
-
-- `VITE_PROXY_PROVIDER`
-- `VITE_PROXY_ENABLED`
-- `VITE_PROXY_ROUTE`
-
-This mirrors the framework service model:
-
-- `services.proxy`
-- `providers.proxy`
+plus the empty credential keys of every provider (Firebase, Google, Supabase, Dropbox, AI).
 
 ---
 
@@ -198,7 +213,7 @@ So the scaffold creates the relay implementation in the project itself, not insi
 1. Fill `.env` with real provider credentials.
 2. Decide whether proxy should stay disabled or be enabled.
 3. Keep all provider selection centralized in `src/conf/app.ts`.
-4. Build pages with `Grid`, `Form`, `Prompt`, `WorkflowAI` and provider hooks.
+4. Build pages with `Grid`, `Form`, `Prompt` and provider hooks.
 
 ---
 

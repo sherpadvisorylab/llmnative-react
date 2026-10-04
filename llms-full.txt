@@ -244,7 +244,7 @@ export class RestDataProvider implements DataProviderAdapter {
   onComplete={async ({ action }) => { if (action === 'save') navigate('/products') }}
 >
   <Input name="title" label="Titolo" required />
-  <Input name="price" label="Prezzo" inputType="number" />
+  <Input name="price" label="Prezzo" type="number" />
   <Input name="address.city" label="Città" />      {/* oggetto annidato */}
   <Repeat name="tags" defaultLength={1}>
     {(i) => <Input name={`tags.${i}`} label={`Tag ${i+1}`} />}
@@ -312,18 +312,19 @@ Azioni: `save()`, `delete()`, `reset()`, `restoreDraft()`, `discardDraft()`.
 
 ### Input
 ```tsx
-<Input name="x" label="..." required />               // text (default)
-<Input.Number  name="price" min={0} max={100} step={0.01} />
-<Input.Email   name="email" />
-<Input.Password name="pwd" />
-<Input.Date    name="date" />
-<Input.TextArea name="bio" rows={4} />
-<Input.Checkbox name="active" valueChecked="yes" />
-<Input.Color   name="color" />
+<Input name="x" label="..." required />                          // text (default)
+<Input name="price" type="number" min={0} max={100} step={0.01} />
+<Input name="email" type="email" />
+<Input name="pwd"   type="password" />
+<Input name="date"  type="date" />
+<Input name="color" type="color" />
+<TextArea name="bio" minHeight={96} />
+<Checkbox name="active" valueChecked="yes" />
 ```
-`InputProps`: `name`(req) `label` `required` `disabled` `placeholder` `min` `max` `step` `validator:(v)=>string|undefined`
+`Input` props: `name`(req) `label` `type` `required` `disabled` `placeholder` `min` `max` `step` `validator:(v)=>string|undefined`
+`type`: `'text' | 'number' | 'email' | 'password' | 'color' | 'date' | 'time' | 'datetime-local' | 'week' | 'month' | 'range' | 'checkbox' | 'radio' | 'url'`
 
-**NOTA**: `inputType` NON è una prop pubblica — usa i sub-componenti `Input.Number`, `Input.Email` ecc.
+**NOTA**: il tipo HTML si passa con `type`. `inputType` e i sotto-componenti `Input.Number`/`Input.Email`/`Input.Date` non esistono.
 
 ### Select / Autocomplete / Checklist
 ```tsx
@@ -1048,13 +1049,13 @@ src/
   vite-env.d.ts
   conf/
     app.ts           ← providers config letta da .env (VITE_PROVIDER, VITE_AI_PROVIDER...)
-    menu.ts          ← MenuConfig con path, title, icon, page, layout
+    menu.ts          ← MenuConfig con path, title, icon, page (layout opzionale: c'è LayoutDefault)
   data/
     mockData.ts      ← dati fake per MockDataProvider
   layouts/
     Default.tsx      ← layout wrapper (header + sidebar + main + footer)
   sections/
-    Header.tsx / Sidebar.tsx / PageHeader.tsx / Footer.tsx / PreLoader.tsx
+    Header.tsx / Sidebar.tsx / PageHeader.tsx / Footer.tsx   ← solo componenti pubblici (SideNav, AuthButton, ActionButton, Brand, Breadcrumbs)
   pages/
     home/HomePage.tsx
     [altre pagine dal template scelto]
@@ -1078,6 +1079,8 @@ export const providers: AppProvidersConfig = {
 }
 ```
 
+Driver per `VITE_PROVIDER`: `firebase` → `firestoreDb` + `firestorage` + `firebaseAuth`; `supabase` → `supabaseDb` + `supabaseStorage` + `supabaseAuth`; `mock` → `mock` + `googleAuth`. `index.tsx` passa `LayoutDefault={Default}` ad `<App>`.
+
 ---
 
 ## Gotchas — pitfall frequenti
@@ -1085,12 +1088,11 @@ export const providers: AppProvidersConfig = {
 | Errore | Causa | Fix |
 |---|---|---|
 | `aiConfig` prop non esiste su `<App>` | La config AI va dentro `providers.ai`, NON come prop separata | `providers={{ ai: { openaiApiKey } }}` |
-| `inputType` non è una prop di `Input` | `InputProps` omette il type interno | Usa `<Input.Number>`, `<Input.Email>`, `<Input.Date>` ecc. |
+| `inputType` o `Input.Number`/`Input.Email` non esistono | Il tipo HTML è la prop `type` | `<Input type="number">`, `<Input type="email">`, `<Input type="date">` |
 | `Menu context=` non esiste | La prop si chiama `menuKey` | `<Menu menuKey="main" />` |
 | `SignInButton` non esiste | Rinominato | `<AuthButton />` |
 | `firebase: { config: ... }` errato | FirebaseConfig è flat | `firebase: { apiKey, authDomain, databaseURL, ... }` |
 | `google: { oAuth2: { clientId } }` errato | GoogleProviderConfig è flat | `google: { clientId, scope }` |
-| Route "/" non funziona (Missing Page: ./pages/Home.js) | Il framework inietta sempre `default: [{ path: "/" }]` senza `page` — chiama `importPage` e fallisce | Aggiungi `default: [{ path: '/', page: HomePage, layout: Default }]` nel tuo `menuConfig`: lo spread sovrascrive il fallback interno |
 | `children` su `Grid` | Grid non accetta children | Usa `form={<Fields />}` per il form inline |
 | `recordId` su `Form` | Prop non esiste | La chiave del record viene da URL automaticamente |
 | `MenuConfig` non importabile | Era type interno | Ora esportato: `import type { MenuConfig } from '@llmnative/react'` |

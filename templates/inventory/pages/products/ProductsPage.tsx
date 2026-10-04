@@ -19,14 +19,14 @@ export default function ProductsPage() {
                 {
                     key: 'price',
                     label: 'Price',
-                    render: ({ value }) => `$ ${(Number(value) / 100).toFixed(2)}`,
+                    render: ({ value }) => `$ ${Number(value).toFixed(2)}`,
                 },
                 {
                     key: 'stock',
                     label: 'Stock',
                     render: ({ value }) => (
                         <Badge variant={Number(value) === 0 ? 'danger' : Number(value) < 10 ? 'warning' : 'success'}>
-                            {value}
+                            {String(value)}
                         </Badge>
                     ),
                 },
@@ -42,18 +42,15 @@ export default function ProductsPage() {
             view="table"
             sortable
             pagination={{ limit: 25 }}
-            onLoad={(data) => ({ ...data, price: data.price ? data.price / 100 : 0 })}
-            onSave={async ({ record }) => ({ ...record, price: Math.round(record.price * 100) })}
-        >
-            {() => (
+            form={
                 <>
                     <Input name="name" label="Product name" required />
                     <Input name="sku" label="SKU" />
                     <Select name="category" label="Category" options={categoryOptions} />
-                    <Input name="price" label="Price ($)" inputType="number" />
-                    <Input name="stock" label="Stock (units)" inputType="number" />
+                    <Input name="price" label="Price ($)" type="number" min={0} step={0.01} />
+                    <Input name="stock" label="Stock (units)" type="number" />
                 </>
-            )}
-        </Grid>
+            }
+        />
     );
 }

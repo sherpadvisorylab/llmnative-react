@@ -1,6 +1,6 @@
 {
   "name": "@llmnative/react",
-  "version": "1.19.1",
+  "version": "1.19.2",
   "description": "LLM-native React framework for deterministic UI generation. Data-driven by default, schema-driven optional. Ultra-low token consumption — built for AI agents, not just humans.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -27,6 +27,7 @@
     "test": "vitest run",
     "test:e2e": "npx playwright test",
     "test:e2e:proxy-scaffold": "node scripts/e2e/test-proxy-scaffold.js",
+    "test:e2e:scaffold": "node scripts/e2e/test-scaffold-templates.js",
     "test:e2e:proxy-runtime": "vitest run tests/e2e/proxy-runtime.test.ts --environment node",
     "test:integration": "npx firebase emulators:exec --only database,firestore,storage --project demo-test \"npx vitest run --config vitest.integration.config.mts\"",
     "test:watch": "vitest",
@@ -41,7 +42,10 @@
     "dist/**/*.map",
     "bin",
     "scripts/cli",
-    "themes"
+    "templates",
+    "themes",
+    "llms.txt",
+    "llms-full.txt"
   ],
   "repository": {
     "type": "git",

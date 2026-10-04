@@ -9,6 +9,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.19.2] - 2026-10-04
+
+### Fixed
+- `App`: the built-in `/` filler route no longer shadows the page a consumer assigns to `/` in
+  `menuConfig` (also when nested in `children`); it is added only when the menu has no `/` of its
+  own (CR-090, GH issue #53, bug #32).
+- Scaffold (`npx @llmnative/react create`) works out of the box for every template (CR-089, GH
+  issue #52):
+  - the npm package now ships `templates/`, `llms.txt` and `llms-full.txt` (#29, #40);
+  - `src/index.tsx` no longer passes the non-existent `aiConfig` prop (AI keys go in
+    `providers.ai`) and passes `LayoutDefault={Default}` (#31, #33);
+  - `--provider=firebase` wires `firestoreDb` + `firebaseAuth` and writes Firestore rules and
+    indexes instead of Realtime Database rules; `--provider=supabase` wires `supabaseAuth` (#36, #37);
+  - layout and sections are shared by all templates (`templates/_shared`) and use only public
+    components — `SideNav`, `AuthButton`, `ActionButton`, `Brand`, `Breadcrumbs`, `Modal` — instead
+    of `SignInButton`, `Menu context` and hand-rolled buttons, sidebar and spinner (#30);
+  - template pages pass the add/edit fields through `Grid`'s `form` prop and use
+    `<Input type="…">`; `SettingsPage` loads its record from the `Form` path (#34, #35);
+  - template column renderers convert the `unknown` cell value before using it as a key or
+    content, the dashboard stat cards are built on `Card`, and the inventory template stores
+    prices in dollars instead of misusing `Grid`'s `onLoad`/`onSave` for a cents conversion;
+  - the generated project uses the framework's TypeScript version; an unknown `--template` fails
+    with an explicit error instead of producing an empty project.
+- Docs: `Input.Number` / `Input.Email` / `Input.Date` never existed — `llms-full.txt`, README and
+  `docs/` now use `<Input type="…">`; scaffold reference and quick start describe the generated
+  project as it is.
+
+### Added
+- `npm run test:e2e:scaffold`: packs the framework, scaffolds every template (and the
+  firebase/supabase providers) from the packed CLI, installs the tarball, then runs
+  `tsc --noEmit` and `vite build` on each generated app.
+
 ## [1.19.1] - 2026-10-02
 
 ### Changed

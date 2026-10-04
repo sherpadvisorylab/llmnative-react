@@ -96,6 +96,9 @@
 | [CR-085](#cr-085--ai-model-pricing-prezzi-inputoutput-nel-model-picker) | AI model pricing: prezzi input/output nel model picker | Media | CR-084 | ✅ |
 | [CR-086](#cr-086--model-picker-modelli-raggruppati-per-provider-con-header-sticky) | Model picker: modelli raggruppati per provider con header sticky | Media | CR-085 | ✅ |
 | [CR-087](#cr-087--ai-provider-groq) | AI provider: Groq | Media | CR-085 | ✅ |
+| [CR-088](#cr-088--descriptionlist-coppie-etichetta--valore-in-sola-lettura) | DescriptionList: coppie etichetta → valore in sola lettura | Media | — | ✅ |
+| [CR-089](#cr-089--scaffold-pacchetto-npm-cli-e-template-allineati-allapi) | Scaffold: pacchetto npm, CLI e template allineati all'API | Alta | CR-005 | ✅ |
+| [CR-090](#cr-090--app-la-rotta-di-fallback--non-copre-la-pagina-del-consumer) | App: la rotta di fallback `/` non copre la pagina del consumer | Alta | — | ✅ |
 
 ---
 
@@ -129,6 +132,81 @@ Richiesto dal consumer `llmnative-cms`.
 - [x] Docs `docs/providers/ai.md`, `llms-full.txt`
 - [x] Verifica visiva nel consumer `llmnative-cms` (picker Agentico: header per OpenCode, DeepSeek, Cloudflare Workers AI, sticky durante lo scroll)
 - [x] Release 1.18.0
+
+---
+
+## CR-090 — App: la rotta di fallback `/` non copre la pagina del consumer
+
+**Stato:** ✅ done — rilasciato in 1.19.2
+**Issue:** [#53](https://github.com/sherpadvisorylab/llmnative-react/issues/53) (bug: [#32](https://github.com/sherpadvisorylab/llmnative-react/issues/32))
+**Priorità:** Alta
+
+### Motivazione
+
+`App()` aggiunge sempre la rotta di riempimento `default: [{ path: "/" }]` (senza `page`) prima del
+`menuConfig` del consumer. A parità di path React Router sceglie la prima rotta dichiarata: la pagina
+che il consumer assegna a `/` viene ignorata e il framework prova a caricare `./pages/Home.js`
+(404, `Missing Page`). Riprodotto in `mybblo-marketing-solution` (1.15.3), aggirato là con uno shim.
+
+### Scope
+
+- `src/App.tsx`: rotta di riempimento `/` solo se nessuna voce del menu (anche annidata) ha `path: "/"`.
+- Test di regressione su `App`.
+- `llms-full.txt`: rimossa la voce "Route `/` non funziona" dai Gotchas.
+
+### Checklist
+
+- [x] Fix in `src/App.tsx` (`definesPath` ricorsivo su `menu`, `rootFallback` solo se manca `/`)
+- [x] Test di regressione `tests/unit/App.test.tsx` › `App root route` (3; i 2 sul menu con `/` falliscono sul codice precedente)
+- [x] Docs `llms-full.txt`, CHANGELOG, STATUS
+- [x] Release 1.19.2
+
+## CR-089 — Scaffold: pacchetto npm, CLI e template allineati all'API
+
+**Stato:** ✅ done — rilasciato in 1.19.2
+**Issue:** [#52](https://github.com/sherpadvisorylab/llmnative-react/issues/52) (bug: #29, #30, #31, #33, #34, #35, #36, #37, #40)
+**Priorità:** Alta
+**Dipende da:** CR-005
+
+### Motivazione
+
+`npx @llmnative/react create` non produce un progetto funzionante per nessun template: la cartella
+`templates/` non è nel pacchetto npm, il codice generato usa API rinominate o inesistenti
+(`SignInButton`, `Menu context`, `aiConfig`, `Grid` children, `inputType`) e il wiring è rigido
+(`dbRealtime`, `googleAuth`, nessun `LayoutDefault`). Bug segnalati e riprodotti da consumer reali
+(`mybblo-marketing-solution` su 1.15.3, `llmnative/playbook` su 1.19.1). In più i template violano la
+direttiva UI consumer (pulsanti, sidebar e spinner scritti a mano) e la documentazione indica
+`Input.Number`/`Input.Email`/`Input.Date`, che non esistono: l'API è `<Input type="…">`.
+
+### Scope
+
+- Packaging: `package.json#files` con `templates`, `llms.txt`, `llms-full.txt` (#29, #40).
+- CLI `scripts/cli/setup-project.js`: niente `aiConfig` (#31), `LayoutDefault` passato ad `<App>` (#33),
+  Firebase su `firestoreDb` con regole Firestore (#36), auth coerente col provider (#37), errore
+  esplicito su template inesistente, TypeScript allineato alla toolchain del framework.
+- Template: layout e sezioni comuni in `templates/_shared` con soli componenti pubblici (`AuthButton`,
+  `Menu menuKey`, `SideNav`, `ActionButton`, `Brand`, `Breadcrumbs`, `Modal`) (#30); `PreLoader`
+  rimosso (`App` mostra già il loader durante il caricamento delle pagine); pagine CRUD con
+  `Grid form` (#34) e `Input type` (#35).
+- Emersi dal gate `test:e2e:scaffold` (non segnalati prima): renderer di colonna che usano il
+  valore `unknown` come chiave/contenuto senza conversione; `ProductsPage` con `onLoad`/`onSave` di
+  `Grid` usati con firme sbagliate per convertire i centesimi (prezzi ora in dollari);
+  `SettingsPage` con `recordId` inesistente su `Form` (ora `path="/settings/app"`); `StatCard`
+  delle dashboard costruita a mano (ora su `Card`).
+- Docs: `Input.X` → `<Input type="…">` in `llms-full.txt` e `docs/`.
+- Verifica: `scripts/e2e/test-scaffold-templates.js` (`npm run test:e2e:scaffold`).
+
+### Checklist
+
+- [x] Packaging (`files`): `templates/**`, `llms.txt`, `llms-full.txt` nel tarball (`npm pack --dry-run`)
+- [x] CLI
+- [x] Template `_shared` + pagine dei 5 template
+- [x] Docs (`llms-full.txt`, README, `docs/examples`, `docs/patterns`, `docs/getting-started`, `docs/reference/scaffolding.md`)
+- [x] `test:e2e:scaffold` verde: blank/admin/crm/inventory/project (mock) + blank (firebase, supabase) passano `tsc --noEmit` e `vite build`
+- [x] CHANGELOG, STATUS
+- [x] Release 1.19.2
+
+Nota: `npm run test:e2e:proxy-scaffold` fallisce già su 1.19.1 (usa `--proxy-provider=viteDevProxy`, che la CLI non riconosce più): preesistente, fuori scope.
 
 ---
 

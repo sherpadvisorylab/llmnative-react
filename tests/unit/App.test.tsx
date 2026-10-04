@@ -424,3 +424,43 @@ describe('App provider orchestration', () => {
         expect(document.querySelector('link[rel="apple-touch-icon"]')).toHaveAttribute('href', '/apple-touch-icon.png');
     });
 });
+
+describe('App root route', () => {
+    function HomeProbePage() {
+        return <span data-testid="home-probe">home</span>;
+    }
+
+    function renderAtRoot(menuConfig: React.ComponentProps<typeof App>['menuConfig']) {
+        window.history.pushState({}, '', '/');
+        const importPage = vi.fn(() => Promise.resolve({ default: () => <span data-testid="conventional-home">conventional</span> }));
+        render(
+            <App
+                importPage={importPage}
+                menuConfig={menuConfig}
+                providers={{ custom: { data: createDataProvider('root-data') }, services: { data: 'custom' } }}
+            />
+        );
+        return importPage;
+    }
+
+    it('renders the page the menu assigns to "/" instead of the conventional fallback', async () => {
+        const importPage = renderAtRoot({ main: [{ path: '/', page: HomeProbePage }] });
+
+        expect(await screen.findByTestId('home-probe')).toBeInTheDocument();
+        expect(importPage).not.toHaveBeenCalled();
+    });
+
+    it('also honours a "/" entry nested in children', async () => {
+        const importPage = renderAtRoot({ main: [{ path: '/section', children: [{ path: '/', page: HomeProbePage }] }] });
+
+        expect(await screen.findByTestId('home-probe')).toBeInTheDocument();
+        expect(importPage).not.toHaveBeenCalledWith('./pages/Home.js');
+    });
+
+    it('keeps the conventional fallback when the menu has no "/"', async () => {
+        const importPage = renderAtRoot({ main: [{ path: '/probe', page: HomeProbePage }] });
+
+        expect(await screen.findByTestId('conventional-home')).toBeInTheDocument();
+        expect(importPage).toHaveBeenCalledWith('./pages/Home.js');
+    });
+});

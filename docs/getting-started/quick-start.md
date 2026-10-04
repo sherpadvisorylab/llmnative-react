@@ -64,13 +64,12 @@ src/
     app.ts        <- central wiring: data, storage, auth, email, ai, theme, icons
     menu.ts       <- navigation tree (template-specific)
   layouts/
-    Default.tsx   <- shell: header + sidebar + <Outlet />
+    Default.tsx   <- shell: header + sidebar + page; passed to <App LayoutDefault>
   sections/
-    Header.tsx    <- topbar with Brand, Menu, Notifications
-    Sidebar.tsx   <- responsive sidebar using <Menu>
+    Header.tsx    <- topbar with ActionButton (mobile nav), Brand, AuthButton
+    Sidebar.tsx   <- SideNav; inside a left Modal on small screens
     Footer.tsx
     PageHeader.tsx<- breadcrumbs
-    PreLoader.tsx <- initial spinner
   pages/          <- starter pages (template-specific)
   data/
     mockData.ts   <- fixture data for MockDataProvider
@@ -89,8 +88,8 @@ If you choose an AI provider during scaffolding, the generator will:
 
 - add `VITE_AI_PROVIDER` to `.env`
 - add the relevant API key variable (`VITE_OPENAI_API_KEY`, `VITE_GEMINI_API_KEY`, etc.)
-- generate `aiConfig` in `src/conf/app.ts`
-- set `providers.services.ai` so `Prompt`, `WorkflowAI`, and `AI.fetch(...)` all use the same orchestrator
+- put the AI keys in `providers.ai` in `src/conf/app.ts`
+- set `providers.services.ai` so `Prompt`, `Chatbot` and `useAIProvider()` all use the same orchestrator
 
 The public API stays stable. Switching from `openai` to `gemini` should be a config change in `src/conf/app.ts`, not a component rewrite.
 
@@ -126,11 +125,12 @@ export default function UsersPage() {
 Then add it to `src/conf/menu.ts`:
 
 ```ts
-import Default from '../layouts/Default';
 import UsersPage from '../pages/users/UsersPage';
 
-{ path: '/users', title: 'Users', icon: 'users', page: UsersPage, layout: Default, group: 'Management' },
+{ path: '/users', title: 'Users', icon: 'users', page: UsersPage, group: 'Management' },
 ```
+
+The page renders inside `LayoutDefault`; set `layout` on an item only to use a different shell.
 
 `Grid` reads and writes through the active `DataProvider`. With `mock`, data lives in memory and resets on reload. Switch the provider to `firebase` or `supabase` in `src/conf/app.ts` when you are ready for persistence.
 

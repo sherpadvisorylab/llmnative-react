@@ -1,13 +1,13 @@
 import React from 'react';
+import { Card } from '@llmnative/react';
 import { mockData } from '../../data/mockData';
 
 function StatCard({ label, value, sub }: { label: string; value: number | string; sub?: string }) {
     return (
-        <div className="rounded-lg border bg-card p-4 space-y-1">
-            <p className="text-xs text-muted-foreground uppercase tracking-wider">{label}</p>
+        <Card title={label}>
             <p className="text-2xl font-semibold">{value}</p>
             {sub && <p className="text-xs text-muted-foreground">{sub}</p>}
-        </div>
+        </Card>
     );
 }
 

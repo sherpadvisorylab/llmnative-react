@@ -1,5 +1,5 @@
 import React from 'react';
-import { Grid, Badge, Input, Select } from '@llmnative/react';
+import { Grid, Badge, Input, Select, type BadgeType } from '@llmnative/react';
 
 const stageOptions = [
     { label: 'Prospect', value: 'prospect' },
@@ -9,7 +9,7 @@ const stageOptions = [
     { label: 'Lost', value: 'lost' },
 ];
 
-const stageVariant: Record<string, string> = {
+const stageVariant: Record<string, BadgeType> = {
     prospect: 'secondary',
     qualified: 'info',
     proposal: 'warning',
@@ -33,13 +33,13 @@ export default function DealsPage() {
                     key: 'stage',
                     label: 'Stage',
                     render: ({ value }) => (
-                        <Badge variant={stageVariant[value] ?? 'secondary'}>{value}</Badge>
+                        <Badge variant={stageVariant[String(value)] ?? 'secondary'}>{String(value)}</Badge>
                     ),
                 },
                 {
                     key: 'closedAt',
                     label: 'Closed',
-                    render: ({ value }) => value || '-',
+                    render: ({ value }) => (value ? String(value) : '-'),
                 },
             ]}
             actions={['add', 'edit', 'delete']}
@@ -47,16 +47,15 @@ export default function DealsPage() {
             groupBy="stage"
             sortable
             pagination={{ limit: 25 }}
-        >
-            {() => (
+            form={
                 <>
                     <Input name="title" label="Deal title" required />
                     <Input name="contact" label="Contact name" />
-                    <Input name="value" label="Value ($)" inputType="number" />
+                    <Input name="value" label="Value ($)" type="number" />
                     <Select name="stage" label="Stage" options={stageOptions} />
-                    <Input name="closedAt" label="Closed date" inputType="date" />
+                    <Input name="closedAt" label="Closed date" type="date" />
                 </>
-            )}
-        </Grid>
+            }
+        />
     );
 }

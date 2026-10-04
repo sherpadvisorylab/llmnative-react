@@ -37,6 +37,8 @@ function resetProjectDirectory() {
         '.env.example',
         '.firebaserc',
         'database.rules.json',
+        'firestore.rules',
+        'firestore.indexes.json',
         'firebase.json',
         'storage.rules',
         'index.html',
@@ -167,7 +169,8 @@ function normalizeFirebaseProjectId(projectName) {
 
 function createPackageJson(params) {
     const packagePath = path.resolve(__dirname, '../../package.json');
-    const version = JSON.parse(fs.readFileSync(packagePath, 'utf8')).version;
+    const frameworkPackage = JSON.parse(fs.readFileSync(packagePath, 'utf8'));
+    const version = frameworkPackage.version;
 
     ensureFile(path.join(root, 'package.json'), JSON.stringify({
         name: normalizeFirebaseProjectId(params.projectname) || 'llmnative-app',
@@ -200,7 +203,8 @@ function createPackageJson(params) {
             '@vitejs/plugin-react': '^6.0.4',
             autoprefixer: '^10.5.4',
             postcss: '^8.5.23',
-            typescript: '6.0.3',
+            // Same compiler the framework is built and type-checked with.
+            typescript: frameworkPackage.devDependencies.typescript,
             vite: '^8.1.5',
         },
     }, null, 2));
@@ -293,7 +297,8 @@ function createFirebaseConfig(params) {
     const hostingSite = params.hosting === '' ? params.projectname : params.hosting;
 
     ensureFile(path.join(root, 'firebase.json'), JSON.stringify({
-        database: { rules: 'database.rules.json' },
+        firestore: { rules: 'firestore.rules', indexes: 'firestore.indexes.json' },
+        storage: { rules: 'storage.rules' },
         ...(includeHosting && {
             hosting: {
                 site: normalizeFirebaseProjectId(hostingSite),
@@ -305,11 +310,21 @@ function createFirebaseConfig(params) {
         }),
     }, null, 2));
 
-    ensureFile(path.join(root, 'database.rules.json'), JSON.stringify({
-        rules: {
-            '.read': 'auth != null',
-            '.write': 'auth != null',
-        },
+    ensureFile(path.join(root, 'firestore.rules'), `
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
+    `);
+
+    ensureFile(path.join(root, 'firestore.indexes.json'), JSON.stringify({
+        indexes: [],
+        fieldOverrides: [],
     }, null, 2));
 
     ensureFile(path.join(root, 'storage.rules'), `
@@ -351,6 +366,10 @@ function substituteProjectName(filePath, projectname) {
 function copyTemplateFiles(params) {
     const sharedSrc  = path.resolve(__dirname, '../../templates/_shared');
     const templateSrc = path.resolve(__dirname, `../../templates/${params.template}`);
+
+    if (!fs.existsSync(sharedSrc) || !fs.existsSync(templateSrc)) {
+        throw new Error(`Template "${params.template}" not found in ${path.dirname(templateSrc)}`);
+    }
 
     // Copy shared layouts and sections
     copyDir(path.join(sharedSrc, 'layouts'),  path.join(root, 'src/layouts'));
@@ -437,7 +456,7 @@ const selectedProvider = env.VITE_PROVIDER ?? '${params.provider}';
 const selectedAIProvider = env.VITE_AI_PROVIDER ?? '${params.aiProvider ?? 'none'}';
 
 const dataDriver =
-  selectedProvider === 'firebase' ? 'dbRealtime'
+  selectedProvider === 'firebase' ? 'firestoreDb'
     : selectedProvider === 'supabase' ? 'supabaseDb'
       : 'mock';
 
@@ -445,6 +464,11 @@ const storageDriver =
   selectedProvider === 'firebase' ? 'firestorage'
     : selectedProvider === 'supabase' ? 'supabaseStorage'
       : undefined;
+
+const authDriver =
+  selectedProvider === 'firebase' ? 'firebaseAuth'
+    : selectedProvider === 'supabase' ? 'supabaseAuth'
+      : 'googleAuth';
 
 const aiDriver = selectedAIProvider !== 'none'
   ? selectedAIProvider
@@ -503,10 +527,11 @@ export const providers: AppProvidersConfig = {
     clientId: env.VITE_DROPBOX_CLIENT_ID ?? '',
     rootPath: env.VITE_DROPBOX_ROOT_PATH ?? '',
   },
+  ai: aiConfig,
   services: {
     data: dataDriver,
     ...(storageDriver ? { storage: storageDriver } : {}),
-    auth: 'googleAuth',
+    auth: authDriver,
     ...(aiDriver ? { ai: aiDriver } : {}),
   },
 };
@@ -518,18 +543,17 @@ import { createRoot } from 'react-dom/client';
 import { App } from '@llmnative/react';
 import './styles/globals.css';
 
-import { aiConfig, appConfig, providers } from './conf/app';
+import { appConfig, providers } from './conf/app';
 import { menu } from './conf/menu';
-
-const env = import.meta.env;
+import Default from './layouts/Default';
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <App
       importPage={(pageSource) => import(/* @vite-ignore */ pageSource)}
       menuConfig={menu}
+      LayoutDefault={Default}
       providers={providers}
-      aiConfig={aiConfig}
       iconProvider={appConfig.iconProvider}
       themeProvider={{
         theme: appConfig.theme,

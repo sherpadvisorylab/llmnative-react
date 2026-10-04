@@ -12,13 +12,12 @@ export default function CategoriesPage() {
             actions={['add', 'edit', 'delete']}
             view="table"
             sortable
-        >
-            {() => (
+            form={
                 <>
                     <Input name="name" label="Category name" required />
                     <Input name="slug" label="Slug (e.g. home-garden)" />
                 </>
-            )}
-        </Grid>
+            }
+        />
     );
 }

@@ -23,7 +23,7 @@ const form = useFormController()
 
   <Form controller={form} path="/users/alice" appearance="card" draftBucket="workspace/acme">
     <Input name="name" label="Name" required />
-    <Input.Email name="email" label="Email" />
+    <Input type="email" name="email" label="Email" />
     <Select name="role" label="Role" options={roleOptions} />
   </Form>
 </>;

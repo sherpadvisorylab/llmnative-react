@@ -412,6 +412,15 @@ function App({
             ].filter(Boolean))
         );
 
+    const definesPath = (items: MenuItem[], target: string): boolean =>
+        items.some(item => item.path === target || (!!item.children && definesPath(item.children, target)));
+
+    // The "/" filler resolves its page by convention (./pages/Home.js): add it only when the
+    // consumer's menu has no "/" of its own, otherwise it would shadow the consumer's page.
+    const rootFallback: MenuConfig = Object.values(menu).some(items => definesPath(items, "/"))
+        ? {}
+        : { default: [{ path: "/" }] };
+
     return (
         <AppProvider {...providerProps}>
             {children}
@@ -419,14 +428,13 @@ function App({
                 <Route path={AUTH_REDIRECT_URI} element={<Authorize />}></Route>
                 <>
                     {renderRoutes({
-                        default: [{ path: "/" }], ...{
-                            ...menu,
-                            _auth: [{
-                                path: "/users",
-                                page: Users,
-                                layout: LayoutDefault
-                            }]
-                        }
+                        ...rootFallback,
+                        ...menu,
+                        _auth: [{
+                            path: "/users",
+                            page: Users,
+                            layout: LayoutDefault
+                        }]
                     })}
                 </>
                 <Route path='*' element={<NotFound />}></Route>
