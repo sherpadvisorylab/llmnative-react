@@ -1,5 +1,5 @@
 import React from 'react';
-import { Grid, Badge, Input, Select } from '@llmnative/react';
+import { Grid, Badge, Input, Select, type BadgeType } from '@llmnative/react';
 
 const statusOptions = [
     { label: 'Active', value: 'active' },
@@ -7,7 +7,7 @@ const statusOptions = [
     { label: 'Lead', value: 'lead' },
 ];
 
-const statusVariant: Record<string, string> = {
+const statusVariant: Record<string, BadgeType> = {
     active: 'success',
     inactive: 'secondary',
     lead: 'warning',
@@ -26,7 +26,7 @@ export default function ContactsPage() {
                     key: 'status',
                     label: 'Status',
                     render: ({ value }) => (
-                        <Badge variant={statusVariant[value] ?? 'secondary'}>{value}</Badge>
+                        <Badge variant={statusVariant[String(value)] ?? 'secondary'}>{String(value)}</Badge>
                     ),
                 },
             ]}
@@ -34,16 +34,15 @@ export default function ContactsPage() {
             view="table"
             sortable
             pagination={{ limit: 20 }}
-        >
-            {() => (
+            form={() => (
                 <>
                     <Input name="name" label="Full name" required />
-                    <Input name="email" label="Email" inputType="email" />
+                    <Input name="email" label="Email" type="email" />
                     <Input name="phone" label="Phone" />
                     <Input name="company" label="Company" />
                     <Select name="status" label="Status" options={statusOptions} />
                 </>
             )}
-        </Grid>
+        />
     );
 }

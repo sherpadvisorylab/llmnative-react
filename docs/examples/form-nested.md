@@ -47,9 +47,9 @@ export default function QuoteForm() {
 
       {/* ── Contacts (fixed-length array) ────────────────── */}
       <Input name="contacts.0.name"  label="Primary contact - Name" />
-      <Input.Email name="contacts.0.email" label="Primary contact - Email" />
+      <Input name="contacts.0.email" label="Primary contact - Email" type="email" />
       <Input name="contacts.1.name"  label="Alternate contact - Name" />
-      <Input.Email name="contacts.1.email" label="Alternate contact - Email" />
+      <Input name="contacts.1.email" label="Alternate contact - Email" type="email" />
 
       {/* ── Quote lines (dynamic array with Repeat) ──────── */}
       <Repeat name="items" defaultLength={3} label="Quote lines">
@@ -60,15 +60,17 @@ export default function QuoteForm() {
               label={index === 0 ? "Description" : ""}
               placeholder="Product/service description"
             />
-            <Input.Number
+            <Input
               name={`items.${index}.qty`}
               label={index === 0 ? "Qty" : ""}
+              type="number"
               min={1}
               defaultValue={1}
             />
-            <Input.Number
+            <Input
               name={`items.${index}.unitPrice`}
               label={index === 0 ? "Unit price €" : ""}
+              type="number"
               step={0.01}
               min={0}
             />

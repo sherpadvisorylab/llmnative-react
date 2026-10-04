@@ -13,14 +13,13 @@ export default function RolesPage() {
             actions={['add', 'edit', 'delete']}
             view="table"
             sortable
-        >
-            {() => (
+            form={() => (
                 <>
                     <Input name="name" label="Key (e.g. editor)" required />
                     <Input name="label" label="Display name" required />
                     <Input name="description" label="Description" />
                 </>
             )}
-        </Grid>
+        />
     );
 }

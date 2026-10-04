@@ -42,7 +42,7 @@ The central idea is simple: define data shape and UI intent once, then let the f
 ```tsx
 <Form path="/users">
   <Input name="name" label="Name" required />
-  <Input.Email name="email" label="Email" />
+  <Input name="email" label="Email" type="email" />
   <Select name="role" label="Role" options={roleOptions} />
 </Form>
 ```

@@ -96,6 +96,7 @@
 | [CR-085](#cr-085--ai-model-pricing-prezzi-inputoutput-nel-model-picker) | AI model pricing: prezzi input/output nel model picker | Media | CR-084 | ✅ |
 | [CR-086](#cr-086--model-picker-modelli-raggruppati-per-provider-con-header-sticky) | Model picker: modelli raggruppati per provider con header sticky | Media | CR-085 | ✅ |
 | [CR-087](#cr-087--ai-provider-groq) | AI provider: Groq | Media | CR-085 | ✅ |
+| [CR-089](#cr-089--scaffold-pacchetto-npm-cli-e-template-allineati-allapi) | Scaffold: pacchetto npm, CLI e template allineati all'API | Critica | — | 🔄 |
 
 ---
 
@@ -6065,3 +6066,69 @@ interface AsyncDropdownProps<TItem> extends Omit<DropdownProps, 'children' | 'he
 - [x] Aggiornare docs di riferimento
 
 ---
+
+## CR-089 — Scaffold: pacchetto npm, CLI e template allineati all'API
+
+**Stato:** 🔄 in progress
+**Issue:** [#52](https://github.com/sherpadvisorylab/llmnative-react/issues/52)
+**Priorità:** Critica
+**Dipende da:** —
+
+### Motivazione
+
+`npx @llmnative/react create` non produceva un progetto funzionante per nessun template.
+Il pacchetto pubblicato non includeva `templates/`, `llms.txt` e `llms-full.txt` (#29, #40);
+il CLI generava `src/index.tsx` con la prop inesistente `aiConfig` e senza `LayoutDefault`
+(#31, #33); cablava driver dati/auth errati (#36, #37); i template usavano API rimosse o
+sbagliate (#30, #34, #35) e violavano la direttiva UI consumer (pulsanti hamburger/`✕`,
+sidebar e spinner hand-rolled). La documentazione descriveva `Input.Number`/`Input.Email`/
+`Input.Date`, che non esistono (l'API reale è `<Input type="…">`). Bug riprodotti da
+consumer reali (`mybblo-marketing-solution` su 1.15.3, `llmnative/playbook` su 1.19.1).
+
+### Scope
+
+- **Packaging** — `package.json#files` include `templates`, `llms.txt`, `llms-full.txt`.
+- **CLI** — `scripts/cli/setup-project.js`: `firestoreDb` di default per Firebase, driver
+  auth coerente col provider, config AI dentro `providers.ai`, `src/index.tsx` senza
+  `aiConfig` e con `LayoutDefault={Default}`, `firestore.rules`/`firestore.indexes.json` +
+  sezione `firestore` al posto di RTDB, errore esplicito per template inesistente,
+  `typescript` allineato alla toolchain del framework.
+- **Template** — parti comuni estratte in `templates/_shared/{layouts,sections}`, Header/
+  Sidebar basati su `AuthButton`/`Menu menuKey`/`SideNav`/`ActionButton`/`Brand`, PreLoader
+  su `Loader`; menu senza `layout` per item; pagine CRUD con campi nella prop `form` di
+  `Grid`, `<Input type="…">`, varianti `Badge` tipizzate.
+- **Documentazione** — `llms-full.txt`, `docs/patterns/*`, `docs/examples/*`,
+  `docs/getting-started/index.md`, README: rimossi `Input.Number`/`Email`/`Date` e
+  `inputType`; descrizione dello scaffold allineata.
+- **Verifica automatica** — `scripts/e2e/test-scaffold-templates.js` e
+  `npm run test:e2e:scaffold`.
+
+### Fuori scope
+
+- Rotta di fallback `/` del runtime `App()` (#32): CR-090.
+- Nuovi provider nelle domande della CLI.
+- Migrazione dei consumer già scaffoldati.
+- Bump di versione, tag e `npm publish`.
+
+### Checklist
+
+- [x] `package.json#files` include `templates`, `llms.txt`, `llms-full.txt`
+- [x] CLI: `firestoreDb` + `firebaseAuth`/`supabaseAuth`/`googleAuth` coerenti
+- [x] CLI: config AI dentro `providers.ai`, `index.tsx` senza `aiConfig` e con `LayoutDefault`
+- [x] CLI: `firestore.rules` + `firestore.indexes.json` + sezione `firestore`
+- [x] CLI: errore esplicito per template inesistente
+- [x] CLI: `typescript` allineato alla toolchain del framework
+- [x] Template: `templates/_shared/{layouts,sections}` e rimozione duplicati
+- [x] Template: Header/Sidebar/PreLoader su blocchi pubblici, niente primitive hand-rolled
+- [x] Template: menu senza `layout` per item
+- [x] Template: pagine CRUD con `form` prop, `<Input type="…">`, `Badge` tipizzati
+- [x] Docs/llms-full/README: rimossi `Input.Number`/`Email`/`Date` e `inputType`
+- [x] `scripts/e2e/test-scaffold-templates.js` + `npm run test:e2e:scaffold`
+- [x] `npx tsc --noEmit`, `npm test`, `npm run build` verdi
+- [ ] `npm run test:e2e:scaffold` eseguito (richiede rete per `npm install`)
+- [ ] Issue GitHub collegata e aggiornata con le evidenze
+- [ ] SemVer e `npm publish` (dopo merge e verifica umana)
+
+### Note
+
+Lo stato finale (`✅ done`) si applica dopo merge e verifica umana, come da workflow.

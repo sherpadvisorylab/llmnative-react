@@ -9,6 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Scaffold (`npx @llmnative/react create`) produces a working project for every template
+  (CR-089). The published package now ships `templates/`, `llms.txt` and `llms-full.txt`
+  (`package.json#files`). The generated `src/conf/app.ts` uses the `firestoreDb` data driver
+  for Firebase (not `dbRealtime`), picks the auth driver from the provider (`firebaseAuth` /
+  `supabaseAuth` / `googleAuth`) and nests AI keys under `providers.ai`; `src/index.tsx` no
+  longer passes the nonexistent `aiConfig` prop and now passes `LayoutDefault={Default}`.
+  Firebase scaffolds generate `firestore.rules` + `firestore.indexes.json` and a `firestore`
+  section in `firebase.json` instead of RTDB `database.rules.json`. An unknown `--template`
+  now fails with an explicit error, and the generated project pins `typescript` to the
+  framework toolchain.
+- Template layouts/sections are de-duplicated into `templates/_shared` and rebuilt on public
+  blocks (`AuthButton`, `Menu menuKey`, `SideNav`, `ActionButton`, `Brand`, `Loader`), with no
+  hand-rolled buttons/spinners/sidebar. CRUD pages put their form fields in `Grid`'s `form`
+  prop (not `children`), use `<Input type="…">` instead of the removed `inputType`, and type
+  `Badge` variants correctly. Documentation (`llms-full.txt`, `docs/**`, README) no longer
+  describes the removed `Input.Number`/`Input.Email`/`Input.Date` sub-components. New
+  `npm run test:e2e:scaffold` checks `npm pack`, per-template scaffold, `tsc --noEmit` and
+  `vite build`.
+
 ## [1.19.1] - 2026-10-02
 
 ### Changed

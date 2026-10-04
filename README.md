@@ -142,7 +142,7 @@ export default function UserForm() {
 
       <Form controller={form} path="/users" appearance="card" showBack draftBucket="workspace/acme">
         <Input name="name" label="Name" required />
-        <Input name="email" label="Email" inputType="email" />
+        <Input name="email" label="Email" type="email" />
         <Select
           name="role"
           label="Role"
@@ -203,7 +203,7 @@ export default function UserForm() {
   }}
 >
   <Input name="title" label="Title" required />
-  <Input name="price" label="Price (€)" inputType="number" />
+  <Input name="price" label="Price (€)" type="number" />
 </Form>
 ```
 

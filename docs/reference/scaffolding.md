@@ -90,35 +90,52 @@ No proxy relay file is generated.
 
 `conf/app.ts` is the central wiring layer for the scaffolded app.
 
-This is where the scaffold maps env into:
-
-- `aiConfig`
-- `providers`
-- `services`
-
-The generated file now treats proxy as a real service slot:
+This is where the scaffold maps env into `providers` (including `providers.ai`)
+and `services`. AI keys are nested under `providers.ai` — `aiConfig` is **not** a
+prop of `<App>`:
 
 ```ts
-const selectedProxyProvider = env.VITE_PROXY_PROVIDER ?? 'none';
-const proxyDriver = selectedProxyProvider !== 'none'
-  ? selectedProxyProvider
-  : undefined;
+const dataDriver =
+  selectedProvider === 'firebase' ? 'firestoreDb'
+    : selectedProvider === 'supabase' ? 'supabaseDb'
+      : 'mock';
+
+const authDriver =
+  selectedProvider === 'firebase' ? 'firebaseAuth'
+    : selectedProvider === 'supabase' ? 'supabaseAuth'
+      : 'googleAuth';
 
 export const providers: AppProvidersConfig = {
-  proxy: {
-    enabled: env.VITE_PROXY_ENABLED === 'true',
-    route: env.VITE_PROXY_ROUTE ?? '/api/proxy',
+  proxy: { enabled: env.VITE_PROXY_ENABLED === 'true' },
+  ai: {
+    openaiApiKey: env.VITE_OPENAI_API_KEY ?? '',
+    // …
   },
   services: {
     data: dataDriver,
-    auth: 'googleAuth',
+    auth: authDriver,
     ...(aiDriver ? { ai: aiDriver } : {}),
-    ...(proxyDriver ? { proxy: proxyDriver } : {}),
   },
 };
 ```
 
+`src/index.tsx` passes `LayoutDefault={Default}` to `<App>`; the template menus
+omit a per-item `layout` and inherit it from there.
+
 Pages and UI components should consume hooks or framework widgets, not instantiate providers directly.
+
+---
+
+## Firebase project files
+
+When the data provider is `firebase`, the scaffold wires **Cloud Firestore** (driver
+`firestoreDb` + `firebaseAuth`), not the Realtime Database. It generates:
+
+- `firebase.json` with a `firestore` section (`rules` + `indexes`) and a `storage` section;
+- `firestore.rules` (authenticated read/write);
+- `firestore.indexes.json` (`indexes` / `fieldOverrides`).
+
+No `database.rules.json` / RTDB configuration is generated.
 
 ---
 

@@ -46,7 +46,7 @@ export default function UserList() {
       form={() => (
         <>
           <Input name="name" label="Name" required />
-          <Input.Email name="email" label="Email" required />
+          <Input name="email" label="Email" type="email" required />
           <Select
             name="role"
             label="Role"
@@ -101,7 +101,7 @@ export default function UserEdit() {
       }}
     >
       <Input name="name" label="Name" required />
-      <Input.Email name="email" label="Email" required />
+      <Input name="email" label="Email" type="email" required />
       <Input name="phone" label="Phone" />
       <Select
         name="role"

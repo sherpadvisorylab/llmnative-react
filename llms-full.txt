@@ -244,7 +244,7 @@ export class RestDataProvider implements DataProviderAdapter {
   onComplete={async ({ action }) => { if (action === 'save') navigate('/products') }}
 >
   <Input name="title" label="Titolo" required />
-  <Input name="price" label="Prezzo" inputType="number" />
+  <Input name="price" label="Prezzo" type="number" />
   <Input name="address.city" label="Città" />      {/* oggetto annidato */}
   <Repeat name="tags" defaultLength={1}>
     {(i) => <Input name={`tags.${i}`} label={`Tag ${i+1}`} />}
@@ -313,17 +313,17 @@ Azioni: `save()`, `delete()`, `reset()`, `restoreDraft()`, `discardDraft()`.
 ### Input
 ```tsx
 <Input name="x" label="..." required />               // text (default)
-<Input.Number  name="price" min={0} max={100} step={0.01} />
-<Input.Email   name="email" />
-<Input.Password name="pwd" />
-<Input.Date    name="date" />
-<Input.TextArea name="bio" rows={4} />
-<Input.Checkbox name="active" valueChecked="yes" />
-<Input.Color   name="color" />
+<Input name="price" label="..." type="number" min={0} max={100} step={0.01} />
+<Input name="email" label="..." type="email" />
+<Password name="pwd" label="..." />
+<Input name="date" label="..." type="date" />
+<TextArea name="bio" label="..." rows={4} />
+<Checkbox name="active" label="..." valueChecked="yes" />
+<Color name="color" label="..." />
 ```
-`InputProps`: `name`(req) `label` `required` `disabled` `placeholder` `min` `max` `step` `validator:(v)=>string|undefined`
+`InputProps`: `name`(req) `label` `required` `disabled` `placeholder` `type` `min` `max` `step` `validator:(v)=>string|undefined`
 
-**NOTA**: `inputType` NON è una prop pubblica — usa i sub-componenti `Input.Number`, `Input.Email` ecc.
+**NOTA**: la prop è `type`, non `inputType` — non esistono i sub-componenti `Input.Number`, `Input.Email` ecc.
 
 ### Select / Autocomplete / Checklist
 ```tsx
@@ -1085,7 +1085,7 @@ export const providers: AppProvidersConfig = {
 | Errore | Causa | Fix |
 |---|---|---|
 | `aiConfig` prop non esiste su `<App>` | La config AI va dentro `providers.ai`, NON come prop separata | `providers={{ ai: { openaiApiKey } }}` |
-| `inputType` non è una prop di `Input` | `InputProps` omette il type interno | Usa `<Input.Number>`, `<Input.Email>`, `<Input.Date>` ecc. |
+| `inputType` non è una prop di `Input` | La prop pubblica è `type` | Usa `<Input type="number" />`, `<Input type="email" />`, `<Input type="date" />` ecc. |
 | `Menu context=` non esiste | La prop si chiama `menuKey` | `<Menu menuKey="main" />` |
 | `SignInButton` non esiste | Rinominato | `<AuthButton />` |
 | `firebase: { config: ... }` errato | FirebaseConfig è flat | `firebase: { apiKey, authDomain, databaseURL, ... }` |
