@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.19.3] - 2026-10-04
+
+### Fixed
+- `Modal` (and `Modal.YesNo`, `Modal.Ok`) exposes dialog semantics: `role="dialog"`,
+  `aria-modal="true"` on the active modal (not when `stackedBehind`) and `aria-labelledby`
+  pointing at the `title` (or a string `header`). Screen readers announce it as a modal dialog
+  and tests can find it with `getByRole('dialog', { name })` (CR-091, GH issue #56).
+
 ## [1.19.2] - 2026-10-04
 
 ### Fixed

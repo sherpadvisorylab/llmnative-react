@@ -556,6 +556,7 @@ Quando `commands` e presente in `mode="run"`, `Prompt` monta internamente `Conte
 ```
 `size`: `'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'fullscreen'`
 `position`: `'center' | 'top' | 'left' | 'right' | 'bottom'`
+Accessibilità: il dialog ha `role="dialog"`, `aria-modal="true"` (non con `stackedBehind`) e `aria-labelledby` verso `title` (o `header` stringa) — nei test si trova con `getByRole('dialog', { name })`.
 
 | Prop | Tipo | Note |
 |---|---|---|

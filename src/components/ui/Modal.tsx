@@ -1,4 +1,4 @@
-﻿import React, {useState} from 'react';
+﻿import React, {useId, useState} from 'react';
 import { createPortal } from 'react-dom';
 import {useTheme} from "../../Theme";
 import { useI18n } from "../../I18n";
@@ -292,6 +292,9 @@ const ModalDefault = ({
 
     const showFooter = footer !== false && (footer || onSave || onDelete || (showCancel && onClose));
 
+    const titleId = useId();
+    const labelledBy = title || (typeof header === "string" && header) ? titleId : undefined;
+
     const closeButtonClass = "inline-flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
     return createPortal(<>
@@ -305,6 +308,9 @@ const ModalDefault = ({
             }}
         >
             <div
+                role="dialog"
+                aria-modal={stackedBehind ? undefined : true}
+                aria-labelledby={labelledBy}
                 className={pos.dialogClass}
                 style={{
                     ...dialogStyle,
@@ -318,9 +324,9 @@ const ModalDefault = ({
                 <div className={pos.contentClass}>
                     {(header || title || allowFullscreen || onClose || closeSlot) && <div className={pos.headerClassName}>
                         <div className="min-w-0">
-                            {title && <h3 className={pos.titleClassName}>{title}</h3>}
+                            {title && <h3 id={titleId} className={pos.titleClassName}>{title}</h3>}
                             {(title && header) && <div className={pos.subtitleClassName}>{header}</div>}
-                            {!title && header && (typeof header === "string" ? <h3 className={pos.titleClassName}>{header}</h3> : header)}
+                            {!title && header && (typeof header === "string" ? <h3 id={titleId} className={pos.titleClassName}>{header}</h3> : header)}
                         </div>
                         {(allowFullscreen || onClose || closeSlot) && <div className="ml-auto flex shrink-0 items-center gap-1">
                             {allowFullscreen && <button

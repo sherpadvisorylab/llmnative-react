@@ -99,6 +99,7 @@
 | [CR-088](#cr-088--descriptionlist-coppie-etichetta--valore-in-sola-lettura) | DescriptionList: coppie etichetta → valore in sola lettura | Media | — | ✅ |
 | [CR-089](#cr-089--scaffold-pacchetto-npm-cli-e-template-allineati-allapi) | Scaffold: pacchetto npm, CLI e template allineati all'API | Alta | CR-005 | ✅ |
 | [CR-090](#cr-090--app-la-rotta-di-fallback--non-copre-la-pagina-del-consumer) | App: la rotta di fallback `/` non copre la pagina del consumer | Alta | — | ✅ |
+| [CR-091](#cr-091--modal-semantica-di-dialog-accessibile) | Modal: semantica di dialog accessibile | Media | — | ✅ |
 
 ---
 
@@ -134,6 +135,32 @@ Richiesto dal consumer `llmnative-cms`.
 - [x] Release 1.18.0
 
 ---
+
+## CR-091 — Modal: semantica di dialog accessibile
+
+**Stato:** ✅ done — rilasciato in 1.19.3
+**Issue:** [#56](https://github.com/sherpadvisorylab/llmnative-react/issues/56)
+**Priorità:** Media
+
+### Motivazione
+
+Il contenitore del dialog di `Modal` era un `<div>` senza `role="dialog"`, `aria-modal` né
+collegamento al titolo: screen reader e test (`getByRole('dialog')`) non lo riconoscevano.
+Emerso nello smoke test Playwright dello scaffold 1.19.2 in `llmnative/playbook`.
+
+### Scope
+
+- `src/components/ui/Modal.tsx`: `role="dialog"`, `aria-modal="true"` (assente con
+  `stackedBehind`), `aria-labelledby` verso l'`<h3>` del titolo (id da `useId`) quando c'è `title`
+  o un `header` stringa non vuoto. Vale anche per `Modal.YesNo` e `Modal.Ok`.
+- Fuori scope: `Esc`, focus trap, ripristino del focus (comportamento nuovo, CR separata).
+
+### Checklist
+
+- [x] Implementazione, nessuna nuova prop pubblica
+- [x] Test `tests/unit/components/Modal.test.tsx` (4 nuovi; falliscono su 1.19.2)
+- [x] `llms-full.txt`, CHANGELOG, STATUS
+- [x] Release 1.19.3
 
 ## CR-090 — App: la rotta di fallback `/` non copre la pagina del consumer
 
