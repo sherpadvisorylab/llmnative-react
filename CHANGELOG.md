@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- `MockDataProvider` now resolves nested paths like Firestore, so sub-collections work:
+  `set('/companies/acme/playbooks/p1', …)` is stored in `/companies/acme/playbooks` instead of
+  polluting `/companies`, and `read('/companies/acme/playbooks')` returns the records (an
+  unwritten sub-collection reads as `{}`). `subscribe()` listens on the resolved collection, so
+  `set`/`update`/`remove` under a sub-collection notify its subscribers (CR-092, GH issue #58).
+
 ## [1.19.3] - 2026-10-04
 
 ### Fixed

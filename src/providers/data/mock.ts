@@ -181,22 +181,29 @@ export class MockDataProvider implements DataProviderAdapter {
 
     private resolvePath(path: string): { collection: string; id?: string } {
         const normalized = path.startsWith('/') ? path : `/${path}`;
+
+        // 1. An exact store key is always a collection (seeded or previously written).
         if (this.store[normalized]) return { collection: normalized };
 
+        // 2. Under a known collection the path is a record only when the remainder is a
+        //    single segment; multi-segment remainders fall through to the parity rule so
+        //    nested sub-collections of a record stay addressable.
         const collectionKeys = Object.keys(this.store)
             .filter((key) => normalized.startsWith(`${key}/`))
             .sort((left, right) => right.length - left.length);
 
         const matchedCollection = collectionKeys[0];
         if (matchedCollection) {
-            return {
-                collection: matchedCollection,
-                id: normalized.slice(matchedCollection.length + 1),
-            };
+            const remainder = normalized.slice(matchedCollection.length + 1);
+            if (!remainder.includes('/')) {
+                return { collection: matchedCollection, id: remainder };
+            }
         }
 
+        // 3. Firestore-style parity: an odd segment count is a collection, an even one is a
+        //    record inside the parent collection.
         const parts = normalized.replace(/^\/+/, '').split('/').filter(Boolean);
-        if (parts.length <= 1) return { collection: normalized };
+        if (parts.length === 0 || parts.length % 2 === 1) return { collection: normalized };
 
         return {
             collection: `/${parts.slice(0, -1).join('/')}`,
@@ -261,7 +268,7 @@ export class MockDataProvider implements DataProviderAdapter {
     ): (() => void) => {
         if (!path) return () => undefined;
 
-        const col = path.startsWith('/') ? path : `/${path}`;
+        const { collection: col } = this.resolvePath(path);
         const dispatch = () => {
             const processed = processRecordObject(this.getCollection(col), options?.where, options?.order);
             const loaded = options?.onLoad ? options.onLoad(processed) : processed;

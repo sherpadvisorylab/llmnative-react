@@ -100,6 +100,48 @@
 | [CR-089](#cr-089--scaffold-pacchetto-npm-cli-e-template-allineati-allapi) | Scaffold: pacchetto npm, CLI e template allineati all'API | Alta | CR-005 | ✅ |
 | [CR-090](#cr-090--app-la-rotta-di-fallback--non-copre-la-pagina-del-consumer) | App: la rotta di fallback `/` non copre la pagina del consumer | Alta | — | ✅ |
 | [CR-091](#cr-091--modal-semantica-di-dialog-accessibile) | Modal: semantica di dialog accessibile | Media | — | ✅ |
+| [CR-092](#cr-092--mockdataprovider-sotto-collezioni-path-annidati-come-firestore) | MockDataProvider: sotto-collezioni (path annidati come Firestore) | Alta | — | 🔄 |
+
+---
+
+## CR-092 — MockDataProvider: sotto-collezioni (path annidati come Firestore)
+
+**Stato:** 🔄 in progress
+**Issue:** [#58](https://github.com/sherpadvisorylab/llmnative-react/issues/58)
+**Priorità:** Alta
+
+### Motivazione
+
+`MockDataProvider` non gestisce le sotto-collezioni: `set('/companies/acme/playbooks/p1', …)`
+salvava il record nella collezione `/companies` con id `acme/playbooks/p1`, quindi il record
+compariva in `read('/companies')` e `read('/companies/acme/playbooks')` restituiva `undefined`.
+Causa: `resolvePath` accettava come collezione il più lungo prefisso noto anche quando il resto
+del path conteneva altri `/`. Firestore e Realtime Database gestiscono questi path nativamente,
+quindi un'app che parte dal provider mock (come lo scaffold) non può modellare dati annidati per
+tenant. Riprodotto in `llmnative/playbook` (company → playbook) su 1.19.3.
+
+### Scope
+
+- `src/providers/data/mock.ts` › `resolvePath`: risoluzione a tre regole — (1) chiave esatta dello
+  store = collezione; (2) sotto una collezione nota = record solo se il resto è un singolo
+  segmento; (3) altrimenti parità Firestore: segmenti dispari = collezione, pari = record.
+- `src/providers/data/mock.ts` › `subscribe`: chiave del listener allineata alla collezione
+  risolta, così le sotto-collezioni scritte con `set`/`update`/`remove` notificano i subscriber
+  della stessa collezione.
+- `tests/unit/providers/MockDataProvider.test.ts`: test su set/read/update/remove/subscribe di
+  sotto-collezioni, collezione padre non inquinata, sotto-collezione mai scritta = `{}`.
+- `docs/providers/data.md`: semantica dei path del provider `mock`.
+- Fuori scope: cancellazione a cascata, provider Firebase/Supabase, release.
+
+### Checklist
+
+- [x] `resolvePath` a tre regole
+- [x] `subscribe` allineato alla collezione risolta
+- [x] Test di sotto-collezione in `MockDataProvider.test.ts`
+- [x] Docs `docs/providers/data.md`
+- [x] CHANGELOG, STATUS, CHANGE_REQUESTS
+- [x] `npx tsc --noEmit`, `npm test` (770), `npm run build` verdi
+- [ ] Verifica nel consumer `llmnative/playbook` dopo il merge
 
 ---
 

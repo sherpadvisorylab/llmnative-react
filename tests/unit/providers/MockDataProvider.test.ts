@@ -178,3 +178,88 @@ describe('MockDataProvider - subscribe()', () => {
         expect(records.map((record: any) => record._key)).toEqual(['u1']);
     });
 });
+
+describe('MockDataProvider - sub-collections', () => {
+    it('stores and reads a record in a nested sub-collection', async () => {
+        const provider = new MockDataProvider();
+        await provider.set('/companies/acme/playbooks/p1', { title: 'Onboarding' });
+
+        await expect(provider.read('/companies/acme/playbooks')).resolves.toEqual({
+            p1: { title: 'Onboarding' },
+        });
+    });
+
+    it('does not pollute the parent collection with the nested path', async () => {
+        const provider = new MockDataProvider();
+        await provider.set('/companies/acme/playbooks/p1', { title: 'Onboarding' });
+
+        const parent = await provider.read('/companies');
+        expect(parent).not.toHaveProperty('acme/playbooks/p1');
+        expect(parent).toEqual({});
+    });
+
+    it('reads a never-written sub-collection as an empty collection', async () => {
+        const provider = new MockDataProvider();
+        await expect(provider.read('/companies/acme/playbooks')).resolves.toEqual({});
+    });
+
+    it('keeps a two-segment path as a record of its parent collection', async () => {
+        const provider = new MockDataProvider({ '/companies': { acme: { name: 'Acme' } } });
+        await expect(provider.read('/companies/acme')).resolves.toEqual({ name: 'Acme' });
+    });
+
+    it('updates and removes records inside a sub-collection', async () => {
+        const provider = new MockDataProvider();
+        await provider.set('/companies/acme/playbooks/p1', { title: 'Onboarding' });
+        await provider.update('/companies/acme/playbooks/p1', { status: 'active' });
+
+        await expect(provider.read('/companies/acme/playbooks/p1')).resolves.toEqual({
+            title: 'Onboarding',
+            status: 'active',
+        });
+
+        await provider.remove('/companies/acme/playbooks/p1');
+        await expect(provider.read('/companies/acme/playbooks/p1')).resolves.toBeUndefined();
+        await expect(provider.read('/companies/acme/playbooks')).resolves.toEqual({});
+    });
+
+    it('notifies subscribers of a sub-collection on set/update/remove', async () => {
+        const provider = new MockDataProvider();
+        const setRecords = vi.fn();
+        provider.subscribe('/companies/acme/playbooks', setRecords);
+
+        await act(async () => {
+            await provider.set('/companies/acme/playbooks/p1', { title: 'Onboarding' });
+        });
+        let records = setRecords.mock.calls.at(-1)?.[0];
+        expect(records.map((record: any) => record._key)).toEqual(['p1']);
+
+        await act(async () => {
+            await provider.update('/companies/acme/playbooks/p1', { status: 'active' });
+        });
+        records = setRecords.mock.calls.at(-1)?.[0];
+        expect(records.find((record: any) => record._key === 'p1')).toMatchObject({
+            title: 'Onboarding',
+            status: 'active',
+        });
+
+        await act(async () => {
+            await provider.remove('/companies/acme/playbooks/p1');
+        });
+        records = setRecords.mock.calls.at(-1)?.[0];
+        expect(records).toEqual([]);
+    });
+
+    it('does not leak sub-collection records into a parent subscription', async () => {
+        const provider = new MockDataProvider({ '/companies': { acme: { name: 'Acme' } } });
+        const setRecords = vi.fn();
+        provider.subscribe('/companies', setRecords);
+
+        await act(async () => {
+            await provider.set('/companies/acme/playbooks/p1', { title: 'Onboarding' });
+        });
+
+        const records = setRecords.mock.calls.at(-1)?.[0];
+        expect(records.map((record: any) => record._key)).toEqual(['acme']);
+    });
+});
