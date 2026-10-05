@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `SideNav` gained an optional `bottomItems` prop (`SideNavItemDef[]`): items pinned above the
+  footer and outside the main scrollable `<nav>`, so they never scroll away with `items`. They
+  follow the same behavior as `items` (groups, children, active state, badges, collapsed/hover
+  and `embedded` mode, where they render after the main entries, separated). New theme key
+  `SideNavTheme.bottomNavClassName` (default in `default`/`flat`/`cyber`) styles the pinned
+  container (CR-095).
+
+### Fixed
+- Docs: `llms-full.txt` documented `<ImageAvatar src label size />`; the real API is
+  `src`, `width`/`height`, `title`, `alt`, `fit`, `badge`, `feedback` (CR-095).
+
 ## [1.20.0] - 2026-10-05
 
 ### Added

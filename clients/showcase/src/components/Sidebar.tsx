@@ -110,5 +110,9 @@ export default function Sidebar() {
 
     const items = injectIcons(translateGroups(raw));
 
-    return <SideNav items={items} />;
+    const bottomItems: SideNavItemDef[] = [
+        { path: '/benchmark', title: common.nav.benchmark, icon: 'gauge', end: true },
+    ];
+
+    return <SideNav items={items} bottomItems={bottomItems} />;
 }
