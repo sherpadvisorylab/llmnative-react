@@ -94,6 +94,12 @@ export const ar: I18nDict = {
         dragToMove: 'اسحب للتحريك', remove: 'إزالة',
         dragToResize: 'اسحب لتغيير الحجم', dragHere: 'اسحب عنصرًا إلى هنا',
     },
+    sideNav: {
+        expandGroup: 'توسيع',
+        collapseGroup: 'طي',
+        expandSidebar: 'توسيع الشريط الجانبي',
+        collapseSidebar: 'طي الشريط الجانبي',
+    },
     addressAutocomplete: {
         placeholder: 'ابحث عن عنوان...',
         noResults: 'لا يوجد عنوان مطابق',

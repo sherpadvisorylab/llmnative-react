@@ -101,6 +101,7 @@
 | [CR-090](#cr-090--app-la-rotta-di-fallback--non-copre-la-pagina-del-consumer) | App: la rotta di fallback `/` non copre la pagina del consumer | Alta | — | ✅ |
 | [CR-091](#cr-091--modal-semantica-di-dialog-accessibile) | Modal: semantica di dialog accessibile | Media | — | ✅ |
 | [CR-092](#cr-092--mockdataprovider-sotto-collezioni) | MockDataProvider: sotto-collezioni | Alta | — | ✅ |
+| [CR-093](#cr-093--docs-tabloader-allineate-allapi-e-sidenav-internazionalizzato) | Docs Tab/Loader allineate all'API e SideNav internazionalizzato | Media | CR-029 | ✅ |
 
 ---
 
@@ -136,6 +137,36 @@ Richiesto dal consumer `llmnative-cms`.
 - [x] Release 1.18.0
 
 ---
+
+## CR-093 — Docs Tab/Loader allineate all'API e SideNav internazionalizzato
+
+**Stato:** ✅ done — rilasciato in 1.19.5
+**Issue:** [#60](https://github.com/sherpadvisorylab/llmnative-react/issues/60)
+**Priorità:** Media
+**Dipende da:** CR-029
+
+### Motivazione
+
+Emersi costruendo `llmnative/playbook` su 1.19.4: `llms-full.txt` documentava `<Tab.Item>` e
+`<Loader />` senza figli (errori TypeScript per chi segue la reference: l'API è `TabItem` e
+`Loader` con `children`/`show`); i pulsanti icon-only di `SideNav` avevano testo inglese fisso nel
+`title` e nessun `aria-label`.
+
+### Scope
+
+- `llms-full.txt`: sezioni `Tab` e `Loader` allineate all'API reale.
+- `I18nDict.sideNav` (`expandGroup`, `collapseGroup`, `expandSidebar`, `collapseSidebar`) in
+  `src/I18n.tsx` e nei 6 dizionari; `SideNav` usa `useI18n('sideNav')` e mette `aria-label`.
+- Fuori scope: altri testi fissi fuori da `SideNav` (es. fullscreen di `Modal`).
+
+### Checklist
+
+- [x] Docs `llms-full.txt`, `docs/architecture/i18n.md`
+- [x] Namespace `sideNav` + traduzioni en/it/de/ru/zh/ar
+- [x] `SideNav` tradotto con `aria-label`
+- [x] Test `tests/unit/components/SideNav.i18n.test.tsx` (2; quello in italiano fallisce su 1.19.4)
+- [x] CHANGELOG, STATUS
+- [x] Release 1.19.5
 
 ## CR-092 — MockDataProvider: sotto-collezioni
 

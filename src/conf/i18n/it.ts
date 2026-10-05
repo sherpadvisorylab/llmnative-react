@@ -94,6 +94,12 @@ export const it: I18nDict = {
         dragToMove: 'Trascina per spostare', remove: 'Rimuovi',
         dragToResize: 'Trascina per ridimensionare', dragHere: 'Trascina un elemento qui dentro',
     },
+    sideNav: {
+        expandGroup: 'Espandi',
+        collapseGroup: 'Comprimi',
+        expandSidebar: 'Espandi barra laterale',
+        collapseSidebar: 'Comprimi barra laterale',
+    },
     addressAutocomplete: {
         placeholder: 'Cerca un indirizzo...',
         noResults: 'Nessun indirizzo corrispondente',

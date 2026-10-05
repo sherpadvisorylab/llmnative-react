@@ -94,6 +94,12 @@ export const ru: I18nDict = {
         dragToMove: 'Перетащить для перемещения', remove: 'Удалить',
         dragToResize: 'Перетащить для изменения размера', dragHere: 'Перетащите элемент сюда',
     },
+    sideNav: {
+        expandGroup: 'Развернуть',
+        collapseGroup: 'Свернуть',
+        expandSidebar: 'Развернуть боковую панель',
+        collapseSidebar: 'Свернуть боковую панель',
+    },
     addressAutocomplete: {
         placeholder: 'Поиск адреса...',
         noResults: 'Нет подходящего адреса',

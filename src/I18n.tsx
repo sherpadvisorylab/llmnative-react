@@ -179,6 +179,12 @@ export interface I18nDict {
         dragToResize: string;
         dragHere:     string;
     };
+    sideNav: {
+        expandGroup:     string;
+        collapseGroup:   string;
+        expandSidebar:   string;
+        collapseSidebar: string;
+    };
     addressAutocomplete: {
         placeholder:     string;
         noResults:       string;

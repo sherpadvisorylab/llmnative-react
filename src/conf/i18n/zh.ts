@@ -94,6 +94,12 @@ export const zh: I18nDict = {
         dragToMove: '拖拽移动', remove: '删除',
         dragToResize: '拖拽调整大小', dragHere: '拖拽元素到此处',
     },
+    sideNav: {
+        expandGroup: '展开',
+        collapseGroup: '收起',
+        expandSidebar: '展开侧边栏',
+        collapseSidebar: '收起侧边栏',
+    },
     addressAutocomplete: {
         placeholder: '搜索地址...',
         noResults: '未找到匹配地址',

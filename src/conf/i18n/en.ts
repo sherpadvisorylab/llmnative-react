@@ -174,6 +174,12 @@ export const en: I18nDict = {
         dragToResize: 'Drag to resize',
         dragHere: 'Drag an element here',
     },
+    sideNav: {
+        expandGroup: 'Expand',
+        collapseGroup: 'Collapse',
+        expandSidebar: 'Expand sidebar',
+        collapseSidebar: 'Collapse sidebar',
+    },
     addressAutocomplete: {
         placeholder: 'Search an address...',
         noResults: 'No matching address',

@@ -94,6 +94,12 @@ export const de: I18nDict = {
         dragToMove: 'Zum Verschieben ziehen', remove: 'Entfernen',
         dragToResize: 'Zum Verkleinern ziehen', dragHere: 'Element hierher ziehen',
     },
+    sideNav: {
+        expandGroup: 'Aufklappen',
+        collapseGroup: 'Zuklappen',
+        expandSidebar: 'Seitenleiste aufklappen',
+        collapseSidebar: 'Seitenleiste zuklappen',
+    },
     addressAutocomplete: {
         placeholder: 'Adresse suchen...',
         noResults: 'Keine passende Adresse',

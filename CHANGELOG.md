@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.19.5] - 2026-10-05
+
+### Fixed
+- `SideNav`: the icon-only group toggle and sidebar collapse button take their text from the new
+  `sideNav` i18n namespace (`expandGroup`, `collapseGroup`, `expandSidebar`, `collapseSidebar`,
+  translated in en/it/de/ru/zh/ar) instead of fixed English, and expose it as `aria-label` too
+  (CR-093, GH issue #60).
+- Docs: `llms-full.txt` showed `<Tab.Item>` and a child-less `<Loader />`. Tabs are the separate
+  `TabItem` export, and `Loader` wraps content (`<Loader show={loading}>…</Loader>`) (CR-093).
+
 ## [1.19.4] - 2026-10-05
 
 ### Fixed
