@@ -34,6 +34,7 @@ export default defineLocaleMessages({
                     onSave: { description: '异步 save handler。返回 true 关闭，false 保持打开。' },
                     onDelete: { description: '异步 delete handler。在 footer 中显示 delete 按钮。' },
                     closeOnBackdrop: { description: '点击 backdrop 时关闭 modal' },
+                    closeOnEscape: { description: '按下 Escape 时关闭最上层的 modal' },
                     allowFullscreen: { description: '在 header 中显示 fullscreen 切换按钮' },
                     showCancel: { description: '当提供 onClose 时在 footer 中显示 Cancel 按钮' },
                     zIndex: { description: 'CSS z-index 覆盖，适合多层 modal 堆叠' },

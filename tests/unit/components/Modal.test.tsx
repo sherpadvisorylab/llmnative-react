@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
-import Modal from '../../../src/components/ui/Modal';
+import Modal, { ModalYesNo } from '../../../src/components/ui/Modal';
 import { I18nProvider } from '../../../src/I18n';
 
 describe('Modal', () => {
@@ -64,5 +64,99 @@ describe('Modal', () => {
         render(<I18nProvider><Modal title="Behind" stackedBehind>Modal body</Modal></I18nProvider>);
 
         expect(screen.getByRole('dialog', { name: 'Behind' })).not.toHaveAttribute('aria-modal');
+    });
+
+    it('closes on Escape by default', async () => {
+        const onClose = vi.fn();
+
+        render(
+            <I18nProvider><Modal title="Escapable" onClose={onClose}>
+                Modal body
+            </Modal></I18nProvider>
+        );
+
+        fireEvent.keyDown(document, { key: 'Escape' });
+
+        await waitFor(() => {
+            expect(onClose).toHaveBeenCalledOnce();
+        });
+    });
+
+    it('can keep the modal open when Escape close is disabled', () => {
+        const onClose = vi.fn();
+
+        render(
+            <I18nProvider><Modal title="Locked" onClose={onClose} closeOnEscape={false}>
+                Modal body
+            </Modal></I18nProvider>
+        );
+
+        fireEvent.keyDown(document, { key: 'Escape' });
+
+        expect(onClose).not.toHaveBeenCalled();
+        expect(screen.getByText('Modal body')).toBeInTheDocument();
+    });
+
+    it('closes only the top-most modal on Escape', async () => {
+        const onCloseBottom = vi.fn();
+        const onCloseTop = vi.fn();
+
+        render(
+            <I18nProvider>
+                <Modal title="Bottom" onClose={onCloseBottom}>Bottom body</Modal>
+                <Modal title="Top" onClose={onCloseTop}>Top body</Modal>
+            </I18nProvider>
+        );
+
+        fireEvent.keyDown(document, { key: 'Escape' });
+
+        await waitFor(() => {
+            expect(onCloseTop).toHaveBeenCalledOnce();
+        });
+        expect(onCloseBottom).not.toHaveBeenCalled();
+
+        fireEvent.keyDown(document, { key: 'Escape' });
+
+        await waitFor(() => {
+            expect(onCloseBottom).toHaveBeenCalledOnce();
+        });
+    });
+
+    it('does not react to Escape while stacked behind another modal', () => {
+        const onClose = vi.fn();
+
+        render(
+            <I18nProvider><Modal title="Behind" onClose={onClose} stackedBehind>
+                Modal body
+            </Modal></I18nProvider>
+        );
+
+        fireEvent.keyDown(document, { key: 'Escape' });
+
+        expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it('does nothing on Escape without onClose', () => {
+        render(<I18nProvider><Modal title="No handler">Modal body</Modal></I18nProvider>);
+
+        fireEvent.keyDown(document, { key: 'Escape' });
+
+        expect(screen.getByText('Modal body')).toBeInTheDocument();
+    });
+
+    it('closes a ModalYesNo confirm dialog on Escape', async () => {
+        const onClose = vi.fn();
+
+        render(
+            <I18nProvider><ModalYesNo title="Confirm" onClose={onClose}>
+                Are you sure?
+            </ModalYesNo></I18nProvider>
+        );
+
+        fireEvent.keyDown(document, { key: 'Escape' });
+
+        await waitFor(() => {
+            expect(onClose).toHaveBeenCalledOnce();
+        });
     });
 });

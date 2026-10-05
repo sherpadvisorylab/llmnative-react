@@ -551,12 +551,12 @@ Quando `commands` e presente in `mode="run"`, `Prompt` monta internamente `Conte
 <Modal title="Conferma" size="md" position="center" onClose={() => {}} onSave={handleSave} onDelete={handleDelete} motion="fade" allowFullscreen stackedBehind>
   {content}
 </Modal>
-<Modal.YesNo title="Sicuro?" onClose={() => {}} onYes={async () => true} />
-<Modal.Ok title="Completato!" onClose={() => {}} />
+<ModalYesNo title="Sicuro?" onClose={() => {}} onYes={async () => true} />
+<ModalOk title="Completato!" onClose={() => {}} />
 ```
 `size`: `'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'fullscreen'`
 `position`: `'center' | 'top' | 'left' | 'right' | 'bottom'`
-Accessibilità: il dialog ha `role="dialog"`, `aria-modal="true"` (non con `stackedBehind`) e `aria-labelledby` verso `title` (o `header` stringa) — nei test si trova con `getByRole('dialog', { name })`.
+Accessibilità: il dialog ha `role="dialog"`, `aria-modal="true"` (non con `stackedBehind`) e `aria-labelledby` verso `title` (o `header` stringa) — nei test si trova con `getByRole('dialog', { name })`. `Escape` chiude il modal in cima alla pila passando dalla stessa chiusura animata del pulsante/backdrop (con più modal chiude solo l'ultimo; un `stackedBehind` non reagisce; senza `onClose` è un no-op).
 
 | Prop | Tipo | Note |
 |---|---|---|
@@ -570,6 +570,7 @@ Accessibilità: il dialog ha `role="dialog"`, `aria-modal="true"` (non con `stac
 | `showCancel` | `boolean` | Default `true` |
 | `stackedBehind` | `boolean` | Modal seconda in pila |
 | `closeOnBackdrop` | `boolean` | Default `true` |
+| `closeOnEscape` | `boolean` | Default `true` |
 | `zIndex` | `number` | |
 | `motion` | `MotionReference` | Preset animazione |
 | Classi CSS header/title/subtitle/body/footer | `string` | |
