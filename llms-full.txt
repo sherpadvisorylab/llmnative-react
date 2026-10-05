@@ -765,7 +765,7 @@ utile quando un comando cambia famiglia sintattica (per esempio da `{{ ... }}` a
 ### Altre primitive
 ```tsx
 <Icon name="user" size={20} />           // usa provider icone configurato
-<ImageAvatar src="..." label="Mario" size={40} />
+<ImageAvatar src="..." title="Mario" alt="Mario" width={40} height={40} />
 <Loader show={isLoading}>{content}</Loader> // indicatore al posto dei figli finché show è true
 <Loader show>{null}</Loader>             // solo indicatore (es. pagina in caricamento)
 <Code language="tsx">{snippet}</Code>   // syntax highlight
@@ -801,6 +801,37 @@ utile quando un comando cambia famiglia sintattica (per esempio da `{{ ... }}` a
 | `logo` | `string` |
 | `width` / `height` | `number` |
 | `wrapperClassName` / `className` / `logoClassName` / `labelClassName` | `string` |
+
+**SideNav:**
+| Prop | Tipo |
+|---|---|
+| `items` | `SideNavItemDef[]` (in alternativa a `menuKey`) |
+| `menuKey` | `string` — voci dal menu registrato in `<App>` |
+| `bottomItems` | `SideNavItemDef[]` — voci fissate in fondo, sopra il footer e fuori dalla lista scorrevole (es. Impostazioni) |
+| `header` / `footer` | `ReactNode` |
+| `collapsed` + `onCollapsedChange` / `defaultCollapsed` | `boolean` — compressione controllata o no |
+| `showIcons` / `showCollapseButton` | `boolean` (default `true`) |
+| `embedded` | `boolean` — solo le voci, senza guscio (drawer, pannelli); `bottomItems` seguono le voci principali |
+
+`SideNavItemDef`: `{ path, title?, icon?, group?, end?, badge?, children? }`. La voce attiva ha
+`aria-current="page"`.
+
+```tsx
+<SideNav
+  items={[{ path: '/dashboard', title: 'Dashboard', icon: 'home' }]}
+  bottomItems={[{ path: '/settings', title: 'Impostazioni', icon: 'settings' }]}
+/>
+```
+
+**ImageAvatar:**
+| Prop | Tipo |
+|---|---|
+| `src` | `string` (obbligatoria) |
+| `width` / `height` | `number` |
+| `title` / `alt` | `string` |
+| `fit` | `AvatarFit` |
+| `badge` | `BadgeDescriptor` |
+| `feedback` | `ReactNode` |
 
 **Search:**
 | Prop | Tipo |

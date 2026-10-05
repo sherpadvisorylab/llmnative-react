@@ -71,6 +71,7 @@ export interface SideNavTheme {
     overlayClassName?: string;
     headerClassName?: string;
     navClassName?: string;
+    bottomNavClassName?: string;
     footerClassName?: string;
     groupLabelClassName?: string;
     groupDividerClassName?: string;

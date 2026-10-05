@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.21.0] - 2026-10-06
+
+### Added
+- `SideNav`: new prop `bottomItems` for items pinned at the bottom of the sidebar, above the
+  footer and outside the scrolling list (e.g. Settings). Same shape as `items` (groups, children,
+  badges, active state); they follow the collapsed/hover state, and in `embedded` mode they come
+  after the main items, separated by a border. New theme key `SideNav.bottomNavClassName`
+  (CR-095, GH issue #64).
+
+### Fixed
+- `SideNav`: the active item and sub-item now carry `aria-current="page"`, so assistive
+  technologies announce the current page (before, only the CSS class marked it) (CR-095).
+- Docs: `llms-full.txt` showed `<ImageAvatar label size />`; the props are `src`, `width`,
+  `height`, `title`, `alt`. Added prop tables for `SideNav` and `ImageAvatar` (CR-095).
+
 ## [1.20.0] - 2026-10-05
 
 ### Added

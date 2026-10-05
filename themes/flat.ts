@@ -353,6 +353,7 @@ export const components: Theme = {
         overlayClassName: 'shadow-lg',
         headerClassName: 'border-b border-border px-1.5 py-2',
         navClassName: 'px-1.5 py-2',
+        bottomNavClassName: 'border-t border-border px-1.5 py-2',
         footerClassName: 'border-t border-border px-1.5 py-2',
         groupLabelClassName: 'text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/70 select-none',
         groupDividerClassName: 'bg-border/60',

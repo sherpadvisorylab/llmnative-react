@@ -139,6 +139,40 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
+## CR-095 — SideNav: voci fissate in fondo (bottomItems); docs ImageAvatar
+
+**Stato:** ✅ done — rilasciato in 1.21.0
+**Issue:** [#64](https://github.com/sherpadvisorylab/llmnative-react/issues/64)
+**Priorità:** Media
+**Dipende da:** CR-093
+
+### Motivazione
+
+Emersa costruendo la sidebar di `llmnative/playbook` su 1.20.0: le impostazioni vanno fissate in
+fondo alla barra laterale, separate dalla navigazione principale, e `SideNav` non permetteva voci
+ancorate in basso (solo una lista scorrevole divisa in gruppi). `llms-full.txt` documentava
+`<ImageAvatar label size />`, prop inesistenti (l'API è `src`, `width`, `height`, `title`, `alt`).
+
+### Scope
+
+- `src/components/blocks/SideNav.tsx`: prop `bottomItems?: SideNavItemDef[]`, rese in un blocco
+  `shrink-0` tra la lista scorrevole e il footer, con gli stessi gruppi/figli/badge/stato attivo e
+  lo stato compresso/hover; in `embedded` dopo le voci principali, separate da un bordo. Le voci
+  attive hanno `aria-current="page"`.
+- `src/Theme.tsx`: chiave `SideNav.bottomNavClassName`, valorizzata nei temi `default`, `flat`, `cyber`.
+- Docs `llms-full.txt`: tabelle prop `SideNav` e `ImageAvatar`, esempio `ImageAvatar` corretto.
+- Fuori scope: pagina showcase dedicata a `SideNav` (non esiste; la sidebar dello showcase non ha
+  voci da fissare in fondo).
+
+### Checklist
+
+- [x] `bottomItems` fuori dalla lista scorrevole, attive con la rotta, compresso ed `embedded`
+- [x] `aria-current="page"` sulle voci attive
+- [x] Test `SideNav.bottomItems.test.tsx` (5)
+- [x] Docs `SideNav` e `ImageAvatar`
+- [x] CHANGELOG, STATUS
+- [x] Release 1.21.0 (minor: nuova prop pubblica)
+
 ## CR-094 — Modal: chiusura con Esc e docs ModalYesNo/ModalOk
 
 **Stato:** ✅ done — rilasciato in 1.20.0

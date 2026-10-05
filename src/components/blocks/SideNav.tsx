@@ -40,6 +40,12 @@ export interface SideNavProps {
     menuKey?: string;
     /** Explicit items — alternative to menuKey */
     items?: SideNavItemDef[];
+    /**
+     * Items pinned at the bottom of the sidebar, above the footer and outside the scrolling
+     * list (e.g. Settings). Same shape as `items`: groups, children, badges and active state
+     * work the same way. In `embedded` mode they follow the main items, separated by a border.
+     */
+    bottomItems?: SideNavItemDef[];
     /** Initial collapsed state for UNCONTROLLED usage (ignored once `collapsed` is passed —
      * see below). Default false. */
     defaultCollapsed?: boolean;
@@ -146,6 +152,7 @@ function SubItems({ children, open }: { children: SideNavItemDef[]; open: boolea
                         <Link
                             key={child.path}
                             to={child.path}
+                            aria-current={active ? 'page' : undefined}
                             className={cn(
                                 'flex items-center rounded-md pl-9 pr-3 py-[6px] text-sm transition-colors',
                                 theme.SideNav.subItemClassName,
@@ -223,6 +230,7 @@ function NavItem({ item, expanded, open, showIcons, onToggle }: NavItemProps) {
                     <Link
                         to={item.path}
                         title={!expanded ? item.title : undefined}
+                        aria-current={isActive ? 'page' : undefined}
                         className={cn(
                             'flex-1 flex items-center gap-2.5 rounded-md px-2 py-[7px] text-sm transition-colors',
                             theme.SideNav.itemClassName,
@@ -258,6 +266,7 @@ function NavItem({ item, expanded, open, showIcons, onToggle }: NavItemProps) {
         <Link
             to={item.path}
             title={!expanded ? item.title : undefined}
+            aria-current={isActive ? 'page' : undefined}
             className={cn(baseClass, activeClass)}
         >
             {iconSlot}
@@ -321,6 +330,7 @@ function NavGroup({
 export default function SideNav({
     menuKey,
     items: itemsProp,
+    bottomItems = [],
     defaultCollapsed = false,
     collapsed: collapsedProp,
     onCollapsedChange,
@@ -355,7 +365,7 @@ export default function SideNav({
     useEffect(() => {
         setOpenItems(prev => {
             const next = new Set(prev);
-            resolvedItems.forEach(item => {
+            [...resolvedItems, ...bottomItems].forEach(item => {
                 if (item.children?.some(c => isPathActive(pathname, c.path, c.end))) {
                     next.add(item.path);
                 }
@@ -382,24 +392,31 @@ export default function SideNav({
         leaveTimer.current = setTimeout(() => setHovered(false), 80);
     };
 
-    if (resolvedItems.length === 0) return null;
+    if (resolvedItems.length === 0 && bottomItems.length === 0) return null;
 
     const groups = buildGroups(resolvedItems);
+    const bottomGroups = buildGroups(bottomItems);
+    const renderGroups = (list: GroupDef[], expanded: boolean) => list.map(group => (
+        <NavGroup
+            key={group.key}
+            group={group}
+            expanded={expanded}
+            openItems={openItems}
+            showIcons={showIcons}
+            onToggle={toggleItem}
+        />
+    ));
 
     // Embedded mode: plain nav list, no wrapper shell, always fully expanded
     if (embedded) {
         return (
             <nav className={cn('px-1.5 py-2', theme.SideNav.navClassName)}>
-                {groups.map(group => (
-                    <NavGroup
-                        key={group.key}
-                        group={group}
-                        expanded={true}
-                        openItems={openItems}
-                        showIcons={showIcons}
-                        onToggle={toggleItem}
-                    />
-                ))}
+                {renderGroups(groups, true)}
+                {bottomGroups.length > 0 && (
+                    <div className={cn('mt-2 border-t pt-2', theme.SideNav.bottomNavClassName)}>
+                        {renderGroups(bottomGroups, true)}
+                    </div>
+                )}
             </nav>
         );
     }
@@ -442,17 +459,13 @@ export default function SideNav({
                     </div>
                 )}
                 <nav className={cn('min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-1.5 py-2', theme.SideNav.navClassName)}>
-                    {groups.map(group => (
-                        <NavGroup
-                            key={group.key}
-                            group={group}
-                            expanded={isExpanded}
-                            openItems={openItems}
-                            showIcons={showIcons}
-                            onToggle={toggleItem}
-                        />
-                    ))}
+                    {renderGroups(groups, isExpanded)}
                 </nav>
+                {bottomGroups.length > 0 && (
+                    <div className={cn('shrink-0 border-t px-1.5 py-2', theme.SideNav.bottomNavClassName)}>
+                        {renderGroups(bottomGroups, isExpanded)}
+                    </div>
+                )}
                 {(showCollapseButton || footer) && (
                     <div className={cn('shrink-0 border-t px-1.5 py-2 flex items-center gap-1', theme.SideNav.footerClassName)}>
                         {showCollapseButton && (
