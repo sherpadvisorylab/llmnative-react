@@ -47,6 +47,8 @@ export interface ModalProps extends MotionUIProps {
     footerClassName?: string;
     /** Close the modal when the user clicks the backdrop. Defaults to `true`. */
     closeOnBackdrop?: boolean;
+    /** Close the modal with the Escape key (only the top-most open modal reacts). Defaults to `true`. */
+    closeOnEscape?: boolean;
     /** CSS `z-index` override (useful when stacking modals). */
     zIndex?: number;
     /**
@@ -94,6 +96,10 @@ export interface ModalOkProps {
     onClose?: () => void;
 }
 
+// Open modals in mount order: Escape closes only the last one (a modal `stackedBehind` leaves
+// the stack while another one is on top of it).
+const escapeStack: symbol[] = [];
+
 const Modal = (props: ModalProps) => {
     return <ModalDefault {...props} />;
 };
@@ -120,6 +126,7 @@ const ModalDefault = ({
                           bodyClassName         = undefined,
                           footerClassName       = undefined,
                           closeOnBackdrop   = true,
+                          closeOnEscape     = true,
                           zIndex            = undefined,
                           stackedBehind     = false,
                           rightInset        = undefined,
@@ -237,6 +244,26 @@ const ModalDefault = ({
     const modalMotionReference = motionConfig ?? theme.Modal.motion?.[modalPosition as keyof NonNullable<typeof theme.Modal.motion>] ?? 'fade';
     const dialogMotion = useMotionEffect(modalMotionReference, modalMotionReference);
 
+    const handleCloseRef = React.useRef<() => void>(() => undefined);
+    const canEscape = closeOnEscape && !!onClose;
+
+    React.useEffect(() => {
+        if (stackedBehind || !canEscape) return;
+        const token = Symbol('modal');
+        escapeStack.push(token);
+        const onKeyDown = (event: KeyboardEvent) => {
+            if (event.key !== 'Escape' || escapeStack[escapeStack.length - 1] !== token) return;
+            event.preventDefault();
+            handleCloseRef.current();
+        };
+        window.document.addEventListener('keydown', onKeyDown);
+        return () => {
+            window.document.removeEventListener('keydown', onKeyDown);
+            const index = escapeStack.indexOf(token);
+            if (index !== -1) escapeStack.splice(index, 1);
+        };
+    }, [stackedBehind, canEscape]);
+
     const handleClose = () => {
         if (closingRef.current) return;
         closingRef.current = true;
@@ -247,6 +274,7 @@ const ModalDefault = ({
             onClose?.();
         }, closeDelay);
     }
+    handleCloseRef.current = handleClose;
 
     const dialogStyle = useMotionState(entered, modalMotionReference, modalMotionReference);
 

@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.20.0] - 2026-10-05
+
+### Added
+- `Modal` closes with the Escape key, through the same animated close as the close button and
+  the backdrop. With several modals open only the top-most one reacts (a `stackedBehind` modal
+  does not). New prop `closeOnEscape` (default `true`); no effect without `onClose`. Applies to
+  `ModalYesNo` and `ModalOk` too. Showcase props table and playground updated (CR-094, GH issue #62).
+
+### Fixed
+- Docs: `llms-full.txt` showed `<Modal.YesNo>` and `<Modal.Ok>`, which never existed; the
+  exports are `ModalYesNo` and `ModalOk` (also corrected in the 1.19.3 entry below) (CR-094).
+
 ## [1.19.5] - 2026-10-05
 
 ### Fixed
@@ -32,7 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.19.3] - 2026-10-04
 
 ### Fixed
-- `Modal` (and `Modal.YesNo`, `Modal.Ok`) exposes dialog semantics: `role="dialog"`,
+- `Modal` (and `ModalYesNo`, `ModalOk`) exposes dialog semantics: `role="dialog"`,
   `aria-modal="true"` on the active modal (not when `stackedBehind`) and `aria-labelledby`
   pointing at the `title` (or a string `header`). Screen readers announce it as a modal dialog
   and tests can find it with `getByRole('dialog', { name })` (CR-091, GH issue #56).

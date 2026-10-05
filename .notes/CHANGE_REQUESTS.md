@@ -102,6 +102,7 @@
 | [CR-091](#cr-091--modal-semantica-di-dialog-accessibile) | Modal: semantica di dialog accessibile | Media | — | ✅ |
 | [CR-092](#cr-092--mockdataprovider-sotto-collezioni) | MockDataProvider: sotto-collezioni | Alta | — | ✅ |
 | [CR-093](#cr-093--docs-tabloader-allineate-allapi-e-sidenav-internazionalizzato) | Docs Tab/Loader allineate all'API e SideNav internazionalizzato | Media | CR-029 | ✅ |
+| [CR-094](#cr-094--modal-chiusura-con-esc-e-docs-modalyesnomodalok) | Modal: chiusura con Esc e docs ModalYesNo/ModalOk | Media | CR-091 | ✅ |
 
 ---
 
@@ -137,6 +138,35 @@ Richiesto dal consumer `llmnative-cms`.
 - [x] Release 1.18.0
 
 ---
+
+## CR-094 — Modal: chiusura con Esc e docs ModalYesNo/ModalOk
+
+**Stato:** ✅ done — rilasciato in 1.20.0
+**Issue:** [#62](https://github.com/sherpadvisorylab/llmnative-react/issues/62)
+**Priorità:** Media
+**Dipende da:** CR-091
+
+### Motivazione
+
+Emersi costruendo il canvas di `llmnative/playbook` su 1.19.5: `llms-full.txt` (e il CHANGELOG di
+1.19.3) indicavano `Modal.YesNo`/`Modal.Ok`, inesistenti (gli export sono `ModalYesNo`/`ModalOk`);
+`Modal` non si chiudeva con Esc, comportamento atteso di una finestra modale.
+
+### Scope
+
+- `src/components/ui/Modal.tsx`: pila dei modal aperti a livello di modulo; Esc chiude solo quello in
+  cima (un `stackedBehind` esce dalla pila) con la stessa chiusura animata; prop `closeOnEscape`
+  (default `true`), nessun effetto senza `onClose`.
+- Docs `llms-full.txt`, CHANGELOG 1.19.3 corretto; showcase: tabella prop e playground (6 lingue).
+- Fuori scope: focus trap e ripristino del focus.
+
+### Checklist
+
+- [x] Esc sul modal in cima, `closeOnEscape`
+- [x] Test `Modal.test.tsx` (3 nuovi; 2 falliscono su 1.19.5)
+- [x] Docs e showcase
+- [x] CHANGELOG, STATUS
+- [x] Release 1.20.0 (minor: nuova prop pubblica)
 
 ## CR-093 — Docs Tab/Loader allineate all'API e SideNav internazionalizzato
 

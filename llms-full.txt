@@ -551,11 +551,13 @@ Quando `commands` e presente in `mode="run"`, `Prompt` monta internamente `Conte
 <Modal title="Conferma" size="md" position="center" onClose={() => {}} onSave={handleSave} onDelete={handleDelete} motion="fade" allowFullscreen stackedBehind>
   {content}
 </Modal>
-<Modal.YesNo title="Sicuro?" onClose={() => {}} onYes={async () => true} />
-<Modal.Ok title="Completato!" onClose={() => {}} />
+<ModalYesNo title="Sicuro?" onClose={() => {}} onYes={async () => true}>Eliminare il record?</ModalYesNo>
+<ModalOk title="Completato!" onClose={() => {}}>Salvato.</ModalOk>
 ```
 `size`: `'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'fullscreen'`
 `position`: `'center' | 'top' | 'left' | 'right' | 'bottom'`
+`ModalYesNo` e `ModalOk` sono export separati: `Modal.YesNo` e `Modal.Ok` non esistono.
+Tastiera: Esc chiude il modal in cima alla pila (`closeOnEscape`, default `true`).
 Accessibilità: il dialog ha `role="dialog"`, `aria-modal="true"` (non con `stackedBehind`) e `aria-labelledby` verso `title` (o `header` stringa) — nei test si trova con `getByRole('dialog', { name })`.
 
 | Prop | Tipo | Note |
@@ -570,6 +572,7 @@ Accessibilità: il dialog ha `role="dialog"`, `aria-modal="true"` (non con `stac
 | `showCancel` | `boolean` | Default `true` |
 | `stackedBehind` | `boolean` | Modal seconda in pila |
 | `closeOnBackdrop` | `boolean` | Default `true` |
+| `closeOnEscape` | `boolean` | Default `true` — solo il modal in cima reagisce |
 | `zIndex` | `number` | |
 | `motion` | `MotionReference` | Preset animazione |
 | Classi CSS header/title/subtitle/body/footer | `string` | |

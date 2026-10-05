@@ -46,6 +46,7 @@ function ModalPlaygroundDemo({ props: p }: { props: Record<string, any> }) {
                     size={p.size}
                     position={p.position}
                     closeOnBackdrop={p.closeOnBackdrop}
+                    closeOnEscape={p.closeOnEscape}
                     allowFullscreen={p.allowFullscreen}
                     headerClassName={p.headerClassName || undefined}
                     bodyClassName={p.bodyClassName || undefined}
@@ -74,6 +75,7 @@ export default function ModalPage() {
         { name: 'onSave', type: 'ModalSaveHandler', description: t.propsDocs.items.onSave.description, shape: t.propsDocs.items.onSave.typeDetails, example: t.propsDocs.items.onSave.example },
         { name: 'onDelete', type: 'ModalDeleteHandler', description: t.propsDocs.items.onDelete.description, shape: t.propsDocs.items.onDelete.typeDetails, example: t.propsDocs.items.onDelete.example },
         { name: 'closeOnBackdrop', type: 'boolean', default: 'true', description: t.propsDocs.items.closeOnBackdrop.description, control: 'boolean' },
+        { name: 'closeOnEscape', type: 'boolean', default: 'true', description: t.propsDocs.items.closeOnEscape.description, control: 'boolean' },
         { name: 'allowFullscreen', type: 'boolean', default: 'false', description: t.propsDocs.items.allowFullscreen.description, control: 'boolean' },
         { name: 'showCancel', type: 'boolean', default: 'true', description: t.propsDocs.items.showCancel.description, control: 'boolean' },
         { name: 'zIndex', type: 'number', description: t.propsDocs.items.zIndex.description, control: 'number' },
@@ -100,6 +102,7 @@ export default function ModalPage() {
             size: 'md',
             position: 'center',
             closeOnBackdrop: true,
+            closeOnEscape: true,
             allowFullscreen: false,
             headerClassName: '',
             bodyClassName: '',

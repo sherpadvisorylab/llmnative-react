@@ -49,6 +49,7 @@ export default defineLocaleMessages({
   return true;
 }}` },
                     closeOnBackdrop: { description: 'Close the modal when the backdrop is clicked' },
+                    closeOnEscape: { description: 'Close the modal with the Escape key (only the top-most open modal reacts)' },
                     allowFullscreen: { description: 'Show fullscreen toggle button in the header' },
                     showCancel: { description: 'Show the Cancel button in the footer when onClose is provided' },
                     zIndex: { description: 'CSS z-index override - useful when stacking multiple modals' },

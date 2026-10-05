@@ -65,4 +65,45 @@ describe('Modal', () => {
 
         expect(screen.getByRole('dialog', { name: 'Behind' })).not.toHaveAttribute('aria-modal');
     });
+
+    it('closes with Escape', async () => {
+        const onClose = vi.fn();
+        render(<I18nProvider><Modal title="Esc" onClose={onClose}>Modal body</Modal></I18nProvider>);
+
+        fireEvent.keyDown(document, { key: 'Escape' });
+
+        await waitFor(() => expect(onClose).toHaveBeenCalledOnce());
+    });
+
+    it('closes only the top-most modal on Escape', async () => {
+        const closeBottom = vi.fn();
+        const closeTop = vi.fn();
+        const { rerender } = render(
+            <I18nProvider><Modal title="Bottom" onClose={closeBottom}>Bottom body</Modal></I18nProvider>
+        );
+        rerender(
+            <I18nProvider>
+                <Modal title="Bottom" onClose={closeBottom}>Bottom body</Modal>
+                <Modal title="Top" onClose={closeTop}>Top body</Modal>
+            </I18nProvider>
+        );
+
+        fireEvent.keyDown(document, { key: 'Escape' });
+        await waitFor(() => expect(closeTop).toHaveBeenCalledOnce());
+        expect(closeBottom).not.toHaveBeenCalled();
+
+        rerender(<I18nProvider><Modal title="Bottom" onClose={closeBottom}>Bottom body</Modal></I18nProvider>);
+        fireEvent.keyDown(document, { key: 'Escape' });
+        await waitFor(() => expect(closeBottom).toHaveBeenCalledOnce());
+    });
+
+    it('ignores Escape when closeOnEscape is false', async () => {
+        const onClose = vi.fn();
+        render(<I18nProvider><Modal title="Sticky" onClose={onClose} closeOnEscape={false}>Modal body</Modal></I18nProvider>);
+
+        fireEvent.keyDown(document, { key: 'Escape' });
+
+        await new Promise((resolve) => setTimeout(resolve, 400));
+        expect(onClose).not.toHaveBeenCalled();
+    });
 });
