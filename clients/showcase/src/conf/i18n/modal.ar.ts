@@ -34,6 +34,7 @@ export default defineLocaleMessages({
                     onSave: { description: 'معالج save غير متزامن. أرجع true للإغلاق و false للإبقاء عليه مفتوحًا.' },
                     onDelete: { description: 'معالج delete غير متزامن. يُظهر زر delete في الـ footer.' },
                     closeOnBackdrop: { description: 'إغلاق الـ modal عند الضغط على الخلفية' },
+                    closeOnEscape: { description: 'إغلاق الـ modal الأعلى عند الضغط على Escape' },
                     allowFullscreen: { description: 'إظهار زر fullscreen في الـ header' },
                     showCancel: { description: 'إظهار زر Cancel في الـ footer عندما يكون onClose موجودًا' },
                     zIndex: { description: 'تجاوز CSS z-index، مفيد عند تكديس عدة modals' },

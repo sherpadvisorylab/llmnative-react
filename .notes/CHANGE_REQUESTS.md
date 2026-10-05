@@ -102,6 +102,57 @@
 | [CR-091](#cr-091--modal-semantica-di-dialog-accessibile) | Modal: semantica di dialog accessibile | Media | — | ✅ |
 | [CR-092](#cr-092--mockdataprovider-sotto-collezioni) | MockDataProvider: sotto-collezioni | Alta | — | ✅ |
 | [CR-093](#cr-093--docs-tabloader-allineate-allapi-e-sidenav-internazionalizzato) | Docs Tab/Loader allineate all'API e SideNav internazionalizzato | Media | CR-029 | ✅ |
+| [CR-094](#cr-094--modal-chiusura-con-esc-e-docs-modalyesnomodalok) | Modal: chiusura con Esc e docs ModalYesNo/ModalOk | Alta | CR-091 | 🔄 |
+
+---
+
+## CR-094 — Modal: chiusura con Esc e docs ModalYesNo/ModalOk
+
+**Stato:** 🔄 in progress
+**Issue:** (da collegare)
+**Priorità:** Alta
+**Dipende da:** CR-091
+
+### Motivazione
+
+Emersi costruendo il canvas di `llmnative/playbook` su 1.19.5.
+
+1. **Documentazione errata.** `llms-full.txt` (e la voce 1.19.3 di `CHANGELOG.md`) citano
+   `<Modal.YesNo>` e `<Modal.Ok>`, che non esistono: gli export reali sono `ModalYesNo` e
+   `ModalOk` (`src/components/ui/Modal.tsx`). Chi segue la reference ottiene errori TypeScript.
+2. **`Modal` non si chiude con Esc.** È il comportamento atteso di un dialog (pattern WAI-ARIA):
+   i pannelli laterali e le conferme si chiudevano solo col pulsante o col backdrop.
+
+### Scope
+
+- `src/components/ui/Modal.tsx`: nuova prop `closeOnEscape?: boolean` (default `true`) su
+  `ModalProps`, parallela a `closeOnBackdrop`. Uno stack condiviso a livello di modulo individua
+  il modal in cima; un handler `keydown` per `Escape` lo chiude passando da `handleClose()`
+  (stessa chiusura animata di pulsante/backdrop). Con più modal aperti chiude solo l'ultimo; un
+  modal `stackedBehind` non reagisce; senza `onClose` Esc è un no-op. `ModalYesNo`/`ModalOk`
+  ereditano il comportamento.
+- `tests/unit/components/Modal.test.tsx`: Esc chiude; `closeOnEscape={false}` non chiude; due
+  modal → chiude solo l'ultimo, il secondo Esc chiude l'altro; `stackedBehind` non reagisce;
+  senza `onClose` no-op.
+- `llms-full.txt`: `ModalYesNo`/`ModalOk` al posto di `Modal.YesNo`/`Modal.Ok`; riga
+  `closeOnEscape` nella props table; nota sulla semantica Esc.
+- `clients/showcase`: `ModalPage.tsx` + i18n `modal.{en,it,de,ru,zh,ar}.ts` con la voce
+  `closeOnEscape` in props table/playground.
+- `CHANGELOG.md`: correzione della dicitura `Modal.YesNo`/`Modal.Ok` nella voce 1.19.3; nuova
+  voce in `## [Unreleased]`.
+- Fuori scope: focus trap e ripristino del focus; bump di versione, sezione di versione nel
+  changelog, tag e publish.
+
+### Checklist
+
+- [x] Prop `closeOnEscape` + stack modali e handler `Escape` in `Modal.tsx`
+- [x] Test `tests/unit/components/Modal.test.tsx`
+- [x] Docs `llms-full.txt`
+- [x] Showcase `ModalPage.tsx` + i18n 6 lingue
+- [x] CHANGELOG
+- [x] `.notes/CHANGE_REQUESTS.md`, `.notes/STATUS.md`
+- [x] Verifica `npx tsc --noEmit` (0 errori), `npm test` (69 file / 775 test), `npm run build` (Vite + declarations)
+- [ ] Release (fase successiva al merge)
 
 ---
 

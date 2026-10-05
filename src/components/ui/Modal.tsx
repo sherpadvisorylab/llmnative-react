@@ -11,6 +11,36 @@ import { cn } from '../../libs/cn';
 export type ModalSaveHandler = (e: React.MouseEvent<HTMLElement>) => Promise<boolean>;
 export type ModalDeleteHandler = (e: React.MouseEvent<HTMLElement>) => Promise<boolean>;
 
+type ModalStackEntry = {
+    close: () => void;
+    closeOnEscape: boolean;
+    stackedBehind: boolean;
+    hasOnClose: boolean;
+};
+
+const modalStack: ModalStackEntry[] = [];
+
+const handleEscapeKey = (event: KeyboardEvent) => {
+    if (event.key !== 'Escape') return;
+    const top = modalStack[modalStack.length - 1];
+    if (!top || top.stackedBehind || !top.closeOnEscape || !top.hasOnClose) return;
+    top.close();
+};
+
+let escapeListenerAttached = false;
+
+const attachEscapeListener = () => {
+    if (escapeListenerAttached) return;
+    document.addEventListener('keydown', handleEscapeKey);
+    escapeListenerAttached = true;
+};
+
+const detachEscapeListener = () => {
+    if (!escapeListenerAttached || modalStack.length > 0) return;
+    document.removeEventListener('keydown', handleEscapeKey);
+    escapeListenerAttached = false;
+};
+
 /** Props for the `<Modal>` component. */
 export interface ModalProps extends MotionUIProps {
     /** Modal body content. */
@@ -47,6 +77,12 @@ export interface ModalProps extends MotionUIProps {
     footerClassName?: string;
     /** Close the modal when the user clicks the backdrop. Defaults to `true`. */
     closeOnBackdrop?: boolean;
+    /**
+     * Close the modal when the user presses `Escape`. Defaults to `true`. Only the top-most
+     * modal in the stack reacts; a modal with `stackedBehind` never does. Requires `onClose`
+     * (without it `Escape` is a no-op).
+     */
+    closeOnEscape?: boolean;
     /** CSS `z-index` override (useful when stacking modals). */
     zIndex?: number;
     /**
@@ -120,6 +156,7 @@ const ModalDefault = ({
                           bodyClassName         = undefined,
                           footerClassName       = undefined,
                           closeOnBackdrop   = true,
+                          closeOnEscape     = true,
                           zIndex            = undefined,
                           stackedBehind     = false,
                           rightInset        = undefined,
@@ -131,6 +168,8 @@ const ModalDefault = ({
     const [entered, setEntered] = React.useState(false);
     const closingRef = React.useRef(false);
     const closeTimerRef = React.useRef<number | undefined>(undefined);
+    const entryRef = React.useRef<ModalStackEntry | null>(null);
+    const handleCloseRef = React.useRef<() => void>(() => {});
 
     const [sizeClass, setSizeClass] = useState(size);
 
@@ -240,6 +279,11 @@ const ModalDefault = ({
     const handleClose = () => {
         if (closingRef.current) return;
         closingRef.current = true;
+        if (entryRef.current) {
+            const index = modalStack.indexOf(entryRef.current);
+            if (index !== -1) modalStack.splice(index, 1);
+            entryRef.current = null;
+        }
         setEntered(false);
         window.document.body.style.overflow = "auto";
         const closeDelay = dialogMotion.transition.duration + dialogMotion.transition.delay;
@@ -247,6 +291,29 @@ const ModalDefault = ({
             onClose?.();
         }, closeDelay);
     }
+
+    React.useEffect(() => {
+        handleCloseRef.current = handleClose;
+    });
+
+    React.useEffect(() => {
+        const entry: ModalStackEntry = {
+            close: () => handleCloseRef.current(),
+            closeOnEscape,
+            stackedBehind,
+            hasOnClose: onClose !== undefined,
+        };
+        entryRef.current = entry;
+        modalStack.push(entry);
+        attachEscapeListener();
+
+        return () => {
+            const index = modalStack.indexOf(entry);
+            if (index !== -1) modalStack.splice(index, 1);
+            if (entryRef.current === entry) entryRef.current = null;
+            detachEscapeListener();
+        };
+    }, [closeOnEscape, stackedBehind, onClose]);
 
     const dialogStyle = useMotionState(entered, modalMotionReference, modalMotionReference);
 

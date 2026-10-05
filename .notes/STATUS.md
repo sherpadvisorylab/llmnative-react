@@ -1,7 +1,7 @@
 # Project status
 
 > Snapshot verified against the real codebase, not against the historical plan.
-> Last reviewed: 2026-08-02
+> Last reviewed: 2026-10-05
 
 ---
 
@@ -117,6 +117,7 @@
 | CR | Real state | What is missing |
 |----|-----------|-----------------|
 | CR-072 | **Diagnosed — not fixable via config alone** | 890 `tsc --noEmit` errori in `clients/showcase` causati da TypeScript 6.0.3: named exports da `.d.ts` files fuori dallo scope del progetto (`include: ["src"]`) non sono visibili in modalità named import (`import { Icon }`), mentre `import * as` e `typeof import()` funzionano. Tentate: `paths`, `moduleResolution: node10/bundler`, `include` espanso, `.ts` proxy, `.d.ts` proxy, skipLibCheck toggle — stesso risultato. Root cause: regressione TS 6.0.3 nel cross-project type resolution. `npm run build` (Vite/esbuild) è l'unico gate reale e passa. 15 errori prismjs risolti (wildcard declaration in `vite-env.d.ts`). Issue #14 aperta. |
+| CR-094 | **🔄 in progress — implementata, in verifica** | `Modal` `closeOnEscape` (default `true`): `Escape` chiude il modal in cima alla pila con la stessa chiusura animata, `stackedBehind` non reagisce, senza `onClose` no-op; `ModalYesNo`/`ModalOk` ereditano. Corrette le occorrenze `Modal.YesNo`/`Modal.Ok` in `llms-full.txt` e CHANGELOG. Test, showcase (6 lingue), CR/STATUS aggiornati. Release non ancora eseguita. |
 | CR-037 | ⬜ | Component Builder System — `useImage()` pattern non ancora standardizzato. |
 | CR-040 | **0% — spec written** | SchemaForm (form generation from JSON schema/factory); spec in `CHANGE_REQUESTS.md`. No implementation. |
 | CR-041 | **0% — proposal written** | SeoEnhancer (HTML filter applying technical SEO, structured report); proposal in `CHANGE_REQUESTS.md`. No implementation. |

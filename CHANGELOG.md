@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `Modal`: new `closeOnEscape` prop (default `true`). `Escape` closes the top-most modal in the
+  stack through the same animated close path as the ×/backdrop, so with two modals open only the
+  last one closes (a second `Escape` closes the other); a `stackedBehind` modal never reacts and
+  without `onClose` `Escape` is a no-op. `ModalYesNo`/`ModalOk` inherit the behaviour (CR-094).
+
+### Fixed
+- Docs: `llms-full.txt` and the 1.19.3 changelog entry documented the confirm/acknowledge dialogs
+  as members of a `Modal` namespace, which does not exist — the real exports are `ModalYesNo` and
+  `ModalOk` (CR-094).
+
 ## [1.19.5] - 2026-10-05
 
 ### Fixed
@@ -32,7 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.19.3] - 2026-10-04
 
 ### Fixed
-- `Modal` (and `Modal.YesNo`, `Modal.Ok`) exposes dialog semantics: `role="dialog"`,
+- `Modal` (and `ModalYesNo`, `ModalOk`) exposes dialog semantics: `role="dialog"`,
   `aria-modal="true"` on the active modal (not when `stackedBehind`) and `aria-labelledby`
   pointing at the `title` (or a string `header`). Screen readers announce it as a modal dialog
   and tests can find it with `getByRole('dialog', { name })` (CR-091, GH issue #56).

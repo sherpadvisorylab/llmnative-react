@@ -34,6 +34,7 @@ export default defineLocaleMessages({
                     onSave: { description: 'Асинхронный save-handler. true закрывает, false оставляет открытым.' },
                     onDelete: { description: 'Асинхронный delete-handler. Показывает кнопку delete в footer.' },
                     closeOnBackdrop: { description: 'Закрывать modal при клике по backdrop' },
+                    closeOnEscape: { description: 'Закрывать верхний modal при нажатии Escape' },
                     allowFullscreen: { description: 'Показывать переключатель fullscreen в header' },
                     showCancel: { description: 'Показывать кнопку Cancel в footer, когда передан onClose' },
                     zIndex: { description: 'Переопределение CSS z-index, полезно при стеке нескольких modal' },
