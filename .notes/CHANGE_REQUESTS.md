@@ -101,6 +101,46 @@
 | [CR-090](#cr-090--app-la-rotta-di-fallback--non-copre-la-pagina-del-consumer) | App: la rotta di fallback `/` non copre la pagina del consumer | Alta | — | ✅ |
 | [CR-091](#cr-091--modal-semantica-di-dialog-accessibile) | Modal: semantica di dialog accessibile | Media | — | ✅ |
 | [CR-092](#cr-092--mockdataprovider-sotto-collezioni) | MockDataProvider: sotto-collezioni | Alta | — | ✅ |
+| [CR-093](#cr-093--docs-tabloader-allineate-allapi-e-sidenav-internazionalizzato) | Docs Tab/Loader allineate all'API e SideNav internazionalizzato | Media | — | 🔄 |
+
+---
+
+## CR-093 — Docs Tab/Loader allineate all'API e SideNav internazionalizzato
+
+**Stato:** 🔄 in progress
+**Issue:** [#60](https://github.com/sherpadvisorylab/llmnative-react/issues/60)
+**Priorità:** Media
+
+### Motivazione
+
+Costruendo `llmnative/playbook` su `@llmnative/react@1.19.4` sono emersi due problemi reali:
+`llms-full.txt` documentava un'API inesistente (`<Tab.Item>` mentre l'API reale è l'export
+separato `<TabItem>`, e `<Loader />` standalone mentre `Loader` richiede `children` e mostra
+l'indicatore al posto dei figli con `show`), producendo errori TypeScript in chi segue la
+reference; `SideNav` non passava da `useI18n` sui due pulsanti icon-only, con `title` inglese
+fisso e nessun `aria-label`, quindi nessun nome accessibile affidabile e nessuna traduzione.
+
+### Scope
+
+- `llms-full.txt`: sezione `Tab` con `TabItem` e import esplicito; `Loader` con `children` + `show`.
+- `docs/examples/crud-modal.md`: `<Tab tabs={…}>` (API inesistente) → `<Tab>` + `<TabItem>`.
+- `src/I18n.tsx`: namespace `sideNav` (`expandGroup`, `collapseGroup`, `expandSidebar`, `collapseSidebar`).
+- `src/conf/i18n/{en,it,de,ru,zh,ar}.ts`: traduzioni `sideNav`.
+- `src/components/blocks/SideNav.tsx`: `useI18n('sideNav')`, `title` e `aria-label` tradotti sui due pulsanti icon-only.
+- `tests/unit/components/blocks-nav.test.tsx`: mock `useI18n` con valori reali + test su traduzione e nome accessibile.
+- `docs/architecture/i18n.md`, `CHANGELOG.md`, STATUS.
+- Fuori scope: altri testi fissi fuori da `SideNav`; modifica dell'API di `Tab`/`Loader`; release.
+
+### Checklist
+
+- [x] `llms-full.txt` senza `Tab.Item` né `<Loader />` senza figli
+- [x] `docs/examples/crud-modal.md` allineato a `TabItem`
+- [x] Namespace `sideNav` in `I18nDict` e nelle 6 lingue
+- [x] `SideNav` usa `useI18n('sideNav')` con `title`/`aria-label` tradotti
+- [x] Test in `blocks-nav.test.tsx` su traduzione e nome accessibile
+- [x] `docs/architecture/i18n.md`, CHANGELOG, STATUS
+- [x] `npx tsc --noEmit` (0 errori), `npm test` (68 file, 769 test), `npm run build` verdi
+- [ ] Release (dopo merge)
 
 ---
 

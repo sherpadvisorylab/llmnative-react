@@ -4,7 +4,12 @@ import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 
 vi.mock('../../../src/I18n', () => ({
-    useI18n: vi.fn(() => ({})),
+    useI18n: vi.fn(() => ({
+        expandGroup: 'Espandi',
+        collapseGroup: 'Comprimi',
+        expandSidebar: 'Espandi barra laterale',
+        collapseSidebar: 'Comprimi barra laterale',
+    })),
     I18nProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
@@ -63,5 +68,34 @@ describe('SideNav', () => {
         );
         expect(container.querySelector('a[href="/"]')).toBeTruthy();
         expect(container.querySelector('a[href="/about"]')).toBeTruthy();
+    });
+
+    it('translates the group toggle with a matching accessible name', () => {
+        render(
+            <MemoryRouter>
+                <SideNav
+                    items={[
+                        {
+                            path: '/dashboard',
+                            title: 'Dashboard',
+                            icon: 'dashboard',
+                            children: [{ path: '/dashboard/reports', title: 'Reports' }],
+                        },
+                    ]}
+                />
+            </MemoryRouter>
+        );
+        const toggle = screen.getByRole('button', { name: 'Espandi' });
+        expect(toggle).toHaveAttribute('title', 'Espandi');
+    });
+
+    it('translates the sidebar collapse button with a matching accessible name', () => {
+        render(
+            <MemoryRouter>
+                <SideNav items={[{ path: '/', title: 'Home', icon: 'home' }]} />
+            </MemoryRouter>
+        );
+        const collapse = screen.getByRole('button', { name: 'Comprimi barra laterale' });
+        expect(collapse).toHaveAttribute('title', 'Comprimi barra laterale');
     });
 });

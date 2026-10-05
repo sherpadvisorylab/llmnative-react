@@ -101,4 +101,10 @@ export const de: I18nDict = {
         notConfigured: 'Adresssuche ist nicht konfiguriert (Google Maps API-Schlüssel fehlt).',
         loadError: 'Adresssuche konnte nicht geladen werden.',
     },
+    sideNav: {
+        expandGroup: 'Erweitern',
+        collapseGroup: 'Einklappen',
+        expandSidebar: 'Seitenleiste erweitern',
+        collapseSidebar: 'Seitenleiste einklappen',
+    },
 };

@@ -7,7 +7,7 @@ Scenario: product catalogue with a richer edit experience inside the built-in Gr
 ## Grid with custom form content
 
 ```tsx
-import { Grid, Input, Select, UploadImage, Tab, Badge } from '@llmnative/react'
+import { Grid, Input, Select, UploadImage, Tab, TabItem, Badge } from '@llmnative/react'
 
 export default function ProductCatalog() {
   return (
@@ -45,48 +45,38 @@ export default function ProductCatalog() {
         price: Math.round(record.price * 100),
       })}
       form={() => (
-        <Tab
-          tabs={[
-            {
-              key: 'info',
-              label: 'Information',
-              content: (
-                <>
-                  <Input name="name" label="Product name" required />
-                  <Input name="sku" label="SKU code" />
-                  <Input type="number" name="price" label="Price (EUR)" step={0.01} />
-                  <Select
-                    name="category"
-                    label="Category"
-                    optionsSource={{ path: '/categories', labelField: 'name', valueField: '_key' }}
-                  />
-                  <Select
-                    name="status"
-                    label="Status"
-                    options={[
-                      { label: 'Active', value: 'active' },
-                      { label: 'Inactive', value: 'inactive' },
-                      { label: 'Draft', value: 'draft' },
-                    ]}
-                    defaultValue="draft"
-                  />
-                </>
-              ),
-            },
-            {
-              key: 'media',
-              label: 'Media',
-              content: (
-                <>
-                  <UploadImage name="cover" label="Cover image" />
-                  <UploadImage name="gallery.0" label="Photo 1" />
-                  <UploadImage name="gallery.1" label="Photo 2" />
-                  <UploadImage name="gallery.2" label="Photo 3" />
-                </>
-              ),
-            },
-          ]}
-        />
+        <Tab>
+          <TabItem label="Information">
+            <>
+              <Input name="name" label="Product name" required />
+              <Input name="sku" label="SKU code" />
+              <Input type="number" name="price" label="Price (EUR)" step={0.01} />
+              <Select
+                name="category"
+                label="Category"
+                optionsSource={{ path: '/categories', labelField: 'name', valueField: '_key' }}
+              />
+              <Select
+                name="status"
+                label="Status"
+                options={[
+                  { label: 'Active', value: 'active' },
+                  { label: 'Inactive', value: 'inactive' },
+                  { label: 'Draft', value: 'draft' },
+                ]}
+                defaultValue="draft"
+              />
+            </>
+          </TabItem>
+          <TabItem label="Media">
+            <>
+              <UploadImage name="cover" label="Cover image" />
+              <UploadImage name="gallery.0" label="Photo 1" />
+              <UploadImage name="gallery.1" label="Photo 2" />
+              <UploadImage name="gallery.2" label="Photo 3" />
+            </>
+          </TabItem>
+        </Tab>
       )}
     />
   )

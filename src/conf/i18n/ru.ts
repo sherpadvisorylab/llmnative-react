@@ -101,4 +101,10 @@ export const ru: I18nDict = {
         notConfigured: 'Поиск адресов не настроен (отсутствует ключ Google Maps API).',
         loadError: 'Не удалось загрузить поиск адресов.',
     },
+    sideNav: {
+        expandGroup: 'Развернуть',
+        collapseGroup: 'Свернуть',
+        expandSidebar: 'Развернуть боковую панель',
+        collapseSidebar: 'Свернуть боковую панель',
+    },
 };

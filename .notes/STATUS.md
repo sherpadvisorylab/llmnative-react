@@ -121,6 +121,7 @@
 | CR-041 | **0% — proposal written** | SeoEnhancer (HTML filter applying technical SEO, structured report); proposal in `CHANGE_REQUESTS.md`. No implementation. |
 | CR-045 | ⬜ | AI Adoption: piano di distribuzione e visibilità. |
 | CR-051 | **0% — spec written** | WorkflowAI declarative multi-step pipeline; spec in `CHANGE_REQUESTS.md`. No implementation. |
+| CR-093 | **🔄 in progress** | Docs `Tab`/`Loader` allineate all'API (`TabItem`, `Loader children+show`); `SideNav` internazionalizzato (`sideNav` + `aria-label`). Gate: `tsc` 0 errori, `npm test` 68 file/769 test, `npm run build` ok. Release dopo merge. Issue #60. |
 
 ---
 

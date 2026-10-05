@@ -642,9 +642,11 @@ Accessibilità: il dialog ha `role="dialog"`, `aria-modal="true"` (non con `stac
 
 ### Tab
 ```tsx
+import { Tab, TabItem } from '@llmnative/react';
+
 <Tab defaultIndex={0} layout="top">
-  <Tab.Item label="Generale">{content1}</Tab.Item>
-  <Tab.Item label="SEO">{content2}</Tab.Item>
+  <TabItem label="Generale">{content1}</TabItem>
+  <TabItem label="SEO">{content2}</TabItem>
 </Tab>
 ```
 `layout`: `'default' | 'top' | 'left' | 'right' | 'bottom'`
@@ -760,7 +762,7 @@ utile quando un comando cambia famiglia sintattica (per esempio da `{{ ... }}` a
 ```tsx
 <Icon name="user" size={20} />           // usa provider icone configurato
 <ImageAvatar src="..." label="Mario" size={40} />
-<Loader />                               // spinner
+<Loader show>{content}</Loader>         // mostra l'indicatore al posto dei figli
 <Code language="tsx">{snippet}</Code>   // syntax highlight
 <GridSystem.Row><GridSystem.Col xs={12} md={6}>...</GridSystem.Col></GridSystem.Row>
 <LocaleSwitcher locales={[{ code: 'it', label: 'Italiano' }]} />

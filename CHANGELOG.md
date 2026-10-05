@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- i18n: new `sideNav` namespace (`expandGroup`, `collapseGroup`, `expandSidebar`,
+  `collapseSidebar`) added to `I18nDict` and all six built-in locales (CR-093).
+
+### Fixed
+- Docs: `llms-full.txt` no longer documents the non-existent `<Tab.Item>` / standalone
+  `<Loader />` — the `Tab` example now uses the real `TabItem` export and `Loader` shows
+  the real `children` + `show` usage; `docs/examples/crud-modal.md` aligned to `TabItem`
+  (CR-093).
+- `SideNav`: the two icon-only buttons (group toggle, sidebar collapse) are now
+  internationalized via `useI18n('sideNav')` and expose a matching `aria-label`, giving
+  them a reliable accessible name and translating them with the active locale (CR-093).
+
 ## [1.19.4] - 2026-10-05
 
 ### Fixed

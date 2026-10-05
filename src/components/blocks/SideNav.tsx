@@ -12,6 +12,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useMenu, type UseMenuItem } from '../../App';
 import { useTheme } from '../../Theme';
+import { useI18n } from '../../I18n';
 import { cn } from '../../libs/cn';
 import Icon from '../ui/Icon';
 
@@ -174,6 +175,7 @@ interface NavItemProps {
 function NavItem({ item, expanded, open, showIcons, onToggle }: NavItemProps) {
     const { pathname } = useLocation();
     const theme = useTheme('sideNav');
+    const dict = useI18n('sideNav');
     const hasChildren = (item.children?.length ?? 0) > 0;
 
     const isActive    = isPathActive(pathname, item.path, item.end);
@@ -238,7 +240,8 @@ function NavItem({ item, expanded, open, showIcons, onToggle }: NavItemProps) {
                                 'shrink-0 flex items-center justify-center w-6 h-6 rounded transition-colors text-muted-foreground/50 hover:text-foreground hover:bg-accent',
                                 theme.SideNav.itemToggleClassName,
                             )}
-                            title={open ? 'Collapse' : 'Expand'}
+                            title={open ? dict.collapseGroup : dict.expandGroup}
+                            aria-label={open ? dict.collapseGroup : dict.expandGroup}
                         >
                             <span style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 200ms ease' }}>
                                 <Icon name="chevron-down" size={13} />
@@ -329,6 +332,7 @@ export default function SideNav({
 }: SideNavProps) {
     const { pathname } = useLocation();
     const theme = useTheme('sideNav');
+    const dict = useI18n('sideNav');
     const menuItems = useMenu(menuKey ?? '');
     const resolvedItems: SideNavItemDef[] = itemsProp ?? (menuKey ? mapMenuItems(menuItems) : []);
 
@@ -454,7 +458,8 @@ export default function SideNav({
                         {showCollapseButton && (
                             <button
                                 onClick={() => { setCollapsed(c => !c); setHovered(false); }}
-                                title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                                title={collapsed ? dict.expandSidebar : dict.collapseSidebar}
+                                aria-label={collapsed ? dict.expandSidebar : dict.collapseSidebar}
                                 className={cn(
                                     'shrink-0 flex items-center justify-center rounded-md w-8 h-8 transition-colors text-muted-foreground hover:text-foreground hover:bg-accent',
                                     theme.SideNav.collapseButtonClassName,
