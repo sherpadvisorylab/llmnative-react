@@ -72,6 +72,8 @@ export interface SideNavTheme {
     headerClassName?: string;
     navClassName?: string;
     footerClassName?: string;
+    /** Class applied to the pinned bottom-items container (above the footer). */
+    bottomNavClassName?: string;
     groupLabelClassName?: string;
     groupDividerClassName?: string;
     itemClassName?: string;

@@ -765,7 +765,7 @@ utile quando un comando cambia famiglia sintattica (per esempio da `{{ ... }}` a
 ### Altre primitive
 ```tsx
 <Icon name="user" size={20} />           // usa provider icone configurato
-<ImageAvatar src="..." label="Mario" size={40} />
+<ImageAvatar src="..." title="Mario" width={40} height={40} fit="cover" />
 <Loader show={isLoading}>{content}</Loader> // indicatore al posto dei figli finché show è true
 <Loader show>{null}</Loader>             // solo indicatore (es. pagina in caricamento)
 <Code language="tsx">{snippet}</Code>   // syntax highlight
@@ -789,7 +789,7 @@ utile quando un comando cambia famiglia sintattica (per esempio da `{{ ... }}` a
 <Toolbar items={[...]}>
   {children}
 </Toolbar>
-<SideNav />
+<SideNav items={items} bottomItems={[{ path: '/settings', title: 'Settings', icon: 'settings' }]} />
 <ListCard records={records} onRowClick={(r) => {}} />
 ```
 
@@ -828,6 +828,23 @@ utile quando un comando cambia famiglia sintattica (per esempio da `{{ ... }}` a
 | `align` | `'start' \| 'center'` |
 | `onClick` | `(e) => void` |
 | Classi CSS: `titleClassName`, `descriptionClassName`, `metaClassName`, `badgeClassName`, `leadingClassName`, `bodyClassName`, `headerClassName`, `trailingClassName`, `footerClassName` | `string` |
+
+**SideNav:**
+| Prop | Tipo |
+|---|---|
+| `items` | `SideNavItemDef[]` |
+| `bottomItems` | `SideNavItemDef[]` — voci ancorate sopra il footer, fuori dal `<nav>` scorrevole |
+| `menuKey` | `string` — alternativa a `items`, legge da `menuConfig` |
+| `defaultCollapsed` / `collapsed` | `boolean` — non controllato / controllato |
+| `onCollapsedChange` | `(collapsed: boolean) => void` |
+| `showIcons` / `showCollapseButton` | `boolean` |
+| `header` / `footer` | `ReactNode` |
+| `embedded` | `boolean` — solo le voci, senza shell |
+
+`SideNavItemDef`: `{ path, title?, icon?, group?, end?, badge?, children? }`. Le `bottomItems`
+seguono la stessa logica di `items` (gruppi, figli, stato attivo con `isPathActive`/`end`, badge,
+compressa/hover); in modalità `embedded` compaiono dopo le voci principali, separate. La classe del
+contenitore ancorato è `theme.SideNav.bottomNavClassName`.
 
 **Dropdown:**
 | Prop | Tipo |

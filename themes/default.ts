@@ -368,6 +368,7 @@ export const components: Theme = {
         headerClassName: 'border-b border-border/60 px-1.5 py-2',
         navClassName: 'px-1.5 py-2',
         footerClassName: 'border-t border-border/60 px-1.5 py-2',
+        bottomNavClassName: 'border-t border-border/60 px-1.5 py-2',
         groupLabelClassName: 'text-[10.5px] font-semibold uppercase tracking-widest text-muted-foreground/60 select-none',
         groupDividerClassName: 'bg-border/50',
         itemClassName: 'rounded-lg',

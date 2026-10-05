@@ -103,8 +103,48 @@
 | [CR-092](#cr-092--mockdataprovider-sotto-collezioni) | MockDataProvider: sotto-collezioni | Alta | — | ✅ |
 | [CR-093](#cr-093--docs-tabloader-allineate-allapi-e-sidenav-internazionalizzato) | Docs Tab/Loader allineate all'API e SideNav internazionalizzato | Media | CR-029 | ✅ |
 | [CR-094](#cr-094--modal-chiusura-con-esc-e-docs-modalyesnomodalok) | Modal: chiusura con Esc e docs ModalYesNo/ModalOk | Media | CR-091 | ✅ |
+| [CR-095](#cr-095--sidenav-voci-fissate-in-fondo-bottomitems-e-docs-imageavatar) | SideNav: voci fissate in fondo (`bottomItems`) e docs ImageAvatar | Media | — | 🔄 |
 
 ---
+
+## CR-095 — SideNav: voci fissate in fondo (`bottomItems`) e docs ImageAvatar
+
+**Stato:** 🔄 in progress
+**Issue:** [#64](https://github.com/sherpadvisorylab/llmnative-react/issues/64)
+**Priorità:** Media
+
+### Motivazione
+
+Emersa costruendo la sidebar di `llmnative/playbook`: le impostazioni vanno fissate in fondo alla
+barra laterale, separate dalla navigazione principale. `SideNav` mette tutte le voci in un'unica
+lista scorrevole (al massimo divisa in gruppi) e non permette voci ancorate in basso. Inoltre
+`llms-full.txt` documenta `<ImageAvatar src="..." label="Mario" size={40} />`, ma le prop reali
+sono `src`, `width`/`height`, `title`, `alt` (più `fit`, `badge`, `feedback`).
+
+### Scope
+
+- `src/components/blocks/SideNav.tsx`: nuova prop opzionale `bottomItems?: SideNavItemDef[]`,
+  renderizzata fuori dal `<nav>` principale scorrevole, sopra il footer; rispetta collapsed/hover,
+  stato attivo, gruppi e figli come `items`; in modalità `embedded` compare dopo le voci
+  principali, separata.
+- `src/Theme.tsx`: nuova chiave `SideNavTheme.bottomNavClassName?: string`; default in
+  `themes/default.ts`, `themes/flat.ts`, `themes/cyber.ts`.
+- Docs `llms-full.txt` (sezione `SideNav` e riga `ImageAvatar`), showcase `Sidebar.tsx` (consumer)
+  e `ImageAvatarPage.tsx` (allineamento `BadgeDescriptor.variant`).
+- Fuori scope: bump di versione, tag, `npm publish`, altri componenti.
+
+### Checklist
+
+- [x] `bottomItems` fuori dal `<nav>` scorrevole e sopra il footer
+- [x] Stato attivo con la stessa logica di `items` (`isPathActive`, `end`)
+- [x] Funziona compressa e con hover-expand (icona, label, badge, dot)
+- [x] In modalità `embedded` compare dopo le voci principali, separata
+- [x] Gruppi e figli come `items`
+- [x] `SideNavTheme.bottomNavClassName` disponibile e applicata
+- [x] Docs `ImageAvatar` in `llms-full.txt` allineate all'API reale
+- [x] Test unitari `tests/unit/components/SideNav.test.tsx`
+- [x] `CHANGELOG.md`, `CHANGE_REQUESTS.md`, `STATUS.md`
+- [ ] Release (dopo il merge)
 
 ## CR-086 — Model picker: modelli raggruppati per provider con header sticky
 

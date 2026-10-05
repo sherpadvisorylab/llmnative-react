@@ -46,8 +46,8 @@ export default function ImageAvatarPage() {
             rows: 4,
             shortcuts: [
                 { label: t.propsDocs.items.badge.shortcuts?.none.label || 'none', value: null, help: t.propsDocs.items.badge.shortcuts?.none.help },
-                { label: t.propsDocs.items.badge.shortcuts?.count.label || 'count', value: { content: '3', type: 'danger' }, help: t.propsDocs.items.badge.shortcuts?.count.help },
-                { label: t.propsDocs.items.badge.shortcuts?.status.label || 'status', value: { type: 'success' }, help: t.propsDocs.items.badge.shortcuts?.status.help },
+                { label: t.propsDocs.items.badge.shortcuts?.count.label || 'count', value: { content: '3', variant: 'danger' }, help: t.propsDocs.items.badge.shortcuts?.count.help },
+                { label: t.propsDocs.items.badge.shortcuts?.status.label || 'status', value: { variant: 'success' }, help: t.propsDocs.items.badge.shortcuts?.status.help },
             ],
         },
         { name: 'feedback', type: 'ReactNode', description: t.propsDocs.items.feedback.description, control: 'text' },
@@ -66,7 +66,7 @@ export default function ImageAvatarPage() {
             width: 72,
             height: 72,
             fit: 'cover',
-            badge: { content: '3', type: 'danger' },
+            badge: { content: '3', variant: 'danger' },
             feedback: '',
             before: '',
             after: t.labels.adaLovelace,
@@ -158,23 +158,23 @@ export default function ImageAvatarPage() {
                 preview={
                     <div className="flex flex-wrap items-end gap-8">
                         <div className="flex flex-col items-center gap-2">
-                            <ImageAvatar src={AVATARS.ada} title={t.labels.online} width={64} className="rounded-full border" badge={{ content: undefined, type: 'success' }} />
+                            <ImageAvatar src={AVATARS.ada} title={t.labels.online} width={64} className="rounded-full border" badge={{ content: undefined, variant: 'success' }} />
                             <span className="text-xs text-muted-foreground">{t.labels.onlineDot}</span>
                         </div>
                         <div className="flex flex-col items-center gap-2">
-                            <ImageAvatar src={AVATARS.bob} title={t.labels.away} width={64} className="rounded-full border" badge={{ content: undefined, type: 'warning' }} />
+                            <ImageAvatar src={AVATARS.bob} title={t.labels.away} width={64} className="rounded-full border" badge={{ content: undefined, variant: 'warning' }} />
                             <span className="text-xs text-muted-foreground">{t.labels.awayDot}</span>
                         </div>
                         <div className="flex flex-col items-center gap-2">
-                            <ImageAvatar src={AVATARS.carol} title={t.labels.offline} width={64} className="rounded-full border" badge={{ content: undefined, type: 'secondary' }} />
+                            <ImageAvatar src={AVATARS.carol} title={t.labels.offline} width={64} className="rounded-full border" badge={{ content: undefined, variant: 'secondary' }} />
                             <span className="text-xs text-muted-foreground">{t.labels.offlineDot}</span>
                         </div>
                         <div className="flex flex-col items-center gap-2">
-                            <ImageAvatar src={AVATARS.diana} title={t.labels.notificationsCountTitle} width={64} className="rounded-full border" badge={{ content: '5', type: 'danger' }} />
+                            <ImageAvatar src={AVATARS.diana} title={t.labels.notificationsCountTitle} width={64} className="rounded-full border" badge={{ content: '5', variant: 'danger' }} />
                             <span className="text-xs text-muted-foreground">{t.labels.counter}</span>
                         </div>
                         <div className="flex flex-col items-center gap-2">
-                            <ImageAvatar src={AVATARS.evan} title={t.labels.newBadge} width={64} className="rounded-full border" badge={{ content: 'new', type: 'primary' }} />
+                            <ImageAvatar src={AVATARS.evan} title={t.labels.newBadge} width={64} className="rounded-full border" badge={{ content: 'new', variant: 'primary' }} />
                             <span className="text-xs text-muted-foreground">{t.labels.label}</span>
                         </div>
                     </div>
@@ -183,15 +183,15 @@ export default function ImageAvatarPage() {
 
 // status dot - omit content, only type
 <ImageAvatar src={url} title="Ada" width={64} className="rounded-full border"
-    badge={{ content: undefined, type: 'success' }} />
+    badge={{ content: undefined, variant: 'success' }} />
 
 // counter
 <ImageAvatar src={url} title="Diana" width={64} className="rounded-full border"
-    badge={{ content: '5', type: 'danger' }} />
+    badge={{ content: '5', variant: 'danger' }} />
 
 // label
 <ImageAvatar src={url} title="Evan" width={64} className="rounded-full border"
-    badge={{ content: 'new', type: 'primary' }} />`}
+    badge={{ content: 'new', variant: 'primary' }} />`}
             />
 
             <Section
@@ -200,9 +200,9 @@ export default function ImageAvatarPage() {
                 preview={
                     <div className="flex w-full max-w-xs flex-col gap-3">
                         {[
-                            { avatar: AVATARS.ada, name: t.labels.adaLovelace, role: t.labels.engineer, type: 'badge-primary', badge: { content: '' as const, type: 'success' as const } },
-                            { avatar: AVATARS.bob, name: t.labels.bobChen, role: t.labels.designer, type: 'badge-success', badge: { content: '' as const, type: 'warning' as const } },
-                            { avatar: AVATARS.carol, name: t.labels.carolWu, role: t.labels.productManager, type: 'badge-warning', badge: { content: '' as const, type: 'secondary' as const } },
+                            { avatar: AVATARS.ada, name: t.labels.adaLovelace, role: t.labels.engineer, type: 'badge-primary', badge: { content: '' as const, variant: 'success' as const } },
+                            { avatar: AVATARS.bob, name: t.labels.bobChen, role: t.labels.designer, type: 'badge-success', badge: { content: '' as const, variant: 'warning' as const } },
+                            { avatar: AVATARS.carol, name: t.labels.carolWu, role: t.labels.productManager, type: 'badge-warning', badge: { content: '' as const, variant: 'secondary' as const } },
                         ].map(({ avatar, name, role, type, badge }) => (
                             <ImageAvatar
                                 key={name}
@@ -228,7 +228,7 @@ export default function ImageAvatarPage() {
     title="Ada Lovelace"
     width={44}
     className="rounded-full border"
-    badge={{ content: undefined, type: 'success' }}
+    badge={{ content: undefined, variant: 'success' }}
     after={
         <div className="flex flex-col gap-0.5">
             <span className="font-medium text-sm">Ada Lovelace</span>
