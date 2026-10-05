@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.19.4] - 2026-10-05
+
+### Fixed
+- `MockDataProvider` supports sub-collections: `/companies/acme/playbooks/p1` is a record of the
+  `/companies/acme/playbooks` sub-collection instead of a record `acme/playbooks/p1` of
+  `/companies`. Unknown paths follow the Firestore rule (odd segments = collection, even =
+  record), reading a sub-collection never written returns an empty collection and nested writes
+  notify the sub-collection subscribers. Collections seeded under multi-segment keys are
+  unchanged (CR-092, GH issue #58).
+
 ## [1.19.3] - 2026-10-04
 
 ### Fixed

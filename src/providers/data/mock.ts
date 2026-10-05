@@ -183,8 +183,10 @@ export class MockDataProvider implements DataProviderAdapter {
         const normalized = path.startsWith('/') ? path : `/${path}`;
         if (this.store[normalized]) return { collection: normalized };
 
+        // A record id is a single segment: "/companies/acme" is a record of "/companies", but
+        // "/companies/acme/playbooks/p1" belongs to the sub-collection, not to "/companies".
         const collectionKeys = Object.keys(this.store)
-            .filter((key) => normalized.startsWith(`${key}/`))
+            .filter((key) => normalized.startsWith(`${key}/`) && !normalized.slice(key.length + 1).includes('/'))
             .sort((left, right) => right.length - left.length);
 
         const matchedCollection = collectionKeys[0];
@@ -195,8 +197,9 @@ export class MockDataProvider implements DataProviderAdapter {
             };
         }
 
+        // Unknown path: same rule as Firestore — odd segment count is a collection, even is a record.
         const parts = normalized.replace(/^\/+/, '').split('/').filter(Boolean);
-        if (parts.length <= 1) return { collection: normalized };
+        if (parts.length % 2 === 1) return { collection: `/${parts.join('/')}` };
 
         return {
             collection: `/${parts.slice(0, -1).join('/')}`,

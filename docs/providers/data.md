@@ -32,6 +32,23 @@ Built-in data providers expose whether their required configuration is present:
 
 Custom data providers can implement `isConfigured()` or `getConfigurationState()` when their endpoint or API key is optional at runtime.
 
+## Nested collections
+
+Paths follow the Firestore shape on every provider, `mock` included: an odd number of segments
+is a collection, an even number is a record, and a record can own sub-collections.
+
+```ts
+await data.set('/companies/acme', { name: 'Acme' });
+await data.set('/companies/acme/playbooks/p1', { name: 'Delivery' });
+
+await data.read('/companies');                // { acme: { name: 'Acme' } }
+await data.read('/companies/acme/playbooks'); // { p1: { name: 'Delivery' } }
+```
+
+`<Grid path="/companies/acme/playbooks" />` lists and edits the sub-collection. With `mock`, a
+collection seeded under a multi-segment key (e.g. `'/showcase/grid/users'`) keeps working as is.
+Removing a record does not remove its sub-collections (same as Firestore).
+
 ## Use data with Grid
 
 `Grid` subscribes to the active `DataProvider` when `path` points to a provider collection.

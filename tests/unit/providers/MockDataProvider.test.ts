@@ -178,3 +178,53 @@ describe('MockDataProvider - subscribe()', () => {
         expect(records.map((record: any) => record._key)).toEqual(['u1']);
     });
 });
+
+describe('MockDataProvider - sub-collections', () => {
+    it('stores a nested record in its sub-collection, not in the parent collection', async () => {
+        const provider = new MockDataProvider({ '/companies': { acme: { name: 'Acme' } } });
+
+        await provider.set('/companies/acme/playbooks/p1', { name: 'Delivery' });
+
+        expect(await provider.read('/companies')).toEqual({ acme: { name: 'Acme' } });
+        expect(await provider.read('/companies/acme/playbooks')).toEqual({ p1: { name: 'Delivery' } });
+        expect(await provider.read('/companies/acme/playbooks/p1')).toEqual({ name: 'Delivery' });
+    });
+
+    it('keeps sibling sub-collections independent, also for parents created at runtime', async () => {
+        const provider = new MockDataProvider({ '/companies': { acme: { name: 'Acme' } } });
+
+        await provider.set('/companies/beta', { name: 'Beta' });
+        await provider.set('/companies/acme/playbooks/p1', { name: 'Delivery' });
+        await provider.set('/companies/beta/playbooks/p2', { name: 'Marketing' });
+        await provider.update('/companies/beta/playbooks/p2', { status: 'draft' });
+
+        expect(Object.keys(await provider.read('/companies'))).toEqual(['acme', 'beta']);
+        expect(await provider.read('/companies/acme/playbooks')).toEqual({ p1: { name: 'Delivery' } });
+        expect(await provider.read('/companies/beta/playbooks')).toEqual({ p2: { name: 'Marketing', status: 'draft' } });
+
+        await provider.remove('/companies/acme/playbooks/p1');
+        expect(await provider.read('/companies/acme/playbooks')).toEqual({});
+        expect(await provider.read('/companies/beta/playbooks/p2')).toMatchObject({ name: 'Marketing' });
+    });
+
+    it('reads a sub-collection that was never written as an empty collection', async () => {
+        const provider = new MockDataProvider({ '/companies': { acme: { name: 'Acme' } } });
+
+        expect(await provider.read('/companies/acme/playbooks')).toEqual({});
+    });
+
+    it('notifies sub-collection subscribers on nested writes', async () => {
+        const provider = new MockDataProvider({ '/companies': { acme: { name: 'Acme' } } });
+        const parent = vi.fn();
+        const child = vi.fn();
+        provider.subscribe('/companies', parent);
+        provider.subscribe('/companies/acme/playbooks', child);
+
+        await act(async () => {
+            await provider.set('/companies/acme/playbooks/p1', { name: 'Delivery' });
+        });
+
+        expect(child.mock.calls.at(-1)?.[0].map((record: { _key: string }) => record._key)).toEqual(['p1']);
+        expect(parent.mock.calls.at(-1)?.[0].map((record: { _key: string }) => record._key)).toEqual(['acme']);
+    });
+});

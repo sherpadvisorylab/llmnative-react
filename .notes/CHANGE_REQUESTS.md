@@ -100,6 +100,7 @@
 | [CR-089](#cr-089--scaffold-pacchetto-npm-cli-e-template-allineati-allapi) | Scaffold: pacchetto npm, CLI e template allineati all'API | Alta | CR-005 | ✅ |
 | [CR-090](#cr-090--app-la-rotta-di-fallback--non-copre-la-pagina-del-consumer) | App: la rotta di fallback `/` non copre la pagina del consumer | Alta | — | ✅ |
 | [CR-091](#cr-091--modal-semantica-di-dialog-accessibile) | Modal: semantica di dialog accessibile | Media | — | ✅ |
+| [CR-092](#cr-092--mockdataprovider-sotto-collezioni) | MockDataProvider: sotto-collezioni | Alta | — | ✅ |
 
 ---
 
@@ -135,6 +136,34 @@ Richiesto dal consumer `llmnative-cms`.
 - [x] Release 1.18.0
 
 ---
+
+## CR-092 — MockDataProvider: sotto-collezioni
+
+**Stato:** ✅ done — rilasciato in 1.19.4
+**Issue:** [#58](https://github.com/sherpadvisorylab/llmnative-react/issues/58)
+**Priorità:** Alta
+
+### Motivazione
+
+`set('/companies/acme/playbooks/p1')` salvava il record `acme/playbooks/p1` nella collezione
+`/companies` (finta company in `read('/companies')`, `read('/companies/acme/playbooks')` =
+`undefined`): un'app su provider mock non poteva modellare dati annidati per tenant, che Firestore e
+Realtime Database gestiscono nativamente. Riprodotto in `llmnative/playbook` (company → playbook).
+Causa: `resolvePath` accettava come collezione il prefisso noto più lungo anche con altri `/` nel resto.
+
+### Scope
+
+- `src/providers/data/mock.ts` › `resolvePath`: chiave esistente → collezione (invariato); sotto una
+  collezione nota → record solo se il resto è un segmento; altrimenti regola Firestore (dispari =
+  collezione, pari = record).
+- Fuori scope: cancellazione a cascata delle sotto-collezioni; provider Firebase/Supabase.
+
+### Checklist
+
+- [x] Fix `resolvePath`
+- [x] Test `tests/unit/providers/MockDataProvider.test.ts` › `sub-collections` (4; 3 falliscono su 1.19.3)
+- [x] Docs `docs/providers/data.md` (Nested collections), CHANGELOG, STATUS
+- [x] Release 1.19.4
 
 ## CR-091 — Modal: semantica di dialog accessibile
 
