@@ -105,6 +105,7 @@
 | [CR-094](#cr-094--modal-chiusura-con-esc-e-docs-modalyesnomodalok) | Modal: chiusura con Esc e docs ModalYesNo/ModalOk | Media | CR-091 | ✅ |
 | [CR-096](#cr-096--autocomplete-combobox-disegnata-al-posto-del-datalist-nativo) | Autocomplete: combobox disegnata al posto del datalist nativo | Alta | — | ✅ |
 | [CR-097](#cr-097--testi-visibili-dei-componenti-traducibili-i18n) | Testi visibili dei componenti traducibili (i18n) | Media | CR-093 | ⬜ |
+| [CR-098](#cr-098--repeat-documentazione-allineata-al-comportamento-layout-vertical-e-accessibilità) | Repeat: documentazione allineata al comportamento, layout vertical e accessibilità | Media | — | ⬜ |
 
 ---
 
@@ -138,6 +139,40 @@ Richiesto dal consumer `llmnative-cms`.
 - [x] Docs `docs/providers/ai.md`, `llms-full.txt`
 - [x] Verifica visiva nel consumer `llmnative-cms` (picker Agentico: header per OpenCode, DeepSeek, Cloudflare Workers AI, sticky durante lo scroll)
 - [x] Release 1.18.0
+
+---
+
+## CR-098 — Repeat: documentazione allineata al comportamento, layout vertical e accessibilità
+
+**Stato:** ⬜ todo
+**Issue:** [#69](https://github.com/sherpadvisorylab/llmnative-react/issues/69)
+**Priorità:** Media
+**Dipende da:** —
+
+### Motivazione
+
+Emersa nel CRM Voltab (06/10/2026): seguendo `llms-full.txt` i campi dentro `Repeat` perdevano i
+valori. `Repeat` passa `parentName = ${name}.${index}` a `setFormFieldsName` e `setParentName` con un
+nome puntato raddoppia l'indice (`lines.0.productId` → `lines.0.0.productId`); funziona solo il nome
+relativo. Inoltre l'esempio della sezione Form usa `{(i) => ...}` (la funzione riceve
+`{ index, record, records, remove }`), l'esempio principale usa `layout="vertical"` che in
+`Repeat.tsx` restituisce un fragment vuoto, e i pulsanti aggiungi/rimuovi non hanno nome accessibile.
+
+### Scope
+
+- Docs (`llms-full.txt`, showcase): nomi relativi, firma dei children, esempio con layout funzionante.
+- `setParentName`: accettare il percorso completo coerente con il parent o segnalarlo; test.
+- `layout="vertical"`: implementare o rimuovere da tipo e docs.
+- `aria-label` i18n per aggiungi/rimuovi riga.
+- CHANGELOG.
+
+### Checklist
+
+- [ ] Docs corrette e copiabili
+- [ ] Nomi completi gestiti o segnalati, con test
+- [ ] Layout vertical funzionante o rimosso
+- [ ] Nomi accessibili tradotti
+- [ ] Release
 
 ---
 
