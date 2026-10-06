@@ -105,6 +105,7 @@
 | [CR-094](#cr-094--modal-chiusura-con-esc-e-docs-modalyesnomodalok) | Modal: chiusura con Esc e docs ModalYesNo/ModalOk | Media | CR-091 | ✅ |
 | [CR-096](#cr-096--autocomplete-combobox-disegnata-al-posto-del-datalist-nativo) | Autocomplete: combobox disegnata al posto del datalist nativo | Alta | — | ✅ |
 | [CR-097](#cr-097--testi-visibili-dei-componenti-traducibili-i18n) | Testi visibili dei componenti traducibili (i18n) | Media | CR-093 | ⬜ |
+| [CR-098](#cr-098--repeat-documentazione-allineata-al-comportamento-layout-vertical-e-accessibilità) | Repeat: documentazione allineata, layout vertical e accessibilità | Alta | CR-093 | 🔄 |
 
 ---
 
@@ -176,6 +177,42 @@ invece di passare da `useI18n`, quindi il consumer non può tradurli.
 - [ ] ErrorBoundary con fallback senza provider
 - [ ] Test e controllo contro nuovi testi fissi
 - [ ] Docs, CHANGELOG
+- [ ] Release
+
+---
+
+## CR-098 — Repeat: documentazione allineata al comportamento, layout vertical e accessibilità
+
+**Stato:** 🔄 in progress
+**Issue:** [#69](https://github.com/sherpadvisorylab/llmnative-react/issues/69)
+**Priorità:** Alta
+**Dipende da:** CR-093
+
+### Motivazione
+
+Nel CRM Voltab (modale "Richiedi nuovo ordine", 06/10/2026) i campi dentro `Repeat` perdevano i
+valori seguendo gli esempi di `llms-full.txt`: la documentazione usava nomi assoluti
+(`items.${index}.name`) che `setParentName` raddoppiava (`lines.0.productId` →
+`lines.0.0.productId`), la firma dei children documentata non corrispondeva a
+`RepeatCallbackArgs`, `layout="vertical"` restituiva un fragment vuoto e i pulsanti
+aggiungi/rimuovi non avevano un nome accessibile.
+
+### Scope
+
+- `src/components/ui/Repeat.tsx`: `layout="vertical"` reale; `ariaLabel`/`title` i18n su add/remove.
+- `src/components/widgets/Form.tsx`: `setParentName` lascia invariato un percorso coerente col parent.
+- `src/I18n.tsx` + `src/conf/i18n/*.ts`: namespace `repeat` (`addItem`/`removeItem`) in 6 lingue.
+- Docs `llms-full.txt`/`llms.txt`, showcase `RepeatPage`, test `Repeat.test.tsx`.
+- Fuori scope: release, testi visibili degli altri componenti (CR-097).
+
+### Checklist
+
+- [x] `layout="vertical"` disegna ogni riga
+- [x] `setParentName` non raddoppia l'indice per percorsi coerenti (test)
+- [x] Namespace i18n `repeat` + traduzioni 6 lingue
+- [x] Pulsanti add/remove con nome accessibile (test)
+- [x] Docs, showcase, test allineati a `RepeatProps` reali
+- [x] `npx tsc --noEmit`, `npm test`, `npm run build`
 - [ ] Release
 
 ---

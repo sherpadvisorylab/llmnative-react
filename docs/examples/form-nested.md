@@ -52,24 +52,24 @@ export default function QuoteForm() {
       <Input type="email" name="contacts.1.email" label="Alternate contact - Email" />
 
       {/* ── Quote lines (dynamic array with Repeat) ──────── */}
-      <Repeat name="items" defaultLength={3} label="Quote lines">
-        {(index) => (
+      <Repeat name="items" label="Quote lines">
+        {({ index }) => (
           <div key={index} style={{ display: 'grid', gridTemplateColumns: '3fr 1fr 1fr', gap: 8 }}>
             <Input
-              name={`items.${index}.description`}
+              name="description"
               label={index === 0 ? "Description" : ""}
               placeholder="Product/service description"
             />
             <Input
               type="number"
-              name={`items.${index}.qty`}
+              name="qty"
               label={index === 0 ? "Qty" : ""}
               min={1}
               defaultValue={1}
             />
             <Input
               type="number"
-              name={`items.${index}.unitPrice`}
+              name="unitPrice"
               label={index === 0 ? "Unit price €" : ""}
               step={0.01}
               min={0}
@@ -148,4 +148,4 @@ function calculateTotal(items: any[] = []) {
 
 **Sparse arrays:** if the user fills only `items.0` and `items.2` (leaving `items.1` empty), Firebase saves only non-null values. On reload, `items.1` will be `undefined`. Handle this in `onLoad` if normalisation is needed.
 
-**Repeat with variable length:** `defaultLength` is only the initial number of rows. The user can add/remove rows — the final value is an array of variable length.
+**Repeat with variable length:** the initial number of rows comes from `defaultValues` (or `minItems`); the user can add/remove rows, so the final value is an array of variable length. Write children with relative names (`name="qty"`) — `Repeat` composes `items.index.qty` itself.

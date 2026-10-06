@@ -1450,6 +1450,7 @@ interface ShowcaseRepeatI18n {
     page: { title: string; description: string; };
     sections: {
         repeatedFields: ShowcasePageSectionCopy;
+        verticalLayout: ShowcasePageSectionCopy;
         inlineLayout: ShowcasePageSectionCopy;
         multipleFields: ShowcasePageSectionCopy;
         constraints: ShowcasePageSectionCopy;
@@ -1460,6 +1461,8 @@ interface ShowcaseRepeatI18n {
         items: string;
         name: string;
         firstItem: string;
+        contacts: string;
+        email: string;
         tasks: string;
         taskName: string;
         design: string;

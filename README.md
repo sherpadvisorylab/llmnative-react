@@ -165,8 +165,8 @@ export default function UserForm() {
 <Input name="address.zip" label="ZIP" />
 
 // Dynamic arrays with Repeat
-<Repeat name="items" defaultLength={3}>
-  {(index) => <Input name={`items.${index}.name`} label={`Item ${index + 1}`} />}
+<Repeat name="items">
+  {({ index }) => <Input name="name" label={`Item ${index + 1}`} />}
 </Repeat>
 ```
 

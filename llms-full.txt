@@ -246,8 +246,8 @@ export class RestDataProvider implements DataProviderAdapter {
   <Input name="title" label="Titolo" required />
   <Input name="price" label="Prezzo" type="number" />
   <Input name="address.city" label="Città" />      {/* oggetto annidato */}
-  <Repeat name="tags" defaultLength={1}>
-    {(i) => <Input name={`tags.${i}`} label={`Tag ${i+1}`} />}
+  <Repeat name="tags">
+    {({ index }) => <Input name="name" label={`Tag ${index + 1}`} />}
   </Repeat>
 </Form>
 ```
@@ -471,29 +471,38 @@ Quando `commands` e presente, `CodeEditor` apre internamente `ContextMenu` sul t
 
 ### Repeat — array dinamici
 ```tsx
-<Repeat name="items" defaultLength={3} minItems={1} maxItems={10} label="Elementi" layout="vertical" readOnly>
+<Repeat name="items" minItems={1} maxItems={10} label="Elementi" layout="vertical">
   {({ index, record, records, remove }) => (
     <>
-      <Input name={`items.${index}.name`} label="Nome" />
-      <UploadImage name={`items.${index}.photo`} label="Foto" />
+      <Input name="name" label="Nome" />
+      <UploadImage name="photo" label="Foto" />
     </>
   )}
 </Repeat>
 ```
 
+`Repeat` riceve `name` (il campo array) e compone da solo il percorso di ogni riga:
+passa a `setFormFieldsName` un `parentName` pari a `` `${name}.${index}` ``, quindi i
+figli vanno scritti con il **nome relativo** (`name="nome"`), non con il percorso
+assoluto (`name={`items.${index}.name`}`): `Repeat` aggiunge già l'indice. Un
+percorso assoluto già coerente con il parent (uguale o con prefisso `items.0.`) viene
+lasciato invariato, mentre i nomi relativi annidati (`name="address.city"`) vengono
+prefissati correttamente. La funzione `children` riceve `{ index, record, records, remove }`.
+
 | Prop | Tipo | Note |
 |---|---|---|
-| `name` | `string` (required) | |
+| `name` | `string` (required) | Campo array; `Repeat` compone `name.index` per ogni riga |
 | `children` | `ReactNode \| ((args) => ReactNode)` | Render prop con `{ index, record, records, remove }` |
-| `defaultLength` | `number` | Righe iniziali |
 | `minItems` / `maxItems` | `number` | Min/max righe |
-| `layout` | `'vertical' \| 'horizontal' \| 'inline'` | |
+| `layout` | `'vertical' \| 'horizontal' \| 'inline'` | `horizontal` (default) card numerata; `vertical` campi impilati; `inline` riga compatta |
 | `label` | `string` | Etichetta gruppo |
 | `labelPosition` | `'top' \| 'bottom'` | |
 | `hideRemoveButton` | `boolean` | Nascondi rimozione |
 | `readOnly` | `boolean` | Sola lettura |
+| `className` | `string` | CSS wrapper esterno |
 | `onChange` | `FieldOnChange` | |
-| `onAdd` / `onRemove` | `(records) => void` | Callback aggiunta/rimozione |
+| `onAdd` | `(records: RecordProps[]) => void` | Callback dopo l'aggiunta |
+| `onRemove` | `(index: number) => void` | Callback dopo la rimozione |
 
 ### Prompt — campo AI-potenziato
 ```tsx

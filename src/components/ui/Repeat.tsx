@@ -4,6 +4,7 @@ import { FieldOnChange, setFormFieldsName, useFormContext } from '../widgets/For
 import { RecordProps } from '../../providers/data/DataProvider';
 import { cn } from '../../libs/cn';
 import { useTheme } from '../../Theme';
+import { useI18n } from '../../I18n';
 
 export interface RepeatCallbackArgs {
     record: RecordProps;
@@ -51,6 +52,7 @@ const Repeat = ({
     const { value, handleChange } = useFormContext({ name, onChange });
     const records = Array.isArray(value) ? value as RecordProps[] : [];
     const theme = useTheme('repeat');
+    const dict = useI18n('repeat');
     const itemShellClass = cn("rounded-xl border border-border/60 bg-card/80 shadow-sm", theme.Repeat.itemClassName);
 
     const renderChildren = (index: number, wrapperClassName?: string) => {
@@ -73,6 +75,8 @@ const Repeat = ({
                                 <ActionButton
                                     className={removeButtonClass}
                                     icon="x"
+                                    ariaLabel={dict.removeItem}
+                                    title={dict.removeItem}
                                     onClick={() => handleRemove(index)}
                                 />
                             ) : <span className="h-7 w-7" aria-hidden="true" />}
@@ -83,7 +87,22 @@ const Repeat = ({
                     </div>
                 );
             case 'vertical':
-                return <></>
+                return (
+                    <div className={cn(itemShellClass, "relative p-3")}>
+                        <div className="space-y-3">
+                            {renderChildren(index)}
+                        </div>
+                        {canRemove && !hideRemoveButton && (
+                            <ActionButton
+                                className={cn(removeButtonClass, "absolute right-2 top-2")}
+                                icon="x"
+                                ariaLabel={dict.removeItem}
+                                title={dict.removeItem}
+                                onClick={() => handleRemove(index)}
+                            />
+                        )}
+                    </div>
+                );
             case 'inline':
                 return (
                     <div className={cn(itemShellClass, "px-3 py-2", theme.Repeat.inlineItemClassName)}>
@@ -95,6 +114,8 @@ const Repeat = ({
                                 <ActionButton
                                     className={cn(removeButtonClass, "mt-1 shrink-0")}
                                     icon="x"
+                                    ariaLabel={dict.removeItem}
+                                    title={dict.removeItem}
                                     onClick={() => handleRemove(index)}
                                 />
                             )}
@@ -137,6 +158,8 @@ const Repeat = ({
                         icon='plus'
                         label={label}
                         variant='link'
+                        ariaLabel={dict.addItem}
+                        title={dict.addItem}
                         className={cn(
                             "w-full justify-start gap-1 rounded-lg border border-dashed border-border/60 px-3 py-2 text-sm text-muted-foreground hover:border-border hover:bg-muted/40 hover:text-foreground",
                             theme.Repeat.addButtonClassName,
@@ -147,14 +170,16 @@ const Repeat = ({
             }
             return <ActionButton
                 icon='plus'
-                label={label ? undefined : 'Add'}
+                label={label ? undefined : dict.addItem}
                 variant={label ? 'link' : 'secondary'}
+                ariaLabel={label ? dict.addItem : undefined}
+                title={label ? dict.addItem : undefined}
                 className={label ? cn('h-8 w-8 rounded-lg p-0 text-muted-foreground hover:bg-muted/50 hover:text-foreground', theme.Repeat.addButtonClassName) : undefined}
                 onClick={handleAdd}
             />
         }
         return null;
-    }, [readOnly, maxItems, components.length, label, labelPosition, theme.Repeat.addButtonClassName]);
+    }, [readOnly, maxItems, components.length, label, labelPosition, theme.Repeat.addButtonClassName, dict.addItem]);
 
     return (
         <div className={cn("space-y-3", className)}>

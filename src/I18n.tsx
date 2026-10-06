@@ -198,6 +198,10 @@ export interface I18nDict {
         notConfigured:   string;
         loadError:       string;
     };
+    repeat: {
+        addItem:    string;
+        removeItem: string;
+    };
 }
 
 type DeepPartial<T> = { [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K] };

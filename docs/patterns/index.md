@@ -93,8 +93,8 @@ export default function UserEdit() {
   <Input name="address.city" label="City" />
   <Input name="address.zip" label="ZIP" />
 
-  <Repeat name="tags" defaultLength={3}>
-    {(index) => <Input name={`tags.${index}`} label={`Tag ${index + 1}`} />}
+  <Repeat name="tags">
+    {({ index }) => <Input name="name" label={`Tag ${index + 1}`} />}
   </Repeat>
 </Form>
 ```

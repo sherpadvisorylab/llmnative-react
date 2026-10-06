@@ -113,4 +113,8 @@ export const ar: I18nDict = {
         notConfigured: 'البحث عن العناوين غير مُعد (مفتاح Google Maps API مفقود).',
         loadError: 'تعذر تحميل البحث عن العناوين.',
     },
+    repeat: {
+        addItem: 'إضافة عنصر',
+        removeItem: 'إزالة عنصر',
+    },
 };

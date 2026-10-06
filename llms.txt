@@ -36,7 +36,7 @@ import '@llmnative/react/dist/index.css'  // necessario una volta sola
 
 // 3 — Oggetti annidati e array dinamici
 <Input name="address.city" label="Città" />
-<Repeat name="items" defaultLength={1}>{(i) => <Input name={`items.${i}.name`} />}</Repeat>
+<Repeat name="items">{({ index }) => <Input name="name" label={`Item ${index + 1}`} />}</Repeat>
 
 // 4 — Colonne con renderer custom e Badge
 <Grid path="/orders" columns={[{ key: 'status', render: ({ value }) => <Badge variant="success">{value}</Badge> }, { key: 'amount', render: ({ value }) => `€ ${value.toFixed(2)}` }]} />

@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `Repeat`: `layout="vertical"` now actually renders each row (it returned an empty
+  fragment before) — fields stacked in a card with a floating remove button. Add/remove
+  buttons now have an accessible name from the new i18n namespace `repeat`
+  (`addItem`/`removeItem`, all 6 languages). Docs, showcase and tests aligned to the real
+  `RepeatProps` (CR-098, GH issue #69).
+
+### Fixed
+- `Form`: `setParentName` no longer duplicates the row index when a `Repeat` child uses a
+  full path already coherent with its parent (`items.0.name` stayed `items.0.0.name`
+  before, deforming the saved record). Relative names (`name="name"`) and relative nested
+  names (`name="address.city"`) keep working; an incoherent absolute path is still
+  prefixed under the current parent (CR-098).
+
 ## [1.22.1] - 2026-10-06
 
 ### Fixed

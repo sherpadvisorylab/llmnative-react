@@ -10,7 +10,11 @@ export default defineLocaleMessages({
             sections: {
                 repeatedFields: {
                     title: 'Basic usage — horizontal layout',
-                    description: 'Default layout. Each item gets a numbered header, its own field group, and a remove button. The add button appears below the list when a label is not set, or inline with the label when it is.',
+                    description: 'Default layout. Each item gets a numbered header, its own field group, and a remove button. The add button appears below the list when a label is not set, or inline with the label when it.',
+                },
+                verticalLayout: {
+                    title: 'Vertical layout',
+                    description: 'Use layout="vertical" to stack each item\'s fields in a card with a floating remove button. Children keep their relative names — Repeat composes name.index for every row.',
                 },
                 inlineLayout: {
                     title: 'Inline layout',
@@ -37,6 +41,8 @@ export default defineLocaleMessages({
                 items: 'Items',
                 name: 'Name',
                 firstItem: 'First item',
+                contacts: 'Contacts',
+                email: 'Email',
                 tasks: 'Tasks',
                 taskName: 'Task name',
                 design: 'Design',
@@ -72,12 +78,12 @@ export default defineLocaleMessages({
                 title: 'Props',
                 items: {
                     name: { description: 'Array field name in the Form record.' },
-                    children: { description: 'Fields cloned for each repeated row. Pass a function to receive (record, records, index).' },
+                    children: { description: 'Fields cloned for each repeated row. Pass a function to receive ({ index, record, records, remove }).' },
                     onChange: { description: 'Custom change handler called by Form context.' },
                     onAdd: { description: 'Called after adding an item.' },
                     onRemove: { description: 'Called after removing an item.' },
                     className: { description: 'CSS classes on root wrapper.' },
-                    layout: { description: 'horizontal — numbered card per item; inline — compact single-row per item.' },
+                    layout: { description: 'horizontal — numbered card per item; vertical — stacked fields per item; inline — compact single-row per item.' },
                     minItems: { description: 'Minimum number of items — remove button hidden for first N items.' },
                     maxItems: { description: 'Maximum number of items — add button hidden once limit is reached.' },
                     label: { description: 'Section label shown above the list; add button is placed inline with it.' },

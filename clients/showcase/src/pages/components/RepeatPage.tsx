@@ -12,8 +12,8 @@ export default function RepeatPage() {
 
     const repeatProps = React.useMemo<PropDef[]>(() => [
         { name: 'name', type: 'string', required: true, description: t.propsDocs.items.name.description, control: 'text' },
-        { name: 'children', type: 'ReactNode | ((record, records, index) => ReactNode)', required: true, description: t.propsDocs.items.children.description },
-        { name: 'layout', type: 'horizontal | inline', default: 'horizontal', description: t.propsDocs.items.layout.description, control: 'select', options: ['horizontal', 'inline'] },
+        { name: 'children', type: 'ReactNode | ((args: { index, record, records, remove }) => ReactNode)', required: true, description: t.propsDocs.items.children.description },
+        { name: 'layout', type: 'vertical | horizontal | inline', default: 'horizontal', description: t.propsDocs.items.layout.description, control: 'select', options: ['horizontal', 'vertical', 'inline'] },
         { name: 'label', type: 'string', description: t.propsDocs.items.label.description, control: 'text' },
         { name: 'minItems', type: 'number', description: t.propsDocs.items.minItems.description, control: 'number', min: 0, max: 5 },
         { name: 'maxItems', type: 'number', description: t.propsDocs.items.maxItems.description, control: 'number', min: 1, max: 8 },
@@ -103,7 +103,34 @@ export default function RepeatPage() {
 </Form>`}
             />
 
-            {/* 2 — Inline layout */}
+            {/* 2 — Vertical layout */}
+            <Section
+                bare
+                title={t.sections.verticalLayout.title}
+                description={t.sections.verticalLayout.description}
+                preview={(
+                    <div className="w-full max-w-md">
+                        <Form appearance="empty" defaultValues={{ contacts: [
+                            { email: 'ada@example.com' },
+                            { email: 'linus@example.com' },
+                        ]}}>
+                            <Repeat name="contacts" label={t.labels.contacts} layout="vertical" maxItems={6}>
+                                <Input name="email" label={t.labels.email} type="email" placeholder="name@example.com" />
+                            </Repeat>
+                        </Form>
+                    </div>
+                )}
+                code={`<Form defaultValues={{ contacts: [
+    { email: 'ada@example.com' },
+    { email: 'linus@example.com' },
+]}}>
+    <Repeat name="contacts" label="Contacts" layout="vertical" maxItems={6}>
+        <Input name="email" label="Email" type="email" placeholder="name@example.com" />
+    </Repeat>
+</Form>`}
+            />
+
+            {/* 3 — Inline layout */}
             <Section
                 bare
                 title={t.sections.inlineLayout.title}
@@ -146,7 +173,7 @@ export default function RepeatPage() {
 </Form>`}
             />
 
-            {/* 3 — Multiple fields */}
+            {/* 4 — Multiple fields */}
             <Section
                 bare
                 title={t.sections.multipleFields.title}
@@ -177,7 +204,7 @@ export default function RepeatPage() {
 </Form>`}
             />
 
-            {/* 4 — Min / max constraints */}
+            {/* 5 — Min / max constraints */}
             <Section
                 bare
                 title={t.sections.constraints.title}
@@ -203,7 +230,7 @@ export default function RepeatPage() {
 </Form>`}
             />
 
-            {/* 5 — Read-only */}
+            {/* 6 — Read-only */}
             <Section
                 bare
                 title={t.sections.readOnlyMode.title}
@@ -232,7 +259,7 @@ export default function RepeatPage() {
 </Form>`}
             />
 
-            {/* 6 — Children as function */}
+            {/* 7 — Children as function */}
             <Section
                 bare
                 title={t.sections.functionChildren.title}
