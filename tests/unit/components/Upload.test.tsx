@@ -95,6 +95,31 @@ describe('UploadDocument', () => {
         fireEvent.click(removeButton!);
         expect(screen.queryByRole('link', { name: 'contract.pdf' })).not.toBeInTheDocument();
     });
+    it('settles when the field starts without a value and the parent mirrors the record', async () => {
+        // Regression: the upload emitted [] while its value was still '', and the external-reset
+        // sync wrote a new [] back, forever (React "Maximum update depth exceeded").
+        const records: Array<Record<string, unknown>> = [];
+        function Parent() {
+            const [, setDraft] = React.useState<Record<string, unknown>>({});
+            return (
+                <Form onRecordChange={(record) => { records.push(record); setDraft(record ?? {}); }}>
+                    <UploadDocument name="attachments" label="Attachments" multiple />
+                </Form>
+            );
+        }
+        const errors = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+        try {
+            renderWithProviders(<Parent />);
+            await waitFor(() => expect(records[records.length - 1]?.attachments).toEqual([]));
+            const settled = records.length;
+            await new Promise((resolve) => setTimeout(resolve, 50));
+            expect(records.length).toBe(settled);
+            expect(records.length).toBeLessThan(10);
+            expect(errors.mock.calls.some((call) => String(call[0]).includes('Maximum update depth'))).toBe(false);
+        } finally {
+            errors.mockRestore();
+        }
+    });
 });
 
 describe('UploadImage', () => {

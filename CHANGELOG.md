@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.22.1] - 2026-10-06
+
+### Fixed
+- `UploadDocument` / `UploadImage`: a field that started without a value (`''` / `undefined`, e.g.
+  no `defaultValues` for it) looped forever with React "Maximum update depth exceeded" as soon as
+  the Form mounted, when a parent mirrored the record through `onRecordChange`. The upload emitted
+  `[]` while its value was still empty and the external-reset sync wrote a new `[]` back; the sync
+  now ignores its own echoed arrays and an empty value with no files. Workaround no longer needed:
+  seeding the field with `[]` in `defaultValues`.
+
 ## [1.22.0] - 2026-10-06
 
 ### Changed

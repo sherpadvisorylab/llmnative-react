@@ -226,11 +226,16 @@ const useFileUpload = (
     // mount and never again: an external reset updates the Form record correctly, but the
     // rendered thumbnails silently keep showing the pre-reset state forever.
     const lastEmittedRef = useRef<FieldValue | undefined>(value);
+    // Every array this hook wrote out. A render can still carry an older one of them (the Form
+    // store update lands after this commit's effects): that is our own echo, not an external
+    // change, and syncing it back would emit yet another array, forever.
+    const emittedRef = useRef(new WeakSet<object>());
 
     const core = useFileUploadCore({
         initialFiles:   Array.isArray(value) ? (value as FileProps[]) : [],
         onFilesChange:  (files) => {
             lastEmittedRef.current = files;
+            emittedRef.current.add(files);
             handleChange({ target: { name, value: files } });
         },
         uploadPath,
@@ -241,8 +246,13 @@ const useFileUpload = (
 
     useEffect(() => {
         if (value === lastEmittedRef.current) return;
+        if (Array.isArray(value) && emittedRef.current.has(value)) return;
+        const next = Array.isArray(value) ? (value as FileProps[]) : [];
         lastEmittedRef.current = value;
-        core.setFiles(Array.isArray(value) ? (value as FileProps[]) : []);
+        // A field without a value ('' / undefined) and no files: nothing to sync. Without this
+        // check a field that starts empty loops (React "Maximum update depth exceeded").
+        if (next.length === 0 && core.files.length === 0) return;
+        core.setFiles(next);
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [value]);
 
