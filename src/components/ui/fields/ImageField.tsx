@@ -14,6 +14,7 @@ import {
 } from '../../../libs/imageVariants';
 import { useStorageProvider } from '../../../providers/storage/StorageProviderContext'; // CR-042
 import ImageEditor from '../../widgets/ImageEditor';
+import { useI18n, interpolate } from '../../../I18n';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -117,6 +118,7 @@ export const ImageField = ({
     const sizes  = rec.sizes  ?? '';
 
     const storage = useStorageProvider();
+    const dict = useI18n('image');
 
     const [isGenerating, setIsGenerating] = useState(false);
     const [showCrop, setShowCrop] = useState(false);
@@ -223,14 +225,14 @@ export const ImageField = ({
                                 href={src}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                title="Open original"
+                                title={dict.openOriginal}
                                 className="flex h-7 w-7 items-center justify-center rounded-md bg-black/60 text-white backdrop-blur-sm transition-colors hover:bg-black/80"
                             >
                                 <Icon name="external-link" size={13} />
                             </a>
                             <button
                                 type="button"
-                                title="Crop"
+                                title={dict.crop}
                                 disabled={disabled}
                                 onClick={() => setShowCrop(true)}
                                 className="flex h-7 w-7 items-center justify-center rounded-md bg-black/60 text-white backdrop-blur-sm transition-colors hover:bg-black/80 disabled:cursor-not-allowed disabled:opacity-40"
@@ -304,7 +306,7 @@ export const ImageField = ({
                 <ImageEditor
                     src={src}
                     mode="modal"
-                    title={`Crop — ${fileNameFromUrl(src)}`}
+                    title={interpolate(dict.cropTitle, { name: fileNameFromUrl(src) })}
                     onClose={() => setShowCrop(false)}
                     onSave={handleCropSave}
                 />

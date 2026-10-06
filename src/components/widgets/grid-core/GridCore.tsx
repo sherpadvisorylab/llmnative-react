@@ -600,8 +600,8 @@ function GridCore<TRecord extends RecordProps>({
         <span className="inline-flex rounded-md border border-border overflow-hidden">
             <ActionButton
                 icon="list"
-                ariaLabel="Table view"
-                title="Table view"
+                ariaLabel={dict.tableView}
+                title={dict.tableView}
                 className={
                     "rounded-none border-0 "
                     + (resolvedView === "table" ? "bg-card text-foreground shadow-sm" : "bg-transparent text-muted-foreground")
@@ -610,8 +610,8 @@ function GridCore<TRecord extends RecordProps>({
             />
             <ActionButton
                 icon="layout-grid"
-                ariaLabel="Gallery view"
-                title="Gallery view"
+                ariaLabel={dict.galleryView}
+                title={dict.galleryView}
                 className={
                     "rounded-none border-0 border-l border-border "
                     + (resolvedView === "gallery" ? "bg-card text-foreground shadow-sm" : "bg-transparent text-muted-foreground")

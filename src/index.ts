@@ -60,6 +60,7 @@ export { useTheme, useThemeController, BUILT_IN_THEMES, BUILT_IN_THEME_IDS } fro
 export {
     I18nProvider,
     useI18n,
+    useOptionalI18n,
     interpolate,
     defineLocaleMessages,
     createTranslations,

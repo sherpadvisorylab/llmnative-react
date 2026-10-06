@@ -4,6 +4,7 @@ import { PhosphorIconProvider } from '../../providers/icon/PhosphorIconProvider'
 import type { PhosphorWeight } from '../../providers/icon/PhosphorIconProvider';
 import { useThemeController } from '../../Theme';
 import type { ColorScale } from '../../Theme';
+import { useI18n } from '../../I18n';
 import Icon from '../ui/Icon';
 import Modal from '../ui/Modal';
 import { cn } from '../../libs/cn';
@@ -121,12 +122,12 @@ const STATUS_COLORS: { label: string; key: keyof ColorScale; fgKey: keyof ColorS
     },
 ];
 
-const ICON_LIBRARIES: { label: string; value: IconLibraryId; description: string }[] = [
-    { label: 'Lucide', value: 'lucide', description: 'Clean outline icon set' },
-    { label: 'Phosphor', value: 'phosphor', description: 'Flexible icon weights and styles' },
+const ICON_LIBRARIES: { label: string; value: IconLibraryId }[] = [
+    { label: 'Lucide', value: 'lucide' },
+    { label: 'Phosphor', value: 'phosphor' },
 ];
 
-const PHOSPHOR_WEIGHTS: { label: string; value: PhosphorWeight }[] = [
+const PHOSPHOR_WEIGHTS: { label: string; value: Exclude<PhosphorWeight, 'duotone'> }[] = [
     { label: 'Thin', value: 'thin' },
     { label: 'Light', value: 'light' },
     { label: 'Regular', value: 'regular' },
@@ -146,8 +147,8 @@ export default function ThemeSwitcher({
     onClose = undefined,
     surface = 'flat',
     showHeader = undefined,
-    title = 'Customize theme',
-    subtitle = 'Live theme tokens and mode controls with no reload.',
+    title = undefined,
+    subtitle = undefined,
     headerActions = undefined,
     themeOptions = undefined,
     showModeSection = true,
@@ -177,22 +178,51 @@ export default function ThemeSwitcher({
     } = useThemeController();
     const { providerId, setProvider, registerProvider } = useIconController();
     const iconLibraryId = (providerId === 'phosphor' ? 'phosphor' : 'lucide') as IconLibraryId;
+    const dict = useI18n('themeSwitcher');
+
+    const colorLabels: Record<string, string> = {
+        Blue: dict.colorBlue,
+        Violet: dict.colorViolet,
+        Green: dict.colorGreen,
+        Rose: dict.colorRose,
+        Orange: dict.colorOrange,
+        Slate: dict.colorSlate,
+    };
+    const statusLabels: Record<string, string> = {
+        Success: dict.statusSuccess,
+        Warning: dict.statusWarning,
+        Info: dict.statusInfo,
+        Danger: dict.statusDanger,
+    };
+    const weightLabels: Record<Exclude<PhosphorWeight, 'duotone'>, string> = {
+        thin: dict.weightThin,
+        light: dict.weightLight,
+        regular: dict.weightRegular,
+        bold: dict.weightBold,
+        fill: dict.weightFill,
+    };
+    const iconLibraryDescriptions: Record<IconLibraryId, string> = {
+        lucide: dict.lucideDescription,
+        phosphor: dict.phosphorDescription,
+    };
 
     const availableThemes = useMemo(() => {
         return Object.keys(themes).map((themeId) => ({
             value: themeId,
             label: themeOptions?.[themeId]?.label ?? toThemeLabel(themeId),
-            description: themeOptions?.[themeId]?.description ?? 'Theme available in the current registry.',
+            description: themeOptions?.[themeId]?.description ?? dict.themeDescription,
         }));
-    }, [themeOptions, themes]);
+    }, [themeOptions, themes, dict.themeDescription]);
 
     const shouldShowHeader = showHeader ?? (surface === 'modal');
+    const resolvedTitle = title === undefined ? dict.title : title;
+    const resolvedSubtitle = subtitle === undefined ? dict.subtitle : subtitle;
     const header = (
         <div className="flex min-w-0 items-center justify-between gap-3">
             <div className="min-w-0">
-                <h3 className="truncate text-lg font-semibold leading-none">{title}</h3>
-                {subtitle ? (
-                    <div className="mt-1 truncate text-sm text-muted-foreground">{subtitle}</div>
+                <h3 className="truncate text-lg font-semibold leading-none">{resolvedTitle}</h3>
+                {resolvedSubtitle ? (
+                    <div className="mt-1 truncate text-sm text-muted-foreground">{resolvedSubtitle}</div>
                 ) : null}
             </div>
             {headerActions ? (
@@ -208,7 +238,7 @@ export default function ThemeSwitcher({
             {showModeSection ? (
                 <div>
                     <label className="mb-3 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                        Color mode
+                        {dict.colorMode}
                     </label>
                     <div className="flex gap-2">
                         {(['light', 'dark'] as const).map((modeOption) => (
@@ -223,7 +253,7 @@ export default function ThemeSwitcher({
                                 }`}
                             >
                                 <Icon name={modeOption === 'light' ? 'sun' : 'moon'} size={14} />
-                                {modeOption.charAt(0).toUpperCase() + modeOption.slice(1)}
+                                {modeOption === 'light' ? dict.light : dict.dark}
                             </button>
                         ))}
                     </div>
@@ -233,7 +263,7 @@ export default function ThemeSwitcher({
             {showPrimarySection ? (
                 <div>
                     <label className="mb-3 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                        Primary color
+                        {dict.primaryColor}
                     </label>
                     <div className="flex flex-wrap gap-2">
                         {COLOR_SWATCHES.map((swatch) => (
@@ -241,12 +271,12 @@ export default function ThemeSwitcher({
                                 key={swatch.label}
                                 type="button"
                                 onClick={() => setPrimary(swatch.value)}
-                                title={swatch.label}
+                                title={colorLabels[swatch.label]}
                                 className={`h-8 w-8 cursor-pointer rounded-full border-2 transition-transform hover:scale-110 ${
                                     primary === swatch.value ? 'scale-110 border-foreground' : 'border-transparent'
                                 }`}
                                 style={{ backgroundColor: swatch.hex }}
-                                aria-label={swatch.label}
+                                aria-label={colorLabels[swatch.label]}
                             />
                         ))}
                     </div>
@@ -257,7 +287,7 @@ export default function ThemeSwitcher({
                 <div>
                     <div className="mb-3 flex items-center justify-between">
                         <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                            Border radius
+                            {dict.borderRadius}
                         </label>
                         <span className="text-xs font-mono text-muted-foreground">{radius.toFixed(2)}rem</span>
                     </div>
@@ -271,8 +301,8 @@ export default function ThemeSwitcher({
                         className="w-full accent-primary"
                     />
                     <div className="mt-1 flex justify-between text-xs text-muted-foreground">
-                        <span>Sharp</span>
-                        <span>Rounded</span>
+                        <span>{dict.sharp}</span>
+                        <span>{dict.rounded}</span>
                     </div>
                 </div>
             ) : null}
@@ -280,7 +310,7 @@ export default function ThemeSwitcher({
             {showFontSection ? (
                 <div>
                     <label className="mb-3 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                        Font
+                        {dict.font}
                     </label>
                     <div className="relative">
                         <select
@@ -305,24 +335,24 @@ export default function ThemeSwitcher({
             {showStatusSection ? (
                 <div>
                     <label className="mb-3 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                        Status colors
+                        {dict.statusColors}
                     </label>
                     <div className="space-y-2">
                         {STATUS_COLORS.map(({ label, key, fgKey, swatches }) => (
                             <div key={key} className="flex items-center gap-2">
-                                <span className="w-14 shrink-0 text-xs text-muted-foreground">{label}</span>
+                                <span className="w-14 shrink-0 text-xs text-muted-foreground">{statusLabels[label]}</span>
                                 <div className="flex gap-1.5">
                                     {swatches.map((swatch) => (
                                         <button
                                             key={swatch.hex}
                                             type="button"
                                             onClick={() => setTokens({ [key]: swatch.value, [fgKey]: swatch.fgValue })}
-                                            title={`${label} - ${swatch.hex}`}
+                                            title={`${statusLabels[label]} - ${swatch.hex}`}
                                             className={`h-6 w-6 cursor-pointer rounded-full border-2 transition-transform hover:scale-110 ${
                                                 colors?.[key] === swatch.value ? 'scale-110 border-foreground' : 'border-transparent'
                                             }`}
                                             style={{ backgroundColor: swatch.hex }}
-                                            aria-label={`${label} ${swatch.hex}`}
+                                            aria-label={`${statusLabels[label]} ${swatch.hex}`}
                                         />
                                     ))}
                                 </div>
@@ -335,7 +365,7 @@ export default function ThemeSwitcher({
             {showThemeSection ? (
                 <div>
                     <label className="mb-3 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                        Theme
+                        {dict.theme}
                     </label>
                     <div className="space-y-2">
                         {availableThemes.map((themeOption) => (
@@ -364,7 +394,7 @@ export default function ThemeSwitcher({
             {showIconLibrarySection ? (
                 <div>
                     <label className="mb-3 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                        Icon library
+                        {dict.iconLibrary}
                     </label>
                     <div className="space-y-2">
                         {ICON_LIBRARIES.map((library) => (
@@ -383,7 +413,7 @@ export default function ThemeSwitcher({
                                     {library.label}
                                 </span>
                                 <span className="mt-0.5 block text-xs text-muted-foreground">
-                                    {library.description}
+                                    {iconLibraryDescriptions[library.value]}
                                 </span>
                             </button>
                         ))}
@@ -391,7 +421,7 @@ export default function ThemeSwitcher({
 
                     {iconLibraryId === 'phosphor' ? (
                         <div className="mt-3">
-                            <p className="mb-2 text-xs text-muted-foreground">Weight</p>
+                            <p className="mb-2 text-xs text-muted-foreground">{dict.weight}</p>
                             <div className="flex flex-wrap gap-1">
                                 {PHOSPHOR_WEIGHTS.map((weight) => (
                                     <button
@@ -403,7 +433,7 @@ export default function ThemeSwitcher({
                                         }}
                                         className="cursor-pointer rounded border border-border px-2 py-1 text-xs transition-colors hover:bg-accent"
                                     >
-                                        {weight.label}
+                                        {weightLabels[weight.value]}
                                     </button>
                                 ))}
                             </div>

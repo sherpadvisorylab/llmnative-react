@@ -3,10 +3,17 @@ import { render, screen } from '@testing-library/react';
 import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 
-vi.mock('../../../src/I18n', () => ({
-    useI18n: vi.fn(() => ({})),
-    I18nProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-}));
+vi.mock('../../../src/I18n', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('../../../src/I18n')>();
+    const { en } = await import('../../../src/conf/i18n/en');
+    return {
+        ...actual,
+        useI18n: vi.fn((ns?: string) =>
+            ns ? (en as unknown as Record<string, unknown>)[ns] : { dict: en }
+        ),
+        I18nProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    };
+});
 
 vi.mock('../../../src/motion', () => ({
     useEnterMotion: vi.fn(() => ({})),

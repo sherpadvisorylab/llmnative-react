@@ -104,6 +104,67 @@
 | [CR-093](#cr-093--docs-tabloader-allineate-allapi-e-sidenav-internazionalizzato) | Docs Tab/Loader allineate all'API e SideNav internazionalizzato | Media | CR-029 | ✅ |
 | [CR-094](#cr-094--modal-chiusura-con-esc-e-docs-modalyesnomodalok) | Modal: chiusura con Esc e docs ModalYesNo/ModalOk | Media | CR-091 | ✅ |
 | [CR-096](#cr-096--autocomplete-combobox-disegnata-al-posto-del-datalist-nativo) | Autocomplete: combobox disegnata al posto del datalist nativo | Alta | — | ✅ |
+| [CR-097](#cr-097--testi-visibili-dei-componenti-traducibili-i18n) | Testi visibili dei componenti traducibili (i18n) | Media | CR-029 | 🔄 |
+
+---
+
+## CR-097 — Testi visibili dei componenti traducibili (i18n)
+
+**Stato:** 🔄 in progress
+**Issue:** da collegare
+**Priorità:** Media
+**Dipende da:** CR-029
+
+### Motivazione
+
+Emersa nel CRM Voltab (06/10/2026): in un'app interamente italiana il pannello notifiche
+mostra "No notifications" / "You're all caught up" e la schermata d'errore mostra
+"This page ran into a problem" / "Try again" / "Go to home". Diversi componenti del
+framework rendono testi visibili come letterali inglesi invece di risolverli da
+`I18nDict` via `useI18n()`, quindi un consumer non può tradurli: `src/conf/i18n/en.ts`
+non contiene quelle chiavi. L'audit `.notes/I18N_AUDIT.md` (2026-06-19) dichiara
+erroneamente il lavoro CR-029 completo.
+
+### Scope
+
+- `Notifications`: `markAllRead`, `empty`, `emptyHint`.
+- `ErrorBoundary`: nuovo namespace `errorBoundary`; class component fuori da
+  `<I18nProvider>` con fallback inglese senza lanciare.
+- `ThemeSwitcher`: nuovo namespace `themeSwitcher` (etichette sezioni, Light/Dark,
+  Sharp/Rounded, Weight, descrizioni icone, default title/subtitle, colori/status).
+- `ImageField` e `RichText`: namespace `image` e `richText` (`openOriginal`, `crop`,
+  `cropTitle`, toolbar, dialoghi immagine, link, New tab/Same tab).
+- `Upload`: `upload.fileName`.
+- `TabDynamic` (ui + widgets): `common.addTab`.
+- `GridCore`: `grid.tableView` / `grid.galleryView`.
+- `Chatbot`: `prompt.role/language/voice/style/temperature/stop/stopping`.
+- `Breadcrumbs`: `common.breadcrumb`.
+- `I18n.tsx`: nuove chiavi e namespace; `I18nContext` esportato, `useOptionalI18n()`.
+- Tutte e sei le lingue aggiornate (`en`, `it`, `de`, `ru`, `zh`, `ar`).
+- Test di traduzione (`it`) per componente, test `ErrorBoundary` fuori/dentro provider,
+  anti-regressione `tests/unit/i18n.hardcoded.test.ts`.
+- Docs `docs/architecture/i18n.md`, `llms-full.txt`, `CHANGELOG.md`.
+
+### Fuori scope
+
+- Callback al click della singola notifica (CR separata).
+- Messaggi tecnici di log/`throw new Error(...)`.
+- Nomi propri/brand (font, "Lucide"/"Phosphor", "DEV").
+- i18n dello showcase.
+- Bump di versione, tag e publish.
+
+### Checklist
+
+- [x] `I18nDict` esteso; `tsc --noEmit` a 0 errori, nessun `any` aggiunto
+- [x] Nuove chiavi tradotte in `en`, `it`, `de`, `ru`, `zh`, `ar`
+- [x] Componenti migrati a `useI18n`/`I18nContext`
+- [x] `ErrorBoundary` con fallback `en` fuori dal provider
+- [x] Test traduzione (`it`) + `ErrorBoundary` fuori/dentro provider
+- [x] Test anti-regressione `tests/unit/i18n.hardcoded.test.ts`
+- [x] `npm test` verde
+- [x] Docs `docs/architecture/i18n.md`, `llms-full.txt`, `CHANGELOG.md`
+- [ ] `npm run build` verde (verifica finale)
+- [ ] Release (dopo merge)
 
 ---
 

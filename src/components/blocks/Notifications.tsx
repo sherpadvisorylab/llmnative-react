@@ -54,14 +54,14 @@ function Notifications({
             {/* ── Header ─────────────────────────────────────────── */}
             <div className="flex items-center justify-between px-3 py-2">
                 <span className="text-sm font-semibold text-foreground">
-                    {dict.title || 'Notifications'}
+                    {dict.title}
                 </span>
                 {hasItems && onMarkAllRead && (
                     <button
                         onClick={onMarkAllRead}
                         className="text-xs text-primary hover:underline transition-colors"
                     >
-                        Mark all read
+                        {dict.markAllRead}
                     </button>
                 )}
             </div>
@@ -74,10 +74,10 @@ function Notifications({
                         <Icon name="bell-off" size={18} className="text-muted-foreground" />
                     </div>
                     <p className="text-sm font-medium text-foreground mb-1">
-                        No notifications
+                        {dict.empty}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                        {"You're all caught up"}
+                        {dict.emptyHint}
                     </p>
                 </div>
             )}
@@ -124,7 +124,7 @@ function Notifications({
                             to={seeAllUrl}
                             className="flex items-center justify-center w-full rounded-sm px-2 py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
                         >
-                            {dict.seeAll || 'See all notifications'}
+                            {dict.seeAll}
                             <Icon name="arrow-right" size={13} className="ml-1.5 opacity-60" />
                         </Link>
                     </div>

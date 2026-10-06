@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from "react-router-dom";
 import { trimSlash } from "../../libs/utils";
+import { useI18n } from "../../I18n";
 
 /**
  * A single breadcrumb item.
@@ -132,6 +133,7 @@ export const Breadcrumbs = ({
     className = undefined,
 }: BreadcrumbsProps) => {
     const location = useLocation();
+    const dict = useI18n('common');
     const resolved = resolveTrail(trail, location.pathname);
     const root = normalizeItem(rootItem);
 
@@ -167,7 +169,7 @@ export const Breadcrumbs = ({
 
     return (
         <>
-            <nav aria-label="Breadcrumb" className={className}>
+            <nav aria-label={dict.breadcrumb} className={className}>
                 <ol className="flex flex-wrap items-center gap-1.5 text-sm">
                     {allItems.map((item, i) => (
                         <React.Fragment key={item.key}>

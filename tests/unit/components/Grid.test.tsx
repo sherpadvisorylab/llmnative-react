@@ -53,6 +53,7 @@ import GridDB from '../../../src/components/widgets/grid-core/GridDB';
 import { resolveGridPathFromUrl } from '../../../src/components/widgets/grid-core/resolveGridPathFromUrl';
 import { MockDataProvider } from '../../../src/providers/data/mock';
 import { renderWithProviders } from '../../helpers/renderWithProviders';
+import { it as itDict } from '../../../src/conf/i18n/it';
 
 const USERS = {
     u1: { name: 'Alice', role: 'admin', status: 'active', email: 'alice@example.com' },
@@ -853,6 +854,22 @@ describe('Grid - gallery view', () => {
             expect(screen.getAllByText('tag')).toHaveLength(2);
             expect(screen.getAllByRole('img')).toHaveLength(2);
         });
+    });
+});
+
+describe('Grid - i18n view toggle', () => {
+    it('traduce le etichette tabella/galleria', async () => {
+        renderWithProviders(
+            <Grid
+                records={[{ _key: 'c1', name: 'Widget' }]}
+                recordId="_key"
+                views={{ toggle: true }}
+            />,
+            { i18n: { locale: 'it', translations: { it: itDict } } },
+        );
+
+        await waitFor(() => expect(screen.getByTitle('Vista tabella')).toBeInTheDocument());
+        expect(screen.getByTitle('Vista galleria')).toBeInTheDocument();
     });
 });
 

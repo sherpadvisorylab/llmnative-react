@@ -473,35 +473,35 @@ export function Chatbot({
 
                     {showSettings && (
                         <>
-                            <Dropdown trigger={{ icon: 'user', title: 'Role' }} placement="top" position="start" triggerClassName={chatbotGhostIcon}>
+                            <Dropdown trigger={{ icon: 'user', title: dict.role }} placement="top" position="start" triggerClassName={chatbotGhostIcon}>
                                 <DropdownItem onClick={() => setRole('')}>{dict.defaultOption}</DropdownItem>
                                 {PromptConf.getRoles().map((v) => (
                                     <DropdownItem key={v} onClick={() => setRole(v)}>{v}</DropdownItem>
                                 ))}
                             </Dropdown>
-                            <Dropdown trigger={{ icon: 'globe', title: 'Language' }} placement="top" position="start" triggerClassName={chatbotGhostIcon}>
+                            <Dropdown trigger={{ icon: 'globe', title: dict.language }} placement="top" position="start" triggerClassName={chatbotGhostIcon}>
                                 <DropdownItem onClick={() => setLanguage('')}>{dict.defaultOption}</DropdownItem>
                                 {PromptConf.getLangs().map((v) => (
                                     <DropdownItem key={v} onClick={() => setLanguage(v)}>{v}</DropdownItem>
                                 ))}
                             </Dropdown>
-                            <Dropdown trigger={{ icon: 'mic', title: 'Voice' }} placement="top" position="start" triggerClassName={chatbotGhostIcon}>
+                            <Dropdown trigger={{ icon: 'mic', title: dict.voice }} placement="top" position="start" triggerClassName={chatbotGhostIcon}>
                                 <DropdownItem onClick={() => setVoice('')}>{dict.defaultOption}</DropdownItem>
                                 {PromptConf.getVoices().map((v) => (
                                     <DropdownItem key={v} onClick={() => setVoice(v)}>{v}</DropdownItem>
                                 ))}
                             </Dropdown>
-                            <Dropdown trigger={{ icon: 'feather', title: 'Style' }} placement="top" position="start" triggerClassName={chatbotGhostIcon}>
+                            <Dropdown trigger={{ icon: 'feather', title: dict.style }} placement="top" position="start" triggerClassName={chatbotGhostIcon}>
                                 <DropdownItem onClick={() => setStyle('')}>{dict.defaultOption}</DropdownItem>
                                 {PromptConf.getStyles().map((v) => (
                                     <DropdownItem key={v} onClick={() => setStyle(v)}>{v}</DropdownItem>
                                 ))}
                             </Dropdown>
-                            <Dropdown trigger={{ icon: 'thermometer', title: 'Temperature' }} placement="top" position="start" triggerClassName={chatbotGhostIcon}>
+                            <Dropdown trigger={{ icon: 'thermometer', title: dict.temperature }} placement="top" position="start" triggerClassName={chatbotGhostIcon}>
                                 <DropdownItem>
                                     <input
                                         type="range"
-                                        aria-label="Temperature"
+                                        aria-label={dict.temperature}
                                         min={0} max={1} step={0.1}
                                         value={temperature ?? 0}
                                         onChange={(e) => setTemperature(Number(e.target.value))}
@@ -518,8 +518,8 @@ export function Chatbot({
                         type="button"
                         onClick={handleClick}
                         disabled={running ? !onStop : disabled}
-                        title={stopping ? 'Stopping…' : running ? 'Stop' : dict.run}
-                        aria-label={stopping ? 'Stopping…' : running ? 'Stop' : dict.run}
+                        title={stopping ? dict.stopping : running ? dict.stop : dict.run}
+                        aria-label={stopping ? dict.stopping : running ? dict.stop : dict.run}
                         className={`flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
                             running ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90' : 'bg-primary text-primary-foreground hover:bg-primary/90'
                         }`}

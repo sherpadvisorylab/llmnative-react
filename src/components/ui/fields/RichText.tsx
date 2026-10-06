@@ -24,6 +24,7 @@ import { resizeToVariants, uploadVariants, buildSrcset } from '../../../libs/ima
 import Modal from '../Modal';
 import ImageDisplay from '../Image';
 import ImageEditor from '../../widgets/ImageEditor';
+import { useI18n, interpolate } from '../../../I18n';
 
 // ── LAZY MODULE LOADER ────────────────────────────────────────────────────────
 // TipTap (~400 KB) is only fetched when a RichText field is actually mounted.
@@ -245,6 +246,7 @@ const HEADING_OPTIONS = [
 const HeadingPicker = ({ editor }: { editor: Editor }) => {
     const [open, setOpen] = React.useState(false);
     const ref = useRef<HTMLDivElement>(null);
+    const dict = useI18n('richText');
 
     React.useEffect(() => {
         const close = (e: MouseEvent) => {
@@ -264,7 +266,7 @@ const HeadingPicker = ({ editor }: { editor: Editor }) => {
         <div ref={ref} className="relative">
             <button
                 type="button"
-                title="Paragraph style"
+                title={dict.paragraphStyle}
                 onMouseDown={ev => { ev.preventDefault(); setOpen(o => !o); }}
                 className="inline-flex h-7 items-center gap-0.5 rounded px-1.5 text-xs font-medium transition-colors hover:bg-muted"
             >
@@ -303,6 +305,7 @@ const TableInsertPicker = ({ editor }: { editor: Editor }) => {
     const [hoveredRows, setHoveredRows] = React.useState(3);
     const [hoveredCols, setHoveredCols] = React.useState(3);
     const ref = useRef<HTMLDivElement>(null);
+    const dict = useI18n('richText');
 
     React.useEffect(() => {
         const close = (e: MouseEvent) => {
@@ -321,7 +324,7 @@ const TableInsertPicker = ({ editor }: { editor: Editor }) => {
         <div ref={ref} className="relative">
             <button
                 type="button"
-                title="Insert Table"
+                title={dict.insertTable}
                 onMouseDown={(ev) => {
                     ev.preventDefault();
                     setOpen((value) => !value);
@@ -426,6 +429,7 @@ interface ToolbarProps {
 
 const RichTextToolbar = ({ editor, commands, sourceMode, onImageUpload, onDocumentUpload, onSourceToggle, compact }: ToolbarProps) => {
     const [, rerender] = React.useReducer(n => n + 1, 0);
+    const dict = useI18n('richText');
 
     React.useEffect(() => {
         editor.on('selectionUpdate', rerender);
@@ -446,7 +450,7 @@ const RichTextToolbar = ({ editor, commands, sourceMode, onImageUpload, onDocume
             if (cmd === 'table') return <TableInsertPicker key={cmd} editor={editor} />;
 
             if (cmd === 'imageUpload') return (
-                <button key={cmd} type="button" title="Upload Image"
+                <button key={cmd} type="button" title={dict.uploadImage}
                     onMouseDown={ev => { ev.preventDefault(); onImageUpload(); }}
                     className="inline-flex h-7 w-7 items-center justify-center rounded text-sm transition-colors hover:bg-muted">
                     <Icon name="image" size={14} />
@@ -454,7 +458,7 @@ const RichTextToolbar = ({ editor, commands, sourceMode, onImageUpload, onDocume
             );
 
             if (cmd === 'documentUpload') return (
-                <button key={cmd} type="button" title="Upload Document"
+                <button key={cmd} type="button" title={dict.uploadDocument}
                     onMouseDown={ev => { ev.preventDefault(); onDocumentUpload(); }}
                     className="inline-flex h-7 w-7 items-center justify-center rounded text-sm transition-colors hover:bg-muted">
                     <Icon name="file-up" size={14} />
@@ -462,7 +466,7 @@ const RichTextToolbar = ({ editor, commands, sourceMode, onImageUpload, onDocume
             );
 
             if (cmd === 'sourceCode') return (
-                <button key={cmd} type="button" title="Source Code"
+                <button key={cmd} type="button" title={dict.sourceCode}
                     onMouseDown={ev => { ev.preventDefault(); onSourceToggle(); }}
                     className={cn(
                         'inline-flex h-7 w-7 items-center justify-center rounded text-sm transition-colors hover:bg-muted',
@@ -595,6 +599,8 @@ const ImageInsertSlider = ({
     );
     const [showCrop, setShowCrop] = useState(false);
     const altRef = useRef<HTMLInputElement>(null);
+    const imageDict = useI18n('image');
+    const dict = useI18n('richText');
     useEffect(() => { altRef.current?.focus(); }, [idx]);
 
     // Extend perImage when more files finish uploading after the dialog opened
@@ -689,14 +695,14 @@ const ImageInsertSlider = ({
                         href={item.preview}
                         target="_blank"
                         rel="noopener noreferrer"
-                        title="Open original"
+                        title={imageDict.openOriginal}
                         className="flex h-7 w-7 items-center justify-center rounded-md bg-black/60 text-white backdrop-blur-sm transition-colors hover:bg-black/80"
                     >
                         <Icon name="external-link" size={13} />
                     </a>
                     <button
                         type="button"
-                        title="Crop"
+                        title={imageDict.crop}
                         onClick={() => setShowCrop(true)}
                         className="flex h-7 w-7 items-center justify-center rounded-md bg-black/60 text-white backdrop-blur-sm transition-colors hover:bg-black/80"
                     >
@@ -732,8 +738,8 @@ const ImageInsertSlider = ({
                     <select value={vals.target} onChange={e => update({ target: e.target.value })}
                         disabled={!vals.href}
                         className="h-8 rounded-md border border-input bg-background px-2 text-xs outline-none focus:ring-1 focus:ring-ring disabled:opacity-40">
-                        <option value="_blank">New tab</option>
-                        <option value="_self">Same tab</option>
+                        <option value="_blank">{dict.newTab}</option>
+                        <option value="_self">{dict.sameTab}</option>
                     </select>
                 </div>
             </div>
@@ -743,7 +749,7 @@ const ImageInsertSlider = ({
             <ImageEditor
                 src={item.preview}
                 mode="modal"
-                title={`Crop — ${item.fileProps.fileName}`}
+                title={interpolate(imageDict.cropTitle, { name: item.fileProps.fileName })}
                 onClose={() => setShowCrop(false)}
                 onSave={(dataUrl) => { onCropSave(idx, dataUrl); setShowCrop(false); }}
             />
@@ -768,6 +774,8 @@ const ImageEditDialog = ({
     const [target,   setTarget  ] = useState(state.attrs.target   as string ?? '_blank');
     const [showCrop, setShowCrop] = useState(false);
     const altRef = useRef<HTMLInputElement>(null);
+    const imageDict = useI18n('image');
+    const dict = useI18n('richText');
     useEffect(() => { altRef.current?.focus(); }, []);
 
     const srcset = state.attrs.srcset as string | undefined;
@@ -775,7 +783,7 @@ const ImageEditDialog = ({
     return (
         <>
         <Modal
-            title="Edit image"
+            title={dict.editImage}
             onClose={onCancel}
             size="sm"
             footer={
@@ -795,11 +803,11 @@ const ImageEditDialog = ({
                 <div className="group relative mb-3 overflow-hidden rounded-lg bg-muted/40">
                     <ImageDisplay src={src} fit="contain" height={140} wrapperClassName="w-full" className="w-full" />
                     <div className="absolute right-2 top-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                        <a href={src} target="_blank" rel="noopener noreferrer" title="Open original"
+                        <a href={src} target="_blank" rel="noopener noreferrer" title={imageDict.openOriginal}
                             className="flex h-7 w-7 items-center justify-center rounded-md bg-black/60 text-white backdrop-blur-sm transition-colors hover:bg-black/80">
                             <Icon name="external-link" size={13} />
                         </a>
-                        <button type="button" title="Crop" onClick={() => setShowCrop(true)}
+                        <button type="button" title={imageDict.crop} onClick={() => setShowCrop(true)}
                             className="flex h-7 w-7 items-center justify-center rounded-md bg-black/60 text-white backdrop-blur-sm transition-colors hover:bg-black/80">
                             <Icon name="crop" size={13} />
                         </button>
@@ -841,8 +849,8 @@ const ImageEditDialog = ({
                     <select value={target} onChange={e => setTarget(e.target.value)}
                         disabled={!href}
                         className="h-8 rounded-md border border-input bg-background px-2 text-xs outline-none focus:ring-1 focus:ring-ring disabled:opacity-40">
-                        <option value="_blank">New tab</option>
-                        <option value="_self">Same tab</option>
+                        <option value="_blank">{dict.newTab}</option>
+                        <option value="_self">{dict.sameTab}</option>
                     </select>
                 </div>
             </div>
@@ -852,7 +860,7 @@ const ImageEditDialog = ({
             <ImageEditor
                 src={src}
                 mode="modal"
-                title="Crop image"
+                title={dict.cropImage}
                 onClose={() => setShowCrop(false)}
                 onSave={(dataUrl) => { setSrc(dataUrl); setShowCrop(false); }}
             />
@@ -936,6 +944,7 @@ const RichTextInner = ({
     const { Table, TableRow, TableHeader, TableCell } = modules[6];
     const Placeholder                  = modules[7].default;
     const CharacterCount               = modules[8].default;
+    const dict = useI18n('richText');
 
     const [sourceMode, setSourceMode] = useState(false);
     const [sourceContent, setSourceContent] = useState('');
@@ -1475,7 +1484,7 @@ const RichTextInner = ({
                                 <div className="mx-0.5 h-3 w-px bg-border" />
                                 <button
                                     type="button"
-                                    title="Edit link"
+                                    title={dict.editLink}
                                     onMouseDown={ev => {
                                         ev.preventDefault();
                                         const url = window.prompt('URL', href);
@@ -1488,7 +1497,7 @@ const RichTextInner = ({
                                 </button>
                                 <button
                                     type="button"
-                                    title="Remove link"
+                                    title={dict.removeLink}
                                     onMouseDown={ev => {
                                         ev.preventDefault();
                                         editor.chain().focus().unsetLink().run();

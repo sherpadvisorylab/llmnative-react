@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- i18n: i testi visibili ancora fissi in inglese sono ora risolti da `I18nDict` in
+  `Notifications`, `ErrorBoundary`, `ThemeSwitcher`, `ImageField`, `RichText`, `Upload`,
+  `TabDynamic`, `GridCore` (vista tabella/galleria), `Chatbot` e `Breadcrumbs`. Nuovi
+  namespace `errorBoundary`, `image`, `richText`, `themeSwitcher` e nuove chiavi in
+  `common`, `grid`, `upload`, `notifications`, `prompt`; traduzioni per tutte e sei le
+  lingue (`en`, `it`, `de`, `ru`, `zh`, `ar`) (CR-097).
+- `useOptionalI18n()`: variante non-throwing di `useI18n()` che ritorna `null` fuori da
+  `<I18nProvider>`, usata dall'`ErrorBoundary` di root (CR-097).
+
+### Fixed
+- `ErrorBoundary`: quando è renderizzato fuori da `<I18nProvider>` (come a root in
+  `App.tsx`) usa il fallback inglese senza lanciare; dentro il provider traduce (CR-097).
+
 ## [1.22.1] - 2026-10-06
 
 ### Fixed

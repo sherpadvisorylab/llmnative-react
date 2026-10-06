@@ -14,10 +14,14 @@ vi.mock('../../../src/motion', () => ({
     useMotionState: vi.fn(() => ({})),
     usePressMotion: vi.fn(() => ({})),
 }));
-vi.mock('../../../src/I18n', () => ({
-    useI18n: vi.fn(() => ({})),
-    I18nProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-}));
+vi.mock('../../../src/I18n', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('../../../src/I18n')>();
+    return {
+        ...actual,
+        useI18n: vi.fn(() => ({})),
+        I18nProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    };
+});
 vi.mock('../../../src/Theme', () => ({
     useMotionRegistry: vi.fn(() => ({})),
     useTheme: vi.fn(() => ({

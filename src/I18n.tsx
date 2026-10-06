@@ -20,6 +20,8 @@ export interface I18nDict {
         next:            string;
         notFoundMessage: string;
         goHome:          string;
+        breadcrumb:      string;
+        addTab:          string;
     };
     auth: {
         signIn:         string;
@@ -63,6 +65,8 @@ export interface I18nDict {
         filtersRangeMin:            string;
         filtersRangeMax:            string;
         filtersSelectedCountTemplate: string;
+        tableView:     string;
+        galleryView:   string;
     };
     select: {
         placeholder: string;
@@ -90,10 +94,14 @@ export interface I18nDict {
         insertFromUrl: string;
         urlPlaceholder: string;
         invalidUrl:    string;
+        fileName:      string;
     };
     notifications: {
         title:  string;
         seeAll: string;
+        markAllRead: string;
+        empty:  string;
+        emptyHint: string;
     };
     code: {
         copyCode:             string;
@@ -170,6 +178,13 @@ export interface I18nDict {
         noResponse:             string;
         promptLabel:            string;
         defaultOption:          string;
+        role:                   string;
+        language:               string;
+        voice:                  string;
+        style:                  string;
+        temperature:            string;
+        stop:                   string;
+        stopping:               string;
     };
     layout: {
         maxElements:  string;
@@ -197,6 +212,77 @@ export interface I18nDict {
         searching:       string;
         notConfigured:   string;
         loadError:       string;
+    };
+    errorBoundary: {
+        title:            string;
+        subtitle:         string;
+        technicalDetails: string;
+        debugInformation: string;
+        context:          string;
+        url:              string;
+        time:             string;
+        agent:            string;
+        componentTree:    string;
+        copyDebugInfo:    string;
+        copied:           string;
+        tryAgain:         string;
+        goToHome:         string;
+        sendReport:       string;
+        sending:          string;
+        reportSent:       string;
+        reportFailed:     string;
+    };
+    image: {
+        openOriginal: string;
+        crop:         string;
+        cropTitle:    string;
+    };
+    richText: {
+        paragraphStyle: string;
+        insertTable:    string;
+        uploadImage:    string;
+        uploadDocument: string;
+        sourceCode:     string;
+        editImage:      string;
+        cropImage:      string;
+        editLink:       string;
+        removeLink:     string;
+        newTab:         string;
+        sameTab:        string;
+    };
+    themeSwitcher: {
+        title:               string;
+        subtitle:            string;
+        colorMode:           string;
+        light:               string;
+        dark:                string;
+        primaryColor:        string;
+        borderRadius:        string;
+        sharp:               string;
+        rounded:             string;
+        font:                string;
+        statusColors:        string;
+        theme:               string;
+        iconLibrary:         string;
+        weight:              string;
+        themeDescription:    string;
+        lucideDescription:   string;
+        phosphorDescription: string;
+        weightThin:          string;
+        weightLight:         string;
+        weightRegular:       string;
+        weightBold:          string;
+        weightFill:          string;
+        statusSuccess:       string;
+        statusWarning:       string;
+        statusInfo:          string;
+        statusDanger:        string;
+        colorBlue:           string;
+        colorViolet:         string;
+        colorGreen:          string;
+        colorRose:           string;
+        colorOrange:         string;
+        colorSlate:          string;
     };
 }
 
@@ -297,7 +383,7 @@ function writeLocaleCookie(locale: string): void {
 // Context + Provider
 // ---------------------------------------------------------------------------
 
-const I18nContext = createContext<I18nController | null>(null);
+export const I18nContext = createContext<I18nController | null>(null);
 
 interface I18nProviderProps {
     children: React.ReactNode;
@@ -368,11 +454,21 @@ export const I18nProvider = ({ children, config }: I18nProviderProps) => {
 export function useI18n(): I18nController;
 export function useI18n<P extends DotNestedKeyOf<I18nDict>>(namespace: P): PathValue<I18nDict, P>;
 export function useI18n<P extends DotNestedKeyOf<I18nDict>>(namespace?: P): I18nController | PathValue<I18nDict, P> {
-    const ctx = useContext(I18nContext);
+    const ctx = useOptionalI18n();
     if (!ctx) throw new Error('useI18n must be used inside <App> or <I18nProvider>.');
     if (namespace === undefined) return ctx;
 
     return namespace
         .split('.')
         .reduce<unknown>((acc, key) => (acc as Record<string, unknown>)?.[key], ctx.dict) as PathValue<I18nDict, P>;
+}
+
+/**
+ * Non-throwing variant of `useI18n()` — returns `null` when called outside an
+ * `<I18nProvider>`. Useful for components (or class components via
+ * `I18nContext`) that must render even without a provider, falling back to the
+ * built-in English dictionary.
+ */
+export function useOptionalI18n(): I18nController | null {
+    return useContext(I18nContext);
 }

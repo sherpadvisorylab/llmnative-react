@@ -1,4 +1,6 @@
 ﻿import React from 'react';
+import { I18nContext } from '../I18n';
+import { en } from '../conf/i18n/en';
 
 // ── Icons (inline SVG - class component cannot use hooks) ─────────────────────
 
@@ -104,6 +106,9 @@ const buildDebugText = (error: Error, errorInfo: React.ErrorInfo | null): string
 // ── Component ─────────────────────────────────────────────────────────────────
 
 class ErrorBoundary extends React.Component<ErrorBoundaryProps, State> {
+    static contextType = I18nContext;
+    declare context: React.ContextType<typeof I18nContext>;
+
     constructor(props: ErrorBoundaryProps) {
         super(props);
         this.state = {
@@ -157,6 +162,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, State> {
         if (!error) return this.props.children;
 
         const { fallback, reportUrl, fullPage } = this.props;
+        const dict = (this.context?.dict ?? en).errorBoundary;
         const isDebug = this.props.debug ?? (import.meta as { env?: { DEV?: boolean } }).env?.DEV ?? false;
 
         if (typeof fallback === 'function') {
@@ -188,9 +194,9 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, State> {
                         <IconAlert size={22} />
                     </div>
                     <div>
-                        <p className="text-sm font-semibold text-foreground">This page ran into a problem</p>
+                        <p className="text-sm font-semibold text-foreground">{dict.title}</p>
                         <p className="mt-0.5 text-xs text-muted-foreground">
-                            An unexpected error occurred while rendering this content.
+                            {dict.subtitle}
                         </p>
                     </div>
                 </div>
@@ -202,7 +208,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, State> {
                         className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
                     >
                         <IconChevron open={detailsOpen} />
-                        Technical details
+                        {dict.technicalDetails}
                         <span className="ml-auto truncate max-w-[280px] font-mono text-[11px] text-muted-foreground/70">
                             {error.message}
                         </span>
@@ -225,27 +231,27 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, State> {
                         >
                             <IconBug />
                             <IconChevron open={debugOpen} />
-                            Debug information
+                            {dict.debugInformation}
                             <span className="ml-auto text-[10px] font-normal opacity-60">DEV</span>
                         </button>
                         {debugOpen && (
                             <div className="border-t border-amber-200/60 dark:border-amber-900/40 px-3 py-3 space-y-3">
                                 {/* Context */}
                                 <div className="space-y-1">
-                                    <p className="text-[10px] font-semibold uppercase tracking-wide text-amber-700/70 dark:text-amber-400/70">Context</p>
+                                    <p className="text-[10px] font-semibold uppercase tracking-wide text-amber-700/70 dark:text-amber-400/70">{dict.context}</p>
                                     <dl className="grid grid-cols-[5rem_1fr] gap-x-2 gap-y-0.5 text-[11px] font-mono">
-                                        <dt className="text-muted-foreground">URL</dt>
+                                        <dt className="text-muted-foreground">{dict.url}</dt>
                                         <dd className="truncate text-foreground">{typeof window !== 'undefined' ? window.location.href : '-'}</dd>
-                                        <dt className="text-muted-foreground">Time</dt>
+                                        <dt className="text-muted-foreground">{dict.time}</dt>
                                         <dd className="text-foreground">{new Date().toISOString()}</dd>
-                                        <dt className="text-muted-foreground">Agent</dt>
+                                        <dt className="text-muted-foreground">{dict.agent}</dt>
                                         <dd className="truncate text-foreground opacity-70">{typeof navigator !== 'undefined' ? navigator.userAgent : '-'}</dd>
                                     </dl>
                                 </div>
                                 {/* Component stack */}
                                 {componentStackLines.length > 0 && (
                                     <div className="space-y-1">
-                                        <p className="text-[10px] font-semibold uppercase tracking-wide text-amber-700/70 dark:text-amber-400/70">Component tree</p>
+                                        <p className="text-[10px] font-semibold uppercase tracking-wide text-amber-700/70 dark:text-amber-400/70">{dict.componentTree}</p>
                                         <pre className="max-h-36 overflow-y-auto text-[11px] font-mono leading-relaxed text-foreground/80 whitespace-before-wrap">
                                             {componentStackLines.join('\n')}
                                         </pre>
@@ -257,7 +263,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, State> {
                                     className="flex items-center gap-1.5 rounded border px-2.5 py-1 text-[11px] font-medium transition-colors hover:bg-accent"
                                 >
                                     <IconCopy />
-                                    {copied ? 'Copied!' : 'Copy debug info'}
+                                    {copied ? dict.copied : dict.copyDebugInfo}
                                 </button>
                             </div>
                         )}
@@ -270,13 +276,13 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, State> {
                         onClick={this.reset}
                         className="rounded-md border bg-background px-4 py-1.5 text-sm font-medium shadow-sm transition-colors hover:bg-accent"
                     >
-                        Try again
+                        {dict.tryAgain}
                     </button>
                     <a
                         href="/"
                         className="rounded-md bg-destructive/10 px-4 py-1.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/20"
                     >
-                        Go to home
+                        {dict.goToHome}
                     </a>
                     {reportUrl && (
                         <button
@@ -285,10 +291,10 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, State> {
                             className="ml-auto flex items-center gap-1.5 rounded-md border px-4 py-1.5 text-sm font-medium transition-colors hover:bg-accent disabled:opacity-50"
                         >
                             <IconSend />
-                            {reportState === 'idle' && 'Send report'}
-                            {reportState === 'sending' && 'Sending...'}
-                            {reportState === 'sent' && 'Report sent ✓'}
-                            {reportState === 'failed' && 'Failed - retry'}
+                            {reportState === 'idle' && dict.sendReport}
+                            {reportState === 'sending' && dict.sending}
+                            {reportState === 'sent' && dict.reportSent}
+                            {reportState === 'failed' && dict.reportFailed}
                         </button>
                     )}
                 </div>

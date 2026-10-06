@@ -4,6 +4,7 @@ import {converter} from "../../libs/converter";
 import { getTabLayoutConfig, getTabPaneClassName, getTabTriggerClassName, TabLayouts, TabPosition } from './Tab';
 import { FieldOnChange, setFormFieldsName, useFormContext } from '../widgets/Form';
 import { RecordProps } from '../../providers/data/DataProvider';
+import { useI18n } from '../../I18n';
 
 interface TabDynamicProps {
     children: React.ReactNode | ((record: RecordProps) => React.ReactNode);
@@ -37,6 +38,7 @@ const TabDynamic = ({
                  tabPosition    = "default"
 }: TabDynamicProps) => {
     const { value, handleChange } = useFormContext({name, onChange});
+    const dict = useI18n('common');
     const records = Array.isArray(value) ? value as RecordProps[] : [];
 
     const [active, setActive] = useState(activeIndex);
@@ -115,7 +117,7 @@ const TabDynamic = ({
                         <ActionButton
                             className={getTabTriggerClassName(tabPosition, false, 'border border-dashed border-border/70 justify-center')}
                             icon="plus"
-                            title="Add tab"
+                            title={dict.addTab}
                             onClick={handleAdd}
                         />
                     </div>}

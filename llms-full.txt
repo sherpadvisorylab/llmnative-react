@@ -1010,6 +1010,7 @@ removeGlobalVars('key')
 | `useProxy()` | `(url, init?) => Promise<Response>` |
 | `useImage()` | `UseImageResult` |
 | `useI18n()` | `I18nController` |
+| `useOptionalI18n()` | `I18nController \| null` (non lancia fuori dal provider) |
 | `useMenu()` | Menu hook |
 | `useFormController(controller?)` | `FormController` |
 | `useFormActions()` | `FormController` |
@@ -1023,6 +1024,43 @@ removeGlobalVars('key')
 | `useMotionEffect(ref?, fallback?)` | `ResolvedMotionEffect` |
 | `usePressMotion(hovered, baseStyle?, ref?, fallback?)` | `{ style, pressHandlers }` |
 | `useIconProvider()` | `IconProvider` |
+
+---
+
+## i18n — namespace e chiavi
+
+Tutti i testi visibili dei componenti sono risolti da `I18nDict` via `useI18n('<namespace>')`.
+Ogni chiave è presente in `en`, `it`, `de`, `ru`, `zh`, `ar`. Le chiavi non tradotte
+ricadono sull'inglese.
+
+| Namespace | Chiavi |
+|---|---|
+| `common` | `save`, `cancel`, `delete`, `close`, `back`, `search`, `loading`, `noDataFound`, `pageNavigation`, `previous`, `next`, `notFoundMessage`, `goHome`, `breadcrumb`, `addTab` |
+| `auth` | `signIn`, `signOut`, `connect`, `connected`, `authenticated`, `notConfigured`, `notImplemented` |
+| `form` | `headerAdd`, `headerEdit`, `buttonSave`, `buttonDelete`, `buttonBack`, `requiredField`, `requiredFieldGeneric`, `saveSuccess`, `deleteSuccess`, `noticeRequiredFields`, `noChangesToSave`, `draftRestoreTitle`, `draftRestoreMessage`, `draftRestoreAction`, `draftDiscardAction`, `draftRestoredTitle`, `draftRestoredMessage`, `draftSaveError` |
+| `grid` | `buttonAdd`, `deleteConfirm`, `emptyState`, filtri (`filters*`), `tableView`, `galleryView` |
+| `select` | `placeholder`, `loading` |
+| `modal` | `save`, `delete`, `cancel`, `close`, `ok`, `yes`, `no` |
+| `upload` | `clickOrDrag`, `dropToUpload`, `uploadMore`, `editFileName`, `editorImage`, `loaded`, `removeFile`, `uploadAnother`, `dropToParse`, `insertFromUrl`, `urlPlaceholder`, `invalidUrl`, `fileName` |
+| `notifications` | `title`, `seeAll`, `markAllRead`, `empty`, `emptyHint` |
+| `code` | `copyCode`, `copy`, `copied`, `codeLanguageDefault` |
+| `table` | `noDataFound`, `selectAllRows`, `sortBy`, `sortByCurrent`, `selectRow`, `reorderRow` |
+| `gallery` | `selectItem` |
+| `crop` | `enableCrop`, `variants`, `outputFile`, `active`, `removeVariant`, `fileName`, `altText`, `altTextPlaceholder` |
+| `imageEditor` | `title`, `save`, `undo`, `redo`, `zoomOut`, `zoomIn`, `crop`, `flipHorizontal`, `flipVertical`, `rotate`, `freeDrawing`, `arrow`, `text`, `rectangle`, `circle`, `triangle` |
+| `prompt` | `noProviders`, `aiNotConfigured*`, `toggle*`, `closeEditor`, `editSettings`, `attachFiles`, `dropFilesHere`, `modelPricing`, `modelPriceNotFound`, `attachmentsNotSupported`, `run`, `runFailed`, `noMatchingCommands`, `token*`, `hidePreview`, `showPreview`, `noProvider`, `noResponse`, `promptLabel`, `defaultOption`, `role`, `language`, `voice`, `style`, `temperature`, `stop`, `stopping` |
+| `layout` | `maxElements`, `noSpace`, `dragToMove`, `remove`, `dragToResize`, `dragHere` |
+| `sideNav` | `expandGroup`, `collapseGroup`, `expandSidebar`, `collapseSidebar` |
+| `autocomplete` | `noResults`, `create`, `createPlaceholder`, `remove` |
+| `addressAutocomplete` | `placeholder`, `noResults`, `searching`, `notConfigured`, `loadError` |
+| `errorBoundary` | `title`, `subtitle`, `technicalDetails`, `debugInformation`, `context`, `url`, `time`, `agent`, `componentTree`, `copyDebugInfo`, `copied`, `tryAgain`, `goToHome`, `sendReport`, `sending`, `reportSent`, `reportFailed` |
+| `image` | `openOriginal`, `crop`, `cropTitle` |
+| `richText` | `paragraphStyle`, `insertTable`, `uploadImage`, `uploadDocument`, `sourceCode`, `editImage`, `cropImage`, `editLink`, `removeLink`, `newTab`, `sameTab` |
+| `themeSwitcher` | `title`, `subtitle`, `colorMode`, `light`, `dark`, `primaryColor`, `borderRadius`, `sharp`, `rounded`, `font`, `statusColors`, `theme`, `iconLibrary`, `weight`, `themeDescription`, `lucideDescription`, `phosphorDescription`, `weight*`, `status*`, `color*` |
+
+`ErrorBoundary` è un class component: usa `I18nContext` e ricade sul dizionario `en`
+quando è fuori da `<I18nProvider>` (es. `ErrorBoundary` di root in `App.tsx`).
+`useOptionalI18n()` è la variante non-throwing di `useI18n()`.
 
 ---
 

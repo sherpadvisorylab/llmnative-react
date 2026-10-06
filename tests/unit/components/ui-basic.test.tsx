@@ -4,14 +4,18 @@ import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 
 const mockSetLocale = vi.fn();
-vi.mock('../../../src/I18n', () => ({
-    useI18n: vi.fn(() => ({
-        locale: 'en',
-        availableLocales: ['en', 'it'],
-        setLocale: mockSetLocale,
-    })),
-    I18nProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-}));
+vi.mock('../../../src/I18n', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('../../../src/I18n')>();
+    return {
+        ...actual,
+        useI18n: vi.fn(() => ({
+            locale: 'en',
+            availableLocales: ['en', 'it'],
+            setLocale: mockSetLocale,
+        })),
+        I18nProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    };
+});
 
 vi.mock('../../../src/motion', () => ({
     useEnterMotion: vi.fn(() => ({})),
