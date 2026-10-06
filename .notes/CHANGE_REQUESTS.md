@@ -104,6 +104,7 @@
 | [CR-093](#cr-093--docs-tabloader-allineate-allapi-e-sidenav-internazionalizzato) | Docs Tab/Loader allineate all'API e SideNav internazionalizzato | Media | CR-029 | ✅ |
 | [CR-094](#cr-094--modal-chiusura-con-esc-e-docs-modalyesnomodalok) | Modal: chiusura con Esc e docs ModalYesNo/ModalOk | Media | CR-091 | ✅ |
 | [CR-096](#cr-096--autocomplete-combobox-disegnata-al-posto-del-datalist-nativo) | Autocomplete: combobox disegnata al posto del datalist nativo | Alta | — | ✅ |
+| [CR-097](#cr-097--testi-visibili-dei-componenti-traducibili-i18n) | Testi visibili dei componenti traducibili (i18n) | Media | CR-093 | ⬜ |
 
 ---
 
@@ -137,6 +138,45 @@ Richiesto dal consumer `llmnative-cms`.
 - [x] Docs `docs/providers/ai.md`, `llms-full.txt`
 - [x] Verifica visiva nel consumer `llmnative-cms` (picker Agentico: header per OpenCode, DeepSeek, Cloudflare Workers AI, sticky durante lo scroll)
 - [x] Release 1.18.0
+
+---
+
+## CR-097 — Testi visibili dei componenti traducibili (i18n)
+
+**Stato:** ⬜ todo
+**Issue:** [#68](https://github.com/sherpadvisorylab/llmnative-react/issues/68)
+**Priorità:** Media
+**Dipende da:** CR-093
+
+### Motivazione
+
+Emersa nel CRM Voltab (06/10/2026): il pannello notifiche mostra "No notifications" / "You're all
+caught up" in inglese in un'app italiana, e così la schermata d'errore ("This page ran into a
+problem", "Try again", "Go to home"). Diversi componenti hanno testi visibili scritti nel codice
+invece di passare da `useI18n`, quindi il consumer non può tradurli.
+
+### Scope
+
+- `I18nDict` + traduzioni en/it/de/ru/ar/zh per i testi fissi di: `blocks/Notifications.tsx`
+  ("Mark all read", "No notifications", "You're all caught up"); `ErrorBoundary.tsx` (titolo,
+  descrizione, "Technical details", "Context", "Time", "Agent", "Component tree", copia/invio
+  report, "Try again", "Go to home", con fallback inglese fuori da `<I18nProvider>`);
+  `blocks/ThemeSwitcher.tsx` ("Sharp", "Rounded", "Weight"); `ui/fields/ImageField.tsx` e
+  `ui/fields/RichText.tsx` (title dei pulsanti, "New tab"/"Same tab"); `ui/fields/Upload.tsx`
+  ("File name"); `TabDynamic` ("Add tab"); `GridCore` ("Table view", "Gallery view"); `Chatbot`
+  ("Temperature"); `Breadcrumbs` (aria-label "Breadcrumb").
+- Test di traduzione per componente e controllo automatico contro nuovi testi visibili fissi.
+- `.notes/I18N_AUDIT.md`: aggiornare (al 19/06 dichiarava 14/14 file migrati, i componenti sopra non erano censiti).
+- Docs `llms-full.txt`, CHANGELOG.
+- Fuori scope: callback al click della singola notifica (CR separata), messaggi di errore tecnici.
+
+### Checklist
+
+- [ ] Testi spostati nel dizionario e tradotti
+- [ ] ErrorBoundary con fallback senza provider
+- [ ] Test e controllo contro nuovi testi fissi
+- [ ] Docs, CHANGELOG
+- [ ] Release
 
 ---
 
