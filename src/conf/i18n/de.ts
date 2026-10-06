@@ -100,6 +100,12 @@ export const de: I18nDict = {
         expandSidebar: 'Seitenleiste aufklappen',
         collapseSidebar: 'Seitenleiste zuklappen',
     },
+    autocomplete: {
+        noResults: 'Keine Ergebnisse',
+        create: '«{value}» erstellen',
+        createPlaceholder: 'Tippen oder Enter drücken zum Erstellen...',
+        remove: 'Entfernen',
+    },
     addressAutocomplete: {
         placeholder: 'Adresse suchen...',
         noResults: 'Keine passende Adresse',

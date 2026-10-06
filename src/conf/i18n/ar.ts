@@ -100,6 +100,12 @@ export const ar: I18nDict = {
         expandSidebar: 'توسيع الشريط الجانبي',
         collapseSidebar: 'طي الشريط الجانبي',
     },
+    autocomplete: {
+        noResults: 'لا توجد نتائج',
+        create: 'إنشاء «{value}»',
+        createPlaceholder: 'اكتب أو اضغط Enter للإنشاء...',
+        remove: 'إزالة',
+    },
     addressAutocomplete: {
         placeholder: 'ابحث عن عنوان...',
         noResults: 'لا يوجد عنوان مطابق',

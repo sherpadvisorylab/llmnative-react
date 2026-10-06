@@ -330,8 +330,8 @@ Azioni: `save()`, `delete()`, `reset()`, `restoreDraft()`, `discardDraft()`.
 ```tsx
 <Select name="role" options={[{ label: 'Admin', value: 'admin' }]} />
 <Select name="categoryId" optionsSource={{ path: '/categories', labelField: 'name', valueField: '_key' }} />
-<Select.Autocomplete name="userId" optionsSource={{ path: '/users', labelField: 'email' }} />
-<Select.Checklist name="tags" options={['a', 'b', 'c']} />
+<Autocomplete name="userId" optionsSource={{ path: '/users', labelField: 'email' }} maxItems={1} />
+<Checklist name="tags" options={['a', 'b', 'c']} />
 ```
 
 | Prop | Tipo | Note |
@@ -342,7 +342,8 @@ Azioni: `save()`, `delete()`, `reset()`, `restoreDraft()`, `discardDraft()`.
 | `placeholderOption` | `Option` | Solo Select |
 | `placeholder` | `string` | Solo Autocomplete |
 | `creatable` | `boolean` | Solo Autocomplete — crea nuovi valori |
-| `onCreate` | `(value) => Promise<void>` | Solo Autocomplete |
+| `onCreate` | `(value) => void \| boolean \| Promise<void \| boolean>` | Solo Autocomplete — restituire `false` per non selezionare il valore creato (es. aprire un modulo di creazione) |
+| `listClassName` / `optionClassName` | `string` | Solo Autocomplete — classi della lista e delle voci (anche da tema `Autocomplete.listClassName` / `optionClassName`) |
 | `minItems` / `maxItems` | `number` | Solo Autocomplete |
 | `itemClassName` | `string` | Solo Checklist |
 | `validator` | `(value) => string \| undefined` | Tutte le varianti |
@@ -350,6 +351,8 @@ Azioni: `save()`, `delete()`, `reset()`, `restoreDraft()`, `discardDraft()`.
 | `disabled` | `boolean` | |
 | `title` | `string` | |
 | `feedback` | `string` | Messaggio di errore/suggerimento |
+
+`Autocomplete` è una combobox accessibile: la lista (in un portal, larga quanto il campo, stile popover del tema) mostra solo le label e filtra per label/value senza distinzione di maiuscole e accenti; i chip mostrano la label; tastiera: frecce, Invio, Esc (chiude solo la lista, non il `Modal`), Tab, Backspace su campo vuoto rimuove l'ultimo valore. Con `creatable` compare la voce "Crea «testo»". Il valore salvato è sempre l'array dei `value`. `Autocomplete` e `Checklist` sono export nominati: `Select.Autocomplete`/`Select.Checklist` non esistono.
 
 ### UploadImage / UploadDocument / UploadCSV
 ```tsx

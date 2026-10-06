@@ -185,6 +185,12 @@ export interface I18nDict {
         expandSidebar:   string;
         collapseSidebar: string;
     };
+    autocomplete: {
+        noResults:         string;
+        create:            string;
+        createPlaceholder: string;
+        remove:            string;
+    };
     addressAutocomplete: {
         placeholder:     string;
         noResults:       string;

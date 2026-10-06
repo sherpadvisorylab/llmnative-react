@@ -180,6 +180,12 @@ export const en: I18nDict = {
         expandSidebar: 'Expand sidebar',
         collapseSidebar: 'Collapse sidebar',
     },
+    autocomplete: {
+        noResults: 'No results',
+        create: 'Create «{value}»',
+        createPlaceholder: 'Type or press Enter to create...',
+        remove: 'Remove',
+    },
     addressAutocomplete: {
         placeholder: 'Search an address...',
         noResults: 'No matching address',

@@ -103,6 +103,7 @@
 | [CR-092](#cr-092--mockdataprovider-sotto-collezioni) | MockDataProvider: sotto-collezioni | Alta | — | ✅ |
 | [CR-093](#cr-093--docs-tabloader-allineate-allapi-e-sidenav-internazionalizzato) | Docs Tab/Loader allineate all'API e SideNav internazionalizzato | Media | CR-029 | ✅ |
 | [CR-094](#cr-094--modal-chiusura-con-esc-e-docs-modalyesnomodalok) | Modal: chiusura con Esc e docs ModalYesNo/ModalOk | Media | CR-091 | ✅ |
+| [CR-096](#cr-096--autocomplete-combobox-disegnata-al-posto-del-datalist-nativo) | Autocomplete: combobox disegnata al posto del datalist nativo | Alta | — | ✅ |
 
 ---
 
@@ -136,6 +137,45 @@ Richiesto dal consumer `llmnative-cms`.
 - [x] Docs `docs/providers/ai.md`, `llms-full.txt`
 - [x] Verifica visiva nel consumer `llmnative-cms` (picker Agentico: header per OpenCode, DeepSeek, Cloudflare Workers AI, sticky durante lo scroll)
 - [x] Release 1.18.0
+
+---
+
+## CR-096 — Autocomplete: combobox disegnata al posto del datalist nativo
+
+**Stato:** ✅ done — rilasciato in 1.22.0
+**Issue:** [#66](https://github.com/sherpadvisorylab/llmnative-react/issues/66)
+**Priorità:** Alta
+**Dipende da:** —
+
+### Motivazione
+
+Emersa nel CRM Voltab (form "Nuovo ticket"): `Autocomplete` usava un `<datalist>` nativo. Il menu
+lo disegnava il browser, quindi non si allargava né seguiva il tema; Chrome mostrava il `value`
+tecnico come titolo (`odoo-6364`, `__new__`) e la label sotto; il chip selezionato mostrava il
+`value`. Nessun filtro per label né navigazione coerente da tastiera.
+
+### Scope
+
+- `src/components/ui/fields/Select.tsx`: `Autocomplete` come combobox (input `role="combobox"`,
+  `aria-expanded`/`aria-controls`/`aria-activedescendant`; lista `role="listbox"` in portal su
+  `document.body`, posizione fissa sotto o sopra il campo e larga quanto il campo, stile popover
+  come `Dropdown`); voci e chip con la label; filtro per label/value insensibile a maiuscole e
+  accenti; frecce, Invio, Esc (chiude solo la lista: l'evento non arriva al `Modal`), Tab,
+  Backspace su campo vuoto; click fuori chiude. Stessa API e stesso valore salvato.
+- `creatable`: voce "Crea «testo»"; `onCreate` può restituire `false` (anche async) per non
+  selezionare il valore creato. Nuove prop `listClassName`/`optionClassName`.
+- `src/Theme.tsx` e temi `default`, `flat`, `cyber`: `Autocomplete.listClassName`/`optionClassName`.
+- i18n (`autocomplete.noResults`, `create`, `createPlaceholder`, `remove`) in tutte le lingue.
+- Docs `llms-full.txt` (anche `Select.Autocomplete` → export nominato `Autocomplete`), showcase.
+
+### Checklist
+
+- [x] Combobox con lista disegnata, label al posto dei value, filtro, tastiera, ARIA
+- [x] `creatable` con "Crea «testo»" e `onCreate` → `false`
+- [x] Test `Select.test.tsx` (7 per Autocomplete); E2E showcase 32/32
+- [x] Docs `llms-full.txt`, showcase, CHANGELOG
+- [x] Verifica visiva nel consumer CRM Voltab (lista larga quanto il campo, tema, Esc non chiude il `Modal`, "Crea «testo»")
+- [x] Release 1.22.0 (minor: nuove prop pubbliche)
 
 ---
 

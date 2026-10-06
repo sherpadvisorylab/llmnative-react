@@ -100,6 +100,12 @@ export const it: I18nDict = {
         expandSidebar: 'Espandi barra laterale',
         collapseSidebar: 'Comprimi barra laterale',
     },
+    autocomplete: {
+        noResults: 'Nessun risultato',
+        create: 'Crea «{value}»',
+        createPlaceholder: 'Scrivi o premi Invio per creare...',
+        remove: 'Rimuovi',
+    },
     addressAutocomplete: {
         placeholder: 'Cerca un indirizzo...',
         noResults: 'Nessun indirizzo corrispondente',

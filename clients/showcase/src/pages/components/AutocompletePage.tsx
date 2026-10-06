@@ -92,7 +92,7 @@ export default function AutocompletePage() {
         { name: 'minItems', type: 'number', description: t.propsDocs.items.minItems.description, control: 'number', min: 0 },
         { name: 'maxItems', type: 'number', description: t.propsDocs.items.maxItems.description, control: 'number', min: 1 },
         { name: 'creatable', type: 'boolean', default: 'false', description: t.propsDocs.items.creatable.description, control: 'boolean' },
-        { name: 'onCreate', type: '(value: string) => Promise<void> | void', description: t.propsDocs.items.onCreate.description, example: `onCreate={async (value) => {
+        { name: 'onCreate', type: '(value: string) => void | boolean | Promise<void | boolean>', description: t.propsDocs.items.onCreate.description, example: `onCreate={async (value) => {
   await db.set(\`/tags/\${value}\`, { label: value, value });
 }}` },
         { name: 'required', type: 'boolean', default: 'false', description: t.propsDocs.items.required.description, control: 'boolean' },

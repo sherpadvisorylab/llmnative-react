@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.22.0] - 2026-10-06
+
+### Changed
+- `Autocomplete` is now a combobox drawn by the framework instead of a native `<datalist>`: the
+  list opens in a portal as wide as the field with the theme's popover style, shows option labels
+  (never the technical `value`), filters by label/value ignoring case and accents, and is driven
+  by arrows, Enter, Escape (closes only the list, not the surrounding `Modal`), Tab and Backspace.
+  Selected chips show the label. Same props and stored value (array of values) (CR-096, GH issue #66).
+
+### Added
+- `Autocomplete`: with `creatable`, a "Create «text»" entry; `onCreate` may return `false` (also
+  async) to keep the created value out of the selection, e.g. to open a creation form. New props
+  and theme keys `listClassName` / `optionClassName`; i18n namespace `autocomplete` (CR-096).
+
+### Fixed
+- Docs: `llms-full.txt` showed `<Select.Autocomplete>`/`<Select.Checklist>`, which do not exist;
+  they are the named exports `Autocomplete`/`Checklist` (CR-096).
+
 ## [1.21.0] - 2026-10-06
 
 ### Added

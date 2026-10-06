@@ -100,6 +100,12 @@ export const zh: I18nDict = {
         expandSidebar: '展开侧边栏',
         collapseSidebar: '收起侧边栏',
     },
+    autocomplete: {
+        noResults: '没有结果',
+        create: '创建「{value}」',
+        createPlaceholder: '输入或按回车创建...',
+        remove: '移除',
+    },
     addressAutocomplete: {
         placeholder: '搜索地址...',
         noResults: '未找到匹配地址',

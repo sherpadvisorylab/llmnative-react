@@ -100,6 +100,12 @@ export const ru: I18nDict = {
         expandSidebar: 'Развернуть боковую панель',
         collapseSidebar: 'Свернуть боковую панель',
     },
+    autocomplete: {
+        noResults: 'Ничего не найдено',
+        create: 'Создать «{value}»',
+        createPlaceholder: 'Введите или нажмите Enter, чтобы создать...',
+        remove: 'Удалить',
+    },
     addressAutocomplete: {
         placeholder: 'Поиск адреса...',
         noResults: 'Нет подходящего адреса',

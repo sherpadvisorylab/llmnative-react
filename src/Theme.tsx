@@ -303,6 +303,8 @@ export interface ThemeConfig {
     Autocomplete?: {
         wrapperClassName?: string;
         className?: string;
+        listClassName?: string;
+        optionClassName?: string;
     };
     AddressAutocomplete?: {
         wrapperClassName?: string;
