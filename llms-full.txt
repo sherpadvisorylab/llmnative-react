@@ -330,9 +330,16 @@ Azioni: `save()`, `delete()`, `reset()`, `restoreDraft()`, `discardDraft()`.
 ```tsx
 <Select name="role" options={[{ label: 'Admin', value: 'admin' }]} />
 <Select name="categoryId" optionsSource={{ path: '/categories', labelField: 'name', valueField: '_key' }} />
-<Select.Autocomplete name="userId" optionsSource={{ path: '/users', labelField: 'email' }} />
-<Select.Checklist name="tags" options={['a', 'b', 'c']} />
+<Autocomplete name="userId" optionsSource={{ path: '/users', labelField: 'email' }} />
+<Checklist name="tags" options={['a', 'b', 'c']} />
 ```
+
+`Autocomplete` è una combobox disegnata dal framework (nessun `<datalist>`): lista in portal su
+`document.body`, larga quanto il campo, con stile popover del tema, `max-height` e scroll. Filtra
+per label e value ignorando maiuscole e accenti; voci e chip mostrano la label (fallback al value).
+Tastiera: `↑`/`↓`, `Invio`, `Esc`, `Tab`; `Backspace` su input vuoto rimuove l'ultimo chip. ARIA:
+`role="combobox"` con `aria-expanded`/`aria-controls`/`aria-activedescendant`, lista `role="listbox"`
+con `role="option"`/`aria-selected`.
 
 | Prop | Tipo | Note |
 |---|---|---|
@@ -341,8 +348,8 @@ Azioni: `save()`, `delete()`, `reset()`, `restoreDraft()`, `discardDraft()`.
 | `order` | `{ field: 'label' \| 'value', dir: 'asc' \| 'desc' }` | |
 | `placeholderOption` | `Option` | Solo Select |
 | `placeholder` | `string` | Solo Autocomplete |
-| `creatable` | `boolean` | Solo Autocomplete — crea nuovi valori |
-| `onCreate` | `(value) => Promise<void>` | Solo Autocomplete |
+| `creatable` | `boolean` | Solo Autocomplete — voce "Crea «{value}»" quando il testo non corrisponde |
+| `onCreate` | `(value) => boolean \| void \| Promise<boolean \| void>` | Solo Autocomplete — restituire `false` annulla la selezione |
 | `minItems` / `maxItems` | `number` | Solo Autocomplete |
 | `itemClassName` | `string` | Solo Checklist |
 | `validator` | `(value) => string \| undefined` | Tutte le varianti |
@@ -350,6 +357,9 @@ Azioni: `save()`, `delete()`, `reset()`, `restoreDraft()`, `discardDraft()`.
 | `disabled` | `boolean` | |
 | `title` | `string` | |
 | `feedback` | `string` | Messaggio di errore/suggerimento |
+
+Chiavi tema `Autocomplete`: `wrapperClassName`, `className`, `listClassName`, `optionClassName`.
+
 
 ### UploadImage / UploadDocument / UploadCSV
 ```tsx

@@ -24,6 +24,10 @@ export default defineLocaleMessages({
                     title: 'Creatable - input libero con persistenza',
                     description: 'Abilita creatable per permettere valori non presenti in lista. Premi Invio per confermare. Usa onCreate per persistere la nuova opzione.',
                 },
+                onCreateCancels: {
+                    title: 'Creatable - annullare con onCreate',
+                    description: 'Restituisci false da onCreate (anche in modo asincrono) per rifiutare il valore digitato. Qui i valori piu corti di 3 caratteri vengono rifiutati.',
+                },
                 dataProviderBacked: {
                     title: 'Collegato a DataProvider',
                     description: 'Passa optionsSource invece di options per caricare i suggerimenti dal DataProvider attivo.',
@@ -50,6 +54,9 @@ export default defineLocaleMessages({
                 addTag: 'Aggiungi un tag...',
                 selectOrTypeTag: 'Seleziona o scrivi un nuovo tag...',
                 persistedTags: 'Tag persistiti',
+                guardedTags: 'Tag protetti',
+                typeMinThree: 'Digita almeno 3 caratteri...',
+                rejectedValue: 'Rifiutato «{value}»',
             },
             propsDocs: {
                 title: 'Props Autocomplete',
@@ -63,7 +70,7 @@ export default defineLocaleMessages({
                     minItems: { description: 'Numero minimo di elementi selezionati.' },
                     maxItems: { description: 'Numero massimo di elementi selezionati.' },
                     creatable: { description: 'Permette di digitare valori liberi non presenti in lista. Premi Invio per confermare.' },
-                    onCreate: { description: 'Chiamato quando un nuovo valore libero viene confermato. Usalo per persistere la nuova opzione.' },
+                    onCreate: { description: 'Chiamato quando un nuovo valore libero viene confermato. Usalo per persistere la nuova opzione; restituisci false (anche async) per annullare la selezione.' },
                     required: { description: 'Segna il campo come obbligatorio.' },
                     disabled: { description: 'Disabilita il campo.' },
                     readOnlyAfterSet: { description: 'Il campo diventa in sola lettura dopo che e stato impostato un valore.' },

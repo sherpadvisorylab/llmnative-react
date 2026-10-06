@@ -36,7 +36,7 @@ export const zh: I18nDict = {
         filtersRangeMax: '最大',
         filtersSelectedCountTemplate: '已选 {count} 项',
     },
-    select: { placeholder: '请选择...', loading: '加载中...' },
+    select: { placeholder: '请选择...', loading: '加载中...', noResults: '无结果', createOption: '创建「{value}」' },
     modal: { save: '保存', delete: '删除', cancel: '取消', close: '关闭', ok: '确定', yes: '是', no: '否' },
     upload: {
         clickOrDrag: '点击或拖拽上传...', dropToUpload: '松开上传',

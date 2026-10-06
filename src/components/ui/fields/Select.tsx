@@ -1,5 +1,6 @@
-﻿import React, { useEffect, useId, useMemo, useState } from 'react';
-import { useI18n } from "../../../I18n";
+﻿import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { interpolate, useI18n } from "../../../I18n";
 import {
     Label,
     FieldError,
@@ -49,12 +50,20 @@ export interface AutocompleteProps extends BaseProps {
     maxItems?: number;
     placeholder?: string;
     creatable?: boolean;
-    onCreate?: (value: string) => Promise<void> | void;
+    /**
+     * Called when a value not present in the options is confirmed with `creatable`.
+     * Return `false` (or a promise resolving to `false`) to cancel the selection —
+     * e.g. to open a dedicated creation form instead.
+     */
+    onCreate?: (value: string) => boolean | void | Promise<boolean | void>;
 }
 
 export interface ChecklistProps extends BaseProps {
     itemClassName?: string;
 }
+
+const normalizeSearch = (value: string): string =>
+    value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 
 const valueToArray = (value: FieldValue): unknown[] => {
     if (value == null || value === '' || typeof value === 'boolean') return [];
@@ -268,6 +277,7 @@ export const Autocomplete = ({
     const { value, handleChange, formWrapClass } = useFormContext({ name, onChange, wrapperClassName, defaultValue, inheritWrapperClassName });
     const error = useFieldValidation(name, { required, label, validator });
     const theme = useTheme("select");
+    const dict = useI18n('select');
 
     const valueArray = useMemo(() => valueToArray(value), [value]);
     const [selectedItems, setSelectedItems] = useState(() => valueArray);
@@ -291,43 +301,90 @@ export const Autocomplete = ({
         return arrayUnique(combinedOptions, 'value');
     }, [options, localOpts, lookup, order, optionsSource?.order, dbOptions.fieldMap]);
 
-    const commitValue = (currentValue: string, inputEl: HTMLInputElement) => {
-        if (!currentValue) return;
-        if (selectedItems.includes(currentValue) || (maxItems && selectedItems.length >= maxItems)) {
-            inputEl.value = '';
-            return;
+    const [query, setQuery] = useState('');
+    const [open, setOpen] = useState(false);
+    const [highlighted, setHighlighted] = useState(-1);
+    const [menuStyle, setMenuStyle] = useState<React.CSSProperties>({});
+
+    const rootRef = useRef<HTMLDivElement>(null);
+    const listRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    const id = useId();
+    const listId = `${id}-listbox`;
+    const optionId = (index: number) => `${id}-option-${index}`;
+
+    const isDisabled = disabled || (readOnlyAfterSet && !isEmpty(value));
+    const atMax = Boolean(maxItems && selectedItems.length >= maxItems);
+
+    const labelFor = useCallback((currentValue: string) => {
+        const match = opts.find(op => op.value === currentValue);
+        return match?.label || currentValue;
+    }, [opts]);
+
+    const filtered = useMemo(() => {
+        const needle = normalizeSearch(query);
+        if (!needle) return opts;
+        return opts.filter(op =>
+            normalizeSearch(op.label).includes(needle) || normalizeSearch(op.value).includes(needle)
+        );
+    }, [opts, query]);
+
+    const showCreate = creatable
+        && query.trim().length > 0
+        && !atMax
+        && !opts.some(op =>
+            normalizeSearch(op.value) === normalizeSearch(query) || normalizeSearch(op.label) === normalizeSearch(query)
+        );
+
+    const items = useMemo(() => {
+        const list = filtered.map(op => ({ label: op.label, value: op.value, create: false }));
+        if (showCreate) {
+            list.push({ label: interpolate(dict.createOption, { value: query.trim() }), value: query.trim(), create: true });
         }
-        setSelectedItems(prevState => {
-            const updatedItems = [...prevState, currentValue];
-            setTimeout(() => {
-                handleChange?.({ target: { name, value: updatedItems } });
-            }, 0);
-            return updatedItems;
+        return list;
+    }, [filtered, showCreate, query, dict.createOption]);
+
+    const activeId = open && highlighted >= 0 && items[highlighted] ? optionId(highlighted) : undefined;
+
+    const updateMenuPosition = useCallback(() => {
+        const el = inputRef.current;
+        if (!el) return;
+        const rect = el.getBoundingClientRect();
+        const maxHeight = 256;
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const spaceAbove = rect.top;
+        const openUp = spaceBelow < maxHeight && spaceAbove > spaceBelow;
+        setMenuStyle({
+            position: 'fixed',
+            left: rect.left,
+            width: rect.width,
+            maxHeight,
+            ...(openUp ? { bottom: window.innerHeight - rect.top + 4 } : { top: rect.bottom + 4 }),
         });
-        inputEl.value = '';
-    };
+    }, []);
 
-    const handleAutocompleteChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const currentValue = e.target.value;
-        const inOpts = opts.some(op => op.value === currentValue);
-        if (!inOpts) return;
-        commitValue(currentValue, e.target);
-    };
+    useEffect(() => {
+        if (!open) return;
+        updateMenuPosition();
+        window.addEventListener('resize', updateMenuPosition);
+        window.addEventListener('scroll', updateMenuPosition, true);
+        return () => {
+            window.removeEventListener('resize', updateMenuPosition);
+            window.removeEventListener('scroll', updateMenuPosition, true);
+        };
+    }, [open, updateMenuPosition]);
 
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key !== 'Enter') return;
-        e.preventDefault();
-        const currentValue = (e.target as HTMLInputElement).value.trim();
-        if (!currentValue) return;
-
-        const inOpts = opts.some(op => op.value === currentValue);
-        if (!inOpts) {
-            if (!creatable) return;
-            setLocalOpts(prev => [...prev, { label: currentValue, value: currentValue }]);
-            onCreate?.(currentValue);
-        }
-        commitValue(currentValue, e.target as HTMLInputElement);
-    };
+    useEffect(() => {
+        if (!open) return;
+        const handlePointerDown = (event: PointerEvent) => {
+            const target = event.target as Node;
+            if (rootRef.current?.contains(target) || listRef.current?.contains(target)) return;
+            setOpen(false);
+        };
+        document.addEventListener('pointerdown', handlePointerDown);
+        return () => document.removeEventListener('pointerdown', handlePointerDown);
+    }, [open]);
 
     const removeItem = (currentValue: string) => {
         setSelectedItems(prevState => {
@@ -339,45 +396,186 @@ export const Autocomplete = ({
         });
     };
 
-    const id = useId();
-    const listId = `${id}-options`;
+    const selectValue = async (rawValue: string) => {
+        const nextValue = rawValue.trim();
+        if (!nextValue) return;
+        if (selectedItems.includes(nextValue) || (maxItems && selectedItems.length >= maxItems)) {
+            setQuery('');
+            setOpen(false);
+            return;
+        }
+
+        const exists = opts.some(op => op.value === nextValue);
+        if (!exists) {
+            if (!creatable) return;
+            if (onCreate) {
+                const result = await onCreate(nextValue);
+                if (result === false) {
+                    setQuery('');
+                    return;
+                }
+            }
+            setLocalOpts(prev => prev.some(op => op.value === nextValue) ? prev : [...prev, { label: nextValue, value: nextValue }]);
+        }
+
+        setSelectedItems(prevState => {
+            const updatedItems = [...prevState, nextValue];
+            setTimeout(() => {
+                handleChange?.({ target: { name, value: updatedItems } });
+            }, 0);
+            return updatedItems;
+        });
+        setQuery('');
+        setOpen(false);
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (isDisabled) return;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (!open) {
+                setOpen(true);
+                setHighlighted(0);
+                return;
+            }
+            setHighlighted(prev => items.length === 0 ? -1 : prev < items.length - 1 ? prev + 1 : 0);
+            return;
+        }
+
+        if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (!open) {
+                setOpen(true);
+                setHighlighted(items.length > 0 ? items.length - 1 : -1);
+                return;
+            }
+            setHighlighted(prev => items.length === 0 ? -1 : prev > 0 ? prev - 1 : items.length - 1);
+            return;
+        }
+
+        if (e.key === 'Enter') {
+            if (!open) return;
+            e.preventDefault();
+            const item = items[highlighted];
+            if (item) void selectValue(item.value);
+            return;
+        }
+
+        if (e.key === 'Escape') {
+            if (!open) return;
+            e.preventDefault();
+            setOpen(false);
+            setHighlighted(-1);
+            return;
+        }
+
+        if (e.key === 'Tab') {
+            if (!open) return;
+            const item = items[highlighted];
+            if (item) void selectValue(item.value);
+            setOpen(false);
+            return;
+        }
+
+        if (e.key === 'Backspace' && query === '' && selectedItems.length > 0) {
+            removeItem(selectedItems[selectedItems.length - 1] as string);
+        }
+    };
+
+    const listElement = (
+        <div
+            ref={listRef}
+            id={listId}
+            role="listbox"
+            className={cn(
+                "z-[200] overflow-y-auto rounded-xl border border-border/60 bg-popover/95 p-1 text-sm text-popover-foreground shadow-xl shadow-black/5 outline-none backdrop-blur supports-[backdrop-filter]:bg-popover/90 dark:shadow-black/20",
+                theme.Autocomplete.listClassName
+            )}
+            style={menuStyle}
+        >
+            {items.length === 0 ? (
+                <div className="px-2 py-3 text-center text-muted-foreground">{dict.noResults}</div>
+            ) : items.map((item, index) => {
+                const selected = selectedItems.includes(item.value);
+                return (
+                    <div
+                        key={`${id}-${item.create ? 'create' : 'option'}-${index}-${item.value}`}
+                        id={optionId(index)}
+                        role="option"
+                        aria-selected={selected}
+                        className={cn(
+                            "flex w-full cursor-pointer items-center rounded-sm px-2 py-1.5 text-left transition-colors",
+                            index === highlighted ? "bg-accent text-accent-foreground" : "hover:bg-accent hover:text-accent-foreground",
+                            selected && "font-medium",
+                            theme.Autocomplete.optionClassName
+                        )}
+                        onMouseDown={(event) => {
+                            event.preventDefault();
+                            void selectValue(item.value);
+                        }}
+                        onMouseEnter={() => setHighlighted(index)}
+                    >
+                        {item.label}
+                    </div>
+                );
+            })}
+        </div>
+    );
+
     return (
         <Wrapper className={formWrapClass || theme.Autocomplete.wrapperClassName}>
             {label && <Label label={label} required={required} htmlFor={id} />}
             <Wrapper className={before || after ? cn(fieldGroupClass, "flex-nowrap") : ""}>
                 {before && <SelectAddon side="before">{before}</SelectAddon>}
-                <div className={cn(
-                    fieldControlBaseClass,
-                    "h-auto min-h-9 flex-wrap items-center gap-1 py-1.5 px-2",
-                    before && "rounded-l-none",
-                    after && "rounded-r-none"
-                )}>
+                <div
+                    ref={rootRef}
+                    className={cn(
+                        fieldControlBaseClass,
+                        "relative h-auto min-h-9 flex-wrap items-center gap-1 py-1.5 px-2",
+                        before && "rounded-l-none",
+                        after && "rounded-r-none",
+                        isDisabled && "cursor-not-allowed opacity-60"
+                    )}
+                >
                     {(selectedItems as string[]).map(item => (
                         <span className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary" key={item}>
-                            {item}
+                            {labelFor(item)}
                             <button type="button" className="ml-0.5 opacity-60 transition-opacity hover:opacity-100" onClick={() => removeItem(item)}>×</button>
                         </span>
                     ))}
-                    {(!maxItems || selectedItems.length < maxItems) && (
+                    {!atMax && (
                         <input
+                            ref={inputRef}
                             id={id}
                             type="text"
+                            role="combobox"
+                            aria-expanded={open}
+                            aria-controls={listId}
+                            aria-activedescendant={activeId}
+                            aria-autocomplete="list"
+                            aria-haspopup="listbox"
+                            autoComplete="off"
                             className={cn("min-w-[120px] flex-1 border-none bg-transparent text-sm outline-none placeholder:text-muted-foreground", className || theme.Autocomplete.className)}
                             required={required && selectedItems.length < (minItems || 0)}
-                            disabled={disabled || (readOnlyAfterSet && !isEmpty(value))}
-                            placeholder={creatable ? (placeholder ?? 'Type or press Enter to create...') : placeholder}
+                            disabled={isDisabled}
+                            placeholder={placeholder}
                             title={title}
-                            list={listId}
-                            onChange={handleAutocompleteChange}
+                            value={query}
+                            onChange={(e) => {
+                                setQuery(e.target.value);
+                                setOpen(true);
+                                setHighlighted(0);
+                            }}
+                            onFocus={() => { if (!isDisabled) setOpen(true); }}
+                            onClick={() => { if (!isDisabled) setOpen(true); }}
                             onKeyDown={handleKeyDown}
                         />
                     )}
                 </div>
-                <datalist id={listId}>
-                    {opts.map((op, index) => <option value={op.value} key={`${id}-${index}`}>{op.label}</option>)}
-                </datalist>
                 {after && <SelectAddon side="after">{after}</SelectAddon>}
             </Wrapper>
+            {open && typeof document !== 'undefined' && createPortal(listElement, document.body)}
             {error
                 ? <FieldError message={error} />
                 : feedback && <div className={fieldFeedbackClass}>{feedback}</div>}

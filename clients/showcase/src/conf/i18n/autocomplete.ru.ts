@@ -12,6 +12,7 @@ export default defineLocaleMessages({
                 defaultValues: { title: 'Со значениями по умолчанию и ограничением', description: 'Предзаполняйте существующими значениями. max=3 не позволяет выбрать больше 3 элементов.' },
                 tagInput: { title: 'Ввод тегов', description: 'Подходит не только для людей, но и для свободных тегов. Подойдет любой массив опций.' },
                 creatable: { title: 'Creatable - свободный ввод с сохранением', description: 'Включите creatable, чтобы разрешить значения вне списка. Нажмите Enter для подтверждения. Используйте onCreate для сохранения новой опции.' },
+                onCreateCancels: { title: 'Creatable - отмена через onCreate', description: 'Верните false из onCreate (в том числе асинхронно), чтобы отклонить введённое значение. Здесь значения короче 3 символов отклоняются.' },
                 dataProviderBacked: { title: 'С DataProvider', description: 'Передайте optionsSource вместо options, чтобы загружать подсказки из активного DataProvider.' },
             },
             labels: {
@@ -35,6 +36,9 @@ export default defineLocaleMessages({
                 addTag: 'Добавить тег...',
                 selectOrTypeTag: 'Выберите или введите новый тег...',
                 persistedTags: 'Сохраненные теги',
+                guardedTags: 'Защищённые теги',
+                typeMinThree: 'Введите не менее 3 символов...',
+                rejectedValue: 'Отклонено «{value}»',
             },
             propsDocs: {
                 title: 'Свойства Autocomplete',
@@ -48,7 +52,7 @@ export default defineLocaleMessages({
                     minItems: { description: 'Минимальное число выбранных элементов.' },
                     maxItems: { description: 'Максимальное число выбранных элементов.' },
                     creatable: { description: 'Разрешает ввод свободных значений вне списка. Нажмите Enter для подтверждения.' },
-                    onCreate: { description: 'Вызывается при подтверждении нового свободного значения. Используйте для сохранения новой опции.' },
+                    onCreate: { description: 'Вызывается при подтверждении нового свободного значения. Используйте для сохранения новой опции; верните false (в том числе асинхронно), чтобы отменить выбор.' },
                     required: { description: 'Помечает поле как обязательное.' },
                     disabled: { description: 'Отключает поле.' },
                     readOnlyAfterSet: { description: 'Поле становится только для чтения после установки значения.' },

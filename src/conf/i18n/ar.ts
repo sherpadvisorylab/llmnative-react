@@ -36,7 +36,7 @@ export const ar: I18nDict = {
         filtersRangeMax: 'أقصى',
         filtersSelectedCountTemplate: 'تم اختيار {count}',
     },
-    select: { placeholder: 'اختر...', loading: 'جارٍ التحميل...' },
+    select: { placeholder: 'اختر...', loading: 'جارٍ التحميل...', noResults: 'لا توجد نتائج', createOption: 'إنشاء «{value}»' },
     modal: { save: 'حفظ', delete: 'حذف', cancel: 'إلغاء', close: 'إغلاق', ok: 'موافق', yes: 'نعم', no: 'لا' },
     upload: {
         clickOrDrag: 'انقر أو اسحب للتحميل...', dropToUpload: 'أفلت للتحميل',

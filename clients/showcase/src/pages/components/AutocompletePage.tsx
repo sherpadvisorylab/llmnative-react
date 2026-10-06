@@ -28,11 +28,45 @@ function CreatableDemo({
                     options={tags}
                     defaultValue={selectedTags}
                     creatable
-                    onCreate={(value) => setSelectedTags((prev) => [...prev, value])}
+                    onCreate={(value: string) => setSelectedTags((prev) => [...prev, value])}
                 />
             </Form>
             <div className="text-xs text-muted-foreground">
                 {t.labels.persistedTags}: <span className="font-mono">{JSON.stringify(selectedTags)}</span>
+            </div>
+        </div>
+    );
+}
+
+function CreateGuardDemo({
+    t,
+}: {
+    t: ReturnType<typeof useShowcaseAutocompleteI18n>;
+}) {
+    const [accepted, setAccepted] = useState<string[]>([]);
+    const [rejected, setRejected] = useState<string | null>(null);
+
+    return (
+        <div className="w-full max-w-md space-y-3">
+            <Form appearance="empty">
+                <Autocomplete
+                    name="guarded"
+                    label={t.labels.guardedTags}
+                    placeholder={t.labels.typeMinThree}
+                    options={[]}
+                    creatable
+                    onCreate={(value: string) => {
+                        if (value.trim().length < 3) {
+                            setRejected(value);
+                            return false;
+                        }
+                        setAccepted((prev) => [...prev, value]);
+                    }}
+                />
+            </Form>
+            <div className="text-xs text-muted-foreground">
+                {t.labels.persistedTags}: <span className="font-mono">{JSON.stringify(accepted)}</span>
+                {rejected && <div>{t.labels.rejectedValue.replace('{value}', rejected)}</div>}
             </div>
         </div>
     );
@@ -227,7 +261,7 @@ export default function AutocompletePage() {
                                 placeholder={t.labels.typeName}
                                 options={people}
                                 defaultValue={['alice', 'bob']}
-                                max={3}
+                                maxItems={3}
                             />
                         </Form>
                     </div>
@@ -239,7 +273,7 @@ export default function AutocompletePage() {
         placeholder="Type a name..."
         options={people}
         defaultValue={['alice', 'bob']}
-        max={3}
+        maxItems={3}
     />
 </Form>`}
             />
@@ -298,6 +332,25 @@ function TagField() {
         </Form>
     );
 }`}
+            />
+
+            <Section
+                bare
+                title={t.sections.onCreateCancels.title}
+                description={t.sections.onCreateCancels.description}
+                preview={<CreateGuardDemo t={t} />}
+                code={`<Autocomplete
+    name="tags"
+    label="Guarded tags"
+    placeholder="Type at least 3 characters..."
+    options={[]}
+    creatable
+    onCreate={(value) => {
+        // Return false to cancel the selection (e.g. open a creation form).
+        if (value.trim().length < 3) return false;
+        void db.set(\`/tags/\${value}\`, { label: value, value });
+    }}
+/>`}
             />
 
             <Section

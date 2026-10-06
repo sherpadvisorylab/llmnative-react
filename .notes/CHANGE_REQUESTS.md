@@ -103,6 +103,58 @@
 | [CR-092](#cr-092--mockdataprovider-sotto-collezioni) | MockDataProvider: sotto-collezioni | Alta | — | ✅ |
 | [CR-093](#cr-093--docs-tabloader-allineate-allapi-e-sidenav-internazionalizzato) | Docs Tab/Loader allineate all'API e SideNav internazionalizzato | Media | CR-029 | ✅ |
 | [CR-094](#cr-094--modal-chiusura-con-esc-e-docs-modalyesnomodalok) | Modal: chiusura con Esc e docs ModalYesNo/ModalOk | Media | CR-091 | ✅ |
+| [CR-095](#cr-095--sidenav-voci-fissate-in-fondo-bottomitems-docs-imageavatar) | SideNav: voci fissate in fondo (`bottomItems`); docs ImageAvatar | Media | CR-093 | ✅ |
+| [CR-096](#cr-096--autocomplete-combobox-disegnata-al-posto-del-datalist-nativo) | Autocomplete: combobox disegnata al posto del datalist nativo | Alta | — | 🔄 |
+
+---
+
+## CR-096 — Autocomplete: combobox disegnata al posto del datalist nativo
+
+**Stato:** 🔄 in progress
+**Issue:** [#66](https://github.com/sherpadvisorylab/llmnative-react/issues/66)
+**Priorità:** Alta
+**Dipende da:** —
+
+### Motivazione
+
+Emersa nel CRM Voltab (form "Nuovo ticket"): `Autocomplete` si appoggiava a un `<datalist>` nativo,
+quindi il menu lo disegnava il browser (non si allargava né seguiva il tema), Chrome mostrava il
+`value` tecnico come titolo e la label sotto, il chip selezionato mostrava il `value` invece della
+label, e non c'erano filtro per label né navigazione da tastiera coerente.
+
+### Scope
+
+- `src/components/ui/fields/Select.tsx`: `Autocomplete` riscritto come combobox accessibile disegnata
+  dal framework, stessa API (`AutocompleteProps`) e stesso valore salvato (array di `value`):
+  input `role="combobox"` (`aria-expanded`/`aria-controls`/`aria-activedescendant`), lista
+  `role="listbox"` con `role="option"`/`aria-selected`; lista in portal su `document.body`, larga
+  quanto il campo, posizionata sotto o sopra, stile popover del tema, `max-height` con scroll;
+  filtro per label e value insensibile a maiuscole e accenti; voci e chip con la label (fallback al
+  value); tastiera (frecce, Invio, Esc, Tab, Backspace su input vuoto rimuove l'ultimo chip) e mouse;
+  `creatable` con voce "Crea «{value}»" i18n e `onCreate` che può restituire `false` (anche async)
+  per annullare la selezione.
+- `src/Theme.tsx`: nuove chiavi opzionali `Autocomplete.listClassName` / `Autocomplete.optionClassName`;
+  default `''` in `themes/default.ts`, `themes/flat.ts`, `themes/cyber.ts`.
+- i18n: `select.noResults` e `select.createOption` in `en`/`it`/`de`/`ru`/`zh`/`ar`.
+- Test `tests/unit/components/Select.test.tsx`: apertura, filtro, selezione mouse/tastiera, chip con
+  label, rimozione (bottone e Backspace), `maxItems`, `creatable` con `onCreate` → `false`.
+- Docs `llms-full.txt` (sezione Autocomplete), showcase `AutocompletePage` e dizionari
+  `clients/showcase/src/conf/i18n/autocomplete.*.ts` (6 lingue).
+- Fuori scope: caricamento remoto/asincrono delle opzioni, `Select` nativo, `Checklist`, release.
+
+### Checklist
+
+- [x] Nessun `<datalist>`: lista disegnata, larga quanto il campo, con stile popover del tema
+- [x] Voci e chip mostrano la label, mai il value tecnico (fallback al value)
+- [x] Filtro per label/value insensibile a maiuscole e accenti
+- [x] ARIA e tastiera da combobox (frecce, Invio, Esc, Tab, Backspace su input vuoto)
+- [x] `creatable` con voce "Crea «testo»" i18n; `onCreate` che restituisce `false` annulla la selezione
+- [x] Valore salvato invariato (array di value); `AutocompleteProps` retrocompatibile
+- [x] Nuove chiavi tema documentate e valorizzate nei tre temi
+- [x] `tests/unit/components/Select.test.tsx` aggiornato e verde (14 test)
+- [x] `llms-full.txt` e showcase aggiornati (6 lingue)
+- [x] `CHANGELOG.md` `## [Unreleased]` e `.notes/STATUS.md` aggiornati
+- [ ] Release (dopo merge e verifica umana)
 
 ---
 

@@ -331,6 +331,8 @@ export const components: Theme = {
     Autocomplete: {
         wrapperClassName: '',
         className: '',
+        listClassName: '',
+        optionClassName: '',
     },
     AddressAutocomplete: {
         wrapperClassName: '',

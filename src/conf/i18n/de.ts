@@ -36,7 +36,7 @@ export const de: I18nDict = {
         filtersRangeMax: 'Max',
         filtersSelectedCountTemplate: '{count} ausgewählt',
     },
-    select: { placeholder: 'Auswählen...', loading: 'Lädt...' },
+    select: { placeholder: 'Auswählen...', loading: 'Lädt...', noResults: 'Keine Ergebnisse', createOption: '«{value}» erstellen' },
     modal: { save: 'Speichern', delete: 'Löschen', cancel: 'Abbrechen', close: 'Schließen', ok: 'Ok', yes: 'Ja', no: 'Nein' },
     upload: {
         clickOrDrag: 'Klicken oder ziehen zum Hochladen...', dropToUpload: 'Loslassen zum Hochladen',

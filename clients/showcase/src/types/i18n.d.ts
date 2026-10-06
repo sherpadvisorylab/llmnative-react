@@ -1189,6 +1189,7 @@ interface ShowcaseAutocompleteI18n {
         defaultValues: ShowcasePageSectionCopy;
         tagInput: ShowcasePageSectionCopy;
         creatable: ShowcasePageSectionCopy;
+        onCreateCancels: ShowcasePageSectionCopy;
         dataProviderBacked: ShowcasePageSectionCopy;
     };
     labels: {
@@ -1212,6 +1213,9 @@ interface ShowcaseAutocompleteI18n {
         addTag: string;
         selectOrTypeTag: string;
         persistedTags: string;
+        guardedTags: string;
+        typeMinThree: string;
+        rejectedValue: string;
     };
     propsDocs: {
         title: string;

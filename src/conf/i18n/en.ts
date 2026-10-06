@@ -62,6 +62,8 @@ export const en: I18nDict = {
     select: {
         placeholder: 'Select...',
         loading: 'Loading...',
+        noResults: 'No results',
+        createOption: 'Create «{value}»',
     },
     modal: {
         save: 'Save',

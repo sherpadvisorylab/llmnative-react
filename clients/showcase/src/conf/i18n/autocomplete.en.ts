@@ -24,6 +24,10 @@ export default defineLocaleMessages({
                     title: 'Creatable - free input with persistence',
                     description: 'Enable creatable to let users type values not in the list. Press Enter to confirm. Use onCreate to persist the new option.',
                 },
+                onCreateCancels: {
+                    title: 'Creatable - cancelling with onCreate',
+                    description: 'Return false from onCreate (even asynchronously) to reject the typed value. Here values shorter than 3 characters are rejected.',
+                },
                 dataProviderBacked: {
                     title: 'DataProvider-backed',
                     description: 'Pass optionsSource instead of options to load suggestions from the active DataProvider.',
@@ -50,6 +54,9 @@ export default defineLocaleMessages({
                 addTag: 'Add a tag...',
                 selectOrTypeTag: 'Select or type a new tag...',
                 persistedTags: 'Persisted tags',
+                guardedTags: 'Guarded tags',
+                typeMinThree: 'Type at least 3 characters...',
+                rejectedValue: 'Rejected «{value}»',
             },
             propsDocs: {
                 title: 'Autocomplete props',
@@ -63,7 +70,7 @@ export default defineLocaleMessages({
                     minItems: { description: 'Minimum number of selected items.' },
                     maxItems: { description: 'Maximum number of selected items.' },
                     creatable: { description: 'Allow typing free values not in the options list. Press Enter to confirm.' },
-                    onCreate: { description: 'Called when a new free value is confirmed. Use it to persist the new option.' },
+                    onCreate: { description: 'Called when a new free value is confirmed. Use it to persist the new option; return false (also async) to cancel the selection.' },
                     required: { description: 'Marks the field as required.' },
                     disabled: { description: 'Disables the field.' },
                     readOnlyAfterSet: { description: 'Field becomes read-only once a value has been set.' },
