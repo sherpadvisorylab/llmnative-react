@@ -9,6 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- `Autocomplete` is now a framework-drawn accessible combobox instead of a native `<datalist>`.
+  The list is portaled to `document.body`, sized to the field, positioned below (or above when
+  there is no room) with the theme popover style and a scrollable max height. Items and chips show
+  the option label (falling back to the value), filtering matches label and value ignoring case and
+  accents, and the input follows the ARIA combobox pattern (`role`, `aria-expanded`,
+  `aria-controls`, `aria-activedescendant`, `role="option"`/`aria-selected`). Keyboard support:
+  arrows, Enter, Esc, Tab, and Backspace on an empty input removes the last chip. `creatable` shows
+  an i18n "Create «{value}»" entry and `onCreate` may return `false` (even asynchronously) to cancel
+  the selection. `AutocompleteProps` and the stored value (array of `value`) are unchanged
+  (CR-096, GH issue #66).
+
+### Added
+- New optional theme keys `Autocomplete.listClassName` and `Autocomplete.optionClassName`,
+  defaulted in the `default`, `flat` and `cyber` themes.
+- New i18n strings `select.noResults` and `select.createOption` in `en`, `it`, `de`, `ru`, `zh`, `ar`.
+- Docs (`llms-full.txt`) and showcase `AutocompletePage` (6 languages) updated, including a demo of
+  `onCreate` returning `false` to reject a created value (CR-096).
+
 ## [1.21.0] - 2026-10-06
 
 ### Added

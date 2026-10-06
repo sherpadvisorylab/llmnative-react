@@ -65,8 +65,10 @@ export interface I18nDict {
         filtersSelectedCountTemplate: string;
     };
     select: {
-        placeholder: string;
-        loading:     string;
+        placeholder:  string;
+        loading:      string;
+        noResults:    string;
+        createOption: string;
     };
     modal: {
         save:   string;

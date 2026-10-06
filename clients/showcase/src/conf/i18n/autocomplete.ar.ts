@@ -12,6 +12,7 @@ export default defineLocaleMessages({
                 defaultValues: { title: 'مع قيم ابتدائية وحد اقصى', description: 'املأ الحقل مسبقا بقيم موجودة. max=3 يمنع اختيار اكثر من 3 عناصر.' },
                 tagInput: { title: 'ادخال الوسوم', description: 'يعمل جيدا ايضا مع الوسوم الحرة وليس فقط مع الاشخاص. يمكن استخدام اي مصفوفة خيارات.' },
                 creatable: { title: 'Creatable - ادخال حر مع حفظ', description: 'فعّل creatable للسماح بقيم غير موجودة في القائمة. اضغط Enter للتأكيد. استخدم onCreate لحفظ الخيار الجديد.' },
+                onCreateCancels: { title: 'Creatable - الإلغاء عبر onCreate', description: 'أعد false من onCreate (حتى بشكل غير متزامن) لرفض القيمة المدخلة. هنا تُرفض القيم الأقصر من 3 أحرف.' },
                 dataProviderBacked: { title: 'مدعوم بـ DataProvider', description: 'مرر optionsSource بدلا من options لتحميل الاقتراحات من DataProvider النشط.' },
             },
             labels: {
@@ -35,6 +36,9 @@ export default defineLocaleMessages({
                 addTag: 'اضف وسم...',
                 selectOrTypeTag: 'اختر او اكتب وسما جديدا...',
                 persistedTags: 'الوسوم المحفوظة',
+                guardedTags: 'وسوم محمية',
+                typeMinThree: 'اكتب 3 أحرف على الأقل...',
+                rejectedValue: 'مرفوض «{value}»',
             },
             propsDocs: {
                 title: 'خصائص Autocomplete',
@@ -48,7 +52,7 @@ export default defineLocaleMessages({
                     minItems: { description: 'الحد الادنى لعدد العناصر المختارة.' },
                     maxItems: { description: 'الحد الاقصى لعدد العناصر المختارة.' },
                     creatable: { description: 'يسمح بكتابة قيم حرة غير موجودة في القائمة. اضغط Enter للتأكيد.' },
-                    onCreate: { description: 'يُستدعى عند تأكيد قيمة حرة جديدة. استخدمه لحفظ الخيار الجديد.' },
+                    onCreate: { description: 'يُستدعى عند تأكيد قيمة حرة جديدة. استخدمه لحفظ الخيار الجديد؛ أعد false (حتى بشكل غير متزامن) لإلغاء التحديد.' },
                     required: { description: 'يجعل الحقل مطلوبا.' },
                     disabled: { description: 'يعطل الحقل.' },
                     readOnlyAfterSet: { description: 'يصبح الحقل للقراءة فقط بعد تعيين قيمة له.' },

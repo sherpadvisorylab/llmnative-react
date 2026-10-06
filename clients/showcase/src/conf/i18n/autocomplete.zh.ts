@@ -12,6 +12,7 @@ export default defineLocaleMessages({
                 defaultValues: { title: '带默认值和上限', description: '可用已有值预填充。max=3 可防止选择超过 3 项。' },
                 tagInput: { title: '标签输入', description: '不仅适用于人员，也适用于自由标签。任何选项数组都可以使用。' },
                 creatable: { title: 'Creatable - 可持久化自由输入', description: '开启 creatable 后，用户可以输入列表中没有的值。按 Enter 确认。使用 onCreate 持久化新选项。' },
+                onCreateCancels: { title: 'Creatable - 用 onCreate 取消', description: '让 onCreate 返回 false（也可以异步）即可拒绝输入的值。这里少于 3 个字符的值会被拒绝。' },
                 dataProviderBacked: { title: '由 DataProvider 驱动', description: '传入 optionsSource 而不是 options，即可从当前 DataProvider 加载建议。' },
             },
             labels: {
@@ -35,6 +36,9 @@ export default defineLocaleMessages({
                 addTag: '添加标签...',
                 selectOrTypeTag: '选择或输入新标签...',
                 persistedTags: '已持久化标签',
+                guardedTags: '受保护标签',
+                typeMinThree: '请输入至少 3 个字符...',
+                rejectedValue: '已拒绝「{value}」',
             },
             propsDocs: {
                 title: 'Autocomplete 属性',
@@ -48,7 +52,7 @@ export default defineLocaleMessages({
                     minItems: { description: '最少选择项数。' },
                     maxItems: { description: '最多选择项数。' },
                     creatable: { description: '允许输入不在选项列表中的自由值。按 Enter 确认。' },
-                    onCreate: { description: '确认新自由值时调用。用于持久化新选项。' },
+                    onCreate: { description: '确认新自由值时调用。用于持久化新选项；返回 false（也可异步）可取消选择。' },
                     required: { description: '将字段标记为必填。' },
                     disabled: { description: '禁用字段。' },
                     readOnlyAfterSet: { description: '字段在设置值后变为只读。' },

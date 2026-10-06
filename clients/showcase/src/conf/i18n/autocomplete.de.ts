@@ -12,6 +12,7 @@ export default defineLocaleMessages({
                 defaultValues: { title: 'Mit Standardwerten und Maximalgrenze', description: 'Mit vorhandenen Werten vorbelegen. max=3 verhindert mehr als 3 Auswahlen.' },
                 tagInput: { title: 'Tag-Eingabe', description: 'Funktioniert genauso gut fuer freie Tags und nicht nur fuer Personen. Jedes Options-Array ist moeglich.' },
                 creatable: { title: 'Creatable - freie Eingabe mit Persistenz', description: 'Aktiviere creatable, um Werte ausserhalb der Liste zu erlauben. Mit Enter bestaetigen. Verwende onCreate, um die neue Option zu speichern.' },
+                onCreateCancels: { title: 'Creatable - Abbrechen mit onCreate', description: 'Gib aus onCreate false zurueck (auch asynchron), um den eingegebenen Wert abzulehnen. Hier werden Werte mit weniger als 3 Zeichen abgelehnt.' },
                 dataProviderBacked: { title: 'Mit DataProvider', description: 'Uebergib optionsSource statt options, um Vorschlaege aus dem aktiven DataProvider zu laden.' },
             },
             labels: {
@@ -35,6 +36,9 @@ export default defineLocaleMessages({
                 addTag: 'Tag hinzufuegen...',
                 selectOrTypeTag: 'Tag auswaehlen oder neu eingeben...',
                 persistedTags: 'Gespeicherte Tags',
+                guardedTags: 'Geschuetzte Tags',
+                typeMinThree: 'Mindestens 3 Zeichen eingeben...',
+                rejectedValue: '«{value}» abgelehnt',
             },
             propsDocs: {
                 title: 'Autocomplete-Props',
@@ -48,7 +52,7 @@ export default defineLocaleMessages({
                     minItems: { description: 'Minimale Anzahl ausgewaehlter Elemente.' },
                     maxItems: { description: 'Maximale Anzahl ausgewaehlter Elemente.' },
                     creatable: { description: 'Erlaubt freie Werte ausserhalb der Optionsliste. Mit Enter bestaetigen.' },
-                    onCreate: { description: 'Wird aufgerufen, wenn ein neuer freier Wert bestaetigt wurde. Zum Speichern der neuen Option verwenden.' },
+                    onCreate: { description: 'Wird aufgerufen, wenn ein neuer freier Wert bestaetigt wurde. Zum Speichern der neuen Option verwenden; false (auch asynchron) bricht die Auswahl ab.' },
                     required: { description: 'Markiert das Feld als erforderlich.' },
                     disabled: { description: 'Deaktiviert das Feld.' },
                     readOnlyAfterSet: { description: 'Das Feld wird schreibgeschuetzt, sobald ein Wert gesetzt wurde.' },

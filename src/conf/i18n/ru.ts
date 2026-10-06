@@ -36,7 +36,7 @@ export const ru: I18nDict = {
         filtersRangeMax: 'Макс',
         filtersSelectedCountTemplate: 'Выбрано: {count}',
     },
-    select: { placeholder: 'Выбрать...', loading: 'Загрузка...' },
+    select: { placeholder: 'Выбрать...', loading: 'Загрузка...', noResults: 'Нет результатов', createOption: 'Создать «{value}»' },
     modal: { save: 'Сохранить', delete: 'Удалить', cancel: 'Отменить', close: 'Закрыть', ok: 'Ок', yes: 'Да', no: 'Нет' },
     upload: {
         clickOrDrag: 'Нажмите или перетащите для загрузки...', dropToUpload: 'Отпустите для загрузки',
