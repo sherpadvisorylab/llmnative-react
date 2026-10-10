@@ -326,6 +326,11 @@ Azioni: `save()`, `delete()`, `reset()`, `restoreDraft()`, `discardDraft()`.
 
 **NOTA**: il tipo HTML si passa con `type`. `inputType` e i sotto-componenti `Input.Number`/`Input.Email`/`Input.Date` non esistono.
 
+**Label come nodo**: `label` di tutti i campi di inserimento (`Input`, `TextArea`, `Checkbox`, `Select`, `Autocomplete`, `Checklist`, `Upload*`, `ImageField`, `CodeEditor`, `RichText`, `AddressAutocomplete`, `UploadCSV`, `Prompt`) accetta una stringa o un nodo React (tipo `FieldLabel`), disegnato dentro la `<label>` prima dell'asterisco di obbligatorio. Dove serve un testo (messaggio "obbligatorio", `aria-label`) si usa il testo del nodo, ricavabile anche con `labelText(node)`.
+```tsx
+<Select name="skill" required options={skills} label={<>Skill <ActionButton icon="info" ariaLabel="Apri la skill" variant="link" onClick={openSkill} /></>} />
+```
+
 ### Select / Autocomplete / Checklist
 ```tsx
 <Select name="role" options={[{ label: 'Admin', value: 'admin' }]} />

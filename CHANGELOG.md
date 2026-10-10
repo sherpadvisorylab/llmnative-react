@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.23.0] - 2026-10-10
+
+### Added
+- The `label` of every data-entry field (`Input`, `TextArea`, `Checkbox`, `Select`, `Autocomplete`,
+  `Checklist`, `UploadImage`/`UploadDocument`, `ImageField`, `CodeEditor`, `RichText`,
+  `AddressAutocomplete`, `UploadCSV`, `Prompt`) accepts a string or a React node (new type
+  `FieldLabel`), drawn inside the `<label>` before the required mark, e.g. a text with an info
+  button. No new props: `<Label>` and the floating labels take it as well. Where a text is needed
+  (the "required" message of `Form`, the `aria-label` of the `Autocomplete` list and of the
+  `RichText` placeholder, the `Prompt` caption) the text of the node is used. New public helper
+  `labelText(node)` returns that text (CR-099, GH issue #72).
+
 ## [1.22.1] - 2026-10-06
 
 ### Fixed

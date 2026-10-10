@@ -68,7 +68,7 @@ type RenderAIUnavailable = (props: {
 
 interface PromptFieldBase {
     name: string;
-    label?: string;
+    label?: FormFieldProps["label"];
     required?: boolean;
     onChange?: FormFieldProps["onChange"];
     before?: React.ReactNode;
@@ -144,7 +144,7 @@ const PromptFieldHeader = ({
     action,
 }: {
     htmlFor: string;
-    label: string;
+    label: FormFieldProps["label"];
     required?: boolean;
     action?: React.ReactNode;
 }) => (
@@ -342,7 +342,7 @@ const PromptEditor = ({
                 <div className={`${promptBodyClass} min-w-0 flex-1`}>
                     <PromptFieldHeader
                         htmlFor={editorId}
-                        label={promptEnabled ? dict.promptLabel + caption : caption}
+                        label={promptEnabled ? <>{dict.promptLabel}{caption}</> : caption}
                         required={required}
                         action={
                         <Switch
@@ -582,7 +582,7 @@ const PromptRun = ({
                     {caption && (
                         <PromptFieldHeader
                             htmlFor={fieldId}
-                            label={editing ? `${dict.promptLabel}${caption}` : caption}
+                            label={editing ? <>{dict.promptLabel}{caption}</> : caption}
                             required={required}
                         />
                     )}

@@ -17,6 +17,7 @@ import { DatabaseOptions, DBConfig, FieldValue, RecordProps, RECORD_KEY } from "
 import { useDataProvider } from "../../../providers/data/DataProviderContext";
 import { FormFieldProps, useFormContext, useFieldValidation } from '../../widgets/Form';
 import { cn } from '../../../libs/cn';
+import { labelText } from '../../../libs/labelText';
 
 interface Option extends RecordProps {
     label: string;
@@ -459,7 +460,7 @@ export const Autocomplete = ({
             ref={listRef}
             id={listId}
             role="listbox"
-            aria-label={label ?? title ?? name}
+            aria-label={labelText(label) || title || name}
             className={cn(
                 "fixed z-[250] overflow-y-auto rounded-xl border border-border/60 bg-popover/95 p-1 text-sm text-popover-foreground shadow-xl shadow-black/5 backdrop-blur supports-[backdrop-filter]:bg-popover/90 dark:shadow-black/20",
                 listClassName || theme.Autocomplete.listClassName,

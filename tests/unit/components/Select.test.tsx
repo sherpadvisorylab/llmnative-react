@@ -98,6 +98,17 @@ describe('Autocomplete', () => {
         expect(container.querySelector('datalist')).toBeNull();
     });
 
+    it('names its list with the text of a label given as a node', async () => {
+        const user = userEvent.setup();
+        renderWithProviders(
+            <Form defaultValues={{ people: [] }}>
+                <Autocomplete name="people" label={<>People <em>to notify</em></>} options={PEOPLE} />
+            </Form>
+        );
+        await user.click(screen.getByRole('combobox'));
+        expect(screen.getByRole('listbox')).toHaveAttribute('aria-label', 'People to notify');
+    });
+
     it('opens a themed listbox with labels only and filters ignoring case and accents', async () => {
         const user = userEvent.setup();
         const { input } = renderAutocomplete();

@@ -25,7 +25,8 @@ interface UploadCSVProps extends UIProps {
   onDataLoaded: UploadCSVDataLoadedHandler;
   onClear?: () => void;
   onParseField?: UploadCSVParseFieldHandler;
-  label?: string;
+  /** A text or a React node, as the label of the other fields. */
+  label?: React.ReactNode;
   icon?: string;
   delimiter?: string;
   normalizeKeys?: boolean;

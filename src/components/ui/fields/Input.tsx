@@ -2,7 +2,7 @@
 import { isEmpty, isInteractiveElement } from "../../../libs/utils";
 import { Wrapper } from "../GridSystem";
 import { ActionButton, Icon, UIProps } from '../../..';
-import { FormFieldProps, InputType, useFormContext, useHandleDrop, useFieldValidation } from '../../widgets/Form';
+import { FieldLabel, FormFieldProps, InputType, useFormContext, useHandleDrop, useFieldValidation } from '../../widgets/Form';
 import type { FieldValue } from '../../../providers/data/DataProvider';
 import { cn } from '../../../libs/cn';
 import { useEditorHeight } from '../../../libs/editorHeight';
@@ -25,7 +25,8 @@ interface BaseInputProps extends FormFieldProps {
 }
 
 interface LabelProps {
-    label: string;
+    /** A text or a React node, drawn inside the `<label>` before the required mark. */
+    label: FieldLabel;
     required?: boolean;
     htmlFor?: string;
     className?: string;

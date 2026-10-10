@@ -222,7 +222,7 @@ export interface CodeEditorProps extends FormFieldProps {
      * for `'fill'` to have any effect. */
     minHeight?: EditorHeight;
     maxHeight?: number;
-    label?: string;
+    label?: FormFieldProps['label'];
     required?: boolean;
     disabled?: boolean;
     feedback?: string;

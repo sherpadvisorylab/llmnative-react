@@ -505,6 +505,33 @@ describe('Form — required validation', () => {
         expect(saved).toBeUndefined();
     });
 
+    it('draws a label given as a node and uses its text in the required message', async () => {
+        const provider = new MockDataProvider();
+        renderWithProviders(
+            <Form path="/items/x" defaultValues={{ title: 'Seed' }}>
+                <Input
+                    name="title"
+                    label={<>Title <ActionButton icon="info" ariaLabel="About the title" onClick={() => undefined} /></>}
+                    required
+                />
+            </Form>,
+            { provider }
+        );
+
+        // The node sits inside the label, with the required mark.
+        const label = screen.getByText(/^Title/).closest('label')!;
+        expect(label).toBeInTheDocument();
+        expect(label.querySelector('button[aria-label="About the title"]')).not.toBeNull();
+        expect(label.textContent).toContain('*');
+
+        fireEvent.change(screen.getByRole('textbox'), { target: { name: 'title', value: '' } });
+        fireEvent.click(screen.getByRole('button', { name: /save|salva/i }));
+
+        await waitFor(() => {
+            expect(screen.getByText(/title is required/i)).toBeInTheDocument();
+        });
+    });
+
     it('allows submit when required Input has a value', async () => {
         const provider = new MockDataProvider();
         renderWithProviders(

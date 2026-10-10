@@ -8,5 +8,6 @@ export * from './csv';
 export * from './utils';
 export * from './order';
 export { cn } from './cn';
+export { labelText } from './labelText';
 export { useImage } from './imageBuilder';
 export type { UseImageResult, ImageBuilderConfig, SrcsetConfig, SrcsetDensityConfig, SrcsetWidthConfig, ImageParams, ImgFit } from './imageBuilder';

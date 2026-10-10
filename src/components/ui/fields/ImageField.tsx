@@ -39,7 +39,7 @@ export interface ImageFieldProps extends FormFieldProps {
      * Example: "/content/posts/images"
      */
     uploadPath?:     string;
-    label?:          string;
+    label?:          FormFieldProps['label'];
     required?:       boolean;
     disabled?:       boolean;
     feedback?:       string;

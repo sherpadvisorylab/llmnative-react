@@ -106,6 +106,7 @@
 | [CR-096](#cr-096--autocomplete-combobox-disegnata-al-posto-del-datalist-nativo) | Autocomplete: combobox disegnata al posto del datalist nativo | Alta | — | ✅ |
 | [CR-097](#cr-097--testi-visibili-dei-componenti-traducibili-i18n) | Testi visibili dei componenti traducibili (i18n) | Media | CR-093 | ⬜ |
 | [CR-098](#cr-098--repeat-documentazione-allineata-al-comportamento-layout-vertical-e-accessibilità) | Repeat: documentazione allineata al comportamento, layout vertical e accessibilità | Media | — | ⬜ |
+| [CR-099](#cr-099--label-dei-campi-stringa-o-nodo-react) | Label dei campi: stringa o nodo React | Media | — | ✅ |
 
 ---
 
@@ -139,6 +140,39 @@ Richiesto dal consumer `llmnative-cms`.
 - [x] Docs `docs/providers/ai.md`, `llms-full.txt`
 - [x] Verifica visiva nel consumer `llmnative-cms` (picker Agentico: header per OpenCode, DeepSeek, Cloudflare Workers AI, sticky durante lo scroll)
 - [x] Release 1.18.0
+
+---
+
+## CR-099 — Label dei campi: stringa o nodo React
+
+**Stato:** ✅ done
+**Issue:** [#72](https://github.com/sherpadvisorylab/llmnative-react/issues/72)
+**Priorità:** Media
+**Dipende da:** —
+
+### Motivazione
+
+Emersa nel Playbook (10/10/2026): accanto alla label "Skill" di un `Select` serve un'icona info che
+apre la skill in un `Modal` sovrapposto (`stackedBehind`). Oggi `label` è `string` su tutti i campi:
+l'unica strada è markup fuori dalla label. Si estende la label stessa, senza nuove prop.
+
+### Scope
+
+- `label` dei campi di inserimento accetta `string` o un nodo React (`FieldLabel = React.ReactNode`):
+  `FormFieldProps`, `<Label>`, label floating, e i campi che la ridichiarano (`CodeEditor`,
+  `ImageField`, `UploadCSV`, campi di `Prompt`).
+- Dove serve un testo si usa il testo del nodo: messaggio "obbligatorio" della validazione del form,
+  `aria-label` della lista di `Autocomplete` e del placeholder di `RichText`, didascalia di `Prompt`.
+- Helper pubblico `labelText(node)`: il testo semplice di una label.
+- Test, `llms-full.txt`, CHANGELOG.
+
+### Checklist
+
+- [x] Un campo con label JSX la disegna dentro il suo `<label>`, con l'asterisco di obbligatorio (`Form.test.tsx`)
+- [x] Il messaggio di obbligatorio di una label JSX usa il suo testo (`Form.test.tsx`)
+- [x] Gli `aria-label` restano testo semplice (`Select.test.tsx`, `labelText.test.tsx`)
+- [x] Le label stringa si comportano come prima (suite completa: 790 test)
+- [x] Release 1.23.0
 
 ---
 
