@@ -38,6 +38,22 @@ describe('Prompt', () => {
         expect(screen.getByText('AI is not configured. You can still edit and save this prompt.')).toBeInTheDocument();
     });
 
+    it('uses the plain text of a JSX label for the prompt caption', () => {
+        renderWithProviders(
+            <Form aspect="empty">
+                <Prompt
+                    name="summary"
+                    label={<span>Summary</span>}
+                    mode={PromptMode.EDIT}
+                    minHeight={120}
+                    defaultValue={{ value: 'Write a concise summary for {projectName}.', enabled: true }}
+                />
+            </Form>
+        );
+
+        expect(screen.getByText('Prompt: Summary')).toBeInTheDocument();
+    });
+
     it('toggles prompt metadata off from the switch when edit mode starts enabled', () => {
         renderWithProviders(
             <Form aspect="empty">

@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Campi del form: `label` accetta un nodo React (`FieldLabel = React.ReactNode`), non solo una
+  stringa, così un consumer può mettere un'icona/info accanto alla label mantenendo il mark
+  "required" e il collegamento `htmlFor`. Nuovo helper pubblico `labelText(node)` che estrae il
+  testo puro da una label anche JSX. Nessun breaking change: `string` è un sottoinsieme di
+  `React.ReactNode` (CR-099).
+
+### Changed
+- I punti che richiedono testo puro (messaggio "required" della validazione, `aria-label` di
+  `Autocomplete`/`RichText`, caption di `Prompt`) ora derivano il testo della label tramite
+  `labelText`, anche con label JSX (CR-099).
+
 ## [1.22.1] - 2026-10-06
 
 ### Fixed

@@ -106,6 +106,50 @@
 | [CR-096](#cr-096--autocomplete-combobox-disegnata-al-posto-del-datalist-nativo) | Autocomplete: combobox disegnata al posto del datalist nativo | Alta | — | ✅ |
 | [CR-097](#cr-097--testi-visibili-dei-componenti-traducibili-i18n) | Testi visibili dei componenti traducibili (i18n) | Media | CR-093 | ⬜ |
 | [CR-098](#cr-098--repeat-documentazione-allineata-al-comportamento-layout-vertical-e-accessibilità) | Repeat: documentazione allineata al comportamento, layout vertical e accessibilità | Media | — | ⬜ |
+| [CR-099](#cr-099--label-dei-campi-stringa-o-nodo-react) | Label dei campi: stringa o nodo React | Media | — | 🔄 |
+
+---
+
+## CR-099 — Label dei campi: stringa o nodo React
+
+**Stato:** 🔄 in progress
+**Issue:** [#72](https://github.com/sherpadvisorylab/llmnative-react/issues/72)
+**Priorità:** Media
+**Dipende da:** —
+
+### Motivazione
+
+Un consumer deve inserire un elemento dentro la label di un campo: un'icona info accanto alla
+label "Skill" di un `Select`, che apre la skill in un `Modal` impilato. Oggi `label` è `string`
+su ogni campo, quindi l'unica via è del markup fuori dalla label, senza il mark "required" né il
+collegamento `htmlFor` accessibile.
+
+### Scope
+
+- `FieldLabel = React.ReactNode` (nuovo tipo pubblico) al posto di `string` per `label` di
+  `FormFieldProps`, `FieldValidationConstraints`, `LabelProps` e le ridichiarazioni di
+  `CodeEditor`/`ImageField`/`UploadCSV`/`Prompt`. Il mark `*` di `required` resta appeso.
+- Nuovo helper pubblico `labelText(node: React.ReactNode): string` in `src/libs/utils.ts`
+  (esportato dal barrel): estrae il testo puro da una label anche JSX. Consolidati i due helper
+  locali preesistenti (`Input.tsx` `extractText`, `MarkdownReader.tsx` `getText`).
+- Dove serve testo puro si usa `labelText`: messaggio "required" della validazione,
+  `aria-label` della lista di `Autocomplete` e del placeholder di `RichText`, caption di `Prompt`.
+- Docs `llms-full.txt`, `CHANGELOG.md` (Unreleased), `.notes/STATUS.md`.
+- Fuori scope: bump/tag/publish, label dei componenti non-campo, label dello schema editor,
+  ridisegno del mark "required".
+
+### Checklist
+
+- [x] `label` accetta `string | React.ReactNode`; `FieldLabel` esportato da `@llmnative/react`
+- [x] Campo con label JSX renderizzato dentro `<label>` con mark `*` (test `Input.test.tsx`)
+- [x] Messaggio "required" con label JSX usa il testo del nodo (test `Form.test.tsx`)
+- [x] `aria-label` di `Autocomplete`/`RichText` testo puro con label JSX (test `Select.test.tsx`, `RichText.test.tsx`)
+- [x] Caption di `Prompt` con label JSX testo puro (test `Prompt.test.tsx`)
+- [x] Label stringa invariate (suite esistente verde)
+- [x] `labelText` esportato e coperto da test (`utils.test.ts`)
+- [x] `npx tsc --noEmit`, `npm test`, `npm run build`, `npm pack --dry-run --json`
+- [x] Docs e note di stato aggiornate
+- [ ] Release
 
 ---
 

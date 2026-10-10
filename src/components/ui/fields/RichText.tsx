@@ -5,6 +5,7 @@ import { FormFieldProps, useFormContext, useFieldValidation } from '../../widget
 import type { FieldValue } from '../../../providers/data/DataProvider';
 import { Label, FieldError, fieldFeedbackClass, fieldGroupClass, fieldAddonClass } from './Input';
 import { cn } from '../../../libs/cn';
+import { labelText } from '../../../libs/utils';
 import { useEditorHeight } from '../../../libs/editorHeight';
 import Icon from '../Icon';
 import { useFileUploadCore, type FileProps } from './Upload';
@@ -1725,7 +1726,7 @@ export const RichText = ({
                             )}
                             style={{ minHeight }}
                             aria-busy="true"
-                            aria-label={label}
+                            aria-label={labelText(label)}
                         />
                     )}
                 </div>

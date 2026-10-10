@@ -3,6 +3,7 @@ import { FormFieldProps, useFormContext, useFieldValidation } from '../../widget
 import { Wrapper } from '../GridSystem';
 import { Label, FieldError, fieldFeedbackClass } from './Input';
 import { cn } from '../../../libs/cn';
+import { type FieldLabel } from '../../../libs/utils';
 import Icon from '../Icon';
 import ImageDisplay from '../Image';
 import {
@@ -39,7 +40,7 @@ export interface ImageFieldProps extends FormFieldProps {
      * Example: "/content/posts/images"
      */
     uploadPath?:     string;
-    label?:          string;
+    label?:          FieldLabel;
     required?:       boolean;
     disabled?:       boolean;
     feedback?:       string;

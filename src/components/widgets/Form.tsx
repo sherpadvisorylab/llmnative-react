@@ -3,7 +3,7 @@ import { flushSync } from 'react-dom';
 
 import { useLocation } from "react-router-dom";
 import { Wrapper } from "../ui/GridSystem";
-import { trimSlash, cleanRecord, normalizeKey, safeClone, recordsEqual } from "../../libs/utils";
+import { trimSlash, cleanRecord, normalizeKey, safeClone, recordsEqual, labelText, type FieldLabel } from "../../libs/utils";
 import { useDataProvider } from "../../providers/data/DataProviderContext";
 import Card from "../ui/Card";
 import { ActionButton, BackLink, LoadingButton } from "../ui/Buttons";
@@ -126,7 +126,7 @@ const applyChangeToRecord = (
 
 export interface FormFieldProps extends UIProps {
     name: string;
-    label?: string;
+    label?: FieldLabel;
     labelMode?: LabelMode;
     value?: FieldValue;
     required?: boolean;
@@ -148,7 +148,7 @@ const FormContext = createContext<FormProviderProps | null>(null);
 
 interface FieldValidationConstraints {
     required?: boolean;
-    label?: string;
+    label?: FieldLabel;
     validator?: (value: FieldValue) => string | undefined | Promise<string | undefined>;
 }
 
@@ -737,8 +737,9 @@ const FormData = ({
                     (typeof value === 'string' && value.trim() === '') ||
                     (Array.isArray(value) && value.length === 0);
                 if (empty) {
-                    newErrors[fieldName] = label
-                        ? interpolate(dict.requiredField, { field: label })
+                    const fieldLabel = labelText(label);
+                    newErrors[fieldName] = fieldLabel
+                        ? interpolate(dict.requiredField, { field: fieldLabel })
                         : dict.requiredFieldGeneric;
                     continue;
                 }

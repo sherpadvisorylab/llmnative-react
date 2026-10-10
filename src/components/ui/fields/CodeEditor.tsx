@@ -3,6 +3,7 @@ import { Wrapper } from '../GridSystem';
 import { FormFieldProps, useFormContext, useFieldValidation } from '../../widgets/Form';
 import { Label, FieldError, fieldFeedbackClass, fieldGroupClass, fieldAddonClass } from './Input';
 import { cn } from '../../../libs/cn';
+import { type FieldLabel } from '../../../libs/utils';
 import { useTheme } from '../../../Theme';
 import { useEditorHeight, type EditorHeight, type EditorHeightResult } from '../../../libs/editorHeight';
 import Icon from '../Icon';
@@ -222,7 +223,7 @@ export interface CodeEditorProps extends FormFieldProps {
      * for `'fill'` to have any effect. */
     minHeight?: EditorHeight;
     maxHeight?: number;
-    label?: string;
+    label?: FieldLabel;
     required?: boolean;
     disabled?: boolean;
     feedback?: string;

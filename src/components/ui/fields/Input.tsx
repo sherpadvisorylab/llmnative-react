@@ -1,5 +1,5 @@
 ﻿import React, { useEffect, useId, useState } from 'react';
-import { isEmpty, isInteractiveElement } from "../../../libs/utils";
+import { isEmpty, isInteractiveElement, labelText, type FieldLabel } from "../../../libs/utils";
 import { Wrapper } from "../GridSystem";
 import { ActionButton, Icon, UIProps } from '../../..';
 import { FormFieldProps, InputType, useFormContext, useHandleDrop, useFieldValidation } from '../../widgets/Form';
@@ -25,7 +25,7 @@ interface BaseInputProps extends FormFieldProps {
 }
 
 interface LabelProps {
-    label: string;
+    label: FieldLabel;
     required?: boolean;
     htmlFor?: string;
     className?: string;
@@ -619,18 +619,6 @@ export const ListGroup = ({
 }: ListGroupProps) => {
     const fullClassName = cn("flex flex-col divide-y divide-border rounded-md border bg-card", className);
 
-    const extractText = (node: React.ReactNode): string => {
-        const walk = (n: React.ReactNode): string => {
-            if (n == null || typeof n === "boolean") return "";
-            if (typeof n === "string" || typeof n === "number") return `${n}`;
-            if (Array.isArray(n)) return n.map(walk).join(" ");
-            if (React.isValidElement<{ children?: React.ReactNode }>(n)) return walk(n.props.children);
-            return "";
-        };
-
-        return walk(node).replace(/\s+/g, " ").trim();
-    };
-
     const handleDragStart = (e: React.DragEvent<HTMLSpanElement>, text: string) => {
         e.dataTransfer.setData('text/plain', onDrop?.(text) ?? text);
     };
@@ -671,7 +659,7 @@ export const ListGroup = ({
                         key={index}
                         className={fullItemClass}
                         draggable={draggable}
-                        onDragStart={draggable ? (e) => handleDragStart(e, extractText(child)) : undefined}
+                        onDragStart={draggable ? (e) => handleDragStart(e, labelText(child)) : undefined}
                         style={{ cursor: draggable ? 'grab' : 'default' }}
                     >
                         {draggable && <Icon name='grip-vertical' />}
