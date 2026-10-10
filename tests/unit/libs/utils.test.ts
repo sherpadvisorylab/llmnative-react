@@ -9,7 +9,7 @@ vi.mock('../../../src/Config', () => ({
 }));
 vi.mock('../../../src/providers/firebase-init', () => ({ default: vi.fn(), getSafeAuth: vi.fn() }));
 
-import { trimSlash, trimPath, normalizePath, normalizeKey, sanitizeKey, isEmpty, safeClone, recordsEqual } from '../../../src/libs/utils';
+import { trimSlash, trimPath, normalizePath, normalizeKey, sanitizeKey, isEmpty, safeClone, recordsEqual, labelText } from '../../../src/libs/utils';
 
 describe('trimSlash', () => {
     it('removes leading slash from string', () => {
@@ -182,5 +182,35 @@ describe('recordsEqual', () => {
         const a = { level1: { level2: { level3: { value: 'deep', list: [1, 2, { x: 'y' }] } } } };
         const b = { level1: { level2: { level3: { value: 'deep', list: [1, 2, { x: 'y' }] } } } };
         expect(recordsEqual(a, b)).toBe(true);
+    });
+});
+
+describe('labelText', () => {
+    it('returns a plain string label unchanged (trimmed)', () => {
+        expect(labelText('Username')).toBe('Username');
+        expect(labelText('  Username  ')).toBe('Username');
+    });
+
+    it('returns an empty string for null/undefined/boolean nodes', () => {
+        expect(labelText(null)).toBe('');
+        expect(labelText(undefined)).toBe('');
+        expect(labelText(false)).toBe('');
+    });
+
+    it('renders numbers as text', () => {
+        expect(labelText(42)).toBe('42');
+    });
+
+    it('walks into React elements and fragments', () => {
+        expect(labelText(React.createElement('span', null, 'Skill'))).toBe('Skill');
+        expect(labelText(React.createElement(React.Fragment, null, React.createElement('b', null, 'Sk'), 'ill'))).toBe('Skill');
+    });
+
+    it('ignores elements without textual children (icons)', () => {
+        expect(labelText(React.createElement(React.Fragment, null, React.createElement('svg', { 'aria-hidden': true }), ' Skill'))).toBe('Skill');
+    });
+
+    it('joins array children preserving order', () => {
+        expect(labelText(['First', ' ', 'Last'])).toBe('First Last');
     });
 });

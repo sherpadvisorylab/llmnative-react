@@ -5,7 +5,7 @@ import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import rehypeSanitize from 'rehype-sanitize';
 import { cn } from '../../libs/cn';
-import { copyToClipboard } from '../../libs/utils';
+import { copyToClipboard, labelText } from '../../libs/utils';
 import { useHead, type PageMetadataState } from '../../Head';
 import { useI18n } from '../../I18n';
 
@@ -33,13 +33,6 @@ const isInternalLink = (href: string): boolean =>
 
 const isHashLink = (href: string): boolean =>
     href.startsWith('#');
-
-const getText = (node: React.ReactNode): string => {
-    if (typeof node === 'string' || typeof node === 'number') return String(node);
-    if (Array.isArray(node)) return node.map(getText).join('');
-    if (React.isValidElement<{ children?: React.ReactNode }>(node)) return getText(node.props.children);
-    return '';
-};
 
 const getCodeLanguage = (node: React.ReactNode): string | undefined => {
     if (!React.isValidElement<{ className?: string }>(node)) return undefined;
@@ -122,7 +115,7 @@ const createDefaultComponents = (
         />
     ),
     pre: ({ children }) => (
-        <MarkdownCodeBlock code={getText(children).replace(/\n$/, '')} language={getCodeLanguage(children)} />
+        <MarkdownCodeBlock code={labelText(children).replace(/\n$/, '')} language={getCodeLanguage(children)} />
     ),
     code: ({ className, children, ...props }: any) => { // CR-042: react-markdown ExtraProps lacks TS index signature; props shape is correct at runtime
         const isBlock = typeof className === 'string' && className.startsWith('language-');

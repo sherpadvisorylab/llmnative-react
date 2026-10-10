@@ -505,6 +505,23 @@ describe('Form — required validation', () => {
         expect(saved).toBeUndefined();
     });
 
+    it('uses the text of a JSX label for the required message', async () => {
+        const provider = new MockDataProvider();
+        renderWithProviders(
+            <Form path="/items/jsx" defaultValues={{ title: 'Seed' }}>
+                <Input name="title" label={<span>Title</span>} required />
+            </Form>,
+            { provider }
+        );
+
+        fireEvent.change(screen.getByRole('textbox'), { target: { name: 'title', value: '' } });
+        fireEvent.click(screen.getByRole('button', { name: /save|salva/i }));
+
+        await waitFor(() => {
+            expect(screen.getByText(/title is required/i)).toBeInTheDocument();
+        });
+    });
+
     it('allows submit when required Input has a value', async () => {
         const provider = new MockDataProvider();
         renderWithProviders(

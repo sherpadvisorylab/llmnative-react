@@ -310,6 +310,12 @@ Azioni: `save()`, `delete()`, `reset()`, `restoreDraft()`, `discardDraft()`.
 
 ## Campi form
 
+Tutti i campi accettano `label` come `FieldLabel = React.ReactNode` (una stringa oppure un nodo,
+es. un'icona accanto al testo): il mark `*` di `required` resta appeso e il collegamento
+`htmlFor` è mantenuto. Gli helper che richiedono testo puro (messaggio "required" della
+validazione, `aria-label`, caption di `Prompt`) usano `labelText(node)`, esportato da
+`@llmnative/react`, che estrae il testo da una label anche JSX.
+
 ### Input
 ```tsx
 <Input name="x" label="..." required />                          // text (default)

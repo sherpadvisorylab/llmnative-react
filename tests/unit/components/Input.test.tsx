@@ -70,6 +70,24 @@ describe('Input — rendering', () => {
         expect(label.closest('label')?.textContent).toContain('*');
     });
 
+    it('renders a JSX label inside its <label> with the required mark', () => {
+        renderWithProviders(
+            <InputInForm name="skill" label={<span>Skill</span>} required />
+        );
+        const label = screen.getByText('Skill').closest('label');
+        expect(label).not.toBeNull();
+        expect(label?.textContent).toContain('*');
+    });
+
+    it('renders a JSX label in floating mode with the required mark', () => {
+        renderWithProviders(
+            <InputInForm name="skill" label={<><em>Skill</em></>} labelMode="floating" required />
+        );
+        const label = screen.getByText('Skill').closest('label');
+        expect(label).not.toBeNull();
+        expect(label?.textContent).toContain('*');
+    });
+
     it('renders with correct type attribute', () => {
         renderWithProviders(<InputInForm name="pwd" type="password" />);
         expect(screen.getByDisplayValue('')).toHaveAttribute('type', 'password');

@@ -34,7 +34,7 @@ const f = componentFormFields;
 const componentFormSchema: ComponentFormSchemaMap = {
 
     string: (overrides: Partial<InputProps> = {}) => ({
-        label:            f.string({ label: "Label",            required: true, defaultValue: overrides.label }),
+        label:            f.string({ label: "Label",            required: true, defaultValue: overrides.label as string | undefined }),
         placeholder:      f.string({ label: "Placeholder",                     defaultValue: overrides.placeholder }),
         defaultValue:     f.string({ label: "Valore default",                  defaultValue: overrides.defaultValue as string }),
         required:         f.switch({ label: "Obbligatorio",                    defaultValue: overrides.required }),
@@ -44,7 +44,7 @@ const componentFormSchema: ComponentFormSchemaMap = {
     }),
 
     number: (overrides: Partial<InputProps> = {}) => ({
-        label:            f.string({ label: "Label",            required: true, defaultValue: overrides.label }),
+        label:            f.string({ label: "Label",            required: true, defaultValue: overrides.label as string | undefined }),
         placeholder:      f.string({ label: "Placeholder",                     defaultValue: overrides.placeholder }),
         defaultValue:     f.number({ label: "Valore default",                  defaultValue: overrides.defaultValue as number }),
         required:         f.switch({ label: "Obbligatorio",                    defaultValue: overrides.required }),
@@ -57,7 +57,7 @@ const componentFormSchema: ComponentFormSchemaMap = {
     }),
 
     email: (overrides: Partial<InputProps> = {}) => ({
-        label:            f.string({ label: "Label",            required: true, defaultValue: overrides.label }),
+        label:            f.string({ label: "Label",            required: true, defaultValue: overrides.label as string | undefined }),
         placeholder:      f.string({ label: "Placeholder",                     defaultValue: overrides.placeholder }),
         defaultValue:     f.email({ label: "Valore default",                   defaultValue: overrides.defaultValue as string }),
         required:         f.switch({ label: "Obbligatorio",                    defaultValue: overrides.required }),
@@ -67,7 +67,7 @@ const componentFormSchema: ComponentFormSchemaMap = {
     }),
 
     password: (overrides: Partial<InputProps> = {}) => ({
-        label:            f.string({ label: "Label",            required: true, defaultValue: overrides.label }),
+        label:            f.string({ label: "Label",            required: true, defaultValue: overrides.label as string | undefined }),
         placeholder:      f.string({ label: "Placeholder",                     defaultValue: overrides.placeholder }),
         required:         f.switch({ label: "Obbligatorio",                    defaultValue: overrides.required }),
         feedback:         f.string({ label: "Messaggio helper",                defaultValue: overrides.feedback }),
@@ -76,14 +76,14 @@ const componentFormSchema: ComponentFormSchemaMap = {
     }),
 
     color: (overrides: Partial<InputProps> = {}) => ({
-        label:        f.string({ label: "Label",          required: true, defaultValue: overrides.label }),
+        label:        f.string({ label: "Label",          required: true, defaultValue: overrides.label as string | undefined }),
         defaultValue: f.color({ label: "Valore default",                 defaultValue: overrides.defaultValue as string }),
         required:     f.switch({ label: "Obbligatorio",                  defaultValue: overrides.required }),
         disabled:     f.switch({ label: "Disabilitato",                  defaultValue: overrides.disabled }),
     }),
 
     date: (overrides: Partial<InputProps> = {}) => ({
-        label:        f.string({ label: "Label",          required: true, defaultValue: overrides.label }),
+        label:        f.string({ label: "Label",          required: true, defaultValue: overrides.label as string | undefined }),
         defaultValue: f.date({  label: "Valore default",                 defaultValue: overrides.defaultValue as string }),
         required:     f.switch({ label: "Obbligatorio",                  defaultValue: overrides.required }),
         min:          f.number({ label: "Data minima",                   defaultValue: overrides.min }),
@@ -93,7 +93,7 @@ const componentFormSchema: ComponentFormSchemaMap = {
     }),
 
     time: (overrides: Partial<InputProps> = {}) => ({
-        label:        f.string({ label: "Label",          required: true, defaultValue: overrides.label }),
+        label:        f.string({ label: "Label",          required: true, defaultValue: overrides.label as string | undefined }),
         defaultValue: f.time({  label: "Valore default",                 defaultValue: overrides.defaultValue as string }),
         required:     f.switch({ label: "Obbligatorio",                  defaultValue: overrides.required }),
         feedback:     f.string({ label: "Messaggio helper",              defaultValue: overrides.feedback }),
@@ -101,7 +101,7 @@ const componentFormSchema: ComponentFormSchemaMap = {
     }),
 
     datetime: (overrides: Partial<InputProps> = {}) => ({
-        label:        f.string({   label: "Label",          required: true, defaultValue: overrides.label }),
+        label:        f.string({   label: "Label",          required: true, defaultValue: overrides.label as string | undefined }),
         defaultValue: f.datetime({ label: "Valore default",               defaultValue: overrides.defaultValue as string }),
         required:     f.switch({   label: "Obbligatorio",                 defaultValue: overrides.required }),
         feedback:     f.string({   label: "Messaggio helper",             defaultValue: overrides.feedback }),
@@ -109,21 +109,21 @@ const componentFormSchema: ComponentFormSchemaMap = {
     }),
 
     week: (overrides: Partial<InputProps> = {}) => ({
-        label:        f.string({ label: "Label",          required: true, defaultValue: overrides.label }),
+        label:        f.string({ label: "Label",          required: true, defaultValue: overrides.label as string | undefined }),
         defaultValue: f.week({  label: "Valore default",                 defaultValue: overrides.defaultValue as string }),
         required:     f.switch({ label: "Obbligatorio",                  defaultValue: overrides.required }),
         disabled:     f.switch({ label: "Disabilitato",                  defaultValue: overrides.disabled }),
     }),
 
     month: (overrides: Partial<InputProps> = {}) => ({
-        label:        f.string({ label: "Label",          required: true, defaultValue: overrides.label }),
+        label:        f.string({ label: "Label",          required: true, defaultValue: overrides.label as string | undefined }),
         defaultValue: f.month({ label: "Valore default",                 defaultValue: overrides.defaultValue as string }),
         required:     f.switch({ label: "Obbligatorio",                  defaultValue: overrides.required }),
         disabled:     f.switch({ label: "Disabilitato",                  defaultValue: overrides.disabled }),
     }),
 
     textarea: (overrides: Partial<TextAreaProps> = {}) => ({
-        label:            f.string({   label: "Label",            required: true, defaultValue: overrides.label }),
+        label:            f.string({   label: "Label",            required: true, defaultValue: overrides.label as string | undefined }),
         placeholder:      f.string({   label: "Placeholder",                     defaultValue: overrides.placeholder }),
         defaultValue:     f.textarea({ label: "Valore default",                  defaultValue: overrides.defaultValue as string }),
         required:         f.switch({   label: "Obbligatorio",                    defaultValue: overrides.required }),
@@ -135,7 +135,7 @@ const componentFormSchema: ComponentFormSchemaMap = {
     }),
 
     checkbox: (overrides: Partial<CheckboxProps> = {}) => ({
-        label:        f.string({ label: "Label",           required: true, defaultValue: overrides.label }),
+        label:        f.string({ label: "Label",           required: true, defaultValue: overrides.label as string | undefined }),
         required:     f.switch({ label: "Obbligatorio",                   defaultValue: overrides.required }),
         defaultValue: f.switch({ label: "Valore default",                 defaultValue: overrides.defaultValue as string }),
         title:        f.string({ label: "Titolo tooltip",                 defaultValue: overrides.title }),
@@ -143,7 +143,7 @@ const componentFormSchema: ComponentFormSchemaMap = {
     }),
 
     switch: (overrides: Partial<CheckboxProps> = {}) => ({
-        label:        f.string({ label: "Label",           required: true, defaultValue: overrides.label }),
+        label:        f.string({ label: "Label",           required: true, defaultValue: overrides.label as string | undefined }),
         required:     f.switch({ label: "Obbligatorio",                   defaultValue: overrides.required }),
         defaultValue: f.switch({ label: "Valore default",                 defaultValue: overrides.defaultValue as string }),
         title:        f.string({ label: "Titolo tooltip",                 defaultValue: overrides.title }),
@@ -151,7 +151,7 @@ const componentFormSchema: ComponentFormSchemaMap = {
     }),
 
     select: (overrides: Partial<SelectProps> = {}) => ({
-        label:            f.string({ label: "Label",            required: true, defaultValue: overrides.label }),
+        label:            f.string({ label: "Label",            required: true, defaultValue: overrides.label as string | undefined }),
         defaultValue:     f.string({ label: "Valore default",                  defaultValue: overrides.defaultValue as string }),
         required:         f.switch({ label: "Obbligatorio",                    defaultValue: overrides.required }),
         feedback:         f.string({ label: "Messaggio helper",                defaultValue: overrides.feedback }),
@@ -160,7 +160,7 @@ const componentFormSchema: ComponentFormSchemaMap = {
     }),
 
     autocomplete: (overrides: Partial<AutocompleteProps> = {}) => ({
-        label:       f.string({ label: "Label",             required: true, defaultValue: overrides.label }),
+        label:       f.string({ label: "Label",             required: true, defaultValue: overrides.label as string | undefined }),
         placeholder: f.string({ label: "Placeholder",                      defaultValue: overrides.placeholder }),
         required:    f.switch({ label: "Obbligatorio",                     defaultValue: overrides.required }),
         minItems:    f.number({ label: "Min selezioni",     min: 0,        defaultValue: overrides.minItems }),
@@ -171,14 +171,14 @@ const componentFormSchema: ComponentFormSchemaMap = {
     }),
 
     checklist: (overrides: Partial<ChecklistProps> = {}) => ({
-        label:    f.string({ label: "Label",            required: true, defaultValue: overrides.label }),
+        label:    f.string({ label: "Label",            required: true, defaultValue: overrides.label as string | undefined }),
         required: f.switch({ label: "Obbligatorio",                    defaultValue: overrides.required }),
         feedback: f.string({ label: "Messaggio helper",                defaultValue: overrides.feedback }),
         disabled: f.switch({ label: "Disabilitato",                    defaultValue: overrides.disabled }),
     }),
 
     uploadImage: (overrides: Partial<UploadImageProps> = {}) => ({
-        label:         f.string({ label: "Label",              required: true, defaultValue: overrides.label }),
+        label:         f.string({ label: "Label",              required: true, defaultValue: overrides.label as string | undefined }),
         required:      f.switch({ label: "Obbligatorio",                      defaultValue: overrides.required }),
         multiple:      f.switch({ label: "Multiplo",                          defaultValue: overrides.multiple }),
         editable:      f.switch({ label: "Modificabile",                      defaultValue: overrides.editable }),
@@ -189,7 +189,7 @@ const componentFormSchema: ComponentFormSchemaMap = {
     }),
 
     uploadDocument: (overrides: Partial<UploadDocumentProps> = {}) => ({
-        label:    f.string({ label: "Label",             required: true, defaultValue: overrides.label }),
+        label:    f.string({ label: "Label",             required: true, defaultValue: overrides.label as string | undefined }),
         required: f.switch({ label: "Obbligatorio",                     defaultValue: overrides.required }),
         multiple: f.switch({ label: "Multiplo",                         defaultValue: overrides.multiple }),
         editable: f.switch({ label: "Modificabile",                     defaultValue: overrides.editable }),
@@ -198,7 +198,7 @@ const componentFormSchema: ComponentFormSchemaMap = {
     }),
 
     imageField: (overrides: Partial<ImageFieldProps> = {}) => ({
-        label:    f.string({ label: "Label",    required: true, defaultValue: overrides.label }),
+        label:    f.string({ label: "Label",    required: true, defaultValue: overrides.label as string | undefined }),
         required: f.switch({ label: "Obbligatorio",             defaultValue: overrides.required }),
     }),
 

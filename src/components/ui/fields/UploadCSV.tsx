@@ -4,7 +4,7 @@ import Papa, { ParseResult } from 'papaparse';
 import { Wrapper } from '../GridSystem';
 import { Icon, normalizeKey, UIProps } from '../../..';
 import { cn } from '../../../libs/cn';
-import { smartTypeCast } from '../../../libs/utils';
+import { smartTypeCast, type FieldLabel } from '../../../libs/utils';
 import { Label, FieldError } from './Input';
 
 export type UploadCSVCell = string | null | undefined;
@@ -25,7 +25,7 @@ interface UploadCSVProps extends UIProps {
   onDataLoaded: UploadCSVDataLoadedHandler;
   onClear?: () => void;
   onParseField?: UploadCSVParseFieldHandler;
-  label?: string;
+  label?: FieldLabel;
   icon?: string;
   delimiter?: string;
   normalizeKeys?: boolean;

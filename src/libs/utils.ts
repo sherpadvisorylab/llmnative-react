@@ -282,6 +282,29 @@ export const isEmpty = (data: unknown): boolean => {
     return data === undefined || data === null || data === '' || data === false || data === '0' || data === 0 || (typeof data === 'object' && data !== null && Object.keys(data).length === 0);
 };
 
+/**
+ * Etichetta di un campo: una stringa o un nodo React (icona, tooltip, badge…).
+ * Retrocompatibile — `string` è un sottoinsieme di `React.ReactNode`.
+ */
+export type FieldLabel = React.ReactNode;
+
+/**
+ * Estrae il testo puro da una `FieldLabel`, visitando stringhe, numeri, array e
+ * i `children` degli elementi React. Usare quando serve una stringa (messaggi di
+ * validazione, `aria-label`, caption) da una label che può essere JSX.
+ */
+export const labelText = (node: React.ReactNode): string => {
+    const walk = (n: React.ReactNode): string => {
+        if (n == null || typeof n === "boolean") return "";
+        if (typeof n === "string" || typeof n === "number") return `${n}`;
+        if (Array.isArray(n)) return n.map(walk).join("");
+        if (React.isValidElement<{ children?: React.ReactNode }>(n)) return walk(n.props.children);
+        return "";
+    };
+
+    return walk(node).trim();
+};
+
 function cloneFallback<T>(value: T, seen: WeakMap<object, unknown> = new WeakMap()): T {
     if (
         value === null ||

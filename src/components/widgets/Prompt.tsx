@@ -14,6 +14,7 @@ import { Wrapper } from '../ui/GridSystem';
 import { Label, Switch, TextArea } from '../ui/fields/Input';
 import { FormFieldProps, useFormContext } from './Form';
 import { PromptUtils } from '../../libs/promptUtils';
+import { labelText, type FieldLabel } from '../../libs/utils';
 import { Chatbot, type ChatbotAction, type ChatbotModelOption, type ChatbotSubmitPayload } from './Chatbot';
 
 export enum PromptMode {
@@ -68,7 +69,7 @@ type RenderAIUnavailable = (props: {
 
 interface PromptFieldBase {
     name: string;
-    label?: string;
+    label?: FieldLabel;
     required?: boolean;
     onChange?: FormFieldProps["onChange"];
     before?: React.ReactNode;
@@ -144,7 +145,7 @@ const PromptFieldHeader = ({
     action,
 }: {
     htmlFor: string;
-    label: string;
+    label: FieldLabel;
     required?: boolean;
     action?: React.ReactNode;
 }) => (
@@ -328,7 +329,7 @@ const PromptEditor = ({
     const { handleChange } = useFormContext({ name });
     const theme = useTheme("prompt");
     const dict = useI18n('prompt');
-    const caption = label || name;
+    const caption = labelText(label) || name;
     const promptEnabled = isPromptEnabled(value?.prompt?.enabled, defaultValue?.enabled, value?.prompt);
     const switchTitle = getPromptToggleTitle(promptEnabled, dict);
     const editorId = useId();
@@ -433,7 +434,7 @@ const PromptRun = ({
     const { handleChange, record } = useFormContext({ name, subscribeToFullRecord: true });
     const theme = useTheme("prompt");
     const dict = useI18n('prompt');
-    const caption = label || name;
+    const caption = labelText(label) || name;
     const [editing, setEditing] = useState(false);
     const [templateText, setTemplateText] = useState(defaultValue?.value ?? '');
     const [previewOpen, setPreviewOpen] = useState(false);
