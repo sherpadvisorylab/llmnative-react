@@ -107,6 +107,7 @@
 | [CR-097](#cr-097--testi-visibili-dei-componenti-traducibili-i18n) | Testi visibili dei componenti traducibili (i18n) | Media | CR-093 | ⬜ |
 | [CR-098](#cr-098--repeat-documentazione-allineata-al-comportamento-layout-vertical-e-accessibilità) | Repeat: documentazione allineata al comportamento, layout vertical e accessibilità | Media | — | ⬜ |
 | [CR-099](#cr-099--label-dei-campi-stringa-o-nodo-react) | Label dei campi: stringa o nodo React | Media | — | ✅ |
+| [CR-100](#cr-100--tree-albero-di-nodi-accessibile) | Tree: albero di nodi accessibile | Media | — | ✅ |
 
 ---
 
@@ -140,6 +141,38 @@ Richiesto dal consumer `llmnative-cms`.
 - [x] Docs `docs/providers/ai.md`, `llms-full.txt`
 - [x] Verifica visiva nel consumer `llmnative-cms` (picker Agentico: header per OpenCode, DeepSeek, Cloudflare Workers AI, sticky durante lo scroll)
 - [x] Release 1.18.0
+
+---
+
+## CR-100 — Tree: albero di nodi accessibile
+
+**Stato:** ✅ done
+**Issue:** [#74](https://github.com/sherpadvisorylab/llmnative-react/issues/74)
+**Priorità:** Media
+**Dipende da:** —
+
+### Motivazione
+
+Emersa nel Playbook (14/10/2026): i file di un pacchetto generato vanno mostrati come albero di
+cartelle, aprendo e chiudendo le cartelle e selezionando un file da mostrare accanto. Il framework non
+aveva un albero; liste annidate di pulsanti non sono accessibili né navigabili da tastiera.
+
+### Scope
+
+- Componente `Tree`: nodi `{ id, label, icon?, badge?, description?, children?, disabled? }`,
+  apertura e selezione controllate o no, rami selezionabili a scelta.
+- Accessibilità: pattern WAI-ARIA tree, roving tabindex, ↑ ↓ → ← Home End Invio Spazio.
+- Chiave tema `Tree` nei temi default, flat, cyber.
+- Helper `treeFromPaths(paths, leaf?)`.
+- Test, `llms-full.txt`, CHANGELOG.
+
+### Checklist
+
+- [x] Cartelle aperte e chiuse da click e tastiera; file selezionati da click, Invio, Spazio (`Tree.test.tsx`)
+- [x] Ruoli e stati ARIA del tree; un solo tab stop (`Tree.test.tsx`)
+- [x] Apertura e selezione controllate e non controllate (`Tree.test.tsx`)
+- [x] `treeFromPaths`: cartelle prima dei file, percorsi completi come id (`Tree.test.tsx`)
+- [x] Release 1.24.0
 
 ---
 

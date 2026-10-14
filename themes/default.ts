@@ -460,6 +460,12 @@ export const components: Theme = {
         wrapperClassName: '',
         className: '',
     },
+    Tree: {
+        wrapperClassName: '',
+        className: '',
+        itemClassName: '',
+        selectedClassName: '',
+    },
     DescriptionList: {
         wrapperClassName: '',
         className: '',

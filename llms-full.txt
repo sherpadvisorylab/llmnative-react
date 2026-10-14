@@ -713,6 +713,23 @@ Coppie etichetta → valore in sola lettura (profilo, dati di un record, riepilo
 | `truncate` | `boolean` | `false`; un valore testuale diventa il suo `title` |
 | Classi | `wrapperClassName`, `className`, `itemClassName`, `labelClassName`, `valueClassName` | tema `DescriptionList` |
 
+### Tree
+Albero accessibile di nodi (cartelle e file, gerarchie): pattern WAI-ARIA tree, un solo tab stop, frecce per muoversi, → / ← per aprire e chiudere, Invio o Spazio per selezionare. Le cartelle si aprono al click, le foglie si selezionano.
+```tsx
+<Tree nodes={treeFromPaths(paths)} defaultExpanded selectedId={path} onSelect={(node) => setPath(node.id)} ariaLabel="File" />
+<Tree nodes={[{ id: 'a', label: 'Docs', children: [{ id: 'a/1', label: 'README.md', badge: <Badge>new</Badge> }] }]} />
+```
+| Prop | Tipo | Note |
+|---|---|---|
+| `nodes` | `TreeNode[]` — `{ id, label, icon?, badge?, description?, children?, disabled? }` | `id` unico; con `children` è una cartella |
+| `selectedId` + `onSelect` / `defaultSelectedId` | `string \| null` | selezione controllata o no |
+| `expanded` + `onExpandedChange` / `defaultExpanded` | `string[]`; `defaultExpanded` anche `true` (tutto aperto) | apertura controllata o no |
+| `selectableBranches` | `boolean` (default `false`) | anche le cartelle si selezionano |
+| `ariaLabel` | `string` | nome accessibile |
+| Classi | `wrapperClassName`, `className`, `itemClassName`, `selectedClassName` | tema `Tree` |
+
+`treeFromPaths(paths, leaf?)` costruisce l'albero da percorsi `a/b/c`: cartelle prima dei file, ordinati; l'id di un file è il percorso, quello di una cartella `percorso/`; `leaf(path)` decora le foglie (label, icona, descrizione…).
+
 ### Dropdown
 ```tsx
 <Dropdown trigger={<Icon name="menu" />} position="end">

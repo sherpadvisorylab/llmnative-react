@@ -355,6 +355,12 @@ export interface ThemeConfig {
         wrapperClassName?: string;
         className?: string;
     };
+    Tree?: {
+        wrapperClassName?: string;
+        className?: string;
+        itemClassName?: string;
+        selectedClassName?: string;
+    };
     DescriptionList?: {
         wrapperClassName?: string;
         className?: string;

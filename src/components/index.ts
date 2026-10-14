@@ -18,6 +18,8 @@ export { default as Alert } from './ui/Alert';
 export type { AlertProps } from './ui/Alert';
 export { default as Badge } from './ui/Badge';
 export { default as DescriptionList } from './ui/DescriptionList';
+export { default as Tree, treeFromPaths } from './ui/Tree';
+export type { TreeNode, TreeProps } from './ui/Tree';
 export type { DescriptionListItem, DescriptionListLayout, DescriptionListColumns, DescriptionListProps } from './ui/DescriptionList';
 export * from './ui/Badge';
 export * from './ui/Buttons';

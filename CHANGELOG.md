@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.24.0] - 2026-10-14
+
+### Added
+- `Tree`: an accessible tree of nodes (folders and files, any hierarchy), WAI-ARIA tree pattern with
+  one tab stop, arrows, → / ← to open and close, Enter or Space to select. Expansion and selection
+  controlled or uncontrolled (`defaultExpanded` may be `true`), optional selectable branches, icons,
+  badges and descriptions per node, theme key `Tree`. `treeFromPaths(paths, leaf?)` builds it from
+  `a/b/c` paths, folders first (CR-100, GH issue #74).
+
 ## [1.23.0] - 2026-10-10
 
 ### Added
