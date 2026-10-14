@@ -193,4 +193,9 @@ export const en: I18nDict = {
         notConfigured: 'Address search is not configured (missing Google Maps API key).',
         loadError: 'Could not load address search.',
     },
+    tree: {
+        label: 'File tree',
+        expand: 'Expand',
+        collapse: 'Collapse',
+    },
 };

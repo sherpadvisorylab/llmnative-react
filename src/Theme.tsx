@@ -362,6 +362,11 @@ export interface ThemeConfig {
         labelClassName?: string;
         valueClassName?: string;
     };
+    Tree?: {
+        className?: string;
+        itemClassName?: string;
+        selectedClassName?: string;
+    };
     Tab?: {
         wrapperClassName?: string;
         className?: string;

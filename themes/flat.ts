@@ -453,6 +453,11 @@ export const components: Theme = {
         labelClassName: '',
         valueClassName: '',
     },
+    Tree: {
+        className: '',
+        itemClassName: '',
+        selectedClassName: '',
+    },
     Tab: {
         wrapperClassName: '',
         className: '',

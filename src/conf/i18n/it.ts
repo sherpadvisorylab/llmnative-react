@@ -113,4 +113,9 @@ export const it: I18nDict = {
         notConfigured: 'La ricerca indirizzi non è configurata (manca la API key Google Maps).',
         loadError: 'Impossibile caricare la ricerca indirizzi.',
     },
+    tree: {
+        label: 'Albero dei file',
+        expand: 'Espandi',
+        collapse: 'Comprimi',
+    },
 };

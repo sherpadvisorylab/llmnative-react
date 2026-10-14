@@ -107,6 +107,66 @@
 | [CR-097](#cr-097--testi-visibili-dei-componenti-traducibili-i18n) | Testi visibili dei componenti traducibili (i18n) | Media | CR-093 | ⬜ |
 | [CR-098](#cr-098--repeat-documentazione-allineata-al-comportamento-layout-vertical-e-accessibilità) | Repeat: documentazione allineata al comportamento, layout vertical e accessibilità | Media | — | ⬜ |
 | [CR-099](#cr-099--label-dei-campi-stringa-o-nodo-react) | Label dei campi: stringa o nodo React | Media | — | ✅ |
+| [CR-100](#cr-100--tree-albero-di-nodi-accessibile-cartelle-e-file) | Tree: albero di nodi accessibile (cartelle e file) | Alta | — | 🔄 in progress |
+
+---
+
+## CR-100 — Tree: albero di nodi accessibile (cartelle e file)
+
+**Stato:** 🔄 in progress
+**Issue:** [#74](https://github.com/sherpadvisorylab/llmnative-react/issues/74)
+**Priorità:** Alta
+**Dipende da:** —
+
+### Motivazione
+
+Un consumer mostra i file di un pacchetto generato come albero di cartelle: le cartelle si
+aprono e si chiudono, un file viene selezionato e il suo contenuto mostrato di fianco. Il
+framework non ha un componente albero; liste annidate di pulsanti non sono accessibili e non
+hanno gestione da tastiera.
+
+### Scope
+
+- `src/components/ui/Tree.tsx` (nuovo): `Tree` + `TreeNode = { id, label, icon?, badge?, description?, children?, disabled? }`.
+  Espansione controllata (`expanded`/`onExpandedChange`) o non controllata (`defaultExpanded`);
+  selezione singola controllata (`selectedId`/`onSelect`) o non controllata (`defaultSelectedId`).
+- Accessibilità WAI-ARIA tree: `role="tree"`/`treeitem`/`group`, `aria-expanded`, `aria-selected`,
+  `aria-level`, roving tabindex (un solo tab stop), tasti ↑ ↓ → ← Home End Enter Space.
+- `src/components/index.ts`: export pubblico di `Tree`, `TreeNode`, `TreeProps`.
+- `src/Theme.tsx` + `themes/{default,flat,cyber}.ts`: chiave tema `Tree` (`className`,
+  `itemClassName`, `selectedClassName`).
+- `src/libs/tree.ts` (nuovo) + `src/libs/index.ts`: helper puro `treeFromPaths(paths)` (cartelle
+  prima dei file, percorso completo come `id`); `PathTreeNode`.
+- i18n: namespace `tree` (`label`, `expand`, `collapse`) in `src/I18n.tsx` e nei 6 dizionari.
+- Test `tests/unit/components/Tree.test.tsx` (espansione, selezione, tastiera, ARIA, `treeFromPaths`).
+- Docs `llms-full.txt` (sezione `Tree` + `treeFromPaths`), `llms.txt`.
+- Showcase: pagina `/components/tree` (demo cartelle/file, espansione controllata, `treeFromPaths`,
+  playground), registrazione in `clients/showcase/src/conf/menu.ts`, i18n pagina (en, it).
+- `.notes/CHANGE_REQUESTS.md`, `.notes/STATUS.md`, `CHANGELOG.md` (`## [Unreleased]`).
+
+### Fuori scope
+
+- Bump di versione, sezione di versione nel changelog, tag e publish (workflow di release).
+- Nessuna modifica a componenti esistenti; nessuna breaking change.
+- `treeFromPaths` è puro: nessun accesso a filesystem o rete.
+- Drag & drop, multi-selezione e checkbox di selezione.
+
+### Checklist
+
+- [x] `Tree` esportato da `@llmnative/react` (`src/components/index.ts` + `src/index.ts`)
+- [x] `TreeNode` / `TreeProps` esportati; nessun `any`
+- [x] Espansione controllata e non controllata
+- [x] Selezione singola controllata e non controllata; click, Enter e Space; `disabled` non selezionabile
+- [x] ARIA tree (`role`, `aria-expanded`, `aria-selected`, `aria-level`), un solo tab stop
+- [x] Tastiera ↑/↓/→/←/Home/End/Enter/Space
+- [x] Chiave tema `Tree` in `default`, `flat`, `cyber`
+- [x] `treeFromPaths(paths)` in `src/libs/tree.ts` + export
+- [x] i18n namespace `tree` (6 lingue)
+- [x] Test `tests/unit/components/Tree.test.tsx` (12 test)
+- [x] Docs `llms-full.txt`, `llms.txt`
+- [x] Pagina showcase `/components/tree` + menu + i18n (en, it)
+- [x] CHANGELOG (`## [Unreleased]`), STATUS
+- [ ] Verifica finale `npx tsc --noEmit`, `npm test`, `npm run build`, `npm pack --dry-run --json`
 
 ---
 

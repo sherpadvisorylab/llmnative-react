@@ -113,4 +113,9 @@ export const zh: I18nDict = {
         notConfigured: '地址搜索未配置（缺少 Google Maps API 密钥）。',
         loadError: '无法加载地址搜索。',
     },
+    tree: {
+        label: '文件树',
+        expand: '展开',
+        collapse: '收起',
+    },
 };

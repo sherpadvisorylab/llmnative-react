@@ -713,6 +713,39 @@ Coppie etichetta → valore in sola lettura (profilo, dati di un record, riepilo
 | `truncate` | `boolean` | `false`; un valore testuale diventa il suo `title` |
 | Classi | `wrapperClassName`, `className`, `itemClassName`, `labelClassName`, `valueClassName` | tema `DescriptionList` |
 
+### Tree
+Albero di cartelle e file accessibile (pattern WAI-ARIA `tree`). Un nodo con `children` è una cartella apribile/chiudibile; un nodo senza figli è un file. Espansione e selezione singola controllate o non controllate.
+```tsx
+<Tree
+  nodes={[
+    { id: 'src', label: 'src', icon: 'folder', children: [
+      { id: 'src/index.ts', label: 'index.ts', icon: 'file' },
+      { id: 'src/libs', label: 'libs', children: [{ id: 'src/libs/cn.ts', label: 'cn.ts' }] },
+    ]},
+    { id: 'package.json', label: 'package.json', icon: 'file' },
+  ]}
+  defaultExpanded={['src']}
+  onSelect={(node) => setSelected(node.id)}
+/>
+
+// helper puro: albero da percorsi a/b/c (cartelle prima dei file, id = percorso completo)
+const nodes = treeFromPaths(['src/index.ts', 'src/libs/cn.ts', 'README.md']);
+```
+
+| Prop | Tipo | Default |
+|---|---|---|
+| `nodes` | `TreeNode[]` — `{ id, label, icon?, badge?, description?, children?, disabled? }` | — |
+| `expanded` | `string[]` (controllato, con `onExpandedChange`) | — |
+| `defaultExpanded` | `string[]` (non controllato) | nessuna cartella aperta |
+| `onExpandedChange` | `(expanded: string[]) => void` | — |
+| `selectedId` | `string \| null` (controllato, con `onSelect`) | — |
+| `defaultSelectedId` | `string \| null` (non controllato) | `null` |
+| `onSelect` | `(node: TreeNode) => void` — click, Enter, Space | — |
+| `ariaLabel` | `string` | `tree.label` (i18n) |
+| Classi | `className`, `itemClassName`, `selectedClassName` | tema `Tree` |
+
+Tastiera: ↑/↓ tra i nodi visibili, → apre la cartella / entra nel primo figlio, ← chiude la cartella / va al genitore, Home/End primo/ultimo, Enter/Space selezionano. I nodi `disabled` non sono selezionabili.
+
 ### Dropdown
 ```tsx
 <Dropdown trigger={<Icon name="menu" />} position="end">
@@ -1062,6 +1095,7 @@ import { getKeywordIdeas, getGoogleTrendsData, getGoogleTrendsRelated } from '@l
 cn('base', condition && 'extra', className)     // tailwind-merge classname
 new Sanitizer().sanitize(html)                  // XSS sanitizer (non usare dangerouslySetInnerHTML)
 new Order().order(records, { field: 'name', dir: 'asc' })  // ordina record array
+treeFromPaths(['src/index.ts', 'src/libs/cn.ts'])  // albero da percorsi a/b/c (cartelle prima dei file, id = percorso)
 fetchJson(url, init?)                           // fetch + JSON parse + error handling
 fetchRest(path, init?)                          // fetch REST con auth
 getKeywordIdeas(keyword)                        // Google Ads Keyword Ideas

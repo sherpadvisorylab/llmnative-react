@@ -19,6 +19,8 @@ export type { AlertProps } from './ui/Alert';
 export { default as Badge } from './ui/Badge';
 export { default as DescriptionList } from './ui/DescriptionList';
 export type { DescriptionListItem, DescriptionListLayout, DescriptionListColumns, DescriptionListProps } from './ui/DescriptionList';
+export { default as Tree } from './ui/Tree';
+export type { TreeNode, TreeProps } from './ui/Tree';
 export * from './ui/Badge';
 export * from './ui/Buttons';
 export { default as Card } from './ui/Card';

@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `Tree`: accessible folder/file tree (WAI-ARIA `tree` pattern) with controlled or uncontrolled
+  expansion and single selection, roving tabindex and full keyboard support (↑ ↓ → ← Home End
+  Enter Space), disabled nodes, theme key `Tree` and i18n namespace `tree`. New pure helper
+  `treeFromPaths(paths)` builds a tree from `a/b/c` paths (folders before files, full path as id)
+  (CR-100, GH issue #74).
+
 ## [1.23.0] - 2026-10-10
 
 ### Added

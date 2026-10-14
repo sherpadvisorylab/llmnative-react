@@ -33,6 +33,7 @@ export type ShowcaseNamespace =
     | 'pagination'
     | 'percentage'
     | 'descriptionList'
+    | 'tree'
     | 'localeSwitcher'
     | 'tab'
     | 'dropdown'

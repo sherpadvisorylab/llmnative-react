@@ -758,6 +758,31 @@ interface ShowcaseDescriptionListI18n {
     };
 }
 
+interface ShowcaseTreeI18n {
+    page: { title: string; description: string; };
+    sections: {
+        fileExplorer: ShowcasePageSectionCopy;
+        controlled: ShowcasePageSectionCopy;
+        fromPaths: ShowcasePageSectionCopy;
+    };
+    labels: {
+        fileTree: string;
+        selected: string;
+        none: string;
+        expandAll: string;
+        collapseAll: string;
+        openFolders: string;
+        selectedNode: string;
+        preview: string;
+    };
+    propsDocs: {
+        items: Record<string, ShowcaseGridDocFieldCopy>;
+    };
+    playground: {
+        title: string;
+    };
+}
+
 interface ShowcasePercentageI18n {
     page: { title: string; description: string; };
     sections: {
@@ -2479,6 +2504,7 @@ declare module '@llmnative/react' {
             pagination:                   ShowcasePaginationI18n;
             percentage:                   ShowcasePercentageI18n;
             descriptionList:              ShowcaseDescriptionListI18n;
+            tree:                         ShowcaseTreeI18n;
             localeSwitcher:               ShowcaseLocaleSwitcherI18n;
             tab:                          ShowcaseTabI18n;
             dropdown:                     ShowcaseDropdownI18n;

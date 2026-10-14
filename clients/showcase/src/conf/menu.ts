@@ -53,6 +53,7 @@ const NotificationsPage = lazyPage(() => import('../pages/components/Notificatio
 const PaginationPage = lazyPage(() => import('../pages/components/PaginationPage'));
 const PercentagePage = lazyPage(() => import('../pages/components/PercentagePage'));
 const DescriptionListPage = lazyPage(() => import('../pages/components/DescriptionListPage'));
+const TreePage = lazyPage(() => import('../pages/components/TreePage'));
 const PromptIndexPage = lazyPage(() => import('../pages/components/prompt'));
 const PromptEditorPage = lazyPage(() => import('../pages/components/prompt/PromptEditorPage'));
 const PromptLivePage = lazyPage(() => import('../pages/components/prompt/PromptLivePage'));
@@ -173,6 +174,7 @@ export const menu = {
         { path: '/components/description-list', title: 'DescriptionList', page: DescriptionListPage, group: 'UI Primitives' },
         { path: '/components/tab', title: 'Tab', page: TabPage, group: 'UI Primitives' },
         { path: '/components/table', title: 'Table', page: TablePage, group: 'UI Primitives' },
+        { path: '/components/tree', title: 'Tree', page: TreePage, group: 'UI Primitives' },
 
         // ── Widgets (alphabetical, Grid penultimate, Form last) ───────────────
         { path: '/components/auth', title: 'Auth', page: AuthPage, group: 'Widgets' },
