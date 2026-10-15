@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.25.4] - 2026-10-15
+
+### Fixed
+- Pointer cursor on every enabled button: Tailwind v4 gives buttons the default cursor, so the
+  close and fullscreen buttons of `Modal` and the other plain `<button>`s of the framework showed
+  an arrow. A base rule (`button:not(:disabled)`, `[role="button"]`) restores the pointer.
+
 ## [1.25.3] - 2026-10-15
 
 ### Fixed

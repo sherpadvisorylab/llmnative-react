@@ -88,6 +88,15 @@
     --radius: 0.5rem;
 }
 
+/* Tailwind v4 gives buttons the default cursor: every enabled button of the framework (and of
+   the app) shows the pointer, as it did in v3. */
+@layer base {
+    button:not(:disabled),
+    [role="button"]:not([aria-disabled="true"]) {
+        cursor: pointer;
+    }
+}
+
 @layer components {
 
     /* -- Bootstrap-like grid primitives backed by native CSS --
