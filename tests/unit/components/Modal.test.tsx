@@ -66,24 +66,39 @@ describe('Modal', () => {
         expect(screen.getByRole('dialog', { name: 'Behind' })).not.toHaveAttribute('aria-modal');
     });
 
-    it('stacked behind, a side panel peeks out by 10% of the modal on top, whatever their sizes', async () => {
+    it('stacks side panels in the width of the first one, each one below 10% wider than the one above', async () => {
         // jsdom has no layout: widths from the size classes of the side panels.
-        const widths: Record<string, number> = { 'w-[36rem]': 576, 'w-96': 384 };
+        const widths: Record<string, number> = { 'w-[36rem]': 576, 'w-96': 384, 'w-[64rem]': 1024 };
         const spy = vi.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockImplementation(function (this: HTMLElement) {
             return Object.entries(widths).find(([size]) => this.classList.contains(size))?.[1] ?? 0;
         });
-        render(<I18nProvider>
-            <Modal title="Parent" position="right" size="lg" stackedBehind>Parent body</Modal>
-            <Modal title="Child" position="right" size="md">Child body</Modal>
-        </I18nProvider>);
+        const stack = (depth: number) => (
+            <I18nProvider>
+                <Modal title="First" position="right" size="lg" stackedBehind={depth > 1}>First body</Modal>
+                {depth > 1 && <Modal title="Second" position="right" size="md" stackedBehind={depth > 2}>Second body</Modal>}
+                {depth > 2 && <Modal title="Third" position="right" size="2xl">Third body</Modal>}
+            </I18nProvider>
+        );
+        const width = (name: string) => screen.getByRole('dialog', { name }).style.width;
+        const { rerender } = render(stack(1));
+        // Alone, a panel has the width of its size.
+        expect(width('First')).toBe('');
 
-        // The child keeps its size; the parent moves so that its left edge is at 110% of the child's width.
-        await waitFor(() => expect(screen.getByRole('dialog', { name: 'Parent' }).style.transform).toBe(`translateX(${576 - 384 * 1.1}px)`));
-        expect(screen.getByRole('dialog', { name: 'Child' }).style.transform).not.toContain('translateX(1');
+        rerender(stack(3));
+        // On top, the width of the first one, whatever its own size; below, 10% more each.
+        await waitFor(() => expect(width('Third')).toBe('576px'));
+        expect(parseFloat(width('Second'))).toBeCloseTo(576 * 1.1);
+        expect(parseFloat(width('First'))).toBeCloseTo(576 * 1.21);
+        // No translate, scale or filter: only the width.
+        expect(screen.getByRole('dialog', { name: 'First' }).style.transform).not.toContain('translateX(-');
+        expect(screen.getByRole('dialog', { name: 'First' }).style.filter).toBe('');
+
+        rerender(stack(1));
+        await waitFor(() => expect(width('First')).toBe(''));
         spy.mockRestore();
     });
 
-    it('stacked behind, a side panel slides inwards and dims, without scale or filter, and back', () => {
+    it('stacked behind, a modal dims and its backdrop fades out instead of unmounting, and back', () => {
         const { rerender } = render(<I18nProvider><Modal title="Panel" position="right">Modal body</Modal></I18nProvider>);
         const dialog = () => screen.getByRole('dialog', { name: 'Panel' });
         const veil = () => dialog().querySelector('[data-rf-modal-veil]') as HTMLElement;
@@ -92,22 +107,12 @@ describe('Modal', () => {
         expect(veil().style.opacity).toBe('0');
 
         rerender(<I18nProvider><Modal title="Panel" position="right" stackedBehind>Modal body</Modal></I18nProvider>);
-        expect(dialog().style.transform).toBe('translateX(-3rem)');
-        expect(dialog().style.filter).toBe('');
-        expect(dialog().style.transform).not.toContain('scale');
         expect(veil().style.opacity).toBe('1');
-        // The backdrop stays and fades out: the upper modal's takes over.
         expect(backdrop()).toBeInTheDocument();
         expect(backdrop().style.opacity).toBe('0');
 
         rerender(<I18nProvider><Modal title="Panel" position="right">Modal body</Modal></I18nProvider>);
-        expect(dialog().style.transform).not.toBe('translateX(-3rem)');
         expect(veil().style.opacity).toBe('0');
-    });
-
-    it('stacked behind on the left, slides to the right', () => {
-        render(<I18nProvider><Modal title="Left" position="left" stackedBehind>Modal body</Modal></I18nProvider>);
-        expect(screen.getByRole('dialog', { name: 'Left' }).style.transform).toBe('translateX(3rem)');
     });
 
     it('closes with Escape', async () => {

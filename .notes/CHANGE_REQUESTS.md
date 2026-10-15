@@ -177,6 +177,8 @@ semplice slide da destra a sinistra.
 - [x] Release 1.25.0
 - [x] La striscia sporgente è il 10% della larghezza della modale sopra, qualunque siano le due dimensioni; la modale sopra tiene tutta la sua dimensione (`Modal.test.tsx`, verificato nel Playbook: 38px su 384px)
 - [x] Release 1.25.1
+- [x] Pila di pannelli laterali: quello in cima nella larghezza del primo, ognuno sotto il 10% più largo di quello sopra (100%, 110%, 121%…); solo la larghezza, niente traslazione (`Modal.test.tsx`, verificato nel Playbook: 576, 576, 634px)
+- [x] Release 1.25.2
 
 ---
 

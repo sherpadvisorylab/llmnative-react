@@ -62,11 +62,11 @@ export interface ModalProps extends MotionUIProps {
     rightInset?: number;
     /**
      * When `true` this modal is visually "behind" another modal stacked on top, as in
-     * Google Tag Manager: the modal on top keeps its whole size; a side panel (`left`/`right`)
-     * behind it stays at full height and moves so that it shows 10% of the upper modal's width
-     * beyond it, a strip that says it is there; a veil dims it, its backdrop fades out (the upper
-     * modal's backdrop takes over) and it stops reacting to the pointer. Every change runs with
-     * the slide transition of the modal, both ways.
+     * Google Tag Manager: a veil dims it, its backdrop fades out (the upper modal's backdrop takes
+     * over) and it stops reacting to the pointer. Side panels (`left`/`right`) open on the same
+     * side stack by themselves: the one on top takes the width the first one opened with, each
+     * one below is 10% wider than the one above it (100%, 110%, 121%…), so a strip of it peeks
+     * out. Every change runs with the slide transition of the modal, both ways.
      */
     stackedBehind?: boolean;
     /**
@@ -99,15 +99,25 @@ export interface ModalOkProps {
 }
 
 /**
- * How much of a side panel peeks out from behind the modal stacked on top of it: a share of the
- * width of that modal, so the panel behind reads as its parent without being read itself.
+ * Side panels stacked on the same side, Google Tag Manager style: the one on top takes the width
+ * the first one opened with, each one below is STACK_GROWTH wider than the one above it (100%,
+ * 110%, 121%…), so a strip of every parent peeks out without being read.
  */
-const STACK_PEEK_RATIO = 0.1;
-/** The same, before the modal on top can be measured. */
-const STACK_PEEK_FALLBACK = '3rem';
+const STACK_GROWTH = 1.1;
 
-// Open dialogs in mount order: a modal `stackedBehind` measures the one opened after it.
-const openDialogs: HTMLElement[] = [];
+type StackedPanel = { dialog: HTMLElement; side: 'left' | 'right'; natural: number };
+const sidePanels: StackedPanel[] = [];
+const stackListeners = new Set<() => void>();
+const stackChanged = () => stackListeners.forEach((listener) => listener());
+
+/** The width of a side panel in its stack; `undefined` when it is alone, or not in one. */
+const stackedWidth = (dialog: HTMLElement | null): number | undefined => {
+    const own = sidePanels.find((panel) => panel.dialog === dialog);
+    if (!own) return undefined;
+    const stack = sidePanels.filter((panel) => panel.side === own.side);
+    if (stack.length < 2) return undefined;
+    return stack[0].natural * Math.pow(STACK_GROWTH, stack.length - 1 - stack.indexOf(own));
+};
 
 // Open modals in mount order: Escape closes only the last one (a modal `stackedBehind` leaves
 // the stack while another one is on top of it).
@@ -151,9 +161,11 @@ const ModalDefault = ({
     const [entered, setEntered] = React.useState(false);
     const closingRef = React.useRef(false);
     const dialogRef = React.useRef<HTMLDivElement>(null);
-    // Behind another modal: how far a side panel moves so its edge sits STACK_PEEK_RATIO of the
-    // upper modal's width beyond it (null until measured).
-    const [stackShift, setStackShift] = useState<number | null>(null);
+    // Re-rendered when the stack of side panels changes: its width depends on it.
+    const [, onStackChange] = React.useReducer((count: number) => count + 1, 0);
+    // While closing, the width it had: it slides out as it was.
+    const closingWidthRef = React.useRef<number | undefined>(undefined);
+    const leaveStackRef = React.useRef<() => void>(() => undefined);
     const closeTimerRef = React.useRef<number | undefined>(undefined);
 
     const [sizeClass, setSizeClass] = useState(size);
@@ -284,6 +296,9 @@ const ModalDefault = ({
     const handleClose = () => {
         if (closingRef.current) return;
         closingRef.current = true;
+        // Leaves the stack now, so the panels below shrink back while it slides out.
+        closingWidthRef.current = stackedWidth(dialogRef.current);
+        leaveStackRef.current();
         setEntered(false);
         window.document.body.style.overflow = "auto";
         const closeDelay = dialogMotion.transition.duration + dialogMotion.transition.delay;
@@ -318,51 +333,42 @@ const ModalDefault = ({
         ...insetStyle,
     };
 
+    // Stacked side panels (Google Tag Manager style): all of them in the width of the first one,
+    // each one below STACK_GROWTH wider than the one above. Only the width changes, with the slide
+    // transition of the modal: no translate, scale or filter.
+    const side = modalPosition === 'right' || modalPosition === 'left' ? modalPosition : undefined;
     React.useLayoutEffect(() => {
         const dialog = dialogRef.current;
-        if (!dialog) return;
-        openDialogs.push(dialog);
-        return () => {
-            const index = openDialogs.indexOf(dialog);
-            if (index !== -1) openDialogs.splice(index, 1);
+        if (!dialog || !side) return;
+        // Its own width, from its size, before the stack sets another one.
+        const panel: StackedPanel = { dialog, side, natural: dialog.offsetWidth };
+        sidePanels.push(panel);
+        stackListeners.add(onStackChange);
+        let left = false;
+        const leave = () => {
+            if (left) return;
+            left = true;
+            const index = sidePanels.indexOf(panel);
+            if (index !== -1) sidePanels.splice(index, 1);
+            stackChanged();
         };
-    }, []);
-
-    // Stacked behind another modal (Google Tag Manager style): the modal on top keeps its whole
-    // size; a side panel behind it, whatever its own size, moves so that its edge sits 10% of the
-    // upper modal's width beyond it: a strip that says it is there, not something to read. Only a
-    // translate, run by the same transition as the slide of the modal: no scale, no filter.
-    const side = modalPosition === 'right' || modalPosition === 'left';
-    React.useEffect(() => {
-        const dialog = dialogRef.current;
-        if (!stackedBehind || !side || !dialog) {
-            setStackShift(null);
-            return;
-        }
-        let observer: ResizeObserver | undefined;
-        // The modal on top mounts in the same commit, after this one: measured on the next frame.
-        const frame = window.requestAnimationFrame(() => {
-            const above = openDialogs[openDialogs.indexOf(dialog) + 1];
-            if (!above) return;
-            const measure = () => setStackShift(dialog.offsetWidth - above.offsetWidth * (1 + STACK_PEEK_RATIO));
-            measure();
-            if (typeof ResizeObserver !== 'undefined') {
-                observer = new ResizeObserver(measure);
-                observer.observe(dialog);
-                observer.observe(above);
-            }
-        });
+        leaveStackRef.current = leave;
+        stackChanged();
         return () => {
-            window.cancelAnimationFrame(frame);
-            observer?.disconnect();
+            stackListeners.delete(onStackChange);
+            leave();
         };
-    }, [stackedBehind, side]);
+    }, [side]);
 
-    const stackedTransform: React.CSSProperties = stackedBehind && side ? {
-        transform: stackShift === null
-            ? `translateX(${modalPosition === 'right' ? '-' : ''}${STACK_PEEK_FALLBACK})`
-            : `translateX(${modalPosition === 'right' ? stackShift : -stackShift}px)`,
-    } : {};
+    const width = closingRef.current ? closingWidthRef.current : stackedWidth(dialogRef.current);
+    const stackedStyle: React.CSSProperties = width === undefined ? {} : {
+        width,
+        maxWidth: '100%',
+        transition: [
+            dialogStyle.transition,
+            dialogMotion.transition.duration ? `width ${dialogMotion.transition.duration}ms ${dialogMotion.transition.easing}` : '',
+        ].filter(Boolean).join(', '),
+    };
     const veilStyle: React.CSSProperties = {
         opacity: stackedBehind ? 1 : 0,
         transition: dialogMotion.transition.duration
@@ -395,7 +401,7 @@ const ModalDefault = ({
                 className={pos.dialogClass}
                 style={{
                     ...dialogStyle,
-                    ...stackedTransform,
+                    ...stackedStyle,
                     ...(zIndex !== undefined ? { zIndex } : {}),
                     ...(modalPosition === 'right' ? insetStyle : {}),
                 }}

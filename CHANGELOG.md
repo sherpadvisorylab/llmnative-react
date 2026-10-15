@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.25.2] - 2026-10-15
+
+### Changed
+- `Modal`: side panels opened on the same side stack by themselves. The one on top takes the width
+  the first one opened with, whatever its own size; each one below is 10% wider than the one above
+  it (100%, 110%, 121%…). Only the width changes, with the slide transition of the modal; a panel
+  closing leaves the stack at once, so the ones below shrink back while it slides out. Replaces
+  the translate of 1.25.1 (CR-101, GH issue #76).
+
 ## [1.25.1] - 2026-10-15
 
 ### Changed
