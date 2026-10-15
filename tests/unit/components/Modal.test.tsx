@@ -66,6 +66,23 @@ describe('Modal', () => {
         expect(screen.getByRole('dialog', { name: 'Behind' })).not.toHaveAttribute('aria-modal');
     });
 
+    it('stacked behind, a side panel peeks out by 10% of the modal on top, whatever their sizes', async () => {
+        // jsdom has no layout: widths from the size classes of the side panels.
+        const widths: Record<string, number> = { 'w-[36rem]': 576, 'w-96': 384 };
+        const spy = vi.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockImplementation(function (this: HTMLElement) {
+            return Object.entries(widths).find(([size]) => this.classList.contains(size))?.[1] ?? 0;
+        });
+        render(<I18nProvider>
+            <Modal title="Parent" position="right" size="lg" stackedBehind>Parent body</Modal>
+            <Modal title="Child" position="right" size="md">Child body</Modal>
+        </I18nProvider>);
+
+        // The child keeps its size; the parent moves so that its left edge is at 110% of the child's width.
+        await waitFor(() => expect(screen.getByRole('dialog', { name: 'Parent' }).style.transform).toBe(`translateX(${576 - 384 * 1.1}px)`));
+        expect(screen.getByRole('dialog', { name: 'Child' }).style.transform).not.toContain('translateX(1');
+        spy.mockRestore();
+    });
+
     it('stacked behind, a side panel slides inwards and dims, without scale or filter, and back', () => {
         const { rerender } = render(<I18nProvider><Modal title="Panel" position="right">Modal body</Modal></I18nProvider>);
         const dialog = () => screen.getByRole('dialog', { name: 'Panel' });

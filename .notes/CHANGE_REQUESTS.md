@@ -175,6 +175,8 @@ semplice slide da destra a sinistra.
 - [x] Velo e backdrop sfumati invece che smontati (`Modal.test.tsx`)
 - [x] Verificato nel Playbook con due pannelli laterali sovrapposti
 - [x] Release 1.25.0
+- [x] La striscia sporgente è il 10% della larghezza della modale sopra, qualunque siano le due dimensioni; la modale sopra tiene tutta la sua dimensione (`Modal.test.tsx`, verificato nel Playbook: 38px su 384px)
+- [x] Release 1.25.1
 
 ---
 

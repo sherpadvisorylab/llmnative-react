@@ -578,7 +578,7 @@ Accessibilità: il dialog ha `role="dialog"`, `aria-modal="true"` (non con `stac
 | `onSave` / `onDelete` | `(e) => Promise<boolean>` | |
 | `allowFullscreen` | `boolean` | Toggle fullscreen |
 | `showCancel` | `boolean` | Default `true` |
-| `stackedBehind` | `boolean` | Modale sotto un'altra (stile Google Tag Manager): resta a tutta altezza; se laterale scorre verso l'interno di 3rem, così ne sporge una striscia; un velo la scurisce, il suo backdrop sfuma e non riceve il puntatore. Senza scale né filter, con la stessa transizione dello slide, in entrata e in uscita |
+| `stackedBehind` | `boolean` | Modale sotto un'altra (stile Google Tag Manager): resta a tutta altezza; se laterale si sposta così che ne sporga una striscia pari al 10% della larghezza della modale sopra, che tiene tutta la sua dimensione; un velo la scurisce, il suo backdrop sfuma e non riceve il puntatore. Senza scale né filter, con la stessa transizione dello slide, in entrata e in uscita |
 | `closeOnBackdrop` | `boolean` | Default `true` |
 | `closeOnEscape` | `boolean` | Default `true` — solo il modal in cima reagisce |
 | `zIndex` | `number` | |

@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.25.1] - 2026-10-15
+
+### Changed
+- `Modal` `stackedBehind`: the side panel behind measures the modal opened on top of it and
+  moves so that a strip of 10% of that modal's width shows beyond it, whatever their two sizes;
+  the modal on top keeps its whole size. Still a translate only (3rem until measured), followed
+  on resize (CR-101, GH issue #76).
+
 ## [1.25.0] - 2026-10-15
 
 ### Changed
