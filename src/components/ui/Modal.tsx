@@ -62,8 +62,8 @@ export interface ModalProps extends MotionUIProps {
     rightInset?: number;
     /**
      * When `true` this modal is visually "behind" another modal stacked on top, as in
-     * Google Tag Manager: a veil dims it, its backdrop fades out (the upper modal's backdrop takes
-     * over) and it stops reacting to the pointer. Side panels (`left`/`right`) open on the same
+     * Google Tag Manager: a veil dims it, its backdrop stays as it is (the upper modal's backdrop
+     * fades in over it, so the page darkens a step per modal) and it stops reacting to the pointer. Side panels (`left`/`right`) open on the same
      * side stack by themselves: the one on top takes the width the first one opened with, each
      * one below is 10% wider than the one above it (100%, 110%, 121%…), so a strip of it peeks
      * out. Every change runs with the slide transition of the modal, both ways.
@@ -318,9 +318,9 @@ const ModalDefault = ({
 
     const backdropStyle: React.CSSProperties = {
         ...useMotionState(entered, theme.Modal.motion?.backdrop ?? 'fade', theme.Modal.motion?.backdrop ?? 'fade'),
-        // Behind another modal the backdrop fades out instead of unmounting: the upper one's
-        // fades in at the same time, so the page does not flash.
-        ...(stackedBehind ? { opacity: 0, pointerEvents: 'none' } : {}),
+        // Behind another modal the backdrop stays as it is: the upper one's fades in over it, so
+        // the page darkens a step for each modal and never flashes.
+        ...(stackedBehind ? { pointerEvents: 'none' } : {}),
         cursor: closeOnBackdrop && onClose ? 'pointer' : 'default',
         ...(zIndex !== undefined ? { zIndex: zIndex - 10 } : {}),
         ...insetStyle,

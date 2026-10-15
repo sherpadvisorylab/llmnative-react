@@ -578,7 +578,7 @@ Accessibilità: il dialog ha `role="dialog"`, `aria-modal="true"` (non con `stac
 | `onSave` / `onDelete` | `(e) => Promise<boolean>` | |
 | `allowFullscreen` | `boolean` | Toggle fullscreen |
 | `showCancel` | `boolean` | Default `true` |
-| `stackedBehind` | `boolean` | Modale sotto un'altra (stile Google Tag Manager): un velo la scurisce, il suo backdrop sfuma e non riceve il puntatore. I pannelli laterali aperti sullo stesso lato si impilano da soli: quello in cima prende la larghezza con cui si è aperto il primo, ognuno sotto è largo il 10% in più di quello sopra (100%, 110%, 121%…), così ne sporge una striscia. Solo la larghezza cambia, con la transizione dello slide, in entrata e in uscita |
+| `stackedBehind` | `boolean` | Modale sotto un'altra (stile Google Tag Manager): un velo la scurisce, il suo backdrop resta com'è (quello della modale sopra entra sopra, così la pagina si scurisce di un gradino per modale) e non riceve il puntatore. I pannelli laterali aperti sullo stesso lato si impilano da soli: quello in cima prende la larghezza con cui si è aperto il primo, ognuno sotto è largo il 10% in più di quello sopra (100%, 110%, 121%…), così ne sporge una striscia. Solo la larghezza cambia, con la transizione dello slide, in entrata e in uscita |
 | `closeOnBackdrop` | `boolean` | Default `true` |
 | `closeOnEscape` | `boolean` | Default `true` — solo il modal in cima reagisce |
 | `zIndex` | `number` | |

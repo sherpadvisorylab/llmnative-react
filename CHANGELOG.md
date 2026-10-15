@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.25.3] - 2026-10-15
+
+### Fixed
+- `Modal` `stackedBehind`: the backdrop of the modal behind stays as it is instead of fading out.
+  The upper modal's backdrop fades in over it, so the page darkens a step per modal; before, the
+  page flashed light while one backdrop faded out and the other faded in (CR-101, GH issue #76).
+
 ## [1.25.2] - 2026-10-15
 
 ### Changed

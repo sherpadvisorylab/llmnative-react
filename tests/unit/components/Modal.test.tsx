@@ -98,18 +98,20 @@ describe('Modal', () => {
         spy.mockRestore();
     });
 
-    it('stacked behind, a modal dims and its backdrop fades out instead of unmounting, and back', () => {
+    it('stacked behind, a modal dims and its backdrop stays as it is, and back', () => {
         const { rerender } = render(<I18nProvider><Modal title="Panel" position="right">Modal body</Modal></I18nProvider>);
         const dialog = () => screen.getByRole('dialog', { name: 'Panel' });
         const veil = () => dialog().querySelector('[data-rf-modal-veil]') as HTMLElement;
         const backdrop = () => document.querySelector('[data-rf-modal-backdrop]') as HTMLElement;
 
         expect(veil().style.opacity).toBe('0');
+        const before = backdrop().style.opacity;
 
         rerender(<I18nProvider><Modal title="Panel" position="right" stackedBehind>Modal body</Modal></I18nProvider>);
         expect(veil().style.opacity).toBe('1');
+        // The backdrop does not move: the upper modal's darkens the page one more step.
         expect(backdrop()).toBeInTheDocument();
-        expect(backdrop().style.opacity).toBe('0');
+        expect(backdrop().style.opacity).toBe(before);
 
         rerender(<I18nProvider><Modal title="Panel" position="right">Modal body</Modal></I18nProvider>);
         expect(veil().style.opacity).toBe('0');
