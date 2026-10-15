@@ -12,6 +12,10 @@ export default defineLocaleMessages({
                     title: 'Posizioni',
                     description: 'Clicca un pulsante per aprire il modal nella posizione corrispondente.',
                 },
+                stacked: {
+                    title: 'Pannelli impilati (stackedBehind)',
+                    description: 'Apri un pannello laterale e poi un secondo sopra. Il pannello sotto resta a tutta altezza, si sposta di pochi px verso l interno lasciando sporgere una striscia dietro un velo, e il suo backdrop resta montato così la pagina non lampeggia.',
+                },
             },
             demo: {
                 dialogTitleCenter: 'Dialog - center',
@@ -21,6 +25,10 @@ export default defineLocaleMessages({
                 openButton: 'Apri modal',
                 defaultTitle: 'Titolo dialog',
                 defaultBody: 'Il contenuto del modal va qui.',
+                stackedOpenButton: 'Apri pannello impilato',
+                stackedBehindTitle: 'Pannello sotto',
+                stackedTopTitle: 'Pannello sopra',
+                stackedBody: 'Questo pannello è impilato. Apri il pannello sopra per vedere quello sotto spostarsi e scurirsi.',
             },
             propsDocs: {
                 items: {
@@ -38,6 +46,7 @@ export default defineLocaleMessages({
                     allowFullscreen: { description: 'Mostra il toggle fullscreen nell header' },
                     showCancel: { description: 'Mostra il pulsante Cancel nel footer quando onClose e presente' },
                     zIndex: { description: 'Override del CSS z-index, utile quando si impilano piu modal' },
+                    stackedBehind: { description: 'Mette questo modal visivamente dietro a un altro sopra: resta a tutta altezza, si sposta verso l interno (left/right) dietro un velo in opacita, resta non interattivo e il suo backdrop resta montato e sfuma' },
                     headerClassName: { description: 'Classi CSS sul contenitore header' },
                     titleClassName: { description: 'Classi CSS sull elemento titolo' },
                     subtitleClassName: { description: 'Classi CSS sull elemento subtitle (renderizzato quando title e header sono entrambi presenti)' },

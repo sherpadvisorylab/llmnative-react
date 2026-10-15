@@ -12,6 +12,10 @@ export default defineLocaleMessages({
                     title: 'المواضع',
                     description: 'اضغط زرًا لفتح الـ modal في الموضع المقابل.',
                 },
+                stacked: {
+                    title: 'لوحات متراكمة (stackedBehind)',
+                    description: 'افتح لوحة جانبية ثم لوحة ثانية فوقها. تحتفظ اللوحة السفلية بكامل ارتفاعها وتنزاح بضعة px نحو الداخل (يظهر شريط خلف حجاب شفاف)، ويبقى الـ backdrop الخاص بها مركّبًا فلا تومض الصفحة.',
+                },
             },
             demo: {
                 dialogTitleCenter: 'Dialog - center',
@@ -21,6 +25,10 @@ export default defineLocaleMessages({
                 openButton: 'افتح modal',
                 defaultTitle: 'عنوان الحوار',
                 defaultBody: 'يظهر محتوى الـ modal هنا.',
+                stackedOpenButton: 'افتح لوحة متراكمة',
+                stackedBehindTitle: 'اللوحة السفلية',
+                stackedTopTitle: 'اللوحة العلوية',
+                stackedBody: 'هذه اللوحة متراكمة. افتح اللوحة العلوية لترى اللوحة السفلية تنزاح وتُعتّم.',
             },
             propsDocs: {
                 items: {
@@ -38,6 +46,7 @@ export default defineLocaleMessages({
                     allowFullscreen: { description: 'إظهار زر fullscreen في الـ header' },
                     showCancel: { description: 'إظهار زر Cancel في الـ footer عندما يكون onClose موجودًا' },
                     zIndex: { description: 'تجاوز CSS z-index، مفيد عند تكديس عدة modals' },
+                    stackedBehind: { description: 'يضع هذا الـ modal بصريًا خلف آخر فوقه: يحافظ على كامل الارتفاع، وينزاح نحو الداخل (left/right) خلف حجاب شفاف، ويبقى غير تفاعلي، ويبقى الـ backdrop مركّبًا ويتلاشى' },
                     headerClassName: { description: 'فئات CSS على حاوية header' },
                     titleClassName: { description: 'فئات CSS على عنصر العنوان' },
                     subtitleClassName: { description: 'فئات CSS على عنصر subtitle (عند وجود title و header معًا)' },

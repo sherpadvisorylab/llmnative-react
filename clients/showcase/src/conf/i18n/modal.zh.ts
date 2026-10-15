@@ -12,6 +12,10 @@ export default defineLocaleMessages({
                     title: '位置',
                     description: '点击按钮以在对应位置打开 modal。',
                 },
+                stacked: {
+                    title: '堆叠面板（stackedBehind）',
+                    description: '打开一个侧边面板，再在上面打开第二个。下面的面板保持全高，向内移动几 px（一条边从半透明遮罩后露出），其 backdrop 保持挂载，因此页面不会闪烁。',
+                },
             },
             demo: {
                 dialogTitleCenter: 'Dialog - center',
@@ -21,6 +25,10 @@ export default defineLocaleMessages({
                 openButton: '打开 modal',
                 defaultTitle: '对话框标题',
                 defaultBody: 'Modal 内容显示在这里。',
+                stackedOpenButton: '打开堆叠面板',
+                stackedBehindTitle: '下层面板',
+                stackedTopTitle: '上层面板',
+                stackedBody: '此面板已堆叠。打开上层面板即可看到下层面板移动并变暗。',
             },
             propsDocs: {
                 items: {
@@ -38,6 +46,7 @@ export default defineLocaleMessages({
                     allowFullscreen: { description: '在 header 中显示 fullscreen 切换按钮' },
                     showCancel: { description: '当提供 onClose 时在 footer 中显示 Cancel 按钮' },
                     zIndex: { description: 'CSS z-index 覆盖，适合多层 modal 堆叠' },
+                    stackedBehind: { description: '将此 modal 视觉上置于另一个 modal 之下：保持全高，向内移动（left/right），遮以不透明度蒙层，保持不可交互，其 backdrop 保持挂载并淡出' },
                     headerClassName: { description: 'header 容器上的 CSS 类' },
                     titleClassName: { description: 'title 元素上的 CSS 类' },
                     subtitleClassName: { description: 'subtitle 元素上的 CSS 类（当 title 和 header 同时存在时渲染）' },

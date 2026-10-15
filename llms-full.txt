@@ -567,6 +567,7 @@ Quando `commands` e presente in `mode="run"`, `Prompt` monta internamente `Conte
 `ModalYesNo` e `ModalOk` sono export separati: `Modal.YesNo` e `Modal.Ok` non esistono.
 Tastiera: Esc chiude il modal in cima alla pila (`closeOnEscape`, default `true`).
 Accessibilità: il dialog ha `role="dialog"`, `aria-modal="true"` (non con `stackedBehind`) e `aria-labelledby` verso `title` (o `header` stringa) — nei test si trova con `getByRole('dialog', { name })`.
+Pannelli impilati: un modal con `stackedBehind` (la seconda apertura in pila) resta non interattivo, mantiene la sua altezza e, per `position` `left`/`right`, si sposta di poco verso l'interno (offset tema `stackedOffset`, default `16` px) lasciando sporgere una striscia scurita da un velo in `opacity` (chiave `stackedVeilOpacity`, default `0.4`) — niente `scale` né `filter`. Il suo backdrop resta montato con opacità ridotta (`stackedBackdropOpacity`, default `0.35`) e sfuma invece di essere smontato, così la pagina non lampeggia. Il modal in cima entra con lo slide laterale del tema (`slideFromRight`/`slideFromLeft`) e in uscita il movimento è simmetrico. Le tre chiavi tema hanno default retrocompatibili.
 
 | Prop | Tipo | Note |
 |---|---|---|
@@ -578,7 +579,7 @@ Accessibilità: il dialog ha `role="dialog"`, `aria-modal="true"` (non con `stac
 | `onSave` / `onDelete` | `(e) => Promise<boolean>` | |
 | `allowFullscreen` | `boolean` | Toggle fullscreen |
 | `showCancel` | `boolean` | Default `true` |
-| `stackedBehind` | `boolean` | Modal seconda in pila |
+| `stackedBehind` | `boolean` | Modal seconda in pila: non interattiva, con offset verso l'interno (`left`/`right`), velo in opacità, niente scale/filter e backdrop montato e sfumato |
 | `closeOnBackdrop` | `boolean` | Default `true` |
 | `closeOnEscape` | `boolean` | Default `true` — solo il modal in cima reagisce |
 | `zIndex` | `number` | |

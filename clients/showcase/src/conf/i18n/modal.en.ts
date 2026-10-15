@@ -12,6 +12,10 @@ export default defineLocaleMessages({
                     title: 'Positions',
                     description: 'Click a button to open the modal in the corresponding position.',
                 },
+                stacked: {
+                    title: 'Stacked panels (stackedBehind)',
+                    description: 'Open a side panel, then a second one on top. The panel behind keeps its full height, shifts a few px inward so a strip peeks out behind an opacity veil, and its backdrop stays mounted so the page never flashes.',
+                },
             },
             demo: {
                 dialogTitleCenter: 'Dialog - center',
@@ -21,6 +25,10 @@ export default defineLocaleMessages({
                 openButton: 'Open modal',
                 defaultTitle: 'Dialog title',
                 defaultBody: 'Modal body content goes here.',
+                stackedOpenButton: 'Open stacked panel',
+                stackedBehindTitle: 'Behind panel',
+                stackedTopTitle: 'Top panel',
+                stackedBody: 'This panel is stacked. Open the panel on top to see the panel behind shift and dim.',
             },
             propsDocs: {
                 items: {
@@ -53,6 +61,7 @@ export default defineLocaleMessages({
                     allowFullscreen: { description: 'Show fullscreen toggle button in the header' },
                     showCancel: { description: 'Show the Cancel button in the footer when onClose is provided' },
                     zIndex: { description: 'CSS z-index override - useful when stacking multiple modals' },
+                    stackedBehind: { description: 'Place this modal visually behind another one on top: keeps full height, shifts inward (left/right) behind an opacity veil, stays non-interactive and its backdrop stays mounted and fades' },
                     headerClassName: { description: 'CSS classes on the header container' },
                     titleClassName: { description: 'CSS classes on the title element' },
                     subtitleClassName: { description: 'CSS classes on the subtitle element (rendered when both title and header are set)' },

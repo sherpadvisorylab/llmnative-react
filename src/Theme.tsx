@@ -197,6 +197,18 @@ export interface ModalTheme {
     footerClassName?: string;
     iconExpand?: string;
     iconCollapse?: string;
+    /**
+     * Px a `stackedBehind` panel shifts inward (toward the page center) so a strip of it peeks
+     * out from behind the upper panel. Applied to `left`/`right` positions. Default `16`.
+     */
+    stackedOffset?: number;
+    /** Opacity of the dimming veil drawn over a `stackedBehind` panel. Default `0.4`. */
+    stackedVeilOpacity?: number;
+    /**
+     * Opacity kept by the backdrop of a `stackedBehind` panel (it stays mounted and fades instead
+     * of unmounting, so the page underneath never flashes). Default `0.35`.
+     */
+    stackedBackdropOpacity?: number;
     motion?: {
         center?: MotionReference;
         top?: MotionReference;

@@ -12,6 +12,10 @@ export default defineLocaleMessages({
                     title: 'Positionen',
                     description: 'Klicke auf einen Button, um das Modal an der entsprechenden Position zu öffnen.',
                 },
+                stacked: {
+                    title: 'Gestapelte Panels (stackedBehind)',
+                    description: 'Öffne ein Seitenpanel und dann ein zweites darüber. Das Panel dahinter behält seine volle Höhe, verschiebt sich ein paar px nach innen (ein Streifen lugt hinter einem Schleier hervor) und sein Backdrop bleibt montiert, damit die Seite nicht blinkt.',
+                },
             },
             demo: {
                 dialogTitleCenter: 'Dialog - center',
@@ -21,6 +25,10 @@ export default defineLocaleMessages({
                 openButton: 'Modal öffnen',
                 defaultTitle: 'Dialogtitel',
                 defaultBody: 'Der Modal-Inhalt steht hier.',
+                stackedOpenButton: 'Gestapeltes Panel öffnen',
+                stackedBehindTitle: 'Panel dahinter',
+                stackedTopTitle: 'Panel oben',
+                stackedBody: 'Dieses Panel ist gestapelt. Öffne das obere Panel, um das dahinterliegende Panel verschoben und gedimmt zu sehen.',
             },
             propsDocs: {
                 items: {
@@ -38,6 +46,7 @@ export default defineLocaleMessages({
                     allowFullscreen: { description: 'Zeigt den Fullscreen-Umschalter im Header' },
                     showCancel: { description: 'Zeigt den Cancel-Button im Footer, wenn onClose vorhanden ist' },
                     zIndex: { description: 'CSS-z-index-Override, nützlich beim Stapeln mehrerer Modals' },
+                    stackedBehind: { description: 'Platziert dieses Modal visuell hinter einem anderen darüber: volle Höhe, verschiebt sich nach innen (left/right) hinter einem Opazitäts-Schleier, bleibt nicht interaktiv und sein Backdrop bleibt montiert und blendet aus' },
                     headerClassName: { description: 'CSS-Klassen am Header-Container' },
                     titleClassName: { description: 'CSS-Klassen am Titelelement' },
                     subtitleClassName: { description: 'CSS-Klassen am Subtitle-Element (wenn title und header beide gesetzt sind)' },

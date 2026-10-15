@@ -31,6 +31,46 @@ function DemoModal({ position, onClose }: { position: Position; onClose: () => v
     );
 }
 
+function StackedDemo() {
+    const t = useShowcaseModalI18n();
+    const [behind, setBehind] = useState(false);
+    const [top, setTop] = useState(false);
+
+    return (
+        <>
+            <ActionButton label={t.demo.stackedOpenButton} onClick={() => setBehind(true)} />
+            {behind && (
+                <Modal
+                    title={t.demo.stackedBehindTitle}
+                    position="right"
+                    size="lg"
+                    stackedBehind={top}
+                    onClose={() => { setTop(false); setBehind(false); }}
+                >
+                    <p className="mb-4 text-sm text-muted-foreground">{t.demo.stackedBody}</p>
+                    {!top && (
+                        <ActionButton
+                            className="btn-outline-secondary"
+                            label={t.demo.stackedOpenButton}
+                            onClick={() => setTop(true)}
+                        />
+                    )}
+                </Modal>
+            )}
+            {behind && top && (
+                <Modal
+                    title={t.demo.stackedTopTitle}
+                    position="right"
+                    size="lg"
+                    onClose={() => setTop(false)}
+                >
+                    <p className="text-sm text-muted-foreground">{t.demo.stackedBody}</p>
+                </Modal>
+            )}
+        </>
+    );
+}
+
 function ModalPlaygroundDemo({ props: p }: { props: Record<string, any> }) {
     const [open, setOpen] = useState(false);
     const t = useShowcaseModalI18n();
@@ -79,6 +119,7 @@ export default function ModalPage() {
         { name: 'allowFullscreen', type: 'boolean', default: 'false', description: t.propsDocs.items.allowFullscreen.description, control: 'boolean' },
         { name: 'showCancel', type: 'boolean', default: 'true', description: t.propsDocs.items.showCancel.description, control: 'boolean' },
         { name: 'zIndex', type: 'number', description: t.propsDocs.items.zIndex.description, control: 'number' },
+        { name: 'stackedBehind', type: 'boolean', default: 'false', description: t.propsDocs.items.stackedBehind.description, control: 'boolean' },
         { name: 'headerClassName', type: 'string', description: t.propsDocs.items.headerClassName.description, control: 'text' },
         { name: 'titleClassName', type: 'string', description: t.propsDocs.items.titleClassName.description, control: 'text' },
         { name: 'subtitleClassName', type: 'string', description: t.propsDocs.items.subtitleClassName.description, control: 'text' },
@@ -153,6 +194,32 @@ const [open, setOpen] = useState(false);
         }}
     >
         Modal content here
+    </Modal>
+)}`}
+            />
+
+            <Section
+                title={t.sections.stacked.title}
+                description={t.sections.stacked.description}
+                preview={<StackedDemo />}
+                code={`import { Modal } from '@llmnative/react';
+
+const [behind, setBehind] = useState(false);
+const [top, setTop] = useState(false);
+
+{behind && (
+    <Modal
+        title="Behind panel"
+        position="right"
+        stackedBehind={top}
+        onClose={() => setBehind(false)}
+    >
+        Behind content
+    </Modal>
+)}
+{behind && top && (
+    <Modal title="Top panel" position="right" onClose={() => setTop(false)}>
+        Top content
     </Modal>
 )}`}
             />

@@ -106,4 +106,61 @@ describe('Modal', () => {
         await new Promise((resolve) => setTimeout(resolve, 400));
         expect(onClose).not.toHaveBeenCalled();
     });
+
+    it('does not scale or filter a stacked-behind panel', () => {
+        render(<I18nProvider><Modal title="Behind" position="right" stackedBehind>Modal body</Modal></I18nProvider>);
+
+        const dialog = screen.getByRole('dialog', { name: 'Behind' });
+        expect(dialog.style.filter).toBe('');
+        expect(dialog.style.transform).not.toContain('scale');
+    });
+
+    it('shifts a right panel inward with a translate offset when stacked behind', () => {
+        render(<I18nProvider><Modal title="Behind" position="right" stackedBehind>Modal body</Modal></I18nProvider>);
+
+        const dialog = screen.getByRole('dialog', { name: 'Behind' });
+        expect(dialog.style.translate).toBe('-16px 0');
+        expect(dialog.style.transition).toContain('translate');
+    });
+
+    it('shifts a left panel inward with a translate offset when stacked behind', () => {
+        render(<I18nProvider><Modal title="Behind" position="left" stackedBehind>Modal body</Modal></I18nProvider>);
+
+        expect(screen.getByRole('dialog', { name: 'Behind' }).style.translate).toBe('16px 0');
+    });
+
+    it('dims a stacked-behind panel with an opacity veil instead of a filter', () => {
+        render(<I18nProvider><Modal title="Behind" position="right" stackedBehind>Modal body</Modal></I18nProvider>);
+
+        const veil = screen.getByRole('dialog', { name: 'Behind' }).querySelector('[data-rf-modal-veil]') as HTMLElement;
+        expect(veil).not.toBeNull();
+        expect(veil.style.filter).toBe('');
+        expect(veil.style.transition).toContain('opacity');
+        expect(Number(veil.style.opacity)).toBeCloseTo(0.4);
+    });
+
+    it('keeps the stacked-behind backdrop mounted, dimmed and non-interactive', async () => {
+        render(<I18nProvider><Modal title="Behind" position="right" stackedBehind onClose={vi.fn()}>Modal body</Modal></I18nProvider>);
+
+        const backdrop = document.body.querySelector('[data-rf-modal-backdrop]') as HTMLElement;
+        expect(backdrop).not.toBeNull();
+        expect(backdrop.style.pointerEvents).toBe('none');
+        await waitFor(() => expect(Number(backdrop.style.opacity)).toBeCloseTo(0.35));
+    });
+
+    it('keeps the stacked-behind cover non-interactive', () => {
+        render(<I18nProvider><Modal title="Behind" position="right" stackedBehind>Modal body</Modal></I18nProvider>);
+
+        const dialog = screen.getByRole('dialog', { name: 'Behind' });
+        expect(dialog.parentElement?.style.pointerEvents).toBe('none');
+    });
+
+    it('leaves the panel untouched and the veil transparent when not stacked', () => {
+        render(<I18nProvider><Modal title="Front" position="right">Modal body</Modal></I18nProvider>);
+
+        const dialog = screen.getByRole('dialog', { name: 'Front' });
+        expect(dialog.style.translate).toBe('');
+        const veil = dialog.querySelector('[data-rf-modal-veil]') as HTMLElement;
+        expect(Number(veil.style.opacity)).toBe(0);
+    });
 });

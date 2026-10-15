@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- `Modal` with `stackedBehind`: the panel behind no longer scales down (`scale(0.94)`) or dims
+  with `filter: brightness(0.7)`. It keeps its full height and, for `left`/`right` positions,
+  shifts a few px inward so a strip of it peeks out from behind the upper panel, dimmed by an
+  opacity veil. Its backdrop stays mounted with a reduced opacity and fades instead of being
+  unmounted, so the page underneath never flashes. The upper panel keeps its lateral slide in and
+  out (symmetric). New optional `ModalTheme` keys `stackedOffset` (default `16`), `stackedVeilOpacity`
+  (default `0.4`) and `stackedBackdropOpacity` (default `0.35`), all backward compatible (CR-101,
+  GH issue #76).
+
 ## [1.24.0] - 2026-10-14
 
 ### Added

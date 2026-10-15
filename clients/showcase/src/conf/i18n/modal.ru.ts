@@ -12,6 +12,10 @@ export default defineLocaleMessages({
                     title: 'Позиции',
                     description: 'Нажми кнопку, чтобы открыть modal в соответствующей позиции.',
                 },
+                stacked: {
+                    title: 'Составные панели (stackedBehind)',
+                    description: 'Открой боковую панель, затем вторую поверх неё. Нижняя панель сохраняет полную высоту, сдвигается на несколько px внутрь (полоса выглядывает из-за вуали), а её backdrop остаётся смонтированным, поэтому страница не мигает.',
+                },
             },
             demo: {
                 dialogTitleCenter: 'Dialog - center',
@@ -21,6 +25,10 @@ export default defineLocaleMessages({
                 openButton: 'Открыть modal',
                 defaultTitle: 'Заголовок диалога',
                 defaultBody: 'Содержимое modal находится здесь.',
+                stackedOpenButton: 'Открыть составную панель',
+                stackedBehindTitle: 'Нижняя панель',
+                stackedTopTitle: 'Верхняя панель',
+                stackedBody: 'Эта панель составная. Открой верхнюю панель, чтобы увидеть, как нижняя сдвигается и затемняется.',
             },
             propsDocs: {
                 items: {
@@ -38,6 +46,7 @@ export default defineLocaleMessages({
                     allowFullscreen: { description: 'Показывать переключатель fullscreen в header' },
                     showCancel: { description: 'Показывать кнопку Cancel в footer, когда передан onClose' },
                     zIndex: { description: 'Переопределение CSS z-index, полезно при стеке нескольких modal' },
+                    stackedBehind: { description: 'Визуально ставит этот modal позади другого сверху: полная высота, сдвиг внутрь (left/right) за вуалью непрозрачности, остаётся неинтерактивным, а его backdrop остаётся смонтированным и затухает' },
                     headerClassName: { description: 'CSS-классы на контейнере header' },
                     titleClassName: { description: 'CSS-классы на элементе title' },
                     subtitleClassName: { description: 'CSS-классы на элементе subtitle (когда заданы и title, и header)' },

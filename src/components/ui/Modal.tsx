@@ -62,9 +62,10 @@ export interface ModalProps extends MotionUIProps {
     rightInset?: number;
     /**
      * When `true` this modal is visually "behind" another modal stacked on top.
-     * The panel becomes 10% wider (so its edge peeks out from behind the upper modal),
-     * gains a semi-transparent dimming overlay, its backdrop is suppressed (the upper
-     * modal's backdrop handles interaction blocking), and its cover becomes non-interactive.
+     * The panel keeps its full height and shifts a few px inward for `left`/`right`
+     * positions (so a strip of it peeks out), gains a semi-transparent dimming veil
+     * (opacity transition, no filter) and stays non-interactive. Its backdrop stays
+     * mounted with a reduced opacity and fades, so the page underneath never flashes.
      */
     stackedBehind?: boolean;
     /**
@@ -298,25 +299,23 @@ const ModalDefault = ({
         ...insetStyle,
     };
 
-    // GTM-style depth effect: scale back + shift away from edge + transition
-    const stackedTransform: React.CSSProperties = stackedBehind ? {
-        transform: position === 'left'
-            ? 'scale(0.94) translateX(-14px)'
-            : position === 'right'
-                ? 'scale(0.94) translateX(14px)'
-                : position === 'bottom'
-                    ? 'scale(0.94) translateY(14px)'
-                    : position === 'top'
-                        ? 'scale(0.94) translateY(-14px)'
-                        : 'scale(0.94)',
-        transformOrigin: position === 'left' ? 'left center'
-            : position === 'right' ? 'right center'
-            : position === 'bottom' ? 'bottom center'
-            : position === 'top' ? 'top center'
-            : 'center',
-        transition: 'transform 200ms ease, filter 200ms ease',
-        filter: 'brightness(0.7)',
-    } : {};
+    // GTM-style depth: the panel behind keeps its full height and shifts a few px inward
+    // (left/right only) so a strip of it peeks out from behind the upper panel. No scale and
+    // no filter — the dimming is an opacity veil and both the offset and the veil transition
+    // through the motion system (so `prefers-reduced-motion` is honoured). The upper panel
+    // slides in/out symmetrically and the page underneath never flashes.
+    const stackedOffset = theme.Modal.stackedOffset ?? 16;
+    const stackedVeilOpacity = theme.Modal.stackedVeilOpacity ?? 0.4;
+    const stackedBackdropOpacity = theme.Modal.stackedBackdropOpacity ?? 0.35;
+    const stackedTranslate: string | undefined = stackedBehind
+        ? modalPosition === 'left'
+            ? `${stackedOffset}px 0`
+            : modalPosition === 'right'
+                ? `-${stackedOffset}px 0`
+                : undefined
+        : undefined;
+    const offsetTransition = `translate ${dialogMotion.transition.duration}ms ${dialogMotion.transition.easing}`;
+    const veilTransition = `opacity ${dialogMotion.transition.duration}ms ${dialogMotion.transition.easing}`;
 
     const showFooter = footer !== false && (footer || onSave || onDelete || (showCancel && onClose));
 
@@ -342,7 +341,8 @@ const ModalDefault = ({
                 className={pos.dialogClass}
                 style={{
                     ...dialogStyle,
-                    ...stackedTransform,
+                    transition: [dialogStyle.transition, offsetTransition].filter(Boolean).join(', '),
+                    ...(stackedTranslate !== undefined ? { translate: stackedTranslate } : {}),
                     ...(zIndex !== undefined ? { zIndex } : {}),
                     ...(modalPosition === 'right' ? insetStyle : {}),
                 }}
@@ -416,21 +416,34 @@ const ModalDefault = ({
                     </div>}
                 </div>
                 {after}
+                <div
+                    data-rf-modal-veil=""
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 bg-black"
+                    style={{
+                        opacity: stackedBehind ? stackedVeilOpacity : 0,
+                        transition: veilTransition,
+                    }}
+                />
             </div>
         </div>
-        {!stackedBehind && (
-            <div
-                data-rf-modal-backdrop=""
-                aria-hidden="true"
-                className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
-                style={backdropStyle}
-                onClick={() => {
-                    if (closeOnBackdrop && onClose) {
-                        handleClose();
-                    }
-                }}
-            />
-        )}
+        <div
+            data-rf-modal-backdrop=""
+            aria-hidden="true"
+            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+            style={{
+                ...backdropStyle,
+                ...(stackedBehind ? {
+                    opacity: entered ? stackedBackdropOpacity : 0,
+                    pointerEvents: 'none',
+                } : {}),
+            }}
+            onClick={() => {
+                if (closeOnBackdrop && onClose) {
+                    handleClose();
+                }
+            }}
+        />
     </>, document.body);
 };
 

@@ -108,6 +108,50 @@
 | [CR-098](#cr-098--repeat-documentazione-allineata-al-comportamento-layout-vertical-e-accessibilità) | Repeat: documentazione allineata al comportamento, layout vertical e accessibilità | Media | — | ⬜ |
 | [CR-099](#cr-099--label-dei-campi-stringa-o-nodo-react) | Label dei campi: stringa o nodo React | Media | — | ✅ |
 | [CR-100](#cr-100--tree-albero-di-nodi-accessibile) | Tree: albero di nodi accessibile | Media | — | ✅ |
+| [CR-101](#cr-101--modal-stackedbehind-pannelli-laterali-impilati-stile-gtm) | Modal stackedBehind: pannelli laterali impilati stile GTM | Media | — | 🔄 |
+
+---
+
+## CR-101 — Modal stackedBehind: pannelli laterali impilati stile GTM
+
+**Stato:** 🔄 in progress
+**Issue:** [#76](https://github.com/sherpadvisorylab/llmnative-react/issues/76)
+**Priorità:** Media
+**Dipende da:** —
+
+### Motivazione
+
+Emersa nel Playbook: una modale laterale aperta sopra un'altra (`stackedBehind`) si anima in modo
+forzato e a scatti — la modale sotto viene rimpicciolita con `scale(0.94)` e scurita con
+`filter: brightness(0.7)`, e il suo backdrop viene smontato di colpo facendo lampeggiare la pagina.
+Si vuole l'effetto di pannelli laterali impilati stile Google Tag Manager: la modale sotto resta a
+tutta altezza, si sposta di poco lasciando sporgere una striscia scurita da un velo, quella sopra
+entra con un semplice slide laterale e il backdrop resta montato sfumando.
+
+### Scope
+
+- `src/components/ui/Modal.tsx`: rimossi `scale(...)` e `filter: brightness(...)`; per `position`
+  `left`/`right` la modale sotto si sposta verso l'interno (offset tema `stackedOffset`, default
+  `16` px) con transizione sulla proprietà `translate`; velo (overlay) che transisce in `opacity`;
+  modale sotto non interattiva.
+- Backdrop della modale `stackedBehind` sempre montato, con opacità ridotta
+  (`stackedBackdropOpacity`, default `0.35`) e sfumata — nessun flash della pagina.
+- `src/Theme.tsx` (`ModalTheme`) e temi `default`/`flat`/`cyber`: nuove chiavi `stackedOffset`,
+  `stackedVeilOpacity`, `stackedBackdropOpacity` con default retrocompatibili.
+- `tests/unit/components/Modal.test.tsx`, showcase (`ModalPage`, 6 lingue), `llms-full.txt`,
+  `CHANGELOG.md`, `.notes`.
+
+### Checklist
+
+- [x] Niente `scale`/`filter` nello stile della modale `stackedBehind`
+- [x] Offset di sporgenza su `translate` per `left`/`right`, con transizione
+- [x] Velo in `opacity` al posto del filtro
+- [x] Backdrop montato e sfumato (nessun flash)
+- [x] Modale sotto non interattiva; slide simmetrico della modale in cima
+- [x] Test in `Modal.test.tsx`
+- [x] `llms-full.txt`, showcase, `CHANGELOG.md`, `.notes` aggiornati
+- [x] Gate verdi: `npx tsc --noEmit`, `npm test` (72 file / 802 test), `npm run build`
+- [ ] Release
 
 ---
 

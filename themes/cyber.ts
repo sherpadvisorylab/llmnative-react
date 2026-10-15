@@ -167,6 +167,9 @@ export const components: Theme = {
             footerClassName: '',
             iconExpand: 'fullscreen',
             iconCollapse: 'fullscreen-exit',
+            stackedOffset: 16,
+            stackedVeilOpacity: 0.4,
+            stackedBackdropOpacity: 0.35,
             motion: {
                 center: 'fade',
                 top: 'slideFromTop',
@@ -264,6 +267,9 @@ export const components: Theme = {
         footerClassName: '',
         iconExpand: 'fullscreen',
         iconCollapse: 'fullscreen-exit',
+        stackedOffset: 16,
+        stackedVeilOpacity: 0.4,
+        stackedBackdropOpacity: 0.35,
         motion: {
             center: 'fade',
             top: 'slideFromTop',
