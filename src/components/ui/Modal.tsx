@@ -61,10 +61,11 @@ export interface ModalProps extends MotionUIProps {
      */
     rightInset?: number;
     /**
-     * When `true` this modal is visually "behind" another modal stacked on top.
-     * The panel becomes 10% wider (so its edge peeks out from behind the upper modal),
-     * gains a semi-transparent dimming overlay, its backdrop is suppressed (the upper
-     * modal's backdrop handles interaction blocking), and its cover becomes non-interactive.
+     * When `true` this modal is visually "behind" another modal stacked on top, as in
+     * Google Tag Manager: it keeps its size and height, a side panel (`left`/`right`) slides
+     * inwards so a strip of it peeks out from behind the upper one, a veil dims it, its
+     * backdrop fades out (the upper modal's backdrop takes over) and it stops reacting to the
+     * pointer. Every change runs with the slide transition of the modal, both ways.
      */
     stackedBehind?: boolean;
     /**
@@ -95,6 +96,9 @@ export interface ModalOkProps {
     title?: React.ReactNode;
     onClose?: () => void;
 }
+
+/** How much of a side panel peeks out from behind the modal stacked on top of it. */
+const STACK_PEEK = '3rem';
 
 // Open modals in mount order: Escape closes only the last one (a modal `stackedBehind` leaves
 // the stack while another one is on top of it).
@@ -286,6 +290,9 @@ const ModalDefault = ({
 
     const backdropStyle: React.CSSProperties = {
         ...useMotionState(entered, theme.Modal.motion?.backdrop ?? 'fade', theme.Modal.motion?.backdrop ?? 'fade'),
+        // Behind another modal the backdrop fades out instead of unmounting: the upper one's
+        // fades in at the same time, so the page does not flash.
+        ...(stackedBehind ? { opacity: 0, pointerEvents: 'none' } : {}),
         cursor: closeOnBackdrop && onClose ? 'pointer' : 'default',
         ...(zIndex !== undefined ? { zIndex: zIndex - 10 } : {}),
         ...insetStyle,
@@ -298,25 +305,18 @@ const ModalDefault = ({
         ...insetStyle,
     };
 
-    // GTM-style depth effect: scale back + shift away from edge + transition
-    const stackedTransform: React.CSSProperties = stackedBehind ? {
-        transform: position === 'left'
-            ? 'scale(0.94) translateX(-14px)'
-            : position === 'right'
-                ? 'scale(0.94) translateX(14px)'
-                : position === 'bottom'
-                    ? 'scale(0.94) translateY(14px)'
-                    : position === 'top'
-                        ? 'scale(0.94) translateY(-14px)'
-                        : 'scale(0.94)',
-        transformOrigin: position === 'left' ? 'left center'
-            : position === 'right' ? 'right center'
-            : position === 'bottom' ? 'bottom center'
-            : position === 'top' ? 'top center'
-            : 'center',
-        transition: 'transform 200ms ease, filter 200ms ease',
-        filter: 'brightness(0.7)',
+    // Stacked behind another modal (Google Tag Manager style): a side panel keeps its size and
+    // slides inwards by STACK_PEEK, so a strip of it shows next to the upper one. Only a
+    // translate, run by the same transition as the slide of the modal: no scale, no filter.
+    const stackedTransform: React.CSSProperties = stackedBehind && (modalPosition === 'right' || modalPosition === 'left') ? {
+        transform: `translateX(${modalPosition === 'right' ? '-' : ''}${STACK_PEEK})`,
     } : {};
+    const veilStyle: React.CSSProperties = {
+        opacity: stackedBehind ? 1 : 0,
+        transition: dialogMotion.transition.duration
+            ? `opacity ${dialogMotion.transition.duration}ms ${dialogMotion.transition.easing}`
+            : undefined,
+    };
 
     const showFooter = footer !== false && (footer || onSave || onDelete || (showCancel && onClose));
 
@@ -416,21 +416,20 @@ const ModalDefault = ({
                     </div>}
                 </div>
                 {after}
+                <div data-rf-modal-veil="" aria-hidden="true" className="pointer-events-none absolute inset-0 z-10 bg-black/40" style={veilStyle} />
             </div>
         </div>
-        {!stackedBehind && (
-            <div
-                data-rf-modal-backdrop=""
-                aria-hidden="true"
-                className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
-                style={backdropStyle}
-                onClick={() => {
-                    if (closeOnBackdrop && onClose) {
-                        handleClose();
-                    }
-                }}
-            />
-        )}
+        <div
+            data-rf-modal-backdrop=""
+            aria-hidden="true"
+            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+            style={backdropStyle}
+            onClick={() => {
+                if (closeOnBackdrop && onClose) {
+                    handleClose();
+                }
+            }}
+        />
     </>, document.body);
 };
 

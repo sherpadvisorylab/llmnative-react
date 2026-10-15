@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.25.0] - 2026-10-15
+
+### Changed
+- `Modal` `stackedBehind`, Google Tag Manager style: the modal behind keeps its size and full
+  height; a side panel slides inwards by 3rem so a strip of it peeks out from behind the upper
+  one, a veil dims it and its backdrop fades out instead of unmounting. No more `scale` and
+  `filter: brightness`: only a translate and opacities, run by the slide transition of the modal
+  both ways, so stacking and going back no longer jump (CR-101, GH issue #76).
+
 ## [1.24.0] - 2026-10-14
 
 ### Added

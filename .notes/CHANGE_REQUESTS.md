@@ -108,6 +108,7 @@
 | [CR-098](#cr-098--repeat-documentazione-allineata-al-comportamento-layout-vertical-e-accessibilità) | Repeat: documentazione allineata al comportamento, layout vertical e accessibilità | Media | — | ⬜ |
 | [CR-099](#cr-099--label-dei-campi-stringa-o-nodo-react) | Label dei campi: stringa o nodo React | Media | — | ✅ |
 | [CR-100](#cr-100--tree-albero-di-nodi-accessibile) | Tree: albero di nodi accessibile | Media | — | ✅ |
+| [CR-101](#cr-101--modal-stackedbehind-in-stile-google-tag-manager) | Modal stackedBehind in stile Google Tag Manager | Media | — | ✅ |
 
 ---
 
@@ -141,6 +142,39 @@ Richiesto dal consumer `llmnative-cms`.
 - [x] Docs `docs/providers/ai.md`, `llms-full.txt`
 - [x] Verifica visiva nel consumer `llmnative-cms` (picker Agentico: header per OpenCode, DeepSeek, Cloudflare Workers AI, sticky durante lo scroll)
 - [x] Release 1.18.0
+
+---
+
+## CR-101 — Modal stackedBehind in stile Google Tag Manager
+
+**Stato:** ✅ done
+**Issue:** [#76](https://github.com/sherpadvisorylab/llmnative-react/issues/76)
+**Priorità:** Media
+**Dipende da:** —
+
+### Motivazione
+
+Emersa nel Playbook (15/10/2026): una modale laterale aperta sopra un'altra si animava in modo
+forzato e a scatti. La modale sotto si rimpiccioliva (`scale(0.94)`) e si scuriva con
+`filter: brightness`, e il suo backdrop veniva smontato di colpo. Il riferimento atteso è Google
+Tag Manager: pannelli a tutta altezza, quello sotto che sporge di lato, entrata e uscita con un
+semplice slide da destra a sinistra.
+
+### Scope
+
+- `stackedBehind`: niente scale né filter. Un pannello `left`/`right` trasla verso l'interno di
+  3rem, a tutta altezza; un velo (`data-rf-modal-veil`) lo scurisce con transizione di opacità.
+- Il backdrop della modale sotto resta montato e sfuma a opacità 0 senza ricevere il puntatore,
+  mentre quello della modale sopra entra.
+- Le transizioni sono quelle dello slide della modale, nei due versi.
+- Test, `llms-full.txt`, CHANGELOG.
+
+### Checklist
+
+- [x] Traslazione di 3rem per `right` e `left`, senza scale né filter, e ritorno a riposo (`Modal.test.tsx`)
+- [x] Velo e backdrop sfumati invece che smontati (`Modal.test.tsx`)
+- [x] Verificato nel Playbook con due pannelli laterali sovrapposti
+- [x] Release 1.25.0
 
 ---
 

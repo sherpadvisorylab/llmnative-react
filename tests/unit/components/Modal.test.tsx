@@ -66,6 +66,33 @@ describe('Modal', () => {
         expect(screen.getByRole('dialog', { name: 'Behind' })).not.toHaveAttribute('aria-modal');
     });
 
+    it('stacked behind, a side panel slides inwards and dims, without scale or filter, and back', () => {
+        const { rerender } = render(<I18nProvider><Modal title="Panel" position="right">Modal body</Modal></I18nProvider>);
+        const dialog = () => screen.getByRole('dialog', { name: 'Panel' });
+        const veil = () => dialog().querySelector('[data-rf-modal-veil]') as HTMLElement;
+        const backdrop = () => document.querySelector('[data-rf-modal-backdrop]') as HTMLElement;
+
+        expect(veil().style.opacity).toBe('0');
+
+        rerender(<I18nProvider><Modal title="Panel" position="right" stackedBehind>Modal body</Modal></I18nProvider>);
+        expect(dialog().style.transform).toBe('translateX(-3rem)');
+        expect(dialog().style.filter).toBe('');
+        expect(dialog().style.transform).not.toContain('scale');
+        expect(veil().style.opacity).toBe('1');
+        // The backdrop stays and fades out: the upper modal's takes over.
+        expect(backdrop()).toBeInTheDocument();
+        expect(backdrop().style.opacity).toBe('0');
+
+        rerender(<I18nProvider><Modal title="Panel" position="right">Modal body</Modal></I18nProvider>);
+        expect(dialog().style.transform).not.toBe('translateX(-3rem)');
+        expect(veil().style.opacity).toBe('0');
+    });
+
+    it('stacked behind on the left, slides to the right', () => {
+        render(<I18nProvider><Modal title="Left" position="left" stackedBehind>Modal body</Modal></I18nProvider>);
+        expect(screen.getByRole('dialog', { name: 'Left' }).style.transform).toBe('translateX(3rem)');
+    });
+
     it('closes with Escape', async () => {
         const onClose = vi.fn();
         render(<I18nProvider><Modal title="Esc" onClose={onClose}>Modal body</Modal></I18nProvider>);
