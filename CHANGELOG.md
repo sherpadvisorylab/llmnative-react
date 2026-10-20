@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.26.0] - 2026-10-21
+
+### Added
+- AI providers with credentials held by the app's server (CR-102, GH issue #78), for apps that
+  never put a provider key in the browser. `createServerCredentialAIRegistry(connections, { scope })`
+  builds the usual adapters with a placeholder where the key goes; each adapter writes it exactly
+  where it writes the key (Bearer, `x-api-key`, Gemini's `?key=`). The new Node entry
+  `@llmnative/react/server` exports `resolveServerCredentials(request, lookup)`: the app's proxy
+  swaps the placeholder for the key of that scope and provider, only towards a host of that
+  provider (`AI_PROVIDER_HOSTS`, the `baseUrl` of openai-compatible, the account of Cloudflare);
+  any other target is refused. `createProxyPlugin` (Vite) takes the same lookup as a third
+  argument. `proxyFetch` never sends a placeholder straight to a provider: without the proxy it
+  throws a clear error. `createAIProviderRegistry` and `AIConfig` do not change.
+
 ## [1.25.4] - 2026-10-15
 
 ### Fixed

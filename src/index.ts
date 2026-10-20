@@ -198,8 +198,9 @@ export { GmailEmailProvider } from './providers/email/google/GmailEmailProvider'
 export type {
     AIRequestOptions, AIAttachment, AIProviderAdapter, AIKeyValidationResult, AIModelDescriptor, AIModelPricing, DiscoveredAIModel, AIProviderCapabilities, AIModelCatalog, AIProviderDefinition,
     AICompleteRequest, AICompleteResult, AIConversationTurn, AIToolDefinition, AIToolCall, AIToolResult, CloudflareProviderOptions,
+    ServerAIProviderConnection, ServerAIConnection,
 } from './providers/ai';
-export { createAIProviderRegistry, getAIModelCatalog, formatAIModelRef, parseAIModelRef, isFreeAIModel, AI_PROVIDER_DEFINITIONS, AI_PROVIDER_DESCRIPTORS, OPENAI_COMPATIBLE_PROVIDER_DESCRIPTOR, CLOUDFLARE_PROVIDER_DESCRIPTOR, createCloudflareProviderDefinition, toProviderDescriptor } from './providers/ai';
+export { createAIProviderRegistry, getAIModelCatalog, formatAIModelRef, parseAIModelRef, isFreeAIModel, AI_PROVIDER_DEFINITIONS, AI_PROVIDER_DESCRIPTORS, OPENAI_COMPATIBLE_PROVIDER_DESCRIPTOR, CLOUDFLARE_PROVIDER_DESCRIPTOR, createCloudflareProviderDefinition, toProviderDescriptor, createServerCredentialAIRegistry, serverCredential, SERVER_CREDENTIAL_PREFIX, AI_PROVIDER_HOSTS, isAIProviderTarget } from './providers/ai';
 export type { ProviderDescriptor, ProviderCredentialField } from './providers/ProviderDescriptor';
 export { useAIProvider, useAIProviderRegistry, AIProvider } from './providers/ai/AIProviderContext';
 export { proxyFetch, useProxy, configureProxy, isProxyEnabled } from './providers/proxy';

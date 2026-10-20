@@ -962,6 +962,32 @@ class MyAIProvider implements AIProviderAdapter {
 const registry = createAIProviderRegistry(definitions)
 ```
 
+### Chiavi tenute dal server (CR-102)
+
+Per un'app che non mette mai le chiavi dei provider nel browser. Il browser conosce solo quali
+provider sono collegati; il proxy dell'app mette la chiave.
+
+```ts
+// Browser: gli stessi adapter, con un segnaposto dove andrebbe la chiave. Serve il proxy attivo.
+const registry = createServerCredentialAIRegistry(
+  [{ id: 'anthropic' }, { id: 'cloudflare', accountId }, { id: 'openai-compatible', baseUrl }],
+  { scope: companyId },   // lettere, cifre, - e _
+)
+Object.entries(registry).forEach(([id, adapter]) => setProvider('ai', id, adapter))
+
+// Server (Node, nessuna dipendenza da React): nel proxy, prima di inoltrare.
+import { resolveServerCredentials } from '@llmnative/react/server'
+const resolved = await resolveServerCredentials({ url: target, headers },
+  (scope, provider) => keysOf(scope)[provider])   // { id, apiKey, accountId?, baseUrl? } | undefined
+if (!resolved.ok) return reply(resolved.status, resolved.error)   // 404 non collegato, 403 host estraneo
+await fetch(resolved.url, { headers: resolved.headers, ... })
+```
+
+La chiave va solo agli host del provider (`AI_PROVIDER_HOSTS`, il `baseUrl` di openai-compatible,
+l'account di Cloudflare): una destinazione diversa è rifiutata. `createProxyPlugin(route, log,
+lookup)` fa lo stesso nel proxy di sviluppo di Vite. Senza proxy, `proxyFetch` rifiuta di inviare
+un segnaposto. `createAIProviderRegistry` (chiavi nel browser) resta com'è.
+
 Configurazione API key in `Config.tsx`: `geminiApiKey`, `openaiApiKey`, `anthropicApiKey`, `deepSeekApiKey`, `mistralApiKey`, `openRouterApiKey`, `groqApiKey`, `cloudflare: { apiToken, accountId }` (Cloudflare Workers AI: l'account id fa parte dell'URL; discovery via `ai/models/search`, modelli Workers Paid esclusi salvo `includePaidModels`).
 
 ---

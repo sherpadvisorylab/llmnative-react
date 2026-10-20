@@ -109,6 +109,7 @@
 | [CR-099](#cr-099--label-dei-campi-stringa-o-nodo-react) | Label dei campi: stringa o nodo React | Media | — | ✅ |
 | [CR-100](#cr-100--tree-albero-di-nodi-accessibile) | Tree: albero di nodi accessibile | Media | — | ✅ |
 | [CR-101](#cr-101--modal-stackedbehind-in-stile-google-tag-manager) | Modal stackedBehind in stile Google Tag Manager | Media | — | ✅ |
+| [CR-102](#cr-102--provider-ai-con-le-chiavi-sul-server) | Provider AI con le chiavi sul server | Alta | — | 🔄 |
 
 ---
 
@@ -142,6 +143,49 @@ Richiesto dal consumer `llmnative-cms`.
 - [x] Docs `docs/providers/ai.md`, `llms-full.txt`
 - [x] Verifica visiva nel consumer `llmnative-cms` (picker Agentico: header per OpenCode, DeepSeek, Cloudflare Workers AI, sticky durante lo scroll)
 - [x] Release 1.18.0
+
+---
+
+## CR-102 — Provider AI con le chiavi sul server
+
+**Stato:** 🔄 in progress
+**Issue:** [#78](https://github.com/sherpadvisorylab/llmnative-react/issues/78)
+**Priorità:** Alta
+**Dipende da:** —
+
+### Motivazione
+
+Emersa nel Playbook (20/10/2026): lo studio tiene ogni segreto sul suo server e mai nel browser, ma
+un adapter AI riceve la chiave come stringa e la scrive da sé nella richiesta (Bearer, `x-api-key`,
+`?key=` per Gemini). Un'app che non può tenere le chiavi nel browser non ha modo di usare i provider
+AI, e con loro Agentico, `Prompt` e `Chatbot`.
+
+### Scope
+
+- `createServerCredentialAIRegistry(connections, { scope })`: gli stessi adapter, con un segnaposto
+  (`llmnative-server-credential:<scope>:<provider>`) dove andrebbe la chiave. Ogni adapter lo mette
+  esattamente dove metterebbe la chiave: il framework non deve sapere come si autentica ciascun
+  provider. Additiva: `createAIProviderRegistry` e `AIConfig` non cambiano.
+- `proxyFetch` non manda mai un segnaposto direttamente a un provider: senza proxy lancia un errore
+  chiaro.
+- Nuovo entry Node `@llmnative/react/server`: `resolveServerCredentials(request, lookup)` sostituisce
+  il segnaposto in header e URL con la chiave di quello scope e provider, solo se la destinazione è
+  un host di quel provider (`aiProviderHosts`: host fissi, il `baseUrl` di openai-compatible,
+  l'account di Cloudflare). Altrimenti rifiuta: la chiave non può essere mandata altrove.
+- `createProxyPlugin` (Vite) accetta un lookup delle credenziali opzionale.
+- Test, `llms-full.txt`, CHANGELOG.
+
+### Checklist
+
+- [x] `AI_PROVIDER_HOSTS` copre ogni URL degli adapter integrati (test di coerenza in `ServerCredentials.test.ts`)
+- [x] `createServerCredentialAIRegistry` con segnaposto per ogni provider, scope validato
+- [x] `proxyFetch` rifiuta il segnaposto senza proxy
+- [x] `resolveServerCredentials`: header, query (Gemini), Cloudflare per account, openai-compatible per `baseUrl`, host estraneo rifiutato
+- [x] Entry `@llmnative/react/server` senza React, nel build e negli `exports` (verificato con Node puro su `dist/server.mjs`)
+- [x] Opzione credenziali in `createProxyPlugin`
+- [x] Registri esistenti invariati (test esistenti verdi)
+- [ ] Verificato nel Playbook
+- [x] Release 1.26.0
 
 ---
 

@@ -1,5 +1,6 @@
 import { onConfigChange } from '../../Config';
 import type { ProxyConfig } from '../../Config';
+import { containsServerCredential } from '../ai/serverCredentials';
 
 export const PROXY_CALLER_HEADER = 'x-llmnative-proxy';
 export const DEFAULT_PROXY_ROUTE = '/api/proxy';
@@ -30,12 +31,22 @@ onConfigChange((config) => {
     configureProxy(config.proxy);
 });
 
+/** A request that goes out without the proxy: never with a server-credential placeholder (CR-102),
+ * which only the app's proxy can turn into a key. */
+const directFetch = (url: string, input: Parameters<typeof fetch>[0], init?: RequestInit) => {
+    const headers = new Headers(input instanceof Request ? input.headers : init?.headers);
+    if (containsServerCredential(url) || [...headers.values()].some(containsServerCredential)) {
+        return Promise.reject(new Error('This AI provider uses credentials held by the server: enable the proxy (providers.proxy.enabled) so that the server adds the key.'));
+    }
+    return globalThis.fetch(input, init);
+};
+
 export const proxyFetch: typeof fetch = (input, init) => {
-    if (!_config?.enabled) return globalThis.fetch(input, init);
     const url = typeof input === 'string' ? input
         : input instanceof URL ? input.toString()
         : (input as Request).url;
-    if (!shouldProxyRequest(url)) return globalThis.fetch(input, init);
+    if (!_config?.enabled) return directFetch(url, input, init);
+    if (!shouldProxyRequest(url)) return directFetch(url, input, init);
     const route = _config.route?.trim() || DEFAULT_PROXY_ROUTE;
     const separator = route.includes('?') ? '&' : '?';
     const proxiedUrl = `${route}${separator}url=${encodeURIComponent(url)}`;

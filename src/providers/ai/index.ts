@@ -12,7 +12,8 @@ import { GLM_PROVIDER_DEFINITION } from './glm';
 import { GROQ_PROVIDER_DEFINITION } from './groq';
 import { OPENCODE_PROVIDER_DEFINITION } from './opencode';
 import { OPENROUTER_PROVIDER_DEFINITION } from './openrouter';
-import { getAIModelCatalog, type AIProviderDefinition, type AIModelCatalog, RuntimeAIProvider } from './shared';
+import { getAIModelCatalog, type AIProviderDefinition, type AIModelCatalog, type BuiltInAIProviderId, RuntimeAIProvider } from './shared';
+import { serverCredential } from './serverCredentials';
 
 export type {
     AIProviderAdapter, AIKeyValidationResult, AIModelDescriptor, AIModelPricing, AIProviderCapabilities, AIRequestOptions, AIAttachment,
@@ -24,6 +25,8 @@ export type { AIModelCatalog, AIProviderDefinition } from './shared';
 export { getAIModelCatalog } from './shared';
 export { CLOUDFLARE_PROVIDER_DESCRIPTOR, createCloudflareProviderDefinition } from './cloudflare';
 export type { CloudflareProviderOptions } from './cloudflare';
+export { AI_PROVIDER_HOSTS, isAIProviderTarget, serverCredential, SERVER_CREDENTIAL_PREFIX } from './serverCredentials';
+export type { ServerAIConnection } from './serverCredentials';
 
 export const AI_PROVIDER_DEFINITIONS: AIProviderDefinition[] = [
     OPENAI_PROVIDER_DEFINITION,
@@ -126,4 +129,43 @@ export const createAIProviderRegistry = (aiConfig?: AIConfig): Record<string, AI
 
         return registry;
     }, {});
+};
+
+/** A provider connected on the app's server, as the browser may know it: never its key. */
+export type ServerAIProviderConnection = {
+    id: BuiltInAIProviderId;
+    /** Cloudflare: the account in every Workers AI URL. */
+    accountId?: string;
+    /** openai-compatible: the endpoint. */
+    baseUrl?: string;
+    /** openai-compatible: its name and default model. */
+    label?: string;
+    defaultModel?: string;
+};
+
+/**
+ * The adapters of the providers connected on the app's server (CR-102): the same ones
+ * createAIProviderRegistry() builds, with a placeholder where the key goes. Each adapter writes it
+ * exactly where it would write the key; the app's proxy swaps it for the key of `scope` with
+ * resolveServerCredentials() from `@llmnative/react/server`. Needs the proxy: proxyFetch never
+ * sends a placeholder straight to a provider.
+ */
+export const createServerCredentialAIRegistry = (
+    connections: ServerAIProviderConnection[],
+    { scope }: { scope: string },
+): Record<string, AIProviderAdapter> => {
+    const config = connections.reduce<AIConfig>((next, connection) => {
+        const placeholder = serverCredential(scope, connection.id);
+        if (connection.id === 'openai-compatible') {
+            return connection.baseUrl
+                ? { ...next, openAICompatible: { apiKey: placeholder, baseUrl: connection.baseUrl, label: connection.label, defaultModel: connection.defaultModel } }
+                : next;
+        }
+        if (connection.id === 'cloudflare') {
+            return connection.accountId ? { ...next, cloudflare: { apiToken: placeholder, accountId: connection.accountId } } : next;
+        }
+        const configKey = AI_PROVIDER_DEFINITIONS.find((definition) => definition.id === connection.id)?.configKey;
+        return configKey ? { ...next, [configKey]: placeholder } : next;
+    }, {});
+    return createAIProviderRegistry(config);
 };

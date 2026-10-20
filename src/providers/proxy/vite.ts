@@ -3,6 +3,7 @@ import path from 'node:path';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { Plugin } from 'vite';
 import { LLM_LOG_ID_HEADER } from './logHeader';
+import { resolveServerCredentials, type ServerCredentialLookup } from '../ai/server';
 
 const PROXY_CALLER_HEADER = 'x-llmnative-proxy';
 export const PROXY_PATH = '/api/proxy';
@@ -63,7 +64,7 @@ async function appendLogBlock(logOptions: ProxyLogOptions, logId: string, target
     }
 }
 
-const writeProxyResponse = async (req: IncomingMessage, res: ServerResponse, route: string, logOptions?: ProxyLogOptions) => {
+const writeProxyResponse = async (req: IncomingMessage, res: ServerResponse, route: string, logOptions?: ProxyLogOptions, credentials?: ServerCredentialLookup) => {
     const requestUrl = new URL(req.url || '/', 'http://localhost');
     const target = requestUrl.searchParams.get('url');
 
@@ -102,9 +103,19 @@ const writeProxyResponse = async (req: IncomingMessage, res: ServerResponse, rou
             headers.set(key, Array.isArray(value) ? value.join(', ') : value);
         });
 
-        const upstream = await fetch(target, {
+        // Server-held AI credentials (CR-102): the placeholder becomes the key, only towards its
+        // provider. Without a lookup a placeholder finds no key and the request is refused.
+        const resolved = await resolveServerCredentials({ url: target, headers: Object.fromEntries(headers) }, credentials ?? (() => undefined));
+        if (!resolved.ok) {
+            res.statusCode = resolved.status;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ error: resolved.error, provider: resolved.provider }));
+            return;
+        }
+
+        const upstream = await fetch(resolved.url, {
             method: req.method || 'GET',
-            headers,
+            headers: new Headers(resolved.headers),
             body: body && !['GET', 'HEAD'].includes((req.method || 'GET').toUpperCase())
                 ? Uint8Array.from(body)
                 : undefined,
@@ -130,12 +141,14 @@ const writeProxyResponse = async (req: IncomingMessage, res: ServerResponse, rou
     }
 };
 
-export const createProxyPlugin = (route = PROXY_PATH, logOptions?: ProxyLogOptions): Plugin => ({
+/** `credentials`: the keys of the providers held by the server (CR-102), for the adapters built
+ * with createServerCredentialAIRegistry(). */
+export const createProxyPlugin = (route = PROXY_PATH, logOptions?: ProxyLogOptions, credentials?: ServerCredentialLookup): Plugin => ({
     name: 'llmnative-dev-proxy',
     configureServer(server) {
-        server.middlewares.use(route, (req, res) => { void writeProxyResponse(req, res, route, logOptions); });
+        server.middlewares.use(route, (req, res) => { void writeProxyResponse(req, res, route, logOptions, credentials); });
     },
     configurePreviewServer(server) {
-        server.middlewares.use(route, (req, res) => { void writeProxyResponse(req, res, route, logOptions); });
+        server.middlewares.use(route, (req, res) => { void writeProxyResponse(req, res, route, logOptions, credentials); });
     },
 });
