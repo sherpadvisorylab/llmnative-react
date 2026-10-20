@@ -19,6 +19,22 @@ import type {
 import { formatAIModelRef } from './AIProvider';
 import { withModelsDevPricing } from './modelsDevPricing';
 
+// Server-credential placeholder construction/parsing and the built-in provider host map are
+// shared between the browser registry (see ./index.ts) and the Node server entry
+// (`@llmnative/react/server`). They live in ./AIProvider.ts (a dependency-free module) and are
+// re-exported here so the AI layer has a single "shared" surface, without pulling React or the
+// proxy runtime into the server bundle.
+export {
+    SERVER_CREDENTIAL_PREFIX,
+    aiProviderHosts,
+    buildServerCredentialPlaceholder,
+    parseServerCredentialPlaceholder,
+    isServerCredentialPlaceholder,
+    containsServerCredential,
+    replaceServerCredentialPlaceholders,
+} from './AIProvider';
+export type { AIProviderHosts, AIServerCredentialRef } from './AIProvider';
+
 export type BuiltInAIProviderId = 'openai' | 'openrouter' | 'opencode' | 'openai-compatible' | 'deepseek' | 'gemini' | 'anthropic' | 'mistral' | 'glm' | 'cloudflare' | 'groq';
 
 /** A discovered model carrying the price its provider listing already reports (OpenRouter,

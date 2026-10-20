@@ -5,8 +5,30 @@ import http from 'node:http';
 import { afterAll, describe, expect, it } from 'vitest';
 
 import { proxyFetch, configureProxy } from '../../src/providers/proxy';
+import { createProxyPlugin } from '../../src/providers/proxy/vite';
+import { aiProviderHosts, buildServerCredentialPlaceholder } from '../../src/providers/ai/AIProvider';
 
 const PROXY_CALLER_HEADER = 'x-llmnative-proxy';
+
+type ProxyMiddleware = (req: http.IncomingMessage, res: http.ServerResponse) => void;
+
+/** Mounts the Vite plugin's dev middleware on a plain http.Server without booting Vite. */
+function mountPlugin(plugin: ReturnType<typeof createProxyPlugin>): ProxyMiddleware {
+    let middleware: ProxyMiddleware | null = null;
+    const stub = {
+        middlewares: {
+            use: (_route: string, handler: ProxyMiddleware) => { middleware = handler; },
+        },
+    };
+
+    const hook = plugin.configureServer;
+    const configure = typeof hook === 'function' ? hook : hook?.handler;
+    if (!configure) throw new Error('createProxyPlugin did not expose configureServer.');
+    configure(stub as unknown as Parameters<typeof configure>[0]);
+
+    if (!middleware) throw new Error('Proxy middleware was not mounted.');
+    return middleware;
+}
 
 function startServer(handler: http.RequestListener) {
     const server = http.createServer(handler);
@@ -126,5 +148,81 @@ describe('proxy forwarding', () => {
 
         expect(upstreamRequests).toHaveLength(1);
         expect(upstreamRequests[0].header).toBeNull();
+    }, 15000);
+
+    it('resolves a server-credential placeholder before the upstream fetch', async () => {
+        const received: Array<{ authorization?: string; path?: string }> = [];
+        const upstreamServer = await startServer(async (req, res) => {
+            received.push({ authorization: req.headers.authorization, path: req.url });
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ ok: true }));
+        });
+
+        const plugin = createProxyPlugin('/api/proxy', undefined, {
+            lookup: (scope, provider) => (scope === 'tenant-1' && provider === 'openai' ? 'sk-real-key' : undefined),
+            // The e2e upstream runs on 127.0.0.1, not the real OpenAI host.
+            hosts: { ...aiProviderHosts, openai: ['127.0.0.1'] },
+        });
+        const middleware = mountPlugin(plugin);
+        const relayServer = await startServer((req, res) => middleware(req, res));
+
+        const target = `${getBaseUrl(upstreamServer)}/v1/chat/completions`;
+        const placeholder = buildServerCredentialPlaceholder('tenant-1', 'openai');
+
+        const response = await fetch(`${getBaseUrl(relayServer)}/api/proxy?url=${encodeURIComponent(target)}`, {
+            method: 'POST',
+            headers: {
+                [PROXY_CALLER_HEADER]: '1',
+                Authorization: `Bearer ${placeholder}`,
+            },
+        });
+
+        expect(response.status).toBe(200);
+        expect(received).toHaveLength(1);
+        expect(received[0].authorization).toBe('Bearer sk-real-key');
+        expect(received[0].authorization).not.toContain(placeholder);
+    }, 15000);
+
+    it('refuses a placeholder whose target is outside the provider hosts', async () => {
+        const upstreamServer = await startServer(async (_req, res) => {
+            res.statusCode = 200;
+            res.end('should not be reached');
+        });
+
+        const plugin = createProxyPlugin('/api/proxy', undefined, {
+            lookup: () => 'sk-real-key',
+        });
+        const middleware = mountPlugin(plugin);
+        const relayServer = await startServer((req, res) => middleware(req, res));
+
+        const target = `${getBaseUrl(upstreamServer)}/v1/chat/completions`;
+        const response = await fetch(`${getBaseUrl(relayServer)}/api/proxy?url=${encodeURIComponent(target)}`, {
+            method: 'POST',
+            headers: {
+                [PROXY_CALLER_HEADER]: '1',
+                Authorization: `Bearer ${buildServerCredentialPlaceholder('tenant-1', 'openai')}`,
+            },
+        });
+
+        expect(response.status).toBe(502);
+        await expect(response.json()).resolves.toMatchObject({ error: expect.stringContaining('refusing to send') });
+    }, 15000);
+
+    it('refuses a placeholder when the proxy has no credentials lookup configured', async () => {
+        const plugin = createProxyPlugin('/api/proxy');
+        const middleware = mountPlugin(plugin);
+        const relayServer = await startServer((req, res) => middleware(req, res));
+
+        const target = 'https://api.openai.com/v1/chat/completions';
+        const response = await fetch(`${getBaseUrl(relayServer)}/api/proxy?url=${encodeURIComponent(target)}`, {
+            method: 'GET',
+            headers: {
+                [PROXY_CALLER_HEADER]: '1',
+                Authorization: `Bearer ${buildServerCredentialPlaceholder('tenant-1', 'openai')}`,
+            },
+        });
+
+        expect(response.status).toBe(400);
     }, 15000);
 });

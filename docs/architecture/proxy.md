@@ -169,6 +169,28 @@ The scaffolded relay implementations stay intentionally small, but they keep a f
 
 ---
 
+## Server-held credentials
+
+For apps that never hold provider keys in the browser, `createServerCredentialAIRegistry(...)`
+builds the AI registry with the opaque `llmnative-server-credential:<scope>:<provider>` placeholder
+instead of the key. `proxyFetch(...)` refuses to send such a request directly; it only relays it.
+The relay then resolves the placeholder via the Node-only entry `@llmnative/react/server`:
+
+```ts
+import { resolveServerCredentials } from '@llmnative/react/server';
+
+resolveServerCredentials(request, (scope, provider) => secrets.get(`${scope}:${provider}`));
+```
+
+The substitution happens in headers and URL, and only when the request target's host belongs to
+that provider (`aiProviderHosts`); a foreign host, an unknown provider or a missing credential
+throws. `openai-compatible`'s user-supplied `baseUrl` host is whitelisted through the optional
+`hosts` option. The Vite dev proxy wires the same resolver in through the optional third argument
+of `createProxyPlugin(route, logOptions, { lookup, hosts })`, and refuses a placeholder when no
+lookup is configured.
+
+---
+
 ## Example
 
 ```tsx

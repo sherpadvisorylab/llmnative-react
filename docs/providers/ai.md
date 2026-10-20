@@ -405,6 +405,54 @@ That means:
 - provider availability can be diagnosed in one place;
 - model discovery can be filtered to configured providers only.
 
+## Server-held credentials
+
+An app that must never hold provider keys in the browser can keep only an opaque placeholder
+client-side and let the server swap in the real secret. The registry is built with
+`createServerCredentialAIRegistry(connections, { scope })`: same built-in adapters and same
+"is it configured" rule as `createAIProviderRegistry`, but every adapter sends
+`llmnative-server-credential:<scope>:<provider>` where the key would go. `AIConfig` and
+`createAIProviderRegistry` are unchanged.
+
+```ts
+import { createServerCredentialAIRegistry } from '@llmnative/react';
+
+const registry = createServerCredentialAIRegistry(
+  { openaiApiKey: 'server', geminiApiKey: 'server' }, // presence only; the value is not sent
+  { scope: 'tenant-42' },
+);
+```
+
+The placeholder is still a plain string, so it travels through the existing wire format
+(`Authorization: Bearer …`, `x-api-key`, Gemini's `?key=`). It must never reach a provider:
+`proxyFetch(...)` throws when a request carrying one would not be relayed through the proxy.
+
+On the server, resolve it with the Node-only entry `@llmnative/react/server`:
+
+```ts
+import { resolveServerCredentials } from '@llmnative/react/server';
+
+const { url, headers } = resolveServerCredentials(
+  { url: 'https://api.openai.com/v1/chat/completions', headers: { Authorization: `Bearer ${placeholder}` } },
+  (scope, provider) => secrets.get(`${scope}:${provider}`),
+);
+```
+
+`resolveServerCredentials(request, lookup)` replaces the placeholder in headers and URL only when
+the target host belongs to that provider (`aiProviderHosts`: fixed hosts of the built-in adapters).
+A target outside the provider's hosts, an unknown provider or a missing credential throw, so a
+placeholder can never be forwarded. `openai-compatible` has no fixed host: whitelist its
+`baseUrl` through the optional `hosts` option (merged over `aiProviderHosts`):
+
+```ts
+resolveServerCredentials(request, lookup, {
+  hosts: { ...aiProviderHosts, 'openai-compatible': ['gateway.example.com'] },
+});
+```
+
+See [Proxy relay](/docs/proxy) for how the Vite dev proxy resolves the placeholder before the
+upstream fetch.
+
 ## Browser CORS and the proxy service
 
 Some providers work poorly or not at all when called directly from the browser because their endpoints reject CORS preflight requests.

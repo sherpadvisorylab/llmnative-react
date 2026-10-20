@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { proxyFetch, configureProxy } from '../../../src/providers/proxy';
+import { buildServerCredentialPlaceholder } from '../../../src/providers/ai/AIProvider';
 
 describe('proxyFetch', () => {
     const originalFetch = global.fetch;
@@ -65,5 +66,38 @@ describe('proxyFetch', () => {
 
         const proxiedRequest = new Request(url as RequestInfo | URL, init);
         await expect(proxiedRequest.text()).resolves.toBe('{"prompt":"Hello"}');
+    });
+
+    it('refuses to send a server-credential placeholder directly to a provider when no proxy is active', async () => {
+        const placeholder = buildServerCredentialPlaceholder('tenant-1', 'openai');
+
+        await expect(proxyFetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${placeholder}` },
+        })).rejects.toThrow(/server-credential placeholder/i);
+
+        expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    it('refuses a placeholder even when the proxy is enabled but the target is same-origin', async () => {
+        configureProxy({ enabled: true, route: '/api/proxy' });
+        const placeholder = buildServerCredentialPlaceholder('tenant-1', 'gemini');
+
+        await expect(proxyFetch(`/local/models?key=${placeholder}`)).rejects.toThrow(/server-credential placeholder/i);
+
+        expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    it('relays a placeholder through the proxy when it is enabled and the target is external', async () => {
+        configureProxy({ enabled: true, route: '/api/proxy' });
+        const placeholder = buildServerCredentialPlaceholder('tenant-1', 'openai');
+
+        await proxyFetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${placeholder}` },
+        });
+
+        expect(global.fetch).toHaveBeenCalledTimes(1);
+        expect(String(vi.mocked(global.fetch).mock.calls[0][0])).toContain('/api/proxy?url=');
     });
 });

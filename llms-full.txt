@@ -964,6 +964,10 @@ const registry = createAIProviderRegistry(definitions)
 
 Configurazione API key in `Config.tsx`: `geminiApiKey`, `openaiApiKey`, `anthropicApiKey`, `deepSeekApiKey`, `mistralApiKey`, `openRouterApiKey`, `groqApiKey`, `cloudflare: { apiToken, accountId }` (Cloudflare Workers AI: l'account id fa parte dell'URL; discovery via `ai/models/search`, modelli Workers Paid esclusi salvo `includePaidModels`).
 
+#### Credenziali custodite sul server (CR-102)
+
+App che non possono tenere chiavi nel browser usano `createServerCredentialAIRegistry(connections, { scope })`: stessi adapter di `createAIProviderRegistry` ma con il segnaposto `llmnative-server-credential:<scope>:<provider>` al posto della chiave (`AIConfig` e `createAIProviderRegistry` invariati). `proxyFetch` rifiuta di inviare un segnaposto direttamente a un provider. Lato server il nuovo entry Node `@llmnative/react/server` esporta `resolveServerCredentials(request, lookup)`, che sostituisce il segnaposto in header e URL (Bearer, `x-api-key`, `?key=` di Gemini, path dell'account Cloudflare) solo quando l'host di destinazione appartiene a quel provider (`aiProviderHosts`); host estranei, provider sconosciuti o chiave mancante sollevano. Per `openai-compatible` il `baseUrl` va whitelisted con l'opzione `hosts`. `createProxyPlugin(route, logOptions, { lookup, hosts })` risolve il segnaposto prima della fetch upstream e rifiuta un segnaposto senza lookup.
+
 ---
 
 ## Theme e icone

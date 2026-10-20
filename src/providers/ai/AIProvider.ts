@@ -1,5 +1,6 @@
 import type { PromptVariables } from '../../conf/Prompt';
 import type { ProviderConfigurable } from '../ProviderConfiguration';
+import type { BuiltInAIProviderId } from './shared';
 
 /** Token prices of a model, in `currency` per 1M tokens. `input === 0 && output === 0` means
  * the model is free. */
@@ -131,6 +132,66 @@ export interface AIModelRef {
     provider: string;
     model: string;
 }
+
+/** A server-held credential never reaches the browser: the client registry stores this opaque
+ * placeholder instead of the real key and @llmnative/react/server swaps it for the secret of
+ * the matching scope + provider just before the request leaves the server. The value is a plain
+ * string so it survives the existing wire format unchanged (Bearer header, x-api-key, `?key=`). */
+export const SERVER_CREDENTIAL_PREFIX = 'llmnative-server-credential';
+
+const SCOPE_OR_PROVIDER = '[A-Za-z0-9_.-]+';
+const SERVER_CREDENTIAL_EXACT = new RegExp(`^${SERVER_CREDENTIAL_PREFIX}:(${SCOPE_OR_PROVIDER}):(${SCOPE_OR_PROVIDER})$`);
+const SERVER_CREDENTIAL_SCAN = new RegExp(`${SERVER_CREDENTIAL_PREFIX}:(${SCOPE_OR_PROVIDER}):(${SCOPE_OR_PROVIDER})`, 'g');
+
+export type AIServerCredentialRef = {
+    scope: string;
+    provider: string;
+};
+
+/** Builds the placeholder a browser-side registry sends in place of a real provider key. */
+export const buildServerCredentialPlaceholder = (scope: string, provider: string): string =>
+    `${SERVER_CREDENTIAL_PREFIX}:${scope}:${provider}`;
+
+/** Parses a string that is *exactly* a placeholder; returns null for any other value (including
+ * a real key that happens to contain the prefix). */
+export const parseServerCredentialPlaceholder = (value: string): AIServerCredentialRef | null => {
+    const match = SERVER_CREDENTIAL_EXACT.exec(value);
+    return match ? { scope: match[1], provider: match[2] } : null;
+};
+
+export const isServerCredentialPlaceholder = (value: string): boolean =>
+    parseServerCredentialPlaceholder(value) !== null;
+
+/** True when the value *contains* a placeholder somewhere inside it (e.g. inside an
+ * `Authorization: Bearer …` header or a `?key=…` query string), not just when it is one. */
+export const containsServerCredential = (value: string): boolean =>
+    value.includes(`${SERVER_CREDENTIAL_PREFIX}:`);
+
+/** Replaces every placeholder found in `value`, delegating the actual secret lookup to
+ * `resolve`. The callback returns the replacement literally (no `$` expansion). */
+export const replaceServerCredentialPlaceholders = (
+    value: string,
+    resolve: (ref: AIServerCredentialRef) => string,
+): string => value.replace(SERVER_CREDENTIAL_SCAN, (_match, scope: string, provider: string) =>
+    resolve({ scope, provider }));
+
+/** Fixed hostnames of each built-in adapter's upstream API. `openai-compatible` is absent on
+ * purpose: its endpoint is user-supplied, so it must be whitelisted by the caller (see
+ * resolveServerCredentials options). */
+export type AIProviderHosts = Partial<Record<BuiltInAIProviderId, readonly string[]>>;
+
+export const aiProviderHosts: AIProviderHosts = {
+    openai: ['api.openai.com'],
+    openrouter: ['openrouter.ai'],
+    opencode: ['opencode.ai'],
+    deepseek: ['api.deepseek.com'],
+    gemini: ['generativelanguage.googleapis.com'],
+    anthropic: ['api.anthropic.com'],
+    mistral: ['api.mistral.ai'],
+    glm: ['open.bigmodel.cn'],
+    groq: ['api.groq.com'],
+    cloudflare: ['api.cloudflare.com'],
+};
 
 export const formatAIModelRef = (provider: string, model: string): string => `${provider}/${model}`;
 

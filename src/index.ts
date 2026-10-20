@@ -199,7 +199,14 @@ export type {
     AIRequestOptions, AIAttachment, AIProviderAdapter, AIKeyValidationResult, AIModelDescriptor, AIModelPricing, DiscoveredAIModel, AIProviderCapabilities, AIModelCatalog, AIProviderDefinition,
     AICompleteRequest, AICompleteResult, AIConversationTurn, AIToolDefinition, AIToolCall, AIToolResult, CloudflareProviderOptions,
 } from './providers/ai';
-export { createAIProviderRegistry, getAIModelCatalog, formatAIModelRef, parseAIModelRef, isFreeAIModel, AI_PROVIDER_DEFINITIONS, AI_PROVIDER_DESCRIPTORS, OPENAI_COMPATIBLE_PROVIDER_DESCRIPTOR, CLOUDFLARE_PROVIDER_DESCRIPTOR, createCloudflareProviderDefinition, toProviderDescriptor } from './providers/ai';
+export { createAIProviderRegistry, createServerCredentialAIRegistry, getAIModelCatalog, formatAIModelRef, parseAIModelRef, isFreeAIModel, AI_PROVIDER_DEFINITIONS, AI_PROVIDER_DESCRIPTORS, OPENAI_COMPATIBLE_PROVIDER_DESCRIPTOR, CLOUDFLARE_PROVIDER_DESCRIPTOR, createCloudflareProviderDefinition, toProviderDescriptor } from './providers/ai';
+export type { ServerCredentialRegistryOptions } from './providers/ai';
+export {
+    SERVER_CREDENTIAL_PREFIX, aiProviderHosts, buildServerCredentialPlaceholder,
+    parseServerCredentialPlaceholder, isServerCredentialPlaceholder, containsServerCredential,
+    replaceServerCredentialPlaceholders,
+} from './providers/ai';
+export type { AIProviderHosts, AIServerCredentialRef } from './providers/ai';
 export type { ProviderDescriptor, ProviderCredentialField } from './providers/ProviderDescriptor';
 export { useAIProvider, useAIProviderRegistry, AIProvider } from './providers/ai/AIProviderContext';
 export { proxyFetch, useProxy, configureProxy, isProxyEnabled } from './providers/proxy';

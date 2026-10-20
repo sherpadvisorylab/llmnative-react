@@ -12,13 +12,19 @@ import { GLM_PROVIDER_DEFINITION } from './glm';
 import { GROQ_PROVIDER_DEFINITION } from './groq';
 import { OPENCODE_PROVIDER_DEFINITION } from './opencode';
 import { OPENROUTER_PROVIDER_DEFINITION } from './openrouter';
-import { getAIModelCatalog, type AIProviderDefinition, type AIModelCatalog, RuntimeAIProvider } from './shared';
+import { getAIModelCatalog, buildServerCredentialPlaceholder, type AIProviderDefinition, type AIModelCatalog, RuntimeAIProvider } from './shared';
 
 export type {
     AIProviderAdapter, AIKeyValidationResult, AIModelDescriptor, AIModelPricing, AIProviderCapabilities, AIRequestOptions, AIAttachment,
     AICompleteRequest, AICompleteResult, AIConversationTurn, AIToolDefinition, AIToolCall, AIToolResult,
 } from './AIProvider';
 export { formatAIModelRef, parseAIModelRef, isFreeAIModel } from './AIProvider';
+export {
+    SERVER_CREDENTIAL_PREFIX, aiProviderHosts, buildServerCredentialPlaceholder,
+    parseServerCredentialPlaceholder, isServerCredentialPlaceholder, containsServerCredential,
+    replaceServerCredentialPlaceholders,
+} from './AIProvider';
+export type { AIProviderHosts, AIServerCredentialRef } from './AIProvider';
 export type { DiscoveredAIModel } from './shared';
 export type { AIModelCatalog, AIProviderDefinition } from './shared';
 export { getAIModelCatalog } from './shared';
@@ -103,6 +109,17 @@ const getDynamicAIProviderDefinitions = (aiConfig?: AIConfig): AIProviderDefinit
     ];
 };
 
+/** Reads the plaintext key a built-in definition would use from the given connections. Used only
+ * to decide *whether* a provider is configured; the server-credential registry never sends it. */
+const resolveConnectionKey = (definition: AIProviderDefinition, aiConfig: AIConfig): string => {
+    if (definition.id === 'openai-compatible') return aiConfig.openAICompatible?.apiKey?.trim() || '';
+    if (definition.id === 'cloudflare') return aiConfig.cloudflare?.apiToken?.trim() || '';
+    if (typeof definition.configKey === 'string' && typeof aiConfig[definition.configKey as keyof AIConfig] === 'string') {
+        return String(aiConfig[definition.configKey as keyof AIConfig] || '').trim();
+    }
+    return '';
+};
+
 export const createAIProviderRegistry = (aiConfig?: AIConfig): Record<string, AIProviderAdapter> => {
     if (!aiConfig) return {};
 
@@ -112,16 +129,49 @@ export const createAIProviderRegistry = (aiConfig?: AIConfig): Record<string, AI
     ];
 
     return definitions.reduce<Record<string, AIProviderAdapter>>((registry, definition) => {
-        const apiKey = definition.id === 'openai-compatible'
-            ? aiConfig.openAICompatible?.apiKey?.trim() || ''
-            : definition.id === 'cloudflare'
-            ? aiConfig.cloudflare?.apiToken?.trim() || ''
-            : typeof definition.configKey === 'string' && typeof aiConfig[definition.configKey as keyof AIConfig] === 'string'
-                ? String(aiConfig[definition.configKey as keyof AIConfig] || '').trim()
-                : '';
+        const apiKey = resolveConnectionKey(definition, aiConfig);
 
         if (apiKey) {
             registry[definition.id] = new RuntimeAIProvider(definition, apiKey);
+        }
+
+        return registry;
+    }, {});
+};
+
+export type ServerCredentialRegistryOptions = {
+    /** Identifies which server-held credential set this browser registry belongs to. The
+     * placeholder sent upstream is `llmnative-server-credential:<scope>:<provider>`. */
+    scope: string;
+};
+
+/** Browser-side twin of createAIProviderRegistry for apps that never hold provider keys in the
+ * browser: same built-in adapters, same "is it configured" rule, but every adapter is built with
+ * the opaque server-credential placeholder instead of the real key. The server entry
+ * (`@llmnative/react/server`) swaps the placeholder for the secret of `scope` + provider just
+ * before the request leaves the server. `createAIProviderRegistry` and `AIConfig` are unchanged. */
+export const createServerCredentialAIRegistry = (
+    aiConfig?: AIConfig,
+    options: ServerCredentialRegistryOptions = { scope: '' },
+): Record<string, AIProviderAdapter> => {
+    if (!aiConfig) return {};
+
+    const scope = options.scope?.trim();
+    if (!scope) {
+        throw new Error('createServerCredentialAIRegistry: a non-empty { scope } is required.');
+    }
+
+    const definitions = [
+        ...AI_PROVIDER_DEFINITIONS,
+        ...getDynamicAIProviderDefinitions(aiConfig),
+    ];
+
+    return definitions.reduce<Record<string, AIProviderAdapter>>((registry, definition) => {
+        if (resolveConnectionKey(definition, aiConfig)) {
+            registry[definition.id] = new RuntimeAIProvider(
+                definition,
+                buildServerCredentialPlaceholder(scope, definition.id),
+            );
         }
 
         return registry;

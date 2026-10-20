@@ -13,6 +13,11 @@
       "require": "./dist/index.js"
     },
     "./vite": "./dist/vite.mjs",
+    "./server": {
+      "types": "./dist/types/src/server/index.d.ts",
+      "import": "./dist/server.mjs",
+      "require": "./dist/server.js"
+    },
     "./dist/index.css": "./dist/index.css"
   },
   "scripts": {

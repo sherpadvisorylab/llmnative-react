@@ -135,6 +135,28 @@ Register it through the normal provider registry:
 
 ---
 
+## Server-held credentials
+
+When the browser registry is built with `createServerCredentialAIRegistry(..., { scope })`, every
+outbound request carries the opaque `llmnative-server-credential:<scope>:<provider>` placeholder
+instead of a key. `proxyFetch(...)` relays it (and throws rather than sending it directly), and the
+relay replaces it with the real secret just before the upstream fetch:
+
+```ts
+import { createProxyPlugin } from '@llmnative/react/vite';
+import { aiProviderHosts } from '@llmnative/react';
+
+createProxyPlugin('/api/proxy', undefined, {
+  lookup: (scope, provider) => secrets.get(`${scope}:${provider}`),
+  hosts: { ...aiProviderHosts, 'openai-compatible': ['gateway.example.com'] },
+});
+```
+
+Without a `lookup`, the proxy refuses any request carrying a placeholder (`400`) so it can never
+reach a provider.
+
+---
+
 ## Important boundary
 
 `ProxyProvider` belongs to the service model, but the relay route itself still belongs to the application runtime.

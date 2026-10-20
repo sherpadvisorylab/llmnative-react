@@ -109,6 +109,66 @@
 | [CR-099](#cr-099--label-dei-campi-stringa-o-nodo-react) | Label dei campi: stringa o nodo React | Media | — | ✅ |
 | [CR-100](#cr-100--tree-albero-di-nodi-accessibile) | Tree: albero di nodi accessibile | Media | — | ✅ |
 | [CR-101](#cr-101--modal-stackedbehind-in-stile-google-tag-manager) | Modal stackedBehind in stile Google Tag Manager | Media | — | ✅ |
+| [CR-102](#cr-102--ai-provider-con-credenziali-custodite-sul-server) | AI provider con credenziali custodite sul server | Alta | — | 🔄 |
+
+---
+
+## CR-102 — AI provider con credenziali custodite sul server
+
+**Stato:** 🔄 in progress
+**Issue:** [#78](https://github.com/sherpadvisorylab/llmnative-react/issues/78)
+**Priorità:** Alta
+**Dipende da:** —
+
+### Motivazione
+
+Lo studio tiene ogni segreto sul proprio server e mai nel browser, ma un adapter AI riceve la
+chiave come stringa e la scrive nella richiesta in uscita (`Bearer`, `x-api-key`, `?key=` per
+Gemini). Oggi `createAIProviderRegistry` costruisce gli adapter da una chiave in chiaro presente in
+`AIConfig`: un'app che non può tenere chiavi nel browser non ha alcun modo di usare i provider AI.
+Serve una modalità in cui il registry lato browser contenga solo un segnaposto e la chiave reale
+sia sostituita lato server.
+
+### Scope
+
+- `src/providers/ai/AIProvider.ts` + `shared.ts`: costruzione/parsing del segnaposto
+  `llmnative-server-credential:<scope>:<provider>` e mappa `aiProviderHosts` (host fissi dei
+  provider built-in).
+- `src/providers/ai/index.ts`: `createServerCredentialAIRegistry(connections, { scope })`, stessi
+  adapter di `createAIProviderRegistry` ma con il segnaposto al posto della chiave.
+- `src/providers/proxy/index.ts`: `proxyFetch` non inoltra mai un segnaposto a un provider —
+  senza proxy attivo solleva un errore chiaro.
+- Nuovo entry Node `@llmnative/react/server` (`src/server/`): `resolveServerCredentials(request,
+  lookup)` sostituisce il segnaposto in header e URL solo se il target è un host di quel provider.
+- `src/providers/proxy/vite.ts`: `createProxyPlugin` accetta un lookup opzionale e risolve il
+  segnaposto prima della fetch upstream.
+- Build/packaging: entry `server` in `vite.config.mts` e subpath `./server` in
+  `package.json#exports`.
+- Docs pubbliche e aggiornamento di stato.
+
+### Fuori scope
+
+- Bump di versione, tag, `npm publish`.
+- Modifiche a `createAIProviderRegistry` e `AIConfig`.
+- Logica lato browser che risolva il segnaposto.
+
+### Checklist
+
+- [x] `createServerCredentialAIRegistry(connections, { scope })` con lo stesso set di adapter e il
+      segnaposto al posto della chiave (`ServerCredentialAIProvider.test.ts`)
+- [x] `proxyFetch` con segnaposto e senza proxy: errore chiaro, nessuna richiesta al provider
+      (`fetch.test.ts`)
+- [x] `resolveServerCredentials(request, lookup)`: header + URL, solo per gli host del provider,
+      target estraneo rifiutato (`resolveServerCredentials.test.ts`)
+- [x] Coperti `?key=` di Gemini, path dell'account Cloudflare, `baseUrl` di openai-compatible
+- [x] `aiProviderHosts` copre ogni URL dei built-in adapter (`AIProviderHosts.test.ts`)
+- [x] `createProxyPlugin` accetta un lookup opzionale e risolve il segnaposto prima della fetch
+      upstream (`tests/e2e/proxy-runtime.test.ts`)
+- [x] Nuovo entry `@llmnative/react/server` in `vite.config.mts` e `package.json#exports`
+- [x] Docs pubbliche aggiornate (`llms-full.txt`, `docs/providers/ai.md`, `docs/providers/proxy.md`,
+      `docs/architecture/proxy.md`)
+- [ ] Verifica gate (`npx tsc --noEmit`, `npm test`, `npm run build`, `npm pack --dry-run --json`)
+- [ ] Release (dopo il merge)
 
 ---
 

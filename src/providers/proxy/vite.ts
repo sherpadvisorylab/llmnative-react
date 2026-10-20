@@ -3,9 +3,20 @@ import path from 'node:path';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { Plugin } from 'vite';
 import { LLM_LOG_ID_HEADER } from './logHeader';
+import { resolveServerCredentials, type ServerCredentialLookup } from '../../server/credentials';
+import { containsServerCredential, type AIProviderHosts } from '../ai/AIProvider';
 
 const PROXY_CALLER_HEADER = 'x-llmnative-proxy';
 export const PROXY_PATH = '/api/proxy';
+
+/** Optional server-credential resolution for the dev/preview proxy. When provided, a
+ * `llmnative-server-credential:<scope>:<provider>` placeholder is swapped for the real key just
+ * before the upstream fetch; when absent, any request carrying a placeholder is refused so it can
+ * never reach a provider. */
+export interface ProxyCredentialOptions {
+    lookup: ServerCredentialLookup;
+    hosts?: AIProviderHosts;
+}
 
 /** Logging file di richiesta/risposta LLM — SOLO dev, mai attivo di default. Un file per
  * conversazione: il client (useAgent, CMS) genera un `logId` stabile per l'intera sessione e
@@ -63,7 +74,7 @@ async function appendLogBlock(logOptions: ProxyLogOptions, logId: string, target
     }
 }
 
-const writeProxyResponse = async (req: IncomingMessage, res: ServerResponse, route: string, logOptions?: ProxyLogOptions) => {
+const writeProxyResponse = async (req: IncomingMessage, res: ServerResponse, route: string, logOptions?: ProxyLogOptions, credentialOptions?: ProxyCredentialOptions) => {
     const requestUrl = new URL(req.url || '/', 'http://localhost');
     const target = requestUrl.searchParams.get('url');
 
@@ -102,9 +113,32 @@ const writeProxyResponse = async (req: IncomingMessage, res: ServerResponse, rou
             headers.set(key, Array.isArray(value) ? value.join(', ') : value);
         });
 
-        const upstream = await fetch(target, {
+        let upstreamUrl = target;
+        let upstreamHeaders = headers;
+
+        if (credentialOptions) {
+            // Swaps the placeholder for the real key in both the URL (Gemini `?key=`, Cloudflare
+            // account path) and the auth header, only for the provider's own hosts. Throws on a
+            // foreign host or a missing credential — caught below and answered as 502.
+            const resolved = resolveServerCredentials(
+                { url: target, headers },
+                credentialOptions.lookup,
+                { hosts: credentialOptions.hosts },
+            );
+            upstreamUrl = resolved.url;
+            upstreamHeaders = resolved.headers;
+        } else if (containsServerCredential(target) || [...headers.values()].some(containsServerCredential)) {
+            res.statusCode = 400;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({
+                error: 'Server-credential placeholder received but the proxy has no credentials lookup configured.',
+            }));
+            return;
+        }
+
+        const upstream = await fetch(upstreamUrl, {
             method: req.method || 'GET',
-            headers,
+            headers: upstreamHeaders,
             body: body && !['GET', 'HEAD'].includes((req.method || 'GET').toUpperCase())
                 ? Uint8Array.from(body)
                 : undefined,
@@ -130,12 +164,16 @@ const writeProxyResponse = async (req: IncomingMessage, res: ServerResponse, rou
     }
 };
 
-export const createProxyPlugin = (route = PROXY_PATH, logOptions?: ProxyLogOptions): Plugin => ({
+export const createProxyPlugin = (
+    route = PROXY_PATH,
+    logOptions?: ProxyLogOptions,
+    credentialOptions?: ProxyCredentialOptions,
+): Plugin => ({
     name: 'llmnative-dev-proxy',
     configureServer(server) {
-        server.middlewares.use(route, (req, res) => { void writeProxyResponse(req, res, route, logOptions); });
+        server.middlewares.use(route, (req, res) => { void writeProxyResponse(req, res, route, logOptions, credentialOptions); });
     },
     configurePreviewServer(server) {
-        server.middlewares.use(route, (req, res) => { void writeProxyResponse(req, res, route, logOptions); });
+        server.middlewares.use(route, (req, res) => { void writeProxyResponse(req, res, route, logOptions, credentialOptions); });
     },
 });
