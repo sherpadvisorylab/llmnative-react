@@ -33,9 +33,11 @@ onConfigChange((config) => {
 
 /** A request that goes out without the proxy: never with a server-credential placeholder (CR-102),
  * which only the app's proxy can turn into a key. */
+const carriesServerCredential = (url: string, input: Parameters<typeof fetch>[0], init?: RequestInit) =>
+    containsServerCredential(url) || [...new Headers(input instanceof Request ? input.headers : init?.headers).values()].some(containsServerCredential);
+
 const directFetch = (url: string, input: Parameters<typeof fetch>[0], init?: RequestInit) => {
-    const headers = new Headers(input instanceof Request ? input.headers : init?.headers);
-    if (containsServerCredential(url) || [...headers.values()].some(containsServerCredential)) {
+    if (carriesServerCredential(url, input, init)) {
         return Promise.reject(new Error('This AI provider uses credentials held by the server: enable the proxy (providers.proxy.enabled) so that the server adds the key.'));
     }
     return globalThis.fetch(input, init);
@@ -46,7 +48,9 @@ export const proxyFetch: typeof fetch = (input, init) => {
         : input instanceof URL ? input.toString()
         : (input as Request).url;
     if (!_config?.enabled) return directFetch(url, input, init);
-    if (!shouldProxyRequest(url)) return directFetch(url, input, init);
+    // A request with a server-held credential always goes through the proxy, even to a local
+    // endpoint (e.g. an openai-compatible server on localhost): only the proxy holds the key.
+    if (!shouldProxyRequest(url) && !carriesServerCredential(url, input, init)) return globalThis.fetch(input, init);
     const route = _config.route?.trim() || DEFAULT_PROXY_ROUTE;
     const separator = route.includes('?') ? '&' : '?';
     const proxiedUrl = `${route}${separator}url=${encodeURIComponent(url)}`;

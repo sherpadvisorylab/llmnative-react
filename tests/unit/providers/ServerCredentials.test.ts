@@ -62,6 +62,15 @@ describe('server-held AI credentials', () => {
         expect(to('api.openai.com').headers.authorization).toBe('Bearer llmnative-server-credential:acme:openai');
     });
 
+    it('sends a placeholder through the proxy even to a local endpoint', async () => {
+        const sent = captureFetch();
+        const registry = createServerCredentialAIRegistry([{ id: 'openai-compatible', baseUrl: 'http://localhost:11434/v1' }], { scope: 'acme' });
+
+        await registry['openai-compatible']!.complete({ prompt: 'Hi', model: 'llama' });
+
+        expect(sent[0].url).toBe(`/api/proxy?url=${encodeURIComponent('http://localhost:11434/v1/chat/completions')}`);
+    });
+
     it('never sends a placeholder straight to a provider', async () => {
         captureFetch();
         configureProxy({ enabled: false });

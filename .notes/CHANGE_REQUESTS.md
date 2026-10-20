@@ -109,7 +109,7 @@
 | [CR-099](#cr-099--label-dei-campi-stringa-o-nodo-react) | Label dei campi: stringa o nodo React | Media | — | ✅ |
 | [CR-100](#cr-100--tree-albero-di-nodi-accessibile) | Tree: albero di nodi accessibile | Media | — | ✅ |
 | [CR-101](#cr-101--modal-stackedbehind-in-stile-google-tag-manager) | Modal stackedBehind in stile Google Tag Manager | Media | — | ✅ |
-| [CR-102](#cr-102--provider-ai-con-le-chiavi-sul-server) | Provider AI con le chiavi sul server | Alta | — | 🔄 |
+| [CR-102](#cr-102--provider-ai-con-le-chiavi-sul-server) | Provider AI con le chiavi sul server | Alta | — | ✅ |
 
 ---
 
@@ -148,7 +148,7 @@ Richiesto dal consumer `llmnative-cms`.
 
 ## CR-102 — Provider AI con le chiavi sul server
 
-**Stato:** 🔄 in progress
+**Stato:** ✅ done
 **Issue:** [#78](https://github.com/sherpadvisorylab/llmnative-react/issues/78)
 **Priorità:** Alta
 **Dipende da:** —
@@ -179,12 +179,12 @@ AI, e con loro Agentico, `Prompt` e `Chatbot`.
 
 - [x] `AI_PROVIDER_HOSTS` copre ogni URL degli adapter integrati (test di coerenza in `ServerCredentials.test.ts`)
 - [x] `createServerCredentialAIRegistry` con segnaposto per ogni provider, scope validato
-- [x] `proxyFetch` rifiuta il segnaposto senza proxy
+- [x] `proxyFetch` rifiuta il segnaposto senza proxy, e con il proxy lo manda sempre al proxy, anche verso un endpoint locale (test)
 - [x] `resolveServerCredentials`: header, query (Gemini), Cloudflare per account, openai-compatible per `baseUrl`, host estraneo rifiutato
 - [x] Entry `@llmnative/react/server` senza React, nel build e negli `exports` (verificato con Node puro su `dist/server.mjs`)
 - [x] Opzione credenziali in `createProxyPlugin`
 - [x] Registri esistenti invariati (test esistenti verdi)
-- [ ] Verificato nel Playbook
+- [x] Verificato nel Playbook: tab Brain → Models, chiave verificata dal provider attraverso il proxy del server, chiave errata rifiutata da Anthropic e non salvata, Agentico risponde con il modello di un endpoint openai-compatible che riceve la chiave vera e mai il segnaposto
 - [x] Release 1.26.0
 
 ---

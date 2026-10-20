@@ -21,7 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   provider (`AI_PROVIDER_HOSTS`, the `baseUrl` of openai-compatible, the account of Cloudflare);
   any other target is refused. `createProxyPlugin` (Vite) takes the same lookup as a third
   argument. `proxyFetch` never sends a placeholder straight to a provider: without the proxy it
-  throws a clear error. `createAIProviderRegistry` and `AIConfig` do not change.
+  throws a clear error, and with it a placeholder always goes through the proxy, even to a local
+  endpoint (an openai-compatible server on localhost). `createAIProviderRegistry` and `AIConfig` do not change.
 
 ## [1.25.4] - 2026-10-15
 
