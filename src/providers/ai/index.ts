@@ -23,6 +23,8 @@ export { formatAIModelRef, parseAIModelRef, isFreeAIModel } from './AIProvider';
 export type { DiscoveredAIModel } from './shared';
 export type { AIModelCatalog, AIProviderDefinition } from './shared';
 export { getAIModelCatalog } from './shared';
+export { canonicalModelName, buildModelIdentityIndex, resolveModel, loadModelIdentityIndex } from './modelIdentity';
+export type { ModelIdentity, ModelIdentityIndex } from './modelIdentity';
 export { CLOUDFLARE_PROVIDER_DESCRIPTOR, createCloudflareProviderDefinition } from './cloudflare';
 export type { CloudflareProviderOptions } from './cloudflare';
 export { AI_PROVIDER_HOSTS, isAIProviderTarget, serverCredential, SERVER_CREDENTIAL_PREFIX } from './serverCredentials';

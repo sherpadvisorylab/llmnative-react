@@ -110,6 +110,7 @@
 | [CR-100](#cr-100--tree-albero-di-nodi-accessibile) | Tree: albero di nodi accessibile | Media | — | ✅ |
 | [CR-101](#cr-101--modal-stackedbehind-in-stile-google-tag-manager) | Modal stackedBehind in stile Google Tag Manager | Media | — | ✅ |
 | [CR-102](#cr-102--provider-ai-con-le-chiavi-sul-server) | Provider AI con le chiavi sul server | Alta | — | ✅ |
+| [CR-103](#cr-103--identità-provider-agnostica-dei-modelli-ai-modelsdev) | Identità provider-agnostica dei modelli AI (models.dev) | Media | — | 🔄 |
 
 ---
 
@@ -186,6 +187,66 @@ AI, e con loro Agentico, `Prompt` e `Chatbot`.
 - [x] Registri esistenti invariati (test esistenti verdi)
 - [x] Verificato nel Playbook: tab Brain → Models, chiave verificata dal provider attraverso il proxy del server, chiave errata rifiutata da Anthropic e non salvata, Agentico risponde con il modello di un endpoint openai-compatible che riceve la chiave vera e mai il segnaposto
 - [x] Release 1.26.0
+
+---
+
+## CR-103 — Identità provider-agnostica dei modelli AI (models.dev)
+
+**Stato:** 🔄 in progress
+**Issue:** [#80](https://github.com/sherpadvisorylab/llmnative-react/issues/80)
+**Priorità:** Media
+**Dipende da:** —
+
+### Motivazione
+
+Emerged in the Playbook (2026-10-21): un agente sceglie un modello per nome umano
+("DeepSeek V4.1 Flash") indipendentemente da chi lo serve, ma un runner come opencode
+ha bisogno dell'id di quel modello **sul provider che ha a disposizione**: OpenRouter
+`deepseek/deepseek-v4.1-flash`, DeepSeek `deepseek-flash`, Cloudflare
+`@cf/deepseek-ai/deepseek-v4.1-flash-1017`. Oggi il framework conosce i modelli solo come
+`AIModelDescriptor` per-provider (`provider` + `model`), senza un modo per capire che id
+diversi indicano lo stesso modello. models.dev assegna a ogni modello un nome umano
+coerente tra i provider una volta rimossi date di rilascio e varianti (Free, Latest).
+
+### Scope
+
+- `src/providers/ai/modelsDevPricing.ts`: esportare `MODELS_DEV_PROVIDER_KEYS`, il tipo
+  `ModelsDevCatalog` e un caricatore condiviso `loadModelsDevCatalog()` (una fetch per
+  sessione) riusato da pricing e identità.
+- Nuovo modulo `src/providers/ai/modelIdentity.ts`, TypeScript puro:
+  - `canonicalModelName(name)`: chiave provider-agnostica (minuscole, senza date di rilascio,
+    varianti Free/Latest né punteggiatura).
+  - `buildModelIdentityIndex(catalog)`: una voce per modello canonico con nome di
+    visualizzazione e gli id su **ogni** provider del catalogo, id stabili per primi.
+  - `resolveModel(index, model, providers)`: l'id sul primo provider indicato che serve il
+    modello, preferendo gli id stabili (senza data, senza alias `~`, senza free tier);
+    provider framework (`cloudflare`) e chiavi models.dev (`cloudflare-workers-ai`) equivalenti.
+  - `loadModelIdentityIndex()`: stessa fetch condivisa e cache localStorage con TTL 24h;
+    indice vuoto (senza crash) se models.dev non è raggiungibile.
+- Re-export da `src/providers/ai/index.ts`, `src/providers/ai/server.ts` e `src/index.ts`.
+- Test `tests/unit/providers/ModelIdentity.test.ts`; docs `docs/providers/ai.md`,
+  `llms-full.txt`; `CHANGELOG.md` sotto `## [Unreleased]`.
+
+### Fuori scope
+
+- Bump di versione, tag e publish.
+- Rendering del model picker di `Chatbot`/`Prompt` (eventuale follow-up).
+- Nuovi provider AI o modifiche agli adapter.
+- Sostituzione della logica di pricing (`buildPricingIndex`, `lookupModelsDevPricing`,
+  `withModelsDevPricing`), che resta invariata.
+
+### Checklist
+
+- [ ] `canonicalModelName` mappa sullo stesso valore i nomi equivalenti tra provider
+- [ ] `buildModelIdentityIndex` produce una voce per modello canonico con nome e id per ogni provider
+- [ ] "DeepSeek V4.1 Flash" risolve sull'id corretto su `deepseek`, `openrouter`, `opencode`, `cloudflare` senza preferire Free/Latest/datate
+- [ ] `resolveModel` usa il primo provider che serve il modello; modello/provider sconosciuto → `undefined`
+- [ ] `loadModelIdentityIndex` una fetch per sessione, cache 24h, degrado senza crash
+- [ ] Export da `@llmnative/react` e `@llmnative/react/server`; entry server senza React
+- [ ] Pricing e catalogo esistenti invariati (`ModelPricing.test.ts` verde)
+- [ ] `npx tsc --noEmit`, `npm test`, `npm run build`, `npm pack --dry-run --json` verdi
+- [ ] `llms-full.txt`, `docs/providers/ai.md`, `CHANGELOG.md` aggiornati
+- [ ] Verifica nel Playbook (issue #80)
 
 ---
 

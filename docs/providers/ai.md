@@ -171,6 +171,48 @@ descriptor's `providerLabel` and shows only the model name on the row. Each grou
 header that stays sticky at the top of the menu while its models scroll. A consumer passing
 its own `models` opts in by setting `group`; without it the list stays flat.
 
+## Provider-agnostic model identity
+
+The same model has a different id on each provider (OpenRouter `deepseek/deepseek-v4.1-flash`,
+DeepSeek `deepseek-flash`, Cloudflare `@cf/deepseek-ai/deepseek-v4.1-flash-1017`). When an agent
+picks a model by its human name, the framework finds the id that model has on the providers it has
+available.
+
+[models.dev](https://models.dev) gives every model a human `name` that is consistent across providers
+once release dates and `Free`/`Latest` variants are removed. That name is the provider-independent key.
+
+```ts
+import {
+  canonicalModelName,
+  buildModelIdentityIndex,
+  resolveModel,
+  loadModelIdentityIndex,
+} from '@llmnative/react';
+
+// The provider-agnostic key of a human name (lowercased, without dates and Free/Latest variants).
+canonicalModelName('DeepSeek V4.1 Flash (free)'); // 'deepseek v4 1 flash'
+
+// One fetch per session (shared with model pricing), compact localStorage copy for 24h.
+const index = await loadModelIdentityIndex();
+
+// The id of the model on the first of the providers that serves it, preferring stable ids
+// (no release date, no `~` alias, no free tier).
+resolveModel(index, 'DeepSeek V4.1 Flash', ['deepseek', 'openrouter', 'opencode', 'cloudflare']);
+// 'deepseek-v4.1-flash'
+```
+
+- `buildModelIdentityIndex(catalog)` turns the raw models.dev catalog into
+  `canonicalName → { name, providers: { providerKey: id[] } }`: one entry per canonical model with
+  the ids of **every** provider present in the catalog, most stable id first.
+- `resolveModel(index, model, providers)` takes framework provider ids (`deepseek`, `cloudflare`, …)
+  or raw models.dev keys, and returns the first provider's id for that model — `undefined` when the
+  model or none of the providers is known.
+- Provider keys follow the same mapping as model pricing (`deepseek`, `openrouter`, `opencode`,
+  `cloudflare-workers-ai`, …).
+- When models.dev is unreachable the index is empty and nothing crashes.
+
+The pure functions are also exported from `@llmnative/react/server` for Node workflows.
+
 ## Public unified catalog
 
 If multiple AI providers are configured, use the public catalog helper to get one merged model list plus provider-grouped breakdown.

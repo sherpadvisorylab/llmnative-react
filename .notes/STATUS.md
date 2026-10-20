@@ -123,6 +123,7 @@
 
 | CR | Real state | What is missing |
 |----|-----------|-----------------|
+| CR-103 | 🔄 in progress | Identità provider-agnostica dei modelli AI (`canonicalModelName`, `buildModelIdentityIndex`, `resolveModel`, `loadModelIdentityIndex` in `src/providers/ai/modelIdentity.ts`, fetch condivisa con il pricing, export dal bundle e dall'entry server). Implementata e testata; verifica nel Playbook e chiusura dopo il merge. Issue #80. |
 | CR-098 | ⬜ todo | Repeat: docs con nomi completi (raddoppiati da `setParentName`), firma children sbagliata, `layout="vertical"` che non disegna nulla, pulsanti senza nome accessibile. Issue #69. |
 | CR-097 | ⬜ todo | Testi visibili fissi in inglese in Notifications, ErrorBoundary, ThemeSwitcher, ImageField/RichText, Upload, TabDynamic, GridCore, Chatbot, Breadcrumbs: da portare in `I18nDict` con traduzioni e test. Issue #68. |
 | CR-072 | **Diagnosed — not fixable via config alone** | 890 `tsc --noEmit` errori in `clients/showcase` causati da TypeScript 6.0.3: named exports da `.d.ts` files fuori dallo scope del progetto (`include: ["src"]`) non sono visibili in modalità named import (`import { Icon }`), mentre `import * as` e `typeof import()` funzionano. Tentate: `paths`, `moduleResolution: node10/bundler`, `include` espanso, `.ts` proxy, `.d.ts` proxy, skipLibCheck toggle — stesso risultato. Root cause: regressione TS 6.0.3 nel cross-project type resolution. `npm run build` (Vite/esbuild) è l'unico gate reale e passa. 15 errori prismjs risolti (wildcard declaration in `vite-env.d.ts`). Issue #14 aperta. |
