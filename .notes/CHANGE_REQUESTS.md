@@ -110,6 +110,7 @@
 | [CR-100](#cr-100--tree-albero-di-nodi-accessibile) | Tree: albero di nodi accessibile | Media | — | ✅ |
 | [CR-101](#cr-101--modal-stackedbehind-in-stile-google-tag-manager) | Modal stackedBehind in stile Google Tag Manager | Media | — | ✅ |
 | [CR-102](#cr-102--provider-ai-con-le-chiavi-sul-server) | Provider AI con le chiavi sul server | Alta | — | ✅ |
+| [CR-103](#cr-103--identità-dei-modelli-ai-indipendente-dal-provider) | Identità dei modelli AI indipendente dal provider | Media | — | ✅ |
 
 ---
 
@@ -143,6 +144,43 @@ Richiesto dal consumer `llmnative-cms`.
 - [x] Docs `docs/providers/ai.md`, `llms-full.txt`
 - [x] Verifica visiva nel consumer `llmnative-cms` (picker Agentico: header per OpenCode, DeepSeek, Cloudflare Workers AI, sticky durante lo scroll)
 - [x] Release 1.18.0
+
+---
+
+## CR-103 — Identità dei modelli AI indipendente dal provider
+
+**Stato:** ✅ done
+**Issue:** [#80](https://github.com/sherpadvisorylab/llmnative-react/issues/80)
+**Priorità:** Media
+**Dipende da:** —
+
+### Motivazione
+
+Emersa nel Playbook (21/10/2026): un agente preferisce un modello ("DeepSeek V4.1 Flash") qualunque
+provider lo serva; chi lo esegue (per esempio opencode su una VPS) ha bisogno dell'id di quel modello
+sul provider che ha: OpenRouter `deepseek/deepseek-v4.1-flash`, DeepSeek `deepseek-flash`, Cloudflare
+`@cf/deepseek-ai/deepseek-v4.1-flash-1017`. models.dev dà a ogni modello un nome coerente tra i
+provider, una volta tolte date di rilascio e varianti (Free, Latest).
+
+### Scope
+
+- `canonicalModelName(name)`: la chiave di un modello indipendente dal provider.
+- `buildModelIdentityIndex(catalog)`: dal catalogo models.dev, una voce per modello canonico con il
+  nome da mostrare e i suoi id su ogni provider.
+- `resolveModel(index, model, providers)`: l'id del modello sul primo dei provider dati che lo
+  serve, preferendo id stabili (senza data, senza alias `~`, senza free tier).
+- `loadModelIdentityIndex()`: un solo fetch per sessione.
+- TypeScript puro, esportato dall'entry principale e da `@llmnative/react/server`.
+- Test, `llms-full.txt`, CHANGELOG.
+
+### Checklist
+
+- [x] `canonicalModelName`: date, Free, Latest, maiuscole, host o regione tra parentesi; le modalità (Thinking, Reasoning, Fast) restano
+- [x] `buildModelIdentityIndex` e `resolveModel` (DeepSeek V4.1 Flash su deepseek, openrouter, opencode, cloudflare-workers-ai; varianti non preferite; modello o provider sconosciuto)
+- [x] `loadModelIdentityIndex` con un solo fetch per sessione
+- [x] Export da entry principale e `@llmnative/react/server`; sul catalogo reale 2469 modelli canonici su 232 provider
+- [x] Verificato nel Playbook: modello preferito su skill e agente, tab Runtime con i provider, pacchetto opencode con `model: openrouter/deepseek/deepseek-v4.1-flash` e INSTALL.md che dice il modello di ogni agente
+- [x] Release 1.27.0
 
 ---
 

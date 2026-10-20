@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.27.0] - 2026-10-21
+
+### Added
+- Provider-agnostic identity of AI models from models.dev (CR-103, GH issue #80), for apps that
+  prefer a model whatever provider serves it and need its id on the provider they have.
+  `canonicalModelName(name)` removes what providers add to a name (release date, Free, Latest, the
+  host or region in parentheses) and keeps a mode such as "(Thinking)": "DeepSeek V4.1 Flash 1017"
+  and "DeepSeek V4.1 Flash (Alibaba Cloud)" are both `deepseek v4.1 flash`.
+  `buildModelIdentityIndex(catalog)` gathers the ids of each model on every models.dev provider,
+  the stable one first; `resolveModel(index, model, providers)` gives the id on the first provider
+  that serves it (`openrouter/deepseek/deepseek-v4.1-flash`, the form opencode reads);
+  `loadModelIdentityIndex()` fetches models.dev once per session. Pure: also exported from
+  `@llmnative/react/server`.
+
 ## [1.26.0] - 2026-10-21
 
 ### Added

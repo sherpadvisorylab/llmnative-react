@@ -962,6 +962,21 @@ class MyAIProvider implements AIProviderAdapter {
 const registry = createAIProviderRegistry(definitions)
 ```
 
+### Identità dei modelli indipendente dal provider (CR-103)
+
+```ts
+const index = await loadModelIdentityIndex()          // models.dev, un fetch per sessione
+canonicalModelName('DeepSeek V4.1 Flash (Alibaba Cloud)')   // 'deepseek v4.1 flash'
+index.models['deepseek v4.1 flash']                   // { key, name, family?, providers: { openrouter: [{ id, name }], … } }
+resolveModel(index, 'DeepSeek V4.1 Flash', ['openrouter', 'deepseek'])
+// → { provider: 'openrouter', model: 'deepseek/deepseek-v4.1-flash', ref: 'openrouter/deepseek/deepseek-v4.1-flash' }
+```
+
+Il nome canonico toglie data, Free, Latest e host o regione tra parentesi; una modalità
+("(Thinking)", "(Reasoning)", "(Fast)") resta. Per ogni provider l'id preferito è quello stabile (non
+alias `~`, non free tier, non datato). I provider sono le chiavi di models.dev, le stesse di opencode.
+Puro: anche da `@llmnative/react/server`.
+
 ### Chiavi tenute dal server (CR-102)
 
 Per un'app che non mette mai le chiavi dei provider nel browser. Il browser conosce solo quali

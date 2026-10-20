@@ -5,6 +5,9 @@ import { findServerCredentials, isAIProviderTarget, type ServerAIConnection } fr
 
 export { AI_PROVIDER_HOSTS, isAIProviderTarget, serverCredential, SERVER_CREDENTIAL_PREFIX } from './serverCredentials';
 export type { ServerAIConnection } from './serverCredentials';
+// Provider-agnostic identity of models (CR-103): pure, so a server or a generator can resolve them too.
+export { canonicalModelName, buildModelIdentityIndex, resolveModel, loadModelIdentityIndex } from './modelIdentity';
+export type { ModelIdentity, ModelIdentityEntry, ModelIdentityIndex, ResolvedModel } from './modelIdentity';
 
 /** The connection of a provider as the server keeps it, key included. */
 export type ServerAISecret = ServerAIConnection & { apiKey: string };
