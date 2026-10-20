@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Provider-agnostic model identity from models.dev (CR-103, GH issue #80): `canonicalModelName(name)`,
+  `buildModelIdentityIndex(catalog)`, `resolveModel(index, model, providers)` and
+  `loadModelIdentityIndex()` map one human model name to the id each provider uses
+  (OpenRouter `deepseek/deepseek-v4.1-flash`, DeepSeek `deepseek-flash`, Cloudflare
+  `@cf/deepseek-ai/deepseek-v4.1-flash-1017`), preferring stable ids over Free/Latest/dated
+  variants. One fetch per session, shared with the pricing catalog, compact 24h localStorage cache,
+  empty index when models.dev is unreachable. Exported from `@llmnative/react` and
+  `@llmnative/react/server`; existing pricing and catalog unchanged.
+
 ## [1.26.0] - 2026-10-21
 
 ### Added

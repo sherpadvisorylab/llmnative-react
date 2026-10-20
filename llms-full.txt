@@ -962,6 +962,25 @@ class MyAIProvider implements AIProviderAdapter {
 const registry = createAIProviderRegistry(definitions)
 ```
 
+### Identità provider-agnostica dei modelli (CR-103)
+
+Lo stesso modello ha id diversi per provider. I nomi umani di models.dev permettono di risolverlo
+sui provider disponibili.
+
+```ts
+import { canonicalModelName, buildModelIdentityIndex, resolveModel, loadModelIdentityIndex } from '@llmnative/react'
+
+canonicalModelName('DeepSeek V4.1 Flash (free)')   // chiave provider-agnostica: 'deepseek v4 1 flash'
+const index = await loadModelIdentityIndex()        // una fetch per sessione, cache 24h
+resolveModel(index, 'DeepSeek V4.1 Flash', ['deepseek', 'openrouter', 'opencode', 'cloudflare'])
+// -> l'id sul primo provider che lo serve, preferendo gli id stabili (no data, no ~, no free)
+```
+
+`buildModelIdentityIndex(catalog)` produce `chiave canonica -> { name, providers: { providerKey: id[] } }`
+con gli id su ogni provider del catalogo. `resolveModel` accetta id framework (`cloudflare`) o chiavi
+models.dev (`cloudflare-workers-ai`) e restituisce `undefined` per modello/provider sconosciuto.
+Esportate anche da `@llmnative/react/server`.
+
 ### Chiavi tenute dal server (CR-102)
 
 Per un'app che non mette mai le chiavi dei provider nel browser. Il browser conosce solo quali

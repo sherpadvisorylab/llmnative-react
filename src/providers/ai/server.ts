@@ -6,6 +6,10 @@ import { findServerCredentials, isAIProviderTarget, type ServerAIConnection } fr
 export { AI_PROVIDER_HOSTS, isAIProviderTarget, serverCredential, SERVER_CREDENTIAL_PREFIX } from './serverCredentials';
 export type { ServerAIConnection } from './serverCredentials';
 
+// Provider-agnostic model identity (CR-103): pure TypeScript, no React, no browser-only API.
+export { canonicalModelName, buildModelIdentityIndex, resolveModel, loadModelIdentityIndex } from './modelIdentity';
+export type { ModelIdentity, ModelIdentityIndex } from './modelIdentity';
+
 /** The connection of a provider as the server keeps it, key included. */
 export type ServerAISecret = ServerAIConnection & { apiKey: string };
 

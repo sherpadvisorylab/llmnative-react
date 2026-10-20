@@ -8,8 +8,9 @@ const CACHE_KEY = 'ai.pricing.modelsdev';
 const CACHE_TTL_MS = 1000 * 60 * 60 * 24;
 
 /** Built-in provider id → models.dev provider keys, in lookup order. `openai-compatible` has
- * no entry: its endpoint is arbitrary, so no catalog can know its prices. */
-const MODELS_DEV_PROVIDER_KEYS: Record<string, string[]> = {
+ * no entry: its endpoint is arbitrary, so no catalog can know its prices. Shared with the
+ * provider-agnostic model identity index (`modelIdentity.ts`) so both stay coherent. */
+export const MODELS_DEV_PROVIDER_KEYS: Record<string, string[]> = {
     openai: ['openai'],
     openrouter: ['openrouter'],
     opencode: ['opencode'],
@@ -27,9 +28,16 @@ const MODELS_DEV_PROVIDER_KEYS: Record<string, string[]> = {
  * this keeps only the providers above (~700 entries). */
 type PricingIndex = Record<string, Record<string, [number, number]>>;
 
-type ModelsDevCatalog = Record<string, { models?: Record<string, { cost?: { input?: unknown; output?: unknown } }> }>;
+/** Raw models.dev catalog (~5 MB), reduced only when a consumer needs an index. */
+export type ModelsDevCatalog = Record<string, {
+    models?: Record<string, {
+        /** Human-readable model name, shared across providers modulo dates/variants. */
+        name?: unknown;
+        cost?: { input?: unknown; output?: unknown };
+    }>;
+}>;
 
-let pending: Promise<PricingIndex> | null = null;
+let pendingCatalog: Promise<ModelsDevCatalog> | null = null;
 
 const readCache = (): PricingIndex | null => {
     if (typeof localStorage === 'undefined') return null;
@@ -69,27 +77,34 @@ export const buildPricingIndex = (catalog: ModelsDevCatalog): PricingIndex => {
     return index;
 };
 
+/** One raw fetch per session at most, shared by the pricing index and the model identity index
+ * (`modelIdentity.ts`), so the ~5 MB catalog is downloaded once. Rejects on a failed fetch so
+ * each caller can decide what to cache; the in-flight promise is dropped either way. */
+export const loadModelsDevCatalog = (): Promise<ModelsDevCatalog> => {
+    if (!pendingCatalog) {
+        pendingCatalog = fetch(MODELS_DEV_URL)
+            .then((response) => (response.ok ? (response.json() as Promise<ModelsDevCatalog>) : Promise.reject(new Error(`HTTP ${response.status}`))))
+            .finally(() => { pendingCatalog = null; });
+    }
+    return pendingCatalog;
+};
+
 /** One fetch per session at most (in-flight promise shared by every provider), then the
  * localStorage copy for 24h. A failed fetch resolves to an empty index — every model then
  * shows "price not found" — and is not cached, so the next catalog load retries. */
 const loadPricingIndex = (): Promise<PricingIndex> => {
     const cached = readCache();
     if (cached) return Promise.resolve(cached);
-    if (!pending) {
-        pending = fetch(MODELS_DEV_URL)
-            .then((response) => (response.ok ? response.json() : Promise.reject(new Error(`HTTP ${response.status}`))))
-            .then((catalog: ModelsDevCatalog) => {
-                const index = buildPricingIndex(catalog);
-                writeCache(index);
-                return index;
-            })
-            .catch((error) => {
-                console.warn('models.dev pricing unavailable', error);
-                return {};
-            })
-            .finally(() => { pending = null; });
-    }
-    return pending;
+    return loadModelsDevCatalog()
+        .then((catalog) => {
+            const index = buildPricingIndex(catalog);
+            writeCache(index);
+            return index;
+        })
+        .catch((error) => {
+            console.warn('models.dev pricing unavailable', error);
+            return {};
+        });
 };
 
 /** Provider ids often carry a release date models.dev lists only under the undated alias
@@ -124,5 +139,5 @@ export const withModelsDevPricing = async (providerId: string, models: AIModelDe
     });
 };
 
-/** Test-only: drops the in-flight promise between cases. */
-export const resetModelsDevPricingForTests = () => { pending = null; };
+/** Test-only: drops the shared in-flight fetch between cases. */
+export const resetModelsDevPricingForTests = () => { pendingCatalog = null; };
