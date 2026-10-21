@@ -114,6 +114,58 @@
 
 ---
 
+## CR-104 — GitHub sign-in (driver githubAuth, sessione sul server)
+
+**Stato:** 🔄 in progress
+**Issue:** —
+**Priorità:** Alta
+**Dipende da:** —
+
+### Motivazione
+
+Emerso nel Playbook (21/10/2026): l'accesso allo studio avviene con GitHub e poi si sceglie
+l'organizzazione di un'azienda da una lista. Il flusso OAuth generico del framework scambia il
+codice nel browser come client pubblico PKCE e tiene i token in `localStorage`/global state; GitHub
+richiede il client secret per lo scambio, e le app che non mettono mai un token nel browser hanno
+bisogno che scambio e sessione vivano sul server.
+
+### Scope
+
+- `GitHubConfig` (`{ sessionUrl }`) in `Config.tsx` e campo `github?: GitHubConfig` in `Config`.
+- Adapter `GitHubAuthProvider` (`AuthProviderAdapter`): `signIn()` reindirizza a
+  `<sessionUrl>/login`, profilo da `<sessionUrl>/me` (401 = non autenticato), `signOut()` POST
+  `<sessionUrl>/logout`; `onAuthChange`/`getUser`/`isAuthenticated` riflettono la sessione server.
+- Driver `githubAuth`: `GITHUB_MANIFEST` in `PROVIDER_MANIFESTS`, `AuthDriverName` esteso.
+- Wiring config in `App.tsx` (`providers.github` → `RuntimeProvider`).
+- Helper server `createGitHubOAuth({ clientId, clientSecret })` in
+  `src/providers/auth/github/server.ts`, esposto da `@llmnative/react/server` (nuovo aggregatore
+  neutro `src/server.ts`, entry Vite e `exports` aggiornati).
+- Test, `llms-full.txt`/`llms.txt`, `docs/providers/auth.md`, CHANGELOG.
+
+### Fuori scope
+
+- Bump di versione, sezione di versione in `CHANGELOG.md`, tag e `npm publish`.
+- Modifica del flusso OAuth generico browser (`src/auth.tsx`), invariato per Dropbox/Google.
+- GitHub Enterprise / host self-managed (solo `github.com`).
+- Implementazione del server dell'app (`/login`, `/me`, `/logout`): il framework fornisce adapter
+  client e helper `createGitHubOAuth`.
+
+### Checklist
+
+- [x] `githubAuth` registrato in `PROVIDER_MANIFESTS`; con `providers.github = { sessionUrl }` la registry espone l'adapter (`AuthProviderManifest.test.ts`)
+- [x] Senza `sessionUrl` il provider non è configurato: `isConfigured()` `false`, `missingKeys: ['github.sessionUrl']` (`GitHubAuthProvider.test.ts`)
+- [x] `signIn()` porta a `<sessionUrl>/login` (`GitHubAuthProvider.test.ts`)
+- [x] `getUser()`/`onAuthChange()` dal profilo di `<sessionUrl>/me`; 401 → utente nullo senza eccezioni (`GitHubAuthProvider.test.ts`)
+- [x] `signOut()` POST `<sessionUrl>/logout` e azzera lo stato locale (`GitHubAuthProvider.test.ts`)
+- [x] `AuthButton` (aspect `button` e `avatar`) mostra profilo/avatar e completa sign-in/sign-out attraverso l'adapter (`AuthButton.github.test.tsx`)
+- [x] `createGitHubOAuth`: authorize URL con `state` e PKCE, scambio codice, profilo, org admin (`GitHubOAuthServer.test.ts`, environment node)
+- [x] Errori GitHub come `GitHubOAuthError` con `status`/`providerMessage`, non inghiottiti (`GitHubOAuthServer.test.ts`)
+- [x] Helper esposto da `@llmnative/react/server` senza React (`src/server.ts`); type path in `package.json` aggiornato
+- [x] `npx tsc --noEmit`, `npm test` (76 file, 825 test), `npm run build` verdi
+- [x] `llms-full.txt`/`llms.txt`/`docs/providers/auth.md` aggiornati; CHANGELOG `## [Unreleased]`; STATUS allineato
+
+---
+
 ## CR-086 — Model picker: modelli raggruppati per provider con header sticky
 
 **Stato:** ✅ done — rilasciato in 1.18.0

@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- GitHub sign-in with the session held by the app's server (CR-104), for apps that sign in with
+  GitHub but never put a token in the browser. New auth driver `githubAuth`, configured with
+  `providers.github = { sessionUrl }`: `signIn()` redirects to `<sessionUrl>/login`, the profile
+  comes from `<sessionUrl>/me` (401 = signed out), `signOut()` posts `<sessionUrl>/logout`;
+  `AuthButton` (button and avatar) and `useAuthProvider` work unchanged. The browser only sees the
+  profile. New Node helper `createGitHubOAuth({ clientId, clientSecret })` in
+  `@llmnative/react/server` (now `src/server.ts`): authorize URL with `state` and PKCE
+  (`beginAuthorization`/`createGitHubPkce`), code exchange with the client secret, user profile and
+  the organizations where the user is admin. GitHub failures surface as `GitHubOAuthError` with the
+  HTTP status and the provider message.
+
 ## [1.27.0] - 2026-10-21
 
 ### Added

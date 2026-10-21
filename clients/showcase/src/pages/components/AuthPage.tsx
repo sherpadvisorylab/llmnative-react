@@ -49,7 +49,7 @@ export default function AuthPage() {
     ], [t]);
 
     const authButtonPlaygroundProps = React.useMemo<PropDef[]>(() => [
-        { name: 'provider', type: 'string', default: '"dropboxAuth"', description: t.propsDocs.items.provider.description, control: 'select', options: ['googleAuth', 'dropboxAuth'] },
+        { name: 'provider', type: 'string', default: '"dropboxAuth"', description: t.propsDocs.items.provider.description, control: 'select', options: ['googleAuth', 'dropboxAuth', 'githubAuth'] },
         { name: 'intent', type: '"signIn" | "connect" | "signOut" | "disconnect" | "reauthorize"', default: '"connect"', description: t.propsDocs.items.intent.description, control: 'select', options: ['signIn', 'connect', 'signOut', 'disconnect', 'reauthorize'] },
         { name: 'aspect', type: '"button" | "avatar"', default: '"button"', description: t.propsDocs.items.aspect.description, control: 'select', options: ['button', 'avatar'] },
         { name: 'label', type: 'string', default: `"${t.labels.connectDropbox}"`, description: t.propsDocs.items.label.description, control: 'text' },

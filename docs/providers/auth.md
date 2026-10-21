@@ -18,6 +18,7 @@ description: Use the active auth service for current user, sign-out and access t
 | `firebaseAuth` | Firebase Auth | `password`, `anonymous`, `oauth` (GitHub, Apple, Microsoft…) |
 | `supabaseAuth` | Supabase Auth | `password`, `magic_link`, `oauth`, `anonymous` |
 | `dropboxAuth` | Dropbox OAuth2 | Dropbox OAuth popup |
+| `githubAuth` | GitHub via the app's server | GitHub OAuth, session held server-side |
 | custom | Your adapter | JWT sessions, enterprise SSO, internal auth |
 
 For full OAuth configuration, see [GoogleOAuth2 sign-in config](/docs/app-configuration#googleoauth2--sign-in-config).
@@ -26,7 +27,7 @@ If you want the ready-made browser login/logout UI, use the [Auth component](/co
 
 ## Configuration state
 
-Auth providers expose configuration state. `googleAuth` requires `google.oAuth2.clientId`; `dropboxAuth` requires `dropbox.clientId`.
+Auth providers expose configuration state. `googleAuth` requires `google.oAuth2.clientId`; `dropboxAuth` requires `dropbox.clientId`; `githubAuth` requires `github.sessionUrl`.
 
 `AuthButton` uses that state automatically: if the selected provider is not configured, the button/avatar is disabled, slightly faded, and its title explains which key is missing.
 
@@ -234,6 +235,50 @@ To enable Dropbox OAuth as an integration provider, declare `providers.dropbox`.
 ```
 
 For the full `google` object, scopes and environment variables, see [GoogleOAuth2 sign-in config](/docs/app-configuration#googleoauth2--sign-in-config).
+
+## GitHub Auth (session held by your server)
+
+`githubAuth` signs in with GitHub but never puts a token in the browser: the code exchange and the
+session live on your server. The browser only calls three endpoints under `github.sessionUrl`:
+
+| Endpoint | Used by | Behaviour |
+|---|---|---|
+| `GET <sessionUrl>/login` | `signIn()` | redirects to GitHub (your server starts the OAuth flow) |
+| `GET <sessionUrl>/me` | `getUser()` / `onAuthChange()` | the profile, or `401` when signed out |
+| `POST <sessionUrl>/logout` | `signOut()` | ends the server session |
+
+```tsx
+<App
+  providers={{
+    github: { sessionUrl: 'https://api.example.com/session' },
+    services: { auth: 'githubAuth' },
+  }}
+/>
+```
+
+The framework ships the server-side building blocks from `@llmnative/react/server` (no React, no
+browser API) so your server can implement those endpoints:
+
+```ts
+import { createGitHubOAuth } from '@llmnative/react/server';
+
+const github = createGitHubOAuth({
+  clientId: process.env.GITHUB_CLIENT_ID!,
+  clientSecret: process.env.GITHUB_CLIENT_SECRET!, // stays on the server only
+});
+
+// /login: authorize URL with state and PKCE
+const { url, state, codeVerifier } = await github.beginAuthorization({ redirectUri });
+
+// callback: exchange the code, then read the profile and the admin organizations
+const { accessToken } = await github.exchangeCode({ code, redirectUri, codeVerifier });
+const user = await github.getUser(accessToken);
+const adminOrgs = await github.getAdminOrganizations(accessToken);
+```
+
+GitHub failures (token exchange, user, organizations) surface as `GitHubOAuthError` with the HTTP
+`status` and, when GitHub sent one, its `providerMessage` — never swallowed.
+
 
 ## Custom AuthProvider
 
