@@ -41,6 +41,11 @@ export type DropboxConfig = {
     rootPath: string;
 };
 
+/** Sign-in with GitHub through the app's server (CR-104): where its session endpoints live (login, me, logout). */
+export type GitHubAuthConfig = {
+    sessionUrl: string;
+};
+
 export type AIConfig = {
     geminiApiKey?: string;
     openaiApiKey?: string;
@@ -93,6 +98,7 @@ export type Config = {
     firebase?: FirebaseConfig;
     google?: GoogleConfig;
     dropbox?: DropboxConfig;
+    github?: GitHubAuthConfig;
     supabase?: SupabaseConfig;
     ai?: AIConfig;
     scrape?: ScrapeConfig;

@@ -14,7 +14,7 @@ export type {
     EmailDriverName,
     AIDriverName,
 } from './providers/manifest';
-export type { ProxyConfig } from './Config';
+export type { ProxyConfig, GitHubAuthConfig } from './Config';
 export {
     Head,
     HeadProvider,
@@ -175,6 +175,8 @@ export { FirebaseAuthProvider } from './providers/auth/firebase/FirebaseAuthProv
 export { callFirebaseFunction } from './providers/firebase-init';
 export { SupabaseAuthProvider } from './providers/auth/supabase/SupabaseAuthProvider';
 export { DropboxAuthProvider } from './providers/auth/dropbox/DropboxAuthProvider';
+export { GitHubAuthProvider } from './providers/auth/github/GitHubAuthProvider';
+export type { GitHubSessionProfile } from './providers/auth/github/GitHubAuthProvider';
 export type { CredentialsAdapter } from './providers/credentials/CredentialsProvider';
 export { useCredentialsProvider } from './providers/credentials/CredentialsProviderContext';
 export { GoogleServiceAccountProvider } from './providers/credentials/google/GoogleServiceAccountProvider';

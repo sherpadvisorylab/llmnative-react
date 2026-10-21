@@ -5,6 +5,9 @@ import { findServerCredentials, isAIProviderTarget, type ServerAIConnection } fr
 
 export { AI_PROVIDER_HOSTS, isAIProviderTarget, serverCredential, SERVER_CREDENTIAL_PREFIX } from './serverCredentials';
 export type { ServerAIConnection } from './serverCredentials';
+// Sign-in with GitHub held by the app's server (CR-104): authorize URL, code exchange, profile, organizations.
+export { createGitHubOAuth, GitHubOAuthError } from '../auth/github/githubOAuth';
+export type { GitHubOAuth, GitHubOAuthConfig, GitHubOAuthOrganization, GitHubOAuthUser } from '../auth/github/githubOAuth';
 // Provider-agnostic identity of models (CR-103): pure, so a server or a generator can resolve them too.
 export { canonicalModelName, buildModelIdentityIndex, resolveModel, loadModelIdentityIndex } from './modelIdentity';
 export type { ModelIdentity, ModelIdentityEntry, ModelIdentityIndex, ResolvedModel } from './modelIdentity';

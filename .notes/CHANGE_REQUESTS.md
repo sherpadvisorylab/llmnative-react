@@ -111,6 +111,7 @@
 | [CR-101](#cr-101--modal-stackedbehind-in-stile-google-tag-manager) | Modal stackedBehind in stile Google Tag Manager | Media | — | ✅ |
 | [CR-102](#cr-102--provider-ai-con-le-chiavi-sul-server) | Provider AI con le chiavi sul server | Alta | — | ✅ |
 | [CR-103](#cr-103--identità-dei-modelli-ai-indipendente-dal-provider) | Identità dei modelli AI indipendente dal provider | Media | — | ✅ |
+| [CR-104](#cr-104--accesso-con-github-driver-githubauth-sessione-sul-server) | Accesso con GitHub (driver githubAuth, sessione sul server) | Alta | — | ✅ |
 
 ---
 
@@ -144,6 +145,42 @@ Richiesto dal consumer `llmnative-cms`.
 - [x] Docs `docs/providers/ai.md`, `llms-full.txt`
 - [x] Verifica visiva nel consumer `llmnative-cms` (picker Agentico: header per OpenCode, DeepSeek, Cloudflare Workers AI, sticky durante lo scroll)
 - [x] Release 1.18.0
+
+---
+
+## CR-104 — Accesso con GitHub (driver githubAuth, sessione sul server)
+
+**Stato:** ✅ done — rilasciato in 1.28.0
+**Issue:** [#82](https://github.com/sherpadvisorylab/llmnative-react/issues/82)
+**Priorità:** Alta
+**Dipende da:** —
+
+### Motivazione
+
+Emersa nel Playbook (21/10/2026): le persone accedono allo studio con GitHub e scelgono
+l'organizzazione di una company da un elenco. Il framework ha un driver di autenticazione per
+provider (googleAuth, dropboxAuth…) dietro `AuthButton`, ma il suo flusso OAuth generico scambia il
+codice nel browser come client pubblico PKCE e tiene i token in `localStorage`. GitHub richiede ancora
+il client secret per lo scambio, e le app che non mettono mai un token nel browser hanno bisogno che
+scambio e sessione stiano sul loro server.
+
+### Scope
+
+- Driver `githubAuth` nel manifest, configurazione `providers.github = { sessionUrl }`.
+- `GitHubAuthProvider` (`AuthProviderAdapter`): l'accesso porta a `<sessionUrl>/login`, il profilo
+  arriva da `<sessionUrl>/me` (401 senza sessione), l'uscita è un POST a `<sessionUrl>/logout`;
+  funziona con `AuthButton` (pulsante e avatar) e `useAuthProvider`. Il browser vede solo il profilo.
+- `createGitHubOAuth({ clientId, clientSecret })` in `@llmnative/react/server`: indirizzo di
+  autorizzazione (state, PKCE), scambio del codice, profilo, organizzazioni in cui l'utente è admin.
+- Test, `llms-full.txt`, CHANGELOG.
+
+### Checklist
+
+- [x] `GitHubAuthProvider` e driver `githubAuth` (manifest, `AuthDriverName`, config)
+- [x] `createGitHubOAuth` in `@llmnative/react/server`
+- [x] Test di adapter, manifest e helper
+- [x] Verificato nel Playbook (integrato: typecheck, test delle rotte di sessione; il giro nel browser richiede la OAuth App dello studio)
+- [x] Release
 
 ---
 

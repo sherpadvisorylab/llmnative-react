@@ -89,7 +89,7 @@ Built-in themes: `default`, `flat`, `cyber`.
 |---|---|---|---|---|
 | data | `DataProviderAdapter` | `mock`, `dbRealtime`, `firestoreDb`, `supabaseDb` | `providers.mock/firebase/supabase` | sì (fallback: mock) |
 | storage | `StorageProviderAdapter` | `firestorage`, `supabaseStorage` | `providers.firebase/supabase` | no |
-| auth | `AuthProviderAdapter` | `googleAuth`, `firebaseAuth`, `supabaseAuth`, `dropboxAuth` | `providers.google/firebase/supabase/dropbox` | sì (fallback: googleAuth) |
+| auth | `AuthProviderAdapter` | `googleAuth`, `firebaseAuth`, `supabaseAuth`, `dropboxAuth`, `githubAuth` | `providers.google/firebase/supabase/dropbox/github` | sì (fallback: googleAuth) |
 | email | `EmailProviderAdapter` | `gmail` | `providers.google` | no |
 | ai | `AIProviderAdapter` | `openai`, `gemini`, `anthropic`, `deepseek`, `mistral`, `openrouter`, `opencode`, `cloudflare`, `groq` | `Config.tsx AIConfig` | no |
 | credentials | `CredentialsAdapter` | `googleServiceAccount` | `providers.google.serviceAccount` | no |
@@ -106,6 +106,29 @@ const creds   = useCredentialsProvider()    // CredentialsAdapter | null
 
 // Named provider (multi-provider setup)
 const supabase = useDataProvider('supabase')
+```
+
+### GitHub (`githubAuth`, sessione sul server dell'app)
+
+GitHub richiede il client secret per scambiare il codice: scambio, token e sessione stanno sul server
+dell'app, il browser vede solo il profilo. Config `providers.github = { sessionUrl: '/api/auth/github' }`,
+driver `auth: 'githubAuth'`; funziona con `AuthButton` (pulsante e `aspect="avatar"`) e
+`useAuthProvider('githubAuth')`. Il server espone sotto `sessionUrl`:
+
+| Rotta | Risposta |
+|---|---|
+| `GET /login?returnTo=<path>[&scope=…]` | redirect a GitHub, poi di nuovo a `<path>` |
+| `GET /me` | `{ login, name, avatarUrl, email }`, 401 senza sessione |
+| `POST /logout` | chiude la sessione |
+
+Lato server, da `@llmnative/react/server`:
+
+```ts
+const oauth = createGitHubOAuth({ clientId, clientSecret, scopes: ['read:org'] })
+oauth.authorizeUrl({ state, redirectUri, codeChallenge })   // PKCE S256
+const { accessToken } = await oauth.exchangeCode({ code, redirectUri, codeVerifier })  // GitHubOAuthError se rifiutato
+await oauth.getUser(accessToken)            // { login, name, avatarUrl, email }
+await oauth.getOrganizations(accessToken)   // [{ login, avatarUrl, role: 'admin' | 'member' }]
 ```
 
 ### Interfacce principali

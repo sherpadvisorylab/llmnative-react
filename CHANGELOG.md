@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.28.0] - 2026-10-21
+
+### Added
+- Sign-in with GitHub (CR-104, GH issue #82), for apps whose server holds the session: GitHub needs
+  the client secret to exchange the code, so the token never reaches the browser. New `githubAuth`
+  auth driver (`providers.github = { sessionUrl }`) with `GitHubAuthProvider`, working with
+  `AuthButton` and `useAuthProvider`: sign-in goes to `<sessionUrl>/login`, the profile comes from
+  `<sessionUrl>/me`, sign-out posts to `<sessionUrl>/logout`. `createGitHubOAuth({ clientId,
+  clientSecret, scopes })` in `@llmnative/react/server` gives the authorize URL (state, PKCE S256),
+  the code exchange, the profile and the organizations of the person with their role.
+
 ## [1.27.0] - 2026-10-21
 
 ### Added

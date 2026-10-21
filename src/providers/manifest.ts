@@ -6,6 +6,7 @@ import { FirebaseAuthProvider } from './auth/firebase/FirebaseAuthProvider';
 import { GoogleServiceAccountProvider } from './credentials/google/GoogleServiceAccountProvider';
 import type { CredentialsAdapter } from './credentials/CredentialsProvider';
 import { DropboxAuthProvider } from './auth/dropbox/DropboxAuthProvider';
+import { GitHubAuthProvider } from './auth/github/GitHubAuthProvider';
 import { GmailEmailProvider } from './email/google/GmailEmailProvider';
 import { SupabaseDataProvider } from './data/supabase';
 import { SupabaseStorageProvider } from './storage/supabase';
@@ -16,7 +17,7 @@ import type { DataProviderAdapter } from './data/DataProvider';
 import type { StorageProviderAdapter } from './storage/StorageProvider';
 import type { AuthProviderAdapter } from './auth/AuthProvider';
 import type { EmailProviderAdapter } from './email/EmailProvider';
-import type { AIConfig, DropboxConfig, FirebaseConfig, GoogleOAuth2, GoogleServiceAccount, SupabaseConfig } from '../Config';
+import type { AIConfig, DropboxConfig, FirebaseConfig, GitHubAuthConfig, GoogleOAuth2, GoogleServiceAccount, SupabaseConfig } from '../Config';
 import { RuntimeAIProvider } from './ai/shared';
 import { ANTHROPIC_PROVIDER_DEFINITION } from './ai/anthropic';
 import { createCloudflareProviderDefinition } from './ai/cloudflare';
@@ -84,6 +85,13 @@ export const DROPBOX_MANIFEST: DriverManifest<DropboxConfig> = {
     dropboxAuth: { service: 'auth', create: (cfg) => new DropboxAuthProvider(cfg) },
 };
 
+// ── GitHub manifest ──────────────────────────────────────────────────────────
+
+// Sign-in through the app's server, which holds the session (CR-104): only with its session URL.
+export const GITHUB_MANIFEST: DriverManifest<GitHubAuthConfig> = {
+    githubAuth: { service: 'auth', create: (cfg) => new GitHubAuthProvider(cfg), when: (cfg) => !!cfg?.sessionUrl?.trim() },
+};
+
 // ── Supabase manifest ────────────────────────────────────────────────────────
 
 export const SUPABASE_MANIFEST: DriverManifest<SupabaseProviderConfig> = {
@@ -144,6 +152,7 @@ export const PROVIDER_MANIFESTS: Record<string, DriverManifest<any>> = { // CR-0
     firebase: FIREBASE_MANIFEST,
     google:   GOOGLE_MANIFEST,
     dropbox:  DROPBOX_MANIFEST,
+    github:   GITHUB_MANIFEST,
     supabase: SUPABASE_MANIFEST,
     mock:     MOCK_MANIFEST,
     ai:       AI_MANIFEST,
@@ -153,7 +162,7 @@ export const PROVIDER_MANIFESTS: Record<string, DriverManifest<any>> = { // CR-0
 
 export type DataDriverName    = 'dbRealtime' | 'firestoreDb' | 'supabaseDb' | 'mock';
 export type StorageDriverName = 'firestorage' | 'supabaseStorage';
-export type AuthDriverName        = 'googleAuth' | 'firebaseAuth' | 'dropboxAuth' | 'supabaseAuth';
+export type AuthDriverName        = 'googleAuth' | 'firebaseAuth' | 'dropboxAuth' | 'supabaseAuth' | 'githubAuth';
 export type EmailDriverName       = 'gmail';
 export type AIDriverName          = 'openai' | 'openrouter' | 'opencode' | 'openai-compatible' | 'deepseek' | 'gemini' | 'anthropic' | 'mistral' | 'cloudflare' | 'groq';
 export type CredentialsDriverName = 'googleServiceAccount';
