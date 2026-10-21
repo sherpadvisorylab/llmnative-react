@@ -41,6 +41,15 @@ export type DropboxConfig = {
     rootPath: string;
 };
 
+/**
+ * GitHub sign-in whose session is held by the app's own server (CR-104).
+ * The browser only knows the base URL of the session endpoints: it never sees a token.
+ */
+export type GitHubConfig = {
+    /** Base URL of the app's session endpoints: `<sessionUrl>/login`, `/me`, `/logout`. */
+    sessionUrl: string;
+};
+
 export type AIConfig = {
     geminiApiKey?: string;
     openaiApiKey?: string;
@@ -93,6 +102,7 @@ export type Config = {
     firebase?: FirebaseConfig;
     google?: GoogleConfig;
     dropbox?: DropboxConfig;
+    github?: GitHubConfig;
     supabase?: SupabaseConfig;
     ai?: AIConfig;
     scrape?: ScrapeConfig;

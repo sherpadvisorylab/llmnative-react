@@ -36,6 +36,20 @@ describe('provider manifest auth drivers', () => {
         });
     });
 
+    it('registers GitHub as an auth driver', () => {
+        const descriptor = PROVIDER_MANIFESTS.github.githubAuth;
+
+        expect(descriptor.service).toBe('auth');
+        const provider = descriptor.create({ sessionUrl: 'https://session.example.com' });
+        expect(provider).toMatchObject({
+            getUser:         expect.any(Function),
+            signIn:          expect.any(Function),
+            signOut:         expect.any(Function),
+            onAuthChange:    expect.any(Function),
+            isAuthenticated: expect.any(Function),
+        });
+    });
+
     it('registers Supabase as an auth driver', () => {
         const descriptor = PROVIDER_MANIFESTS.supabase.supabaseAuth;
 

@@ -26,7 +26,7 @@ export default defineConfig({
             entry: {
                 index: resolve(__dirname, 'src/index.ts'),
                 vite: resolve(__dirname, 'src/providers/proxy/vite.ts'),
-                server: resolve(__dirname, 'src/providers/ai/server.ts'),
+                server: resolve(__dirname, 'src/server.ts'),
             },
             formats: ['es', 'cjs'],
             cssFileName: 'index',

@@ -14,7 +14,7 @@
     },
     "./vite": "./dist/vite.mjs",
     "./server": {
-      "types": "./dist/types/src/providers/ai/server.d.ts",
+      "types": "./dist/types/src/server.d.ts",
       "import": "./dist/server.mjs",
       "require": "./dist/server.js"
     },

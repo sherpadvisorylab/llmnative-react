@@ -32,6 +32,7 @@ import '@llmnative/react/dist/index.css'
     supabase: { url, anonKey },
     google: { clientId, scope },       // flat — NON { oAuth2: { clientId } }
     dropbox: { clientId },             // DropboxConfig
+    github: { sessionUrl },            // GitHubConfig — sessione OAuth sul server dell'app
     mock: { data: mockData },
     ai: {                              // AIConfig — NON una prop separata di <App>
       openaiApiKey, geminiApiKey, anthropicApiKey,
@@ -89,7 +90,7 @@ Built-in themes: `default`, `flat`, `cyber`.
 |---|---|---|---|---|
 | data | `DataProviderAdapter` | `mock`, `dbRealtime`, `firestoreDb`, `supabaseDb` | `providers.mock/firebase/supabase` | sì (fallback: mock) |
 | storage | `StorageProviderAdapter` | `firestorage`, `supabaseStorage` | `providers.firebase/supabase` | no |
-| auth | `AuthProviderAdapter` | `googleAuth`, `firebaseAuth`, `supabaseAuth`, `dropboxAuth` | `providers.google/firebase/supabase/dropbox` | sì (fallback: googleAuth) |
+| auth | `AuthProviderAdapter` | `googleAuth`, `firebaseAuth`, `supabaseAuth`, `dropboxAuth`, `githubAuth` | `providers.google/firebase/supabase/dropbox/github` | sì (fallback: googleAuth) |
 | email | `EmailProviderAdapter` | `gmail` | `providers.google` | no |
 | ai | `AIProviderAdapter` | `openai`, `gemini`, `anthropic`, `deepseek`, `mistral`, `openrouter`, `opencode`, `cloudflare`, `groq` | `Config.tsx AIConfig` | no |
 | credentials | `CredentialsAdapter` | `googleServiceAccount` | `providers.google.serviceAccount` | no |
@@ -141,6 +142,31 @@ await auth.signIn({ method: 'oauth', provider: 'github' })
 // Google: token per API scope
 const token = await auth.getAccessToken('https://www.googleapis.com/auth/gmail.send')
 ```
+
+### GitHub con la sessione sul server (CR-104)
+
+Per un accesso GitHub in cui il browser non vede mai un token: lo scambio del codice e la
+sessione vivono sul server dell'app, che espone `<sessionUrl>/login`, `<sessionUrl>/me` e
+`<sessionUrl>/logout`. `signIn()` reindirizza a `/login`, il profilo arriva da `/me` (401 =
+disconnesso), `signOut()` fa POST `/logout`.
+
+```tsx
+<App providers={{ github: { sessionUrl: 'https://api.example.com/session' }, services: { auth: 'githubAuth' } }} />
+```
+
+```ts
+// Server (Node, nessuna dipendenza da React): da `@llmnative/react/server`
+import { createGitHubOAuth, createGitHubPkce } from '@llmnative/react/server'
+const github = createGitHubOAuth({ clientId, clientSecret })   // clientSecret resta sul server
+const { url, state, codeVerifier } = await github.beginAuthorization({ redirectUri })  // state + PKCE
+const { accessToken } = await github.exchangeCode({ code, redirectUri, codeVerifier })
+const user = await github.getUser(accessToken)
+const admins = await github.getAdminOrganizations(accessToken)   // solo le org dove l'utente è admin
+```
+
+Gli errori di GitHub emergono come `GitHubOAuthError` con `status` e `providerMessage`. Senza
+`sessionUrl` il provider non è configurato. `createGitHubPkce()` genera la coppia PKCE (S256).
+
 
 ### CredentialsAdapter (Google Service Account)
 ```tsx
@@ -1223,6 +1249,8 @@ Driver per `VITE_PROVIDER`: `firebase` → `firestoreDb` + `firestorage` + `fire
 | Provider auth Supabase | `src/providers/auth/supabase/` |
 | Provider auth Google | `src/providers/auth/google/` |
 | Provider auth Dropbox | `src/providers/auth/dropbox/` |
+| Provider auth GitHub | `src/providers/auth/github/` |
+| Entry server (Node) | `src/server.ts` |
 | Provider email Gmail | `src/providers/email/google/GmailEmailProvider.ts` |
 | Provider AI definitions | `src/providers/ai/` |
 | Provider credenziali | `src/providers/credentials/` |

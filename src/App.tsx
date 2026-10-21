@@ -22,6 +22,7 @@ const PageLoader = () => (
 import {
     AIConfig,
     DropboxConfig,
+    GitHubConfig,
     ProxyConfig,
     FirebaseConfig,
     RuntimeProvider,
@@ -85,6 +86,7 @@ export type AppProvidersConfig = {
     supabase?: SupabaseProviderConfig;
     google?: GoogleProviderConfig;
     dropbox?: DropboxConfig;
+    github?: GitHubConfig;
     mock?: MockProviderConfig;
     ai?: AIConfig;
     proxy?: ProxyConfig;
@@ -309,6 +311,7 @@ export function AppProvider({
                     }
                     : undefined,
                 dropbox: providers.dropbox,
+                github: providers.github,
                 ai: providers.ai,
                 scrape: scrapeConfig,
                 proxy: providers.proxy,
