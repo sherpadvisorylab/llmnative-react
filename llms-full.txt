@@ -817,6 +817,7 @@ utile quando un comando cambia famiglia sintattica (per esempio da `{{ ... }}` a
 ```tsx
 <Icon name="user" size={20} />           // usa provider icone configurato
 <ImageAvatar src="..." title="Mario" alt="Mario" width={40} height={40} />
+<Identicon value="acme/app" size={32} title="acme/app" />   // icona generata dal valore, stile GitHub
 <Loader show={isLoading}>{content}</Loader> // indicatore al posto dei figli finché show è true
 <Loader show>{null}</Loader>             // solo indicatore (es. pagina in caricamento)
 <Code language="tsx">{snippet}</Code>   // syntax highlight
@@ -883,6 +884,17 @@ utile quando un comando cambia famiglia sintattica (per esempio da `{{ ... }}` a
 | `fit` | `AvatarFit` |
 | `badge` | `BadgeDescriptor` |
 | `feedback` | `ReactNode` |
+
+**Identicon:** l'icona di un'entità senza immagine (repository, tenant, utente senza foto), come quelle di
+GitHub: griglia 5×5 simmetrica, celle e tinta da un hash di `value`. Lo stesso valore dà sempre la stessa
+icona; niente rete né storage. Default: `rounded-md bg-muted` (tema `Identicon.className`).
+`identiconPattern(value)` restituisce celle e tinta, per chi la disegna altrove.
+| Prop | Tipo |
+|---|---|
+| `value` | `string` (obbligatoria) |
+| `size` | `number` (px, default 40) |
+| `title` | `string`: nome accessibile (`role="img"`); senza, `aria-hidden` |
+| `before` / `after` / `className` / `wrapperClassName` | come le altre primitive |
 
 **Search:**
 | Prop | Tipo |

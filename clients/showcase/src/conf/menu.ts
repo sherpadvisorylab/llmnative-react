@@ -40,6 +40,7 @@ const GridSystemPage = lazyPage(() => import('../pages/components/GridSystemPage
 const IconPage = lazyPage(() => import('../pages/components/IconPage'));
 const ImagePage = lazyPage(() => import('../pages/components/ImagePage'));
 const ImageAvatarPage = lazyPage(() => import('../pages/components/ImageAvatarPage'));
+const IdenticonPage = lazyPage(() => import('../pages/components/IdenticonPage'));
 const ImageFieldPage = lazyPage(() => import('../pages/components/ImageFieldPage'));
 const LayoutBuilderPage = lazyPage(() => import('../pages/components/LayoutBuilderPage'));
 const ListCardPage = lazyPage(() => import('../pages/components/ListCardPage'));
@@ -156,6 +157,7 @@ export const menu = {
         { path: '/components/icon', title: 'Icon', page: IconPage, group: 'UI Primitives' },
         { path: '/components/image', title: 'Image', page: ImagePage, group: 'UI Primitives' },
         { path: '/components/image-avatar', title: 'ImageAvatar', page: ImageAvatarPage, group: 'UI Primitives' },
+        { path: '/components/identicon', title: 'Identicon', page: IdenticonPage, group: 'UI Primitives' },
         { path: '/components/loader', title: 'Loader', page: LoaderPage, group: 'UI Primitives' },
         { path: '/components/locale-switcher', title: 'LocaleSwitcher', page: LocaleSwitcherPage, group: 'UI Primitives' },
         {

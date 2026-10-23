@@ -113,6 +113,7 @@
 | [CR-103](#cr-103--identità-dei-modelli-ai-indipendente-dal-provider) | Identità dei modelli AI indipendente dal provider | Media | — | ✅ |
 | [CR-104](#cr-104--accesso-con-github-driver-githubauth-sessione-sul-server) | Accesso con GitHub (driver githubAuth, sessione sul server) | Alta | — | ✅ |
 | [CR-105](#cr-105--temi-vs-code-completi-e-in-coppia-lightdark-token-canvas-verifica-dei-contrasti) | Temi VS Code completi e in coppia light/dark, token canvas, verifica dei contrasti | Alta | — | ✅ |
+| [CR-106](#cr-106--identicon-icona-generata-da-un-valore-stile-github) | Identicon: icona generata da un valore (stile GitHub) | Media | — | ✅ |
 
 ---
 
@@ -146,6 +147,38 @@ Richiesto dal consumer `llmnative-cms`.
 - [x] Docs `docs/providers/ai.md`, `llms-full.txt`
 - [x] Verifica visiva nel consumer `llmnative-cms` (picker Agentico: header per OpenCode, DeepSeek, Cloudflare Workers AI, sticky durante lo scroll)
 - [x] Release 1.18.0
+
+---
+
+## CR-106 — Identicon: icona generata da un valore (stile GitHub)
+
+**Stato:** ✅ done (1.30.0)
+**Issue:** [#85](https://github.com/sherpadvisorylab/llmnative-react/issues/85)
+**Priorità:** Media
+**Dipende da:** —
+
+### Motivazione
+
+Emersa nel Playbook (23/10/2026): negli elenchi di issue di più progetti e nella pagina Progetti serve
+riconoscere a colpo d'occhio il repository. Le app non hanno un'immagine per ogni entità (repository,
+tenant, utente senza foto): GitHub usa gli identicon, un disegno generato dal nome e sempre uguale per
+lo stesso nome. Il framework ha `ImageAvatar` (un'immagine data), nulla per un'icona derivata da un valore.
+
+### Scope
+
+- Componente `Identicon`: SVG 5×5 simmetrico, celle e tinta da un hash del `value`; deterministico,
+  senza rete né immagini, leggibile in light e dark.
+- Props `value`, `size`, `title`, `className`/`wrapperClassName`, `before`/`after`; chiave di tema `Identicon`.
+- Test unitari, `llms-full.txt`, showcase (6 lingue), CHANGELOG.
+
+### Checklist
+
+- [x] Componente ed export dalla root (`Identicon`, `identiconPattern`, chiave di tema `Identicon`)
+- [x] Test (`tests/unit/components/Identicon.test.tsx`)
+- [x] Docs (`llms-full.txt`), showcase (pagina, 6 lingue), CHANGELOG
+- [x] Verificato nel Playbook (tarball locale: icona dei progetti e delle issue; typecheck e test OK)
+- [x] Release: 1.30.0 (23/10/2026). Gate: `tsc --noEmit` 0 errori, `npm test` 77 file / 848 test,
+  `npm run build` OK, build dello showcase OK.
 
 ---
 

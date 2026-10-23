@@ -1625,6 +1625,28 @@ interface ShowcaseLayoutBuilderI18n {
     };
 }
 
+interface ShowcaseIdenticonI18n {
+    page: {
+        title: string;
+        description: string;
+    };
+    sections: {
+        values: ShowcasePageSectionCopy;
+        sizes: ShowcasePageSectionCopy;
+        inRow: ShowcasePageSectionCopy;
+    };
+    labels: {
+        repository: string;
+    };
+    propsDocs: {
+        title: string;
+        items: Record<string, ShowcaseGridDocFieldCopy>;
+    };
+    playground: {
+        title: string;
+    };
+}
+
 interface ShowcaseMarkdownReaderI18n {
     page: {
         title: string;
@@ -2485,6 +2507,7 @@ declare module '@llmnative/react' {
             motion:                       ShowcaseMotionI18n;
             listGroup:                    ShowcaseListGroupI18n;
             imageAvatar:                  ShowcaseImageAvatarI18n;
+            identicon:                    ShowcaseIdenticonI18n;
             input:                        ShowcaseInputI18n;
             switch:                       ShowcaseSwitchI18n;
             select:                       ShowcaseSelectI18n;

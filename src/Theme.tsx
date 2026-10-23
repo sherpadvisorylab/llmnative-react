@@ -355,6 +355,10 @@ export interface ThemeConfig {
         className?: string;
         motion?: { enter?: MotionReference; hover?: MotionReference };
     };
+    Identicon?: {
+        wrapperClassName?: string;
+        className?: string;
+    };
     Percentage?: {
         wrapperClassName?: string;
         className?: string;

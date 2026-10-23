@@ -39,6 +39,7 @@ export type ShowcaseNamespace =
     | 'motion'
     | 'listGroup'
     | 'imageAvatar'
+    | 'identicon'
     | 'input'
     | 'switch'
     | 'select'

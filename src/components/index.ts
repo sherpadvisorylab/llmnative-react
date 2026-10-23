@@ -32,6 +32,7 @@ export type { GallerySelectionChangeHandler, GallerySelectionState } from './ui/
 export * from './ui/GridSystem';
 export { default as Image } from './ui/Image';
 export { default as ImageAvatar } from './ui/ImageAvatar';
+export { default as Identicon, identiconPattern } from './ui/Identicon';
 export { default as Loader } from './ui/Loader';
 export { default as LocaleSwitcher } from './ui/LocaleSwitcher';
 export type { LocaleSwitcherProps } from './ui/LocaleSwitcher';

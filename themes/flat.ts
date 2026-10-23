@@ -442,6 +442,10 @@ export const components: Theme = {
         className: '',
         motion: { enter: 'fade', hover: false },
     },
+    Identicon: {
+        wrapperClassName: '',
+        className: '',
+    },
     Percentage: {
         wrapperClassName: '',
         className: '',

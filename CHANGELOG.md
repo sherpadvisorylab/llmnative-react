@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.30.0] - 2026-10-23
+
+### Added
+- `Identicon` (CR-106, GH issue #85): an icon drawn from a value, as GitHub draws one for an account
+  without a picture — a 5×5 grid symmetric around its middle column, cells and hue from a hash of
+  `value`. The same value always gives the same icon; nothing is fetched or stored. Props `value`,
+  `size` (px, default 40), `title` (accessible name; without it the icon is decorative), `before` /
+  `after`, `className` / `wrapperClassName`; theme key `Identicon` (default `rounded-md bg-muted`).
+  `identiconPattern(value)` returns the cells and the hue. Showcase page in the six languages.
+
 ## [1.29.0] - 2026-10-23
 
 ### Added
