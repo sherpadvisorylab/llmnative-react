@@ -171,7 +171,8 @@ All app-level configuration lives here. Application pages and components never i
 @theme inline {
   --color-primary:     hsl(var(--rf-primary));
   --color-background:  hsl(var(--rf-background));
-  /* … all 25 tokens */
+  --color-canvas:      hsl(var(--rf-canvas, var(--rf-background))); /* page floor behind cards */
+  /* … all 26 tokens */
 }
 
 body {

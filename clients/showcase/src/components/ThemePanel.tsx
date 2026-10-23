@@ -19,6 +19,14 @@ const THEME_METADATA = {
         label: 'Cyber',
         description: 'Zero radius, green neon',
     },
+    'vscode-dark-modern': {
+        label: 'VS Code Dark Modern',
+        description: 'Current default dark palette of Visual Studio Code',
+    },
+    'vscode-light-modern': {
+        label: 'VS Code Light Modern',
+        description: 'Current default light palette of Visual Studio Code',
+    },
     'vscode-dark-plus': {
         label: 'VS Code Dark+',
         description: 'Classic Visual Studio Code dark editor palette',

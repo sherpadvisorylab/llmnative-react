@@ -9,6 +9,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.29.0] - 2026-10-23
+
+### Added
+- VS Code themes complete and in light/dark pairs (CR-105, GH issue #84). The compiler fills the
+  keys a VS Code theme does not list with VS Code's color registry defaults (as VS Code itself
+  does), paints translucent colors over the surface they sit on, and compiles each theme from a
+  light and a dark source. Before, Dark+/Light+ mapped about 8 tokens out of 17 and the rest fell
+  back to the slate palette of `default`, and each theme had one mode only.
+- New built-in themes `vscode-dark-modern` and `vscode-light-modern`, from Dark Modern / Light
+  Modern, the current default themes of VS Code.
+- `ColorScale.canvas` and the `bg-canvas` utility: the page floor behind cards and panels. Optional:
+  a theme that does not set it gets its own `background`. In `default` it is slate-50 in light and
+  the background in dark. Consumers bridging the tokens in their own `@theme inline` add
+  `--color-canvas: hsl(var(--rf-canvas, var(--rf-background)));`.
+- Contrast test of every built-in theme in both modes (`tests/unit/themeContrast.test.ts`): WCAG AA
+  for text, non-text contrast for primary and focus ring, visible card edges, cards never darker
+  than the canvas. The failures that come from the original palettes (Tailwind slate, Light+,
+  Dark+, Tokyo Night) are listed with their measured ratio.
+
+### Changed
+- VS Code mapping: `input` is now the border of form fields (`input.border`), as the framework uses
+  it (`border-input`), not their background; `card` and `canvas` come from the editor and the side
+  bar, the lighter one being the card; `muted` and `accent` are the list hover color.
+- `vscode-dark-plus`, `vscode-light-plus`, `tokyo-night`, `tokyo-night-light` regenerated: colors
+  change, both modes now come from the VS Code sources. VS Code sources updated from upstream.
+
 ## [1.28.0] - 2026-10-21
 
 ### Added

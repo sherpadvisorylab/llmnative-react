@@ -2,6 +2,8 @@ import React, {createContext, useContext, useEffect, useMemo, useState, ReactNod
 import _themeDefault, { components as defaultComponents } from '../themes/default';
 import _themeFlat from '../themes/flat';
 import _themeCyber from '../themes/cyber';
+import _themeVSCodeDarkModern from '../themes/vscode-dark-modern';
+import _themeVSCodeLightModern from '../themes/vscode-light-modern';
 import _themeVSCodeDarkPlus from '../themes/vscode-dark-plus';
 import _themeVSCodeLightPlus from '../themes/vscode-light-plus';
 import _themeTokyoNight from '../themes/tokyo-night';
@@ -25,6 +27,8 @@ export type ThemeMode = 'light' | 'dark' | 'system';
 export interface ColorScale {
     background?: string;
     foreground?: string;
+    /** Page floor behind cards and panels (`bg-canvas`). Falls back to `background` when not set. */
+    canvas?: string;
     card?: string;
     cardForeground?: string;
     popover?: string;
@@ -433,6 +437,8 @@ export const BUILT_IN_THEME_IDS = [
     'default',
     'flat',
     'cyber',
+    'vscode-dark-modern',
+    'vscode-light-modern',
     'vscode-dark-plus',
     'vscode-light-plus',
     'tokyo-night',
@@ -480,6 +486,8 @@ export const BUILT_IN_THEMES: Record<BuiltInThemeId, ThemeDefinition> = {
     default:            _themeDefault,
     flat:               _themeFlat,
     cyber:              _themeCyber,
+    'vscode-dark-modern': _themeVSCodeDarkModern,
+    'vscode-light-modern': _themeVSCodeLightModern,
     'vscode-dark-plus': _themeVSCodeDarkPlus,
     'vscode-light-plus': _themeVSCodeLightPlus,
     'tokyo-night':      _themeTokyoNight,

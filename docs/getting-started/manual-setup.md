@@ -50,6 +50,7 @@ If you use Tailwind v4, add this `@theme inline` block to your CSS entry so util
 @theme inline {
   --color-background:  hsl(var(--rf-background));
   --color-foreground:  hsl(var(--rf-foreground));
+  --color-canvas:      hsl(var(--rf-canvas, var(--rf-background))); /* page floor behind cards */
   --color-primary:     hsl(var(--rf-primary));
   --color-secondary:   hsl(var(--rf-secondary));
   --color-muted:       hsl(var(--rf-muted));

@@ -73,27 +73,35 @@ function loadThemeSource(absolutePath, seen = new Set()) {
     };
 }
 
+function readSource(fileName) {
+    if (!isThemeJsonFile(fileName)) throw new Error(`Theme source "${fileName}" is not a .json file.`);
+    const absolutePath = path.join(SOURCES_DIR, fileName);
+    const { raw, parsed } = loadThemeSource(absolutePath);
+    return { absolutePath, fileName, raw, parsed };
+}
+
+/**
+ * Reads the theme pairs listed in `index.json`: each entry is `{ id, mode, light, dark }`, where
+ * `light` and `dark` are the VS Code sources of the two modes and `mode` the one the theme starts in.
+ */
 function readVSCodeThemeSources() {
-    if (!fs.existsSync(SOURCES_DIR)) return [];
-
     const manifestPath = path.join(SOURCES_DIR, SOURCE_MANIFEST_FILE);
-    const sourceFiles = fs.existsSync(manifestPath)
-        ? parseThemeSource(fs.readFileSync(manifestPath, "utf8"), manifestPath)
-        : fs.readdirSync(SOURCES_DIR).filter((fileName) => isThemeJsonFile(fileName) && fileName !== SOURCE_MANIFEST_FILE);
+    if (!fs.existsSync(manifestPath)) return [];
 
-    return sourceFiles
-        .map((fileName) => {
-            const absolutePath = path.join(SOURCES_DIR, fileName);
-            const { raw, parsed } = loadThemeSource(absolutePath);
+    const entries = parseThemeSource(fs.readFileSync(manifestPath, "utf8"), manifestPath);
 
-            return {
-                absolutePath,
-                fileName,
-                raw,
-                parsed,
-            };
-        })
-        .filter((source) => typeof source.parsed?.name === "string" && source.parsed.name.trim().length > 0);
+    return entries.map((entry) => {
+        if (!entry || typeof entry.id !== "string" || !["light", "dark"].includes(entry.mode)
+            || typeof entry.light !== "string" || typeof entry.dark !== "string") {
+            throw new Error(`Invalid entry in ${manifestPath}: ${JSON.stringify(entry)}`);
+        }
+        return {
+            id: entry.id,
+            mode: entry.mode,
+            light: readSource(entry.light),
+            dark: readSource(entry.dark),
+        };
+    });
 }
 
 module.exports = {

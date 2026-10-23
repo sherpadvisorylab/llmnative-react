@@ -1,20 +1,17 @@
-const { normalizeThemeName } = require("./normalizeThemeName");
 const { mapVSCodeToSemantic } = require("./mapVSCodeToSemantic");
 const { mapSemanticToFrameworkTheme } = require("./mapSemanticToFrameworkTheme");
 
-function compileVSCodeTheme(source) {
-    const parsed = source.parsed || {};
-    const themeId = normalizeThemeName(source.fileName, parsed.name);
-    const semanticTheme = mapVSCodeToSemantic(source);
-    const frameworkTheme = mapSemanticToFrameworkTheme(semanticTheme);
+function compileVSCodeTheme(pair) {
+    const light = mapVSCodeToSemantic(pair.light, "light");
+    const dark = mapVSCodeToSemantic(pair.dark, "dark");
+    const frameworkTheme = mapSemanticToFrameworkTheme({ mode: pair.mode, light, dark });
 
     return {
-        themeId,
-        sourceName: parsed.name || themeId,
-        sourceFileName: source.fileName,
-        semanticTheme,
+        themeId: pair.id,
+        sourceFileName: `${pair.light.fileName} + ${pair.dark.fileName}`,
+        sourceNames: { light: pair.light.parsed?.name, dark: pair.dark.parsed?.name },
         frameworkTheme,
-        outputFileName: themeId,
+        outputFileName: pair.id,
     };
 }
 

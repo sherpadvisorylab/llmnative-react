@@ -112,6 +112,7 @@
 | [CR-102](#cr-102--provider-ai-con-le-chiavi-sul-server) | Provider AI con le chiavi sul server | Alta | — | ✅ |
 | [CR-103](#cr-103--identità-dei-modelli-ai-indipendente-dal-provider) | Identità dei modelli AI indipendente dal provider | Media | — | ✅ |
 | [CR-104](#cr-104--accesso-con-github-driver-githubauth-sessione-sul-server) | Accesso con GitHub (driver githubAuth, sessione sul server) | Alta | — | ✅ |
+| [CR-105](#cr-105--temi-vs-code-completi-e-in-coppia-lightdark-token-canvas-verifica-dei-contrasti) | Temi VS Code completi e in coppia light/dark, token canvas, verifica dei contrasti | Alta | — | ✅ |
 
 ---
 
@@ -145,6 +146,47 @@ Richiesto dal consumer `llmnative-cms`.
 - [x] Docs `docs/providers/ai.md`, `llms-full.txt`
 - [x] Verifica visiva nel consumer `llmnative-cms` (picker Agentico: header per OpenCode, DeepSeek, Cloudflare Workers AI, sticky durante lo scroll)
 - [x] Release 1.18.0
+
+---
+
+## CR-105 — Temi VS Code completi e in coppia light/dark, token canvas, verifica dei contrasti
+
+**Stato:** ✅ done (1.29.0)
+**Issue:** [#84](https://github.com/sherpadvisorylab/llmnative-react/issues/84)
+**Priorità:** Alta
+**Dipende da:** —
+
+### Motivazione
+
+Emersa nel CMS (22/10/2026): nell'admin i contrasti sono sbagliati in light e in dark. I temi VS Code
+sono compilati dai JSON pubblici di Dark+/Light+, che contengono solo una parte dei colori: il resto
+VS Code lo prende dal suo registro colori. Il compilatore trova circa 8 token su 17, scarta i colori
+con trasparenza e il resto ricade sulla palette slate di `default`. Ogni tema VS Code ha una sola
+modalità. Non esiste un token per lo sfondo della pagina dietro le card: il CMS usa `muted`, che in
+`default` dark coincide con `border` (contrasto 1.00) ed è più chiaro delle card.
+
+### Scope
+
+- Compilatore: valori predefiniti del registro colori di VS Code per modalità, composizione dei
+  colori con trasparenza, manifest a coppie (id = sorgente light + sorgente dark + modalità iniziale).
+- Mappatura VS Code → token rivista, nuovo token `canvas`.
+- Nuovi temi `vscode-dark-modern` / `vscode-light-modern` (Dark Modern / Light Modern, i temi
+  predefiniti attuali di VS Code); Dark+/Light+ e Tokyo Night rigenerati in coppia; sorgenti
+  riallineati a upstream.
+- `ColorScale.canvas` opzionale, utility `bg-canvas`, ricade su `background`.
+- Test dei contrasti su tutti i temi integrati in entrambe le modalità.
+- Docs, showcase, CHANGELOG.
+
+### Checklist
+
+- [x] Compilatore: registro colori, trasparenze, coppie
+- [x] Temi Modern + rigenerazione Dark+/Light+/Tokyo Night
+- [x] `ColorScale.canvas` + `bg-canvas`
+- [x] Test dei contrasti
+- [x] Docs, showcase, CHANGELOG
+- [x] Verificato nel CMS (integrato da tarball locale: tsc e test OK)
+- [x] Release: 1.29.0 (23/10/2026). Gate: `tsc --noEmit` 0 errori, `npm test` 76 file / 843 test,
+  `npm run build` OK, `npm pack --dry-run` 274 file.
 
 ---
 

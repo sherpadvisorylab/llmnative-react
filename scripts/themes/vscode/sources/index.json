@@ -1,6 +1,8 @@
 [
-    "vscode-dark-plus.json",
-    "vscode-light-plus.json",
-    "tokyo-night.json",
-    "tokyo-night-light.json"
+    { "id": "vscode-dark-modern", "mode": "dark", "light": "light_modern.json", "dark": "dark_modern.json" },
+    { "id": "vscode-light-modern", "mode": "light", "light": "light_modern.json", "dark": "dark_modern.json" },
+    { "id": "vscode-dark-plus", "mode": "dark", "light": "light_plus.json", "dark": "dark_plus.json" },
+    { "id": "vscode-light-plus", "mode": "light", "light": "light_plus.json", "dark": "dark_plus.json" },
+    { "id": "tokyo-night", "mode": "dark", "light": "tokyo-night-light.json", "dark": "tokyo-night.json" },
+    { "id": "tokyo-night-light", "mode": "light", "light": "tokyo-night-light.json", "dark": "tokyo-night.json" }
 ]

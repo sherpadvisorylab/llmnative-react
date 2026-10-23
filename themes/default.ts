@@ -7,6 +7,7 @@ export const preset: ThemePresetConfig = {
     colors: {
         background:           '0 0% 100%',
         foreground:           '222.2 84% 4.9%',
+        canvas:               '210 40% 98%',
         card:                 '0 0% 100%',
         cardForeground:       '222.2 84% 4.9%',
         popover:              '0 0% 100%',
@@ -34,6 +35,7 @@ export const preset: ThemePresetConfig = {
     dark: {
         background:           '222.2 84% 4.9%',
         foreground:           '210 40% 98%',
+        canvas:               '222.2 84% 4.9%',
         card:                 '222.2 84% 4.9%',
         cardForeground:       '210 40% 98%',
         popover:              '222.2 84% 4.9%',

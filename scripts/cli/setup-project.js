@@ -409,6 +409,7 @@ function createSourceFiles(params) {
 @theme inline {
     --color-background:             hsl(var(--rf-background));
     --color-foreground:             hsl(var(--rf-foreground));
+    --color-canvas:                 hsl(var(--rf-canvas, var(--rf-background)));
     --color-card:                   hsl(var(--rf-card));
     --color-card-foreground:        hsl(var(--rf-card-foreground));
     --color-popover:                hsl(var(--rf-popover));

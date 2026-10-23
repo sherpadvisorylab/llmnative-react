@@ -77,7 +77,10 @@ import '@llmnative/react/dist/index.css'
 }
 ```
 
-Built-in themes: `default`, `flat`, `cyber`.
+Built-in themes: `default`, `flat`, `cyber`, `vscode-dark-modern`, `vscode-light-modern`, `vscode-dark-plus`, `vscode-light-plus`, `tokyo-night`, `tokyo-night-light`.
+The VS Code and Tokyo Night themes are compiled from the original VS Code theme JSON (`scripts/themes/vscode`), filling the keys a theme does not list with VS Code's color registry defaults; each one has both modes (`vscode-dark-*` starts dark, `vscode-light-*` light). Status colors (destructive/success/warning/info) stay the framework's.
+
+`ColorScale` tokens: `background`, `foreground`, `canvas` (page floor behind cards and panels, `bg-canvas`; falls back to `background`), `card`, `popover`, `primary`, `secondary`, `muted`, `accent`, `destructive`, `success`, `warning`, `info` (each with its `*Foreground`), `border`, `input` (border of form fields), `ring`. A consumer bridging the tokens in its own `@theme inline` adds `--color-canvas: hsl(var(--rf-canvas, var(--rf-background)));`.
 
 ---
 
@@ -1034,7 +1037,7 @@ Configurazione API key in `Config.tsx`: `geminiApiKey`, `openaiApiKey`, `anthrop
 
 ```tsx
 const theme = useThemeController()
-theme.applyTheme('flat')     // 'default' | 'flat' | 'cyber' | custom
+theme.applyTheme('flat')     // BuiltInThemeId ('default' | 'flat' | 'cyber' | 'vscode-dark-modern' | …) | custom
 theme.setMode('dark')        // 'light' | 'dark' | 'system'
 
 const icons = useIconController()

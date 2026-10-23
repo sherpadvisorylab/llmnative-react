@@ -1,16 +1,8 @@
 # VS Code Theme Sources
 
-Put original VS Code theme JSON files in this folder.
+Original VS Code theme JSON files. The Visual Studio Code themes come from
+`microsoft/vscode/extensions/theme-defaults/themes` (updated 2026-10-22); keep their file names, the
+`include` paths depend on them.
 
-Examples:
-
-- `dark-plus-color-theme.json`
-- `light-plus-color-theme.json`
-- `dracula.json`
-
-The compiler keeps these files as the canonical source and generates
-framework themes in `../../../../themes/`.
-
-Use `index.json` as the manifest of top-level themes to compile. Helper files
-referenced via `include` can stay in this folder without being emitted as
-standalone runtime themes.
+`index.json` lists the themes to compile as light/dark pairs (see `../README.md`). Files referenced
+only via `include` are not emitted on their own.
