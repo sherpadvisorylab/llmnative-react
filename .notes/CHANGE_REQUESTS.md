@@ -114,6 +114,7 @@
 | [CR-104](#cr-104--accesso-con-github-driver-githubauth-sessione-sul-server) | Accesso con GitHub (driver githubAuth, sessione sul server) | Alta | — | ✅ |
 | [CR-105](#cr-105--temi-vs-code-completi-e-in-coppia-lightdark-token-canvas-verifica-dei-contrasti) | Temi VS Code completi e in coppia light/dark, token canvas, verifica dei contrasti | Alta | — | ✅ |
 | [CR-106](#cr-106--identicon-icona-generata-da-un-valore-stile-github) | Identicon: icona generata da un valore (stile GitHub) | Media | — | ✅ |
+| [CR-107](#cr-107--azioni-cliccabili-nel-chatbot-e-azioni-al-passaggio-del-mouse-in-dropdownitem) | Azioni cliccabili nel Chatbot e azioni al passaggio del mouse in DropdownItem | Media | — | ✅ |
 
 ---
 
@@ -147,6 +148,46 @@ Richiesto dal consumer `llmnative-cms`.
 - [x] Docs `docs/providers/ai.md`, `llms-full.txt`
 - [x] Verifica visiva nel consumer `llmnative-cms` (picker Agentico: header per OpenCode, DeepSeek, Cloudflare Workers AI, sticky durante lo scroll)
 - [x] Release 1.18.0
+
+---
+
+## CR-107 — Azioni cliccabili nel Chatbot e azioni al passaggio del mouse in DropdownItem
+
+**Stato:** ✅ done (1.31.0)
+**Issue:** [#86](https://github.com/sherpadvisorylab/llmnative-react/issues/86)
+**Priorità:** Media
+**Dipende da:** —
+
+### Motivazione
+
+È emersa nel Playbook il 24/10/2026, con l'agente di progettazione in Agentico. Servono due cose:
+- un comando del prompt ("Concludi e apri la PR") come pulsante nella barra del `Chatbot`;
+- un'azione "Archivia" sulle righe dello storico chat, visibile solo al passaggio del mouse.
+
+Oggi `ChatbotAction` senza `content` disegna un pulsante che non fa nulla: non ha `onClick`, e
+funzionano solo le azioni a tendina. `DropdownItem` è un unico `<button>`/`<a>`, senza azioni
+secondarie, e mettere un pulsante dentro un altro non è HTML valido.
+
+### Scope
+
+- `ChatbotAction.onClick?: () => void` e `disabled?: boolean`: un'azione senza `content` chiama
+  `onClick`. Opzionale `label` visibile accanto all'icona (`showLabel`), per un comando che va letto.
+- `DropdownItem.actions?: Array<{ icon: string; label: string; onClick: () => void }>`: icone a
+  destra della voce, visibili solo al passaggio del mouse o al focus (sempre visibili sui
+  dispositivi touch). Il click non seleziona la voce e non chiude il menu, salvo `closeOnClick`.
+  Accessibili (nome, tastiera).
+- Test, `llms-full.txt`, showcase (Chatbot, Dropdown; 6 lingue), CHANGELOG.
+
+### Checklist
+
+- [x] `ChatbotAction.onClick` / `disabled` / `showLabel`
+- [x] `DropdownItem.actions` (hover, focus, touch, accessibilità)
+- [x] Test (Dropdown, Chatbot), docs (`llms-full.txt`), showcase (sezione "Azioni sulle voci", 6
+  lingue), CHANGELOG
+- [x] Verificato in Agentico (comando "Concludi" nel prompt, Archivia nello storico) e nel Playbook
+  (tarball locali; typecheck, test e build OK)
+- [x] Release: 1.31.0 (24/10/2026). Gate: `tsc --noEmit` 0 errori, `npm test` 77 file / 851 test,
+  `npm run build` OK, build dello showcase OK.
 
 ---
 

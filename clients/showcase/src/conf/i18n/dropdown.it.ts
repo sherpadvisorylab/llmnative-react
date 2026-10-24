@@ -36,8 +36,13 @@ export default defineLocaleMessages({
                     title: 'Menu statico',
                     description: 'Imposta staticOpen per renderizzare direttamente il pannello menu, senza pulsante trigger. Utile quando il contenuto del dropdown fa parte della pagina e non di un popup temporaneo.',
                 },
+                itemActions: {
+                    title: 'Azioni sulle voci',
+                    description: 'Con actions una voce ha azioni secondarie: icone in fondo alla riga, visibili al passaggio del mouse o al focus e sempre sui dispositivi touch. Non selezionano la voce e lasciano aperto il menu, salvo closeOnClick.',
+                },
             },
             labels: {
+                archive: 'Archivia',
                 emptyStateNoItems: 'Nessun elemento nel dropdown',
                 actions: 'Azioni',
                 menu: 'Menu',

@@ -36,8 +36,13 @@ export default defineLocaleMessages({
                     title: 'Staticheskoe menyu',
                     description: 'Ustanovi staticOpen, chtoby renderit panel menyu srazu, bez knopki-triggera. Eto polezno, kogda soderzhimoe dropdown yavlyaetsya chastyu stranicy, a ne vremennym popup.',
                 },
+                itemActions: {
+                    title: 'Deystviya elementov',
+                    description: 'S actions element poluchaet vtorichnye deystviya: ikonki v kontse stroki, vidimye pri navedenii ili fokuse i vsegda na sensornyh ekranah. Oni ne vybirayut element i ostavlyayut menyu otkrytym, esli ne zadan closeOnClick.',
+                },
             },
             labels: {
+                archive: 'Arhivirovat',
                 emptyStateNoItems: 'Net elementov dropdown',
                 actions: 'Deistviya',
                 menu: 'Menyu',

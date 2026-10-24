@@ -459,6 +459,28 @@ function DropdownItemsFromMock({ path }) {
 </Dropdown>`}
             />
 
+            <Section
+                title={t.sections.itemActions.title}
+                description={t.sections.itemActions.description}
+                preview={
+                    <Dropdown staticOpen header={t.labels.quickActions}>
+                        <DropdownItem icon="messages-square" onClick={() => undefined} actions={[{ icon: 'archive', label: t.labels.archive, onClick: () => undefined }]}>{t.labels.createRecord}</DropdownItem>
+                        <DropdownItem icon="messages-square" onClick={() => undefined} actions={[{ icon: 'archive', label: t.labels.archive, onClick: () => undefined }]}>{t.labels.importData}</DropdownItem>
+                    </Dropdown>
+                }
+                code={`import { Dropdown, DropdownItem } from '@llmnative/react';
+
+<Dropdown trigger={{ icon: 'history', title: 'History' }}>
+    <DropdownItem
+        icon="messages-square"
+        onClick={() => openChat(chat)}
+        actions={[{ icon: 'archive', label: 'Archive', onClick: () => archive(chat) }]}
+    >
+        {chat.title}
+    </DropdownItem>
+</Dropdown>`}
+            />
+
             <PropDocsTable props={dropdownProps} title={common.sections.props} />
         </PageLayout>
     );

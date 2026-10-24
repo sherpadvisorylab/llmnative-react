@@ -36,8 +36,13 @@ export default defineLocaleMessages({
                     title: 'Jing tai cai dan',
                     description: 'She zhi staticOpen ke zhi jie xuan ran menu panel, bu xu trigger an niu. Shi he dropdown nei rong shi ye mian gu ding jie gou de chang jing.',
                 },
+                itemActions: {
+                    title: 'Xiang mu cao zuo',
+                    description: 'Tong guo actions gei xiang mu ci yao cao zuo: hang wei de tu biao, shu biao xuan ting huo ju jiao shi xian shi, chu mo ping shang shi zhong xian shi. Bu hui xuan zhong xiang mu, chu fei she zhi closeOnClick fou ze cai dan bao chi da kai.',
+                },
             },
             labels: {
+                archive: 'Gui dang',
                 emptyStateNoItems: 'Mei you dropdown item',
                 actions: 'Actions',
                 menu: 'Menu',

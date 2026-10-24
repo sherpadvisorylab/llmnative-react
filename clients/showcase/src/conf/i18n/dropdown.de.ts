@@ -36,8 +36,13 @@ export default defineLocaleMessages({
                     title: 'Statisches Menue',
                     description: 'Setze staticOpen, um das Menuepanel direkt ohne Trigger-Button zu rendern. Nutze das, wenn der Dropdown-Inhalt Teil der Seite statt eines temporaren Popups ist.',
                 },
+                itemActions: {
+                    title: 'Aktionen auf Eintraegen',
+                    description: 'Mit actions bekommt ein Eintrag sekundaere Aktionen: Icons am Zeilenende, sichtbar bei Hover oder Fokus und immer auf Touch-Geraeten. Sie waehlen den Eintrag nicht aus und lassen das Menue offen, ausser mit closeOnClick.',
+                },
             },
             labels: {
+                archive: 'Archivieren',
                 emptyStateNoItems: 'Keine Dropdown-Eintrage',
                 actions: 'Aktionen',
                 menu: 'Menue',

@@ -36,8 +36,13 @@ export default defineLocaleMessages({
                     title: 'Static menu',
                     description: 'Set staticOpen to render the menu panel directly, without a toggle button. Use this when the dropdown content is part of the page instead of a transient popup.',
                 },
+                itemActions: {
+                    title: 'Item actions',
+                    description: 'Give an item secondary actions with actions: icons at the end of the row, shown on hover or focus and always on touch screens. They do not select the item and keep the menu open unless closeOnClick is set.',
+                },
             },
             labels: {
+                archive: 'Archive',
                 emptyStateNoItems: 'No dropdown items',
                 actions: 'Actions',
                 menu: 'Menu',

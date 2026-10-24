@@ -83,7 +83,19 @@ interface DropdownButtonProps extends Pick<MotionUIProps, 'motion'> {
     buttonRef?: React.RefObject<HTMLButtonElement | null>;
 }
 
+/** A secondary action of a menu item: an icon at its end, shown on hover or focus (CR-107). */
+export interface DropdownItemAction {
+    icon: string;
+    /** Accessible name and tooltip. */
+    label: string;
+    onClick: () => void;
+    /** Closes the menu after the action; by default it stays open. */
+    closeOnClick?: boolean;
+}
+
 interface DropdownItemProps {
+    /** Secondary actions, e.g. archive a row: icons shown on hover or focus (always on touch screens). */
+    actions?: DropdownItemAction[];
     /** Link URL. When set, renders as `<a>`, otherwise as `<button>`. */
     url?: string;
     onClick?: React.MouseEventHandler<HTMLAnchorElement | HTMLButtonElement>;
@@ -471,7 +483,8 @@ export const DropdownItem = ({
                                  url        = undefined,
                                  onClick    = undefined,
                                  icon       = undefined,
-                                 className  = undefined
+                                 className  = undefined,
+                                 actions    = undefined
 }: DropdownItemProps) => {
     const theme = useTheme("dropdown");
     const dropdown = React.useContext(DropdownSelectionContext);
@@ -490,7 +503,7 @@ export const DropdownItem = ({
         </span>
         : children;
 
-    return url ? (
+    const main = url ? (
         <Link 
             to={url}
             onClick={handleClick}
@@ -511,6 +524,31 @@ export const DropdownItem = ({
         <span role="menuitem" className={cn("flex w-full select-none items-center rounded-sm px-2 py-1.5 text-sm", className || theme.Dropdown.menuItemClass)}>
             {item}
         </span>
+    );
+    if (!actions?.length) return main;
+
+    // The row and its actions side by side (a button inside a button is not valid HTML): the
+    // actions show on hover or when focused, always where there is no hover (touch screens).
+    return (
+        <div className="group/dropdown-item flex w-full min-w-0 items-center gap-0.5">
+            <div className="min-w-0 flex-1">{main}</div>
+            {actions.map((action) => (
+                <button
+                    key={action.label}
+                    type="button"
+                    title={action.label}
+                    aria-label={action.label}
+                    onClick={(event) => {
+                        event.stopPropagation();
+                        action.onClick();
+                        if (action.closeOnClick) dropdown?.close();
+                    }}
+                    className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-sm text-muted-foreground opacity-0 transition-opacity hover:bg-accent hover:text-foreground focus:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring group-hover/dropdown-item:opacity-100 group-focus-within/dropdown-item:opacity-100 [@media(hover:none)]:opacity-100"
+                >
+                    <Icon name={action.icon} size={14} />
+                </button>
+            ))}
+        </div>
     );
 };
 

@@ -36,8 +36,13 @@ export default defineLocaleMessages({
                     title: 'Qaimah statikiya',
                     description: 'Ajal staticOpen li ard panel al qaimah mubasharatan min dun zirr trigger. Hatha mufid inda ma yakun muhtawa al dropdown juzan min al safha wa laysa popup muwaqqat.',
                 },
+                itemActions: {
+                    title: 'Ajraat al anasir',
+                    description: 'Bi actions yahsul al unsur ala ajraat thanawiya: ayqunat fi nihayat al saff, tazhar inda tamrir al fara aw al tarkiz wa daiman ala ajhizat al lams. La takhtar al unsur wa tatruk al qaimah maftuha illa ma closeOnClick.',
+                },
             },
             labels: {
+                archive: 'Arshafa',
                 emptyStateNoItems: 'La توجد items fi al dropdown',
                 actions: 'Actions',
                 menu: 'Menu',

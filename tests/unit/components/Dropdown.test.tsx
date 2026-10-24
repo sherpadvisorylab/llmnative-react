@@ -179,4 +179,33 @@ describe('AsyncDropdown', () => {
 
         expect(await screen.findByText('Lookup failed')).toBeVisible();
     });
+
+    it('gives an item secondary actions that do not select it and keep the menu open (CR-107)', () => {
+        const opened: string[] = [];
+        const archived: string[] = [];
+        render(
+            <Dropdown trigger="History" defaultOpen>
+                <DropdownItem onClick={() => opened.push('chat')} actions={[{ icon: 'archive', label: 'Archive', onClick: () => archived.push('chat') }]}>Chat</DropdownItem>
+            </Dropdown>
+        );
+
+        fireEvent.click(screen.getByRole('button', { name: 'Archive' }));
+        expect(archived).toEqual(['chat']);
+        expect(opened).toEqual([]);
+        expect(screen.getByText('Chat')).toBeVisible();
+        fireEvent.click(screen.getByText('Chat'));
+        expect(opened).toEqual(['chat']);
+    });
+
+    it('closes the menu after an action that asks it', async () => {
+        render(
+            <Dropdown trigger="History" defaultOpen>
+                <DropdownItem onClick={() => undefined} actions={[{ icon: 'archive', label: 'Archive', onClick: () => undefined, closeOnClick: true }]}>Chat</DropdownItem>
+            </Dropdown>
+        );
+
+        const menu = screen.getByRole('menu');
+        fireEvent.click(screen.getByRole('button', { name: 'Archive' }));
+        await waitFor(() => expect(menu).toHaveAttribute('aria-hidden', 'true'));
+    });
 });

@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.31.0] - 2026-10-24
+
+### Added
+- `ChatbotAction.onClick`, `disabled`, `showLabel` (CR-107, GH issue #86): an action of the
+  Chatbot without `content` is a working button, can be disabled and can show its label.
+- `DropdownItem.actions` (`DropdownItemAction`): secondary actions of a menu item, icons at the end
+  of the row shown on hover or focus and always on touch screens; they neither select the item nor
+  close the menu unless `closeOnClick`. Showcase section "Item actions" (6 languages).
+
 ## [1.30.0] - 2026-10-23
 
 ### Added

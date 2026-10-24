@@ -766,6 +766,17 @@ Albero accessibile di nodi (cartelle e file, gerarchie): pattern WAI-ARIA tree, 
 </Dropdown>
 ```
 
+Azioni secondarie di una voce (CR-107): `actions` mostra icone in fondo alla riga, al passaggio
+del mouse o al focus (sempre sui dispositivi touch). Non selezionano la voce e lasciano il menu aperto
+salvo `closeOnClick`.
+
+```tsx
+<DropdownItem icon="messages-square" onClick={() => open(chat)}
+  actions={[{ icon: 'archive', label: 'Archivia', onClick: () => archive(chat) }]}>
+  {chat.title}
+</DropdownItem>
+```
+
 Per elenchi caricati dinamicamente usare `AsyncDropdown`: gestisce ricerca con debounce,
 cancellazione delle richieste precedenti tramite `AbortSignal` e stati loading/empty/error.
 
@@ -998,6 +1009,9 @@ class MyAIProvider implements AIProviderAdapter {
 
 // Factory per registri esterni
 const registry = createAIProviderRegistry(definitions)
+// Azioni di Chatbot (CR-107): con `content` aprono un menu; senza, sono pulsanti con `onClick`.
+// <Chatbot actions={[{ key: 'finish', icon: 'git-pull-request', label: 'Concludi', showLabel: true,
+//   disabled: running, onClick: finish }]} … />
 ```
 
 ### Identità dei modelli indipendente dal provider (CR-103)

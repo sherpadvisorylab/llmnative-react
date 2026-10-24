@@ -32,7 +32,13 @@ export type ChatbotAction = {
     key: string;
     icon: string;
     label?: string;
+    /** A menu opened by the action; without it the action is a button (`onClick`). */
     content?: React.ReactNode;
+    /** What a button action does (CR-107). */
+    onClick?: () => void;
+    disabled?: boolean;
+    /** Shows `label` next to the icon: a command that has to be read, not guessed. */
+    showLabel?: boolean;
 };
 
 export interface ChatbotSubmitPayload {
@@ -430,9 +436,15 @@ export function Chatbot({
                                         key={action.key}
                                         type="button"
                                         title={action.label}
-                                        className={`${chatbotGhostIcon} flex items-center justify-center`}
+                                        aria-label={action.label}
+                                        disabled={action.disabled}
+                                        onClick={action.onClick}
+                                        className={action.showLabel && action.label
+                                            ? `${chatbotGhostIcon} flex w-auto items-center gap-1.5 px-2 text-xs disabled:cursor-not-allowed disabled:opacity-50`
+                                            : `${chatbotGhostIcon} flex items-center justify-center disabled:cursor-not-allowed disabled:opacity-50`}
                                     >
                                         <Icon name={action.icon} size={13} />
+                                        {action.showLabel && action.label && <span className="whitespace-nowrap">{action.label}</span>}
                                     </button>
                                 )
                             ))}

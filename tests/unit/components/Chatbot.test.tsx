@@ -189,4 +189,19 @@ describe('Chatbot', () => {
         fireEvent.dragEnter(screen.getByRole('textbox'), { dataTransfer });
         expect(screen.queryByText('Drop files to attach')).not.toBeInTheDocument();
     });
+
+    it('runs a button action, shows its label when asked and can disable it (CR-107)', () => {
+        const finish = vi.fn();
+        const { rerender } = renderWithProviders(
+            <ControlledChatbot onSubmit={vi.fn()} actions={[{ key: 'finish', icon: 'git-pull-request', label: 'Finish', onClick: finish, showLabel: true }]} />,
+        );
+
+        const button = screen.getByRole('button', { name: 'Finish' });
+        expect(button).toHaveTextContent('Finish');
+        fireEvent.click(button);
+        expect(finish).toHaveBeenCalledTimes(1);
+
+        rerender(<ControlledChatbot onSubmit={vi.fn()} actions={[{ key: 'finish', icon: 'git-pull-request', label: 'Finish', onClick: finish, disabled: true }]} />);
+        expect(screen.getByRole('button', { name: 'Finish' })).toBeDisabled();
+    });
 });
