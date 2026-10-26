@@ -14,6 +14,7 @@ import {
 } from '../../../libs/imageVariants';
 import { useStorageProvider } from '../../../providers/storage/StorageProviderContext'; // CR-042
 import ImageEditor from '../../widgets/ImageEditor';
+import { interpolate, useI18n } from '../../../I18n';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -50,6 +51,7 @@ export interface ImageFieldProps extends FormFieldProps {
 // ── Srcset variant strip ──────────────────────────────────────────────────────
 
 const VariantStrip = ({ srcset }: { srcset: string }) => {
+    const t = useI18n('imageField');
     const entries = srcset.split(',').map(s => s.trim()).map(part => {
         const [url, widthStr] = part.split(' ');
         return { url, width: parseInt(widthStr, 10) };
@@ -58,8 +60,8 @@ const VariantStrip = ({ srcset }: { srcset: string }) => {
     return (
         <div className="mt-2 flex flex-col gap-1">
             <p className="text-xs font-medium text-muted-foreground">
-                Responsive variants
-                <span className="ml-1 font-normal opacity-60">({entries.length} generated)</span>
+                {t.responsiveVariants}
+                <span className="ml-1 font-normal opacity-60">{interpolate(t.variantsGenerated, { count: entries.length })}</span>
             </p>
             <div className="flex gap-1.5">
                 {entries.map(e => (
@@ -118,6 +120,7 @@ export const ImageField = ({
 
     const storage = useStorageProvider();
 
+    const t = useI18n('imageField');
     const [isGenerating, setIsGenerating] = useState(false);
     const [showCrop, setShowCrop] = useState(false);
     const altRef = useRef<HTMLInputElement>(null);
@@ -223,14 +226,14 @@ export const ImageField = ({
                                 href={src}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                title="Open original"
+                                title={t.openOriginal}
                                 className="flex h-7 w-7 items-center justify-center rounded-md bg-black/60 text-white backdrop-blur-sm transition-colors hover:bg-black/80"
                             >
                                 <Icon name="external-link" size={13} />
                             </a>
                             <button
                                 type="button"
-                                title="Crop"
+                                title={t.crop}
                                 disabled={disabled}
                                 onClick={() => setShowCrop(true)}
                                 className="flex h-7 w-7 items-center justify-center rounded-md bg-black/60 text-white backdrop-blur-sm transition-colors hover:bg-black/80 disabled:cursor-not-allowed disabled:opacity-40"
@@ -245,7 +248,7 @@ export const ImageField = ({
                         <div className="absolute inset-0 flex items-center justify-center bg-background/70 backdrop-blur-sm">
                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                 <Icon name="loader-circle" size={14} className="animate-spin" />
-                                Generating variants…
+                                {t.generatingVariants}
                             </div>
                         </div>
                     )}
@@ -256,7 +259,7 @@ export const ImageField = ({
                     {/* src URL */}
                     <div className="flex flex-col gap-1">
                         <label className="text-xs font-medium text-muted-foreground">
-                            Image URL <span className="font-normal opacity-60">(path or https://…)</span>
+                            {t.imageUrl} <span className="font-normal opacity-60">{t.imageUrlHint}</span>
                         </label>
                         <input
                             type="url"
@@ -271,8 +274,8 @@ export const ImageField = ({
                     {/* alt */}
                     <div className="flex flex-col gap-1">
                         <label className="text-xs font-medium text-muted-foreground">
-                            Alt text{' '}
-                            <span className="font-normal opacity-60">(accessibility &amp; SEO)</span>
+                            {t.altText}{' '}
+                            <span className="font-normal opacity-60">{t.altTextHint}</span>
                             {required && <span className="ml-1 text-destructive">*</span>}
                         </label>
                         <input
@@ -281,7 +284,7 @@ export const ImageField = ({
                             value={alt}
                             disabled={disabled}
                             onChange={e => updateValue({ alt: e.target.value })}
-                            placeholder="E.g. Product hero shot"
+                            placeholder={t.altPlaceholder}
                             className={cn(
                                 'h-8 rounded-md border border-input bg-background px-2.5 text-sm outline-none focus:ring-1 focus:ring-ring disabled:opacity-50',
                                 hasError && 'border-destructive',
@@ -304,7 +307,7 @@ export const ImageField = ({
                 <ImageEditor
                     src={src}
                     mode="modal"
-                    title={`Crop — ${fileNameFromUrl(src)}`}
+                    title={interpolate(t.cropTitle, { name: fileNameFromUrl(src) })}
                     onClose={() => setShowCrop(false)}
                     onSave={handleCropSave}
                 />

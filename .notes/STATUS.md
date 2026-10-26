@@ -1,7 +1,7 @@
 # Project status
 
 > Snapshot verified against the real codebase, not against the historical plan.
-> Last reviewed: 2026-10-15
+> Last reviewed: 2026-10-26
 
 ---
 
@@ -31,6 +31,7 @@
 
 | CR | State | Evidence |
 |----|-------|----------|
+| CR-097 | Done | Testi visibili di `Notifications`, `ErrorBoundary` (inglese fuori da `<I18nProvider>`), `ThemeSwitcher`, `ImageField`/`RichText`, `Upload`, `TabDynamic`, `GridCore`, `Chatbot`, `Breadcrumbs` in `I18nDict` (6 lingue). Test di traduzione e controllo contro nuovi testi fissi. Released in 1.33.0. Issue #68 closed. |
 | CR-108 | Done | `Notifications`: `description`, `actions` (senza navigare, con caricamento), link `external`, `onItemClick`, `id`; `url` opzionale. Tests, docs, showcase. Released in 1.32.0. Issue #87 closed. |
 | CR-107 | Done | `ChatbotAction.onClick`/`disabled`/`showLabel`, `DropdownItem.actions` (hover actions). Tests, docs, showcase. Released in 1.31.0. Issue #86 closed. |
 | CR-001 | Done | AI-first docs, `AI_REFERENCE.md`, `PROMPT_TEMPLATE.md` present. |
@@ -130,7 +131,6 @@
 | CR | Real state | What is missing |
 |----|-----------|-----------------|
 | CR-098 | ⬜ todo | Repeat: docs con nomi completi (raddoppiati da `setParentName`), firma children sbagliata, `layout="vertical"` che non disegna nulla, pulsanti senza nome accessibile. Issue #69. |
-| CR-097 | ⬜ todo | Testi visibili fissi in inglese in Notifications, ErrorBoundary, ThemeSwitcher, ImageField/RichText, Upload, TabDynamic, GridCore, Chatbot, Breadcrumbs: da portare in `I18nDict` con traduzioni e test. Issue #68. |
 | CR-072 | **Diagnosed — not fixable via config alone** | 890 `tsc --noEmit` errori in `clients/showcase` causati da TypeScript 6.0.3: named exports da `.d.ts` files fuori dallo scope del progetto (`include: ["src"]`) non sono visibili in modalità named import (`import { Icon }`), mentre `import * as` e `typeof import()` funzionano. Tentate: `paths`, `moduleResolution: node10/bundler`, `include` espanso, `.ts` proxy, `.d.ts` proxy, skipLibCheck toggle — stesso risultato. Root cause: regressione TS 6.0.3 nel cross-project type resolution. `npm run build` (Vite/esbuild) è l'unico gate reale e passa. 15 errori prismjs risolti (wildcard declaration in `vite-env.d.ts`). Issue #14 aperta. |
 | CR-037 | ⬜ | Component Builder System — `useImage()` pattern non ancora standardizzato. |
 | CR-040 | **0% — spec written** | SchemaForm (form generation from JSON schema/factory); spec in `CHANGE_REQUESTS.md`. No implementation. |

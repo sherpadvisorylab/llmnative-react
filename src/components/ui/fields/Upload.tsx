@@ -351,6 +351,7 @@ const ImageFilePlaceholder = ({
 );
 
 const FileEditor = ({ title, file, type, onSave, onClose }: FileEditorProps) => {
+    const cropDict = useI18n('crop');
     const [fileName, setFileName] = useState(file.fileName);
     const cropRef = useRef<{
         handleSave: () => { fileName: string; alt?: string; variants: Record<string, any> };
@@ -365,7 +366,7 @@ const FileEditor = ({ title, file, type, onSave, onClose }: FileEditorProps) => 
         <Modal title={title} onSave={handleSave} onClose={onClose}
                size={type === 'img' ? 'fullscreen' : undefined}>
             {type === 'document' && (
-                <FileNameEditor value={fileName} onChange={setFileName} label="File name" />
+                <FileNameEditor value={fileName} onChange={setFileName} label={cropDict.fileName} />
             )}
             {type === 'img' && <CropImage ref={cropRef} img={file} />}
         </Modal>

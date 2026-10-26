@@ -63,6 +63,20 @@ import '@llmnative/react/dist/index.css'
 />
 ```
 
+### Testi dei componenti (i18n)
+
+I testi fissi dei componenti vengono da `I18nDict` e seguono `i18n.locale` (en, it, de, ru, ar, zh
+inclusi): un testo si cambia con `i18n.translations`, non nel codice. Namespace dei componenti:
+`notifications` (`markAllRead`, `empty`, `emptyHint`), `errorBoundary` (schermata d'errore; fuori da
+`<I18nProvider>`, come l'`ErrorBoundary` radice di `<App>`, resta in inglese), `themeSwitcher`,
+`imageField` (anche i dialoghi immagine di `RichText`), `richText`, `tabDynamic` (`addTab`),
+`breadcrumbs` (`label`, l'`aria-label` del `nav`), `grid` (`tableView`, `galleryView`, `columns`,
+`fields`), `prompt` (anche `Chatbot`: `role`, `language`, `voice`, `style`, `temperature`, `stop`).
+
+```tsx
+<App i18n={{ locale: 'it', translations: { it: { notifications: { emptyHint: 'Niente di nuovo' } } } }} />
+```
+
 ### AppThemeProviderConfig
 ```ts
 {

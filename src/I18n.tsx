@@ -63,6 +63,10 @@ export interface I18nDict {
         filtersRangeMin:            string;
         filtersRangeMax:            string;
         filtersSelectedCountTemplate: string;
+        tableView:   string;
+        galleryView: string;
+        columns:     string;
+        fields:      string;
     };
     select: {
         placeholder: string;
@@ -92,8 +96,11 @@ export interface I18nDict {
         invalidUrl:    string;
     };
     notifications: {
-        title:  string;
-        seeAll: string;
+        title:       string;
+        seeAll:      string;
+        markAllRead: string;
+        empty:       string;
+        emptyHint:   string;
     };
     code: {
         copyCode:             string;
@@ -170,6 +177,13 @@ export interface I18nDict {
         noResponse:             string;
         promptLabel:            string;
         defaultOption:          string;
+        role:                   string;
+        language:               string;
+        voice:                  string;
+        style:                  string;
+        temperature:            string;
+        stop:                   string;
+        stopping:               string;
     };
     layout: {
         maxElements:  string;
@@ -197,6 +211,127 @@ export interface I18nDict {
         searching:       string;
         notConfigured:   string;
         loadError:       string;
+    };
+    errorBoundary: {
+        title:            string;
+        description:      string;
+        technicalDetails: string;
+        debugInformation: string;
+        context:          string;
+        time:             string;
+        agent:            string;
+        componentTree:    string;
+        copyDebug:        string;
+        copied:           string;
+        sendReport:       string;
+        sending:          string;
+        reportSent:       string;
+        reportFailed:     string;
+        tryAgain:         string;
+        goHome:           string;
+    };
+    themeSwitcher: {
+        title:               string;
+        subtitle:            string;
+        colorMode:           string;
+        light:               string;
+        dark:                string;
+        primaryColor:        string;
+        borderRadius:        string;
+        sharp:               string;
+        rounded:             string;
+        font:                string;
+        statusColors:        string;
+        theme:               string;
+        themeDescription:    string;
+        iconLibrary:         string;
+        weight:              string;
+        blue:                string;
+        violet:              string;
+        green:               string;
+        rose:                string;
+        orange:              string;
+        slate:               string;
+        success:             string;
+        warning:             string;
+        info:                string;
+        danger:              string;
+        lucideDescription:   string;
+        phosphorDescription: string;
+        weightThin:          string;
+        weightLight:         string;
+        weightRegular:       string;
+        weightBold:          string;
+        weightFill:          string;
+    };
+    /** Image fields: `ImageField` and the image dialogs of `RichText`. */
+    imageField: {
+        openOriginal:       string;
+        crop:               string;
+        cropTitle:          string;
+        cropImage:          string;
+        editImage:          string;
+        generatingVariants: string;
+        responsiveVariants: string;
+        variantsGenerated:  string;
+        imageUrl:           string;
+        imageUrlHint:       string;
+        altText:            string;
+        altTextHint:        string;
+        altPlaceholder:     string;
+        linkUrl:            string;
+        optionalHint:       string;
+        newTab:             string;
+        sameTab:            string;
+        insertImage:        string;
+        insertImages:       string;
+        include:            string;
+        insert:             string;
+        insertCount:        string;
+    };
+    richText: {
+        bold:           string;
+        italic:         string;
+        underline:      string;
+        strike:         string;
+        heading1:       string;
+        heading2:       string;
+        heading3:       string;
+        bulletList:     string;
+        orderedList:    string;
+        blockquote:     string;
+        inlineCode:     string;
+        codeBlock:      string;
+        link:           string;
+        undo:           string;
+        redo:           string;
+        clearFormat:    string;
+        paragraphStyle: string;
+        normal:         string;
+        insertTable:    string;
+        insertTableSize: string;
+        addRowAbove:    string;
+        addRowBelow:    string;
+        addColumnLeft:  string;
+        addColumnRight: string;
+        deleteRow:      string;
+        deleteColumn:   string;
+        deleteTable:    string;
+        uploadImage:    string;
+        uploadDocument: string;
+        sourceCode:     string;
+        source:         string;
+        words:          string;
+        chars:          string;
+        editLink:       string;
+        removeLink:     string;
+        altPlaceholder: string;
+    };
+    tabDynamic: {
+        addTab: string;
+    };
+    breadcrumbs: {
+        label: string;
     };
 }
 
@@ -375,4 +510,13 @@ export function useI18n<P extends DotNestedKeyOf<I18nDict>>(namespace?: P): I18n
     return namespace
         .split('.')
         .reduce<unknown>((acc, key) => (acc as Record<string, unknown>)?.[key], ctx.dict) as PathValue<I18nDict, P>;
+}
+
+/**
+ * Internal (not exported from the package): the dictionary of the nearest `<I18nProvider>`, or
+ * the English one when there is none — for components that may render outside the provider,
+ * like the root `ErrorBoundary` of `<App>`.
+ */
+export function useI18nDictOrEnglish(): I18nDict {
+    return useContext(I18nContext)?.dict ?? en;
 }

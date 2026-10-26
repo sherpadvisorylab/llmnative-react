@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { useI18n } from '../../I18n';
 import { ActionButton } from "./Buttons";
 import {converter} from "../../libs/converter";
 import { getTabLayoutConfig, getTabPaneClassName, getTabTriggerClassName, TabLayouts, TabPosition } from './Tab';
@@ -39,6 +40,7 @@ const TabDynamic = ({
     const { value, handleChange } = useFormContext({name, onChange});
     const records = Array.isArray(value) ? value as RecordProps[] : [];
 
+    const dict = useI18n('tabDynamic');
     const [active, setActive] = useState(activeIndex);
     const [release, setRelease] = useState(0);
 
@@ -115,7 +117,7 @@ const TabDynamic = ({
                         <ActionButton
                             className={getTabTriggerClassName(tabPosition, false, 'border border-dashed border-border/70 justify-center')}
                             icon="plus"
-                            title="Add tab"
+                            title={dict.addTab}
                             onClick={handleAdd}
                         />
                     </div>}

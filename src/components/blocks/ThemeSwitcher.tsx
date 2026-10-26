@@ -7,6 +7,7 @@ import type { ColorScale } from '../../Theme';
 import Icon from '../ui/Icon';
 import Modal from '../ui/Modal';
 import { cn } from '../../libs/cn';
+import { useI18n, type I18nDict } from '../../I18n';
 
 export interface ThemeSwitcherThemeOption {
     label?: string;
@@ -38,8 +39,11 @@ export interface ThemeSwitcherProps {
 
 type IconLibraryId = 'lucide' | 'phosphor';
 
+/** A text of the switcher, read from `I18nDict.themeSwitcher`. */
+type ThemeSwitcherText = keyof I18nDict['themeSwitcher'];
+
 interface ColorSwatch {
-    label: string;
+    label: ThemeSwitcherText;
     value: string;
     hex: string;
 }
@@ -57,12 +61,12 @@ interface StatusSwatch {
 }
 
 const COLOR_SWATCHES: ColorSwatch[] = [
-    { label: 'Blue', value: '221.2 83.2% 53.3%', hex: '#3b82f6' },
-    { label: 'Violet', value: '262.1 83.3% 57.8%', hex: '#8b5cf6' },
-    { label: 'Green', value: '142.1 76.2% 36.3%', hex: '#16a34a' },
-    { label: 'Rose', value: '346.8 77.2% 49.8%', hex: '#e11d48' },
-    { label: 'Orange', value: '24.6 95% 53.1%', hex: '#f97316' },
-    { label: 'Slate', value: '215.4 16.3% 46.9%', hex: '#64748b' },
+    { label: 'blue', value: '221.2 83.2% 53.3%', hex: '#3b82f6' },
+    { label: 'violet', value: '262.1 83.3% 57.8%', hex: '#8b5cf6' },
+    { label: 'green', value: '142.1 76.2% 36.3%', hex: '#16a34a' },
+    { label: 'rose', value: '346.8 77.2% 49.8%', hex: '#e11d48' },
+    { label: 'orange', value: '24.6 95% 53.1%', hex: '#f97316' },
+    { label: 'slate', value: '215.4 16.3% 46.9%', hex: '#64748b' },
 ];
 
 const FONT_OPTIONS: FontOption[] = [
@@ -78,9 +82,9 @@ const FONT_OPTIONS: FontOption[] = [
     { label: 'Montserrat', fontSans: "'Montserrat', sans-serif", fontMono: "'Source Code Pro', monospace" },
 ];
 
-const STATUS_COLORS: { label: string; key: keyof ColorScale; fgKey: keyof ColorScale; swatches: StatusSwatch[] }[] = [
+const STATUS_COLORS: { label: ThemeSwitcherText; key: keyof ColorScale; fgKey: keyof ColorScale; swatches: StatusSwatch[] }[] = [
     {
-        label: 'Success',
+        label: 'success',
         key: 'success',
         fgKey: 'successForeground',
         swatches: [
@@ -90,7 +94,7 @@ const STATUS_COLORS: { label: string; key: keyof ColorScale; fgKey: keyof ColorS
         ],
     },
     {
-        label: 'Warning',
+        label: 'warning',
         key: 'warning',
         fgKey: 'warningForeground',
         swatches: [
@@ -100,7 +104,7 @@ const STATUS_COLORS: { label: string; key: keyof ColorScale; fgKey: keyof ColorS
         ],
     },
     {
-        label: 'Info',
+        label: 'info',
         key: 'info',
         fgKey: 'infoForeground',
         swatches: [
@@ -110,7 +114,7 @@ const STATUS_COLORS: { label: string; key: keyof ColorScale; fgKey: keyof ColorS
         ],
     },
     {
-        label: 'Danger',
+        label: 'danger',
         key: 'destructive',
         fgKey: 'destructiveForeground',
         swatches: [
@@ -121,17 +125,17 @@ const STATUS_COLORS: { label: string; key: keyof ColorScale; fgKey: keyof ColorS
     },
 ];
 
-const ICON_LIBRARIES: { label: string; value: IconLibraryId; description: string }[] = [
-    { label: 'Lucide', value: 'lucide', description: 'Clean outline icon set' },
-    { label: 'Phosphor', value: 'phosphor', description: 'Flexible icon weights and styles' },
+const ICON_LIBRARIES: { label: string; value: IconLibraryId; description: ThemeSwitcherText }[] = [
+    { label: 'Lucide', value: 'lucide', description: 'lucideDescription' },
+    { label: 'Phosphor', value: 'phosphor', description: 'phosphorDescription' },
 ];
 
-const PHOSPHOR_WEIGHTS: { label: string; value: PhosphorWeight }[] = [
-    { label: 'Thin', value: 'thin' },
-    { label: 'Light', value: 'light' },
-    { label: 'Regular', value: 'regular' },
-    { label: 'Bold', value: 'bold' },
-    { label: 'Fill', value: 'fill' },
+const PHOSPHOR_WEIGHTS: { label: ThemeSwitcherText; value: PhosphorWeight }[] = [
+    { label: 'weightThin', value: 'thin' },
+    { label: 'weightLight', value: 'light' },
+    { label: 'weightRegular', value: 'regular' },
+    { label: 'weightBold', value: 'bold' },
+    { label: 'weightFill', value: 'fill' },
 ];
 
 function toThemeLabel(themeId: string): string {
@@ -146,8 +150,8 @@ export default function ThemeSwitcher({
     onClose = undefined,
     surface = 'flat',
     showHeader = undefined,
-    title = 'Customize theme',
-    subtitle = 'Live theme tokens and mode controls with no reload.',
+    title = undefined,
+    subtitle = undefined,
     headerActions = undefined,
     themeOptions = undefined,
     showModeSection = true,
@@ -160,6 +164,9 @@ export default function ThemeSwitcher({
     className = undefined,
     wrapperClassName = undefined,
 }: ThemeSwitcherProps) {
+    const t = useI18n('themeSwitcher');
+    const headerTitle = title === undefined ? t.title : title;
+    const headerSubtitle = subtitle === undefined ? t.subtitle : subtitle;
     const {
         resolvedMode,
         primary,
@@ -182,17 +189,17 @@ export default function ThemeSwitcher({
         return Object.keys(themes).map((themeId) => ({
             value: themeId,
             label: themeOptions?.[themeId]?.label ?? toThemeLabel(themeId),
-            description: themeOptions?.[themeId]?.description ?? 'Theme available in the current registry.',
+            description: themeOptions?.[themeId]?.description ?? t.themeDescription,
         }));
-    }, [themeOptions, themes]);
+    }, [themeOptions, themes, t.themeDescription]);
 
     const shouldShowHeader = showHeader ?? (surface === 'modal');
     const header = (
         <div className="flex min-w-0 items-center justify-between gap-3">
             <div className="min-w-0">
-                <h3 className="truncate text-lg font-semibold leading-none">{title}</h3>
-                {subtitle ? (
-                    <div className="mt-1 truncate text-sm text-muted-foreground">{subtitle}</div>
+                <h3 className="truncate text-lg font-semibold leading-none">{headerTitle}</h3>
+                {headerSubtitle ? (
+                    <div className="mt-1 truncate text-sm text-muted-foreground">{headerSubtitle}</div>
                 ) : null}
             </div>
             {headerActions ? (
@@ -208,7 +215,7 @@ export default function ThemeSwitcher({
             {showModeSection ? (
                 <div>
                     <label className="mb-3 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                        Color mode
+                        {t.colorMode}
                     </label>
                     <div className="flex gap-2">
                         {(['light', 'dark'] as const).map((modeOption) => (
@@ -223,7 +230,7 @@ export default function ThemeSwitcher({
                                 }`}
                             >
                                 <Icon name={modeOption === 'light' ? 'sun' : 'moon'} size={14} />
-                                {modeOption.charAt(0).toUpperCase() + modeOption.slice(1)}
+                                {t[modeOption]}
                             </button>
                         ))}
                     </div>
@@ -233,7 +240,7 @@ export default function ThemeSwitcher({
             {showPrimarySection ? (
                 <div>
                     <label className="mb-3 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                        Primary color
+                        {t.primaryColor}
                     </label>
                     <div className="flex flex-wrap gap-2">
                         {COLOR_SWATCHES.map((swatch) => (
@@ -241,12 +248,12 @@ export default function ThemeSwitcher({
                                 key={swatch.label}
                                 type="button"
                                 onClick={() => setPrimary(swatch.value)}
-                                title={swatch.label}
+                                title={t[swatch.label]}
                                 className={`h-8 w-8 cursor-pointer rounded-full border-2 transition-transform hover:scale-110 ${
                                     primary === swatch.value ? 'scale-110 border-foreground' : 'border-transparent'
                                 }`}
                                 style={{ backgroundColor: swatch.hex }}
-                                aria-label={swatch.label}
+                                aria-label={t[swatch.label]}
                             />
                         ))}
                     </div>
@@ -257,7 +264,7 @@ export default function ThemeSwitcher({
                 <div>
                     <div className="mb-3 flex items-center justify-between">
                         <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                            Border radius
+                            {t.borderRadius}
                         </label>
                         <span className="text-xs font-mono text-muted-foreground">{radius.toFixed(2)}rem</span>
                     </div>
@@ -271,8 +278,8 @@ export default function ThemeSwitcher({
                         className="w-full accent-primary"
                     />
                     <div className="mt-1 flex justify-between text-xs text-muted-foreground">
-                        <span>Sharp</span>
-                        <span>Rounded</span>
+                        <span>{t.sharp}</span>
+                        <span>{t.rounded}</span>
                     </div>
                 </div>
             ) : null}
@@ -280,7 +287,7 @@ export default function ThemeSwitcher({
             {showFontSection ? (
                 <div>
                     <label className="mb-3 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                        Font
+                        {t.font}
                     </label>
                     <div className="relative">
                         <select
@@ -305,24 +312,24 @@ export default function ThemeSwitcher({
             {showStatusSection ? (
                 <div>
                     <label className="mb-3 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                        Status colors
+                        {t.statusColors}
                     </label>
                     <div className="space-y-2">
                         {STATUS_COLORS.map(({ label, key, fgKey, swatches }) => (
                             <div key={key} className="flex items-center gap-2">
-                                <span className="w-14 shrink-0 text-xs text-muted-foreground">{label}</span>
+                                <span className="w-14 shrink-0 text-xs text-muted-foreground">{t[label]}</span>
                                 <div className="flex gap-1.5">
                                     {swatches.map((swatch) => (
                                         <button
                                             key={swatch.hex}
                                             type="button"
                                             onClick={() => setTokens({ [key]: swatch.value, [fgKey]: swatch.fgValue })}
-                                            title={`${label} - ${swatch.hex}`}
+                                            title={`${t[label]} - ${swatch.hex}`}
                                             className={`h-6 w-6 cursor-pointer rounded-full border-2 transition-transform hover:scale-110 ${
                                                 colors?.[key] === swatch.value ? 'scale-110 border-foreground' : 'border-transparent'
                                             }`}
                                             style={{ backgroundColor: swatch.hex }}
-                                            aria-label={`${label} ${swatch.hex}`}
+                                            aria-label={`${t[label]} ${swatch.hex}`}
                                         />
                                     ))}
                                 </div>
@@ -335,7 +342,7 @@ export default function ThemeSwitcher({
             {showThemeSection ? (
                 <div>
                     <label className="mb-3 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                        Theme
+                        {t.theme}
                     </label>
                     <div className="space-y-2">
                         {availableThemes.map((themeOption) => (
@@ -364,7 +371,7 @@ export default function ThemeSwitcher({
             {showIconLibrarySection ? (
                 <div>
                     <label className="mb-3 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                        Icon library
+                        {t.iconLibrary}
                     </label>
                     <div className="space-y-2">
                         {ICON_LIBRARIES.map((library) => (
@@ -383,7 +390,7 @@ export default function ThemeSwitcher({
                                     {library.label}
                                 </span>
                                 <span className="mt-0.5 block text-xs text-muted-foreground">
-                                    {library.description}
+                                    {t[library.description]}
                                 </span>
                             </button>
                         ))}
@@ -391,7 +398,7 @@ export default function ThemeSwitcher({
 
                     {iconLibraryId === 'phosphor' ? (
                         <div className="mt-3">
-                            <p className="mb-2 text-xs text-muted-foreground">Weight</p>
+                            <p className="mb-2 text-xs text-muted-foreground">{t.weight}</p>
                             <div className="flex flex-wrap gap-1">
                                 {PHOSPHOR_WEIGHTS.map((weight) => (
                                     <button
@@ -403,7 +410,7 @@ export default function ThemeSwitcher({
                                         }}
                                         className="cursor-pointer rounded border border-border px-2 py-1 text-xs transition-colors hover:bg-accent"
                                     >
-                                        {weight.label}
+                                        {t[weight.label]}
                                     </button>
                                 ))}
                             </div>

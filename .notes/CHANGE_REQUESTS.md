@@ -559,10 +559,10 @@ relativo. Inoltre l'esempio della sezione Form usa `{(i) => ...}` (la funzione r
 
 ## CR-097 — Testi visibili dei componenti traducibili (i18n)
 
-**Stato:** ⬜ todo
+**Stato:** ✅ done (1.33.0)
 **Issue:** [#68](https://github.com/sherpadvisorylab/llmnative-react/issues/68)
 **Priorità:** Media
-**Dipende da:** CR-093
+**Dipende da:** CR-093 (già done in 1.19.5: namespace `sideNav`; non bloccava)
 
 ### Motivazione
 
@@ -588,11 +588,11 @@ invece di passare da `useI18n`, quindi il consumer non può tradurli.
 
 ### Checklist
 
-- [ ] Testi spostati nel dizionario e tradotti
-- [ ] ErrorBoundary con fallback senza provider
-- [ ] Test e controllo contro nuovi testi fissi
-- [ ] Docs, CHANGELOG
-- [ ] Release
+- [x] Testi spostati nel dizionario e tradotti: namespace nuovi `errorBoundary`, `themeSwitcher`, `imageField` (anche dialoghi immagine di `RichText`), `richText`, `tabDynamic`, `breadcrumbs`; chiavi nuove in `notifications`, `grid` (`tableView`, `galleryView`, `columns`, `fields`), `prompt` (`Chatbot`: `role`, `language`, `voice`, `style`, `temperature`, `stop`, `stopping`); `Upload` usa `crop.fileName`. 6 lingue (en/it/de/ru/ar/zh). Oltre ai testi elencati, tradotti anche gli altri testi visibili degli stessi file (sezioni di `ThemeSwitcher`, toolbar e dialoghi di `RichText`, "Columns"/"Fields" di `GridCore`, "Stop" di `Chatbot`)
+- [x] ErrorBoundary con fallback senza provider: `useI18nDictOrEnglish()` interno (non esportato), inglese fuori da `<I18nProvider>` (test dedicato)
+- [x] Test e controllo contro nuovi testi fissi: `tests/unit/components/i18n.components.test.tsx` (14 test, in italiano per ogni componente), `tests/unit/i18n.hardcodedText.test.ts` (scansione righe dei 12 file con allowlist per file: testo JSX, letterali nei rami JSX, `title`/`aria-label`/`placeholder`/`alt`/`label` letterali; 13 test, ~10 ms per file)
+- [x] Docs (`llms-full.txt` sezione "Testi dei componenti (i18n)", `docs/architecture/i18n.md`, `.notes/I18N_AUDIT.md`), CHANGELOG
+- [x] Release: 1.33.0 (26/10/2026). Gate: `tsc --noEmit` 0 errori, `npm test` 79 file / 879 test, `npm run build` OK, `npm pack --dry-run` OK, build dello showcase OK. Pubblicazione npm: a cura della sessione principale.
 
 ---
 

@@ -57,10 +57,16 @@ vi.mock('../../../src/providers/icon/IconProviderContext', () => ({
     })),
 }));
 
-vi.mock('../../../src/I18n', () => ({
-    useI18n: vi.fn(() => ({})),
-    I18nProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-}));
+vi.mock('../../../src/I18n', async () => {
+    // The English dictionary, so the components show their default texts.
+    const { en } = await vi.importActual<typeof import('../../../src/conf/i18n/en')>('../../../src/conf/i18n/en');
+    return {
+        useI18n: vi.fn((namespace?: string) => (namespace ? (en as unknown as Record<string, unknown>)[namespace] ?? {} : {})),
+        interpolate: (template: string, vars: Record<string, string | number>) =>
+            template.replace(/\{(\w+)\}/g, (_: string, k: string) => String(vars[k] ?? `{${k}}`)),
+        I18nProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    };
+});
 
 vi.mock('../../../src/motion', () => ({
     useEnterMotion: vi.fn(() => ({})),

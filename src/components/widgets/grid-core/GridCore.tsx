@@ -600,8 +600,8 @@ function GridCore<TRecord extends RecordProps>({
         <span className="inline-flex rounded-md border border-border overflow-hidden">
             <ActionButton
                 icon="list"
-                ariaLabel="Table view"
-                title="Table view"
+                ariaLabel={dict.tableView}
+                title={dict.tableView}
                 className={
                     "rounded-none border-0 "
                     + (resolvedView === "table" ? "bg-card text-foreground shadow-sm" : "bg-transparent text-muted-foreground")
@@ -610,8 +610,8 @@ function GridCore<TRecord extends RecordProps>({
             />
             <ActionButton
                 icon="layout-grid"
-                ariaLabel="Gallery view"
-                title="Gallery view"
+                ariaLabel={dict.galleryView}
+                title={dict.galleryView}
                 className={
                     "rounded-none border-0 border-l border-border "
                     + (resolvedView === "gallery" ? "bg-card text-foreground shadow-sm" : "bg-transparent text-muted-foreground")
@@ -628,7 +628,7 @@ function GridCore<TRecord extends RecordProps>({
     // meant for generic nav-style menus) — this picker is a neutral peer of the view toggle
     // buttons above, not a primary call-to-action.
     const columnPickerControl = tableViewConfig.columnPicker && resolvedView === "table" ? (
-        <Dropdown trigger={{ icon: "columns", title: "Columns" }} triggerClassName="btn btn-outline-secondary" position="end">
+        <Dropdown trigger={{ icon: "columns", title: dict.columns }} triggerClassName="btn btn-outline-secondary" position="end">
             {inferredColumns.map((column) => {
                 const key = String(column.key);
                 return (
@@ -649,7 +649,7 @@ function GridCore<TRecord extends RecordProps>({
     // `views.gallery.fieldPicker`, gallery view only, entirely separate state/UI from
     // the table's column picker above. Icon-only trigger, same rationale as columnPickerControl.
     const fieldPickerControl = galleryViewConfig.fieldPicker && resolvedView === "gallery" && galleryFields.length ? (
-        <Dropdown trigger={{ icon: "sliders-horizontal", title: "Fields" }} triggerClassName="btn btn-outline-secondary" position="end">
+        <Dropdown trigger={{ icon: "sliders-horizontal", title: dict.fields }} triggerClassName="btn btn-outline-secondary" position="end">
             {galleryFields.map((field) => {
                 const key = String(field.key);
                 return (

@@ -122,7 +122,7 @@ function Notifications({
                         onClick={onMarkAllRead}
                         className="text-xs text-primary hover:underline transition-colors"
                     >
-                        Mark all read
+                        {dict.markAllRead}
                     </button>
                 )}
             </div>
@@ -135,10 +135,10 @@ function Notifications({
                         <Icon name="bell-off" size={18} className="text-muted-foreground" />
                     </div>
                     <p className="text-sm font-medium text-foreground mb-1">
-                        No notifications
+                        {dict.empty}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                        {"You're all caught up"}
+                        {dict.emptyHint}
                     </p>
                 </div>
             )}

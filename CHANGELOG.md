@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.33.0] - 2026-10-26
+
+### Added
+- Visible texts of the components through `I18nDict` (CR-097, GH issue #68), translated in en, it,
+  de, ru, ar, zh: new namespaces `errorBoundary`, `themeSwitcher`, `imageField`, `richText`,
+  `tabDynamic`, `breadcrumbs`; new keys `notifications.markAllRead`/`empty`/`emptyHint`,
+  `grid.tableView`/`galleryView`/`columns`/`fields`, `prompt.role`/`language`/`voice`/`style`/
+  `temperature`/`stop`/`stopping`. An Italian app no longer shows "No notifications", "This page ran
+  into a problem", "Try again", the `RichText` toolbar titles or the `ThemeSwitcher` labels in
+  English. `ErrorBoundary` stays in English outside `<I18nProvider>` (the root one of `<App>`).
+- `tests/unit/i18n.hardcodedText.test.ts`: fails when a translated component gets a new hard-coded
+  visible text (JSX text, literal in a JSX branch, literal `title`/`aria-label`/`placeholder`/`alt`/
+  `label`), with a per-file allowlist. Translation tests in `tests/unit/components/i18n.components.test.tsx`.
+
+### Changed
+- `ThemeSwitcher`: `title` and `subtitle` default to the dictionary texts (same English as before).
+- `UploadDocument` file-name editor uses `crop.fileName`.
+
 ## [1.32.0] - 2026-10-26
 
 ### Added

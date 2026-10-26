@@ -25,6 +25,7 @@ import { resizeToVariants, uploadVariants, buildSrcset } from '../../../libs/ima
 import Modal from '../Modal';
 import ImageDisplay from '../Image';
 import ImageEditor from '../../widgets/ImageEditor';
+import { interpolate, useI18n, type I18nDict } from '../../../I18n';
 
 // ── LAZY MODULE LOADER ────────────────────────────────────────────────────────
 // TipTap (~400 KB) is only fetched when a RichText field is actually mounted.
@@ -188,40 +189,44 @@ const TABLE_PICKER_DIMENSION = 8;
 
 // ── TOOLBAR BUTTON DEFINITIONS ────────────────────────────────────────────────
 
+/** A text of the editor, read from `I18nDict.richText`. */
+type RichTextText = keyof I18nDict['richText'];
+
 interface ToolbarButtonDef {
     icon: string;
-    label: string;
+    label: RichTextText;
     isActive?: (editor: Editor) => boolean;
     execute: (editor: Editor) => void;
 }
 
 const TOOLBAR_DEFS: Partial<Record<Exclude<ToolbarCommand, '|'>, ToolbarButtonDef>> = {
-    bold:        { icon: 'bold',              label: 'Bold',          isActive: e => e.isActive('bold'),                      execute: e => e.chain().focus().toggleBold().run() },
-    italic:      { icon: 'italic',            label: 'Italic',        isActive: e => e.isActive('italic'),                    execute: e => e.chain().focus().toggleItalic().run() },
-    underline:   { icon: 'underline',         label: 'Underline',     isActive: e => e.isActive('underline'),                 execute: e => e.chain().focus().toggleUnderline().run() },
-    strike:      { icon: 'strikethrough',     label: 'Strikethrough', isActive: e => e.isActive('strike'),                   execute: e => e.chain().focus().toggleStrike().run() },
-    heading1:    { icon: 'heading-1',         label: 'Heading 1',     isActive: e => e.isActive('heading', { level: 1 }),     execute: e => e.chain().focus().toggleHeading({ level: 1 }).run() },
-    heading2:    { icon: 'heading-2',         label: 'Heading 2',     isActive: e => e.isActive('heading', { level: 2 }),     execute: e => e.chain().focus().toggleHeading({ level: 2 }).run() },
-    heading3:    { icon: 'heading-3',         label: 'Heading 3',     isActive: e => e.isActive('heading', { level: 3 }),     execute: e => e.chain().focus().toggleHeading({ level: 3 }).run() },
-    bulletList:  { icon: 'list',              label: 'Bullet List',   isActive: e => e.isActive('bulletList'),                execute: e => e.chain().focus().toggleBulletList().run() },
-    orderedList: { icon: 'list-ordered',      label: 'Ordered List',  isActive: e => e.isActive('orderedList'),               execute: e => e.chain().focus().toggleOrderedList().run() },
-    blockquote:  { icon: 'quote',             label: 'Blockquote',    isActive: e => e.isActive('blockquote'),                execute: e => e.chain().focus().toggleBlockquote().run() },
-    code:        { icon: 'code',              label: 'Inline Code',   isActive: e => e.isActive('code'),                     execute: e => e.chain().focus().toggleCode().run() },
-    codeBlock:   { icon: 'square-code',       label: 'Code Block',    isActive: e => e.isActive('codeBlock'),                 execute: e => e.chain().focus().toggleCodeBlock().run() },
-    link:        { icon: 'link',              label: 'Link',          isActive: e => e.isActive('link'),                     execute: e => { if (e.isActive('link')) { e.chain().focus().unsetLink().run(); return; } const url = window.prompt('URL'); if (url) e.chain().focus().setLink({ href: url }).run(); } },
-    undo:        { icon: 'undo-2',            label: 'Undo',                                                                  execute: e => e.chain().focus().undo().run() },
-    redo:        { icon: 'redo-2',            label: 'Redo',                                                                  execute: e => e.chain().focus().redo().run() },
-    clearFormat: { icon: 'eraser',            label: 'Clear Format',                                                          execute: e => e.chain().focus().clearNodes().unsetAllMarks().run() },
+    bold:        { icon: 'bold',              label: 'bold',          isActive: e => e.isActive('bold'),                      execute: e => e.chain().focus().toggleBold().run() },
+    italic:      { icon: 'italic',            label: 'italic',        isActive: e => e.isActive('italic'),                    execute: e => e.chain().focus().toggleItalic().run() },
+    underline:   { icon: 'underline',         label: 'underline',     isActive: e => e.isActive('underline'),                 execute: e => e.chain().focus().toggleUnderline().run() },
+    strike:      { icon: 'strikethrough',     label: 'strike',        isActive: e => e.isActive('strike'),                   execute: e => e.chain().focus().toggleStrike().run() },
+    heading1:    { icon: 'heading-1',         label: 'heading1',      isActive: e => e.isActive('heading', { level: 1 }),     execute: e => e.chain().focus().toggleHeading({ level: 1 }).run() },
+    heading2:    { icon: 'heading-2',         label: 'heading2',      isActive: e => e.isActive('heading', { level: 2 }),     execute: e => e.chain().focus().toggleHeading({ level: 2 }).run() },
+    heading3:    { icon: 'heading-3',         label: 'heading3',      isActive: e => e.isActive('heading', { level: 3 }),     execute: e => e.chain().focus().toggleHeading({ level: 3 }).run() },
+    bulletList:  { icon: 'list',              label: 'bulletList',    isActive: e => e.isActive('bulletList'),                execute: e => e.chain().focus().toggleBulletList().run() },
+    orderedList: { icon: 'list-ordered',      label: 'orderedList',   isActive: e => e.isActive('orderedList'),               execute: e => e.chain().focus().toggleOrderedList().run() },
+    blockquote:  { icon: 'quote',             label: 'blockquote',    isActive: e => e.isActive('blockquote'),                execute: e => e.chain().focus().toggleBlockquote().run() },
+    code:        { icon: 'code',              label: 'inlineCode',    isActive: e => e.isActive('code'),                     execute: e => e.chain().focus().toggleCode().run() },
+    codeBlock:   { icon: 'square-code',       label: 'codeBlock',     isActive: e => e.isActive('codeBlock'),                 execute: e => e.chain().focus().toggleCodeBlock().run() },
+    link:        { icon: 'link',              label: 'link',          isActive: e => e.isActive('link'),                     execute: e => { if (e.isActive('link')) { e.chain().focus().unsetLink().run(); return; } const url = window.prompt('URL'); if (url) e.chain().focus().setLink({ href: url }).run(); } },
+    undo:        { icon: 'undo-2',            label: 'undo',                                                                  execute: e => e.chain().focus().undo().run() },
+    redo:        { icon: 'redo-2',            label: 'redo',                                                                  execute: e => e.chain().focus().redo().run() },
+    clearFormat: { icon: 'eraser',            label: 'clearFormat',                                                           execute: e => e.chain().focus().clearNodes().unsetAllMarks().run() },
 };
 
 // ── INTERNAL: TOOLBAR BUTTON ──────────────────────────────────────────────────
 
 const ToolbarButton = ({ def, editor }: { def: ToolbarButtonDef; editor: Editor }) => {
+    const t = useI18n('richText');
     const isActive = def.isActive?.(editor) ?? false;
     return (
         <button
             type="button"
-            title={def.label}
+            title={t[def.label]}
             onMouseDown={ev => { ev.preventDefault(); def.execute(editor); }}
             className={cn(
                 'inline-flex h-7 w-7 items-center justify-center rounded text-sm transition-colors',
@@ -237,13 +242,14 @@ const ToolbarButton = ({ def, editor }: { def: ToolbarButtonDef; editor: Editor 
 // ── INTERNAL: HEADING PICKER ──────────────────────────────────────────────────
 
 const HEADING_OPTIONS = [
-    { value: 0,  label: 'Normal',    previewClass: 'text-sm',              execute: (e: Editor) => e.chain().focus().setParagraph().run() },
-    { value: 1,  label: 'Heading 1', previewClass: 'text-2xl font-bold',   execute: (e: Editor) => e.chain().focus().setHeading({ level: 1 }).run() },
-    { value: 2,  label: 'Heading 2', previewClass: 'text-xl font-semibold',execute: (e: Editor) => e.chain().focus().setHeading({ level: 2 }).run() },
-    { value: 3,  label: 'Heading 3', previewClass: 'text-lg font-semibold',execute: (e: Editor) => e.chain().focus().setHeading({ level: 3 }).run() },
+    { value: 0,  label: 'normal',    previewClass: 'text-sm',              execute: (e: Editor) => e.chain().focus().setParagraph().run() },
+    { value: 1,  label: 'heading1',  previewClass: 'text-2xl font-bold',   execute: (e: Editor) => e.chain().focus().setHeading({ level: 1 }).run() },
+    { value: 2,  label: 'heading2',  previewClass: 'text-xl font-semibold',execute: (e: Editor) => e.chain().focus().setHeading({ level: 2 }).run() },
+    { value: 3,  label: 'heading3',  previewClass: 'text-lg font-semibold',execute: (e: Editor) => e.chain().focus().setHeading({ level: 3 }).run() },
 ] as const;
 
 const HeadingPicker = ({ editor }: { editor: Editor }) => {
+    const t = useI18n('richText');
     const [open, setOpen] = React.useState(false);
     const ref = useRef<HTMLDivElement>(null);
 
@@ -265,7 +271,7 @@ const HeadingPicker = ({ editor }: { editor: Editor }) => {
         <div ref={ref} className="relative">
             <button
                 type="button"
-                title="Paragraph style"
+                title={t.paragraphStyle}
                 onMouseDown={ev => { ev.preventDefault(); setOpen(o => !o); }}
                 className="inline-flex h-7 items-center gap-0.5 rounded px-1.5 text-xs font-medium transition-colors hover:bg-muted"
             >
@@ -290,7 +296,7 @@ const HeadingPicker = ({ editor }: { editor: Editor }) => {
                                 opt.value !== 0 && editor.isActive('heading', { level: opt.value }) && 'bg-muted/60',
                             )}
                         >
-                            {opt.label}
+                            {t[opt.label]}
                         </button>
                     ))}
                 </div>
@@ -300,6 +306,7 @@ const HeadingPicker = ({ editor }: { editor: Editor }) => {
 };
 
 const TableInsertPicker = ({ editor }: { editor: Editor }) => {
+    const t = useI18n('richText');
     const [open, setOpen] = React.useState(false);
     const [hoveredRows, setHoveredRows] = React.useState(3);
     const [hoveredCols, setHoveredCols] = React.useState(3);
@@ -322,7 +329,7 @@ const TableInsertPicker = ({ editor }: { editor: Editor }) => {
         <div ref={ref} className="relative">
             <button
                 type="button"
-                title="Insert Table"
+                title={t.insertTable}
                 onMouseDown={(ev) => {
                     ev.preventDefault();
                     setOpen((value) => !value);
@@ -348,7 +355,7 @@ const TableInsertPicker = ({ editor }: { editor: Editor }) => {
                                 <button
                                     key={`${row}-${col}`}
                                     type="button"
-                                    aria-label={`Insert ${row} by ${col} table`}
+                                    aria-label={interpolate(t.insertTableSize, { rows: row, cols: col })}
                                     onMouseEnter={() => {
                                         setHoveredRows(row);
                                         setHoveredCols(col);
@@ -381,14 +388,15 @@ const TableInsertPicker = ({ editor }: { editor: Editor }) => {
 };
 
 const TableBubbleMenu = ({ editor }: { editor: Editor }) => {
+    const t = useI18n('richText');
     const actions = [
-        { icon: 'rows-2', label: 'Add row above', execute: () => editor.chain().focus().addRowBefore().run() },
-        { icon: 'rows-3', label: 'Add row below', execute: () => editor.chain().focus().addRowAfter().run() },
-        { icon: 'columns-2', label: 'Add column left', execute: () => editor.chain().focus().addColumnBefore().run() },
-        { icon: 'columns-3', label: 'Add column right', execute: () => editor.chain().focus().addColumnAfter().run() },
-        { icon: 'minus-square', label: 'Delete row', execute: () => editor.chain().focus().deleteRow().run() },
-        { icon: 'rectangle-ellipsis', label: 'Delete column', execute: () => editor.chain().focus().deleteColumn().run() },
-        { icon: 'trash-2', label: 'Delete table', execute: () => editor.chain().focus().deleteTable().run() },
+        { icon: 'rows-2', label: 'addRowAbove', execute: () => editor.chain().focus().addRowBefore().run() },
+        { icon: 'rows-3', label: 'addRowBelow', execute: () => editor.chain().focus().addRowAfter().run() },
+        { icon: 'columns-2', label: 'addColumnLeft', execute: () => editor.chain().focus().addColumnBefore().run() },
+        { icon: 'columns-3', label: 'addColumnRight', execute: () => editor.chain().focus().addColumnAfter().run() },
+        { icon: 'minus-square', label: 'deleteRow', execute: () => editor.chain().focus().deleteRow().run() },
+        { icon: 'rectangle-ellipsis', label: 'deleteColumn', execute: () => editor.chain().focus().deleteColumn().run() },
+        { icon: 'trash-2', label: 'deleteTable', execute: () => editor.chain().focus().deleteTable().run() },
     ] as const;
 
     return (
@@ -398,7 +406,7 @@ const TableBubbleMenu = ({ editor }: { editor: Editor }) => {
                     {index > 0 && index !== 4 && <div className="mx-0.5 h-4 w-px bg-border" />}
                     <button
                         type="button"
-                        title={action.label}
+                        title={t[action.label]}
                         onMouseDown={(ev) => {
                             ev.preventDefault();
                             action.execute();
@@ -426,6 +434,7 @@ interface ToolbarProps {
 }
 
 const RichTextToolbar = ({ editor, commands, sourceMode, onImageUpload, onDocumentUpload, onSourceToggle, compact }: ToolbarProps) => {
+    const t = useI18n('richText');
     const [, rerender] = React.useReducer(n => n + 1, 0);
 
     React.useEffect(() => {
@@ -447,7 +456,7 @@ const RichTextToolbar = ({ editor, commands, sourceMode, onImageUpload, onDocume
             if (cmd === 'table') return <TableInsertPicker key={cmd} editor={editor} />;
 
             if (cmd === 'imageUpload') return (
-                <button key={cmd} type="button" title="Upload Image"
+                <button key={cmd} type="button" title={t.uploadImage}
                     onMouseDown={ev => { ev.preventDefault(); onImageUpload(); }}
                     className="inline-flex h-7 w-7 items-center justify-center rounded text-sm transition-colors hover:bg-muted">
                     <Icon name="image" size={14} />
@@ -455,7 +464,7 @@ const RichTextToolbar = ({ editor, commands, sourceMode, onImageUpload, onDocume
             );
 
             if (cmd === 'documentUpload') return (
-                <button key={cmd} type="button" title="Upload Document"
+                <button key={cmd} type="button" title={t.uploadDocument}
                     onMouseDown={ev => { ev.preventDefault(); onDocumentUpload(); }}
                     className="inline-flex h-7 w-7 items-center justify-center rounded text-sm transition-colors hover:bg-muted">
                     <Icon name="file-up" size={14} />
@@ -463,7 +472,7 @@ const RichTextToolbar = ({ editor, commands, sourceMode, onImageUpload, onDocume
             );
 
             if (cmd === 'sourceCode') return (
-                <button key={cmd} type="button" title="Source Code"
+                <button key={cmd} type="button" title={t.sourceCode}
                     onMouseDown={ev => { ev.preventDefault(); onSourceToggle(); }}
                     className={cn(
                         'inline-flex h-7 w-7 items-center justify-center rounded text-sm transition-colors hover:bg-muted',
@@ -498,6 +507,7 @@ const getTagBreadcrumb = (editor: Editor): string[] => {
 };
 
 const RichTextStatusBar = ({ editor, config }: { editor: Editor; config: StatusBarConfig }) => {
+    const t = useI18n('richText');
     const [tick, setTick] = useState(0);
 
     useEffect(() => {
@@ -529,10 +539,10 @@ const RichTextStatusBar = ({ editor, config }: { editor: Editor; config: StatusB
             )}
             <div className="ml-auto flex items-center gap-3">
                 {config.wordCount && charCountStorage && (
-                    <span>{charCountStorage.words()} words</span>
+                    <span>{interpolate(t.words, { count: charCountStorage.words() })}</span>
                 )}
                 {config.charCount && charCountStorage && (
-                    <span>{charCountStorage.characters()} chars</span>
+                    <span>{interpolate(t.chars, { count: charCountStorage.characters() })}</span>
                 )}
             </div>
         </div>
@@ -547,6 +557,7 @@ interface ImageDialogValues { src?: string; alt: string; href: string; target: s
 
 // Shared variant thumbnails strip
 const VariantStrip = ({ srcset }: { srcset: string }) => {
+    const t = useI18n('imageField');
     const variants = srcset.split(',').map(s => s.trim()).map(part => {
         const [src, widthStr] = part.split(' ');
         return { src, width: parseInt(widthStr, 10) };
@@ -555,7 +566,7 @@ const VariantStrip = ({ srcset }: { srcset: string }) => {
     return (
         <div className="flex flex-col gap-1.5">
             <p className="text-xs font-medium text-muted-foreground">
-                Responsive variants <span className="font-normal opacity-60">({variants.length} generated)</span>
+                {t.responsiveVariants} <span className="font-normal opacity-60">{interpolate(t.variantsGenerated, { count: variants.length })}</span>
             </p>
             <div className="flex gap-1.5">
                 {variants.map(v => (
@@ -590,6 +601,9 @@ const ImageInsertSlider = ({
     onCropSave: (idx: number, dataUrl: string) => void;
     onCancel: () => void;
 }) => {
+    const t = useI18n('imageField');
+    const rt = useI18n('richText');
+    const common = useI18n('common');
     const [idx, setIdx] = useState(0);
     const [perImage, setPerImage] = useState<ImageDialogValues[]>(() =>
         items.map(it => ({ alt: it.defaultAlt, href: '', target: '_blank', enabled: true }))
@@ -618,7 +632,7 @@ const ImageInsertSlider = ({
     return (
         <>
         <Modal
-            title={total === 1 ? 'Insert image' : 'Insert images'}
+            title={total === 1 ? t.insertImage : t.insertImages}
             onClose={onCancel}
             size="md"
             footer={
@@ -627,16 +641,16 @@ const ImageInsertSlider = ({
                         <input type="checkbox" checked={vals.enabled}
                             onChange={e => update({ enabled: e.target.checked })}
                             className="h-4 w-4 rounded accent-primary" />
-                        Include
+                        {t.include}
                     </label>
                     <div className="flex gap-2">
                         <button type="button" onClick={onCancel}
                             className="h-8 rounded-md px-3 text-sm transition-colors hover:bg-muted">
-                            Cancel
+                            {common.cancel}
                         </button>
                         <button type="button" onClick={() => onInsertAll(perImage)} disabled={enabledCount === 0}
                             className="h-8 rounded-md bg-primary px-3 text-sm text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50">
-                            {total === 1 ? 'Insert' : `Insert (${enabledCount})`}
+                            {total === 1 ? t.insert : interpolate(t.insertCount, { count: enabledCount })}
                         </button>
                     </div>
                 </div>
@@ -690,14 +704,14 @@ const ImageInsertSlider = ({
                         href={item.preview}
                         target="_blank"
                         rel="noopener noreferrer"
-                        title="Open original"
+                        title={t.openOriginal}
                         className="flex h-7 w-7 items-center justify-center rounded-md bg-black/60 text-white backdrop-blur-sm transition-colors hover:bg-black/80"
                     >
                         <Icon name="external-link" size={13} />
                     </a>
                     <button
                         type="button"
-                        title="Crop"
+                        title={t.crop}
                         onClick={() => setShowCrop(true)}
                         className="flex h-7 w-7 items-center justify-center rounded-md bg-black/60 text-white backdrop-blur-sm transition-colors hover:bg-black/80"
                     >
@@ -711,18 +725,18 @@ const ImageInsertSlider = ({
 
             <div className="mt-3 flex flex-col gap-1">
                 <label className="text-xs font-medium text-muted-foreground">
-                    Alt text <span className="font-normal opacity-60">(accessibility &amp; SEO)</span>
+                    {t.altText} <span className="font-normal opacity-60">{t.altTextHint}</span>
                 </label>
                 <input ref={altRef} type="text" value={vals.alt}
                     onChange={e => update({ alt: e.target.value })}
-                    placeholder="E.g. Team photo at company retreat"
+                    placeholder={rt.altPlaceholder}
                     className="h-8 rounded-md border border-input bg-background px-2.5 text-sm outline-none focus:ring-1 focus:ring-ring"
                 />
             </div>
 
             <div className="mt-2 flex flex-col gap-1">
                 <label className="text-xs font-medium text-muted-foreground">
-                    Link URL <span className="font-normal opacity-60">(optional)</span>
+                    {t.linkUrl} <span className="font-normal opacity-60">{t.optionalHint}</span>
                 </label>
                 <div className="flex gap-1.5">
                     <input type="url" value={vals.href}
@@ -733,8 +747,8 @@ const ImageInsertSlider = ({
                     <select value={vals.target} onChange={e => update({ target: e.target.value })}
                         disabled={!vals.href}
                         className="h-8 rounded-md border border-input bg-background px-2 text-xs outline-none focus:ring-1 focus:ring-ring disabled:opacity-40">
-                        <option value="_blank">New tab</option>
-                        <option value="_self">Same tab</option>
+                        <option value="_blank">{t.newTab}</option>
+                        <option value="_self">{t.sameTab}</option>
                     </select>
                 </div>
             </div>
@@ -744,7 +758,7 @@ const ImageInsertSlider = ({
             <ImageEditor
                 src={item.preview}
                 mode="modal"
-                title={`Crop — ${item.fileProps.fileName}`}
+                title={interpolate(t.cropTitle, { name: item.fileProps.fileName })}
                 onClose={() => setShowCrop(false)}
                 onSave={(dataUrl) => { onCropSave(idx, dataUrl); setShowCrop(false); }}
             />
@@ -768,6 +782,9 @@ const ImageEditDialog = ({
     const [href,     setHref    ] = useState(state.attrs.href     as string ?? '');
     const [target,   setTarget  ] = useState(state.attrs.target   as string ?? '_blank');
     const [showCrop, setShowCrop] = useState(false);
+    const t = useI18n('imageField');
+    const rt = useI18n('richText');
+    const common = useI18n('common');
     const altRef = useRef<HTMLInputElement>(null);
     useEffect(() => { altRef.current?.focus(); }, []);
 
@@ -776,18 +793,18 @@ const ImageEditDialog = ({
     return (
         <>
         <Modal
-            title="Edit image"
+            title={t.editImage}
             onClose={onCancel}
             size="sm"
             footer={
                 <div className="flex justify-end gap-2">
                     <button type="button" onClick={onCancel}
                         className="h-8 rounded-md px-3 text-sm transition-colors hover:bg-muted">
-                        Cancel
+                        {common.cancel}
                     </button>
                     <button type="button" onClick={() => onConfirm({ src, alt, href, target, enabled: true })}
                         className="h-8 rounded-md bg-primary px-3 text-sm text-primary-foreground transition-colors hover:bg-primary/90">
-                        Save
+                        {common.save}
                     </button>
                 </div>
             }
@@ -796,11 +813,11 @@ const ImageEditDialog = ({
                 <div className="group relative mb-3 overflow-hidden rounded-lg bg-muted/40">
                     <ImageDisplay src={src} fit="contain" height={140} wrapperClassName="w-full" className="w-full" />
                     <div className="absolute right-2 top-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                        <a href={src} target="_blank" rel="noopener noreferrer" title="Open original"
+                        <a href={src} target="_blank" rel="noopener noreferrer" title={t.openOriginal}
                             className="flex h-7 w-7 items-center justify-center rounded-md bg-black/60 text-white backdrop-blur-sm transition-colors hover:bg-black/80">
                             <Icon name="external-link" size={13} />
                         </a>
-                        <button type="button" title="Crop" onClick={() => setShowCrop(true)}
+                        <button type="button" title={t.crop} onClick={() => setShowCrop(true)}
                             className="flex h-7 w-7 items-center justify-center rounded-md bg-black/60 text-white backdrop-blur-sm transition-colors hover:bg-black/80">
                             <Icon name="crop" size={13} />
                         </button>
@@ -812,7 +829,7 @@ const ImageEditDialog = ({
 
             <div className="flex flex-col gap-1">
                 <label className="text-xs font-medium text-muted-foreground">
-                    Image URL <span className="font-normal opacity-60">(path or https://…)</span>
+                    {t.imageUrl} <span className="font-normal opacity-60">{t.imageUrlHint}</span>
                 </label>
                 <input type="url" value={src} onChange={e => setSrc(e.target.value)}
                     placeholder="https://example.com/image.jpg"
@@ -822,17 +839,17 @@ const ImageEditDialog = ({
 
             <div className="mt-2 flex flex-col gap-1">
                 <label className="text-xs font-medium text-muted-foreground">
-                    Alt text <span className="font-normal opacity-60">(accessibility &amp; SEO)</span>
+                    {t.altText} <span className="font-normal opacity-60">{t.altTextHint}</span>
                 </label>
                 <input ref={altRef} type="text" value={alt} onChange={e => setAlt(e.target.value)}
-                    placeholder="E.g. Team photo at company retreat"
+                    placeholder={rt.altPlaceholder}
                     className="h-8 rounded-md border border-input bg-background px-2.5 text-sm outline-none focus:ring-1 focus:ring-ring"
                 />
             </div>
 
             <div className="mt-2 flex flex-col gap-1">
                 <label className="text-xs font-medium text-muted-foreground">
-                    Link URL <span className="font-normal opacity-60">(optional)</span>
+                    {t.linkUrl} <span className="font-normal opacity-60">{t.optionalHint}</span>
                 </label>
                 <div className="flex gap-1.5">
                     <input type="url" value={href} onChange={e => setHref(e.target.value)}
@@ -842,8 +859,8 @@ const ImageEditDialog = ({
                     <select value={target} onChange={e => setTarget(e.target.value)}
                         disabled={!href}
                         className="h-8 rounded-md border border-input bg-background px-2 text-xs outline-none focus:ring-1 focus:ring-ring disabled:opacity-40">
-                        <option value="_blank">New tab</option>
-                        <option value="_self">Same tab</option>
+                        <option value="_blank">{t.newTab}</option>
+                        <option value="_self">{t.sameTab}</option>
                     </select>
                 </div>
             </div>
@@ -853,7 +870,7 @@ const ImageEditDialog = ({
             <ImageEditor
                 src={src}
                 mode="modal"
-                title="Crop image"
+                title={t.cropImage}
                 onClose={() => setShowCrop(false)}
                 onSave={(dataUrl) => { setSrc(dataUrl); setShowCrop(false); }}
             />
@@ -939,6 +956,7 @@ const RichTextInner = ({
     const CharacterCount               = modules[8].default;
 
     const [sourceMode, setSourceMode] = useState(false);
+    const rt = useI18n('richText');
     const [sourceContent, setSourceContent] = useState('');
     const [insertQueue, setInsertQueue] = useState<InsertSlideItem[]>([]);
     const [editDialog,  setEditDialog ] = useState<EditDialogState | null>(null);
@@ -1476,7 +1494,7 @@ const RichTextInner = ({
                                 <div className="mx-0.5 h-3 w-px bg-border" />
                                 <button
                                     type="button"
-                                    title="Edit link"
+                                    title={rt.editLink}
                                     onMouseDown={ev => {
                                         ev.preventDefault();
                                         const url = window.prompt('URL', href);
@@ -1489,7 +1507,7 @@ const RichTextInner = ({
                                 </button>
                                 <button
                                     type="button"
-                                    title="Remove link"
+                                    title={rt.removeLink}
                                     onMouseDown={ev => {
                                         ev.preventDefault();
                                         editor.chain().focus().unsetLink().run();
@@ -1517,7 +1535,7 @@ const RichTextInner = ({
             {/* Editor area */}
             {sourceMode ? (
                 <textarea
-                    aria-label={`${name} source`}
+                    aria-label={interpolate(rt.source, { name })}
                     className="w-full resize-none bg-background px-3 py-2 font-mono text-xs text-foreground outline-none"
                     style={{ minHeight: height.adjustedMinHeight, maxHeight, overflowY: 'auto' }}
                     value={sourceContent}
