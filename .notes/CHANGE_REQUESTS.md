@@ -151,6 +151,54 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
+## CR-109 — Componenti di chat: Markdown in streaming, ragionamento, domande interattive
+
+**Stato:** ⬜ todo
+**Issue:** [#88](https://github.com/sherpadvisorylab/llmnative-react/issues/88)
+**Priorità:** Alta
+**Dipende da:** —
+
+### Motivazione
+
+Emersa nel Playbook il 26/10/2026, con l'agente di progettazione in Agentico. Le risposte dei modelli
+non arrivano agli standard degli altri chatbot:
+- le tabelle Markdown, gli elenchi e i titoli escono come testo grezzo;
+- il ragionamento del modello non ha un posto suo;
+- le domande del modello all'utente sono testo da leggere e ricopiare, anche quando arrivano strutturate
+  (lo strumento `question` di opencode ha domanda, intestazione, opzioni e scelta multipla).
+
+Riferimenti adottati come formato, non come dipendenza di UI: il modello a "parti" dei messaggi
+(Vercel AI SDK, protocollo AG-UI), la *elicitation* di MCP per le domande strutturate, il pattern
+AskUserQuestion (Claude Code). Componenti nostri, tema Tailwind del framework.
+
+### Scope
+
+- **Markdown dei messaggi in streaming**: GFM completo (tabelle, elenchi, titoli, citazioni, codice con
+  evidenziazione e copia) robusto mentre il testo arriva (tabelle e blocchi non ancora chiusi). Valutare
+  Streamdown (Vercel, Tailwind) contro `MarkdownReader` reso adatto allo streaming; scelta documentata.
+  Componente `ChatMarkdown` (o prop di `MarkdownReader`) usabile da `Chatbot` e da Agentico.
+- **`ChatReasoning`**: blocco richiudibile del ragionamento del modello ("Ha ragionato per 12 s"),
+  chiuso di default, aperto mentre arriva.
+- **`ChatQuestions`**: domande interattive. Una scheda per domanda (titolo breve), le opzioni cliccabili
+  numerate come le presenta il modello (1-2-3 o A-B-C), la consigliata in evidenza, scelta multipla,
+  "Altro" con risposta libera; riepilogo e invio di tutte le risposte insieme; tastiera (numeri, frecce,
+  Invio); accessibile. Formato in ingresso allineato allo strumento `question` di opencode e alla
+  elicitation di MCP: `{ header?, question, options: [{ label, description? }], multiple?, recommended? }`.
+  Uscita: le risposte per domanda (etichette scelte o testo libero).
+- Test, `llms-full.txt`, showcase (6 lingue), CHANGELOG.
+
+### Checklist
+
+- [ ] Scelta del renderer Markdown in streaming (Streamdown o `MarkdownReader`), motivata
+- [ ] `ChatMarkdown`: GFM completo, streaming robusto, copia del codice
+- [ ] `ChatReasoning`
+- [ ] `ChatQuestions` (schede, opzioni numerate, consigliata, multipla, "Altro", tastiera, accessibilità)
+- [ ] Test, docs, showcase, CHANGELOG
+- [ ] Usato da Agentico (CR-004 di Agentico) e verificato nel Playbook
+- [ ] Release
+
+---
+
 ## CR-108 — Notifications: dettaglio, azioni sulla voce, lettura singola e link esterni
 
 **Stato:** ✅ done (1.32.0)
