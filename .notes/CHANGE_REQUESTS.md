@@ -153,7 +153,7 @@ Richiesto dal consumer `llmnative-cms`.
 
 ## CR-108 — Notifications: dettaglio, azioni sulla voce, lettura singola e link esterni
 
-**Stato:** ⬜ todo
+**Stato:** ✅ done (1.32.0)
 **Issue:** [#87](https://github.com/sherpadvisorylab/llmnative-react/issues/87)
 **Priorità:** Media
 **Dipende da:** CR-097 (testi fissi in inglese di Notifications)
@@ -182,11 +182,11 @@ la sua Action, un'issue bloccata, una release nuova del runner, sapere da rivede
 
 ### Checklist
 
-- [ ] `description`, `actions`, `external`, `id` su `NotificationItem`
-- [ ] `onItemClick` su `Notifications`
-- [ ] Test (azioni senza navigazione, link esterno, chiave), docs, showcase, CHANGELOG
-- [ ] Verificato nel Playbook (campanella dello studio: "Apri l'Action" e "Aggiorna" dalla tendina)
-- [ ] Release
+- [x] `description`, `actions`, `external`, `id` su `NotificationItem` (`url` opzionale)
+- [x] `onItemClick` su `Notifications` (il menu si chiude)
+- [x] Test (azioni senza navigazione e con caricamento, link esterno, voce senza url, `onItemClick`), docs (`llms-full.txt`), showcase (sezione "Dettaglio e azioni", 6 lingue), CHANGELOG
+- [x] Usato nel Playbook (campanella dello studio: dettaglio, "Apri l'Action" e "Scarica" dalla tendina, issue su GitHub in una nuova scheda, letta all'apertura)
+- [x] Release: 1.32.0 (26/10/2026). Gate: `tsc --noEmit` 0 errori, `npm test` 77 file / 852 test, `npm run build` OK, build dello showcase OK.
 
 ---
 

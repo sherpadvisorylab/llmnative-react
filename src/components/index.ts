@@ -6,6 +6,7 @@ export type { BreadcrumbItem, BreadcrumbsProps, BreadcrumbSchemaOptions } from '
 export { default as Carousel } from './blocks/Carousel';
 export * from './blocks/Dropdown';
 export { default as Notifications } from './blocks/Notifications';
+export type { NotificationItem, NotificationAction } from './blocks/Notifications';
 export { default as Search } from './blocks/Search';
 export { default as Toolbar } from './blocks/Toolbar';
 export type { ToolbarProps } from './blocks/Toolbar';

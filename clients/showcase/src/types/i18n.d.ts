@@ -1334,6 +1334,16 @@ interface ShowcaseNotificationsI18n {
     sections: {
         notificationMenu: ShowcasePageSectionCopy;
     };
+    detail: {
+        title: string;
+        description: string;
+        sourceTitle: string;
+        sourceDetail: string;
+        openAction: string;
+        blockedTitle: string;
+        blockedDetail: string;
+        now: string;
+    };
     labels: {
         newDeploymentCompleted: string;
         storageUsageReached80: string;

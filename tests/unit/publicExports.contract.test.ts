@@ -126,6 +126,7 @@ function collectTypeExportsFromDts(entryFile = distTypesPath, visited = new Set<
 }
 
 describe('public export contract', () => {
+    // It parses the whole showcase and imports the built bundle: slow on a busy machine (30 s).
     it('covers every runtime symbol imported by the showcase package consumer', async () => {
         if (!distBuilt) return;
         const showcaseImports = collectShowcaseImports();
@@ -133,7 +134,7 @@ describe('public export contract', () => {
         const runtimeExports = new Set(Object.keys(distModule));
         const missing = [...showcaseImports.runtime].filter((name) => !runtimeExports.has(name)).sort();
         expect(missing).toEqual([]);
-    });
+    }, 30_000);
 
     it('covers every type-only symbol imported by the showcase package consumer', () => {
         if (!distBuilt) return;

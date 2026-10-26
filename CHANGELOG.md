@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.32.0] - 2026-10-26
+
+### Added
+- `Notifications` (CR-108, GH issue #87): a notification can carry a `description` (a line under its
+  title), `actions` (`NotificationAction`: buttons under it that act without opening it, loading while
+  their promise runs, the menu left open unless `closeOnClick`), an `external` address opened in a new
+  tab instead of a route, and an `id` used as its key; `url` is optional (without it the item only
+  shows). `onItemClick(item, index)` tells which notification was opened, to mark it read; the menu
+  closes. `NotificationItem` and `NotificationAction` are exported. Showcase section "Detail and
+  actions" (6 languages).
+
+### Changed
+- The public export contract test, which parses the whole showcase and imports the built bundle, has
+  30 s instead of 5 s: it timed out on a busy machine.
+
 ## [1.31.0] - 2026-10-24
 
 ### Added

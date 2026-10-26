@@ -847,7 +847,8 @@ utile quando un comando cambia famiglia sintattica (per esempio da `{{ ... }}` a
 <Breadcrumbs trail={[{ label: 'Home', href: '/' }, { label: 'Utenti' }]} separator="/" jsonLd />
 <Brand url="/" label="MyApp" logo="/logo.svg" width={120} />
 <Search onQueryChange={(e) => setQ(e.target.value)} />
-<Notifications items={[...]} seeAllUrl="/notifications" onMarkAllRead={() => {}} />
+<Notifications items={[...]} seeAllUrl="/notifications" onMarkAllRead={() => {}} onItemClick={(item) => markRead(item.id)} />
+<Notifications items={[{ id: 'a', title: 'Fonte senza Action', description: 'crm · sources/notes/a.md', url: '/projects/crm', time: 'ora', icon: 'file', actions: [{ label: "Apri l'Action", icon: 'play', onClick: openAction, variant: 'primary' }] }]} />
 <Carousel images={[...]} />
 <Toolbar items={[...]}>
   {children}
@@ -919,7 +920,15 @@ icona; niente rete né storage. Default: `rounded-md bg-muted` (tema `Identicon.
 | `badge` | `BadgeProps` |
 | `seeAllUrl` | `string` |
 | `onMarkAllRead` | `() => void` |
+| `onItemClick` | `(item, index) => void` — una voce aperta (es. per segnarla letta); il menu si chiude |
 | `motion` | `MotionReference` |
+
+`NotificationItem`: `{ id?, title, description?, url?, external?, time, icon, read?, actions? }`. `description` è la
+riga sotto il titolo; senza `url` la voce si mostra e basta; con `external` l'`url` è un indirizzo aperto
+in una nuova scheda (`<a target="_blank">`), altrimenti una rotta (`Link`). `actions`
+(`NotificationAction[]`: `{ label, icon?, onClick, variant?: 'primary' | 'default', closeOnClick? }`) sono
+pulsanti sotto la voce: non la aprono, mostrano il caricamento finché la promessa di `onClick` è in corso
+e lasciano il menu aperto salvo `closeOnClick`.
 
 **ListCard:**
 | Prop | Tipo |
