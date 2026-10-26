@@ -66,7 +66,7 @@ import '@llmnative/react/dist/index.css'  // necessario una volta sola
 ui/        → primitivi stateless: Alert, Badge, Button, Card, DescriptionList, Image, Modal, Table, Gallery, Tab, Repeat, Icon, LocaleSwitcher, ThemeSwitcher, ProviderSwitcher, LayoutBuilder, ContextMenu
 ui/fields/ → campi form: Input, Select, UploadImage, UploadDocument, UploadCSV, CodeEditor, ImageField, RichText, Prompt, Crop, ContextMenu
 blocks/    → composizioni: Menu, Breadcrumbs, Notifications, Search, Carousel, Dropdown, Toolbar, SideNav, ListCard, AuthButton
-widgets/   → smart (hanno stato e provider): Grid, Form, MarkdownReader, ImageEditor, TabDynamic
+widgets/   → smart (hanno stato e provider): Grid, Form, MarkdownReader, ImageEditor, TabDynamic, Chatbot, ChatMarkdown, ChatReasoning, ChatQuestions
 ```
 
 Tutti gli import da `'@llmnative/react'` — mai da sottodirectory.

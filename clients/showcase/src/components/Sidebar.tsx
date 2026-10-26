@@ -32,6 +32,7 @@ const ICON_MAP: Record<string, string> = {
     // Widgets
     '/components/assistant-ai':    'bot',
     '/components/auth':            'shield-check',
+    '/components/chat-messages':   'messages-square',
     '/components/image-editor':    'wand-2',
     '/components/layout-builder':  'layout-panel-left',
     '/components/markdown-reader': 'file-text',

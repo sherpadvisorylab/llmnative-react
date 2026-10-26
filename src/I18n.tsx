@@ -333,6 +333,29 @@ export interface I18nDict {
     breadcrumbs: {
         label: string;
     };
+    /** CR-109 — ChatReasoning and ChatQuestions (code blocks of ChatMarkdown use `code`). */
+    chat: {
+        reasoning:          string;
+        reasoningStreaming: string;
+        reasoningFor:       string;
+        durationSeconds:    string;
+        durationMinutes:    string;
+        questions:          string;
+        questionTab:        string;
+        review:             string;
+        reviewHint:         string;
+        other:              string;
+        otherPlaceholder:   string;
+        recommended:        string;
+        chooseOne:          string;
+        chooseMany:         string;
+        keyboardHint:       string;
+        next:               string;
+        back:               string;
+        submit:             string;
+        noAnswer:           string;
+        answered:           string;
+    };
 }
 
 type DeepPartial<T> = { [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K] };

@@ -7,56 +7,7 @@ import { cn } from '../../libs/cn';
 import { copyToClipboard } from '../../libs/utils';
 import Icon from './Icon';
 import { Wrapper } from './GridSystem';
-
-const LANGUAGES: Record<string, () => Promise<unknown>> = {
-  markup: () => import('prismjs/components/prism-markup'),
-  html: () => import('prismjs/components/prism-markup'),
-  xml: () => import('prismjs/components/prism-markup'),
-  svg: () => import('prismjs/components/prism-markup'),
-  mathml: () => import('prismjs/components/prism-markup'),
-  css: () => import('prismjs/components/prism-css'),
-  clike: () => import('prismjs/components/prism-clike'),
-  javascript: () => import('prismjs/components/prism-javascript'),
-  js: () => import('prismjs/components/prism-javascript'),
-  jsx: () => import('prismjs/components/prism-jsx'),
-  typescript: () => import('prismjs/components/prism-typescript'),
-  tsx: () => import('prismjs/components/prism-tsx'),
-  json: () => import('prismjs/components/prism-json'),
-  bash: () => import('prismjs/components/prism-bash'),
-  shell: () => import('prismjs/components/prism-bash'),
-  python: () => import('prismjs/components/prism-python'),
-  java: () => import('prismjs/components/prism-java'),
-  c: () => import('prismjs/components/prism-c'),
-  cpp: () => import('prismjs/components/prism-cpp'),
-  csharp: () => import('prismjs/components/prism-csharp'),
-  go: () => import('prismjs/components/prism-go'),
-  sql: () => import('prismjs/components/prism-sql'),
-  php: () => import('prismjs/components/prism-php'),
-  ruby: () => import('prismjs/components/prism-ruby'),
-  yaml: () => import('prismjs/components/prism-yaml'),
-  ini: () => import('prismjs/components/prism-ini'),
-  docker: () => import('prismjs/components/prism-docker'),
-  powershell: () => import('prismjs/components/prism-powershell'),
-  git: () => import('prismjs/components/prism-git'),
-  graphql: () => import('prismjs/components/prism-graphql'),
-};
-
-const LANGUAGE_DEPENDENCIES: Record<string, string[]> = {
-  html: ['markup'],
-  xml: ['markup'],
-  svg: ['markup'],
-  mathml: ['markup'],
-  javascript: ['clike'],
-  js: ['clike', 'javascript'],
-  jsx: ['markup', 'clike', 'javascript'],
-  typescript: ['clike', 'javascript'],
-  tsx: ['markup', 'clike', 'javascript', 'jsx', 'typescript'],
-  c: ['clike'],
-  cpp: ['c'],
-  csharp: ['clike'],
-  java: ['clike'],
-  php: ['markup'],
-};
+import { PRISM_LANGUAGES as LANGUAGES, ensurePrismStyles, loadPrism, loadPrismLanguage } from '../../libs/prism';
 
 const THEMES = {
   prism: 'rf-code-theme-prism',
@@ -69,7 +20,7 @@ const THEMES = {
   twilight: 'rf-code-theme-twilight',
 };
 
-type PrismLanguage = keyof typeof LANGUAGES;
+type PrismLanguage = string;
 type PrismTheme = keyof typeof THEMES;
 
 export type PrismBackground =
@@ -117,27 +68,6 @@ function isRecordKey<T extends Record<string, unknown>>(record: T, value: unknow
   return typeof value === 'string' && value in record;
 }
 
-async function loadPrismLanguage(language: PrismLanguage, loaded = new Set<string>()) {
-  if (loaded.has(language)) return;
-
-  for (const dependency of LANGUAGE_DEPENDENCIES[language] ?? []) {
-    if (isRecordKey(LANGUAGES, dependency)) {
-      await loadPrismLanguage(dependency as PrismLanguage, loaded);
-    }
-  }
-
-  await LANGUAGES[language]?.();
-  loaded.add(language);
-}
-
-let prismStylesLoaded = false;
-
-async function ensurePrismStyles() {
-  if (prismStylesLoaded) return;
-  prismStylesLoaded = true;
-  await import('../../styles/prism-themes.css');
-}
-
 const Code = ({
   language,
   children,
@@ -164,17 +94,9 @@ const Code = ({
       // Load theme styles first (lazy, once)
       await ensurePrismStyles();
 
-      // Load core first - language packs need Prism in scope to extend it.
-      // Set manual=true before the first import so Prism skips its auto-highlightAll().
-      if (!(window as any).Prism?.highlightElement) {
-        (window as any).Prism = { ...((window as any).Prism ?? {}), manual: true };
-      }
-      let Prism: any; // CR-042: prismjs has no bundled TS types; dynamic import returns untyped default
+      let Prism: Awaited<ReturnType<typeof loadPrism>>;
       try {
-        const mod = await import('prismjs');
-        Prism = mod.default;
-        // Language component scripts look for Prism on the global object
-        (window as any).Prism = Prism;
+        Prism = await loadPrism();
       } catch (err) {
         console.warn('Errore nel caricare Prism core', err);
         return;

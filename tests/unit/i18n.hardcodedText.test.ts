@@ -27,6 +27,10 @@ const GUARDED: Record<string, string[]> = {
     'widgets/Chatbot.tsx': ['KB'],
     'blocks/Breadcrumbs.tsx': [],
     'blocks/SideNav.tsx': [],
+    // CR-109
+    'widgets/chat/ChatMarkdown.tsx': [],
+    'widgets/chat/ChatReasoning.tsx': [],
+    'widgets/chat/ChatQuestions.tsx': [],
 };
 
 /** A literal is text a user reads when it has a word of two letters or more. */

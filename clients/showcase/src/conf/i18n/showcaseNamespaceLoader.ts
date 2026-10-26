@@ -52,6 +52,7 @@ export type ShowcaseNamespace =
     | 'menu'
     | 'breadcrumbs'
     | 'chatbot'
+    | 'chatMessages'
     | 'repeat'
     | 'tabDynamic'
     | 'gridPreview'

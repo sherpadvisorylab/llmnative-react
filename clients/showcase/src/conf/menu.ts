@@ -19,6 +19,7 @@ const GoogleAuthPage = lazyPage(() => import('../pages/examples/GoogleAuthPage')
 const AlertPage = lazyPage(() => import('../pages/components/AlertPage'));
 const AuthPage = lazyPage(() => import('../pages/components/AuthPage'));
 const ChatbotPage = lazyPage(() => import('../pages/components/ChatbotPage'));
+const ChatMessagesPage = lazyPage(() => import('../pages/components/ChatMessagesPage'));
 const BadgePage = lazyPage(() => import('../pages/components/BadgePage'));
 const BrandPage = lazyPage(() => import('../pages/components/BrandPage'));
 const BreadcrumbsPage = lazyPage(() => import('../pages/components/BreadcrumbsPage'));
@@ -179,6 +180,7 @@ export const menu = {
         // ── Widgets (alphabetical, Grid penultimate, Form last) ───────────────
         { path: '/components/auth', title: 'Auth', page: AuthPage, group: 'Widgets' },
         { path: '/components/chatbot', title: 'Chatbot', page: ChatbotPage, group: 'Widgets' },
+        { path: '/components/chat-messages', title: 'Chat messages', page: ChatMessagesPage, group: 'Widgets' },
         { path: '/components/image-editor', title: 'ImageEditor', page: ImageEditorPage, group: 'Widgets' },
         { path: '/components/layout-builder', title: 'LayoutBuilder', page: LayoutBuilderPage, group: 'Widgets' },
         { path: '/components/markdown-reader', title: 'MarkdownReader', page: MarkdownReaderPage, group: 'Widgets' },

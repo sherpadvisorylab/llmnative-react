@@ -153,7 +153,7 @@ Richiesto dal consumer `llmnative-cms`.
 
 ## CR-109 — Componenti di chat: Markdown in streaming, ragionamento, domande interattive
 
-**Stato:** ⬜ todo
+**Stato:** ✅ done (1.34.0) — parte framework; adozione in Agentico (CR-004) e Playbook e pubblicazione npm a cura della sessione principale
 **Issue:** [#88](https://github.com/sherpadvisorylab/llmnative-react/issues/88)
 **Priorità:** Alta
 **Dipende da:** —
@@ -189,13 +189,35 @@ AskUserQuestion (Claude Code). Componenti nostri, tema Tailwind del framework.
 
 ### Checklist
 
-- [ ] Scelta del renderer Markdown in streaming (Streamdown o `MarkdownReader`), motivata
-- [ ] `ChatMarkdown`: GFM completo, streaming robusto, copia del codice
-- [ ] `ChatReasoning`
-- [ ] `ChatQuestions` (schede, opzioni numerate, consigliata, multipla, "Altro", tastiera, accessibilità)
-- [ ] Test, docs, showcase, CHANGELOG
-- [ ] Usato da Agentico (CR-004 di Agentico) e verificato nel Playbook
-- [ ] Release
+### Scelta del renderer (26/10/2026)
+
+Scelto **lo stack già presente** (`react-markdown` + `remark-gfm` + `rehype-sanitize` + Prism), non
+Streamdown. Motivi:
+- **Dipendenze e peso**: Streamdown porta Shiki (grammatiche e temi, diversi MB), KaTeX, Mermaid e
+  `harden-react-markdown`: decine di pacchetti nuovi per un framework che ha già tutto il necessario.
+  Con lo stack esistente: zero dipendenze nuove; pacchetto npm +65 KB compresso (1.693.751 →
+  1.758.362 B; spacchettato +242 KB, quasi tutto source map e tipi), `dist/index.mjs` +30 KB, CSS +2 KB.
+- **Tema**: Streamdown chiede di far scansionare a Tailwind i suoi `dist` e porta i suoi stili;
+  qui ogni elemento usa i token del tema (`bg-muted`, `border-border`, `text-primary`) e i colori della
+  sintassi vengono dai token `--rf-*` (chiaro e scuro) invece che da un tema Shiki.
+- **Sicurezza**: `rehype-sanitize` (già usato da `MarkdownReader`) toglie HTML grezzo e link
+  `javascript:`; i link a indirizzi si aprono con `noopener noreferrer`.
+- **Streaming**: la parte utile di Streamdown (chiudere ciò che la coda del testo lascia aperto) è una
+  funzione pura e piccola: `repairStreamingMarkdown` (fence, intestazione di tabella senza riga di
+  separazione, `**`/`*`/`_`/`~~`, `` ` ``, destinazione di un link, sottolineatura setext), testata a sé.
+- `MarkdownReader` resta com'è (imposta il titolo della pagina dall'H1 e ha spaziatura da documento):
+  `ChatMarkdown` è un componente a parte con spaziatura da chat. Il caricamento di Prism è stato
+  estratto da `Code` in `src/libs/prism.ts` e condiviso.
+
+### Checklist
+
+- [x] Scelta del renderer Markdown in streaming (Streamdown o `MarkdownReader`), motivata: stack esistente (sopra)
+- [x] `ChatMarkdown`: GFM completo, streaming robusto (`repairStreamingMarkdown`), copia del codice, evidenziazione Prism con i colori del tema, tabelle che scorrono dentro di sé, link sicuri
+- [x] `ChatReasoning` (chiuso di default, "Ha ragionato per 12 s", aperto durante lo streaming, controllabile)
+- [x] `ChatQuestions` (schede, opzioni numerate 1-2-3/A-B-C, consigliata, multipla, "Altro", riepilogo e un solo invio, tastiera numeri/frecce/Invio/Spazio, ruoli ARIA, stato già risposto)
+- [x] Test (`tests/unit/libs/streamingMarkdown.test.ts` 12, `tests/unit/components/Chat.test.tsx` 25; controllo dei testi fissi esteso ai tre file), docs (`llms-full.txt`, `llms.txt`, `docs/architecture/i18n.md`, `.notes/I18N_AUDIT.md`), namespace `chat` in 6 lingue, showcase (pagina "Chat messages", 6 lingue, verificata nel browser in chiaro e scuro), CHANGELOG
+- [ ] Usato da Agentico (CR-004 di Agentico) e verificato nel Playbook: adozione in Agentico CR-004 e Playbook: a cura della sessione principale
+- [ ] Release: framework pronto in 1.34.0 (commit e tag `v1.34.0`). Gate: `tsc --noEmit` 0 errori, `npm test` 81 file / 919 test, `npm run build` OK, `npm pack --dry-run` OK (+65 KB), build dello showcase OK. Pubblicazione npm: a cura della sessione principale
 
 ---
 

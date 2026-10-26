@@ -318,3 +318,32 @@
 .badge.badge-overlay.badge-light     { background-color: hsl(var(--rf-muted))        !important; color: hsl(var(--rf-muted-foreground));     outline: none; }
 .badge.badge-overlay.badge-dark      { background-color: hsl(var(--rf-foreground))   !important; color: hsl(var(--rf-background));           outline: none; }
 
+/* -- CR-109: syntax colours of ChatMarkdown code blocks, from the theme tokens (light and dark) -- */
+.rf-chat-code .token.comment,
+.rf-chat-code .token.prolog,
+.rf-chat-code .token.doctype,
+.rf-chat-code .token.cdata { color: hsl(var(--rf-muted-foreground)); font-style: italic; }
+.rf-chat-code .token.punctuation,
+.rf-chat-code .token.operator { color: hsl(var(--rf-foreground) / 0.7); }
+.rf-chat-code .token.keyword,
+.rf-chat-code .token.atrule,
+.rf-chat-code .token.important,
+.rf-chat-code .token.tag,
+.rf-chat-code .token.selector { color: hsl(var(--rf-primary)); }
+.rf-chat-code .token.string,
+.rf-chat-code .token.char,
+.rf-chat-code .token.attr-value,
+.rf-chat-code .token.regex,
+.rf-chat-code .token.inserted { color: hsl(var(--rf-success)); }
+.rf-chat-code .token.number,
+.rf-chat-code .token.boolean,
+.rf-chat-code .token.constant,
+.rf-chat-code .token.symbol { color: hsl(var(--rf-warning)); }
+.rf-chat-code .token.function,
+.rf-chat-code .token.class-name,
+.rf-chat-code .token.attr-name,
+.rf-chat-code .token.property,
+.rf-chat-code .token.builtin { color: hsl(var(--rf-info)); }
+.rf-chat-code .token.deleted { color: hsl(var(--rf-destructive)); }
+.rf-chat-code .token.bold,
+.rf-chat-code .token.important { font-weight: 600; }

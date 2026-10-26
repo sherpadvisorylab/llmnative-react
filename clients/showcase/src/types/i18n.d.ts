@@ -1433,6 +1433,41 @@ interface ShowcaseBreadcrumbsI18n {
     };
 }
 
+interface ShowcaseChatMessagesI18n {
+    page: { title: string; description: string; };
+    sections: {
+        markdown: ShowcasePageSectionCopy;
+        reasoning: ShowcasePageSectionCopy;
+        questions: ShowcasePageSectionCopy;
+        answered: ShowcasePageSectionCopy;
+    };
+    demo: {
+        replay: string;
+        streaming: string;
+        again: string;
+        markdown: string;
+        reasoning: string;
+        reasoningAnswer: string;
+        q1Header: string;
+        q1Question: string;
+        q1Option1: string;
+        q1Option1Description: string;
+        q1Option2: string;
+        q1Option2Description: string;
+        q2Header: string;
+        q2Question: string;
+        q2Option1: string;
+        q2Option2: string;
+        q2Option3: string;
+    };
+    propsDocs: {
+        markdown: Record<string, ShowcaseGridDocFieldCopy>;
+        reasoning: Record<string, ShowcaseGridDocFieldCopy>;
+        questions: Record<string, ShowcaseGridDocFieldCopy>;
+    };
+    playground: { title: string; };
+    propsTitle: string;
+}
 interface ShowcaseChatbotI18n {
     page: { title: string; description: string; };
     sections: {
@@ -2530,6 +2565,7 @@ declare module '@llmnative/react' {
             menu:                         ShowcaseMenuI18n;
             breadcrumbs:                  ShowcaseBreadcrumbsI18n;
             chatbot:                      ShowcaseChatbotI18n;
+            chatMessages:                 ShowcaseChatMessagesI18n;
             repeat:                       ShowcaseRepeatI18n;
             tabDynamic:                   ShowcaseTabDynamicI18n;
             gridPreview:                  ShowcaseGridPreviewI18n;

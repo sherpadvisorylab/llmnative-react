@@ -71,7 +71,9 @@ inclusi): un testo si cambia con `i18n.translations`, non nel codice. Namespace 
 `<I18nProvider>`, come l'`ErrorBoundary` radice di `<App>`, resta in inglese), `themeSwitcher`,
 `imageField` (anche i dialoghi immagine di `RichText`), `richText`, `tabDynamic` (`addTab`),
 `breadcrumbs` (`label`, l'`aria-label` del `nav`), `grid` (`tableView`, `galleryView`, `columns`,
-`fields`), `prompt` (anche `Chatbot`: `role`, `language`, `voice`, `style`, `temperature`, `stop`).
+`fields`), `prompt` (anche `Chatbot`: `role`, `language`, `voice`, `style`, `temperature`, `stop`),
+`chat` (`ChatReasoning` e `ChatQuestions`: `reasoning`, `reasoningFor`, `other`, `review`, `submit`, …;
+il codice di `ChatMarkdown` usa `code`).
 
 ```tsx
 <App i18n={{ locale: 'it', translations: { it: { notifications: { emptyHint: 'Niente di nuovo' } } } }} />
@@ -989,6 +991,48 @@ e lasciano il menu aperto salvo `closeOnClick`.
   onInternalLinkClick={(href, e) => { e.preventDefault(); navigate(href) }}
   wrapperClassName="prose"
 />
+```
+
+### Messaggi di chat: ChatMarkdown, ChatReasoning, ChatQuestions (CR-109)
+
+Parti di un messaggio di un modello, da comporre nel proprio thread (anche accanto a `Chatbot`).
+
+```tsx
+// Markdown GFM del messaggio: tabelle (scorrono dentro di sé in un pannello stretto), elenchi,
+// titoli, citazioni, task list, codice con evidenziazione (Prism, lazy) e pulsante Copia, link a
+// indirizzi in una nuova scheda (noopener). Sanitizzato: niente HTML grezzo, niente javascript:.
+// streaming: chiude ciò che la fine del testo lascia aperto (fence, intestazione di tabella,
+// **grassetto**, `codice`, link) così il layout non salta mentre arriva. Off per un messaggio finito.
+<ChatMarkdown content={text} streaming={running} onLinkClick={(href) => navigate(href)} />
+// tone="muted", highlight={false}, components (come react-markdown), className,
+// classNames={{ root, paragraph, heading, list, blockquote, tableWrapper, table, th, td, codeBlock, codeHeader, code, inlineCode, link }}
+// repairStreamingMarkdown(text) è la stessa riparazione, pura.
+
+// Ragionamento: chiuso dietro "Ragionamento" / "Ha ragionato per 12 s"; aperto mentre arriva
+// (se l'utente non lo chiude) e richiuso alla fine. Contenuto con ChatMarkdown, tono attenuato.
+<ChatReasoning content={reasoning} streaming={thinking} duration={12} />
+// defaultOpen, open + onOpenChange (controllato), label, icon ('brain'), className, classNames={{ root, trigger, content }}
+
+// Domande interattive (formato dello strumento `question` di opencode / elicitation MCP):
+<ChatQuestions
+  questions={[
+    { id: 'db', header: 'Database', question: 'Quale database?', recommended: 0,
+      options: [{ label: 'Postgres', description: 'Relazionale' }, { label: 'SQLite' }] },
+    { id: 'features', header: 'Funzioni', question: 'Quali funzioni?', multiple: true,
+      options: [{ label: 'Auth' }, { label: 'Ricerca' }] },
+  ]}
+  onSubmit={async (answers) => send(answers)}   // [{ id, header, values: string[] }] in ordine
+/>
+// Una scheda per domanda (header) + Riepilogo e un solo Invia; opzioni numerate 1-2-3 o A-B-C
+// (numbering, altrimenti dedotto da etichette "A) …" / "1. …", che vengono tolte); consigliata
+// (recommended: indice da 0 o etichetta; anche il suffisso "(Recommended)"); multiple; "Altro" con
+// testo libero (allowOther, default true; per domanda `custom`); senza options è a testo libero.
+// Tastiera: numeri (o lettere con A-B-C) scelgono, frecce sinistra/destra tra le schede, su/giù tra
+// le opzioni, Spazio seleziona, Invio prosegue o invia (su una scelta singola prima la sceglie).
+// Ruoli tablist/tab/tabpanel, radiogroup/radio o group/checkbox.
+// Scelta singola: il click sceglie e passa alla domanda dopo. onSubmit che rifiuta lascia il form.
+// answers={[…]} mostra un insieme già risposto (sola lettura); disabled, autoFocus, submitLabel,
+// classNames={{ root, tabs, tab, panel, question, option, optionSelected, footer, summary }}
 ```
 
 ### ImageEditor

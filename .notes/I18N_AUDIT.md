@@ -50,6 +50,7 @@
 | `components/widgets/grid-core/GridCore.tsx` | ✅ `grid.tableView`, `galleryView`, `columns`, `fields` |
 | `components/widgets/Chatbot.tsx` | ✅ `prompt.role`, `language`, `voice`, `style`, `temperature`, `stop`, `stopping` |
 | `components/blocks/Breadcrumbs.tsx` | ✅ `breadcrumbs.label` (`aria-label` of the `nav`) |
+| `components/widgets/chat/ChatMarkdown.tsx`, `ChatReasoning.tsx`, `ChatQuestions.tsx` (CR-109) | ✅ `chat.*` (reasoning summary and durations, questions, tabs, Other, review, submit, answered) + `code.*` (copy button of code blocks) |
 
 Guard: `tests/unit/i18n.hardcodedText.test.ts` scans these files (plus `SideNav.tsx`) and fails on
 a new hard-coded visible text; per-file allowlist for non-translatable literals (`URL`, `DEV`, `rem`,

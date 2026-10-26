@@ -70,6 +70,7 @@ export const useShowcaseSearchI18n = () => useShowcaseSlice('search');
 export const useShowcaseMenuI18n = () => useShowcaseSlice('menu');
 export const useShowcaseBreadcrumbsI18n = () => useShowcaseSlice('breadcrumbs');
 export const useShowcaseChatbotI18n = () => useShowcaseSlice('chatbot');
+export const useShowcaseChatMessagesI18n = () => useShowcaseSlice('chatMessages');
 export const useShowcaseRepeatI18n = () => useShowcaseSlice('repeat');
 export const useShowcaseTabDynamicI18n = () => useShowcaseSlice('tabDynamic');
 export const useShowcaseGridPreviewI18n = () => useShowcaseSlice('gridPreview');

@@ -9,6 +9,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.34.0] - 2026-10-26
+
+### Added
+- Chat components (CR-109, GH issue #88), to compose the reply of a model:
+  - `ChatMarkdown`: GFM Markdown of a chat message (tables, lists, headings, quotes, task lists,
+    strikethrough), compact spacing, tables that scroll inside themselves in a narrow panel, fenced
+    code with Prism highlighting (loaded on demand, colours from the theme tokens, light and dark),
+    language label and copy button, links to addresses in a new tab (`noopener noreferrer`), links to
+    routes through `onLinkClick`. Sanitized with `rehype-sanitize`. With `streaming` the end of the
+    text is repaired as it arrives (open code fence, table header without its delimiter row,
+    `**bold`, `` `code ``, `~~strike`, link destination, setext underline), so the layout does not
+    jump. Props `tone` (`muted`), `highlight`, `components`, `classNames`.
+  - `ChatReasoning`: the reasoning of the model in a collapsible block, closed behind "Reasoning" /
+    "Reasoned for 12 s" (`duration`, minutes included), open while `streaming` and closed again when
+    it ends unless the user chose; controlled with `open`/`onOpenChange`; content in `ChatMarkdown`,
+    muted.
+  - `ChatQuestions`: interactive questions in the shape of the opencode `question` tool and MCP
+    elicitation (`{ id?, header?, question, options?: { label, description? }[], multiple?,
+    recommended?, custom? }`): one tab per question plus a review and one Submit, choices numbered
+    1-2-3 or A-B-C (`numbering`, else inferred from "A) …" / "1. …" labels), the recommended one
+    highlighted (index, label or a "(Recommended)" suffix), single or multiple choice, "Other" with
+    free text (`allowOther`), free-text questions without options. Keyboard: number (or letter) keys
+    choose, left/right arrows move between tabs, up/down between choices, Space toggles, Enter
+    continues or sends. ARIA tablist/tab/tabpanel, radiogroup/radio, group/checkbox.
+    `onSubmit(answers)` gets `[{ id?, header?, values: string[] }]` (a promise is awaited; the form
+    stays when it rejects), then the answered state; `answers` shows a set already answered,
+    read-only; `disabled`, `autoFocus`, `submitLabel`, `classNames`.
+  - `repairStreamingMarkdown(text)`: the streaming repair, pure.
+  - New `I18nDict` namespace `chat` (en, it, de, ru, ar, zh); the code blocks use `code`. The three
+    files are covered by the hard-coded text guard.
+  - Showcase page "Chat messages" (`/components/chat-messages`, 6 languages) with a streaming demo.
+
+### Changed
+- `Code` loads Prism through the shared `src/libs/prism.ts` (same behaviour); `ChatMarkdown` uses it too.
+
 ## [1.33.0] - 2026-10-26
 
 ### Added
