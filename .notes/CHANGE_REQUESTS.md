@@ -151,6 +151,45 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
+## CR-108 — Notifications: dettaglio, azioni sulla voce, lettura singola e link esterni
+
+**Stato:** ⬜ todo
+**Issue:** [#87](https://github.com/sherpadvisorylab/llmnative-react/issues/87)
+**Priorità:** Media
+**Dipende da:** CR-097 (testi fissi in inglese di Notifications)
+
+### Motivazione
+
+È emersa nel Playbook il 26/10/2026, con la campanella delle notifiche dello studio: una fonte senza
+la sua Action, un'issue bloccata, una release nuova del runner, sapere da rivedere. Oggi una voce di
+`Notifications` ha solo titolo, icona, ora, link interno e letta/non letta. Mancano:
+- una riga di dettaglio sotto il titolo (cosa e dove: `testt · sources/conversations/…`);
+- azioni sulla voce, per risolvere senza cambiare pagina ("Riapri l'Action", "Aggiorna");
+- segnare come letta una voce sola, quando la si apre;
+- un link esterno (una issue su GitHub): oggi `url` è sempre un `Link` del router.
+
+### Scope
+
+- `NotificationItem.description?: ReactNode`: riga secondaria sotto il titolo.
+- `NotificationItem.actions?: Array<{ icon?: string; label: string; onClick: () => void | Promise<void>; variant? }>`:
+  pulsanti sulla voce. Il click non apre il link e non chiude il menu (salvo `closeOnClick`); stato di
+  caricamento durante una promessa. Accessibili (nome, tastiera).
+- `NotificationItem.external?: boolean` (o un `url` assoluto riconosciuto): `<a target="_blank" rel="noopener">`
+  invece di `Link`.
+- `onItemClick?: (item, index) => void` su `Notifications`: per segnare letta la voce aperta.
+- `NotificationItem.id?: string` come chiave stabile (oggi la chiave è l'indice).
+- Test, `llms-full.txt`, showcase (6 lingue), CHANGELOG.
+
+### Checklist
+
+- [ ] `description`, `actions`, `external`, `id` su `NotificationItem`
+- [ ] `onItemClick` su `Notifications`
+- [ ] Test (azioni senza navigazione, link esterno, chiave), docs, showcase, CHANGELOG
+- [ ] Verificato nel Playbook (campanella dello studio: "Apri l'Action" e "Aggiorna" dalla tendina)
+- [ ] Release
+
+---
+
 ## CR-107 — Azioni cliccabili nel Chatbot e azioni al passaggio del mouse in DropdownItem
 
 **Stato:** ✅ done (1.31.0)
