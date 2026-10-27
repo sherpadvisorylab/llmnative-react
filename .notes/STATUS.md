@@ -1,7 +1,7 @@
 # Project status
 
 > Snapshot verified against the real codebase, not against the historical plan.
-> Last reviewed: 2026-10-26
+> Last reviewed: 2026-10-27
 
 ---
 
@@ -31,6 +31,7 @@
 
 | CR | State | Evidence |
 |----|-------|----------|
+| CR-110 | Done | `ChatQuestions`: la risposta libera è una textarea che cresce (2 righe, poi fino a 160 px e scorre; `resize-y`), Invio va a capo e Ctrl/Cmd+Invio prosegue o invia; `chat.textKeyboardHint` in 6 lingue. Tests, docs. Released in 1.35.0 (pubblicazione npm a cura della sessione principale). Issue #89. |
 | CR-109 | Done | Componenti di chat (parte framework): `ChatMarkdown` (GFM, streaming con `repairStreamingMarkdown`, Prism con i colori del tema, tabelle che scorrono dentro di sé), `ChatReasoning`, `ChatQuestions` (formato opencode/MCP elicitation, tastiera, ARIA, stato già risposto), namespace `chat` in 6 lingue. Tests, docs, showcase. Released in 1.34.0 (pubblicazione npm, adozione in Agentico CR-004 e verifica nel Playbook a cura della sessione principale). Issue #88 closed. |
 | CR-097 | Done | Testi visibili di `Notifications`, `ErrorBoundary` (inglese fuori da `<I18nProvider>`), `ThemeSwitcher`, `ImageField`/`RichText`, `Upload`, `TabDynamic`, `GridCore`, `Chatbot`, `Breadcrumbs` in `I18nDict` (6 lingue). Test di traduzione e controllo contro nuovi testi fissi. Released in 1.33.0. Issue #68 closed. |
 | CR-108 | Done | `Notifications`: `description`, `actions` (senza navigare, con caricamento), link `external`, `onItemClick`, `id`; `url` opzionale. Tests, docs, showcase. Released in 1.32.0. Issue #87 closed. |

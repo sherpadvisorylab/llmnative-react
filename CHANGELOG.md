@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.35.0] - 2026-10-27
+
+### Changed
+- `ChatQuestions` (CR-110, GH issue #89): the free-text answer ("Other", or a question without
+  options) is a textarea instead of a one-line input. It starts at two lines, grows with the text
+  up to 160 px and then scrolls, and can be resized vertically (`resize-y`); it uses the framework
+  textarea styles (`fieldTextAreaBaseClass`) and the same auto-grow as `TextArea`/`Chatbot`.
+  Keyboard: in the free text Enter adds a line and Ctrl/Cmd+Enter continues to the next question or
+  sends (before, Enter continued); while typing, the footer shows the new hint
+  `chat.textKeyboardHint` ("Enter adds a line, Ctrl/⌘+Enter continues"), also on free-text-only
+  questions. New `I18nDict.chat.textKeyboardHint` key in en, it, de, ru, ar, zh. Answers keep the
+  line breaks as written.
+
 ## [1.34.0] - 2026-10-26
 
 ### Added

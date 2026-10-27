@@ -266,6 +266,7 @@ export const de: I18nDict = {
         chooseOne: 'Wähle eine',
         chooseMany: 'Wähle eine oder mehrere',
         keyboardHint: 'Tasten {first}–{last} wählen, Enter fährt fort',
+        textKeyboardHint: 'Enter für eine neue Zeile, Strg/⌘+Enter fährt fort',
         next: 'Weiter',
         back: 'Zurück',
         submit: 'Senden',

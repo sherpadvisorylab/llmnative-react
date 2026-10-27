@@ -1027,8 +1027,12 @@ Parti di un messaggio di un modello, da comporre nel proprio thread (anche accan
 // (numbering, altrimenti dedotto da etichette "A) …" / "1. …", che vengono tolte); consigliata
 // (recommended: indice da 0 o etichetta; anche il suffisso "(Recommended)"); multiple; "Altro" con
 // testo libero (allowOther, default true; per domanda `custom`); senza options è a testo libero.
+// Il testo libero è una textarea (CR-110) di 2 righe che cresce col testo fino a ~160px e poi
+// scorre; ridimensionabile in verticale. Lì Invio va a capo, Ctrl/Cmd+Invio prosegue o invia
+// (suggerimento `chat.textKeyboardHint` nel piè mentre si scrive).
 // Tastiera: numeri (o lettere con A-B-C) scelgono, frecce sinistra/destra tra le schede, su/giù tra
-// le opzioni, Spazio seleziona, Invio prosegue o invia (su una scelta singola prima la sceglie).
+// le opzioni, Spazio seleziona, Invio prosegue o invia (su una scelta singola prima la sceglie;
+// nel testo libero serve Ctrl/Cmd+Invio).
 // Ruoli tablist/tab/tabpanel, radiogroup/radio o group/checkbox.
 // Scelta singola: il click sceglie e passa alla domanda dopo. onSubmit che rifiuta lascia il form.
 // answers={[…]} mostra un insieme già risposto (sola lettura); disabled, autoFocus, submitLabel,

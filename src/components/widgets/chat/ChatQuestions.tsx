@@ -2,6 +2,8 @@ import React from 'react';
 import { cn } from '../../../libs/cn';
 import { interpolate, useI18n, type I18nDict } from '../../../I18n';
 import Icon from '../../ui/Icon';
+import { fieldTextAreaBaseClass } from '../../ui/fields/Input';
+import { useEditorHeight } from '../../../libs/editorHeight';
 
 /** A choice of a question. */
 export interface ChatQuestionOption {
@@ -144,6 +146,9 @@ function answerOf(question: ChatQuestion, values: string[]): ChatQuestionAnswer 
 }
 
 const OPTION = 'flex w-full items-start gap-2.5 rounded-md border px-2.5 py-2 text-start transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60';
+/** Free-text answer: two lines to start, grows with the text up to this height, then scrolls. */
+const TEXT_MIN_HEIGHT = 58;
+const TEXT_MAX_HEIGHT = 160;
 const BUTTON = 'inline-flex h-8 items-center justify-center gap-1 rounded-md px-3 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50';
 
 /**
@@ -151,6 +156,10 @@ const BUTTON = 'inline-flex h-8 items-center justify-center gap-1 rounded-md px-
  * choices (the recommended one stands out), single or multiple choice, "Other" with free text, a
  * review and one submit for all the answers. Keyboard: number (or letter) keys choose, arrows move
  * between tabs and choices, Enter continues. With `answers` it shows a set already answered.
+ *
+ * CR-110 — The free text ("Other", or a question without options) is a textarea that grows with
+ * the text (two lines, then up to a height and it scrolls; resizable vertically): Enter adds a
+ * line, Ctrl/Cmd+Enter continues or sends.
  */
 export default function ChatQuestions({
     questions,
@@ -185,6 +194,9 @@ export default function ChatQuestions({
     const [otherText, setOtherText] = React.useState<string[]>([]);
     const [busy, setBusy] = React.useState(false);
     const [submitted, setSubmitted] = React.useState<ChatQuestionAnswer[] | null>(null);
+    const [typing, setTyping] = React.useState(false);
+    const textRef = React.useRef<HTMLTextAreaElement | null>(null);
+    const textHeight = useEditorHeight({ minHeight: TEXT_MIN_HEIGHT, maxHeight: TEXT_MAX_HEIGHT });
 
     const valuesOf = (q: number): string[] => {
         const nq = normal[q];
@@ -207,13 +219,26 @@ export default function ChatQuestions({
         if (!root) return;
         if (target === 'tab') { tabRefs.current[tab]?.focus(); return; }
         const panel = root.querySelector<HTMLElement>('[role="tabpanel"]');
-        if (target === 'other') { panel?.querySelector<HTMLInputElement>('input')?.focus(); return; }
+        if (target === 'other') { panel?.querySelector<HTMLTextAreaElement>('textarea')?.focus(); return; }
         const choice = panel?.querySelector<HTMLElement>('[data-rf-option][aria-checked="true"]')
             ?? panel?.querySelector<HTMLElement>('[data-rf-option]')
-            ?? panel?.querySelector<HTMLElement>('input')
+            ?? panel?.querySelector<HTMLElement>('textarea')
             ?? root.querySelector<HTMLElement>('[data-rf-submit]');
         choice?.focus();
     });
+
+    // Auto-grow of the free text — the same logic as TextArea and Chatbot (TextArea is bound to a Form).
+    const currentText = otherText[tab] ?? '';
+    const textShown = Boolean(normal[tab]?.other && (otherOn[tab] || normal[tab]?.options.length === 0));
+    React.useEffect(() => {
+        const el = textRef.current;
+        if (!el) return;
+        el.style.height = 'auto';
+        const nextHeight = Math.max(el.scrollHeight, textHeight.resolvedMinHeight);
+        const max = textHeight.resolvedMaxHeight;
+        el.style.height = `${max ? Math.min(nextHeight, max) : nextHeight}px`;
+        el.style.overflowY = max && nextHeight > max ? 'auto' : 'hidden';
+    }, [currentText, textShown, tab, textHeight.resolvedMinHeight, textHeight.resolvedMaxHeight]);
 
     const go = (next: number, focus: 'tab' | 'panel' = 'panel') => {
         const last = hasReview ? count : count - 1;
@@ -279,7 +304,15 @@ export default function ChatQuestions({
     const onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
         if (locked) return;
         const target = event.target as HTMLElement;
-        if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+        if (target.tagName === 'TEXTAREA') {
+            // Enter adds a line; Ctrl/Cmd+Enter continues (not while an IME is composing).
+            if (event.key === 'Enter' && (event.ctrlKey || event.metaKey) && !event.nativeEvent.isComposing) {
+                event.preventDefault();
+                confirm();
+            }
+            return;
+        }
+        if (target.tagName === 'INPUT') {
             if (event.key === 'Enter' && !event.shiftKey) {
                 event.preventDefault();
                 confirm();
@@ -477,10 +510,11 @@ export default function ChatQuestions({
                                     <span className="min-w-0 flex-1 text-sm">{dict.other}</span>
                                 </button>
                             )}
-                            {nq.other && (otherOn[tab] || nq.options.length === 0) && (
-                                <input
-                                    type="text"
-                                    value={otherText[tab] ?? ''}
+                            {textShown && (
+                                <textarea
+                                    ref={textRef}
+                                    rows={2}
+                                    value={currentText}
                                     onChange={(event) => {
                                         const value = event.target.value;
                                         setOtherText((list) => update(list, tab, value, ''));
@@ -488,7 +522,10 @@ export default function ChatQuestions({
                                     disabled={disabled}
                                     aria-label={nq.options.length === 0 ? nq.source.question : dict.other}
                                     placeholder={dict.otherPlaceholder}
-                                    className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60"
+                                    aria-keyshortcuts="Control+Enter Meta+Enter"
+                                    onFocus={() => setTyping(true)}
+                                    onBlur={() => setTyping(false)}
+                                    className={cn(fieldTextAreaBaseClass, 'min-h-0 resize-y shadow-none focus-visible:ring-2')}
                                 />
                             )}
                         </div>
@@ -521,7 +558,9 @@ export default function ChatQuestions({
 
             <div className={cn('flex flex-wrap items-center justify-between gap-2 border-t border-border px-3 py-2', classNames?.footer)}>
                 <span className="text-[11px] text-muted-foreground">
-                    {nq && lastMarker >= 0 ? interpolate(dict.keyboardHint, { first: markerOf(0, nq.numbering), last: markerOf(lastMarker, nq.numbering) }) : null}
+                    {nq && textShown && (typing || lastMarker < 0)
+                        ? dict.textKeyboardHint
+                        : nq && lastMarker >= 0 ? interpolate(dict.keyboardHint, { first: markerOf(0, nq.numbering), last: markerOf(lastMarker, nq.numbering) }) : null}
                 </span>
                 <div className="ms-auto flex items-center gap-2">
                     {hasReview && tab > 0 && (

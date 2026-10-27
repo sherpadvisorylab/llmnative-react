@@ -266,6 +266,7 @@ export const zh: I18nDict = {
         chooseOne: '选择一项',
         chooseMany: '选择一项或多项',
         keyboardHint: '按 {first}–{last} 选择，按 Enter 继续',
+        textKeyboardHint: '按 Enter 换行，按 Ctrl/⌘+Enter 继续',
         next: '下一步',
         back: '返回',
         submit: '提交',

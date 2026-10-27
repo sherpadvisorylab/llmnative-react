@@ -266,6 +266,7 @@ export const ar: I18nDict = {
         chooseOne: 'اختر واحدًا',
         chooseMany: 'اختر واحدًا أو أكثر',
         keyboardHint: 'المفاتيح {first}–{last} للاختيار، Enter للمتابعة',
+        textKeyboardHint: 'Enter لسطر جديد، Ctrl/⌘+Enter للمتابعة',
         next: 'التالي',
         back: 'رجوع',
         submit: 'إرسال',

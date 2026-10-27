@@ -221,16 +221,45 @@ describe('ChatQuestions', () => {
         expect(radios[0]).toHaveFocus();
     });
 
-    it('takes a free-text "Other" answer and sends it with Enter', async () => {
+    it('takes a free-text "Other" answer in a growing textarea: Enter adds a line, Ctrl/Cmd+Enter sends', async () => {
         const onSubmit = vi.fn();
         renderIn(<ChatQuestions questions={[QUESTIONS[0]]} onSubmit={onSubmit} />);
         expect(screen.queryAllByRole('tab')).toHaveLength(0);
         fireEvent.keyDown(screen.getByRole('radiogroup'), { key: '3' });
         const input = screen.getByRole('textbox', { name: 'Other' });
+        expect(input.tagName).toBe('TEXTAREA');
+        expect(input).toHaveAttribute('rows', '2');
+        expect(input.className).toContain('resize-y');
         await waitFor(() => expect(input).toHaveFocus());
+        expect(screen.getByText('Enter adds a line, Ctrl/⌘+Enter continues')).toBeInTheDocument();
+        fireEvent.change(input, { target: { value: 'MariaDB\nwith Galera' } });
+        expect(input.style.height).toBe('58px'); // two lines at least (jsdom has no layout)
+        const plain = fireEvent.keyDown(input, { key: 'Enter' });
+        expect(plain).toBe(true); // not prevented: the browser adds the line
+        expect(onSubmit).not.toHaveBeenCalled();
+        fireEvent.keyDown(input, { key: 'Enter', ctrlKey: true });
+        await waitFor(() => expect(onSubmit).toHaveBeenCalledWith([{ id: 'db', header: 'Database', values: ['MariaDB\nwith Galera'] }]));
+    });
+
+    it('continues to the next question with Cmd+Enter from the free text', () => {
+        renderIn(<ChatQuestions questions={QUESTIONS} />);
+        fireEvent.keyDown(screen.getByRole('radiogroup'), { key: '3' });
+        const input = screen.getByRole('textbox', { name: 'Other' });
         fireEvent.change(input, { target: { value: 'MariaDB' } });
         fireEvent.keyDown(input, { key: 'Enter' });
-        await waitFor(() => expect(onSubmit).toHaveBeenCalledWith([{ id: 'db', header: 'Database', values: ['MariaDB'] }]));
+        expect(screen.getAllByRole('tab')[0]).toHaveAttribute('aria-selected', 'true');
+        fireEvent.keyDown(input, { key: 'Enter', metaKey: true });
+        expect(screen.getAllByRole('tab')[1]).toHaveAttribute('aria-selected', 'true');
+    });
+
+    it('caps the growth of the free text and then scrolls', () => {
+        renderIn(<ChatQuestions questions={[{ question: 'Notes?' }]} />);
+        const input = screen.getByRole('textbox', { name: 'Notes?' });
+        Object.defineProperty(input, 'scrollHeight', { configurable: true, get: () => 400 });
+        fireEvent.change(input, { target: { value: 'a\nb\nc\nd\ne\nf\ng\nh\ni\nj' } });
+        expect(input.style.height).toBe('160px');
+        expect(input.style.overflowY).toBe('auto');
+        expect(screen.getByText('Enter adds a line, Ctrl/⌘+Enter continues')).toBeInTheDocument();
     });
 
     it('takes a free-text answer when a question has no options', () => {

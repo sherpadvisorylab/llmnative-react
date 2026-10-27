@@ -115,6 +115,7 @@
 | [CR-105](#cr-105--temi-vs-code-completi-e-in-coppia-lightdark-token-canvas-verifica-dei-contrasti) | Temi VS Code completi e in coppia light/dark, token canvas, verifica dei contrasti | Alta | — | ✅ |
 | [CR-106](#cr-106--identicon-icona-generata-da-un-valore-stile-github) | Identicon: icona generata da un valore (stile GitHub) | Media | — | ✅ |
 | [CR-107](#cr-107--azioni-cliccabili-nel-chatbot-e-azioni-al-passaggio-del-mouse-in-dropdownitem) | Azioni cliccabili nel Chatbot e azioni al passaggio del mouse in DropdownItem | Media | — | ✅ |
+| [CR-110](#cr-110--chatquestions-risposta-libera-su-più-righe) | ChatQuestions: risposta libera su più righe | Media | CR-109 | ✅ |
 
 ---
 
@@ -148,6 +149,40 @@ Richiesto dal consumer `llmnative-cms`.
 - [x] Docs `docs/providers/ai.md`, `llms-full.txt`
 - [x] Verifica visiva nel consumer `llmnative-cms` (picker Agentico: header per OpenCode, DeepSeek, Cloudflare Workers AI, sticky durante lo scroll)
 - [x] Release 1.18.0
+
+---
+
+## CR-110 — ChatQuestions: risposta libera su più righe
+
+**Stato:** ✅ done (1.35.0) — parte framework; pubblicazione npm e adozione in Agentico/Playbook a cura della sessione principale
+**Issue:** [#89](https://github.com/sherpadvisorylab/llmnative-react/issues/89)
+**Priorità:** Media
+**Dipende da:** CR-109
+
+### Motivazione
+
+Emersa nel Playbook (agente di progettazione in Agentico) il 27/10/2026: la risposta libera di
+`ChatQuestions` ("Altro", o una domanda senza opzioni) era un input di una riga. Le risposte libere
+a un agente di progettazione sono spesso di più righe e non si vedevano mentre si scrivevano.
+
+### Scope
+
+- Il testo libero diventa una `textarea`: 2 righe all'inizio, cresce col testo fino a 160 px e poi
+  scorre; ridimensionabile in verticale (`resize-y`). Stili di `fieldTextAreaBaseClass` (token del
+  tema), auto-grow come `TextArea`/`Chatbot` (`useEditorHeight`).
+- Tastiera: nella textarea Invio va a capo, Ctrl/Cmd+Invio prosegue o invia (non durante la
+  composizione IME). Il resto della tastiera di CR-109 resta com'era.
+- Suggerimento nel piè mentre si scrive (e sulle domande solo a testo libero): nuova chiave
+  `chat.textKeyboardHint` in 6 lingue.
+- Fuori scope: il layout del thread e del composer (docking: CR di Agentico).
+
+### Checklist
+
+- [x] Textarea che cresce (min 2 righe, max 160 px poi scorre, `resize-y`), stili del framework
+- [x] Invio a capo, Ctrl/Cmd+Invio prosegue o invia; focus su "Altro" sulla textarea
+- [x] `chat.textKeyboardHint` in en, it, de, ru, ar, zh; `I18nDict`
+- [x] Test (`tests/unit/components/Chat.test.tsx`: textarea, Invio/Ctrl+Invio/Cmd+Invio, crescita e tetto), docs (`llms-full.txt`, `.notes/I18N_AUDIT.md`), CHANGELOG
+- [ ] Release: framework pronto in 1.35.0. Gate: `tsc --noEmit` 0 errori, `npm test` 81 file / 921 test, `npm run build` OK, `npm pack --dry-run` OK (1.762.503 B). Commit locale; push, tag `v1.35.0` e pubblicazione npm a cura della sessione principale
 
 ---
 

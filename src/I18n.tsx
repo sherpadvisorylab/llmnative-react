@@ -350,6 +350,8 @@ export interface I18nDict {
         chooseOne:          string;
         chooseMany:         string;
         keyboardHint:       string;
+        /** CR-110 — hint while typing the free-text answer (Enter adds a line). */
+        textKeyboardHint:   string;
         next:               string;
         back:               string;
         submit:             string;

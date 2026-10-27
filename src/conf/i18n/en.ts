@@ -343,6 +343,7 @@ export const en: I18nDict = {
         chooseOne: 'Choose one',
         chooseMany: 'Choose one or more',
         keyboardHint: 'Keys {first}–{last} choose, Enter continues',
+        textKeyboardHint: 'Enter adds a line, Ctrl/⌘+Enter continues',
         next: 'Next',
         back: 'Back',
         submit: 'Submit',

@@ -266,6 +266,7 @@ export const ru: I18nDict = {
         chooseOne: 'Выберите один',
         chooseMany: 'Выберите один или несколько',
         keyboardHint: 'Клавиши {first}–{last} — выбор, Enter — далее',
+        textKeyboardHint: 'Enter — новая строка, Ctrl/⌘+Enter — далее',
         next: 'Далее',
         back: 'Назад',
         submit: 'Отправить',

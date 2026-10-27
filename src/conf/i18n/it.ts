@@ -266,6 +266,7 @@ export const it: I18nDict = {
         chooseOne: 'Scegline una',
         chooseMany: 'Scegline una o più',
         keyboardHint: 'Tasti {first}–{last} per scegliere, Invio per continuare',
+        textKeyboardHint: 'Invio va a capo, Ctrl/⌘+Invio per continuare',
         next: 'Avanti',
         back: 'Indietro',
         submit: 'Invia',
