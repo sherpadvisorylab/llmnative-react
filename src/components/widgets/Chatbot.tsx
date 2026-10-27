@@ -272,6 +272,7 @@ export function Chatbot({
             label: `${resolvedCommandsTrigger ?? '/'}${cmd.name}`,
             value: cmd.name,
             icon: cmd.icon,
+            description: cmd.description,
         })),
         [commands, resolvedCommandsTrigger],
     );
@@ -322,7 +323,11 @@ export function Chatbot({
             className={className || chatbotTextareaClass}
             style={{ maxHeight }}
             onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey && !resolvedCommandsTrigger) {
+                // With `commands`, ContextMenu listens on this textarea natively, so its keydown
+                // runs before this React one: while the menu is open, Enter selects the
+                // highlighted command and is `preventDefault`ed there. Enter that reaches us
+                // untouched (menu closed) sends; Shift+Enter and IME composition stay in the text.
+                if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing && !e.nativeEvent.defaultPrevented) {
                     e.preventDefault();
                     handleClick();
                 }
@@ -385,7 +390,7 @@ export function Chatbot({
                             onSelect={(item, context) => { void applyCommandSelection(item, context); }}
                         >
                             {commandMenuItems.map((item) => (
-                                <ContextMenu.Item key={item.key} label={item.label} value={item.value} icon={item.icon} />
+                                <ContextMenu.Item key={item.key} label={item.label} value={item.value} icon={item.icon} description={item.description} />
                             ))}
                             {textarea}
                         </ContextMenu>

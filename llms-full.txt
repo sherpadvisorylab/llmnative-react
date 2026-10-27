@@ -817,6 +817,13 @@ cancellazione delle richieste precedenti tramite `AbortSignal` e stati loading/e
 </ContextMenu>
 ```
 Funziona su qualsiasi `<textarea>` / `<input>` figlio. Trigger custom (`/`, `@`, `{`), filtro searchable, navigazione tastiera, floating positioning.
+`ContextMenu.Item` accetta `description` (opzionale): seconda riga attenuata (`text-muted-foreground`)
+sotto la label, troncata; il menu è largo al massimo 28rem e il testo completo resta nel `title`
+della voce. Il filtro cerca nel testo digitato dopo il trigger su label, value e description (CR-111).
+
+```tsx
+<ContextMenu.Item label="/plan" value="plan" icon="list" description="Scrive il piano della release" />
+```
 
 | Prop | Tipo | Note |
 |---|---|---|
@@ -825,7 +832,7 @@ Funziona su qualsiasi `<textarea>` / `<input>` figlio. Trigger custom (`/`, `@`,
 | `controlled` | `ContextMenuControlledState` | Stato controllato esterno |
 | `onSelect` | `(item, context) => void` | |
 
-**EditorCommand** (usato da `commands` prop su `RichText`, `CodeEditor`, `Prompt`):
+**EditorCommand** (usato da `commands` prop su `Chatbot`, `Prompt`, `RichText`, `CodeEditor`):
 ```ts
 {
   name: string;
@@ -836,6 +843,11 @@ Funziona su qualsiasi `<textarea>` / `<input>` figlio. Trigger custom (`/`, `@`,
   handler?: (context: TextCommandContext) => string | Promise<string>;
 }
 ```
+
+`description` compare sotto `/name` nel menu dei comandi di tutti e quattro i consumer e il filtro
+la usa (digitare `/release` trova un comando descritto come "…release…"). Un comando senza `handler`
+sostituisce il trigger con `/name ` (spazio finale) e il testo resta tale: in `Chatbot`/`Prompt` il
+messaggio inviato è letteralmente `"/name …"`, da interpretare a cura di chi lo riceve.
 
 `consumeSuffix` elimina una chiusura automatica adiacente durante la sostituzione del trigger,
 utile quando un comando cambia famiglia sintattica (per esempio da `{{ ... }}` a `{% ... %}`).
@@ -1083,6 +1095,12 @@ const registry = createAIProviderRegistry(definitions)
 // Azioni di Chatbot (CR-107): con `content` aprono un menu; senza, sono pulsanti con `onClick`.
 // <Chatbot actions={[{ key: 'finish', icon: 'git-pull-request', label: 'Concludi', showLabel: true,
 //   disabled: running, onClick: finish }]} … />
+// Comandi "/" di Chatbot: `commands` (EditorCommand[]) + `commandsTrigger` (default "/").
+// Il menu mostra `/name` e sotto la `description`; il filtro cerca in entrambi (CR-111).
+// Senza `handler` la scelta inserisce "/name " e l'invio manda il testo così com'è.
+// Tastiera: Invio invia a menu chiuso e sceglie il comando evidenziato a menu aperto;
+// Maiusc+Invio (e Invio durante la composizione IME) va a capo.
+// <Chatbot commands={[{ name: 'plan', icon: 'list', description: 'Scrive il piano' }]} … />
 ```
 
 ### Identità dei modelli indipendente dal provider (CR-103)

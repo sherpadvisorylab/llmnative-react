@@ -983,6 +983,7 @@ const RichTextInner = ({
             label: `${resolvedCommandsTrigger ?? '/'}${command.name}`,
             value: command.name,
             icon: command.icon,
+            description: command.description,
         })),
         [commands, resolvedCommandsTrigger],
     );
@@ -1595,6 +1596,7 @@ const RichTextInner = ({
                                 label={item.label}
                                 value={item.value}
                                 icon={item.icon}
+                                description={item.description}
                             />
                         ))}
                         {editorSurface}

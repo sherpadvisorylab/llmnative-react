@@ -180,6 +180,7 @@ const MenuItem: React.FC<ContextMenuItemProps & { onSelect?: (item: ContextMenuI
                 active && 'bg-accent text-accent-foreground',
                 className,
             )}
+            title={description ? `${label} — ${description}` : undefined}
             onMouseDown={handleMouseDown}
         >
             {icon && <Icon name={icon} size={16} className="mt-0.5 shrink-0 text-muted-foreground" />}
@@ -312,6 +313,17 @@ const getNativeCaretCoordinates = (
     };
 };
 
+/** Writes `value` through the element prototype's setter, not `el.value = …`: React tracks the
+ * last value it saw on a controlled `<textarea>`/`<input>`, and a plain assignment updates that
+ * tracker too, so the `input` event dispatched next would not reach `onChange` and the owner's
+ * state would keep the text typed before the command (the DOM showing `/name ` while a submit
+ * sends `/na`). The prototype setter leaves the tracker behind, so React sees the change. */
+const setNativeValue = (el: HTMLTextAreaElement | HTMLInputElement, value: string) => {
+    const setter = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(el), 'value')?.set;
+    if (setter) setter.call(el, value);
+    else el.value = value;
+};
+
 const buildNativeEditorContext = (
     el: HTMLTextAreaElement | HTMLInputElement,
     trigger: string,
@@ -339,14 +351,14 @@ const buildNativeEditorContext = (
                 const start = el.selectionStart ?? nextValue.length;
                 const end = el.selectionEnd ?? start;
                 const insertedValue = nextValue.slice(0, start) + text + nextValue.slice(end);
-                el.value = insertedValue;
+                setNativeValue(el, insertedValue);
                 el.dispatchEvent(new Event('input', { bubbles: true }));
                 el.selectionStart = el.selectionEnd = start + text.length;
                 el.focus();
             },
             replace: (start: number, end: number, text: string) => {
                 const replacedValue = nextValue.slice(0, start) + text + nextValue.slice(end);
-                el.value = replacedValue;
+                setNativeValue(el, replacedValue);
                 el.dispatchEvent(new Event('input', { bubbles: true }));
                 el.selectionStart = el.selectionEnd = start + text.length;
                 el.focus();
@@ -406,7 +418,9 @@ const ContextMenu = forwardRef<ContextMenuHandle, ContextMenuProps>(({
         if (!runtimeState.query) return items;
         const q = runtimeState.query.toLowerCase();
         return items.filter((item) =>
-            item.label.toLowerCase().includes(q) || item.value.toLowerCase().includes(q),
+            item.label.toLowerCase().includes(q)
+            || item.value.toLowerCase().includes(q)
+            || (item.description?.toLowerCase().includes(q) ?? false),
         );
     }, [items, runtimeState.query]);
 
@@ -665,7 +679,7 @@ const ContextMenu = forwardRef<ContextMenuHandle, ContextMenuProps>(({
                     // still scroll up through, in front of/above the "stuck" heading, before
                     // being clipped. The padding moves to the inner wrapper below instead, which
                     // isn't the scrolling ancestor, so it plays no part in that calculation.
-                    className="fixed z-[200] min-w-44 overflow-y-auto rounded-md border bg-popover text-popover-foreground shadow-md outline-none"
+                    className="fixed z-[200] min-w-44 max-w-[min(28rem,calc(100vw-1rem))] overflow-y-auto rounded-md border bg-popover text-popover-foreground shadow-md outline-none"
                     style={{
                         top: runtimeState.anchorPosition.top,
                         left: runtimeState.anchorPosition.left,

@@ -116,6 +116,7 @@
 | [CR-106](#cr-106--identicon-icona-generata-da-un-valore-stile-github) | Identicon: icona generata da un valore (stile GitHub) | Media | — | ✅ |
 | [CR-107](#cr-107--azioni-cliccabili-nel-chatbot-e-azioni-al-passaggio-del-mouse-in-dropdownitem) | Azioni cliccabili nel Chatbot e azioni al passaggio del mouse in DropdownItem | Media | — | ✅ |
 | [CR-110](#cr-110--chatquestions-risposta-libera-su-più-righe) | ChatQuestions: risposta libera su più righe | Media | CR-109 | ✅ |
+| [CR-111](#cr-111--menu-dei-comandi-descrizione-del-comando-e-ricerca-nella-descrizione) | Menu dei comandi: descrizione del comando e ricerca nella descrizione | Media | CR-047, CR-056 | ✅ |
 
 ---
 
@@ -149,6 +150,50 @@ Richiesto dal consumer `llmnative-cms`.
 - [x] Docs `docs/providers/ai.md`, `llms-full.txt`
 - [x] Verifica visiva nel consumer `llmnative-cms` (picker Agentico: header per OpenCode, DeepSeek, Cloudflare Workers AI, sticky durante lo scroll)
 - [x] Release 1.18.0
+
+---
+
+## CR-111 — Menu dei comandi: descrizione del comando e ricerca nella descrizione
+
+**Stato:** ✅ done (1.36.0) — parte framework; push, tag e pubblicazione npm a cura della sessione principale
+**Issue:** [#90](https://github.com/sherpadvisorylab/llmnative-react/issues/90)
+**Priorità:** Media
+**Dipende da:** CR-047, CR-056
+
+### Motivazione
+
+Emersa nel Playbook il 27/10/2026: il `Chatbot` riceve `commands` (`EditorCommand[]`) e apre il menu
+su "/", ma le voci mostrano solo `/name` e l'icona; `EditorCommand.description` è ignorata, quindi
+chi scrive deve indovinare cosa fa un comando. Lo stesso in `RichText`; `CodeEditor` la mostrava già.
+
+### Scope
+
+- `Chatbot` (e quindi `Prompt`, che gli passa `commands`) e `RichText` passano `description` a
+  `ContextMenu.Item`, che ha già lo slot: seconda riga `text-xs text-muted-foreground`, troncata.
+- `ContextMenu`: larghezza massima del menu `min(28rem, 100vw − 1rem)` perché la troncatura agisca
+  (prima il menu si allargava col testo); `title` con label e descrizione sulle voci che la hanno.
+  Retrocompatibile: voci senza descrizione invariate.
+- Filtro del `ContextMenu`: oltre a label e value cerca nella descrizione (tutti i consumer).
+- `Chatbot` con `commands`: Invio non inviava più (il ramo di invio era escluso quando c'erano
+  comandi e il `ContextMenu` gestisce Invio solo a menu aperto). Ora Invio (senza Maiusc, non durante
+  la composizione IME) invia a menu chiuso e sceglie il comando evidenziato a menu aperto, senza
+  inviare; Maiusc+Invio va a capo come prima.
+- `ContextMenu` nativo: il testo inserito o sostituito (`insert`/`replace`) arriva all'`onChange`
+  di React di un campo controllato (prima `el.value = …` aggiornava anche il tracker di React e
+  l'evento `input` veniva ignorato: il campo mostrava `/name ` ma lo stato restava `/na`). Scrittura
+  col setter del prototipo.
+- Verifica: un comando senza `handler` inserisce `/name ` e l'invio del `Chatbot` manda il testo
+  così com'è (comportamento voluto, nessuna modifica).
+
+### Checklist
+
+- [x] `Chatbot`, `RichText` passano `description`; `CodeEditor` già lo faceva
+- [x] `ContextMenu`: filtro anche sulla descrizione, larghezza massima, `title`
+- [x] `ContextMenu`: `insert`/`replace` nativi notificano l'`onChange` dei campi controllati
+- [x] `Chatbot`: Invio invia a menu chiuso, sceglie il comando a menu aperto; Maiusc+Invio e IME a capo
+- [x] Test (`tests/unit/components/Chatbot.test.tsx`: descrizione nel menu, filtro sulla descrizione, comando senza handler inviato così com'è, Invio a menu chiuso/aperto, Maiusc+Invio, IME)
+- [x] Docs (`llms-full.txt`: ContextMenu, EditorCommand, Chatbot), CHANGELOG, versione 1.36.0
+- [ ] Release: framework pronto in 1.36.0. Gate: `tsc --noEmit` 0 errori, `npm test` 81 file / 926 test (il contratto degli export pubblici è andato in timeout una volta nella suite completa sotto carico e passa da solo), `npm run build` OK, `npm pack --dry-run` OK (1.764.564 B). Commit locale; push, tag `v1.36.0` e pubblicazione npm a cura della sessione principale
 
 ---
 

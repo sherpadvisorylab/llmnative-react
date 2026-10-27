@@ -204,4 +204,104 @@ describe('Chatbot', () => {
         rerender(<ControlledChatbot onSubmit={vi.fn()} actions={[{ key: 'finish', icon: 'git-pull-request', label: 'Finish', onClick: finish, disabled: true }]} />);
         expect(screen.getByRole('button', { name: 'Finish' })).toBeDisabled();
     });
+    describe('slash commands (CR-111)', () => {
+        const commands = [
+            { name: 'plan', description: 'Write the release plan', icon: 'list' },
+            { name: 'review', description: 'Check the open changes' },
+            { name: 'bare' },
+        ];
+
+        const openMenu = (textarea: HTMLElement, value = '/') => {
+            fireEvent.keyDown(textarea, { key: '/' });
+            fireEvent.change(textarea, { target: { value } });
+        };
+
+        it('shows each command description as a muted line under its name', async () => {
+            renderWithProviders(<ControlledChatbot onSubmit={vi.fn()} commands={commands} />);
+            openMenu(screen.getByRole('textbox'));
+
+            const plan = await screen.findByRole('menuitem', { name: /\/plan/ });
+            expect(plan).toHaveTextContent('Write the release plan');
+            const description = screen.getByText('Write the release plan');
+            expect(description).toHaveClass('text-muted-foreground', 'truncate');
+            expect(plan).toHaveAttribute('title', '/plan — Write the release plan');
+
+            const bare = screen.getByRole('menuitem', { name: '/bare' });
+            expect(bare).toHaveTextContent(/^\/bare$/);
+            expect(bare).not.toHaveAttribute('title');
+        });
+
+        it('filters the commands by their description as well as their name', async () => {
+            renderWithProviders(<ControlledChatbot onSubmit={vi.fn()} commands={commands} />);
+            const textarea = screen.getByRole('textbox');
+
+            openMenu(textarea, '/release');
+            await waitFor(() => expect(screen.getAllByRole('menuitem')).toHaveLength(1));
+            expect(screen.getByRole('menuitem')).toHaveTextContent('/plan');
+
+            openMenu(textarea, '/rev');
+            await waitFor(() => expect(screen.getAllByRole('menuitem')).toHaveLength(1));
+            expect(screen.getByRole('menuitem')).toHaveTextContent('/review');
+        });
+
+        it('inserts "/name " for a command without a handler and sends the text as it is', async () => {
+            const onSubmit = vi.fn();
+            renderWithProviders(<ControlledChatbot onSubmit={onSubmit} commands={commands} />);
+            const textarea = screen.getByRole('textbox') as HTMLTextAreaElement;
+
+            openMenu(textarea, '/pl');
+            await screen.findByRole('menuitem', { name: /\/plan/ });
+            fireEvent.keyDown(textarea, { key: 'Enter' });
+
+            await waitFor(() => expect(textarea).toHaveValue('/plan '));
+            expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+            expect(onSubmit).not.toHaveBeenCalled();
+
+            // The owner's state follows the inserted text (not only the DOM): sending right away
+            // carries "/plan ", not the "/pl" typed before the choice.
+            fireEvent.click(screen.getByRole('button', { name: /Run/i }));
+            expect(onSubmit).toHaveBeenCalledTimes(1);
+            expect(onSubmit.mock.calls[0][0]).toMatchObject({ text: '/plan ' });
+
+            fireEvent.change(textarea, { target: { value: '/plan the 2.0 release' } });
+            fireEvent.click(screen.getByRole('button', { name: /Run/i }));
+
+            expect(onSubmit).toHaveBeenCalledTimes(2);
+            expect(onSubmit.mock.calls[1][0]).toMatchObject({ text: '/plan the 2.0 release', files: [] });
+        });
+
+        it('sends on Enter while the command menu is closed; Shift+Enter and IME composition do not', () => {
+            const onSubmit = vi.fn();
+            renderWithProviders(<ControlledChatbot onSubmit={onSubmit} commands={commands} />);
+            const textarea = screen.getByRole('textbox');
+
+            fireEvent.change(textarea, { target: { value: 'ship it' } });
+            expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+
+            fireEvent.keyDown(textarea, { key: 'Enter', shiftKey: true });
+            fireEvent.keyDown(textarea, { key: 'Enter', isComposing: true });
+            expect(onSubmit).not.toHaveBeenCalled();
+
+            fireEvent.keyDown(textarea, { key: 'Enter' });
+            expect(onSubmit).toHaveBeenCalledTimes(1);
+            expect(onSubmit.mock.calls[0][0]).toMatchObject({ text: 'ship it' });
+        });
+
+        it('selects the highlighted command on Enter while the menu is open, without sending', async () => {
+            const onSubmit = vi.fn();
+            renderWithProviders(<ControlledChatbot onSubmit={onSubmit} commands={commands} />);
+            const textarea = screen.getByRole('textbox') as HTMLTextAreaElement;
+
+            openMenu(textarea, '/rev');
+            await screen.findByRole('menuitem', { name: /\/review/ });
+            fireEvent.keyDown(textarea, { key: 'Enter' });
+
+            await waitFor(() => expect(textarea).toHaveValue('/review '));
+            expect(onSubmit).not.toHaveBeenCalled();
+
+            fireEvent.keyDown(textarea, { key: 'Enter' });
+            expect(onSubmit).toHaveBeenCalledTimes(1);
+            expect(onSubmit.mock.calls[0][0]).toMatchObject({ text: '/review ' });
+        });
+    });
 });

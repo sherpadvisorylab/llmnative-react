@@ -9,6 +9,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.36.0] - 2026-10-27
+
+### Added
+- Command menus (CR-111, GH issue #90): `EditorCommand.description` is shown under `/name` as a
+  muted, truncated second line in the "/" menu of `Chatbot` (and so `Prompt`) and `RichText`, as
+  `CodeEditor` already did. `ContextMenu.Item` already had a `description` slot; the menu is now at
+  most 28rem wide (or the viewport less 1rem), so long labels and descriptions truncate instead of
+  stretching it, and an item with a description carries the full text in its `title`.
+- `ContextMenu` filter also matches `description` (besides label and value): typing `/release`
+  finds a command described as "Write the release plan".
+
+### Fixed
+- `Chatbot` with `commands`: Enter sends again. The textarea skipped Enter whenever `commands` were
+  set, and `ContextMenu` handles Enter only while its menu is open, so Enter did nothing. Now Enter
+  (without Shift, not during IME composition) sends while the command menu is closed and selects
+  the highlighted command while it is open (without sending); Shift+Enter is a new line as before.
+- `ContextMenu` on a native `<textarea>`/`<input>`: inserting or replacing text (a chosen command or
+  item) now reaches the React `onChange` of a controlled field. The value was assigned with
+  `el.value = …`, which also updated React's value tracker, so the dispatched `input` event was
+  ignored: the field showed `/name ` while the owner's state kept the text typed before the choice
+  (a `Chatbot` sent `/na` if submitted right away). It now writes through the prototype setter.
+
+### Notes
+- Confirmed with a test: a command without a `handler` replaces the trigger with `/name ` and a
+  message sent from `Chatbot` carries that text as it is (`"/name …"`).
+
 ## [1.35.0] - 2026-10-27
 
 ### Changed
