@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import { I18nProvider } from '../../../src/I18n';
@@ -91,6 +91,37 @@ describe('Dropdown', () => {
 
         expect(menu).not.toBeVisible();
         expect(menu).toHaveAttribute('aria-hidden', 'true');
+    });
+
+    describe('with placement auto', () => {
+        // A trigger `top` px from the top of an 800px viewport, a menu 900px tall.
+        const openAt = (top: number) => {
+            Object.defineProperty(window, 'innerHeight', { configurable: true, value: 800 });
+            const rect = { top, bottom: top + 36, left: 900, right: 936, width: 36, height: 36, x: 900, y: top, toJSON: () => ({}) };
+            const spy = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue(rect as DOMRect);
+            const height = vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockReturnValue(900);
+            render(
+                <Dropdown trigger="Notifications" placement="auto" position="end" defaultOpen>
+                    <DropdownItem>Item</DropdownItem>
+                </Dropdown>
+            );
+            spy.mockRestore();
+            height.mockRestore();
+            return screen.getByRole('menu');
+        };
+
+        it('stays below a trigger at the top of the page when it does not fit, scrolling there', () => {
+            const menu = openAt(10);
+            expect(menu.style.top).toBe('50px');
+            expect(menu.style.bottom).toBe('');
+            expect(menu.style.maxHeight).toBe('746px');
+        });
+
+        it('opens above when it does not fit below and there is more room above', () => {
+            const menu = openAt(700);
+            expect(menu.style.bottom).toBe('104px');
+            expect(menu.style.top).toBe('');
+        });
     });
 });
 

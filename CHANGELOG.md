@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.36.1] - 2026-10-29
+
+### Fixed
+- `Dropdown` with `placement="auto"` (and so `Notifications`): a menu taller than the room below its
+  trigger opened above it even when there was less room above, so under a trigger at the top of the
+  page (the bell of a topbar) it went off the top of the screen. It now opens above only when it
+  does not fit below and there is more room above; otherwise it stays below and scrolls within the
+  room there.
+
 ## [1.36.0] - 2026-10-27
 
 ### Added

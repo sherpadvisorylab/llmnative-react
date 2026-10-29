@@ -197,7 +197,9 @@ export const Dropdown = ({
         let resolved: 'top' | 'bottom';
         if (placement === 'auto') {
             const menuHeight = menuRef.current ? menuRef.current.scrollHeight : 240;
-            resolved = spaceBelow < menuHeight + 8 ? 'top' : 'bottom';
+            // Above only when it does not fit below and there is more room above: otherwise it stays
+            // below and scrolls within the room there (a trigger at the top of the page, e.g. a topbar).
+            resolved = spaceBelow < menuHeight + 8 && spaceAbove > spaceBelow ? 'top' : 'bottom';
             setResolvedPlacement(resolved);
         } else {
             resolved = placement === 'top' ? 'top' : 'bottom';

@@ -1,7 +1,7 @@
 # Project status
 
 > Snapshot verified against the real codebase, not against the historical plan.
-> Last reviewed: 2026-10-27
+> Last reviewed: 2026-10-29
 
 ---
 
@@ -381,4 +381,5 @@ Real verification performed on 2026-07-29 (CR-071 drag&drop addition + CR-073):
 | 1.17.1 | Published on npm (`@llmnative/react@1.17.1`). Minor fix (no CR): OpenCode discovery drops the Zen free-tier models (rejected outside the OpenCode app), `defaultModel` `deepseek-v4-flash-free` (no longer listed) → `deepseek-v4.1-flash`, model cache key `ai.models.v3.*`. |
 | 1.19.0 | Published on npm (`@llmnative/react@1.19.0`). CR-088 (`DescriptionList`) complete. |
 | 1.18.0 | Published on npm (`@llmnative/react@1.18.0`). CR-086 (model picker raggruppato per provider, header sticky) e CR-087 (AI provider `groq`) complete. |
+| 1.36.1 | Minor fix (no CR): `Dropdown` `placement="auto"` opens above only when the menu does not fit below and there is more room above; a menu under a trigger at the top of the page (e.g. the `Notifications` bell) stays below and scrolls instead of going off screen. Regression tests in `Dropdown.test.tsx`. |
 | 1.x / 2.0 | Roadmap: CR-051 (WorkflowAI), CR-040 (SchemaForm), CR-041 (SeoEnhancer), E2E. CR-072 deferito (TypeScript 6 regression upstream). |
