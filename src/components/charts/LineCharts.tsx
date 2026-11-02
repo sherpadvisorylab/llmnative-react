@@ -77,7 +77,7 @@ export function LineChart({ series, labels, ariaLabel, titles, labelEvery = 1, f
         ...series.flatMap((entry) => [...(entry.band?.min ?? []), ...(entry.band?.max ?? [])]).filter((value): value is number => typeof value === 'number'),
     ];
     const low = domain?.[0] ?? Math.min(0, ...known);
-    const high = domain?.[1] ?? niceMax(Math.max(...known, threshold?.value ?? 0, 1) * 1.1);
+    const high = domain?.[1] ?? niceMax(Math.max(...known, threshold?.value ?? 0) * 1.1);
     const animated = useAnimatedValues(flat.map((value) => (Number.isFinite(value) ? value : low)), 650, 0);
     const draw = useReveal(labels.join('|') + series.length, 800);
     // Its own clip path: several charts on one page never share one.
@@ -210,7 +210,7 @@ export function AreaChart({ series, labels, ariaLabel, titles, labelEvery = 1, f
     const margin = { top: 12, right: 12, bottom: 28, left: 50 };
     const bottom = height - margin.bottom;
     const totals = labels.map((_, index) => series.reduce((sum, entry) => sum + (entry.values[index] ?? 0), 0));
-    const max = niceMax(Math.max(1, ...(stacked ? totals : flat)) * 1.05);
+    const max = niceMax(Math.max(0, ...(stacked ? totals : flat)) * 1.05);
     const x = (index: number) => margin.left + (n <= 1 ? (width - margin.left - margin.right) / 2 : (index / (n - 1)) * (width - margin.left - margin.right));
     const y = (value: number) => bottom - (value / max) * (bottom - margin.top);
     const tokens = series.map((entry, index) => chartToken(entry.color, index + 1));

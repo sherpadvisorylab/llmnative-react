@@ -46,7 +46,7 @@ export function ColumnChart({ columns, ariaLabel, color, format: formatProp, mar
     const reveal = useReveal(markers.map((marker) => marker.position).join('|'), 400, 350);
     if (columns.length === 0) return <ChartEmpty height={height} />;
     const margin = { top: 24, right: 8, bottom: 30, left: 44 };
-    const max = niceMax(Math.max(...columns.map((column) => column.value), 1) * 1.15);
+    const max = niceMax(Math.max(...columns.map((column) => column.value)) * 1.15);
     const bottom = height - margin.bottom;
     const y = (value: number) => bottom - (value / max) * (bottom - margin.top);
     const slot = (width - margin.left - margin.right) / Math.max(1, columns.length);
@@ -239,7 +239,7 @@ export function DivergingBarChart({ bars, upLabel, downLabel, ariaLabel, upColor
     const animated = useAnimatedValues(bars.flatMap((bar) => [bar.up ?? 0, bar.down ?? 0]), 550, 6);
     if (n === 0) return <ChartEmpty height={height} />;
     const margin = { top: 10, right: 8, bottom: 26, left: 64 };
-    const max = niceMax(Math.max(1, ...bars.flatMap((bar) => [bar.up ?? 0, bar.down ?? 0])) * 1.05);
+    const max = niceMax(Math.max(0, ...bars.flatMap((bar) => [bar.up ?? 0, bar.down ?? 0])) * 1.05);
     const zero = (margin.top + height - margin.bottom) / 2;
     const half = zero - margin.top;
     const slot = (width - margin.left - margin.right) / n;

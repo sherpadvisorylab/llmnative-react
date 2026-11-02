@@ -111,6 +111,15 @@ describe('LineChart', () => {
 });
 
 describe('ScatterChart', () => {
+    it('fits its axes to small values (cents, fractions), not to 1 at least', () => {
+        const { container } = render(<ScatterChart ariaLabel="Small" xLabel="Cost" yLabel="Rework" formatX={(v) => `$${v.toFixed(2)}`} formatY={(v) => `${Math.round(v * 100)}%`} points={[{ id: 'a', label: 'A', x: 0.04, y: 0.2 }, { id: 'b', label: 'B', x: 0.11, y: 0.05 }]} />);
+        const texts = [...container.querySelectorAll('svg text')].map((text) => text.textContent);
+        // 0.11 × 1.05 → 0.20; 0.2 × 1.05 → 0.25.
+        expect(texts).toContain('$0.20');
+        expect(texts).toContain('25%');
+        expect(texts).not.toContain('$1.00');
+    });
+
     it('places a point per item, sized by the third quantity, labelled when few', () => {
         const { container } = render(
             <ScatterChart

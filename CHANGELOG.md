@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.37.1] - 2026-11-02
+
+### Fixed
+- Charts: the axes of `ScatterChart`, `LineChart`, `AreaChart`, `ColumnChart` and `DivergingBarChart`
+  fit small values (cents, fractions) instead of reaching 1 at least, which crowded every point in a
+  corner (a cost per turn of $0.04 on an axis to $1, a rework of 20% on one to 200%).
+- `BarList`: the room for the text after the bars and for the trailing notes comes from the longest of
+  each, so a long `valueText` no longer runs over the note on the right.
+
 ## [1.37.0] - 2026-11-02
 
 ### Added

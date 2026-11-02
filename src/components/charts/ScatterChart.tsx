@@ -50,8 +50,9 @@ export function ScatterChart({
     const reveal = useReveal(points.map((point) => point.id).join('|'), 600);
     if (points.length === 0) return <ChartEmpty height={height} />;
     const margin = { top: 14, right: 16, bottom: 40, left: 56 };
-    const maxX = niceMax(Math.max(...points.map((point) => point.x), 1) * 1.05);
-    const maxY = niceMax(Math.max(...points.map((point) => point.y), 1) * 1.05);
+    // Axes to the data, small values too (cents, fractions): an empty axis only when every value is 0.
+    const maxX = niceMax(Math.max(...points.map((point) => point.x)) * 1.05);
+    const maxY = niceMax(Math.max(...points.map((point) => point.y)) * 1.05);
     const maxSize = Math.max(0, ...points.map((point) => point.size ?? 0));
     const bottom = height - margin.bottom;
     const x = (value: number) => margin.left + (value / maxX) * (width - margin.left - margin.right);

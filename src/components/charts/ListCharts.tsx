@@ -47,8 +47,10 @@ export function BarList({ rows, ariaLabel, color, format: formatProp, max: fixed
     if (rows.length === 0) return <ChartEmpty height={80} />;
     const max = fixedMax ?? Math.max(1, ...rows.flatMap((row) => [row.value, row.background ?? 0]));
     const rowHeight = 34;
-    const trailingWidth = rows.some((row) => row.trailing) ? 56 : 0;
-    const barSpace = Math.max(40, width - labelWidth - trailingWidth - 70);
+    // Room for the text after the bars and the notes on the right, from the longest of each (about 6.5 units a character).
+    const valueWidth = Math.max(40, ...rows.map((row) => (row.valueText ?? format(row.value)).length * 6.5 + 12));
+    const trailingWidth = Math.max(0, ...rows.map((row) => (row.trailing ? row.trailing.text.length * 6.5 + 10 : 0)));
+    const barSpace = Math.max(40, width - labelWidth - trailingWidth - valueWidth);
     const height = rows.length * rowHeight + 4;
     // About 7 units per character at 12px: longer labels are cut, the tooltip shows them whole.
     const maxLabelChars = Math.max(4, Math.floor((labelWidth - 10) / 7));
