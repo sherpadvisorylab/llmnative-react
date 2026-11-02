@@ -123,6 +123,21 @@ const stackedWidth = (dialog: HTMLElement | null): number | undefined => {
 // the stack while another one is on top of it).
 const escapeStack: symbol[] = [];
 
+// The page behind open modals does not scroll: the first one to open keeps the overflow of the body
+// as it was (its inline style, often none) and the last one to close puts it back, so a layout that
+// sets the overflow of the body in its CSS keeps it.
+let bodyLocks = 0;
+let bodyOverflow = '';
+const lockBody = () => {
+    if (bodyLocks++ === 0) {
+        bodyOverflow = window.document.body.style.overflow;
+        window.document.body.style.overflow = 'hidden';
+    }
+};
+const unlockBody = () => {
+    if (bodyLocks > 0 && --bodyLocks === 0) window.document.body.style.overflow = bodyOverflow;
+};
+
 const Modal = (props: ModalProps) => {
     return <ModalDefault {...props} />;
 };
@@ -256,9 +271,17 @@ const ModalDefault = ({
         ? cn(pos.coverClass, "!overflow-hidden !p-0")
         : pos.coverClass;
 
+    // This modal's hold on the body: given back once, when it closes or leaves.
+    const lockedRef = React.useRef(false);
+    const release = () => {
+        if (!lockedRef.current) return;
+        lockedRef.current = false;
+        unlockBody();
+    };
+
     React.useEffect(() => {
-        const originalOverflow = window.document.body.style.overflow;
-        window.document.body.style.overflow = "hidden";
+        lockBody();
+        lockedRef.current = true;
         const frame = window.requestAnimationFrame(() => setEntered(true));
 
         return () => {
@@ -266,7 +289,7 @@ const ModalDefault = ({
             if (closeTimerRef.current !== undefined) {
                 window.clearTimeout(closeTimerRef.current);
             }
-            window.document.body.style.overflow = originalOverflow || "auto";
+            release();
         };
     }, []);
 
@@ -300,7 +323,7 @@ const ModalDefault = ({
         closingWidthRef.current = stackedWidth(dialogRef.current);
         leaveStackRef.current();
         setEntered(false);
-        window.document.body.style.overflow = "auto";
+        release();
         const closeDelay = dialogMotion.transition.duration + dialogMotion.transition.delay;
         closeTimerRef.current = window.setTimeout(() => {
             onClose?.();

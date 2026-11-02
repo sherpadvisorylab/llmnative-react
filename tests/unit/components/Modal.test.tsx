@@ -158,3 +158,18 @@ describe('Modal', () => {
         expect(onClose).not.toHaveBeenCalled();
     });
 });
+
+describe('Modal and the scroll of the page', () => {
+    it('stops the page behind from scrolling while open and gives the body back as it was, stacked modals too', () => {
+        document.body.style.overflow = '';
+        const first = render(<I18nProvider><Modal title="First" onClose={() => undefined}>One</Modal></I18nProvider>);
+        expect(document.body.style.overflow).toBe('hidden');
+        const second = render(<I18nProvider><Modal title="Second" onClose={() => undefined}>Two</Modal></I18nProvider>);
+        second.unmount();
+        // One still open: the page stays still.
+        expect(document.body.style.overflow).toBe('hidden');
+        first.unmount();
+        // No inline overflow left: the CSS of the layout decides again (never a forced auto).
+        expect(document.body.style.overflow).toBe('');
+    });
+});

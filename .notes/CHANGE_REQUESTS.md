@@ -117,6 +117,7 @@
 | [CR-107](#cr-107--azioni-cliccabili-nel-chatbot-e-azioni-al-passaggio-del-mouse-in-dropdownitem) | Azioni cliccabili nel Chatbot e azioni al passaggio del mouse in DropdownItem | Media | — | ✅ |
 | [CR-110](#cr-110--chatquestions-risposta-libera-su-più-righe) | ChatQuestions: risposta libera su più righe | Media | CR-109 | ✅ |
 | [CR-111](#cr-111--menu-dei-comandi-descrizione-del-comando-e-ricerca-nella-descrizione) | Menu dei comandi: descrizione del comando e ricerca nella descrizione | Media | CR-047, CR-056 | ✅ |
+| [CR-113](#cr-113--modal-overflow-del-body-restituito-comera) | Modal: overflow del body restituito com'era | Media | — | ✅ |
 | [CR-112](#cr-112--charts-grafici-svg-del-framework-senza-dipendenze) | Charts: grafici SVG del framework, senza dipendenze | Alta | CR-013 | ✅ |
 
 ---
@@ -151,6 +152,35 @@ Richiesto dal consumer `llmnative-cms`.
 - [x] Docs `docs/providers/ai.md`, `llms-full.txt`
 - [x] Verifica visiva nel consumer `llmnative-cms` (picker Agentico: header per OpenCode, DeepSeek, Cloudflare Workers AI, sticky durante lo scroll)
 - [x] Release 1.18.0
+
+---
+
+## CR-113 — Modal: overflow del body restituito com'era
+
+**Stato:** ✅ done (1.37.3)
+**Issue:** [#92](https://github.com/sherpadvisorylab/llmnative-react/issues/92)
+**Priorità:** Media
+**Dipende da:** —
+
+### Motivazione
+
+Emersa nel Playbook il 02/11/2026: chiudendo una `Modal` il framework scriveva `overflow: auto` sul
+`body` (alla chiusura e allo smontaggio) invece di togliere l'`hidden` che aveva messo. Un layout che
+tiene ferma la pagina con `body { overflow: hidden }` nel suo CSS (una shell dove scorre solo il
+contenuto) si ritrovava la barra di scorrimento della finestra dopo ogni modale; due modali impilate
+la facevano comparire anche da aperte.
+
+### Scope
+
+- Un conteggio delle modali aperte: la prima che si apre tiene lo stile inline `overflow` del `body`
+  com'era (spesso nessuno) e mette `hidden`; l'ultima che si chiude lo rimette. Ogni modale lo
+  restituisce una volta sola, alla chiusura o allo smontaggio.
+- Test: modali impilate, il `body` lasciato senza `overflow` inline.
+
+### Criteri di accettazione
+
+- [x] Dopo la chiusura dell'ultima modale il `body` non ha `overflow` inline: decide il CSS del consumer.
+- [x] Con due modali aperte, chiudere quella sopra non sblocca la pagina.
 
 ---
 

@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.37.3] - 2026-11-02
+
+### Fixed
+- `Modal`: closing gives the inline `overflow` of the body back as it was (one count of the open modals:
+  the first keeps it and sets `hidden`, the last puts it back) instead of forcing `auto`, which brought
+  back the scrollbar of the window in layouts that keep the page still with `body { overflow: hidden }`.
+
 ## [1.37.2] - 2026-11-02
 
 The fixes below were tagged as v1.37.1, which was never published to npm: 1.37.2 is the release that carries them.
