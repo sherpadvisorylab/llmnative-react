@@ -1,7 +1,7 @@
 // CR-112 — the charts of the framework: SVG, no dependencies, theme tokens, motion, i18n, a data table
 // for screen readers.
-export { ColumnChart, StackedColumnChart, DivergingBarChart } from './ColumnCharts';
-export type { ColumnChartColumn, ColumnChartMarker, ColumnChartProps, ChartSeries, StackedColumnChartProps, DivergingBar, DivergingBarChartProps } from './ColumnCharts';
+export { ColumnChart, StackedColumnChart, SequenceColumnChart, DivergingBarChart } from './ColumnCharts';
+export type { ColumnChartColumn, ColumnChartMarker, ColumnChartProps, ChartSeries, StackedColumnChartProps, SequenceSeries, SequenceSegment, SequenceColumn, SequenceColumnChartProps, DivergingBar, DivergingBarChartProps } from './ColumnCharts';
 export { LineChart, AreaChart, Sparkline } from './LineCharts';
 export type { LineSeries, LineChartProps, AreaChartProps, SparklineProps } from './LineCharts';
 export { ScatterChart } from './ScatterChart';

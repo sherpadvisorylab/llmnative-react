@@ -356,5 +356,6 @@ export const en: I18nDict = {
         less: 'Less',
         more: 'More',
         dataTable: 'Chart data',
+        sequence: 'Sequence',
     },
 };

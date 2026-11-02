@@ -365,6 +365,7 @@ export interface I18nDict {
         less:      string;
         more:      string;
         dataTable: string;
+        sequence: string;
     };
 }
 

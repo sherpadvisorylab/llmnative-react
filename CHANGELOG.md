@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.38.0] - 2026-11-02
+
+### Added
+- Charts: `SequenceColumnChart` (CR-114) — columns of segments in the order they happened, bottom to top;
+  a series may come back in the same column as a segment of its own (the turns of the agents on one item,
+  a rework). Tooltip with the numbered sequence and the total, `onColumnClick`, a data table with the
+  sequence; `charts.sequence` in the six languages.
+
 ## [1.37.3] - 2026-11-02
 
 ### Fixed

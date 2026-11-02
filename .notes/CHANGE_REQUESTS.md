@@ -117,6 +117,7 @@
 | [CR-107](#cr-107--azioni-cliccabili-nel-chatbot-e-azioni-al-passaggio-del-mouse-in-dropdownitem) | Azioni cliccabili nel Chatbot e azioni al passaggio del mouse in DropdownItem | Media | — | ✅ |
 | [CR-110](#cr-110--chatquestions-risposta-libera-su-più-righe) | ChatQuestions: risposta libera su più righe | Media | CR-109 | ✅ |
 | [CR-111](#cr-111--menu-dei-comandi-descrizione-del-comando-e-ricerca-nella-descrizione) | Menu dei comandi: descrizione del comando e ricerca nella descrizione | Media | CR-047, CR-056 | ✅ |
+| [CR-114](#cr-114--sequencecolumnchart-colonne-di-segmenti-in-sequenza) | SequenceColumnChart: colonne di segmenti in sequenza | Media | CR-112 | ✅ |
 | [CR-113](#cr-113--modal-overflow-del-body-restituito-comera) | Modal: overflow del body restituito com'era | Media | — | ✅ |
 | [CR-112](#cr-112--charts-grafici-svg-del-framework-senza-dipendenze) | Charts: grafici SVG del framework, senza dipendenze | Alta | CR-013 | ✅ |
 
@@ -152,6 +153,37 @@ Richiesto dal consumer `llmnative-cms`.
 - [x] Docs `docs/providers/ai.md`, `llms-full.txt`
 - [x] Verifica visiva nel consumer `llmnative-cms` (picker Agentico: header per OpenCode, DeepSeek, Cloudflare Workers AI, sticky durante lo scroll)
 - [x] Release 1.18.0
+
+---
+
+## CR-114 — SequenceColumnChart: colonne di segmenti in sequenza
+
+**Stato:** ✅ done (1.38.0)
+**Issue:** [#93](https://github.com/sherpadvisorylab/llmnative-react/issues/93)
+**Priorità:** Media
+**Dipende da:** CR-112 (charts)
+
+### Motivazione
+
+Emersa nel Playbook il 02/11/2026: le statistiche vogliono, per ogni CR, il tempo dei turni degli agenti
+nell'ordine in cui sono avvenuti (architect → developer → reviewer → developer di rework → reviewer →
+tester). `StackedColumnChart` ha un colore e un ordine fissi per serie, uguali in ogni colonna, e
+fonde in un solo segmento una serie che torna: il rework sparisce.
+
+### Scope
+
+- `SequenceColumnChart`: `series` (id, etichetta, colore: la legenda) e `columns`, ognuna con i suoi
+  `segments` `{ series, value }` dal basso verso l'alto, nell'ordine in cui sono avvenuti; una serie può
+  tornare nella stessa colonna, con il suo colore, come segmento a sé.
+- Tooltip con la sequenza numerata e il totale (anche da tastiera), righe in più per colonna,
+  `onColumnClick`, tabella dei dati con la sequenza, stato vuoto, motion.
+- i18n `charts.sequence` in 6 lingue; llms-full, showcase, test.
+
+### Criteri di accettazione
+
+- [x] L'ordine dei segmenti di ogni colonna è quello dato; una serie che torna è un segmento suo.
+- [x] Un segmento di valore zero non si disegna.
+- [x] Tooltip e tabella dei dati dicono la sequenza.
 
 ---
 

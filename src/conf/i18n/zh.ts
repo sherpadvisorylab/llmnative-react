@@ -279,5 +279,6 @@ export const zh: I18nDict = {
         less: '较少',
         more: '较多',
         dataTable: '图表数据',
+        sequence: '顺序',
     },
 };

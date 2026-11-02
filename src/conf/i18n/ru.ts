@@ -279,5 +279,6 @@ export const ru: I18nDict = {
         less: 'Меньше',
         more: 'Больше',
         dataTable: 'Данные диаграммы',
+        sequence: 'Последовательность',
     },
 };

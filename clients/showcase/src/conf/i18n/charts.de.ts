@@ -10,6 +10,7 @@ export default defineLocaleMessages({
             sections: {
                 columns: { title: "Säulen", description: "Eine Reihe von Gruppen mit Werten darüber und Markierungen (Median, Perzentil)." },
                 stacked: { title: "Gestapelte Säulen", description: "Gruppen nach Reihen aufgeteilt, die Summe im Tooltip; optional ein Vergleichsstrich." },
+                sequence: { title: "Spalten in Abfolge", description: "Jede Spalte behält ihre eigene Reihenfolge von unten: die Runden der Agenten an einem CR, Nacharbeit ist dieselbe Farbe, die wiederkommt." },
                 lines: { title: "Linien", description: "Reihen über die Zeit: null unterbricht die Linie, eine gestrichelte Reihe vergleicht, ein Schwellenwert markiert eine Grenze." },
                 areas: { title: "Gestapelte Flächen", description: "Der kumulative Fluss der Arbeit durch ihre Phasen oder die Zusammensetzung einer Summe." },
                 scatter: { title: "Streudiagramm", description: "Zwei Größen pro Punkt und eine dritte als Fläche, nach Reihe gefärbt: Kosten gegen Nacharbeit pro Agent." },
@@ -22,6 +23,7 @@ export default defineLocaleMessages({
                 closedPerDay: "Geschlossene CRs pro Tag",
                 median: "Median",
                 hoursByAgent: "Stunden pro Agent",
+                turnsPerCr: "Runden pro CR",
                 leadTime: "Durchlaufzeit",
                 target: "Ziel",
                 thisPeriod: "Dieser Zeitraum",

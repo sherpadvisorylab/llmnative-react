@@ -10,6 +10,7 @@ export default defineLocaleMessages({
             sections: {
                 columns: { title: "柱状图", description: "单个系列的分组，顶部显示数值，并可添加标记（中位数、百分位）。" },
                 stacked: { title: "堆叠柱状图", description: "按系列拆分的分组，提示框中显示合计；可选的对比标记。" },
+                sequence: { title: "顺序柱状图", description: "每一列自下而上保持自己的顺序：智能体在一个 CR 上的轮次，返工是同一颜色再次出现。" },
                 lines: { title: "折线图", description: "随时间变化的系列：null 会断开线条，虚线系列用于对比，阈值标出界限。" },
                 areas: { title: "堆叠面积图", description: "工作在各阶段的累积流，或总量的构成。" },
                 scatter: { title: "散点图", description: "每个点两个数值，第三个数值表示面积，按系列着色：各代理的成本与返工。" },
@@ -22,6 +23,7 @@ export default defineLocaleMessages({
                 closedPerDay: "每日关闭的 CR",
                 median: "中位数",
                 hoursByAgent: "各代理工时",
+                turnsPerCr: "每个 CR 的轮次",
                 leadTime: "交付周期",
                 target: "目标",
                 thisPeriod: "本期",

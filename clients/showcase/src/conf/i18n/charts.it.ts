@@ -10,6 +10,7 @@ export default defineLocaleMessages({
             sections: {
                 columns: { title: "Colonne", description: "Una serie di gruppi, con i valori sopra e i marcatori (una mediana, un percentile)." },
                 stacked: { title: "Colonne impilate", description: "Gruppi divisi per serie, con il totale nel tooltip; un segno di confronto facoltativo." },
+                sequence: { title: "Colonne in sequenza", description: "Ogni colonna tiene il suo ordine dal basso: i turni degli agenti su una CR, un rework è lo stesso colore che torna." },
                 lines: { title: "Linee", description: "Serie nel tempo: un null interrompe la linea, una serie tratteggiata confronta, una soglia segna un limite." },
                 areas: { title: "Aree impilate", description: "Il flusso cumulativo del lavoro tra le fasi, o la composizione di un totale." },
                 scatter: { title: "Dispersione", description: "Due quantità per punto e una terza come area, colorati per serie: costo contro rework per agente." },
@@ -22,6 +23,7 @@ export default defineLocaleMessages({
                 closedPerDay: "CR chiuse al giorno",
                 median: "mediana",
                 hoursByAgent: "Ore per agente",
+                turnsPerCr: "Turni per CR",
                 leadTime: "Lead time",
                 target: "obiettivo",
                 thisPeriod: "Questo periodo",

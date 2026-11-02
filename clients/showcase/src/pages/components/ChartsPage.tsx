@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-    AnimatedNumber, AreaChart, BarList, CalendarHeatmap, ColumnChart, DivergingBarChart, Heatmap, LineChart, ScatterChart, Sparkline, StackedColumnChart,
+    AnimatedNumber, AreaChart, BarList, CalendarHeatmap, ColumnChart, DivergingBarChart, Heatmap, LineChart, ScatterChart, SequenceColumnChart, Sparkline, StackedColumnChart,
 } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
@@ -11,6 +11,15 @@ const DAYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13
 const DEVELOPER = [3, 4, 2, 5, 6, 3, 1, 4, 5, 7, 6, 4, 2, 5];
 const REVIEWER = [1, 2, 1, 2, 3, 1, 1, 2, 2, 3, 2, 2, 1, 2];
 const TESTER = [1, 1, 1, 2, 2, 1, 0, 1, 2, 2, 3, 1, 1, 2];
+// The turns of the agents on a few CRs, in order: a rework is the developer and the reviewer coming back.
+const AGENTS = [{ id: 'architect', label: 'Architect' }, { id: 'developer', label: 'Developer' }, { id: 'reviewer', label: 'Reviewer' }, { id: 'tester', label: 'Tester' }];
+const CRS = [
+    { label: '#31', segments: [{ series: 'architect', value: 6 }, { series: 'developer', value: 22 }, { series: 'reviewer', value: 5 }, { series: 'tester', value: 9 }] },
+    { label: '#34', segments: [{ series: 'architect', value: 4 }, { series: 'developer', value: 18 }, { series: 'reviewer', value: 6 }, { series: 'developer', value: 11 }, { series: 'reviewer', value: 4 }, { series: 'tester', value: 8 }] },
+    { label: '#38', segments: [{ series: 'developer', value: 14 }, { series: 'reviewer', value: 4 }, { series: 'tester', value: 7 }] },
+    { label: '#41', segments: [{ series: 'architect', value: 9 }, { series: 'developer', value: 25 }, { series: 'reviewer', value: 7 }, { series: 'tester', value: 10 }, { series: 'developer', value: 9 }, { series: 'tester', value: 6 }] },
+];
+const minutes = (value: number) => `${Math.round(value)} min`;
 const hours = (value: number) => `${value.toLocaleString(undefined, { maximumFractionDigits: 1 })} h`;
 const dollars = (value: number) => `$${value.toFixed(2)}`;
 const calendar = Array.from({ length: 84 }, (_, index) => {
@@ -68,6 +77,20 @@ export default function ChartsPage() {
     { id: 'developer', label: 'Developer', values: developer },
     { id: 'reviewer', label: 'Reviewer', values: reviewer },
   ]}
+/>`}
+            />
+            <Section
+                title={t.sections.sequence.title}
+                description={t.sections.sequence.description}
+                preview={<SequenceColumnChart ariaLabel={t.labels.turnsPerCr} series={AGENTS} columns={CRS} format={minutes} />}
+                code={`<SequenceColumnChart
+  ariaLabel="Turns per CR"
+  format={(value) => \`\${value} min\`}
+  series={[{ id: 'developer', label: 'Developer' }, { id: 'reviewer', label: 'Reviewer' }]}
+  columns={[{ label: '#34', segments: [
+    { series: 'developer', value: 18 }, { series: 'reviewer', value: 6 },
+    { series: 'developer', value: 11 }, { series: 'reviewer', value: 4 },
+  ] }]}
 />`}
             />
             <Section

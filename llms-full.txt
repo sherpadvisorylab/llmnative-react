@@ -881,6 +881,10 @@ finché sono al massimo 40), tabella dei dati `sr-only` con `ariaLabel` come did
 <StackedColumnChart ariaLabel="Ore per agente" labels={days} labelEvery={2} format={(v) => `${v} h`}
   series={[{ id: 'dev', label: 'Developer', values: dev }, { id: 'qa', label: 'Tester', values: qa, color: 3 }]}
   comparison={previousTotals} comparisonLabel="periodo precedente" />
+<SequenceColumnChart ariaLabel="Turni per CR" format={(v) => `${v} min`}   // CR-114: ogni colonna nel suo ordine, una serie può tornare
+  series={[{ id: 'dev', label: 'Developer' }, { id: 'rev', label: 'Reviewer' }]}
+  columns={[{ label: '#34', title: 'CR #34', segments: [{ series: 'dev', value: 18 }, { series: 'rev', value: 6 }, { series: 'dev', value: 11 }] }]}
+  onColumnClick={(column) => {}} />
 <LineChart ariaLabel="Lead time" labels={days} threshold={{ value: 6.5, label: 'obiettivo' }} baseline={0} domain={[0, 10]}
   series={[{ id: 'now', label: 'Ora', values: [3, null, 5], area: true, band: { min, max } }, { id: 'before', label: 'Prima', values: prev, dashed: true }]} />
 <AreaChart ariaLabel="Flusso cumulativo" labels={days} stacked series={[{ id: 'closed', label: 'Chiuse', values: closed }]} />

@@ -279,5 +279,6 @@ export const de: I18nDict = {
         less: 'Weniger',
         more: 'Mehr',
         dataTable: 'Diagrammdaten',
+        sequence: 'Abfolge',
     },
 };

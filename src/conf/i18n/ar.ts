@@ -279,5 +279,6 @@ export const ar: I18nDict = {
         less: 'أقل',
         more: 'أكثر',
         dataTable: 'بيانات المخطط',
+        sequence: 'التسلسل',
     },
 };

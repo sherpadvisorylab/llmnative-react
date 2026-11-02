@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import {
-    AnimatedNumber, AreaChart, BarList, CalendarHeatmap, ColumnChart, DivergingBarChart, Heatmap, LineChart, ScatterChart, Sparkline, StackedColumnChart,
+    AnimatedNumber, AreaChart, BarList, CalendarHeatmap, ColumnChart, DivergingBarChart, Heatmap, LineChart, ScatterChart, SequenceColumnChart, Sparkline, StackedColumnChart,
     chartToken, niceMax, ticks,
 } from '../../../src/components';
 import { I18nProvider } from '../../../src/I18n';
@@ -169,5 +169,34 @@ describe('the lists and grids', () => {
     it('AnimatedNumber: ends on the value, formatted', () => {
         render(<AnimatedNumber value={1234.5} format={(value) => `${value.toFixed(1)} h`} />);
         expect(screen.getByText('1234.5 h')).toBeTruthy();
+    });
+});
+
+describe('SequenceColumnChart', () => {
+    const series = [{ id: 'architect', label: 'Architect' }, { id: 'developer', label: 'Developer' }, { id: 'reviewer', label: 'Reviewer' }];
+    const columns = [
+        // A rework: the developer and the reviewer come back, each a segment of its own, in order.
+        { label: '#38', title: 'CR #38', segments: [{ series: 'architect', value: 4 }, { series: 'developer', value: 12 }, { series: 'reviewer', value: 3 }, { series: 'developer', value: 8 }, { series: 'reviewer', value: 2 }] },
+        { label: '#41', segments: [{ series: 'developer', value: 10 }, { series: 'reviewer', value: 0 }] },
+    ];
+
+    it('keeps the order of each column, a series coming back as a segment of its own, of its colour', () => {
+        const { container } = render(<SequenceColumnChart series={series} columns={columns} ariaLabel="Minutes per CR" format={(value) => `${value} min`} />);
+        const first = [...container.querySelectorAll('[data-rf-sequence-column="0"] [data-rf-sequence-segment]')].map((rect) => rect.getAttribute('data-rf-sequence-segment'));
+        expect(first).toEqual(['--rf-chart-1', '--rf-chart-2', '--rf-chart-3', '--rf-chart-2', '--rf-chart-3']);
+        // A segment of nothing is not drawn.
+        expect(container.querySelectorAll('[data-rf-sequence-column="1"] [data-rf-sequence-segment]')).toHaveLength(1);
+        const rows = [...table(container)!.querySelectorAll('tbody tr')].map((row) => row.textContent);
+        expect(rows[0]).toBe('CR #38Architect 4 min → Developer 12 min → Reviewer 3 min → Developer 8 min → Reviewer 2 min29 min');
+    });
+
+    it('tells the sequence in its tooltip, numbered, and clicks', () => {
+        let clicked = '';
+        render(<SequenceColumnChart series={series} columns={columns} ariaLabel="Minutes per CR" format={(value) => `${value} min`} onColumnClick={(column) => { clicked = column.label; }} />);
+        const column = screen.getByRole('img', { name: /^CR #38 · Total 29 min: 1\. Architect 4 min, 2\. Developer 12 min/ });
+        fireEvent.focus(column);
+        expect(screen.getByRole('tooltip').textContent).toContain('4. Developer');
+        fireEvent.click(column);
+        expect(clicked).toBe('#38');
     });
 });

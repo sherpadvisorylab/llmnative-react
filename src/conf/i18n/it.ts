@@ -279,5 +279,6 @@ export const it: I18nDict = {
         less: 'Meno',
         more: 'Più',
         dataTable: 'Dati del grafico',
+        sequence: 'Sequenza',
     },
 };

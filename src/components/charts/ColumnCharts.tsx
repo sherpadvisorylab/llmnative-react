@@ -205,6 +205,122 @@ export function StackedColumnChart({ series, labels, ariaLabel, titles, labelEve
     );
 }
 
+export interface SequenceSeries {
+    readonly id: string;
+    readonly label: string;
+    /** A slot of the palette (1…8) or a theme token; by default the slot of its position. */
+    readonly color?: ChartColor;
+}
+
+export interface SequenceSegment {
+    /** The id of its series: its colour and its name. A series may come back in the same column. */
+    readonly series: string;
+    readonly value: number;
+}
+
+export interface SequenceColumn {
+    readonly label: string;
+    /** Title of its tooltip and of its row in the data table; by default its label. */
+    readonly title?: string;
+    /** Bottom to top, in the order they happened. */
+    readonly segments: readonly SequenceSegment[];
+    /** Rows added to its tooltip, after the segments. */
+    readonly tooltip?: readonly ChartTooltipRow[];
+}
+
+export interface SequenceColumnChartProps {
+    series: readonly SequenceSeries[];
+    columns: readonly SequenceColumn[];
+    ariaLabel: string;
+    /** One axis label every N columns (the last always shown). */
+    labelEvery?: number;
+    format?: (value: number) => string;
+    height?: number;
+    className?: string;
+    onColumnClick?: (column: SequenceColumn, index: number) => void;
+}
+
+/**
+ * CR-114 — columns of segments in sequence: each column keeps its own order, bottom to top, and a series
+ * may come back in it (the turns of the agents on one item, a rework a second segment of the same colour).
+ */
+export function SequenceColumnChart({ series, columns, ariaLabel, labelEvery = 1, format: formatProp, height = 250, className, onColumnClick }: SequenceColumnChartProps) {
+    const format = useChartFormat(formatProp);
+    const { dict } = useI18nOrEnglish();
+    const tooltip = useChartTooltip();
+    const [figureRef, width] = useChartWidth<HTMLElement>(960);
+    const flat = columns.flatMap((column) => column.segments.map((segment) => Math.max(0, segment.value)));
+    const animated = useAnimatedValues(flat, 550, 6);
+    if (columns.length === 0) return <ChartEmpty height={height} />;
+    const tokenOf = new Map(series.map((entry, index) => [entry.id, chartToken(entry.color, index + 1)]));
+    const labelOf = new Map(series.map((entry) => [entry.id, entry.label]));
+    const token = (id: string) => tokenOf.get(id) ?? chartToken(undefined, series.length + 1);
+    const name = (id: string) => labelOf.get(id) ?? id;
+    const margin = { top: 12, right: 8, bottom: 28, left: 64 };
+    const totals = columns.map((column) => column.segments.reduce((sum, segment) => sum + Math.max(0, segment.value), 0));
+    const max = niceMax(Math.max(...totals) * 1.05);
+    const bottom = height - margin.bottom;
+    const y = (v: number) => bottom - (v / max) * (bottom - margin.top);
+    const n = columns.length;
+    const slot = (width - margin.left - margin.right) / n;
+    const barWidth = Math.min(44, slot * 0.62);
+    const x = (index: number) => margin.left + slot * index + slot / 2;
+    const keyboard = n <= KEYBOARD_LIMIT;
+    // Where the segments of each column start in the flat list of the animated values.
+    const starts = columns.reduce<number[]>((list, column, index) => [...list, index === 0 ? 0 : list[index - 1]! + columns[index - 1]!.segments.length], []);
+    const sequence = (column: SequenceColumn) => column.segments.map((segment) => `${name(segment.series)} ${format(segment.value)}`).join(' → ');
+
+    return (
+        <figure ref={figureRef} className={cn('space-y-2', className)}>
+            <ChartLegend items={series.map((entry) => ({ label: entry.label, token: token(entry.id) }))} />
+            <svg viewBox={`0 0 ${width} ${height}`} className="h-auto w-full" role="img" aria-label={ariaLabel}>
+                {ticks(0, max).map((tick) => (
+                    <g key={tick}>
+                        <line x1={margin.left} x2={width - margin.right} y1={y(tick)} y2={y(tick)} stroke={GRID_LINE} strokeDasharray={tick === 0 ? undefined : '3 4'} />
+                        <text x={margin.left - 8} y={y(tick)} textAnchor="end" dominantBaseline="middle" fontSize="11" fill={AXIS_TEXT}>{format(tick)}</text>
+                    </g>
+                ))}
+                {columns.map((column, index) => (index % labelEvery === 0 || index === n - 1 ? (
+                    <text key={index} x={x(index)} y={height - 8} textAnchor="middle" fontSize="11" fill={AXIS_TEXT}>{column.label}</text>
+                ) : null))}
+                {columns.map((column, index) => {
+                    let accumulated = 0;
+                    const segments = column.segments.map((segment, position) => {
+                        const from = accumulated;
+                        accumulated += animated[starts[index]! + position] ?? 0;
+                        return { key: `${position}-${segment.series}`, token: token(segment.series), from, to: accumulated };
+                    }).filter((segment) => segment.to - segment.from > 0);
+                    const rows: ChartTooltipRow[] = [
+                        ...column.segments.map((segment, position) => ({ label: `${position + 1}. ${name(segment.series)}`, value: format(segment.value), token: token(segment.series) })),
+                        ...(column.tooltip ?? []),
+                    ];
+                    return (
+                        <g key={`${column.label}-${index}`} data-rf-sequence-column={index}>
+                            {segments.map((segment, position) => {
+                                const top = y(segment.to);
+                                const h = Math.max(0, y(segment.from) - top - (position > 0 ? 2 : 0));
+                                return <rect key={segment.key} data-rf-sequence-segment={segment.token} x={x(index) - barWidth / 2} y={top} width={barWidth} height={h} rx={position === segments.length - 1 ? 3 : 0} fill={chartFill(segment.token)} />;
+                            })}
+                            <rect
+                                x={margin.left + slot * index} y={margin.top} width={slot} height={bottom - margin.top} fill="transparent"
+                                style={onColumnClick ? { cursor: 'pointer' } : undefined}
+                                onClick={onColumnClick ? () => onColumnClick(column, index) : undefined}
+                                {...hitHandlers(tooltip, `${column.title ?? column.label} · ${dict.charts.total} ${format(totals[index] ?? 0)}`, rows, keyboard)}
+                            />
+                        </g>
+                    );
+                })}
+            </svg>
+            <ChartDataTable
+                caption={ariaLabel}
+                columns={[dict.charts.sequence, dict.charts.total]}
+                rows={columns.map((column, index) => ({ label: column.title ?? column.label, values: [sequence(column), format(totals[index] ?? 0)] }))}
+            />
+            {tooltip.element}
+        </figure>
+    );
+}
+
 export interface DivergingBar {
     readonly label: string;
     /** Above the zero line; null: no data (nothing drawn). */

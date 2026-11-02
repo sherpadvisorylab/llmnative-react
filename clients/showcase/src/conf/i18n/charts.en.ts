@@ -10,6 +10,7 @@ export default defineLocaleMessages({
             sections: {
                 columns: { title: "Columns", description: "One series of buckets, with values on top and markers (a median, a percentile)." },
                 stacked: { title: "Stacked columns", description: "Buckets split by series, with the total in the tooltip; an optional comparison tick." },
+                sequence: { title: "Columns in sequence", description: "Each column keeps its own order from the bottom: the turns of the agents on a CR, a rework the same colour coming back." },
                 lines: { title: "Lines", description: "Series over time: a null breaks the line, a dashed series compares, a threshold marks a limit." },
                 areas: { title: "Stacked areas", description: "The cumulative flow of work through its stages, or the composition of a total." },
                 scatter: { title: "Scatter", description: "Two quantities per point and a third as its area, coloured by series: cost against rework per agent." },
@@ -22,6 +23,7 @@ export default defineLocaleMessages({
                 closedPerDay: "CRs closed per day",
                 median: "median",
                 hoursByAgent: "Hours by agent",
+                turnsPerCr: "Turns per CR",
                 leadTime: "Lead time",
                 target: "target",
                 thisPeriod: "This period",

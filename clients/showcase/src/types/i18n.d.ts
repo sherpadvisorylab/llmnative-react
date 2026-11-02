@@ -1694,8 +1694,8 @@ interface ShowcaseIdenticonI18n {
 
 interface ShowcaseChartsI18n {
     page: { title: string; description: string; };
-    sections: Record<'columns' | 'stacked' | 'lines' | 'areas' | 'scatter' | 'diverging' | 'lists' | 'heatmaps', ShowcasePageSectionCopy>;
-    labels: Record<'otherWeek' | 'closedPerDay' | 'median' | 'hoursByAgent' | 'leadTime' | 'target' | 'thisPeriod' | 'lastPeriod' | 'cumulativeFlow' | 'closed' | 'backlog' | 'costAgainstRework' | 'costPerCr' | 'rework' | 'turns' | 'valueAndCost' | 'value' | 'cost' | 'costByAgent' | 'costTrend' | 'turnsByHour' | 'turnsByDay', string>;
+    sections: Record<'columns' | 'stacked' | 'sequence' | 'lines' | 'areas' | 'scatter' | 'diverging' | 'lists' | 'heatmaps', ShowcasePageSectionCopy>;
+    labels: Record<'otherWeek' | 'closedPerDay' | 'median' | 'hoursByAgent' | 'turnsPerCr' | 'leadTime' | 'target' | 'thisPeriod' | 'lastPeriod' | 'cumulativeFlow' | 'closed' | 'backlog' | 'costAgainstRework' | 'costPerCr' | 'rework' | 'turns' | 'valueAndCost' | 'value' | 'cost' | 'costByAgent' | 'costTrend' | 'turnsByHour' | 'turnsByDay', string>;
 }
 
 interface ShowcaseMarkdownReaderI18n {
