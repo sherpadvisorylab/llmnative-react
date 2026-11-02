@@ -101,11 +101,11 @@ export interface MeasureBarPart {
 
 export interface MeasureBarColumn {
     readonly id: string;
-    /** Its header, above its bars. */
+    /** Its name in the legend and in the tooltip. */
     readonly label: string;
     readonly format?: (value: number) => string;
     readonly color?: ChartColor;
-    /** The parts of each of its bars, left to right, each of its colour (in the legend): input and output tokens. */
+    /** The parts of each of its bars, left to right, each of its colour (in the legend in place of the measure): input and output tokens. */
     readonly parts?: readonly MeasureBarPart[];
 }
 
@@ -129,9 +129,9 @@ export interface MeasureBarListProps {
 }
 
 /**
- * CR-115 — one row per item and, side by side, a bar per measure, each column with its own scale (time,
- * cost, tokens): quantities of different sizes read on one line. A bar of a column with parts is split
- * in proportion, each part of its colour.
+ * CR-115 — grouped bars: each item once, and next to it a bar per measure one under the other, each
+ * measure of its colour (the legend) and on its own scale (time, cost, tokens: quantities of different
+ * units read together). A bar of a measure with parts is split in proportion, each part of its colour.
  */
 export function MeasureBarList({ columns, rows, ariaLabel, labelWidth = 120, className, onRowClick }: MeasureBarListProps) {
     const format = useChartFormat();
@@ -153,17 +153,22 @@ export function MeasureBarList({ columns, rows, ariaLabel, labelWidth = 120, cla
     const totals = rows.map((row) => columns.map((column) => partsOf(row, column).reduce((sum, item) => sum + item, 0)));
     const max = columns.map((_, index) => Math.max(1e-9, ...totals.map((row) => row[index] ?? 0)));
     const texts = rows.map((_, rowIndex) => columns.map((column, index) => formatOf(column)(totals[rowIndex]![index] ?? 0)));
-    const header = 22;
-    const rowHeight = 34;
+    // A group per row: a bar per measure, one under the other.
+    const barHeight = 12;
+    const barGap = 4;
+    const groupGap = 16;
+    const groupHeight = columns.length * barHeight + (columns.length - 1) * barGap;
     const trailingWidth = Math.max(0, ...rows.map((row) => (row.trailing ? row.trailing.text.length * 6.5 + 10 : 0)));
-    const columnWidth = Math.max(60, (width - labelWidth - trailingWidth) / columns.length);
-    // Room for the text after the bars of each column, from its longest (about 6.5 units a character).
-    const valueWidth = columns.map((_, index) => Math.max(36, ...texts.map((row) => (row[index] ?? '').length * 6.5 + 10)));
-    const barSpace = columns.map((_, index) => Math.max(20, columnWidth - valueWidth[index]! - 14));
-    const height = header + rows.length * rowHeight + 4;
+    // Room for the text after the bars, from the longest (about 6.5 units a character).
+    const valueWidth = Math.max(36, ...texts.flat().map((text) => text.length * 6.5 + 10));
+    const barSpace = Math.max(40, width - labelWidth - valueWidth - trailingWidth);
+    const height = rows.length * (groupHeight + groupGap) + 4;
     const maxLabelChars = Math.max(4, Math.floor((labelWidth - 10) / 7));
     const keyboard = rows.length <= KEYBOARD_LIMIT;
-    const legend = columns.flatMap((column, index) => (column.parts ?? []).map((part, position) => ({ label: part.label, token: tokens[index]![position]! })));
+    // The legend: a measure by its colour, or its parts when it has them.
+    const legend = columns.flatMap((column, index) => (column.parts
+        ? column.parts.map((part, position) => ({ label: part.label, token: tokens[index]![position]! }))
+        : [{ label: column.label, token: tokens[index]![0]! }]));
     const describe = (row: MeasureBarRow, rowIndex: number): ChartTooltipRow[] => columns.flatMap((column, index) => {
         const parts = partsOf(row, column);
         return column.parts
@@ -176,38 +181,36 @@ export function MeasureBarList({ columns, rows, ariaLabel, labelWidth = 120, cla
         <figure ref={figureRef} className={cn('space-y-2', className)}>
             <ChartLegend items={legend} />
             <svg viewBox={`0 0 ${width} ${height}`} className="h-auto w-full" role="img" aria-label={ariaLabel}>
-                {columns.map((column, index) => (
-                    <text key={column.id} data-rf-measure-header={column.id} x={labelWidth + columnWidth * index} y={14} fontSize="11" fontWeight="600" fill={AXIS_TEXT}>{column.label}</text>
-                ))}
                 {rows.map((row, rowIndex) => {
-                    const top = header + rowIndex * rowHeight + 4;
+                    const top = rowIndex * (groupHeight + groupGap) + groupGap / 2;
+                    const middle = top + groupHeight / 2;
                     return (
                         <g key={row.id} data-rf-measure-row={row.id}>
-                            <text x={labelWidth - 10} y={top + 17} textAnchor="end" fontSize="12" fill="hsl(var(--rf-foreground))">
+                            <text x={labelWidth - 10} y={middle} textAnchor="end" dominantBaseline="middle" fontSize="12" fill="hsl(var(--rf-foreground))">
                                 {row.label.length > maxLabelChars ? `${row.label.slice(0, maxLabelChars - 1)}…` : row.label}
                             </text>
                             {columns.map((column, index) => {
-                                const left = labelWidth + columnWidth * index;
-                                let x = left;
+                                const y = top + index * (barHeight + barGap);
+                                let x = labelWidth;
                                 const parts = partsOf(row, column).map((_, position) => {
                                     const value = animated[cursor++] ?? 0;
-                                    const w = (barSpace[index]! * value) / max[index]!;
+                                    const w = (barSpace * value) / max[index]!;
                                     const rect = { key: position, x, w, token: tokens[index]![position]! };
                                     x += w;
                                     return rect;
                                 }).filter((part) => part.w > 0);
                                 return (
                                     <g key={column.id} data-rf-measure-cell={column.id}>
-                                        {parts.map((part, position) => (
-                                            <rect key={part.key} data-rf-measure-part={part.token} x={part.x} y={top + 4} width={part.w} height={20} rx={parts.length === 1 ? 4 : position === parts.length - 1 ? 4 : 0} fill={chartFill(part.token)} />
+                                        {parts.map((part) => (
+                                            <rect key={part.key} data-rf-measure-part={part.token} x={part.x} y={y} width={part.w} height={barHeight} rx={parts.length === 1 ? 2 : 0} fill={chartFill(part.token)} />
                                         ))}
-                                        <text x={x + 6} y={top + 18} fontSize="11.5" fill="hsl(var(--rf-foreground))" className="tabular-nums">{texts[rowIndex]![index]}</text>
+                                        <text x={x + 6} y={y + barHeight / 2} dominantBaseline="middle" fontSize="11" fill="hsl(var(--rf-foreground))" className="tabular-nums">{texts[rowIndex]![index]}</text>
                                     </g>
                                 );
                             })}
-                            {row.trailing && <text x={width - 2} y={top + 18} textAnchor="end" fontSize="11.5" fill={TONE[row.trailing.tone]} className="tabular-nums">{row.trailing.text}</text>}
+                            {row.trailing && <text x={width - 2} y={middle} textAnchor="end" dominantBaseline="middle" fontSize="11.5" fill={TONE[row.trailing.tone]} className="tabular-nums">{row.trailing.text}</text>}
                             <rect
-                                x={0} y={top} width={width} height={rowHeight} fill="transparent"
+                                x={0} y={top - groupGap / 2} width={width} height={groupHeight + groupGap} fill="transparent"
                                 style={onRowClick ? { cursor: 'pointer' } : undefined}
                                 onClick={onRowClick ? () => onRowClick(row) : undefined}
                                 {...hitHandlers(tooltip, row.label, row.tooltip ?? describe(row, rowIndex), keyboard)}

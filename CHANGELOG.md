@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.39.1] - 2026-11-02
+
+### Changed
+- `MeasureBarList` (CR-115): grouped bars. Each item once and, next to it, a bar per measure one under
+  the other, each measure of its colour in the legend (its parts in place of it) and on its own scale; no
+  more column headers.
+
 ## [1.39.0] - 2026-11-02
 
 ### Added

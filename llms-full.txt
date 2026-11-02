@@ -881,7 +881,7 @@ finché sono al massimo 40), tabella dei dati `sr-only` con `ariaLabel` come did
 <StackedColumnChart ariaLabel="Ore per agente" labels={days} labelEvery={2} format={(v) => `${v} h`}
   series={[{ id: 'dev', label: 'Developer', values: dev }, { id: 'qa', label: 'Tester', values: qa, color: 3 }]}
   comparison={previousTotals} comparisonLabel="periodo precedente" />
-<MeasureBarList ariaLabel="Agenti"   // CR-115: una riga per agente, una barra per misura, ognuna sulla sua scala
+<MeasureBarList ariaLabel="Agenti"   // CR-115: barre raggruppate, ogni agente una volta, una barra per misura (colore in legenda), ognuna sulla sua scala
   columns={[{ id: 'time', label: 'Ore', format: (v) => `${v} h` }, { id: 'cost', label: 'Costo' },
     { id: 'tokens', label: 'Token', parts: [{ id: 'in', label: 'Input' }, { id: 'out', label: 'Output' }] }]}   // parts: la barra divisa in proporzione
   rows={[{ id: 'dev', label: 'Developer', values: { time: 18, cost: 4.27, tokens: [2400000, 190000] }, trailing: { text: '18 back', tone: 'bad' } }]} />

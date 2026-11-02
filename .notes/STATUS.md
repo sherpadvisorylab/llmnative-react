@@ -31,7 +31,7 @@
 
 | CR | State | Evidence |
 |----|-------|----------|
-| CR-115 | Done | Charts: `MeasureBarList`, una riga per elemento e una barra per misura affiancate, ognuna sulla sua scala; le parti di una colonna (input e output) dividono la barra in proporzione. Tooltip, tabella dei dati, legenda delle parti. Tests, docs, showcase. Released in 1.39.0. Issue #94. |
+| CR-115 | Done | Charts: `MeasureBarList`, barre raggruppate: ogni elemento una volta e accanto una barra per misura, una sotto l'altra, ognuna del suo colore e sulla sua scala (1.39.1); le parti di una colonna (input e output) dividono la barra in proporzione. Tooltip, tabella dei dati, legenda delle parti. Tests, docs, showcase. Released in 1.39.0. Issue #94. |
 | CR-114 | Done | Charts: `SequenceColumnChart`, colonne di segmenti nell'ordine in cui sono avvenuti (una serie può tornare nella stessa colonna), tooltip con la sequenza, tabella dei dati, i18n `charts.sequence` in 6 lingue. Tests, docs, showcase. Released in 1.38.0. Issue #93. |
 | CR-113 | Done | Modal: l'overflow del `body` restituito com'era (conteggio delle modali aperte) invece di `auto` forzato alla chiusura. Test. Released in 1.37.3. Issue #92. |
 | CR-112 | Done | Charts: 12 grafici SVG senza dipendenze (colonne, colonne impilate, linee con banda e soglia, aree impilate, dispersione, barre divergenti, BarList, Heatmap, CalendarHeatmap, Sparkline, AnimatedNumber) e le parti comuni (tooltip anche da tastiera, legenda, tabella `sr-only`, larghezza, motion, formato nella locale); palette `--rf-chart-1…8` chiara e scura; i18n `charts` in 6 lingue. Tests, docs, showcase. Released in 1.37.0; axes fitted to small values and BarList room for long texts in 1.37.2. Issue #91. |

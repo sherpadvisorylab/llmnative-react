@@ -16,7 +16,7 @@ export default defineLocaleMessages({
                 scatter: { title: "散点图", description: "每个点两个数值，第三个数值表示面积，按系列着色：各代理的成本与返工。" },
                 diverging: { title: "发散条形图", description: "零线两侧的两个数值，共用一个刻度：上方为价值，下方为成本。" },
                 lists: { title: "列表与数字", description: "带变化的排行、逐步计数的数字、迷你折线。" },
-                measures: { title: "并列度量", description: "每个条目一行，每个度量一根条形，各自使用自己的刻度：每个智能体的时间、成本和令牌在同一行，令牌按输入和输出拆分。" },
+                measures: { title: "分组条形图", description: "每个条目只出现一次，旁边每个度量一根条形，各有颜色和刻度：每个智能体的时间、成本和令牌，令牌按输入和输出拆分。" },
                 heatmaps: { title: "热力图", description: "行 × 列网格，以及从周一开始的日历：颜色越深数值越大。" },
             },
             labels: {

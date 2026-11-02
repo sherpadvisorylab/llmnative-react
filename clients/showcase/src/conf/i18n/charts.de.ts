@@ -16,7 +16,7 @@ export default defineLocaleMessages({
                 scatter: { title: "Streudiagramm", description: "Zwei Größen pro Punkt und eine dritte als Fläche, nach Reihe gefärbt: Kosten gegen Nacharbeit pro Agent." },
                 diverging: { title: "Divergierende Balken", description: "Zwei Größen um die Nulllinie auf einer Skala: Wert oben, Kosten unten." },
                 lists: { title: "Listen und Zahlen", description: "Ranglisten mit Veränderung, eine hochzählende Zahl, eine Sparkline." },
-                measures: { title: "Messwerte nebeneinander", description: "Eine Zeile pro Element und ein Balken pro Messwert, jeder auf seiner eigenen Skala: Zeit, Kosten und Tokens jedes Agenten in einer Zeile, die Tokens nach Eingabe und Ausgabe geteilt." },
+                measures: { title: "Gruppierte Balken", description: "Jedes Element einmal und daneben ein Balken pro Messwert, jeder in seiner Farbe und auf seiner Skala: Zeit, Kosten und Tokens jedes Agenten, die Tokens nach Eingabe und Ausgabe geteilt." },
                 heatmaps: { title: "Heatmaps", description: "Ein Raster aus Zeilen × Spalten und ein Kalender ab Montag: dunkler ist mehr." },
             },
             labels: {

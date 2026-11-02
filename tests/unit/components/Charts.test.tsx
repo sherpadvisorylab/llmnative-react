@@ -183,9 +183,11 @@ describe('MeasureBarList', () => {
         { id: 'arch', label: 'Architect', values: { time: 2, cost: 6, tokens: [50, 0] } },
     ];
 
-    it('puts a bar per measure side by side, each column on its own scale, the parts split in proportion', () => {
+    it('groups a bar per measure under each item, each measure on its own scale, the parts split in proportion', () => {
         const { container } = render(<MeasureBarList columns={columns} rows={rows} ariaLabel="Agents" />);
-        expect([...container.querySelectorAll('[data-rf-measure-header]')].map((text) => text.textContent)).toEqual(['Hours', 'Cost', 'Tokens']);
+        // Each item once, its measures in the order of the columns.
+        expect(container.querySelectorAll('[data-rf-measure-row]')).toHaveLength(2);
+        expect([...container.querySelectorAll('[data-rf-measure-row="dev"] [data-rf-measure-cell]')].map((cell) => cell.getAttribute('data-rf-measure-cell'))).toEqual(['time', 'cost', 'tokens']);
         const width = (row: string, cell: string) => [...container.querySelectorAll(`[data-rf-measure-row="${row}"] [data-rf-measure-cell="${cell}"] rect`)].map((rect) => Number(rect.getAttribute('width')));
         // Each column full at its own largest: the architect has the longest cost, the developer the longest time.
         expect(width('arch', 'cost')[0]).toBeCloseTo(width('dev', 'time')[0]!);
@@ -196,7 +198,8 @@ describe('MeasureBarList', () => {
         expect(parts[0]! / parts[1]!).toBeCloseTo(3);
         expect(width('arch', 'tokens')).toHaveLength(1);
         expect([...container.querySelectorAll('[data-rf-measure-row="dev"] [data-rf-measure-part]')].map((rect) => rect.getAttribute('data-rf-measure-part'))).toEqual(['--rf-chart-1', '--rf-chart-2', '--rf-chart-3', '--rf-chart-4']);
-        expect(screen.getByText('Input')).toBeTruthy();
+        // The legend: the measures by their colour, the parts in place of theirs.
+        for (const label of ['Hours', 'Cost', 'Input', 'Output']) expect(screen.getAllByText(label).length).toBeGreaterThan(0);
         const cells = [...table(container)!.querySelectorAll('tbody tr')][0]!.textContent;
         expect(cells).toBe('Developer18 h$4Input 300k · Output 100k');
     });

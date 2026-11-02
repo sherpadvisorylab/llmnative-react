@@ -159,7 +159,7 @@ Richiesto dal consumer `llmnative-cms`.
 
 ## CR-115 — MeasureBarList: misure affiancate, ognuna sulla sua scala
 
-**Stato:** ✅ done (1.39.0)
+**Stato:** ✅ done (1.39.0; barre raggruppate in 1.39.1)
 **Issue:** [#94](https://github.com/sherpadvisorylab/llmnative-react/issues/94)
 **Priorità:** Media
 **Dipende da:** CR-112 (charts)
@@ -172,16 +172,17 @@ insieme si schiacciano, e due `BarList` separati non si leggono per riga.
 
 ### Scope
 
-- `MeasureBarList`: `columns` (id, intestazione, formato, colore, `parts` facoltative) e `rows` con un
-  valore per colonna (un numero, o uno per parte); ogni colonna sulla sua scala, la barra di una colonna
-  con parti divisa in proporzione, ogni parte del suo colore (in legenda).
+- `MeasureBarList`: barre raggruppate. `columns` (le misure: id, nome, formato, colore, `parts`
+  facoltative) e `rows` con un valore per misura (un numero, o uno per parte). Ogni elemento compare una
+  volta, accanto le sue barre una sotto l'altra, una per misura, del suo colore (in legenda) e sulla sua
+  scala; la barra di una misura con parti è divisa in proporzione, ogni parte del suo colore.
 - Nota a destra con tono (`trailing`), tooltip con tutte le misure della riga (anche da tastiera),
   `onRowClick`, tabella dei dati, stato vuoto, motion.
 - llms-full, showcase (6 lingue), test.
 
 ### Criteri di accettazione
 
-- [x] Ogni colonna è piena al suo massimo, indipendente dalle altre.
+- [x] Ogni misura è piena al suo massimo, indipendente dalle altre; ogni elemento compare una volta.
 - [x] Le parti dividono la barra in proporzione; una parte di valore zero non si disegna.
 - [x] Tooltip e tabella dei dati dicono ogni misura e le parti.
 

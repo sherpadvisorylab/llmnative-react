@@ -16,7 +16,7 @@ export default defineLocaleMessages({
                 scatter: { title: "Dispersione", description: "Due quantità per punto e una terza come area, colorati per serie: costo contro rework per agente." },
                 diverging: { title: "Barre divergenti", description: "Due quantità attorno alla linea dello zero su una sola scala: valore sopra, costo sotto." },
                 lists: { title: "Liste e numeri", description: "Classifiche con una variazione a destra, un numero che conta, una sparkline." },
-                measures: { title: "Misure affiancate", description: "Una riga per elemento e una barra per misura, ognuna sulla sua scala: tempo, costo e token di ogni agente sulla stessa riga, i token divisi tra input e output." },
+                measures: { title: "Barre raggruppate", description: "Ogni elemento una volta e accanto una barra per misura, ognuna del suo colore e sulla sua scala: tempo, costo e token di ogni agente, i token divisi tra input e output." },
                 heatmaps: { title: "Mappe di calore", description: "Una griglia righe × colonne, e un calendario di giorni dal lunedì: più scuro è di più." },
             },
             labels: {
