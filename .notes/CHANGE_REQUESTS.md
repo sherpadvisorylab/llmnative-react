@@ -117,6 +117,7 @@
 | [CR-107](#cr-107--azioni-cliccabili-nel-chatbot-e-azioni-al-passaggio-del-mouse-in-dropdownitem) | Azioni cliccabili nel Chatbot e azioni al passaggio del mouse in DropdownItem | Media | — | ✅ |
 | [CR-110](#cr-110--chatquestions-risposta-libera-su-più-righe) | ChatQuestions: risposta libera su più righe | Media | CR-109 | ✅ |
 | [CR-111](#cr-111--menu-dei-comandi-descrizione-del-comando-e-ricerca-nella-descrizione) | Menu dei comandi: descrizione del comando e ricerca nella descrizione | Media | CR-047, CR-056 | ✅ |
+| [CR-115](#cr-115--measurebarlist-misure-affiancate-ognuna-sulla-sua-scala) | MeasureBarList: misure affiancate, ognuna sulla sua scala | Media | CR-112 | ✅ |
 | [CR-114](#cr-114--sequencecolumnchart-colonne-di-segmenti-in-sequenza) | SequenceColumnChart: colonne di segmenti in sequenza | Media | CR-112 | ✅ |
 | [CR-113](#cr-113--modal-overflow-del-body-restituito-comera) | Modal: overflow del body restituito com'era | Media | — | ✅ |
 | [CR-112](#cr-112--charts-grafici-svg-del-framework-senza-dipendenze) | Charts: grafici SVG del framework, senza dipendenze | Alta | CR-013 | ✅ |
@@ -153,6 +154,36 @@ Richiesto dal consumer `llmnative-cms`.
 - [x] Docs `docs/providers/ai.md`, `llms-full.txt`
 - [x] Verifica visiva nel consumer `llmnative-cms` (picker Agentico: header per OpenCode, DeepSeek, Cloudflare Workers AI, sticky durante lo scroll)
 - [x] Release 1.18.0
+
+---
+
+## CR-115 — MeasureBarList: misure affiancate, ognuna sulla sua scala
+
+**Stato:** ✅ done (1.39.0)
+**Issue:** [#94](https://github.com/sherpadvisorylab/llmnative-react/issues/94)
+**Priorità:** Media
+**Dipende da:** CR-112 (charts)
+
+### Motivazione
+
+Emersa nel Playbook il 02/11/2026: le statistiche vogliono, per ogni agente su una riga sola, il tempo,
+il costo e i token (divisi tra input e output) affiancati. Un `BarList` ha una sola scala: tempo e costo
+insieme si schiacciano, e due `BarList` separati non si leggono per riga.
+
+### Scope
+
+- `MeasureBarList`: `columns` (id, intestazione, formato, colore, `parts` facoltative) e `rows` con un
+  valore per colonna (un numero, o uno per parte); ogni colonna sulla sua scala, la barra di una colonna
+  con parti divisa in proporzione, ogni parte del suo colore (in legenda).
+- Nota a destra con tono (`trailing`), tooltip con tutte le misure della riga (anche da tastiera),
+  `onRowClick`, tabella dei dati, stato vuoto, motion.
+- llms-full, showcase (6 lingue), test.
+
+### Criteri di accettazione
+
+- [x] Ogni colonna è piena al suo massimo, indipendente dalle altre.
+- [x] Le parti dividono la barra in proporzione; una parte di valore zero non si disegna.
+- [x] Tooltip e tabella dei dati dicono ogni misura e le parti.
 
 ---
 

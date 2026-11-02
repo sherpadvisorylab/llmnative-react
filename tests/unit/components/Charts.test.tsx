@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import {
-    AnimatedNumber, AreaChart, BarList, CalendarHeatmap, ColumnChart, DivergingBarChart, Heatmap, LineChart, ScatterChart, SequenceColumnChart, Sparkline, StackedColumnChart,
+    AnimatedNumber, AreaChart, BarList, CalendarHeatmap, ColumnChart, DivergingBarChart, Heatmap, LineChart, MeasureBarList, ScatterChart, SequenceColumnChart, Sparkline, StackedColumnChart,
     chartToken, niceMax, ticks,
 } from '../../../src/components';
 import { I18nProvider } from '../../../src/I18n';
@@ -169,6 +169,46 @@ describe('the lists and grids', () => {
     it('AnimatedNumber: ends on the value, formatted', () => {
         render(<AnimatedNumber value={1234.5} format={(value) => `${value.toFixed(1)} h`} />);
         expect(screen.getByText('1234.5 h')).toBeTruthy();
+    });
+});
+
+describe('MeasureBarList', () => {
+    const columns = [
+        { id: 'time', label: 'Hours', format: (value: number) => `${value} h` },
+        { id: 'cost', label: 'Cost', format: (value: number) => `$${value}` },
+        { id: 'tokens', label: 'Tokens', format: (value: number) => `${value}k`, parts: [{ id: 'in', label: 'Input' }, { id: 'out', label: 'Output' }] },
+    ];
+    const rows = [
+        { id: 'dev', label: 'Developer', values: { time: 18, cost: 4, tokens: [300, 100] }, trailing: { text: '18 back', tone: 'bad' as const } },
+        { id: 'arch', label: 'Architect', values: { time: 2, cost: 6, tokens: [50, 0] } },
+    ];
+
+    it('puts a bar per measure side by side, each column on its own scale, the parts split in proportion', () => {
+        const { container } = render(<MeasureBarList columns={columns} rows={rows} ariaLabel="Agents" />);
+        expect([...container.querySelectorAll('[data-rf-measure-header]')].map((text) => text.textContent)).toEqual(['Hours', 'Cost', 'Tokens']);
+        const width = (row: string, cell: string) => [...container.querySelectorAll(`[data-rf-measure-row="${row}"] [data-rf-measure-cell="${cell}"] rect`)].map((rect) => Number(rect.getAttribute('width')));
+        // Each column full at its own largest: the architect has the longest cost, the developer the longest time.
+        expect(width('arch', 'cost')[0]).toBeCloseTo(width('dev', 'time')[0]!);
+        expect(width('dev', 'cost')[0]).toBeLessThan(width('arch', 'cost')[0]!);
+        // Input and output: two parts of their colours, three to one; a part of nothing is not drawn.
+        const parts = width('dev', 'tokens');
+        expect(parts).toHaveLength(2);
+        expect(parts[0]! / parts[1]!).toBeCloseTo(3);
+        expect(width('arch', 'tokens')).toHaveLength(1);
+        expect([...container.querySelectorAll('[data-rf-measure-row="dev"] [data-rf-measure-part]')].map((rect) => rect.getAttribute('data-rf-measure-part'))).toEqual(['--rf-chart-1', '--rf-chart-2', '--rf-chart-3', '--rf-chart-4']);
+        expect(screen.getByText('Input')).toBeTruthy();
+        const cells = [...table(container)!.querySelectorAll('tbody tr')][0]!.textContent;
+        expect(cells).toBe('Developer18 h$4Input 300k · Output 100k');
+    });
+
+    it('tells every measure of the row in its tooltip, the parts too, and clicks', () => {
+        let clicked = '';
+        render(<MeasureBarList columns={columns} rows={rows} ariaLabel="Agents" onRowClick={(row) => { clicked = row.id; }} />);
+        const row = screen.getByRole('img', { name: /^Developer: Hours 18 h, Cost \$4, Tokens 400k, Input 300k, Output 100k/ });
+        fireEvent.focus(row);
+        expect(screen.getByRole('tooltip').textContent).toContain('Output');
+        fireEvent.click(row);
+        expect(clicked).toBe('dev');
     });
 });
 

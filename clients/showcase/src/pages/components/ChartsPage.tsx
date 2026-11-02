@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-    AnimatedNumber, AreaChart, BarList, CalendarHeatmap, ColumnChart, DivergingBarChart, Heatmap, LineChart, ScatterChart, SequenceColumnChart, Sparkline, StackedColumnChart,
+    AnimatedNumber, AreaChart, BarList, CalendarHeatmap, MeasureBarList, ColumnChart, DivergingBarChart, Heatmap, LineChart, ScatterChart, SequenceColumnChart, Sparkline, StackedColumnChart,
 } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
@@ -217,6 +217,35 @@ export default function ChartsPage() {
 
 <AnimatedNumber value={3.85} format={(value) => \`$\${value.toFixed(2)}\`} />
 <Sparkline values={[0.4, 0.6, 0.5, null, 0.9]} ariaLabel="Cost trend" />`}
+            />
+            <Section
+                title={t.sections.measures.title}
+                description={t.sections.measures.description}
+                preview={(
+                    <MeasureBarList
+                        ariaLabel={t.labels.agentMeasures}
+                        columns={[
+                            { id: 'time', label: t.labels.hours, format: (value) => `${value.toFixed(1)} h` },
+                            { id: 'cost', label: t.labels.cost, format: dollars },
+                            { id: 'tokens', label: t.labels.tokens, format: (value) => `${(value / 1000).toFixed(0)}k`, parts: [{ id: 'in', label: t.labels.input }, { id: 'out', label: t.labels.output }] },
+                        ]}
+                        rows={[
+                            { id: 'arch', label: 'Architect', values: { time: 2, cost: 6.3, tokens: [820_000, 61_000] }, trailing: { text: '5 back', tone: 'bad' } },
+                            { id: 'dev', label: 'Developer', values: { time: 18.1, cost: 4.27, tokens: [2_400_000, 190_000] }, trailing: { text: '18 back', tone: 'bad' } },
+                            { id: 'rev', label: 'Reviewer', values: { time: 11.4, cost: 3.64, tokens: [1_300_000, 88_000] } },
+                            { id: 'test', label: 'Tester', values: { time: 12.3, cost: 1.66, tokens: [640_000, 52_000] } },
+                        ]}
+                    />
+                )}
+                code={`<MeasureBarList
+  ariaLabel="Agents"
+  columns={[
+    { id: 'time', label: 'Hours', format: (value) => \`\${value} h\` },
+    { id: 'cost', label: 'Cost', format: (value) => \`$\${value}\` },
+    { id: 'tokens', label: 'Tokens', parts: [{ id: 'in', label: 'Input' }, { id: 'out', label: 'Output' }] },
+  ]}
+  rows={[{ id: 'dev', label: 'Developer', values: { time: 18.1, cost: 4.27, tokens: [2400000, 190000] } }]}
+/>`}
             />
             <Section
                 title={t.sections.heatmaps.title}

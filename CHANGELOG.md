@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.39.0] - 2026-11-02
+
+### Added
+- Charts: `MeasureBarList` (CR-115) — one row per item and, side by side, a bar per measure, each column on
+  its own scale (the time, cost and tokens of each agent on one line); a column with `parts` splits its bar
+  in proportion, each part of its colour in the legend. Trailing note, tooltip with every measure,
+  `onRowClick`, a data table.
+
 ## [1.38.0] - 2026-11-02
 
 ### Added
