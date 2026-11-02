@@ -58,6 +58,7 @@ export const useShowcaseMotionI18n = () => useShowcaseSlice('motion');
 export const useShowcaseListGroupI18n = () => useShowcaseSlice('listGroup');
 export const useShowcaseImageAvatarI18n = () => useShowcaseSlice('imageAvatar');
 export const useShowcaseIdenticonI18n = () => useShowcaseSlice('identicon');
+export const useShowcaseChartsI18n = () => useShowcaseSlice('charts');
 export const useShowcaseInputI18n = () => useShowcaseSlice('input');
 export const useShowcaseSwitchI18n = () => useShowcaseSlice('switch');
 export const useShowcaseSelectI18n = () => useShowcaseSlice('select');

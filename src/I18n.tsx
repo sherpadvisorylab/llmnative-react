@@ -358,6 +358,14 @@ export interface I18nDict {
         noAnswer:           string;
         answered:           string;
     };
+    /** CR-112 — the charts: empty state, totals, the scale of the heatmaps, the data table. */
+    charts: {
+        noData:    string;
+        total:     string;
+        less:      string;
+        more:      string;
+        dataTable: string;
+    };
 }
 
 type DeepPartial<T> = { [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K] };
@@ -544,4 +552,14 @@ export function useI18n<P extends DotNestedKeyOf<I18nDict>>(namespace?: P): I18n
  */
 export function useI18nDictOrEnglish(): I18nDict {
     return useContext(I18nContext)?.dict ?? en;
+}
+
+/**
+ * Internal (not exported from the package): the dictionary and the locale of the nearest
+ * `<I18nProvider>`, English when there is none — for the charts (CR-112), which format numbers in
+ * the locale and may render outside the provider.
+ */
+export function useI18nOrEnglish(): { dict: I18nDict; locale: string } {
+    const ctx = useContext(I18nContext);
+    return ctx ? { dict: ctx.dict, locale: ctx.locale } : { dict: en, locale: 'en' };
 }

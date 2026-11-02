@@ -1,0 +1,46 @@
+import { defineLocaleMessages } from '@llmnative/react';
+
+export default defineLocaleMessages({
+    showcase: {
+        charts: {
+            page: {
+                title: "Diagramme",
+                description: "SVG-Diagramme ohne Abhängigkeiten: Farben des Themes und Dunkelmodus, Bewegung, die reduzierte Bewegung respektiert, ein Tooltip für Zeiger und Tastatur und eine Datentabelle für Screenreader.",
+            },
+            sections: {
+                columns: { title: "Säulen", description: "Eine Reihe von Gruppen mit Werten darüber und Markierungen (Median, Perzentil)." },
+                stacked: { title: "Gestapelte Säulen", description: "Gruppen nach Reihen aufgeteilt, die Summe im Tooltip; optional ein Vergleichsstrich." },
+                lines: { title: "Linien", description: "Reihen über die Zeit: null unterbricht die Linie, eine gestrichelte Reihe vergleicht, ein Schwellenwert markiert eine Grenze." },
+                areas: { title: "Gestapelte Flächen", description: "Der kumulative Fluss der Arbeit durch ihre Phasen oder die Zusammensetzung einer Summe." },
+                scatter: { title: "Streudiagramm", description: "Zwei Größen pro Punkt und eine dritte als Fläche, nach Reihe gefärbt: Kosten gegen Nacharbeit pro Agent." },
+                diverging: { title: "Divergierende Balken", description: "Zwei Größen um die Nulllinie auf einer Skala: Wert oben, Kosten unten." },
+                lists: { title: "Listen und Zahlen", description: "Ranglisten mit Veränderung, eine hochzählende Zahl, eine Sparkline." },
+                heatmaps: { title: "Heatmaps", description: "Ein Raster aus Zeilen × Spalten und ein Kalender ab Montag: dunkler ist mehr." },
+            },
+            labels: {
+                otherWeek: "Andere Woche",
+                closedPerDay: "Geschlossene CRs pro Tag",
+                median: "Median",
+                hoursByAgent: "Stunden pro Agent",
+                leadTime: "Durchlaufzeit",
+                target: "Ziel",
+                thisPeriod: "Dieser Zeitraum",
+                lastPeriod: "Vorheriger Zeitraum",
+                cumulativeFlow: "Kumulativer Fluss",
+                closed: "Geschlossen",
+                backlog: "Backlog",
+                costAgainstRework: "Kosten gegen Nacharbeit",
+                costPerCr: "Kosten pro CR",
+                rework: "Nacharbeit",
+                turns: "Durchläufe",
+                valueAndCost: "Wert und Kosten",
+                value: "Wert",
+                cost: "Kosten",
+                costByAgent: "Kosten pro Agent",
+                costTrend: "Kostentrend",
+                turnsByHour: "Durchläufe pro Stunde",
+                turnsByDay: "Durchläufe pro Tag",
+            },
+        },
+    },
+});

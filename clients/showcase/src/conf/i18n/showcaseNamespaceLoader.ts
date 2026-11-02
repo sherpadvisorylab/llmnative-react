@@ -40,6 +40,7 @@ export type ShowcaseNamespace =
     | 'listGroup'
     | 'imageAvatar'
     | 'identicon'
+    | 'charts'
     | 'input'
     | 'switch'
     | 'select'

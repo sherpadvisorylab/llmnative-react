@@ -273,4 +273,11 @@ export const ru: I18nDict = {
         noAnswer: 'Нет ответа',
         answered: 'Отвечено',
     },
+    charts: {
+        noData: 'Нет данных',
+        total: 'Итого',
+        less: 'Меньше',
+        more: 'Больше',
+        dataTable: 'Данные диаграммы',
+    },
 };

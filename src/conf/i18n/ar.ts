@@ -273,4 +273,11 @@ export const ar: I18nDict = {
         noAnswer: 'لا توجد إجابة',
         answered: 'تمت الإجابة',
     },
+    charts: {
+        noData: 'لا توجد بيانات',
+        total: 'الإجمالي',
+        less: 'أقل',
+        more: 'أكثر',
+        dataTable: 'بيانات المخطط',
+    },
 };

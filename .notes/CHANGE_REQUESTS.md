@@ -117,6 +117,7 @@
 | [CR-107](#cr-107--azioni-cliccabili-nel-chatbot-e-azioni-al-passaggio-del-mouse-in-dropdownitem) | Azioni cliccabili nel Chatbot e azioni al passaggio del mouse in DropdownItem | Media | — | ✅ |
 | [CR-110](#cr-110--chatquestions-risposta-libera-su-più-righe) | ChatQuestions: risposta libera su più righe | Media | CR-109 | ✅ |
 | [CR-111](#cr-111--menu-dei-comandi-descrizione-del-comando-e-ricerca-nella-descrizione) | Menu dei comandi: descrizione del comando e ricerca nella descrizione | Media | CR-047, CR-056 | ✅ |
+| [CR-112](#cr-112--charts-grafici-svg-del-framework-senza-dipendenze) | Charts: grafici SVG del framework, senza dipendenze | Alta | CR-013 | ✅ |
 
 ---
 
@@ -150,6 +151,63 @@ Richiesto dal consumer `llmnative-cms`.
 - [x] Docs `docs/providers/ai.md`, `llms-full.txt`
 - [x] Verifica visiva nel consumer `llmnative-cms` (picker Agentico: header per OpenCode, DeepSeek, Cloudflare Workers AI, sticky durante lo scroll)
 - [x] Release 1.18.0
+
+---
+
+## CR-112 — Charts: grafici SVG del framework, senza dipendenze
+
+**Stato:** ✅ done (1.37.0)
+**Issue:** [#91](https://github.com/sherpadvisorylab/llmnative-react/issues/91)
+**Priorità:** Alta
+**Dipende da:** CR-013 (icon provider), motion system, i18n
+
+### Motivazione
+
+Emersa nel Playbook il 02/11/2026: la pagina Statistiche (costo per CR, valore e margine, lead time,
+first-pass yield, flow efficiency, diagramma di flusso cumulativo, cycle time per fase, confronto
+modello × agente) e il pannello per agente dell'Avanzamento hanno bisogno di grafici, e il framework
+non ne ha. Un progetto consumer (un CRM) ne ha già scritti in casa: SVG a mano, senza librerie,
+con animazioni, tooltip, legenda e larghezza adattiva (circa 1.300 righe). Portarli nel framework
+li rende disponibili a tutti i consumer, con tema, modalità scura, icon provider e i18n del
+framework, invece di riscriverli in ogni progetto. Il consumer potrà poi deprecare i suoi a favore
+di questi (fuori da questa CR, nel suo repository).
+
+### Scope
+
+- Nuovo modulo `src/components/charts/`, esportato dalla radice: SVG puro, nessuna dipendenza
+  nuova (nessun Recharts/ECharts), quindi niente lazy chunk.
+- Grafici generici, portati dal consumer e resi generici (nessun formato di dominio):
+  `ColumnChart`, `StackedColumnChart`, `LineChart`, `TimeSeriesChart`, `DivergingBarChart`,
+  `MirrorColumnChart`, `BarList`, `Sparkline`, `Heatmap` (giorno × ora), `CalendarHeatmap`,
+  `AnimatedNumber`.
+- Nuovi, per le statistiche: `AreaChart` (anche impilato: diagramma di flusso cumulativo) e
+  `ScatterChart` (punti con dimensione e colore per serie: costo contro rework).
+- Parti comuni pubbliche: `ChartLegend`, `ChartTooltip` (portal, segue il puntatore e la tastiera),
+  `useChartWidth` (ResizeObserver), scale e tick "nice", formattatori numerici con la locale
+  (`Intl.NumberFormat`), formatter delle etichette passati dal consumer (`valueFormat`, `labelFormat`).
+- Tema: colori dai token (`--rf-*`); palette categoriale `--rf-chart-1…8` aggiunta ai temi
+  `default`, `flat`, `cyber` con la variante scura; griglia e assi dai token muted/border.
+- Movimento: animazioni d'ingresso e di aggiornamento dal motion system, spente con
+  `prefers-reduced-motion`.
+- i18n: namespace `charts` in 6 lingue (nessun dato, legenda, totale, valori del tooltip).
+- Accessibilità: `role="img"` e `aria-label`, tabella dei dati `sr-only` come alternativa testuale,
+  tooltip raggiungibile da tastiera.
+- Prop con le convenzioni del framework (`data`, `series`, `xKey`, `height`, `className`,
+  `valueFormat`, `onPointClick`); nessun tipo del consumer.
+- Fuori scope: i grafici di dominio del consumer (energia, batterie), la sua migrazione.
+
+### Checklist
+
+- [x] Issue GitHub aperta e collegata (`pending`), poi `in-progress` all'avvio
+- [x] Modulo `charts`: comuni (legenda, tooltip, scale, larghezza, formattatori, motion)
+- [x] Grafici portati e resi generici: `TimeSeriesChart` confluito in `LineChart` (banda min–max, baseline), `MirrorColumnChart` in `DivergingBarChart`, `WeekHourHeatmap` in `Heatmap` (righe × colonne qualunque)
+- [x] `AreaChart` (impilato) e `ScatterChart`
+- [x] Token `--rf-chart-1…8` in `globals.css`, chiari e scuri (i temi non cambiano contratto; il consumer li sovrascrive)
+- [x] Namespace i18n `charts` in 6 lingue
+- [x] Accessibilità: `role="img"`, `aria-label`, tabella `sr-only`, tastiera sul tooltip (fino a 40 aree)
+- [x] Test (`tests/unit/components/Charts.test.tsx`, 15); contratto degli export pubblici
+- [x] Docs (`llms-full.txt`: sezione Charts con esempi), showcase (pagina Charts, 6 lingue), CHANGELOG
+- [x] Release 1.37.0. Gate: `tsc --noEmit` 0 errori, `npm test` 82 file / 943 test (il contratto degli export richiede la build aggiornata), `npm run build` OK, build dello showcase OK (pagina Charts 6,6 kB), `npm pack --dry-run` OK (1.845.400 B, 287 file)
 
 ---
 

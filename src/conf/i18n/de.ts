@@ -273,4 +273,11 @@ export const de: I18nDict = {
         noAnswer: 'Keine Antwort',
         answered: 'Beantwortet',
     },
+    charts: {
+        noData: 'Keine Daten',
+        total: 'Summe',
+        less: 'Weniger',
+        more: 'Mehr',
+        dataTable: 'Diagrammdaten',
+    },
 };

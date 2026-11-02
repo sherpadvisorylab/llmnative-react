@@ -1,0 +1,46 @@
+import { defineLocaleMessages } from '@llmnative/react';
+
+export default defineLocaleMessages({
+    showcase: {
+        charts: {
+            page: {
+                title: "图表",
+                description: "无依赖的 SVG 图表：主题颜色与深色模式，尊重减少动态效果的动画，支持指针与键盘的提示框，以及供屏幕阅读器使用的数据表。",
+            },
+            sections: {
+                columns: { title: "柱状图", description: "单个系列的分组，顶部显示数值，并可添加标记（中位数、百分位）。" },
+                stacked: { title: "堆叠柱状图", description: "按系列拆分的分组，提示框中显示合计；可选的对比标记。" },
+                lines: { title: "折线图", description: "随时间变化的系列：null 会断开线条，虚线系列用于对比，阈值标出界限。" },
+                areas: { title: "堆叠面积图", description: "工作在各阶段的累积流，或总量的构成。" },
+                scatter: { title: "散点图", description: "每个点两个数值，第三个数值表示面积，按系列着色：各代理的成本与返工。" },
+                diverging: { title: "发散条形图", description: "零线两侧的两个数值，共用一个刻度：上方为价值，下方为成本。" },
+                lists: { title: "列表与数字", description: "带变化的排行、逐步计数的数字、迷你折线。" },
+                heatmaps: { title: "热力图", description: "行 × 列网格，以及从周一开始的日历：颜色越深数值越大。" },
+            },
+            labels: {
+                otherWeek: "另一周",
+                closedPerDay: "每日关闭的 CR",
+                median: "中位数",
+                hoursByAgent: "各代理工时",
+                leadTime: "交付周期",
+                target: "目标",
+                thisPeriod: "本期",
+                lastPeriod: "上期",
+                cumulativeFlow: "累积流",
+                closed: "已关闭",
+                backlog: "待办",
+                costAgainstRework: "成本与返工",
+                costPerCr: "每个 CR 的成本",
+                rework: "返工",
+                turns: "轮次",
+                valueAndCost: "价值与成本",
+                value: "价值",
+                cost: "成本",
+                costByAgent: "各代理成本",
+                costTrend: "成本趋势",
+                turnsByHour: "每小时轮次",
+                turnsByDay: "每日轮次",
+            },
+        },
+    },
+});

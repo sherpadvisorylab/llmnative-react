@@ -1,0 +1,46 @@
+import { defineLocaleMessages } from '@llmnative/react';
+
+export default defineLocaleMessages({
+    showcase: {
+        charts: {
+            page: {
+                title: "Grafici",
+                description: "Grafici SVG senza dipendenze: colori del tema e modalità scura, animazioni che rispettano il movimento ridotto, un tooltip che segue il puntatore e la tastiera, e una tabella dei dati per i lettori di schermo.",
+            },
+            sections: {
+                columns: { title: "Colonne", description: "Una serie di gruppi, con i valori sopra e i marcatori (una mediana, un percentile)." },
+                stacked: { title: "Colonne impilate", description: "Gruppi divisi per serie, con il totale nel tooltip; un segno di confronto facoltativo." },
+                lines: { title: "Linee", description: "Serie nel tempo: un null interrompe la linea, una serie tratteggiata confronta, una soglia segna un limite." },
+                areas: { title: "Aree impilate", description: "Il flusso cumulativo del lavoro tra le fasi, o la composizione di un totale." },
+                scatter: { title: "Dispersione", description: "Due quantità per punto e una terza come area, colorati per serie: costo contro rework per agente." },
+                diverging: { title: "Barre divergenti", description: "Due quantità attorno alla linea dello zero su una sola scala: valore sopra, costo sotto." },
+                lists: { title: "Liste e numeri", description: "Classifiche con una variazione a destra, un numero che conta, una sparkline." },
+                heatmaps: { title: "Mappe di calore", description: "Una griglia righe × colonne, e un calendario di giorni dal lunedì: più scuro è di più." },
+            },
+            labels: {
+                otherWeek: "Altra settimana",
+                closedPerDay: "CR chiuse al giorno",
+                median: "mediana",
+                hoursByAgent: "Ore per agente",
+                leadTime: "Lead time",
+                target: "obiettivo",
+                thisPeriod: "Questo periodo",
+                lastPeriod: "Periodo precedente",
+                cumulativeFlow: "Flusso cumulativo",
+                closed: "Chiuse",
+                backlog: "Backlog",
+                costAgainstRework: "Costo contro rework",
+                costPerCr: "Costo per CR",
+                rework: "Rework",
+                turns: "Turni",
+                valueAndCost: "Valore e costo",
+                value: "Valore",
+                cost: "Costo",
+                costByAgent: "Costo per agente",
+                costTrend: "Andamento del costo",
+                turnsByHour: "Turni per ora",
+                turnsByDay: "Turni per giorno",
+            },
+        },
+    },
+});

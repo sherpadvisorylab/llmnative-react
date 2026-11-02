@@ -42,6 +42,7 @@ const IconPage = lazyPage(() => import('../pages/components/IconPage'));
 const ImagePage = lazyPage(() => import('../pages/components/ImagePage'));
 const ImageAvatarPage = lazyPage(() => import('../pages/components/ImageAvatarPage'));
 const IdenticonPage = lazyPage(() => import('../pages/components/IdenticonPage'));
+const ChartsPage = lazyPage(() => import('../pages/components/ChartsPage'));
 const ImageFieldPage = lazyPage(() => import('../pages/components/ImageFieldPage'));
 const LayoutBuilderPage = lazyPage(() => import('../pages/components/LayoutBuilderPage'));
 const ListCardPage = lazyPage(() => import('../pages/components/ListCardPage'));
@@ -150,6 +151,7 @@ export const menu = {
             ],
         },
         { path: '/components/card', title: 'Card', page: CardPage, group: 'UI Primitives' },
+        { path: '/components/charts', title: 'Charts', page: ChartsPage, group: 'UI Primitives' },
         { path: '/components/code', title: 'Code', page: CodePage, group: 'UI Primitives' },
         { path: '/components/dropdown', title: 'Dropdown', page: DropdownPage, group: 'UI Primitives' },
         { path: '/components/async-dropdown', title: 'AsyncDropdown', page: AsyncDropdownPage, group: 'UI Primitives' },

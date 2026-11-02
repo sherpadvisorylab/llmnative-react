@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.37.0] - 2026-11-02
+
+### Added
+- Charts (CR-112, GH issue #91): SVG charts with no dependencies, exported from the root.
+  `ColumnChart` (values on top, markers, click), `StackedColumnChart` (totals, comparison tick),
+  `LineChart` (gaps on null, areas, dashed comparison, min–max band, threshold, baseline, domain),
+  `AreaChart` (stacked by default: cumulative flow), `ScatterChart` (a third quantity as the area,
+  series, labels, click), `DivergingBarChart` (two quantities around zero, null as no data),
+  `BarList` (background bar, trailing change), `Heatmap` (rows × columns), `CalendarHeatmap` (days
+  from Monday, a scale from less to more), `Sparkline`, `AnimatedNumber`. Shared parts for custom
+  charts: `useChartTooltip`, `ChartLegend`, `ChartDataTable`, `useChartWidth`, `useAnimatedValues`,
+  `useReveal`, `useChartFormat`, `chartToken`, `chartFill`, `niceMax`, `ticks`.
+- Colours are theme tokens: the categorical palette `--rf-chart-1…8` in `globals.css`, light and dark,
+  overridable by a consumer; motion off with `prefers-reduced-motion`; a tooltip that follows the
+  pointer and the keyboard; a `sr-only` data table as the text alternative; an empty state.
+- i18n namespace `charts` in 6 languages (`noData`, `total`, `less`, `more`, `dataTable`).
+- Showcase: the Charts page.
+
 ## [1.36.1] - 2026-10-29
 
 ### Fixed

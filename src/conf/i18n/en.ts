@@ -350,4 +350,11 @@ export const en: I18nDict = {
         noAnswer: 'No answer',
         answered: 'Answered',
     },
+    charts: {
+        noData: 'No data',
+        total: 'Total',
+        less: 'Less',
+        more: 'More',
+        dataTable: 'Chart data',
+    },
 };

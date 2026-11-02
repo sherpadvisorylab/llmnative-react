@@ -867,6 +867,37 @@ utile quando un comando cambia famiglia sintattica (per esempio da `{{ ... }}` a
 <LayoutBuilder components={...} />
 ```
 
+### Charts (CR-112)
+Grafici SVG senza dipendenze, dal modulo `charts`. Colori come token del tema: `color` è uno slot della
+palette categoriale (`1…8` → `--rf-chart-N`, definiti in `globals.css` con la variante scura e
+sovrascrivibili dal consumer) o un token (`'--rf-success'`); le serie senza colore prendono lo slot
+della loro posizione. Larghezza dal contenitore (ResizeObserver), animazioni spente con
+`prefers-reduced-motion`, tooltip che segue il puntatore e la tastiera (le aree prendono il focus
+finché sono al massimo 40), tabella dei dati `sr-only` con `ariaLabel` come didascalia, stato vuoto
+`charts.noData`. `format` è facoltativo: di default il numero nella locale dell'app.
+
+```tsx
+<ColumnChart ariaLabel="CR chiuse al giorno" columns={[{ label: 'lun', value: 4 }]} markers={[{ position: 3.5, label: 'mediana', dashed: true }]} onColumnClick={(column) => {}} />
+<StackedColumnChart ariaLabel="Ore per agente" labels={days} labelEvery={2} format={(v) => `${v} h`}
+  series={[{ id: 'dev', label: 'Developer', values: dev }, { id: 'qa', label: 'Tester', values: qa, color: 3 }]}
+  comparison={previousTotals} comparisonLabel="periodo precedente" />
+<LineChart ariaLabel="Lead time" labels={days} threshold={{ value: 6.5, label: 'obiettivo' }} baseline={0} domain={[0, 10]}
+  series={[{ id: 'now', label: 'Ora', values: [3, null, 5], area: true, band: { min, max } }, { id: 'before', label: 'Prima', values: prev, dashed: true }]} />
+<AreaChart ariaLabel="Flusso cumulativo" labels={days} stacked series={[{ id: 'closed', label: 'Chiuse', values: closed }]} />
+<ScatterChart ariaLabel="Costo contro rework" xLabel="Costo" yLabel="Rework" sizeLabel="Turni"
+  series={[{ id: 'sonnet', label: 'Sonnet' }]} points={[{ id: '1', label: 'Developer', x: 0.04, y: 0.3, size: 30, series: 'sonnet' }]} onPointClick={(point) => {}} />
+<DivergingBarChart ariaLabel="Valore e costo" upLabel="Valore" downLabel="Costo" bars={[{ label: 'lun', up: 120, down: null }]} />
+<BarList ariaLabel="Costo per agente" rows={[{ id: 'dev', label: 'Developer', value: 1.84, trailing: { text: '+12%', tone: 'bad' } }]} />
+<Heatmap ariaLabel="Turni per ora" rowLabels={agents} columnLabels={hours} columnLabelEvery={2} values={matrix} />
+<CalendarHeatmap ariaLabel="Turni per giorno" days={[{ date: '2026-11-02', value: 4 }, { date: '2026-11-03', value: null }]} />
+<Sparkline values={[1, 3, null, 2]} ariaLabel="Andamento" />   // senza ariaLabel è decorativa
+<AnimatedNumber value={3.85} format={(v) => `$${v.toFixed(2)}`} />
+```
+
+Parti comuni per grafici propri: `useChartTooltip()` (`show`, `showAt`, `hide`, `element`), `ChartLegend`,
+`ChartDataTable`, `useChartWidth(fallback)`, `useAnimatedValues(values)`, `useReveal(key)`,
+`useChartFormat(format?)`, `chartToken(color)`, `chartFill(token, alpha?)`, `niceMax`, `ticks`.
+
 ---
 
 ## Blocks

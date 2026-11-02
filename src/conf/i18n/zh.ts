@@ -273,4 +273,11 @@ export const zh: I18nDict = {
         noAnswer: '未回答',
         answered: '已回答',
     },
+    charts: {
+        noData: '暂无数据',
+        total: '合计',
+        less: '较少',
+        more: '较多',
+        dataTable: '图表数据',
+    },
 };
