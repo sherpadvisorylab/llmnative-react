@@ -9,7 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.37.1] - 2026-11-02
+## [1.37.2] - 2026-11-02
+
+The fixes below were tagged as v1.37.1, which was never published to npm: 1.37.2 is the release that carries them.
 
 ### Fixed
 - Charts: the axes of `ScatterChart`, `LineChart`, `AreaChart`, `ColumnChart` and `DivergingBarChart`
