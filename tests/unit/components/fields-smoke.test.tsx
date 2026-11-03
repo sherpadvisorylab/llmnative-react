@@ -50,7 +50,7 @@ vi.mock('../../../src/components/widgets/Form', () => ({
 }));
 
 import { ContextMenu } from '../../../src/components/ui/fields/ContextMenu';
-import { TextArea } from '../../../src/components/ui/fields/Input';
+import { Checkbox, Switch, TextArea } from '../../../src/components/ui/fields/Input';
 
 describe('ContextMenu', () => {
     it('renders its container', () => {
@@ -61,6 +61,27 @@ describe('ContextMenu', () => {
             </ContextMenu>
         );
         expect(container.querySelector('div')).toBeTruthy();
+    });
+});
+
+describe('Checkbox and Switch, disabled (CR-116)', () => {
+    it('cannot be changed, and says why on hover of its label', () => {
+        const { container } = render(
+            <MemoryRouter>
+                <Switch name="gate" label="Passes through the CI" disabled title="The agent does not commit" />
+                <Checkbox name="agree" label="Agree" disabled title="Not yours to decide" />
+                <Switch name="free" label="Free" />
+            </MemoryRouter>
+        );
+        const [gate, agree, free] = [...container.querySelectorAll('input[type="checkbox"]')] as HTMLInputElement[];
+        expect(gate!.disabled).toBe(true);
+        expect(agree!.disabled).toBe(true);
+        expect(free!.disabled).toBe(false);
+        // A disabled input gets no hover in every browser: the reason is on what holds it.
+        expect(screen.getByText('Passes through the CI').closest('label')!.getAttribute('title')).toBe('The agent does not commit');
+        expect(screen.getByText('Passes through the CI').closest('label')!.className).toContain('cursor-not-allowed');
+        expect(container.querySelector('[title="Not yours to decide"]')).toBeTruthy();
+        expect(screen.getByText('Free').closest('label')!.getAttribute('title')).toBeNull();
     });
 });
 

@@ -31,6 +31,7 @@
 
 | CR | State | Evidence |
 |----|-------|----------|
+| CR-116 | Done | Checkbox e Switch: `disabled` (non cambiano né con il clic né da tastiera, opachi, cursore non consentito), il `title` anche sull'etichetta per dire il motivo. Test, docs. Released in 1.40.0. Issue #95. |
 | CR-115 | Done | Charts: `MeasureBarList`, barre raggruppate: ogni elemento una volta e accanto una barra per misura, una sotto l'altra, ognuna del suo colore e sulla sua scala (1.39.1); le parti di una colonna (input e output) dividono la barra in proporzione. Tooltip, tabella dei dati, legenda delle parti. Tests, docs, showcase. Released in 1.39.0. Issue #94. |
 | CR-114 | Done | Charts: `SequenceColumnChart`, colonne di segmenti nell'ordine in cui sono avvenuti (una serie può tornare nella stessa colonna), tooltip con la sequenza, tabella dei dati, i18n `charts.sequence` in 6 lingue. Tests, docs, showcase. Released in 1.38.0. Issue #93. |
 | CR-113 | Done | Modal: l'overflow del `body` restituito com'era (conteggio delle modali aperte) invece di `auto` forzato alla chiusura. Test. Released in 1.37.3. Issue #92. |

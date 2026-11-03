@@ -117,6 +117,7 @@
 | [CR-107](#cr-107--azioni-cliccabili-nel-chatbot-e-azioni-al-passaggio-del-mouse-in-dropdownitem) | Azioni cliccabili nel Chatbot e azioni al passaggio del mouse in DropdownItem | Media | — | ✅ |
 | [CR-110](#cr-110--chatquestions-risposta-libera-su-più-righe) | ChatQuestions: risposta libera su più righe | Media | CR-109 | ✅ |
 | [CR-111](#cr-111--menu-dei-comandi-descrizione-del-comando-e-ricerca-nella-descrizione) | Menu dei comandi: descrizione del comando e ricerca nella descrizione | Media | CR-047, CR-056 | ✅ |
+| [CR-116](#cr-116--checkbox-e-switch-disabilitati-con-il-motivo) | Checkbox e Switch disabilitati, con il motivo | Bassa | — | ✅ |
 | [CR-115](#cr-115--measurebarlist-misure-affiancate-ognuna-sulla-sua-scala) | MeasureBarList: misure affiancate, ognuna sulla sua scala | Media | CR-112 | ✅ |
 | [CR-114](#cr-114--sequencecolumnchart-colonne-di-segmenti-in-sequenza) | SequenceColumnChart: colonne di segmenti in sequenza | Media | CR-112 | ✅ |
 | [CR-113](#cr-113--modal-overflow-del-body-restituito-comera) | Modal: overflow del body restituito com'era | Media | — | ✅ |
@@ -154,6 +155,33 @@ Richiesto dal consumer `llmnative-cms`.
 - [x] Docs `docs/providers/ai.md`, `llms-full.txt`
 - [x] Verifica visiva nel consumer `llmnative-cms` (picker Agentico: header per OpenCode, DeepSeek, Cloudflare Workers AI, sticky durante lo scroll)
 - [x] Release 1.18.0
+
+---
+
+## CR-116 — Checkbox e Switch disabilitati, con il motivo
+
+**Stato:** ✅ done (1.40.0)
+**Issue:** [#95](https://github.com/sherpadvisorylab/llmnative-react/issues/95)
+**Priorità:** Bassa
+
+### Motivazione
+
+Emersa nel Playbook il 03/11/2026: l'interruttore "Passa dalla CI" di una rotta non si può accendere
+quando l'agente non committa. Va mostrato disabilitato, con il motivo al passaggio del mouse; `Switch` e
+`Checkbox` avevano il `title` ma non `disabled`, che gli altri campi hanno.
+
+### Scope
+
+- `disabled` in `CheckboxProps`, per `Checkbox` e `Switch`: l'input non cambia né con il clic né da
+  tastiera, opaco e con il cursore "non consentito".
+- Il `title` anche sull'etichetta quando è disabilitato: un input disabilitato non riceve l'hover in ogni
+  browser.
+- llms-full, test.
+
+### Criteri di accettazione
+
+- [x] Disabilitato, l'input è `disabled` e l'etichetta dice il motivo nel suo `title`.
+- [x] Abilitato, nulla cambia.
 
 ---
 

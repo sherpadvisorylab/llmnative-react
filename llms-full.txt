@@ -362,6 +362,7 @@ Azioni: `save()`, `delete()`, `reset()`, `restoreDraft()`, `discardDraft()`.
 <Input name="color" type="color" />
 <TextArea name="bio" minHeight={96} />
 <Checkbox name="active" valueChecked="yes" />
+<Switch name="gate" label="Passa dalla CI" disabled title="L'agente non committa" />   // CR-116: disabled (non cambia né con il clic né da tastiera), title anche sull'etichetta: il motivo al passaggio del mouse
 ```
 `Input` props: `name`(req) `label` `type` `required` `disabled` `placeholder` `min` `max` `step` `validator:(v)=>string|undefined`
 `type`: `'text' | 'number' | 'email' | 'password' | 'color' | 'date' | 'time' | 'datetime-local' | 'week' | 'month' | 'range' | 'checkbox' | 'radio' | 'url'`

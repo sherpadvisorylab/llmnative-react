@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.40.0] - 2026-11-03
+
+### Added
+- `Checkbox` and `Switch` take `disabled` (CR-116): not changed by click nor keyboard, dimmed with a
+  not-allowed cursor; their `title` also on the label, so the reason shows on hover (a disabled input
+  gets no hover in every browser).
+
 ## [1.39.1] - 2026-11-02
 
 ### Changed

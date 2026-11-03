@@ -35,9 +35,12 @@ interface LabelProps {
 export type InputProps = Omit<BaseInputProps, 'type'>;
 
 export interface CheckboxProps extends FormFieldProps {
+    /** Shown on hover, on the label too: with `disabled`, why it cannot be changed. */
     title?: string;
     ariaLabel?: string;
     valueChecked?: string | number;
+    /** It cannot be changed, by click nor keyboard (CR-116); its value stays in the form. */
+    disabled?: boolean;
 }
 
 export interface HiddenProps extends FormFieldProps {
@@ -374,6 +377,7 @@ export const Checkbox = ({
     ariaLabel = undefined,
     required = false,
     valueChecked = "on",
+    disabled = false,
     before = undefined,
     after = undefined,
     inheritWrapperClassName = true,
@@ -392,7 +396,7 @@ export const Checkbox = ({
 
     return (
         <Wrapper className={formWrapClass}>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2" title={disabled ? title : undefined}>
                 {before}
                 <input
                     type="checkbox"
@@ -405,9 +409,10 @@ export const Checkbox = ({
                         className
                     )}
                     checked={checked}
+                    disabled={disabled}
                     onChange={handleCheckboxChange}
                 />
-                {label && <label className="text-sm font-medium leading-none text-foreground" htmlFor={id}>
+                {label && <label className={cn("text-sm font-medium leading-none text-foreground", disabled && "cursor-not-allowed opacity-50")} htmlFor={id}>
                     {label}
                     {required && <span className="text-destructive">&nbsp;*</span>}
                 </label>}
@@ -427,6 +432,7 @@ export const Switch = ({
     ariaLabel = undefined,
     required = false,
     valueChecked = "on",
+    disabled = false,
     before = undefined,
     after = undefined,
     inheritWrapperClassName = true,
@@ -447,7 +453,8 @@ export const Switch = ({
         <Wrapper className={formWrapClass}>
             <div className="flex items-center gap-2">
                 {before}
-                <label className="inline-flex cursor-pointer items-center gap-2 select-none">
+                {/* The title on the label: a disabled input gets no hover in every browser. */}
+                <label className={cn("inline-flex items-center gap-2 select-none", disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer")} title={disabled ? title : undefined}>
                     <span className="relative inline-flex h-5 w-9 shrink-0 items-center">
                         <input
                             id={id}
@@ -456,8 +463,9 @@ export const Switch = ({
                             title={title}
                             aria-label={ariaLabel}
                             checked={checked}
+                            disabled={disabled}
                             onChange={handleCheckboxChange}
-                            className="peer absolute inset-0 m-0 h-full w-full cursor-pointer opacity-0"
+                            className={cn("peer absolute inset-0 m-0 h-full w-full opacity-0", disabled ? "cursor-not-allowed" : "cursor-pointer")}
                         />
                         <span
                             aria-hidden="true"
