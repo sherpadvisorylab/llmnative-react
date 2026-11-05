@@ -679,3 +679,83 @@ describe('Form — nested dot notation', () => {
     });
 });
 
+
+// ── requireChanges (CR-117) ───────────────────────────────────────────────────
+
+describe('Form — requireChanges', () => {
+    function ActionForm({ onSave, requireChanges, required = false, version = '1.0.0' }: {
+        onSave: (args: { record?: Record<string, unknown> }) => Promise<string | undefined>;
+        requireChanges?: boolean;
+        required?: boolean;
+        version?: string;
+    }) {
+        const form = useFormController();
+        return (
+            <>
+                <ActionButton label="Start" disabled={form.saveDisabled} onClick={() => { void form.save(); }} />
+                <span data-testid="dirty">{String(form.isDirty)}</span>
+                <Form controller={form} appearance="empty" defaultValues={{ version }} onSave={onSave} {...(requireChanges === undefined ? {} : { requireChanges })}>
+                    <Input name="version" label="Version" required={required} />
+                </Form>
+            </>
+        );
+    }
+
+    it('saves the initial values of an action form, unchanged (AC1)', async () => {
+        const onSave = vi.fn(async () => undefined);
+        renderWithProviders(<ActionForm onSave={onSave} requireChanges={false} />);
+
+        const start = screen.getByRole('button', { name: /start/i }) as HTMLButtonElement;
+        expect(start.disabled).toBe(false);
+        expect(screen.getByTestId('dirty').textContent).toBe('false');
+
+        fireEvent.click(start);
+        await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
+        expect(onSave.mock.calls[0][0]).toMatchObject({ record: { version: '1.0.0' } });
+        expect(screen.queryByText(/no changes to save/i)).not.toBeInTheDocument();
+    });
+
+    it('still validates an action form before saving it (AC2)', async () => {
+        const onSave = vi.fn(async () => undefined);
+        renderWithProviders(<ActionForm onSave={onSave} requireChanges={false} required version="" />);
+
+        fireEvent.click(screen.getByRole('button', { name: /start/i }));
+        await waitFor(() => expect(screen.getByText(/version is required/i)).toBeInTheDocument());
+        expect(onSave).not.toHaveBeenCalled();
+    });
+
+    it('keeps needing a change by default (AC3)', async () => {
+        const onSave = vi.fn(async () => undefined);
+        renderWithProviders(<ActionForm onSave={onSave} />);
+
+        const start = screen.getByRole('button', { name: /start/i }) as HTMLButtonElement;
+        expect(start.disabled).toBe(true);
+
+        fireEvent.change(screen.getByRole('textbox'), { target: { name: 'version', value: '1.0.1' } });
+        expect(start.disabled).toBe(false);
+        fireEvent.click(start);
+        await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
+        expect(onSave.mock.calls[0][0]).toMatchObject({ record: { version: '1.0.1' } });
+    });
+
+    it('says there is nothing to save when a change is required and none was made (AC3)', async () => {
+        const onSave = vi.fn(async () => undefined);
+        let save!: () => Promise<boolean>;
+        function Probe() {
+            const form = useFormController();
+            save = form.save;
+            return (
+                <Form controller={form} appearance="empty" defaultValues={{ version: '1.0.0' }} onSave={onSave}>
+                    <Input name="version" label="Version" />
+                </Form>
+            );
+        }
+        renderWithProviders(<Probe />);
+
+        let saved = true;
+        await act(async () => { saved = await save(); });
+        expect(saved).toBe(false);
+        expect(onSave).not.toHaveBeenCalled();
+        expect(screen.getByText(/no changes to save/i)).toBeInTheDocument();
+    });
+});

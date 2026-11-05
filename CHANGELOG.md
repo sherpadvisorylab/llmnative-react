@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.41.0] - 2026-11-05
+
+### Added
+- `Form` takes `requireChanges` (CR-117), default `true` (unchanged behaviour). `requireChanges={false}`
+  makes an action form, whose initial values are already a valid submission (start a release with the
+  proposed version): `save()` validates and calls `onSave` even when no field changed, `saveDisabled` no
+  longer depends on `isDirty`, and no "No changes to save" notice. `isDirty` still tells whether
+  something changed.
+
 ## [1.40.0] - 2026-11-03
 
 ### Added

@@ -1,7 +1,7 @@
 # Project status
 
 > Snapshot verified against the real codebase, not against the historical plan.
-> Last reviewed: 2026-10-29
+> Last reviewed: 2026-11-05
 
 ---
 
@@ -31,6 +31,7 @@
 
 | CR | State | Evidence |
 |----|-------|----------|
+| CR-117 | Done | Form: `requireChanges` (default `true`); `false` = form d'azione, `save()` valida e chiama `onSave` anche senza modifiche, `saveDisabled` indipendente da `isDirty`, niente "No changes to save". Test (4), llms-full, docs. Released in 1.41.0. Issue #96. |
 | CR-116 | Done | Checkbox e Switch: `disabled` (non cambiano né con il clic né da tastiera, opachi, cursore non consentito), il `title` anche sull'etichetta per dire il motivo. Test, docs. Released in 1.40.0. Issue #95. |
 | CR-115 | Done | Charts: `MeasureBarList`, barre raggruppate: ogni elemento una volta e accanto una barra per misura, una sotto l'altra, ognuna del suo colore e sulla sua scala (1.39.1); le parti di una colonna (input e output) dividono la barra in proporzione. Tooltip, tabella dei dati, legenda delle parti. Tests, docs, showcase. Released in 1.39.0. Issue #94. |
 | CR-114 | Done | Charts: `SequenceColumnChart`, colonne di segmenti nell'ordine in cui sono avvenuti (una serie può tornare nella stessa colonna), tooltip con la sequenza, tabella dei dati, i18n `charts.sequence` in 6 lingue. Tests, docs, showcase. Released in 1.38.0. Issue #93. |

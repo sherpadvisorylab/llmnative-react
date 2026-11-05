@@ -408,6 +408,14 @@ interface BaseFormProps {
     /** Show the inline save/delete notice banner. Defaults to `true`. */
     showNotice?: boolean;
     /**
+     * Whether saving needs a changed field. Defaults to `true`: an unchanged form says "No changes
+     * to save" and its save is disabled. `false` makes it an action form (CR-117), whose initial
+     * values are already a valid submission (e.g. start a release with the proposed version):
+     * `save()` validates and calls `onSave` even when nothing changed. `isDirty` still tells
+     * whether something did.
+     */
+    requireChanges?: boolean;
+    /**
      * Stable bucket that isolates this form's local draft. Omit to disable draft persistence.
      * The Form appends its own path/route identity, so one bucket safely serves many forms.
      */
@@ -580,6 +588,7 @@ const FormData = ({
     onComplete = undefined,
     log = false,
     showNotice = true,
+    requireChanges = true,
     draftBucket = undefined,
     noticeAnchorRef = undefined,
     showBack = false,
@@ -807,7 +816,7 @@ const FormData = ({
 
     const handleSave = useCallback(async (event?: FormActionEvent): Promise<boolean> => {
         event?.preventDefault?.();
-        if (!isDirty) {
+        if (requireChanges && !isDirty) {
             showNotice && setNotification({ message: noChangesToSave, type: "info" });
             return false;
         }
@@ -842,7 +851,7 @@ const FormData = ({
         } finally {
             setIsSaving(false);
         }
-    }, [clearDraftStorage, computeSavePath, db, dict.noticeRequiredFields, handleFinally, isDirty, isNewRecord, noChangesToSave, showNotice, validateFields]);
+    }, [clearDraftStorage, computeSavePath, db, dict.noticeRequiredFields, handleFinally, isDirty, isNewRecord, noChangesToSave, requireChanges, showNotice, validateFields]);
 
     const handleDelete = useCallback(async (event?: FormActionEvent): Promise<boolean> => {
         event?.preventDefault?.();
@@ -973,7 +982,7 @@ const FormData = ({
             canDelete,
             isSaving,
             isDeleting,
-            saveDisabled: !canSave || !isDirty || isSaving,
+            saveDisabled: !canSave || (requireChanges && !isDirty) || isSaving,
             deleteDisabled: !canDelete || isDeleting,
             hasDraft: draftNoticeState !== null,
             draftStatus: draftNoticeState,
@@ -986,7 +995,7 @@ const FormData = ({
         // user keeps typing. Any caller reading useFormController().record outside of the
         // Form's own save flow (e.g. a custom submit button reading it directly) would see a
         // stale snapshot from the first edit, not the latest one.
-    }, [canDelete, canSave, controllerStore, draftNoticeState, errors, isDeleting, isDirty, isNewRecord, isSaving, record]);
+    }, [canDelete, canSave, controllerStore, draftNoticeState, errors, isDeleting, isDirty, isNewRecord, isSaving, record, requireChanges]);
 
     useEffect(() => () => resetFormController(formController), [controllerStore]);
 

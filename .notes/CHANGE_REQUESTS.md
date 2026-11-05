@@ -118,6 +118,7 @@
 | [CR-110](#cr-110--chatquestions-risposta-libera-su-più-righe) | ChatQuestions: risposta libera su più righe | Media | CR-109 | ✅ |
 | [CR-111](#cr-111--menu-dei-comandi-descrizione-del-comando-e-ricerca-nella-descrizione) | Menu dei comandi: descrizione del comando e ricerca nella descrizione | Media | CR-047, CR-056 | ✅ |
 | [CR-116](#cr-116--checkbox-e-switch-disabilitati-con-il-motivo) | Checkbox e Switch disabilitati, con il motivo | Bassa | — | ✅ |
+| [CR-117](#cr-117--form-requirechanges-form-dazione) | Form: requireChanges, un form d'azione salva anche senza modifiche | Media | — | ✅ |
 | [CR-115](#cr-115--measurebarlist-misure-affiancate-ognuna-sulla-sua-scala) | MeasureBarList: misure affiancate, ognuna sulla sua scala | Media | CR-112 | ✅ |
 | [CR-114](#cr-114--sequencecolumnchart-colonne-di-segmenti-in-sequenza) | SequenceColumnChart: colonne di segmenti in sequenza | Media | CR-112 | ✅ |
 | [CR-113](#cr-113--modal-overflow-del-body-restituito-comera) | Modal: overflow del body restituito com'era | Media | — | ✅ |
@@ -155,6 +156,35 @@ Richiesto dal consumer `llmnative-cms`.
 - [x] Docs `docs/providers/ai.md`, `llms-full.txt`
 - [x] Verifica visiva nel consumer `llmnative-cms` (picker Agentico: header per OpenCode, DeepSeek, Cloudflare Workers AI, sticky durante lo scroll)
 - [x] Release 1.18.0
+
+---
+
+## CR-117 — Form: requireChanges, form d'azione
+
+**Stato:** ✅ done (1.41.0)
+**Issue:** [#96](https://github.com/sherpadvisorylab/llmnative-react/issues/96)
+**Priorità:** Media
+
+### Motivazione
+
+Emersa nel Playbook il 05/11/2026: un `Form` salva solo se un campo è cambiato ("No changes to save").
+Giusto per un form che modifica un record, non per uno che esegue un'azione con valori proposti già
+validi (avviare una release con la versione e le note proposte, chiudere una sessione con il titolo
+proposto): lì il pulsante non faceva nulla e ogni pagina aggirava il controllo a mano.
+
+### Scope
+
+- `FormProps.requireChanges?: boolean`, default `true`.
+- Con `false`: `save()` valida e chiama `onSave` anche senza modifiche; `saveDisabled` non dipende da
+  `isDirty` (pulsante del footer, controller, scorciatoia); niente avviso "No changes to save".
+- `isDirty` resta vero solo per le modifiche reali; validazione, bozze, notifiche e `onComplete` invariati.
+- Test, llms-full, docs (patterns/form), versione 1.41.0.
+
+### Criteri di accettazione
+
+- [x] AC1: con `requireChanges={false}` un form non modificato chiama `onSave` con i valori iniziali.
+- [x] AC2: con `requireChanges={false}` i campi obbligatori bloccano il salvataggio come prima.
+- [x] AC3: senza la prop il comportamento è quello di prima (salvataggio disabilitato, "No changes to save", nessun `onSave`).
 
 ---
 

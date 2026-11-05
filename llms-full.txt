@@ -305,6 +305,7 @@ export class RestDataProvider implements DataProviderAdapter {
 | `draftBucket` | `string` | Bucket stabile che isola la bozza locale; omettilo per disabilitare la persistenza |
 | `noticeAnchorRef` | `React.RefObject<HTMLElement>` | Ancoraggio sticky per notifiche |
 | `showNotice` | `boolean` | Mostra notifiche save/delete (default `true`) |
+| `requireChanges` | `boolean` | Default `true`: senza un campo cambiato il salvataggio dice "No changes to save" ed è disabilitato. `false` = form d'azione (CR-117): i valori iniziali sono già un invio valido (es. avviare una release con la versione proposta), `save()` valida e chiama `onSave` anche senza modifiche; `isDirty` dice comunque se qualcosa è cambiato |
 | `children` | `ReactNode \| ((fields) => ReactNode) \| (({ record }) => ReactNode)` | Contenuto form |
 | `header` | `ReactNode` | Contenuto header custom |
 | `footer` | `ReactNode` | Contenuto footer custom |
@@ -334,6 +335,16 @@ const form = useFormController();
 
 <ActionButton disabled={form.saveDisabled} onClick={() => { void form.save(); }} />
 <Form controller={form} draftBucket="workspace/acme" onSave={...} />
+```
+
+Esempio — form d'azione, i valori proposti si inviano anche senza modificarli (CR-117):
+```tsx
+const form = useFormController();
+
+<LoadingButton label="Avvia la release" onClick={() => form.save()} />
+<Form controller={form} appearance="empty" requireChanges={false} defaultValues={{ version: '1.4.0', notes }} onSave={async ({ record }) => { await start(record); return undefined; }}>
+  <Input name="version" label="Versione" required />
+</Form>
 ```
 
 Esempio — uso dentro il form (senza passare controller):

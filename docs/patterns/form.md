@@ -31,3 +31,22 @@ const form = useFormController()
 
 Controlled fields read and update the record through `FormContext`.
 The same controller also powers the native footer buttons, modal save actions, dirty state and draft recovery.
+
+## Action forms
+
+By default a form saves only when a field changed: unchanged, its save is disabled and says "No changes to save".
+A form that runs an action with proposed values (start a release with the proposed version, finish a session with the proposed title) sets `requireChanges={false}`: `save()` validates the fields and calls `onSave` even when nothing changed.
+`isDirty` still tells whether the person changed something.
+
+```tsx
+const form = useFormController()
+
+<>
+  <LoadingButton label="Start the release" onClick={() => form.save()} />
+
+  <Form controller={form} appearance="empty" requireChanges={false} defaultValues={{ version: '1.4.0', notes }} onSave={startRelease}>
+    <Input name="version" label="Version" required />
+    <TextArea name="notes" label="Notes" />
+  </Form>
+</>;
+```
