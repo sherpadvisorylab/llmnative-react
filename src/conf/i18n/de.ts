@@ -64,6 +64,7 @@ export const de: I18nDict = {
         selectRow: 'Zeile {key} auswählen', reorderRow: 'Zeile {key} neu anordnen',
     },
     gallery: { selectItem: 'Element {key} auswählen' },
+    sortableList: { handle: 'Element {position} von {total} verschieben: ziehen oder Pfeiltasten nach oben und unten', moved: 'Auf Position {position} von {total} verschoben' },
     crop: {
         enableCrop: 'Zuschnitt mit Skalierung {scale} aktivieren', variants: 'Varianten',
         outputFile: 'Ausgabedatei', active: 'Aktiv',

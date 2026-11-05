@@ -64,6 +64,8 @@ export * from './ui/fields/ContextMenu';
 export { default as Menu } from './blocks/Menu';
 export { default as ListCard } from './blocks/ListCard';
 export type { ListCardProps } from './blocks/ListCard';
+export { default as SortableList, moveItem } from './blocks/SortableList';
+export type { SortableListProps, SortableListCard, SortableListReorderMeta } from './blocks/SortableList';
 export { default as SideNav } from './blocks/SideNav';
 export type { SideNavProps, SideNavItemDef } from './blocks/SideNav';
 

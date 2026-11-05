@@ -64,6 +64,7 @@ export const zh: I18nDict = {
         selectRow: '选择行{key}', reorderRow: '重排行{key}',
     },
     gallery: { selectItem: '选择项目{key}' },
+    sortableList: { handle: '移动第 {position} 项（共 {total} 项）：拖动它，或使用上下方向键', moved: '已移到第 {position} 位（共 {total} 位）' },
     crop: {
         enableCrop: '启用{scale}比例裁剪', variants: '变体',
         outputFile: '输出文件', active: '活跃',

@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.44.0] - 2026-11-05
+
+### Added
+- `SortableList` (CR-120): compact cards (ListCard) a person puts in order, dragged by their handle or moved
+  with the up and down arrows on it; `onReorder` gets the new order and `{ fromIndex, toIndex, item }`, the new
+  position is announced to screen readers. `numbered`, `label`, `disabled` (no handles), `emptyState`. Texts
+  `sortableList.handle` and `sortableList.moved` in the six languages; `moveItem` helper; showcase page.
+
 ## [1.43.0] - 2026-11-05
 
 ### Added

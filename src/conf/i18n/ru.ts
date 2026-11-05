@@ -64,6 +64,7 @@ export const ru: I18nDict = {
         selectRow: 'Выбрать строку {key}', reorderRow: 'Переместить строку {key}',
     },
     gallery: { selectItem: 'Выбрать элемент {key}' },
+    sortableList: { handle: 'Переместить элемент {position} из {total}: перетащите его или используйте стрелки вверх и вниз', moved: 'Перемещено на позицию {position} из {total}' },
     crop: {
         enableCrop: 'Включить обрезку в масштабе {scale}', variants: 'Варианты',
         outputFile: 'Выходной файл', active: 'Активно',

@@ -114,6 +114,10 @@ export const en: I18nDict = {
     gallery: {
         selectItem: 'Select item {key}',
     },
+    sortableList: {
+        handle: 'Move item {position} of {total}: drag it, or use the up and down arrows',
+        moved: 'Moved to position {position} of {total}',
+    },
     crop: {
         enableCrop: 'Click {scale} to enable this crop',
         variants: 'Variants',

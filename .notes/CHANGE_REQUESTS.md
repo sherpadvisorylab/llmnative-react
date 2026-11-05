@@ -160,6 +160,35 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
+## CR-120 — SortableList: card riordinabili
+
+**Stato:** ✅ done (1.44.0)
+**Issue:** [#99](https://github.com/sherpadvisorylab/llmnative-react/issues/99)
+**Priorità:** Media
+
+### Motivazione
+
+Emersa nel Playbook il 05/11/2026: gli account di un provider (chiavi API, abbonamenti) sono in un ordine che
+la persona sceglie e cambia trascinandoli; le card sono più leggibili delle righe di una tabella, ma solo le
+righe di `Table` erano riordinabili.
+
+### Scope
+
+- `SortableList<TItem>`: `items`, `getKey`, `renderItem` (il contenuto di una `ListCard` compatta), `onReorder`
+  (nuovo ordine e `{ fromIndex, toIndex, item }`), `label`, `numbered`, `disabled`, `emptyState`, classi.
+- Maniglia trascinabile (HTML drag and drop, indicatore della posizione di rilascio) e frecce su/giù sulla
+  maniglia; annuncio `aria-live` della nuova posizione. `moveItem` esportato.
+- i18n `sortableList.handle` e `sortableList.moved` nelle 6 lingue; pagina dello showcase; llms-full.
+
+### Criteri di accettazione
+
+- [x] AC1: trascinare una card per la maniglia la sposta e chiama onReorder con il nuovo ordine e from/to.
+- [x] AC2: frecce su/giù sulla maniglia spostano la card, con annuncio aria-live.
+- [x] AC3: ogni card è una ListCard compatta (titolo, descrizione, meta, badge, azioni), nessuna primitiva nuova.
+- [x] AC4: i18n nelle 6 lingue, pagina dello showcase, documentazione.
+
+---
+
 ## CR-119 — Identità dei modelli: prezzi e offerte per provider
 
 **Stato:** ✅ done (1.43.0)

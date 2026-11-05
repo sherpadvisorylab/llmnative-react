@@ -46,6 +46,7 @@ const ChartsPage = lazyPage(() => import('../pages/components/ChartsPage'));
 const ImageFieldPage = lazyPage(() => import('../pages/components/ImageFieldPage'));
 const LayoutBuilderPage = lazyPage(() => import('../pages/components/LayoutBuilderPage'));
 const ListCardPage = lazyPage(() => import('../pages/components/ListCardPage'));
+const SortableListPage = lazyPage(() => import('../pages/components/SortableListPage'));
 const ListGroupPage = lazyPage(() => import('../pages/components/ListGroupPage'));
 const MenuPage = lazyPage(() => import('../pages/components/MenuPage'));
 const ModalPage = lazyPage(() => import('../pages/components/ModalPage'));
@@ -252,6 +253,7 @@ export const menu = {
         { path: '/components/brand', title: 'Brand', page: BrandPage, group: 'Blocks' },
         { path: '/components/breadcrumbs', title: 'Breadcrumbs', page: BreadcrumbsPage, group: 'Blocks' },
         { path: '/components/list-card', title: 'ListCard', page: ListCardPage, group: 'Blocks' },
+        { path: '/components/sortable-list', title: 'SortableList', page: SortableListPage, group: 'Blocks' },
         { path: '/components/menu', title: 'Menu', page: MenuPage, group: 'Blocks' },
         { path: '/components/notifications', title: 'Notifications', page: NotificationsPage, group: 'Blocks' },
         { path: '/components/search', title: 'Search', page: SearchPage, group: 'Blocks' },

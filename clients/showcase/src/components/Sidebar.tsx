@@ -58,6 +58,7 @@ const ICON_MAP: Record<string, string> = {
     '/components/brand':           'star',
     '/components/breadcrumbs':     'chevrons-right',
     '/components/list-card':       'rows-3',
+    '/components/sortable-list':   'grip-vertical',
     '/components/menu':            'menu',
     '/components/notifications':   'bell',
     '/components/search':          'search',

@@ -1022,6 +1022,28 @@ e lasciano il menu aperto salvo `closeOnClick`.
 | `onClick` | `(e) => void` |
 | Classi CSS: `titleClassName`, `descriptionClassName`, `metaClassName`, `badgeClassName`, `leadingClassName`, `bodyClassName`, `headerClassName`, `trailingClassName`, `footerClassName` | `string` |
 
+**SortableList (CR-120):** card compatte (ListCard) in un ordine che la persona sceglie: le trascina per la
+maniglia, o con le frecce su/giù sulla maniglia; l'annuncio della nuova posizione va agli screen reader.
+```tsx
+<SortableList
+  items={accounts}
+  getKey={(a) => a.id}
+  label="Account"
+  numbered
+  onReorder={(next, { fromIndex, toIndex, item }) => setAccounts(next)}
+  renderItem={(a) => ({ title: a.email, meta: a.added, badge: <Badge variant="success">Disponibile</Badge>, trailing: <ActionButton icon="trash-2" … /> })}
+  emptyState={<p>Nessun account</p>}
+/>
+moveItem(['a', 'b', 'c'], 0, 2)   // ['b', 'c', 'a']
+```
+| Prop | Tipo |
+|---|---|
+| `items` / `getKey` | `TItem[]` / `(item) => string` |
+| `renderItem` | `(item, index) => SortableListCard` (`title`, `description`, `meta`, `badge`, `icon`, `trailing`, `active`, `disabled` di ListCard) |
+| `onReorder` | `(items, { fromIndex, toIndex, item }) => void`; senza, nessuna maniglia |
+| `label` / `numbered` / `disabled` / `emptyState` | `string` / `boolean` / `boolean` / `ReactNode` |
+| Classi CSS: `className`, `itemClassName`, `cardClassName` | `string` |
+
 **Dropdown:**
 | Prop | Tipo |
 |---|---|

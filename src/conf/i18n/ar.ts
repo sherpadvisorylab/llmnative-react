@@ -64,6 +64,7 @@ export const ar: I18nDict = {
         selectRow: 'تحديد الصف {key}', reorderRow: 'إعادة ترتيب الصف {key}',
     },
     gallery: { selectItem: 'تحديد العنصر {key}' },
+    sortableList: { handle: 'نقل العنصر {position} من {total}: اسحبه أو استخدم السهمين لأعلى ولأسفل', moved: 'نُقل إلى الموضع {position} من {total}' },
     crop: {
         enableCrop: 'تفعيل الاقتصاص بمقياس {scale}', variants: 'المتغيرات',
         outputFile: 'ملف الإخراج', active: 'نشط',

@@ -64,6 +64,7 @@ export const it: I18nDict = {
         selectRow: 'Seleziona riga {key}', reorderRow: 'Riordina riga {key}',
     },
     gallery: { selectItem: 'Seleziona elemento {key}' },
+    sortableList: { handle: "Sposta l'elemento {position} di {total}: trascinalo, o usa le frecce su e giù", moved: 'Spostato in posizione {position} di {total}' },
     crop: {
         enableCrop: 'Abilita ritaglio a scala {scale}', variants: 'Varianti',
         outputFile: 'File di output', active: 'Attivo',

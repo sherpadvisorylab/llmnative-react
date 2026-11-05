@@ -119,6 +119,10 @@ export interface I18nDict {
     gallery: {
         selectItem: string;
     };
+    sortableList: {
+        handle: string;
+        moved:  string;
+    };
     crop: {
         enableCrop:         string;
         variants:           string;
