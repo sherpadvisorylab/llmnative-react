@@ -33,6 +33,7 @@ import { ANTHROPIC_PROVIDER_DEFINITION } from '../../../src/providers/ai/anthrop
 import { createOpenAICompatibleProviderDefinition } from '../../../src/providers/ai/openaiCompatible';
 import { GEMINI_PROVIDER_DEFINITION } from '../../../src/providers/ai/gemini';
 import { OPENCODE_PROVIDER_DEFINITION, isOpenCodeFreeTierModel } from '../../../src/providers/ai/opencode';
+import { OPENCODE_GO_PROVIDER_DEFINITION } from '../../../src/providers/ai/opencodeGo';
 import * as fetchLib from '../../../src/libs/fetch';
 import * as proxy from '../../../src/providers/proxy';
 
@@ -505,6 +506,40 @@ describe('GEMINI_PROVIDER_DEFINITION', () => {
             const headers = mockFetchJson().mock.calls[0][1].headers as Record<string, string> | undefined;
             expect(headers).toBeUndefined();
         });
+    });
+});
+
+// ── OPENCODE_GO_PROVIDER_DEFINITION (CR-118) ────────────────────────────────────
+
+describe('OPENCODE_GO_PROVIDER_DEFINITION', () => {
+    it('is the subscription of OpenCode, with its own key', () => {
+        expect(OPENCODE_GO_PROVIDER_DEFINITION.id).toBe('opencode-go');
+        expect(OPENCODE_GO_PROVIDER_DEFINITION.configKey).toBe('openCodeGoApiKey');
+        expect(OPENCODE_GO_PROVIDER_DEFINITION.fallbackModels).toContain(OPENCODE_GO_PROVIDER_DEFINITION.defaultModel);
+        expect(OPENCODE_GO_PROVIDER_DEFINITION.fallbackModels.some(isOpenCodeFreeTierModel)).toBe(false);
+    });
+
+    it('lists the models of Go, without the free ones', async () => {
+        mockFetchJson().mockResolvedValueOnce({ data: [{ id: 'kimi-k3' }, { id: 'beam-free' }, { id: 'glm-5.3' }] });
+        expect(await OPENCODE_GO_PROVIDER_DEFINITION.discoverModels('key')).toEqual(['kimi-k3', 'glm-5.3']);
+        expect(mockFetchJson().mock.calls[0][0]).toBe('https://opencode.ai/zen/go/v1/models');
+        expect((mockFetchJson().mock.calls[0][1].headers as Record<string, string>).Authorization).toBe('Bearer key');
+    });
+
+    it('calls the endpoint of Go with the key and the session of the conversation', async () => {
+        mockFetchJson().mockResolvedValueOnce({ choices: [{ message: { content: 'ok' } }] });
+        await OPENCODE_GO_PROVIDER_DEFINITION.complete('key', { prompt: 'Say hi', model: 'kimi-k3', logId: 'conv-123' });
+        const [url, init] = mockFetchJson().mock.calls[0];
+        expect(url).toBe('https://opencode.ai/zen/go/v1/chat/completions');
+        expect(init.headers).toMatchObject({ Authorization: 'Bearer key', 'x-opencode-session': 'conv-123' });
+        expect((init.body as { model: string }).model).toBe('kimi-k3');
+    });
+
+    it('gives a request without a conversation a session of its own', async () => {
+        mockFetchJson().mockResolvedValueOnce({ choices: [{ message: { content: 'ok' } }] });
+        await OPENCODE_GO_PROVIDER_DEFINITION.complete('key', { prompt: 'Say hi', model: 'kimi-k3' });
+        const headers = mockFetchJson().mock.calls[0][1].headers as Record<string, string>;
+        expect(headers['x-opencode-session']).toMatch(/\S{8,}/);
     });
 });
 

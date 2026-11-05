@@ -68,7 +68,7 @@ interface AppProps {
 | `storage` | Upload, download, delete, file URL | `Upload`, `useStorageProvider` | `firestorage`, `supabaseStorage` |
 | `auth` | Current user, sign-in/out, access token | `AuthButton`, `useAuthProvider` | `googleAuth`, `dropboxAuth`, `firebaseAuth`, `supabaseAuth` |
 | `email` | Outbound email | `useEmailProvider` | `gmail` |
-| `ai` | Prompt execution and model orchestration | `Prompt`, `WorkflowAI`, `AI.fetch(...)`, `useAIProvider` | `openai`, `openrouter`, `opencode`, `openai-compatible`, `deepseek`, `gemini`, `anthropic`, `mistral`, `glm`, `cloudflare`, `groq` |
+| `ai` | Prompt execution and model orchestration | `Prompt`, `WorkflowAI`, `AI.fetch(...)`, `useAIProvider` | `openai`, `openrouter`, `opencode`, `opencode-go`, `openai-compatible`, `deepseek`, `gemini`, `anthropic`, `mistral`, `glm`, `cloudflare`, `groq` |
 | `credentials` | Service account credentials and token generation | `useCredentialsProvider`, `getAccessToken` | `googleServiceAccount` |
 | `proxy` | Same-origin relay for browser-safe external requests | `proxyFetch(...)`, `useProxyProvider` | `viteDevProxy`, `expressProxy` |
 
@@ -112,7 +112,7 @@ interface AppProvidersConfig {
     storage?: 'firestorage' | 'supabaseStorage' | string;
     auth?: 'googleAuth' | 'dropboxAuth' | 'firebaseAuth' | 'supabaseAuth' | string;
     email?: 'gmail' | string;
-    ai?: 'openai' | 'openrouter' | 'opencode' | 'openai-compatible' | 'deepseek' | 'gemini' | 'anthropic' | 'mistral' | 'glm' | 'cloudflare' | 'groq' | string;
+    ai?: 'openai' | 'openrouter' | 'opencode' | 'opencode-go' | 'openai-compatible' | 'deepseek' | 'gemini' | 'anthropic' | 'mistral' | 'glm' | 'cloudflare' | 'groq' | string;
     credentials?: 'googleServiceAccount' | string;
     proxy?: 'viteDevProxy' | 'expressProxy' | string;
   };
@@ -197,6 +197,7 @@ interface AIConfig {
   openaiApiKey?: string;
   openRouterApiKey?: string;
   openCodeApiKey?: string;
+  openCodeGoApiKey?: string;
   anthropicApiKey?: string;
   deepSeekApiKey?: string;
   mistralApiKey?: string;

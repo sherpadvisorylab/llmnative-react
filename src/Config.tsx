@@ -52,6 +52,8 @@ export type AIConfig = {
     deepSeekApiKey?: string;
     openRouterApiKey?: string;
     openCodeApiKey?: string;
+    /** OpenCode Go: the API key of the subscription (CR-118). */
+    openCodeGoApiKey?: string;
     anthropicApiKey?: string;
     mistralApiKey?: string;
     glmApiKey?: string;

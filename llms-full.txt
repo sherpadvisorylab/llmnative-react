@@ -110,7 +110,7 @@ The VS Code and Tokyo Night themes are compiled from the original VS Code theme 
 | storage | `StorageProviderAdapter` | `firestorage`, `supabaseStorage` | `providers.firebase/supabase` | no |
 | auth | `AuthProviderAdapter` | `googleAuth`, `firebaseAuth`, `supabaseAuth`, `dropboxAuth`, `githubAuth` | `providers.google/firebase/supabase/dropbox/github` | sì (fallback: googleAuth) |
 | email | `EmailProviderAdapter` | `gmail` | `providers.google` | no |
-| ai | `AIProviderAdapter` | `openai`, `gemini`, `anthropic`, `deepseek`, `mistral`, `openrouter`, `opencode`, `cloudflare`, `groq` | `Config.tsx AIConfig` | no |
+| ai | `AIProviderAdapter` | `openai`, `gemini`, `anthropic`, `deepseek`, `mistral`, `openrouter`, `opencode`, `opencode-go`, `cloudflare`, `groq` | `Config.tsx AIConfig` | no |
 | credentials | `CredentialsAdapter` | `googleServiceAccount` | `providers.google.serviceAccount` | no |
 
 ### Hooks

@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.42.0] - 2026-11-05
+
+### Added
+- AI provider `opencode-go` (CR-118): the OpenCode Go subscription (a fixed monthly price, limits in
+  dollars per model), next to `opencode` (Zen, pay as you go). The same OpenAI Chat Completions under
+  `https://opencode.ai/zen/go/v1`, its own key (`AIConfig.openCodeGoApiKey`), and the session id Go asks
+  for (`x-opencode-session`: the `logId` of the conversation, else one per request; without it Go answers
+  400). Its models from `/zen/go/v1/models`, free ones left out; prices from models.dev (`opencode-go`);
+  the host for server credentials. `completeOpenCode` shared by Zen and Go.
+
 ## [1.41.0] - 2026-11-05
 
 ### Added

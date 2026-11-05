@@ -119,6 +119,7 @@
 | [CR-111](#cr-111--menu-dei-comandi-descrizione-del-comando-e-ricerca-nella-descrizione) | Menu dei comandi: descrizione del comando e ricerca nella descrizione | Media | CR-047, CR-056 | ✅ |
 | [CR-116](#cr-116--checkbox-e-switch-disabilitati-con-il-motivo) | Checkbox e Switch disabilitati, con il motivo | Bassa | — | ✅ |
 | [CR-117](#cr-117--form-requirechanges-form-dazione) | Form: requireChanges, un form d'azione salva anche senza modifiche | Media | — | ✅ |
+| [CR-118](#cr-118--provider-ai-opencode-go) | Provider AI OpenCode Go (abbonamento con chiave) | Media | — | ✅ |
 | [CR-115](#cr-115--measurebarlist-misure-affiancate-ognuna-sulla-sua-scala) | MeasureBarList: misure affiancate, ognuna sulla sua scala | Media | CR-112 | ✅ |
 | [CR-114](#cr-114--sequencecolumnchart-colonne-di-segmenti-in-sequenza) | SequenceColumnChart: colonne di segmenti in sequenza | Media | CR-112 | ✅ |
 | [CR-113](#cr-113--modal-overflow-del-body-restituito-comera) | Modal: overflow del body restituito com'era | Media | — | ✅ |
@@ -156,6 +157,33 @@ Richiesto dal consumer `llmnative-cms`.
 - [x] Docs `docs/providers/ai.md`, `llms-full.txt`
 - [x] Verifica visiva nel consumer `llmnative-cms` (picker Agentico: header per OpenCode, DeepSeek, Cloudflare Workers AI, sticky durante lo scroll)
 - [x] Release 1.18.0
+
+---
+
+## CR-118 — Provider AI OpenCode Go
+
+**Stato:** ✅ done (1.42.0)
+**Issue:** [#97](https://github.com/sherpadvisorylab/llmnative-react/issues/97)
+**Priorità:** Media
+
+### Motivazione
+
+Emersa nel Playbook il 05/11/2026: OpenCode Go è un abbonamento a prezzo fisso a una trentina di modelli,
+usabile da client di terzi con una chiave API: l'alternativa consentita agli abbonamenti dei vendor via
+OAuth, che i loro termini vietano fuori dai loro strumenti.
+
+### Scope
+
+- Provider `opencode-go`: Chat Completions su `https://opencode.ai/zen/go/v1`, `Authorization: Bearer`,
+  `x-opencode-session` (il `logId`, altrimenti uno per richiesta: senza Go risponde 400 `MissingSessionID`).
+- Modelli da `/zen/go/v1/models` (senza i gratuiti), prezzi da models.dev, host per le credenziali del
+  server, `AIConfig.openCodeGoApiKey`, manifest. `completeOpenCode` condiviso con Zen.
+
+### Criteri di accettazione
+
+- [x] AC1: chiama l'endpoint di Go con la chiave e la sessione.
+- [x] AC2: elenca i modelli di Go senza i gratuiti.
+- [x] AC3: il provider `opencode` (Zen) non cambia.
 
 ---
 

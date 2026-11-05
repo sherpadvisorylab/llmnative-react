@@ -13,6 +13,7 @@ const MODELS_DEV_PROVIDER_KEYS: Record<string, string[]> = {
     openai: ['openai'],
     openrouter: ['openrouter'],
     opencode: ['opencode'],
+    'opencode-go': ['opencode-go'],
     deepseek: ['deepseek'],
     gemini: ['google'],
     anthropic: ['anthropic'],

@@ -34,6 +34,7 @@ export const AI_PROVIDER_HOSTS: Readonly<Record<string, string>> = {
     openai: 'api.openai.com',
     openrouter: 'openrouter.ai',
     opencode: 'opencode.ai',
+    'opencode-go': 'opencode.ai',
     deepseek: 'api.deepseek.com',
     gemini: 'generativelanguage.googleapis.com',
     anthropic: 'api.anthropic.com',

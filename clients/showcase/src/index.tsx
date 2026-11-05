@@ -61,6 +61,7 @@ root.render(
                 openaiApiKey: env.VITE_OPENAI_API_KEY,
                 openRouterApiKey: env.VITE_OPENROUTER_API_KEY,
                 openCodeApiKey: env.VITE_OPENCODE_API_KEY,
+                openCodeGoApiKey: env.VITE_OPENCODE_GO_API_KEY,
                 geminiApiKey: env.VITE_GEMINI_API_KEY,
                 anthropicApiKey: env.VITE_ANTHROPIC_API_KEY,
                 deepSeekApiKey: env.VITE_DEEPSEEK_API_KEY,

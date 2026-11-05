@@ -11,6 +11,7 @@ import { createOpenAICompatibleProviderDefinition } from './openaiCompatible';
 import { GLM_PROVIDER_DEFINITION } from './glm';
 import { GROQ_PROVIDER_DEFINITION } from './groq';
 import { OPENCODE_PROVIDER_DEFINITION } from './opencode';
+import { OPENCODE_GO_PROVIDER_DEFINITION } from './opencodeGo';
 import { OPENROUTER_PROVIDER_DEFINITION } from './openrouter';
 import { getAIModelCatalog, type AIProviderDefinition, type AIModelCatalog, type BuiltInAIProviderId, RuntimeAIProvider } from './shared';
 import { serverCredential } from './serverCredentials';
@@ -34,6 +35,7 @@ export const AI_PROVIDER_DEFINITIONS: AIProviderDefinition[] = [
     OPENAI_PROVIDER_DEFINITION,
     OPENROUTER_PROVIDER_DEFINITION,
     OPENCODE_PROVIDER_DEFINITION,
+    OPENCODE_GO_PROVIDER_DEFINITION,
     DEEPSEEK_PROVIDER_DEFINITION,
     GEMINI_PROVIDER_DEFINITION,
     ANTHROPIC_PROVIDER_DEFINITION,

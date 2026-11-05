@@ -4,6 +4,7 @@ import { proxyFetch } from '../proxy';
 import { PromptUtils } from '../../libs/promptUtils';
 import { LLM_LOG_ID_HEADER } from '../proxy/logHeader';
 import type { AIProviderDefinition } from './shared';
+import type { AICompleteRequest, AICompleteResult } from './AIProvider';
 import { createBrowserTransportError } from './shared';
 import { toOpenAITool, toOpenAIMessages, parseOpenAIResponse } from './openaiCompatible';
 
@@ -80,7 +81,14 @@ export const OPENCODE_PROVIDER_DEFINITION: AIProviderDefinition = {
             .filter((value: unknown): value is string => typeof value === 'string' && value.length > 0)
             .filter((id: string) => !isOpenCodeFreeTierModel(id));
     },
-    complete: async (apiKey, request) => {
+    complete: (apiKey, request) => completeOpenCode(OPENCODE_CHAT_URL, 'OpenCode', apiKey, request),
+};
+
+/**
+ * A completion through an endpoint of OpenCode (Zen, Go): the OpenAI Chat Completions wire format, with
+ * the attachments as openaiCompatible.ts sends them. `extraHeaders`: what an endpoint asks besides the key.
+ */
+export async function completeOpenCode(chatUrl: string, label: string, apiKey: string, request: AICompleteRequest, extraHeaders: Record<string, string> = {}): Promise<AICompleteResult | null> {
         // Stesso wire format OpenAI Chat Completions dell'endpoint Zen (vedi
         // isChatCompletionsModel sopra) — stesso trattamento allegati di openaiCompatible.ts,
         // mai duplicato a mano: prima di questa correzione request.attachments veniva
@@ -98,11 +106,12 @@ export const OPENCODE_PROVIDER_DEFINITION: AIProviderDefinition = {
               }).concat({ type: 'text' as const, text: request.prompt })
             : request.prompt;
 
-        const response = await fetchJson(OPENCODE_CHAT_URL, {
+        const response = await fetchJson(chatUrl, {
             method: 'POST',
             headers: {
                 Authorization: `Bearer ${apiKey}`,
                 ...(request.logId ? { [LLM_LOG_ID_HEADER]: request.logId } : {}),
+                ...extraHeaders,
             },
             body: {
                 model: request.model,
@@ -118,9 +127,9 @@ export const OPENCODE_PROVIDER_DEFINITION: AIProviderDefinition = {
         }, proxyFetch);
 
         if (!response) {
-            throw createBrowserTransportError('OpenCode');
+            throw createBrowserTransportError(label);
         }
 
         return parseOpenAIResponse(response);
-    },
-};
+}
+

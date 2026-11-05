@@ -18,7 +18,8 @@ The goal is the same as for `data`, `storage`, `auth` and `email`: keep the exte
 |---|---|---|
 | `openai` | OpenAI API | GPT models and broad ecosystem compatibility |
 | `openrouter` | OpenRouter API | Aggregated vendor routing through one OpenAI-style endpoint |
-| `opencode` | OpenCode Zen API | OpenCode-hosted coding models exposed through chat completions |
+| `opencode` | OpenCode Zen API | OpenCode-hosted coding models exposed through chat completions, pay as you go |
+| `opencode-go` | OpenCode Go API | The OpenCode Go subscription (fixed monthly price, limits in dollars per model): the same chat completions under `/zen/go`, its own key (`openCodeGoApiKey`), a session id per conversation (`x-opencode-session`, from `logId`) |
 | `openai-compatible` | Your OpenAI-style endpoint | proxies, gateways, local servers, private routers |
 | `deepseek` | DeepSeek API | DeepSeek chat/reasoning models |
 | `gemini` | Google Gemini API | Gemini-native projects and Google ecosystem |

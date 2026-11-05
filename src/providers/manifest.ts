@@ -27,6 +27,7 @@ import { MISTRAL_PROVIDER_DEFINITION } from './ai/mistral';
 import { GROQ_PROVIDER_DEFINITION } from './ai/groq';
 import { OPENAI_PROVIDER_DEFINITION } from './ai/openai';
 import { OPENCODE_PROVIDER_DEFINITION } from './ai/opencode';
+import { OPENCODE_GO_PROVIDER_DEFINITION } from './ai/opencodeGo';
 import { OPENROUTER_PROVIDER_DEFINITION } from './ai/openrouter';
 import type { ProviderService } from './ProviderRegistryContext';
 
@@ -126,6 +127,7 @@ export const AI_MANIFEST: DriverManifest<AIConfig> = {
     openai:     toAIDriver(OPENAI_PROVIDER_DEFINITION, 'openaiApiKey'),
     openrouter: toAIDriver(OPENROUTER_PROVIDER_DEFINITION, 'openRouterApiKey'),
     opencode:   toAIDriver(OPENCODE_PROVIDER_DEFINITION, 'openCodeApiKey'),
+    'opencode-go': toAIDriver(OPENCODE_GO_PROVIDER_DEFINITION, 'openCodeGoApiKey'),
     deepseek:   toAIDriver(DEEPSEEK_PROVIDER_DEFINITION, 'deepSeekApiKey'),
     gemini:     toAIDriver(GEMINI_PROVIDER_DEFINITION, 'geminiApiKey'),
     anthropic:  toAIDriver(ANTHROPIC_PROVIDER_DEFINITION, 'anthropicApiKey'),
@@ -164,7 +166,7 @@ export type DataDriverName    = 'dbRealtime' | 'firestoreDb' | 'supabaseDb' | 'm
 export type StorageDriverName = 'firestorage' | 'supabaseStorage';
 export type AuthDriverName        = 'googleAuth' | 'firebaseAuth' | 'dropboxAuth' | 'supabaseAuth' | 'githubAuth';
 export type EmailDriverName       = 'gmail';
-export type AIDriverName          = 'openai' | 'openrouter' | 'opencode' | 'openai-compatible' | 'deepseek' | 'gemini' | 'anthropic' | 'mistral' | 'cloudflare' | 'groq';
+export type AIDriverName          = 'openai' | 'openrouter' | 'opencode' | 'opencode-go' | 'openai-compatible' | 'deepseek' | 'gemini' | 'anthropic' | 'mistral' | 'cloudflare' | 'groq';
 export type CredentialsDriverName = 'googleServiceAccount';
 
 export type ServicesConfig = {
