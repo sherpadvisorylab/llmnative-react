@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.45.0] - 2026-11-06
+
+### Changed
+- The model picker of `Chatbot` (CR-121) shows the `label` of the model picked, not its value cut after its
+  last slash: an opaque value (a JSON, an id) never shows.
+
+### Added
+- `ChatbotModelOption.groupBadge` (CR-121): `{ label, variant? }`, a Badge on the right of the sticky header of
+  its group (e.g. how the group is paid).
+
 ## [1.44.0] - 2026-11-05
 
 ### Added

@@ -4,6 +4,7 @@ import { useI18n } from '../../I18n';
 import type { AIModelPricing } from '../../providers/ai/AIProvider';
 import { Dropdown, DropdownHeader, DropdownItem } from '../blocks/Dropdown';
 import Icon from '../ui/Icon';
+import Badge, { type BadgeType } from '../ui/Badge';
 import {
     buildTextCommandContext,
     ContextMenu,
@@ -64,18 +65,21 @@ export interface ChatbotModelOption {
     /** Section the option is listed under (e.g. its provider). When any option has one, the
      * picker renders one sticky header per group, in order of first appearance. */
     group?: string;
+    /** A badge on the right of the header of its group (CR-121), e.g. how the group is paid; the
+     * first option of a group that has one gives it. */
+    groupBadge?: { label: string; variant?: BadgeType };
 }
 
 /** Consecutive-or-not options sharing a `group` end up in one section, keeping the order in
  * which each group first appears; options without a group form an unnamed leading section. */
-export const groupModelOptions = (options: ChatbotModelOption[]): Array<{ group?: string; options: ChatbotModelOption[] }> => {
+export const groupModelOptions = (options: ChatbotModelOption[]): Array<{ group?: string; badge?: ChatbotModelOption['groupBadge']; options: ChatbotModelOption[] }> => {
     const sections = new Map<string | undefined, ChatbotModelOption[]>();
     for (const option of options) {
         const section = sections.get(option.group);
         if (section) section.push(option);
         else sections.set(option.group, [option]);
     }
-    return [...sections].map(([group, items]) => ({ group, options: items }));
+    return [...sections].map(([group, items]) => ({ group, badge: items.find((item) => item.groupBadge)?.groupBadge, options: items }));
 };
 
 const formatModelPrice = (value: number) => {
@@ -292,7 +296,8 @@ export function Chatbot({
         context.replace(context.triggerRange.start, context.triggerRange.end, `${context.trigger}${cmd.name} `);
     }, [commandLookup]);
 
-    const modelLabel = modelShortLabel(selectedModel);
+    // The name of the model picked as its option says it (CR-121), else the end of its ref.
+    const modelLabel = models.find((option) => option.value === selectedModel)?.label ?? modelShortLabel(selectedModel);
 
     const handleSubmit = () => {
         if (disabled || running) return;
@@ -464,9 +469,18 @@ export function Chatbot({
                             position="start"
                             triggerClassName={chatbotModelTrigger}
                         >
-                            {groupModelOptions(models).map(({ group, options }) => (
+                            {groupModelOptions(models).map(({ group, badge, options }) => (
                                 <React.Fragment key={group ?? ''}>
-                                    {group !== undefined && <DropdownHeader className={chatbotModelGroupHeader}>{group}</DropdownHeader>}
+                                    {group !== undefined && (
+                                        <DropdownHeader className={chatbotModelGroupHeader}>
+                                            {badge ? (
+                                                <span className="flex items-center justify-between gap-2">
+                                                    <span className="min-w-0 truncate">{group}</span>
+                                                    <Badge variant={badge.variant ?? 'light'}>{badge.label}</Badge>
+                                                </span>
+                                            ) : group}
+                                        </DropdownHeader>
+                                    )}
                                     {options.map((opt) => (
                                         <DropdownItem
                                             key={opt.value}

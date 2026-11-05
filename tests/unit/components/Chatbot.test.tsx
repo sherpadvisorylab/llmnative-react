@@ -80,12 +80,36 @@ describe('Chatbot', () => {
             />
         );
 
-        fireEvent.click(screen.getByText('claude-sonnet-4-0'));
+        // The trigger says the name of the model picked (CR-121).
+        fireEvent.click(screen.getAllByText('Claude Sonnet')[0]);
         fireEvent.click(screen.getByText('GPT-4o'));
         expect(onModelChange).toHaveBeenCalledWith('openai/gpt-4o');
 
         fireEvent.click(screen.getByRole('button', { name: /Run/i }));
         expect(onSubmit.mock.calls[0][0]).toMatchObject({ model: 'anthropic/claude-sonnet-4-0' });
+    });
+
+    it('shows the name of the model picked, and the badge of each group on the right of its header (CR-121)', () => {
+        const opaque = JSON.stringify({ provider: 'claude-code', model: 'claude-opus-5-5' });
+        renderWithProviders(
+            <ControlledChatbot
+                onSubmit={vi.fn()}
+                models={[
+                    { label: 'Claude Opus 5.5', value: opaque, group: 'Claude Code', groupBadge: { label: 'Subscription', variant: 'info' } },
+                    { label: 'DeepSeek V4.1 Flash', value: 'opencode/deepseek-v4.1-flash', group: 'OpenCode Zen', groupBadge: { label: 'Pay as you go' } },
+                    { label: 'GPT-4o', value: 'openai/gpt-4o', group: 'OpenAI' },
+                ]}
+                selectedModel={opaque}
+            />
+        );
+
+        // The name, never the value cut after its last slash.
+        fireEvent.click(screen.getAllByText('Claude Opus 5.5')[0]);
+        expect(screen.getByText('Subscription')).toBeInTheDocument();
+        expect(screen.getByText('Pay as you go')).toBeInTheDocument();
+        expect(screen.getByText('Claude Code').closest('[class*="sticky"]')).toContainElement(screen.getByText('Subscription'));
+        // A group without a badge: its name only.
+        expect(screen.getByText('OpenAI').className).toContain('sticky');
     });
 
     it('shows per-1M input/output prices, highlights free models and flags missing prices', () => {

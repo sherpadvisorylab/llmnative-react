@@ -1150,6 +1150,8 @@ const catalog   = getAIModelCatalog()       // modelli disponibili
 // non trovato (il modello resta in lista). isFreeAIModel(m) → input e output a 0.
 // Il model picker di Prompt/Chatbot mostra "$in / $out", evidenzia i free, segnala i mancanti,
 // e raggruppa per provider (ChatbotModelOption.group = providerLabel) con header sticky.
+// CR-121: il pulsante mostra la `label` del modello scelto (non il suo valore); `groupBadge: { label, variant? }`
+// su un'opzione mette un Badge a destra nell'header del suo gruppo (es. Abbonamento / A consumo).
 
 // Provider adapter restituito da useAIProvider()
 const text  = await provider.fetch("Scrivi un titolo per: {keyword}", { keyword: "React" })

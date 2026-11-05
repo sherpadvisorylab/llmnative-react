@@ -31,6 +31,7 @@
 
 | CR | State | Evidence |
 |----|-------|----------|
+| CR-121 | Done | Selettore del modello di `Chatbot`: il trigger mostra la label del modello scelto; `groupBadge` a destra nell'header sticky del gruppo. Test (2). Released in 1.45.0. Issue #100. |
 | CR-120 | Done | `SortableList`: card compatte (ListCard) riordinabili per la maniglia o con le frecce, `onReorder`, annuncio aria-live, `numbered`, `emptyState`; i18n 6 lingue, showcase. Test (5). Released in 1.44.0. Issue #99. |
 | CR-119 | Done | Identità dei modelli: `cost` di models.dev su ogni voce dell'indice e `modelOffers` (tutti i provider di un modello con id stabile e prezzo). Test (1). Released in 1.43.0. Issue #98. |
 | CR-118 | Done | Provider AI `opencode-go` (abbonamento OpenCode Go con chiave): endpoint `/zen/go/v1`, `x-opencode-session` dal `logId`, modelli senza i gratuiti, prezzi models.dev, host delle credenziali del server. Test (4). Released in 1.42.0. Issue #97. |

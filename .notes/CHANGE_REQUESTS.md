@@ -160,6 +160,30 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
+## CR-121 — Selettore del modello: nome scelto e badge del gruppo
+
+**Stato:** ✅ done (1.45.0)
+**Issue:** [#100](https://github.com/sherpadvisorylab/llmnative-react/issues/100)
+**Priorità:** Media
+
+### Motivazione
+
+Emersa nel Playbook il 06/11/2026: i modelli di Agentico raggruppati per harness (Claude Code, opencode, API),
+con valori opachi e un'indicazione di come si paga ogni gruppo.
+
+### Scope
+
+- Il trigger del selettore del modello mostra la `label` dell'opzione scelta; senza, la parte finale del ref.
+- `ChatbotModelOption.groupBadge?: { label, variant? }`: Badge a destra nell'header sticky del gruppo.
+
+### Criteri di accettazione
+
+- [x] AC1: il trigger mostra la label dell'opzione scelta; senza opzione corrispondente, come prima.
+- [x] AC2: `groupBadge` di un'opzione appare a destra nell'intestazione del suo gruppo.
+- [x] AC3: test, docs, CHANGELOG.
+
+---
+
 ## CR-120 — SortableList: card riordinabili
 
 **Stato:** ✅ done (1.44.0)
