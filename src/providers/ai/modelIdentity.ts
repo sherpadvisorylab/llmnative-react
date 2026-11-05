@@ -30,8 +30,11 @@ export const canonicalModelName = (name: string): string => {
     return [...words, ...modes.map((mode) => mode.toLowerCase())].join(' ');
 };
 
-/** One model of a provider, as models.dev lists it. */
-export type ModelIdentityEntry = { id: string; name: string };
+/** One model of a provider, as models.dev lists it, with its price there when models.dev has one (CR-119). */
+export type ModelIdentityEntry = { id: string; name: string; cost?: ModelCost };
+
+/** What a model costs on a provider: USD per 1M tokens. */
+export type ModelCost = { input: number; output: number };
 
 export type ModelIdentity = {
     /** canonicalModelName() of its name. */
@@ -49,7 +52,7 @@ export type ModelIdentityIndex = {
     providers: Record<string, string>;
 };
 
-type ModelsDevCatalog = Record<string, { name?: string; models?: Record<string, { name?: string; family?: string }> }>;
+type ModelsDevCatalog = Record<string, { name?: string; models?: Record<string, { name?: string; family?: string; cost?: { input?: unknown; output?: unknown } }> }>;
 
 /** How far an id is from the stable one: `~` aliases, free tiers, Latest and dated ids come last. */
 const instability = ({ id, name }: ModelIdentityEntry): number => {
@@ -76,7 +79,10 @@ export function buildModelIdentityIndex(catalog: ModelsDevCatalog): ModelIdentit
             const key = canonicalModelName(name);
             const identity = models[key] ??= { key, name, providers: {} };
             if (!identity.family && entry?.family) identity.family = entry.family;
-            (identity.providers[provider] ??= []).push({ id, name });
+            const input = entry?.cost?.input;
+            const output = entry?.cost?.output;
+            const cost = typeof input === 'number' && typeof output === 'number' ? { input, output } : undefined;
+            (identity.providers[provider] ??= []).push({ id, name, ...(cost ? { cost } : {}) });
             // The name to show is the one of the most stable id seen so far.
             if (instability({ id, name }) < instability({ id: '', name: identity.name })) identity.name = name;
         }
@@ -108,6 +114,23 @@ export function resolveModel(index: ModelIdentityIndex, model: string, providers
         if (best) return { provider, model: best.id, ref: `${provider}/${best.id}` };
     }
     return undefined;
+}
+
+/** A provider that serves a model: its most stable id there, and what it costs there when known. */
+export type ModelOffer = ResolvedModel & { cost?: ModelCost };
+
+/**
+ * Every provider that serves `model` (a name or a canonical key), each with its most stable id and its
+ * price: of `providers`, in their order, when given; else of the whole catalog, by provider key (CR-119).
+ */
+export function modelOffers(index: ModelIdentityIndex, model: string, providers?: readonly string[]): ModelOffer[] {
+    const identity = index.models[canonicalModelName(model)];
+    if (!identity) return [];
+    const keys = providers ?? Object.keys(identity.providers).sort();
+    return keys.flatMap((provider) => {
+        const best = identity.providers[provider]?.[0];
+        return best ? [{ provider, model: best.id, ref: `${provider}/${best.id}`, ...(best.cost ? { cost: best.cost } : {}) }] : [];
+    });
 }
 
 let pending: Promise<ModelIdentityIndex> | null = null;

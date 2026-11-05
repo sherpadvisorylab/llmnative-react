@@ -28,8 +28,8 @@ export { CLOUDFLARE_PROVIDER_DESCRIPTOR, createCloudflareProviderDefinition } fr
 export type { CloudflareProviderOptions } from './cloudflare';
 export { AI_PROVIDER_HOSTS, isAIProviderTarget, serverCredential, SERVER_CREDENTIAL_PREFIX } from './serverCredentials';
 export type { ServerAIConnection } from './serverCredentials';
-export { canonicalModelName, buildModelIdentityIndex, resolveModel, loadModelIdentityIndex } from './modelIdentity';
-export type { ModelIdentity, ModelIdentityEntry, ModelIdentityIndex, ResolvedModel } from './modelIdentity';
+export { canonicalModelName, buildModelIdentityIndex, resolveModel, modelOffers, loadModelIdentityIndex } from './modelIdentity';
+export type { ModelIdentity, ModelIdentityEntry, ModelIdentityIndex, ResolvedModel, ModelOffer, ModelCost } from './modelIdentity';
 
 export const AI_PROVIDER_DEFINITIONS: AIProviderDefinition[] = [
     OPENAI_PROVIDER_DEFINITION,

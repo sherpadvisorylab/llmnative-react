@@ -1,21 +1,21 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { buildModelIdentityIndex, canonicalModelName, loadModelIdentityIndex, resolveModel } from '../../../src/providers/ai/modelIdentity';
+import { buildModelIdentityIndex, canonicalModelName, loadModelIdentityIndex, modelOffers, resolveModel } from '../../../src/providers/ai/modelIdentity';
 
 // A slice of the models.dev catalog as it lists DeepSeek V4.1 Flash on four providers.
 const catalog = {
     deepseek: { name: 'DeepSeek', models: {
-        'deepseek-flash': { name: 'DeepSeek V4.1 Flash 1017', family: 'deepseek-flash' },
+        'deepseek-flash': { name: 'DeepSeek V4.1 Flash 1017', family: 'deepseek-flash', cost: { input: 0.14, output: 0.28 } },
         'deepseek-v4-pro': { name: 'DeepSeek V4 Pro' },
     } },
     openrouter: { name: 'OpenRouter', models: {
         '~deepseek/deepseek-flash-latest': { name: 'DeepSeek V4.1 Flash Latest' },
         'deepseek/deepseek-v4.1-flash-1017': { name: 'DeepSeek V4.1 Flash 1017' },
-        'deepseek/deepseek-v4.1-flash': { name: 'DeepSeek V4.1 Flash' },
+        'deepseek/deepseek-v4.1-flash': { name: 'DeepSeek V4.1 Flash', cost: { input: 0.15, output: 0.3 } },
     } },
     opencode: { name: 'OpenCode Zen', models: {
         'deepseek-v4.1-flash-free': { name: 'DeepSeek V4.1 Flash Free' },
-        'deepseek-v4.1-flash': { name: 'DeepSeek V4.1 Flash' },
+        'deepseek-v4.1-flash': { name: 'DeepSeek V4.1 Flash', cost: { input: 'n/a' } },
     } },
     'cloudflare-workers-ai': { name: 'Cloudflare Workers AI', models: {
         '@cf/deepseek-ai/deepseek-v4.1-flash-1017': { name: 'Deepseek V4.1 Flash 1017' },
@@ -57,6 +57,19 @@ describe('model identity', () => {
         expect(resolveModel(index, 'DeepSeek V4.1 Flash', ['cloudflare-workers-ai'])?.model).toBe('@cf/deepseek-ai/deepseek-v4.1-flash-1017');
         expect(resolveModel(index, 'DeepSeek V4.1 Flash', ['anthropic'])).toBeUndefined();
         expect(resolveModel(index, 'No Such Model', ['openrouter'])).toBeUndefined();
+    });
+
+    it('lists every provider of a model with its stable id and its price there (CR-119)', () => {
+        const index = buildModelIdentityIndex(catalog);
+
+        expect(modelOffers(index, 'DeepSeek V4.1 Flash').map((offer) => offer.provider)).toEqual(['cloudflare-workers-ai', 'deepseek', 'opencode', 'openrouter']);
+        expect(modelOffers(index, 'DeepSeek V4.1 Flash', ['openrouter', 'anthropic', 'deepseek', 'opencode'])).toEqual([
+            { provider: 'openrouter', model: 'deepseek/deepseek-v4.1-flash', ref: 'openrouter/deepseek/deepseek-v4.1-flash', cost: { input: 0.15, output: 0.3 } },
+            { provider: 'deepseek', model: 'deepseek-flash', ref: 'deepseek/deepseek-flash', cost: { input: 0.14, output: 0.28 } },
+            // A price models.dev does not give as numbers is left out.
+            { provider: 'opencode', model: 'deepseek-v4.1-flash', ref: 'opencode/deepseek-v4.1-flash' },
+        ]);
+        expect(modelOffers(index, 'No Such Model')).toEqual([]);
     });
 
     it('fetches the catalog once per session', async () => {

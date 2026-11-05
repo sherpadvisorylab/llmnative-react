@@ -160,6 +160,32 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
+## CR-119 — Identità dei modelli: prezzi e offerte per provider
+
+**Stato:** ✅ done (1.43.0)
+**Issue:** [#98](https://github.com/sherpadvisorylab/llmnative-react/issues/98)
+**Priorità:** Media
+
+### Motivazione
+
+Emersa nel Playbook il 05/11/2026: l'organizzazione ordina i provider collegati e un modello scelto per nome
+gira sul primo che lo serve; tra i provider a consumo l'ordine automatico sceglie il più economico per quel
+modello. Serve sapere, per un nome, tutti i provider che lo servono e a che prezzo.
+
+### Scope
+
+- `ModelIdentityEntry.cost?: { input, output }` (USD per 1M token) da models.dev, solo se numerici.
+- `modelOffers(index, model, providers?)`: ogni provider che serve il modello (quelli dati nel loro ordine,
+  altrimenti tutto il catalogo per chiave), con id stabile, `ref` e prezzo. Esportato anche da `/server`.
+
+### Criteri di accettazione
+
+- [x] AC1: `buildModelIdentityIndex` legge `cost.input` e `cost.output` numerici di models.dev.
+- [x] AC2: `modelOffers` restituisce tutti i provider (o quelli dati, nel loro ordine) con id stabile, ref e prezzo.
+- [x] AC3: `resolveModel` non cambia.
+
+---
+
 ## CR-118 — Provider AI OpenCode Go
 
 **Stato:** ✅ done (1.42.0)

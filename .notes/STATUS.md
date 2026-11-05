@@ -31,6 +31,7 @@
 
 | CR | State | Evidence |
 |----|-------|----------|
+| CR-119 | Done | Identità dei modelli: `cost` di models.dev su ogni voce dell'indice e `modelOffers` (tutti i provider di un modello con id stabile e prezzo). Test (1). Released in 1.43.0. Issue #98. |
 | CR-118 | Done | Provider AI `opencode-go` (abbonamento OpenCode Go con chiave): endpoint `/zen/go/v1`, `x-opencode-session` dal `logId`, modelli senza i gratuiti, prezzi models.dev, host delle credenziali del server. Test (4). Released in 1.42.0. Issue #97. |
 | CR-117 | Done | Form: `requireChanges` (default `true`); `false` = form d'azione, `save()` valida e chiama `onSave` anche senza modifiche, `saveDisabled` indipendente da `isDirty`, niente "No changes to save". Test (4), llms-full, docs. Released in 1.41.0. Issue #96. |
 | CR-116 | Done | Checkbox e Switch: `disabled` (non cambiano né con il clic né da tastiera, opachi, cursore non consentito), il `title` anche sull'etichetta per dire il motivo. Test, docs. Released in 1.40.0. Issue #95. |

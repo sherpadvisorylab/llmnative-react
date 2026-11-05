@@ -9,8 +9,8 @@ export type { ServerAIConnection } from './serverCredentials';
 export { createGitHubOAuth, GitHubOAuthError } from '../auth/github/githubOAuth';
 export type { GitHubOAuth, GitHubOAuthConfig, GitHubOAuthOrganization, GitHubOAuthUser } from '../auth/github/githubOAuth';
 // Provider-agnostic identity of models (CR-103): pure, so a server or a generator can resolve them too.
-export { canonicalModelName, buildModelIdentityIndex, resolveModel, loadModelIdentityIndex } from './modelIdentity';
-export type { ModelIdentity, ModelIdentityEntry, ModelIdentityIndex, ResolvedModel } from './modelIdentity';
+export { canonicalModelName, buildModelIdentityIndex, resolveModel, modelOffers, loadModelIdentityIndex } from './modelIdentity';
+export type { ModelIdentity, ModelIdentityEntry, ModelIdentityIndex, ResolvedModel, ModelOffer, ModelCost } from './modelIdentity';
 
 /** The connection of a provider as the server keeps it, key included. */
 export type ServerAISecret = ServerAIConnection & { apiKey: string };

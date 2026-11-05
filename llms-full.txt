@@ -1162,6 +1162,9 @@ canonicalModelName('DeepSeek V4.1 Flash (Alibaba Cloud)')   // 'deepseek v4.1 fl
 index.models['deepseek v4.1 flash']                   // { key, name, family?, providers: { openrouter: [{ id, name }], … } }
 resolveModel(index, 'DeepSeek V4.1 Flash', ['openrouter', 'deepseek'])
 // → { provider: 'openrouter', model: 'deepseek/deepseek-v4.1-flash', ref: 'openrouter/deepseek/deepseek-v4.1-flash' }
+modelOffers(index, 'DeepSeek V4.1 Flash', ['openrouter', 'deepseek'])   // CR-119: tutti quelli che lo servono
+// → [{ provider: 'openrouter', model, ref, cost: { input: 0.15, output: 0.3 } }, { provider: 'deepseek', … }]
+//   senza `providers`: tutto il catalogo, per chiave del provider. `cost` in USD per 1M token, assente se models.dev non lo dà
 ```
 
 Il nome canonico toglie data, Free, Latest e host o regione tra parentesi; una modalità

@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.43.0] - 2026-11-05
+
+### Added
+- Prices and offers in the model identity index (CR-119): each `ModelIdentityEntry` carries its models.dev
+  price (`cost`: input and output in USD per 1M tokens) when models.dev gives it as numbers, and
+  `modelOffers(index, model, providers?)` lists every provider that serves a model, each with its most
+  stable id, its `ref` and its price: of the providers given, in their order, else of the whole catalog.
+  `resolveModel` is unchanged.
+
 ## [1.42.0] - 2026-11-05
 
 ### Added
