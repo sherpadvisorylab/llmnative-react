@@ -17,7 +17,7 @@ import { getAIModelCatalog, type AIProviderDefinition, type AIModelCatalog, type
 import { serverCredential } from './serverCredentials';
 
 export type {
-    AIProviderAdapter, AIKeyValidationResult, AIModelDescriptor, AIModelPricing, AIProviderCapabilities, AIRequestOptions, AIAttachment,
+    AIProviderAdapter, AIKeyValidationResult, AIModelDescriptor, AIModelPricing, AIProviderCapabilities, AIRequestOptions, AIReasoningLevel, AIAttachment,
     AICompleteRequest, AICompleteResult, AIConversationTurn, AIToolDefinition, AIToolCall, AIToolResult,
 } from './AIProvider';
 export { formatAIModelRef, parseAIModelRef, isFreeAIModel } from './AIProvider';

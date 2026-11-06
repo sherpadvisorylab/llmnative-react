@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.46.0] - 2026-11-06
+
+### Added
+- How much a model reasons on an AI request (CR-122, GH issue #101): `AIRequestOptions.reasoning`
+  (`AIReasoningLevel`: `low`, `medium`, `high`, `max`). Anthropic sends `output_config.effort` on the Claude
+  models that take it (4.6 and later; adaptive thinking too on Opus 4.6-4.8 and Sonnet 4.6); the OpenAI wire
+  format (OpenAI, OpenCode Zen and Go, DeepSeek, Groq, Mistral, GLM, Cloudflare) sends `reasoning_effort` on the
+  reasoning models of OpenAI only (`max` as `high`); OpenRouter sends `reasoning.effort` on any model. Older
+  models and Gemini get nothing (their default). Without `reasoning` a request is unchanged.
+
 ## [1.45.0] - 2026-11-06
 
 ### Changed

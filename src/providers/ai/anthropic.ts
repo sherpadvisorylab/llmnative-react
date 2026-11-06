@@ -3,7 +3,7 @@ import { Prompt } from '../../conf/Prompt';
 import { proxyFetch } from '../proxy';
 import { PromptUtils } from '../../libs/promptUtils';
 import { LLM_LOG_ID_HEADER } from '../proxy/logHeader';
-import type { AIProviderDefinition } from './shared';
+import { anthropicReasoning, type AIProviderDefinition } from './shared';
 import type { AIConversationTurn, AICompleteResult, AIToolDefinition } from './AIProvider';
 
 const ANTHROPIC_MODELS_URL = 'https://api.anthropic.com/v1/models';
@@ -128,6 +128,8 @@ export const ANTHROPIC_PROVIDER_DEFINITION: AIProviderDefinition = {
                 ],
                 ...(request.tools?.length ? { tools: request.tools.map(toAnthropicTool) } : {}),
                 ...(typeof request.temperature === 'number' ? { temperature: request.temperature } : {}),
+                // How much it reasons (CR-122), on the models that take it.
+                ...anthropicReasoning(request.model, request.reasoning),
             },
             signal: request.signal,
         }, proxyFetch);

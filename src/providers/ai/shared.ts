@@ -14,6 +14,7 @@ import type {
     AIModelPricing,
     AIProviderAdapter,
     AIProviderCapabilities,
+    AIReasoningLevel,
     AIRequestOptions,
 } from './AIProvider';
 import { formatAIModelRef } from './AIProvider';
@@ -67,6 +68,35 @@ export type AIModelCatalog = {
 // up to a day: v2 added `pricing`, v3 drops OpenCode's free-tier models (unusable via API).
 const MODEL_CACHE_PREFIX = 'ai.models.v3.';
 const MODEL_CACHE_TTL_MS = 1000 * 60 * 60 * 24;
+
+/** The Claude models that take `output_config.effort`: 4.6 and later (older ones reject it). */
+const CLAUDE_EFFORT_MODEL = /claude-(?:fable|mythos|opus|sonnet|haiku)-(?:[5-9]|4-[6-9])(?![0-9])/;
+/** Those of them that think only when asked (`thinking: { type: 'adaptive' }`); the later ones by default. */
+const CLAUDE_ADAPTIVE_ON_REQUEST = /claude-(?:opus-4-[6-8]|sonnet-4-6)(?![0-9])/;
+
+/** What an Anthropic Messages request carries for a reasoning level (CR-122); nothing for a model that does not take it. */
+export function anthropicReasoning(model: string | undefined, level: AIReasoningLevel | undefined): Record<string, unknown> {
+    if (!level || !model || !CLAUDE_EFFORT_MODEL.test(model)) return {};
+    return {
+        output_config: { effort: level },
+        ...(CLAUDE_ADAPTIVE_ON_REQUEST.test(model) ? { thinking: { type: 'adaptive' } } : {}),
+    };
+}
+
+/** The reasoning models of OpenAI (o-series, GPT-5), also behind a router (`openai/gpt-5`). */
+const OPENAI_REASONING_MODEL = /(?:^|\/)(?:o[1-9]|gpt-5)/i;
+
+/**
+ * What an OpenAI Chat Completions request carries for a reasoning level (CR-122): `reasoning_effort` on the
+ * reasoning models of OpenAI (`max` as `high`, their top); OpenRouter `reasoning.effort` on any model, which
+ * it maps itself. Nothing otherwise.
+ */
+export function openAIReasoning(model: string | undefined, level: AIReasoningLevel | undefined, style: 'openai' | 'openrouter' = 'openai'): Record<string, unknown> {
+    if (!level || !model) return {};
+    const effort = level === 'max' ? 'high' : level;
+    if (style === 'openrouter') return { reasoning: { effort } };
+    return OPENAI_REASONING_MODEL.test(model) ? { reasoning_effort: effort } : {};
+}
 
 export const extractProviderError = (err: unknown): string => {
     if (err instanceof Error) return err.message;

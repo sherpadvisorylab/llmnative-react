@@ -160,6 +160,34 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
+## CR-122 — Livello di ragionamento di una richiesta AI
+
+**Stato:** ✅ done (1.46.0)
+**Issue:** [#101](https://github.com/sherpadvisorylab/llmnative-react/issues/101)
+**Priorità:** Alta
+
+### Motivazione
+
+Emersa nel Playbook il 06/11/2026: le chat di un'app (Agentico) impostano per provider quanto ragiona il modello;
+via API non c'era modo di dirlo.
+
+### Scope
+
+- `AIRequestOptions.reasoning?: AIReasoningLevel` (`low`, `medium`, `high`, `max`).
+- Anthropic: `output_config.effort` sui Claude 4.6 e successivi; `thinking: adaptive` anche su Opus 4.6-4.8 e
+  Sonnet 4.6. Modelli più vecchi: niente.
+- Formato OpenAI (OpenAI, OpenCode Zen e Go, DeepSeek, Groq, Mistral, GLM, Cloudflare): `reasoning_effort` solo sui
+  modelli di ragionamento di OpenAI (serie o, GPT-5; `max` come `high`); OpenRouter: `reasoning.effort` su ogni modello.
+- Gemini: non ancora (parametri diversi per generazione).
+
+### Criteri di accettazione
+
+- [x] AC1: senza `reasoning` la richiesta è invariata.
+- [x] AC2: ogni formato manda il suo campo solo sui modelli che lo accettano.
+- [x] AC3: test (3), llms-full, docs, CHANGELOG.
+
+---
+
 ## CR-121 — Selettore del modello: nome scelto e badge del gruppo
 
 **Stato:** ✅ done (1.45.0)

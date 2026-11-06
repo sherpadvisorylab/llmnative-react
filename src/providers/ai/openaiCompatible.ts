@@ -4,7 +4,7 @@ import { proxyFetch } from '../proxy';
 import { PromptUtils } from '../../libs/promptUtils';
 import { LLM_LOG_ID_HEADER } from '../proxy/logHeader';
 import type { AIProviderDefinition, BuiltInAIProviderId, DiscoveredAIModel } from './shared';
-import { parseTextResponse, createBrowserTransportError, extractProviderError } from './shared';
+import { parseTextResponse, createBrowserTransportError, extractProviderError, openAIReasoning } from './shared';
 import type { AIConversationTurn, AICompleteResult, AIToolDefinition } from './AIProvider';
 
 type OpenAICompatibleDefinitionOptions = {
@@ -24,6 +24,8 @@ type OpenAICompatibleDefinitionOptions = {
     validateApiKey?: AIProviderDefinition['validateApiKey'];
     /** Maps one `/models` entry — for providers whose listing also reports prices (OpenRouter). */
     mapModelEntry?: (entry: Record<string, unknown>) => string | DiscoveredAIModel | undefined;
+    /** How a reasoning level is sent (CR-122): `reasoning_effort` on the reasoning models of OpenAI, or OpenRouter's `reasoning.effort`. */
+    reasoningStyle?: 'openai' | 'openrouter';
 };
 
 const defaultMapModelEntry = (entry: Record<string, unknown>) => (typeof entry.id === 'string' ? entry.id : undefined);
@@ -106,6 +108,7 @@ export const createOpenAICompatibleProviderDefinition = ({
     credentialsHint,
     validateApiKey: validateApiKeyOverride,
     mapModelEntry = defaultMapModelEntry,
+    reasoningStyle,
 }: OpenAICompatibleDefinitionOptions): AIProviderDefinition => {
     const normalizedBaseUrl = trimTrailingSlash(baseUrl);
     const resolvedModelsUrl = modelsUrl || `${normalizedBaseUrl}/models`;
@@ -189,6 +192,8 @@ export const createOpenAICompatibleProviderDefinition = ({
                     ],
                     ...(request.tools?.length ? { tools: request.tools.map(toOpenAITool) } : {}),
                     ...(typeof request.temperature === 'number' ? { temperature: request.temperature } : {}),
+                    // How much it reasons (CR-122), on the models that take it.
+                    ...openAIReasoning(request.model, request.reasoning, reasoningStyle),
                 },
                 signal: request.signal,
             }, proxyFetch);

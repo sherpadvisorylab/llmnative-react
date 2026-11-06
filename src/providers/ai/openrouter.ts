@@ -27,6 +27,8 @@ export const OPENROUTER_PROVIDER_DEFINITION = createOpenAICompatibleProviderDefi
     defaultModel: 'openai/gpt-4',
     fallbackModels: ['openai/gpt-4', 'openai/gpt-5-nano', 'anthropic/claude-3.7-sonnet'],
     baseUrl: 'https://openrouter.ai/api/v1',
+    // OpenRouter maps `reasoning.effort` to each model itself (CR-122).
+    reasoningStyle: 'openrouter',
     dashboardUrl: 'https://openrouter.ai/settings/keys',
     credentialsHint: 'OpenRouter → Settings → API Keys → Create Key.',
     mapModelEntry: (entry) => (typeof entry.id === 'string'

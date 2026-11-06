@@ -1,7 +1,7 @@
 # Project status
 
 > Snapshot verified against the real codebase, not against the historical plan.
-> Last reviewed: 2026-11-05
+> Last reviewed: 2026-11-06
 
 ---
 
@@ -31,6 +31,7 @@
 
 | CR | State | Evidence |
 |----|-------|----------|
+| CR-122 | Done | Livello di ragionamento di una richiesta AI: `AIRequestOptions.reasoning` (`AIReasoningLevel`), `output_config.effort` su Anthropic (Claude 4.6+), `reasoning_effort` sui modelli di ragionamento di OpenAI, `reasoning.effort` su OpenRouter. Test (3). Released in 1.46.0. Issue #101. |
 | CR-121 | Done | Selettore del modello di `Chatbot`: il trigger mostra la label del modello scelto; `groupBadge` a destra nell'header sticky del gruppo. Test (2). Released in 1.45.0. Issue #100. |
 | CR-120 | Done | `SortableList`: card compatte (ListCard) riordinabili per la maniglia o con le frecce, `onReorder`, annuncio aria-live, `numbered`, `emptyState`; i18n 6 lingue, showcase. Test (5). Released in 1.44.0. Issue #99. |
 | CR-119 | Done | Identità dei modelli: `cost` di models.dev su ogni voce dell'indice e `modelOffers` (tutti i provider di un modello con id stabile e prezzo). Test (1). Released in 1.43.0. Issue #98. |

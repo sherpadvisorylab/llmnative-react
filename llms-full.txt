@@ -1165,6 +1165,13 @@ class MyAIProvider implements AIProviderAdapter {
   async array(prompt: string, options?: AIRequestOptions): Promise<string[]> { ... }
 }
 
+// Quanto ragiona il modello (CR-122): `reasoning: 'low' | 'medium' | 'high' | 'max'` (AIReasoningLevel) su
+// una richiesta. Anthropic: `output_config.effort` sui Claude 4.6 e successivi (+ thinking adaptive su Opus
+// 4.6-4.8 e Sonnet 4.6); OpenAI e compatibili (OpenCode, DeepSeek, Groq…): `reasoning_effort` solo sui modelli
+// di ragionamento di OpenAI (serie o, GPT-5; max = high); OpenRouter: `reasoning.effort` su ogni modello.
+// Altrove (modelli più vecchi, Gemini) non si manda nulla: il default del modello.
+await ai.complete({ prompt: 'Rivedi questo piano', model: 'claude-opus-5-5', reasoning: 'high' })
+
 // Factory per registri esterni
 const registry = createAIProviderRegistry(definitions)
 // Azioni di Chatbot (CR-107): con `content` aprono un menu; senza, sono pulsanti con `onClick`.

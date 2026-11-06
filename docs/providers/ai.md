@@ -84,6 +84,13 @@ const summary = await AI.fetch(
 );
 ```
 
+How much the model reasons (CR-122) goes on the request too, on the models that take it (Claude 4.6 and
+later, the reasoning models of OpenAI, any model through OpenRouter); elsewhere nothing is sent:
+
+```tsx
+await provider.complete({ prompt: 'Review this plan', model: 'claude-opus-5-5', reasoning: 'high' });
+```
+
 If later you switch to:
 
 ```tsx

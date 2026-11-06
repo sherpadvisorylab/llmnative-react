@@ -198,7 +198,7 @@ export type { GoogleMapsConfig } from './providers/googleMaps/loadGoogleMaps';
 export { useEmailProvider, EmailProvider } from './providers/email/EmailProviderContext';
 export { GmailEmailProvider } from './providers/email/google/GmailEmailProvider';
 export type {
-    AIRequestOptions, AIAttachment, AIProviderAdapter, AIKeyValidationResult, AIModelDescriptor, AIModelPricing, DiscoveredAIModel, AIProviderCapabilities, AIModelCatalog, AIProviderDefinition,
+    AIRequestOptions, AIReasoningLevel, AIAttachment, AIProviderAdapter, AIKeyValidationResult, AIModelDescriptor, AIModelPricing, DiscoveredAIModel, AIProviderCapabilities, AIModelCatalog, AIProviderDefinition,
     AICompleteRequest, AICompleteResult, AIConversationTurn, AIToolDefinition, AIToolCall, AIToolResult, CloudflareProviderOptions,
     ServerAIProviderConnection, ServerAIConnection, ModelIdentity, ModelIdentityEntry, ModelIdentityIndex, ResolvedModel, ModelOffer, ModelCost,
 } from './providers/ai';

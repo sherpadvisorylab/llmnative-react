@@ -5,7 +5,7 @@ import { PromptUtils } from '../../libs/promptUtils';
 import { LLM_LOG_ID_HEADER } from '../proxy/logHeader';
 import type { AIProviderDefinition } from './shared';
 import type { AICompleteRequest, AICompleteResult } from './AIProvider';
-import { createBrowserTransportError } from './shared';
+import { createBrowserTransportError, openAIReasoning } from './shared';
 import { toOpenAITool, toOpenAIMessages, parseOpenAIResponse } from './openaiCompatible';
 
 const OPENCODE_MODELS_URL = 'https://opencode.ai/zen/v1/models';
@@ -122,6 +122,8 @@ export async function completeOpenCode(chatUrl: string, label: string, apiKey: s
                 ],
                 ...(request.tools?.length ? { tools: request.tools.map(toOpenAITool) } : {}),
                 ...(typeof request.temperature === 'number' ? { temperature: request.temperature } : {}),
+                // How much it reasons (CR-122), on the reasoning models of OpenAI.
+                ...openAIReasoning(request.model, request.reasoning),
             },
             signal: request.signal,
         }, proxyFetch);

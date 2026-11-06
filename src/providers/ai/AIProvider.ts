@@ -39,6 +39,9 @@ export interface AIAttachment {
     name?: string;
 }
 
+/** How much a model reasons before it answers (CR-122). */
+export type AIReasoningLevel = 'low' | 'medium' | 'high' | 'max';
+
 export interface AIRequestOptions {
     language?: string;
     voice?: string;
@@ -47,6 +50,12 @@ export interface AIRequestOptions {
     model?: string;
     temperature?: number;
     attachments?: AIAttachment[];
+    /**
+     * How much the model reasons (CR-122), on the models that take it: Anthropic `output_config.effort`
+     * (Claude 4.6 and later), OpenAI `reasoning_effort` (o-series, GPT-5; `max` as `high`), OpenRouter
+     * `reasoning.effort`. Elsewhere (older models, Gemini) nothing is sent. Absent: the default of the model.
+     */
+    reasoning?: AIReasoningLevel;
 }
 
 /** Definizione di un tool che il modello può scegliere di invocare — la SDK del provider
