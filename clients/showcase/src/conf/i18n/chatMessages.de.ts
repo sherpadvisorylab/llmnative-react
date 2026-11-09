@@ -12,6 +12,10 @@ export default defineLocaleMessages({
                     title: "Markdown im Streaming",
                     description: "ChatMarkdown rendert GFM (Tabellen, Listen, Überschriften, Zitate, Code mit Hervorhebung und Kopieren). Mit streaming schließt es, was der Text offen gelassen hat, damit eine Tabelle oder ein Codeblock beim Eintreffen nicht springt. In einem schmalen Panel scrollt die Tabelle in sich.",
                 },
+                activity: {
+                    title: "Agentenaktivität",
+                    description: "ChatActivity zeigt die Arbeit eines Agenten wie KI-Assistenten: was er gruppiert getan hat, die Befehle auf Wunsch, seine Worte dazwischen, die geänderten Dateien.",
+                },
                 reasoning: {
                     title: "Überlegung",
                     description: "ChatReasoning hält die Überlegung des Modells in einem eigenen Block: offen während des Streamings, danach geschlossen hinter \"Hat 12 s überlegt\".",
@@ -26,6 +30,8 @@ export default defineLocaleMessages({
                 },
             },
             demo: {
+                activitySteps: ["Erkundet das Repository", "Durchsucht den Speicher", "Ändert Dateien", "Führt die Tests aus"],
+                activityText: "Die Kategorien brauchen eine Freigabe: Ich füge den Befehl und seinen Test hinzu.",
                 replay: "Streamen",
                 streaming: "Kommt an…",
                 again: "Erneut antworten",

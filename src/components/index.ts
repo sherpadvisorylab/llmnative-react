@@ -115,6 +115,8 @@ export { default as ChatReasoning } from './widgets/chat/ChatReasoning';
 export type { ChatReasoningProps, ChatReasoningClassNames } from './widgets/chat/ChatReasoning';
 export { default as ChatQuestions } from './widgets/chat/ChatQuestions';
 export type { ChatQuestion, ChatQuestionOption, ChatQuestionAnswer, ChatQuestionsNumbering, ChatQuestionsProps, ChatQuestionsClassNames } from './widgets/chat/ChatQuestions';
+export { default as ChatActivity } from './widgets/chat/ChatActivity';
+export type { ChatActivityItem, ChatActivitySteps, ChatActivityProps, ChatActivityClassNames } from './widgets/chat/ChatActivity';
 export { repairStreamingMarkdown } from '../libs/streamingMarkdown';
 export { default as TabDynamic } from './widgets/TabDynamic';
 export { default as Component } from './Component';

@@ -12,6 +12,10 @@ export default defineLocaleMessages({
                     title: "Streaming Markdown",
                     description: "ChatMarkdown renders GFM (tables, lists, headings, quotes, code with highlighting and copy). With streaming it closes what the text left open, so a table or a code block does not jump while it arrives. In a narrow panel the table scrolls inside itself.",
                 },
+                activity: {
+                    title: "Agent activity",
+                    description: "ChatActivity shows the work of an agent as AI assistants do: what it did grouped, its commands on request, its words in between, the files it changed.",
+                },
                 reasoning: {
                     title: "Reasoning",
                     description: "ChatReasoning keeps the reasoning of the model in a block of its own: open while it streams, then closed behind \"Reasoned for 12 s\".",
@@ -26,6 +30,8 @@ export default defineLocaleMessages({
                 },
             },
             demo: {
+                activitySteps: ["Explores the repository", "Searches the memory", "Changes files", "Runs the tests"],
+                activityText: "The categories need an approval: I add the command and its test.",
                 replay: "Stream it",
                 streaming: "Streaming…",
                 again: "Answer again",

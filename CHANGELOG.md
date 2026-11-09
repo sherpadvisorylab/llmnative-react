@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.47.0] - 2026-11-09
+
+### Added
+- `ChatActivity` (CR-123, GH issue #102): the work of an agent in a chat, as AI assistants show it. Groups of
+  steps (`type: 'steps'`: icon, label, count, short details such as queries or files, how many failed) with their
+  lines opened by a "Commands" button; the words of the agent as Markdown (`type: 'text'`); how it ended
+  (`type: 'end'`); the files changed with an optional "See the changes" action (`files`, `onShowChanges`); the
+  whole raw log one click away (`log`). The consumer maps its own log to the items. `chat.activity*` texts in 6
+  languages; tests, llms-full, showcase.
+
 ## [1.46.0] - 2026-11-06
 
 ### Added

@@ -1078,7 +1078,7 @@ moveItem(['a', 'b', 'c'], 0, 2)   // ['b', 'c', 'a']
 />
 ```
 
-### Messaggi di chat: ChatMarkdown, ChatReasoning, ChatQuestions (CR-109)
+### Messaggi di chat: ChatMarkdown, ChatReasoning, ChatQuestions (CR-109), ChatActivity (CR-123)
 
 Parti di un messaggio di un modello, da comporre nel proprio thread (anche accanto a `Chatbot`).
 
@@ -1122,6 +1122,20 @@ Parti di un messaggio di un modello, da comporre nel proprio thread (anche accan
 // Scelta singola: il click sceglie e passa alla domanda dopo. onSubmit che rifiuta lascia il form.
 // answers={[…]} mostra un insieme già risposto (sola lettura); disabled, autoFocus, submitLabel,
 // classNames={{ root, tabs, tab, panel, question, option, optionSelected, footer, summary }}
+
+// Il lavoro di un agente (CR-123), come negli assistenti AI: gruppi di passi (icona, label, quanti,
+// dettagli brevi: query, file, comandi; quanti falliti) con le righe sotto aperte da "Comandi";
+// le parole dell'agente in Markdown; come è finito; i file cambiati con "Vedi le modifiche";
+// il registro grezzo a un clic. Il consumer traduce il suo log negli item.
+<ChatActivity
+  items={[
+    { type: 'steps', icon: 'search', label: 'Esplora il repository', count: 3, detail: ['git status'], lines: ['git status --short'] },
+    { type: 'text', text: 'Aggiungo il comando e il suo test.' },
+    { type: 'end', ok: true, text: 'success · 9 steps' },
+  ]}
+  files={['functions/src/catalog/index.js']} onShowChanges={() => openDiff()} log={rawLines}
+/>
+// className, classNames={{ root, step, text, files, log }}
 ```
 
 ### ImageEditor

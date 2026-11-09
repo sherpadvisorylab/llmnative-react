@@ -12,6 +12,10 @@ export default defineLocaleMessages({
                     title: "流式 Markdown",
                     description: "ChatMarkdown 渲染 GFM（表格、列表、标题、引用、带高亮和复制的代码）。开启 streaming 时，它会补全文本末尾未闭合的结构，因此表格或代码块在到达过程中不会跳动。在窄面板中，表格在自身内部滚动。",
                 },
+                activity: {
+                    title: "智能体活动",
+                    description: "ChatActivity 像 AI 助手一样展示智能体的工作：按组显示它做了什么，按需显示命令，其间的话语，以及它修改的文件。",
+                },
                 reasoning: {
                     title: "推理",
                     description: "ChatReasoning 把模型的推理放在单独的块中：流式输出时展开，结束后折叠在“推理了 12 秒”之后。",
@@ -26,6 +30,8 @@ export default defineLocaleMessages({
                 },
             },
             demo: {
+                activitySteps: ["浏览代码库", "搜索记忆", "修改文件", "运行测试"],
+                activityText: "分类需要审批：我添加命令及其测试。",
                 replay: "开始流式输出",
                 streaming: "正在到达…",
                 again: "重新回答",

@@ -361,6 +361,16 @@ export interface I18nDict {
         submit:             string;
         noAnswer:           string;
         answered:           string;
+        /** CR-123 — ChatActivity: the work of an agent (`{count}` in activityCount, activityFailed, activityFiles). */
+        activityCount: string;
+        activityFailed: string;
+        activityCommands: string;
+        activityHide: string;
+        activityLog: string;
+        activitySteps: string;
+        activityFiles: string;
+        activityChanges: string;
+        activityEmpty: string;
     };
     /** CR-112 — the charts: empty state, totals, the scale of the heatmaps, the data table. */
     charts: {

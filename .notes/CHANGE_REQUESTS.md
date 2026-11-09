@@ -160,6 +160,34 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
+## CR-123 — ChatActivity: il lavoro di un agente in una chat
+
+**Stato:** ✅ done (1.47.0)
+**Issue:** [#102](https://github.com/sherpadvisorylab/llmnative-react/issues/102)
+**Priorità:** Media
+
+### Motivazione
+
+Emersa nel Playbook il 09/11/2026: la chat di una CR mostrava il registro di un turno di un agente come comandi
+grezzi (`⚙ Bash git log | head; ls …`), difficile da leggere. Gli assistenti AI degli IDE mostrano invece cosa ha
+fatto l'agente, raggruppato, con i comandi su richiesta e i file cambiati alla fine. Serve anche ad Agentico.
+
+### Scope
+
+- `ChatActivity` con un modello neutro: gruppi di passi (`steps`: icona, label, conteggio, dettagli, falliti,
+  righe aperte da un pulsante), parole dell'agente (`text`, Markdown), esito (`end`), `files` con
+  `onShowChanges`, `log` grezzo a un clic. Il consumer traduce il proprio registro negli item.
+- i18n `chat.activity*` in 6 lingue; export, test, llms-full, llms, showcase, CHANGELOG.
+
+### Criteri di accettazione
+
+- [x] AC1: un gruppo per riga con icona, label, conteggio e dettagli; le righe si aprono e chiudono col pulsante.
+- [x] AC2: il testo dell'agente in Markdown; l'esito ok o fallito.
+- [x] AC3: i file con l'azione per vedere le modifiche; il registro grezzo e il ritorno ai passi.
+- [x] AC4: testi dal dizionario (6 lingue); test (4), docs, showcase.
+
+---
+
 ## CR-122 — Livello di ragionamento di una richiesta AI
 
 **Stato:** ✅ done (1.46.0)

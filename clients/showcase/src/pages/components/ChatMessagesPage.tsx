@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChatMarkdown, ChatQuestions, ChatReasoning } from '@llmnative/react';
+import { ChatActivity, ChatMarkdown, ChatQuestions, ChatReasoning } from '@llmnative/react';
 import type { ChatQuestion, ChatQuestionAnswer } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
@@ -129,6 +129,40 @@ export default function ChatMessagesPage() {
 // streaming closes what the end of the text left open
 // (a code fence, a table header, **bold**), so nothing jumps.
 <ChatMarkdown content={message.text} streaming={message.running} />`}
+            />
+
+            <Section
+                title={t.sections.activity.title}
+                description={t.sections.activity.description}
+                preview={(
+                    <div className="w-full max-w-md rounded-lg border bg-card p-3">
+                        <ChatActivity
+                            items={[
+                                { type: 'steps', icon: 'search', label: t.demo.activitySteps[0], count: 3, detail: ['git status', 'ls functions'], lines: ['git status --short', 'ls functions/src', 'git log --oneline -5'] },
+                                { type: 'steps', icon: 'brain', label: t.demo.activitySteps[1], detail: ['Servizio vs Settore', 'Categoria proposta'], lines: ['memory search "Servizio vs Settore" "Categoria proposta"'] },
+                                { type: 'text', text: t.demo.activityText },
+                                { type: 'steps', icon: 'pencil', label: t.demo.activitySteps[2], count: 2, detail: ['catalog/index.js', 'catalog.test.mjs'], lines: ['Edit functions/src/catalog/index.js', 'Write test/catalog.test.mjs'] },
+                                { type: 'steps', icon: 'flask-conical', label: t.demo.activitySteps[3], failed: 1, lines: ['npm test', '  ✗ 1 failed'] },
+                                { type: 'end', ok: true, text: 'success · 9 steps' },
+                            ]}
+                            files={['functions/src/catalog/index.js', 'test/catalog.test.mjs']}
+                            onShowChanges={() => undefined}
+                            log={['⚙ Bash git status --short', '⚙ Bash npm test', '✓ success · 9 steps']}
+                        />
+                    </div>
+                )}
+                code={`import { ChatActivity } from '@llmnative/react';
+
+<ChatActivity
+  items={[
+    { type: 'steps', icon: 'search', label: 'Explores the repository', count: 3, detail: ['git status'], lines: ['git status --short'] },
+    { type: 'text', text: 'I add the command and its test.' },
+    { type: 'end', ok: true, text: 'success · 9 steps' },
+  ]}
+  files={['functions/src/catalog/index.js']}
+  onShowChanges={() => openDiff()}
+  log={rawLines}
+/>`}
             />
 
             <Section
