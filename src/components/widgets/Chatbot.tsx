@@ -223,6 +223,22 @@ export function Chatbot({
         setAttachedFiles((prev) => [...prev, ...newFiles]);
     }, []);
 
+    // CR-124: files and images in the clipboard (a screenshot) become attachments, as when dropped; text stays text.
+    // An image pasted without a name (the clipboard gives `image.png`) gets one of its own, so two stay apart.
+    const handlePaste = useCallback((e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+        if (!attachments) return;
+        const files = Array.from(e.clipboardData.items)
+            .filter((item) => item.kind === 'file')
+            .map((item) => item.getAsFile())
+            .filter((file): file is File => !!file);
+        if (!files.length) return;
+        e.preventDefault();
+        const stamp = new Date().toISOString().replace(/\D/g, '').slice(0, 14);
+        addFiles(files.map((file, index) => (!file.name || file.name === 'image.png'
+            ? new File([file], `pasted-${stamp}${files.length > 1 ? `-${index + 1}` : ''}.${(file.type.split('/')[1] || 'png').replace('jpeg', 'jpg')}`, { type: file.type })
+            : file)));
+    }, [attachments, addFiles]);
+
     const handleDragEnter = useCallback((e: React.DragEvent) => {
         if (!attachments || !e.dataTransfer.types.includes('Files')) return;
         e.preventDefault();
@@ -324,6 +340,7 @@ export function Chatbot({
             ref={textareaRef}
             value={value}
             onChange={(e) => onChange(e.target.value)}
+            onPaste={handlePaste}
             placeholder={placeholder}
             className={className || chatbotTextareaClass}
             style={{ maxHeight }}

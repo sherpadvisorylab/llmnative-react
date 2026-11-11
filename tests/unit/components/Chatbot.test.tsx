@@ -206,6 +206,30 @@ describe('Chatbot', () => {
         expect(payload.files.map((f) => f.name)).toEqual(['dropped.csv']);
     });
 
+    it('attaches an image pasted from the clipboard (a screenshot), named, and leaves pasted text alone (CR-124)', async () => {
+        const onSubmit = vi.fn();
+        renderWithProviders(<ControlledChatbot onSubmit={onSubmit} value="look" attachments />);
+        const shot = new File(['png'], 'image.png', { type: 'image/png' });
+        const pasted = fireEvent.paste(screen.getByRole('textbox'), { clipboardData: { items: [{ kind: 'file', getAsFile: () => shot }] } });
+        expect(pasted).toBe(false);
+        // Shown as its preview.
+        await waitFor(() => expect(screen.getByAltText(/^pasted-\d{14}\.png$/)).toBeInTheDocument());
+        // Text in the clipboard is pasted as text: nothing attached, the browser does it.
+        expect(fireEvent.paste(screen.getByRole('textbox'), { clipboardData: { items: [{ kind: 'string', getAsFile: () => null }] } })).toBe(true);
+        fireEvent.click(screen.getByRole('button', { name: /Run/i }));
+        const payload = onSubmit.mock.calls[0][0] as ChatbotSubmitPayload;
+        expect(payload.files).toHaveLength(1);
+        expect(payload.files[0]).toMatchObject({ type: 'image/png' });
+        expect(payload.files[0].name).toMatch(/^pasted-\d{14}\.png$/);
+    });
+
+    it('takes nothing from the clipboard without attachments enabled', () => {
+        renderWithProviders(<ControlledChatbot onSubmit={vi.fn()} value="" attachments={false} />);
+        const shot = new File(['png'], 'image.png', { type: 'image/png' });
+        expect(fireEvent.paste(screen.getByRole('textbox'), { clipboardData: { items: [{ kind: 'file', getAsFile: () => shot }] } })).toBe(true);
+        expect(screen.queryByAltText(/pasted-/)).not.toBeInTheDocument();
+    });
+
     it('ignores non-file drags and never shows the drop overlay without attachments enabled', () => {
         renderWithProviders(<ControlledChatbot onSubmit={vi.fn()} value="" attachments={false} />);
         const dataTransfer = { types: ['Files'], files: [new File(['x'], 'x.txt', { type: 'text/plain' })] };

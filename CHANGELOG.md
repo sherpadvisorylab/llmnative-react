@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.48.0] - 2026-11-11
+
+### Added
+- `Chatbot` with `attachments`: files and images in the clipboard (a screenshot) pasted with Ctrl+V become
+  attachments, as when dropped; an image without a name gets `pasted-<date>.png`. Pasted text stays text
+  (CR-124, issue #103).
+
 ## [1.47.0] - 2026-11-09
 
 ### Added

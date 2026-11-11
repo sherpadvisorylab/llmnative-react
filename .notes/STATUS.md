@@ -31,6 +31,7 @@
 
 | CR | State | Evidence |
 |----|-------|----------|
+| CR-124 | Done | `Chatbot`: file e immagini incollati con Ctrl+V (uno screenshot) diventano allegati come quelli trascinati; il testo resta testo. Test (2). Released in 1.48.0. Issue #103. |
 | CR-123 | Done | `ChatActivity`: il lavoro di un agente in una chat (gruppi di passi con icona, label, conteggio, dettagli e righe a richiesta; parole dell'agente in Markdown; esito; file cambiati con "Vedi le modifiche"; registro grezzo a un clic); i18n 6 lingue, showcase. Test (4). Released in 1.47.0. Issue #102. |
 | CR-122 | Done | Livello di ragionamento di una richiesta AI: `AIRequestOptions.reasoning` (`AIReasoningLevel`), `output_config.effort` su Anthropic (Claude 4.6+), `reasoning_effort` sui modelli di ragionamento di OpenAI, `reasoning.effort` su OpenRouter. Test (3). Released in 1.46.0. Issue #101. |
 | CR-121 | Done | Selettore del modello di `Chatbot`: il trigger mostra la label del modello scelto; `groupBadge` a destra nell'header sticky del gruppo. Test (2). Released in 1.45.0. Issue #100. |

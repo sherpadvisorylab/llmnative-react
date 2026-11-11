@@ -1191,6 +1191,8 @@ const registry = createAIProviderRegistry(definitions)
 // Azioni di Chatbot (CR-107): con `content` aprono un menu; senza, sono pulsanti con `onClick`.
 // <Chatbot actions={[{ key: 'finish', icon: 'git-pull-request', label: 'Concludi', showLabel: true,
 //   disabled: running, onClick: finish }]} … />
+// Allegati di Chatbot (`attachments`): file scelti, trascinati o incollati con Ctrl+V (uno screenshot diventa
+// `pasted-<data>.png`, CR-124); il testo incollato resta testo. Arrivano in `onSubmit` come `files`.
 // Comandi "/" di Chatbot: `commands` (EditorCommand[]) + `commandsTrigger` (default "/").
 // Il menu mostra `/name` e sotto la `description`; il filtro cerca in entrambi (CR-111).
 // Senza `handler` la scelta inserisce "/name " e l'invio manda il testo così com'è.

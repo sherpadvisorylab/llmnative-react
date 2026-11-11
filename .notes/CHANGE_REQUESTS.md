@@ -160,6 +160,30 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
+## CR-124 — Chatbot: allegati incollati dagli appunti
+
+**Stato:** ✅ done (1.48.0)
+**Issue:** [#103](https://github.com/sherpadvisorylab/llmnative-react/issues/103)
+**Priorità:** Media
+
+### Motivazione
+
+Emersa nel Playbook l'11/11/2026: negli assistenti degli IDE uno screenshot si incolla nel prompt con Ctrl+V.
+Chatbot prendeva i file scelti e trascinati, non quelli incollati.
+
+### Scope
+
+- Con `attachments`, i file negli appunti incollati nel testo diventano allegati (anteprima, rimovibili); un'immagine
+  senza nome riceve `pasted-<data>.png`. Il testo incollato resta testo; senza `attachments` nulla cambia.
+
+### Criteri di accettazione
+
+- [x] AC1: un'immagine incollata diventa un allegato con la sua anteprima, inviato con `files`.
+- [x] AC2: il testo incollato resta testo; senza `attachments` niente allegati.
+- [x] AC3: test (2), llms-full, CHANGELOG.
+
+---
+
 ## CR-123 — ChatActivity: il lavoro di un agente in una chat
 
 **Stato:** ✅ done (1.47.0)
