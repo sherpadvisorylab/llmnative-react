@@ -31,6 +31,7 @@
 
 | CR | State | Evidence |
 |----|-------|----------|
+| Docs 2.0.1 | Done | `llms-full.txt`: which Firebase app `firebaseAuth`, `firestoreDb` and `firestorage` use (`providers.firebase`, same `appId`, `FirebaseAuthProvider({ config, appName })`, `callFirebaseFunction`), and the layout of a route (`item.layout` → `LayoutDefault` → `LayoutEmpty`, home on `path: '/'`). Released in 2.0.1, no CR. |
 | CR-125 | Done | `Form` d'azione con `onSubmit` (non legge né scrive, invia senza modifiche e con Invio, errore nell'avviso), `FormProps` esclusivi; `requireChanges` rimosso (breaking); errore di `onSave` nell'avviso; `Tel` e `inputMode`/`maxLength`/`pattern`/`autoComplete` su `Input`. `false` da `onSave`/`onSubmit` = fallito, la pagina dice perché. Test (12). Released in 2.0.0. Issue #104. |
 | CR-124 | Done | `Chatbot`: file e immagini incollati con Ctrl+V (uno screenshot) diventano allegati come quelli trascinati; il testo resta testo. Test (2). Released in 1.48.0. Issue #103. |
 | CR-123 | Done | `ChatActivity`: il lavoro di un agente in una chat (gruppi di passi con icona, label, conteggio, dettagli e righe a richiesta; parole dell'agente in Markdown; esito; file cambiati con "Vedi le modifiche"; registro grezzo a un clic); i18n 6 lingue, showcase. Test (4). Released in 1.47.0. Issue #102. |
