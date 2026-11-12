@@ -22,6 +22,14 @@ interface BaseInputProps extends FormFieldProps {
     validator?: (value: FieldValue) => string | undefined | Promise<string | undefined>;
     /** Content rendered as an absolute overlay inside the input (right side). No addon border/bg. */
     afterInset?: React.ReactNode;
+    /** The keyboard a phone shows (e.g. `"numeric"` for a code of digits). */
+    inputMode?: React.HTMLAttributes<HTMLInputElement>['inputMode'];
+    /** At most this many characters can be typed. */
+    maxLength?: number;
+    /** A regular expression the value must match, for the browser (e.g. `"[0-9]{6}"`); `validator` for the Form's own check. */
+    pattern?: string;
+    /** What the browser may fill in (e.g. `"one-time-code"` for a code received by email or SMS, `"tel"`, `"email"`). */
+    autoComplete?: string;
 }
 
 interface LabelProps {
@@ -196,6 +204,10 @@ export const Input = ({
     className = undefined,
     validator = undefined,
     labelMode = "default",
+    inputMode = undefined,
+    maxLength = undefined,
+    pattern = undefined,
+    autoComplete = undefined,
 }: BaseInputProps) => {
     const { value, handleChange, formWrapClass } = useFormContext({ name, onChange, wrapperClassName, inputType: type, defaultValue, inheritWrapperClassName });
     const error = useFieldValidation(name, { required, label, validator });
@@ -223,6 +235,10 @@ export const Input = ({
                     min={min}
                     max={max}
                     step={step}
+                    inputMode={inputMode}
+                    maxLength={maxLength}
+                    pattern={pattern}
+                    autoComplete={autoComplete}
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={handleDrop}
                 />
@@ -256,6 +272,11 @@ export const Number = (props: InputProps) => (
 
 export const Email = (props: InputProps) => (
     <Input {...props} type="email" />
+);
+
+/** A phone number: the phone shows its number keyboard. */
+export const Tel = (props: InputProps) => (
+    <Input autoComplete="tel" {...props} type="tel" />
 );
 
 export const Password = (props: InputProps) => {

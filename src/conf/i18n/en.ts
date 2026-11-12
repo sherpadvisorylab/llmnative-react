@@ -34,6 +34,7 @@ export const en: I18nDict = {
         requiredField: '{field} is required',
         requiredFieldGeneric: 'Required field',
         saveSuccess: 'Record saved successfully',
+        saveError: 'Something went wrong. Try again.',
         deleteSuccess: 'Record deleted successfully',
         noticeRequiredFields: 'Please fill in all required fields',
         noChangesToSave: 'No changes to save',

@@ -20,6 +20,7 @@ export const it: I18nDict = {
         requiredField: 'Il campo "{field}" è obbligatorio',
         requiredFieldGeneric: 'I campi obbligatori non sono compilati',
         saveSuccess: 'Salvato con successo', deleteSuccess: 'Eliminato con successo',
+        saveError: 'Qualcosa è andato storto. Riprova.',
         noticeRequiredFields: 'Completa i campi obbligatori prima di salvare.',
     },
     grid: {

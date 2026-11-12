@@ -20,6 +20,7 @@ export const de: I18nDict = {
         requiredField: 'Das Feld "{field}" ist erforderlich',
         requiredFieldGeneric: 'Pflichtfelder sind nicht ausgefüllt',
         saveSuccess: 'Erfolgreich gespeichert', deleteSuccess: 'Erfolgreich gelöscht',
+        saveError: 'Etwas ist schiefgelaufen. Bitte erneut versuchen.',
         noticeRequiredFields: 'Pflichtfelder vor dem Speichern ausfüllen.',
     },
     grid: {

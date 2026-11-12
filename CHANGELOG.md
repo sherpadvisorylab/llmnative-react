@@ -9,6 +9,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-11-12
+
+### Breaking
+- `Form`: `requireChanges` removed. An action form is now a Form with `onSubmit` (CR-125, issue #104).
+  Migration: `<Form requireChanges={false} onSave={async ({ record }) => { await act(record); return undefined; }}>`
+  becomes `<Form onSubmit={({ record }) => act(record)}>`.
+- `FormProps` is a union, `FormSaveProps | FormSubmitProps`: `onSubmit` with `path`, `onSave`, `onDelete` or
+  `keyGenerator` is a type error and throws at runtime.
+- An error thrown by `onSave` shows in the Form's notice and `save()` resolves `false`, instead of rejecting
+  (it still rejects with `showNotice={false}`).
+- `FormFinallyArgs.action` includes `'submit'`.
+
+### Added
+- `Form` `onSubmit({ record })`: an action form. It reads and writes nothing, submits unchanged values and on
+  Enter in a field, shows no Save button, breadcrumbs or "Saved", and shows the error of `onSubmit` in its notice.
+  `onSave` and `onSubmit` may return `false`: it failed and the page already says why (nothing written, no
+  notice, `save()` resolves `false`).
+  Types `FormSubmitArgs`, `FormSubmitHandler`, `FormSaveProps`, `FormSubmitProps`.
+- `Tel` field (`type="tel"`); `'tel'` in `InputType`; `Input` props `inputMode`, `maxLength`, `pattern`,
+  `autoComplete` (a one-time code: `inputMode="numeric" maxLength={6} autoComplete="one-time-code"`).
+- `form.saveError` text in 6 languages.
+
+### Changed
+- The inline notes of `path`, `onSave`, `onSubmit` and `showNotice` say what each does on their own.
+
 ## [1.48.0] - 2026-11-11
 
 ### Added

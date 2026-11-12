@@ -40,7 +40,7 @@ vi.mock('../../../src/Theme', () => ({
 
 import Form from '../../../src/components/widgets/Form';
 import { ActionButton } from '../../../src/components/ui/Buttons';
-import { Input, TextArea } from '../../../src/components/ui/fields/Input';
+import { Input, Tel, TextArea } from '../../../src/components/ui/fields/Input';
 import { UploadImage } from '../../../src/components/ui/fields/Upload';
 import { StorageProvider } from '../../../src/providers/storage/StorageProviderContext';
 import type { StorageProviderAdapter } from '../../../src/providers/storage/StorageProvider';
@@ -56,9 +56,9 @@ afterEach(() => {
     vi.useRealTimers();
 });
 
-// ── defaultValues (FormData path — no DB read) ────────────────────────────────
+// â”€â”€ defaultValues (FormData path â€” no DB read) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-describe('Form — defaultValues', () => {
+describe('Form â€” defaultValues', () => {
     it('renders children inside a form element', () => {
         renderWithProviders(
             <Form defaultValues={{}}>
@@ -132,9 +132,9 @@ describe('Form — defaultValues', () => {
     });
 });
 
-// ── path — existing record (FormDatabase path) ─────────────────────
+// â”€â”€ path â€” existing record (FormDatabase path) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-describe('Form — loading from DataProvider', () => {
+describe('Form â€” loading from DataProvider', () => {
     it('shows loading state then renders record fields', async () => {
         const provider = new MockDataProvider({
             '/users': { u1: { name: 'Alice', role: 'admin' } },
@@ -158,9 +158,9 @@ describe('Form — loading from DataProvider', () => {
     });
 });
 
-// ── save — writes to DataProvider ─────────────────────────────────────────────
+// â”€â”€ save â€” writes to DataProvider â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-describe('Form — save', () => {
+describe('Form â€” save', () => {
     it('calls provider.set() with form data on save', async () => {
         const provider = new MockDataProvider();
 
@@ -308,7 +308,7 @@ describe('Form — save', () => {
     });
 });
 
-describe('Form — draft restore', () => {
+describe('Form â€” draft restore', () => {
     it('does not persist a local draft unless explicitly enabled', async () => {
         const initial = (
             <Form path="/drafts/item_disabled" defaultValues={{ title: 'Original' }}>
@@ -432,11 +432,11 @@ describe('Form — draft restore', () => {
             delete: async () => 0,
             list: async () => [],
         };
-        // A local (not https://) URL on purpose — an <img src="https://..."> triggers happy-dom's
+        // A local (not https://) URL on purpose â€” an <img src="https://..."> triggers happy-dom's
         // real resource-fetch simulation, unrelated noise this test isn't about.
         const remoteUrl = 'blob:uploads-pg1-hero-hero.png';
 
-        // No `path` prop — mirrors PageEditorPage.tsx, which relies on location.pathname as the
+        // No `path` prop â€” mirrors PageEditorPage.tsx, which relies on location.pathname as the
         // draft identity instead (Form.tsx: `path || location.pathname + location.hash`).
         const initial = (
             <StorageProvider registry={{ demo: storage }} defaultKey="demo">
@@ -448,7 +448,7 @@ describe('Form — draft restore', () => {
 
         // A non-root route: with no `path` prop, draftStorageKey falls back to
         // location.pathname, and `/` normalizes to an EMPTY identity (trimSlash('/') === ''),
-        // which would make draftStorageKey undefined and silently disable drafts entirely —
+        // which would make draftStorageKey undefined and silently disable drafts entirely â€”
         // an edge case of the fallback itself, not of anything Upload-related, but easy to
         // trip in a test if the route isn't set explicitly like a real page URL always is.
         const route = '/sites/site-a/pages/page-chi-siamo';
@@ -460,7 +460,7 @@ describe('Form — draft restore', () => {
         await waitFor(() => expect(storage.upload).toHaveBeenCalled());
         await act(async () => { resolveUpload(remoteUrl); });
 
-        // Real thumbnail visible == progress reached 100 — this is what a user explicitly waits
+        // Real thumbnail visible == progress reached 100 â€” this is what a user explicitly waits
         // for before navigating away, expecting the upload to be "done".
         await waitFor(() => {
             expect(screen.getByAltText('preview-0')).toHaveAttribute('src', remoteUrl);
@@ -480,9 +480,9 @@ describe('Form — draft restore', () => {
     });
 });
 
-// ── validation — required fields block submit ─────────────────────────────────
+// â”€â”€ validation â€” required fields block submit â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-describe('Form — required validation', () => {
+describe('Form â€” required validation', () => {
     it('blocks submit and shows error when a required Input is empty', async () => {
         const provider = new MockDataProvider();
         renderWithProviders(
@@ -643,9 +643,9 @@ describe('Form — required validation', () => {
     });
 });
 
-// ── nested dot notation ───────────────────────────────────────────────────────
+// â”€â”€ nested dot notation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-describe('Form — nested dot notation', () => {
+describe('Form â€” nested dot notation', () => {
     it('pre-fills nested object fields', () => {
         renderWithProviders(
             <Form defaultValues={{ address: { city: 'Rome', zip: '00100' } }}>
@@ -680,65 +680,144 @@ describe('Form — nested dot notation', () => {
 });
 
 
-// ── requireChanges (CR-117) ───────────────────────────────────────────────────
+// â”€â”€ Action form: onSubmit (CR-125) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-describe('Form — requireChanges', () => {
-    function ActionForm({ onSave, requireChanges, required = false, version = '1.0.0' }: {
-        onSave: (args: { record?: Record<string, unknown> }) => Promise<string | undefined>;
-        requireChanges?: boolean;
+describe('Form â€” onSubmit (action form)', () => {
+    function ActionForm({ onSubmit, required = false, email = 'a@b.it', onComplete }: {
+        onSubmit: (args: { record: Record<string, unknown> }) => Promise<void> | void;
         required?: boolean;
-        version?: string;
+        email?: string;
+        onComplete?: (args: { action: string }) => Promise<boolean>;
     }) {
         const form = useFormController();
         return (
             <>
-                <ActionButton label="Start" disabled={form.saveDisabled} onClick={() => { void form.save(); }} />
-                <span data-testid="dirty">{String(form.isDirty)}</span>
-                <Form controller={form} appearance="empty" defaultValues={{ version }} onSave={onSave} {...(requireChanges === undefined ? {} : { requireChanges })}>
-                    <Input name="version" label="Version" required={required} />
+                <ActionButton label="Send" disabled={form.saveDisabled} onClick={() => { void form.save(); }} />
+                <Form controller={form} appearance="empty" defaultValues={{ email }} onSubmit={onSubmit} onComplete={onComplete}>
+                    <Input name="email" label="Email" required={required} />
                 </Form>
             </>
         );
     }
 
-    it('saves the initial values of an action form, unchanged (AC1)', async () => {
-        const onSave = vi.fn(async () => undefined);
-        renderWithProviders(<ActionForm onSave={onSave} requireChanges={false} />);
+    it('submits the values as they are, unchanged, and says nothing of its own (AC1)', async () => {
+        const onSubmit = vi.fn(async () => undefined);
+        const onComplete = vi.fn(async () => true);
+        renderWithProviders(<ActionForm onSubmit={onSubmit} onComplete={onComplete} />);
 
-        const start = screen.getByRole('button', { name: /start/i }) as HTMLButtonElement;
-        expect(start.disabled).toBe(false);
-        expect(screen.getByTestId('dirty').textContent).toBe('false');
-
-        fireEvent.click(start);
-        await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
-        expect(onSave.mock.calls[0][0]).toMatchObject({ record: { version: '1.0.0' } });
+        const send = screen.getByRole('button', { name: /send/i }) as HTMLButtonElement;
+        expect(send.disabled).toBe(false);
+        fireEvent.click(send);
+        await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
+        expect(onSubmit.mock.calls[0][0]).toEqual({ record: { email: 'a@b.it' } });
+        await waitFor(() => expect(onComplete).toHaveBeenCalledWith(expect.objectContaining({ action: 'submit' })));
+        expect(screen.queryByText(/saved successfully/i)).not.toBeInTheDocument();
         expect(screen.queryByText(/no changes to save/i)).not.toBeInTheDocument();
     });
 
-    it('still validates an action form before saving it (AC2)', async () => {
-        const onSave = vi.fn(async () => undefined);
-        renderWithProviders(<ActionForm onSave={onSave} requireChanges={false} required version="" />);
+    it('reads and writes nothing in the data provider (AC1)', async () => {
+        const db = new MockDataProvider();
+        const set = vi.spyOn(db, 'set');
+        const read = vi.spyOn(db, 'read');
+        const onSubmit = vi.fn(async () => undefined);
+        renderWithProviders(<ActionForm onSubmit={onSubmit} />, { provider: db, route: '/people#p1' });
 
-        fireEvent.click(screen.getByRole('button', { name: /start/i }));
-        await waitFor(() => expect(screen.getByText(/version is required/i)).toBeInTheDocument());
-        expect(onSave).not.toHaveBeenCalled();
+        fireEvent.click(screen.getByRole('button', { name: /send/i }));
+        await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
+        expect(set).not.toHaveBeenCalled();
+        // Nor reads the record named by the hash of the route, as a saving Form without a path does.
+        expect(read).not.toHaveBeenCalled();
     });
 
-    it('keeps needing a change by default (AC3)', async () => {
+    it('submits on Enter in a field (AC1)', async () => {
+        const onSubmit = vi.fn(async () => undefined);
+        renderWithProviders(<ActionForm onSubmit={onSubmit} />);
+
+        fireEvent.keyDown(screen.getByRole('textbox'), { key: 'Enter' });
+        await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
+    });
+
+    it('checks the fields before submitting', async () => {
+        const onSubmit = vi.fn(async () => undefined);
+        renderWithProviders(<ActionForm onSubmit={onSubmit} required email="" />);
+
+        fireEvent.click(screen.getByRole('button', { name: /send/i }));
+        await waitFor(() => expect(screen.getByText(/email is required/i)).toBeInTheDocument());
+        expect(onSubmit).not.toHaveBeenCalled();
+    });
+
+    it('shows the error of onSubmit in its notice (AC2)', async () => {
+        const onSubmit = vi.fn(async () => { throw new Error('The code has expired'); });
+        renderWithProviders(<ActionForm onSubmit={onSubmit} />);
+
+        fireEvent.click(screen.getByRole('button', { name: /send/i }));
+        await waitFor(() => expect(screen.getByText('The code has expired')).toBeInTheDocument());
+    });
+
+    it('says nothing and stops when onSubmit returns false: the page already says why', async () => {
+        const onSubmit = vi.fn(async () => false as const);
+        const onComplete = vi.fn(async () => true);
+        let submitted: boolean | undefined;
+        function Probe() {
+            const form = useFormController();
+            return (
+                <>
+                    <ActionButton label="Send" onClick={async () => { submitted = await form.save(); }} />
+                    <Form controller={form} appearance="empty" defaultValues={{ email: 'a@b.it' }} onSubmit={onSubmit} onComplete={onComplete}>
+                        <Input name="email" label="Email" />
+                    </Form>
+                </>
+            );
+        }
+        renderWithProviders(<Probe />);
+
+        fireEvent.click(screen.getByRole('button', { name: /send/i }));
+        await waitFor(() => expect(submitted).toBe(false));
+        expect(onComplete).not.toHaveBeenCalled();
+        expect(screen.queryByText(/went wrong/i)).not.toBeInTheDocument();
+    });
+
+    it('takes no path, onSave, onDelete or keyGenerator (AC3)', () => {
+        const errors = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+        // @ts-expect-error an action form saves nothing: onSubmit with a path does not type-check
+        const both = <Form path="/people" onSubmit={async () => undefined}><Input name="email" /></Form>;
+        // @ts-expect-error nor onSubmit with onSave
+        const withSave = <Form onSave={async () => undefined} onSubmit={async () => undefined}><Input name="email" /></Form>;
+        expect(() => renderWithProviders(both)).toThrow(/onSubmit makes an action form/);
+        expect(() => renderWithProviders(withSave)).toThrow(/onSubmit makes an action form/);
+        errors.mockRestore();
+    });
+});
+
+// â”€â”€ Saving form: changes, errors â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+describe('Form â€” onSave', () => {
+    function SaveForm({ onSave }: { onSave: (args: { record?: Record<string, unknown> }) => Promise<string | undefined> }) {
+        const form = useFormController();
+        return (
+            <>
+                <ActionButton label="Save it" disabled={form.saveDisabled} onClick={() => { void form.save(); }} />
+                <Form controller={form} appearance="empty" defaultValues={{ version: '1.0.0' }} onSave={onSave}>
+                    <Input name="version" label="Version" />
+                </Form>
+            </>
+        );
+    }
+
+    it('saves only when a field changed', async () => {
         const onSave = vi.fn(async () => undefined);
-        renderWithProviders(<ActionForm onSave={onSave} />);
+        renderWithProviders(<SaveForm onSave={onSave} />);
 
-        const start = screen.getByRole('button', { name: /start/i }) as HTMLButtonElement;
-        expect(start.disabled).toBe(true);
-
+        const save = screen.getByRole('button', { name: /save it/i }) as HTMLButtonElement;
+        expect(save.disabled).toBe(true);
         fireEvent.change(screen.getByRole('textbox'), { target: { name: 'version', value: '1.0.1' } });
-        expect(start.disabled).toBe(false);
-        fireEvent.click(start);
+        expect(save.disabled).toBe(false);
+        fireEvent.click(save);
         await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
         expect(onSave.mock.calls[0][0]).toMatchObject({ record: { version: '1.0.1' } });
     });
 
-    it('says there is nothing to save when a change is required and none was made (AC3)', async () => {
+    it('says there is nothing to save when none was made', async () => {
         const onSave = vi.fn(async () => undefined);
         let save!: () => Promise<boolean>;
         function Probe() {
@@ -757,5 +836,60 @@ describe('Form — requireChanges', () => {
         expect(saved).toBe(false);
         expect(onSave).not.toHaveBeenCalled();
         expect(screen.getByText(/no changes to save/i)).toBeInTheDocument();
+    });
+
+    it('writes nothing and says nothing when onSave returns false', async () => {
+        const provider = new MockDataProvider();
+        const set = vi.spyOn(provider, 'set');
+        const onSave = vi.fn(async (): Promise<string | undefined | false> => false);
+        function Probe() {
+            const form = useFormController();
+            return (
+                <>
+                    <ActionButton label="Save it" disabled={form.saveDisabled} onClick={() => { void form.save(); }} />
+                    <Form controller={form} appearance="empty" path="/releases/r1" defaultValues={{ version: '1.0.0' }} onSave={onSave}>
+                        <Input name="version" label="Version" />
+                    </Form>
+                </>
+            );
+        }
+        renderWithProviders(<Probe />, { provider });
+
+        fireEvent.change(screen.getByRole('textbox'), { target: { name: 'version', value: '1.0.1' } });
+        fireEvent.click(screen.getByRole('button', { name: /save it/i }));
+        await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
+        expect(set).not.toHaveBeenCalled();
+        expect(screen.queryByText(/saved successfully/i)).not.toBeInTheDocument();
+    });
+
+    it('shows the error of onSave in its notice instead of rejecting (AC2)', async () => {
+        const onSave = vi.fn(async (): Promise<string | undefined> => { throw new Error('Permission denied'); });
+        renderWithProviders(<SaveForm onSave={onSave} />);
+
+        fireEvent.change(screen.getByRole('textbox'), { target: { name: 'version', value: '1.0.1' } });
+        fireEvent.click(screen.getByRole('button', { name: /save it/i }));
+        await waitFor(() => expect(screen.getByText('Permission denied')).toBeInTheDocument());
+        expect(screen.queryByText(/saved successfully/i)).not.toBeInTheDocument();
+    });
+});
+
+// â”€â”€ Tel and the attributes of a code (CR-125) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+describe('Input â€” Tel and the attributes of a code', () => {
+    it('gives a phone number its type and a code its keyboard, length, pattern and autofill (AC4)', () => {
+        renderWithProviders(
+            <Form appearance="empty" onSubmit={async () => undefined}>
+                <Tel name="phone" label="Phone" />
+                <Input name="code" label="Code" inputMode="numeric" maxLength={6} pattern="[0-9]{6}" autoComplete="one-time-code" />
+            </Form>
+        );
+        const phone = screen.getByLabelText('Phone') as HTMLInputElement;
+        expect(phone.type).toBe('tel');
+        expect(phone.autocomplete).toBe('tel');
+        const code = screen.getByLabelText('Code') as HTMLInputElement;
+        expect(code.inputMode).toBe('numeric');
+        expect(code.maxLength).toBe(6);
+        expect(code.pattern).toBe('[0-9]{6}');
+        expect(code.autocomplete).toBe('one-time-code');
     });
 });

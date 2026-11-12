@@ -1,7 +1,7 @@
 # Project status
 
 > Snapshot verified against the real codebase, not against the historical plan.
-> Last reviewed: 2026-11-09
+> Last reviewed: 2026-11-12
 
 ---
 
@@ -31,6 +31,7 @@
 
 | CR | State | Evidence |
 |----|-------|----------|
+| CR-125 | Done | `Form` d'azione con `onSubmit` (non legge né scrive, invia senza modifiche e con Invio, errore nell'avviso), `FormProps` esclusivi; `requireChanges` rimosso (breaking); errore di `onSave` nell'avviso; `Tel` e `inputMode`/`maxLength`/`pattern`/`autoComplete` su `Input`. `false` da `onSave`/`onSubmit` = fallito, la pagina dice perché. Test (12). Released in 2.0.0. Issue #104. |
 | CR-124 | Done | `Chatbot`: file e immagini incollati con Ctrl+V (uno screenshot) diventano allegati come quelli trascinati; il testo resta testo. Test (2). Released in 1.48.0. Issue #103. |
 | CR-123 | Done | `ChatActivity`: il lavoro di un agente in una chat (gruppi di passi con icona, label, conteggio, dettagli e righe a richiesta; parole dell'agente in Markdown; esito; file cambiati con "Vedi le modifiche"; registro grezzo a un clic); i18n 6 lingue, showcase. Test (4). Released in 1.47.0. Issue #102. |
 | CR-122 | Done | Livello di ragionamento di una richiesta AI: `AIRequestOptions.reasoning` (`AIReasoningLevel`), `output_config.effort` su Anthropic (Claude 4.6+), `reasoning_effort` sui modelli di ragionamento di OpenAI, `reasoning.effort` su OpenRouter. Test (3). Released in 1.46.0. Issue #101. |

@@ -20,6 +20,7 @@ export const ar: I18nDict = {
         requiredField: 'الحقل "{field}" إلزامي',
         requiredFieldGeneric: 'الحقول الإلزامية غير مكتملة',
         saveSuccess: 'تم الحفظ بنجاح', deleteSuccess: 'تم الحذف بنجاح',
+        saveError: 'حدث خطأ ما. حاول مرة أخرى.',
         noticeRequiredFields: 'يرجى ملء الحقول الإلزامية قبل الحفظ.',
     },
     grid: {

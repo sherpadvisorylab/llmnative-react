@@ -20,6 +20,7 @@ export const zh: I18nDict = {
         requiredField: '字段"{field}"为必填项',
         requiredFieldGeneric: '必填字段未填写',
         saveSuccess: '保存成功', deleteSuccess: '删除成功',
+        saveError: '出了点问题，请重试。',
         noticeRequiredFields: '请在保存前填写必填字段。',
     },
     grid: {

@@ -39,6 +39,7 @@ export interface I18nDict {
         requiredField:        string;
         requiredFieldGeneric: string;
         saveSuccess:          string;
+        saveError:            string;
         deleteSuccess:        string;
         noticeRequiredFields: string;
         noChangesToSave?:     string;

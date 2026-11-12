@@ -246,7 +246,8 @@ function useGridActions<TRecord extends RecordProps>({
                         })
                     ) : undefined}
                     onComplete={async ({ record, action }) => {
-                        const success = await onComplete?.({ record: record as TRecord | undefined, action }) ?? true;
+                        // A Grid's form saves records: never 'submit'.
+                        const success = await onComplete?.({ record: record as TRecord | undefined, action: action as 'create' | 'update' | 'delete' }) ?? true;
                         if (success) close();
                         return success;
                     }}

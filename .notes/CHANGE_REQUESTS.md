@@ -160,6 +160,43 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
+## CR-125 — Form d'azione con `onSubmit`, `Tel` e le prop di un codice su `Input`
+
+**Stato:** ✅ done (2.0.0, breaking)
+**Issue:** [#104](https://github.com/sherpadvisorylab/llmnative-react/issues/104)
+**Priorità:** Alta
+
+### Motivazione
+
+Emersa il 12/11/2026 da un CR di un consumer: un agente AI, leggendo solo le note in linea, ha concluso che il
+framework non ha un form d'invio. Un Form che esegue un'azione si scriveva con tre indizi (niente `path`,
+`requireChanges={false}`, un `onSave` che restituisce `undefined`) e la nota di `onSave` era sbagliata. Mancavano
+anche il tipo telefono e gli attributi di un codice monouso.
+
+### Scope
+
+- `onSubmit({ record })`: il Form d'azione. Non legge né scrive (nemmeno il record dell'hash della route), invia
+  anche senza modifiche e con Invio in un campo, niente pulsante Salva, breadcrumb e "Salvato"; `onComplete`
+  riceve `action: 'submit'`.
+- `FormProps = FormSaveProps | FormSubmitProps`: `onSubmit` esclude `path`, `onSave`, `onDelete`, `keyGenerator`
+  nei tipi e a runtime (errore esplicito).
+- **Breaking:** `requireChanges` rimosso; `FormFinallyArgs.action` include `'submit'`; l'errore di
+  `onSave`/`onSubmit` appare nell'avviso del Form e `save()` restituisce `false` (rigetta solo con `showNotice={false}`).
+- `onSave`/`onSubmit` possono restituire `false`: fallito, la pagina dice già perché (niente scrittura, avviso, `onComplete`).
+- Note in linea di `path`, `onSave`, `onSubmit`, `showNotice` riscritte; `form.saveError` in 6 lingue.
+- `Tel` (`type="tel"`, `autoComplete="tel"`), `'tel'` in `InputType`; `inputMode`, `maxLength`, `pattern`,
+  `autoComplete` su `Input`.
+
+### Criteri di accettazione
+
+- [x] AC1: `onSubmit` riceve il record senza modifiche, non legge/scrive nel provider, non dice "Salvato"; Invio invia.
+- [x] AC2: l'errore di `onSubmit` e di `onSave` appare nell'avviso del Form.
+- [x] AC3: `onSubmit` con `path`/`onSave` è errore di tipo (`@ts-expect-error`) e a runtime.
+- [x] AC4: `Tel` e le quattro prop arrivano all'`<input>`.
+- [x] AC5: test (12), `docs/patterns/form.md`, `llms-full.txt`, CHANGELOG con la migrazione.
+
+---
+
 ## CR-124 — Chatbot: allegati incollati dagli appunti
 
 **Stato:** ✅ done (1.48.0)

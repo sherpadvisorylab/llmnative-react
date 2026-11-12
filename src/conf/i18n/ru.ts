@@ -20,6 +20,7 @@ export const ru: I18nDict = {
         requiredField: 'Поле "{field}" обязательно для заполнения',
         requiredFieldGeneric: 'Обязательные поля не заполнены',
         saveSuccess: 'Успешно сохранено', deleteSuccess: 'Успешно удалено',
+        saveError: 'Что-то пошло не так. Попробуйте ещё раз.',
         noticeRequiredFields: 'Заполните обязательные поля перед сохранением.',
     },
     grid: {

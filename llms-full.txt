@@ -305,7 +305,7 @@ export class RestDataProvider implements DataProviderAdapter {
 | `draftBucket` | `string` | Bucket stabile che isola la bozza locale; omettilo per disabilitare la persistenza |
 | `noticeAnchorRef` | `React.RefObject<HTMLElement>` | Ancoraggio sticky per notifiche |
 | `showNotice` | `boolean` | Mostra notifiche save/delete (default `true`) |
-| `requireChanges` | `boolean` | Default `true`: senza un campo cambiato il salvataggio dice "No changes to save" ed è disabilitato. `false` = form d'azione (CR-117): i valori iniziali sono già un invio valido (es. avviare una release con la versione proposta), `save()` valida e chiama `onSave` anche senza modifiche; `isDirty` dice comunque se qualcosa è cambiato |
+| `onSubmit` | `FormSubmitHandler` | `async ({ record }) => void`. **Form d'azione** (CR-125): non legge e non scrive nulla; invia anche senza modifiche e con Invio in un campo; niente pulsante Salva né "Salvato" (il pulsante è tuo: `useFormController().save()`); l'errore lanciato appare nel suo avviso; restituire `false` = è fallito e la pagina dice già perché (nessun avviso né `onComplete`). Esclude `path`, `onSave`, `onDelete`, `keyGenerator` (errore di tipo e a runtime). Sostituisce `requireChanges={false}` della 1.x |
 | `children` | `ReactNode \| ((fields) => ReactNode) \| (({ record }) => ReactNode)` | Contenuto form |
 | `header` | `ReactNode` | Contenuto header custom |
 | `footer` | `ReactNode` | Contenuto footer custom |
@@ -316,9 +316,9 @@ export class RestDataProvider implements DataProviderAdapter {
 | `log` | `boolean` | Logga ogni modifica su console |
 | `onLoad` | `(record) => void` | Side-effect dopo il caricamento (non trasforma) |
 | `onRecordChange` | `(record) => void` | Cambio campo in tempo reale |
-| `onSave` | `FormSaveHandler` | `async ({ record, prevRecord?, storagePath?, action }) => string \| undefined` |
+| `onSave` | `FormSaveHandler` | `async ({ record, prevRecord?, storagePath?, action }) => string \| undefined`. Form che **salva un record**, solo se un campo è cambiato: restituisce il path dove scriverlo, `undefined` = il `path` del Form (senza `path` non scrive), `false` = è fallito e la pagina dice già perché (non scrive, nessun avviso, `save()` dà `false`). Per un'azione (chiamare un comando) usa `onSubmit`. L'errore lanciato appare nell'avviso del Form |
 | `onDelete` | `FormDeleteHandler` | `async ({ record }) => string \| undefined` |
-| `onComplete` | `FormFinallyHandler` | `async ({ record, action }) => boolean` |
+| `onComplete` | `FormFinallyHandler` | `async ({ record, action }) => boolean`; `action` è `'create' \| 'update' \| 'delete' \| 'submit'` |
 
 **Form controller** — stato e azioni native del form accessibili da qualsiasi punto della pagina.
 
@@ -337,15 +337,18 @@ const form = useFormController();
 <Form controller={form} draftBucket="workspace/acme" onSave={...} />
 ```
 
-Esempio — form d'azione, i valori proposti si inviano anche senza modificarli (CR-117):
+Esempio — form d'azione: chiama un comando, non salva nulla (CR-125):
 ```tsx
 const form = useFormController();
 
-<LoadingButton label="Avvia la release" onClick={() => form.save()} />
-<Form controller={form} appearance="empty" requireChanges={false} defaultValues={{ version: '1.4.0', notes }} onSave={async ({ record }) => { await start(record); return undefined; }}>
-  <Input name="version" label="Versione" required />
+<Form controller={form} appearance="empty" onSubmit={({ record }) => call('verifyLoginCode', record)}>
+  <Input name="email" type="email" label="Email" required />
+  <Input name="code" label="Codice" required inputMode="numeric" maxLength={6} pattern="[0-9]{6}" autoComplete="one-time-code" />
 </Form>
+<LoadingButton label="Entra con il codice" loading={form.isSaving} onClick={() => form.save()} />
 ```
+Con valori proposti (avviare una release con la versione proposta) si inviano anche senza modificarli:
+`<Form controller={form} appearance="empty" defaultValues={{ version: '1.4.0' }} onSubmit={({ record }) => start(record)}>`.
 
 Esempio — uso dentro il form (senza passare controller):
 ```tsx
@@ -368,6 +371,8 @@ Azioni: `save()`, `delete()`, `reset()`, `restoreDraft()`, `discardDraft()`.
 <Input name="x" label="..." required />                          // text (default)
 <Input name="price" type="number" min={0} max={100} step={0.01} />
 <Input name="email" type="email" />
+<Input name="phone" type="tel" autoComplete="tel" />                 // o <Tel name="phone" />
+<Input name="code" inputMode="numeric" maxLength={6} pattern="[0-9]{6}" autoComplete="one-time-code" />  // un codice monouso
 <Input name="pwd"   type="password" />
 <Input name="date"  type="date" />
 <Input name="color" type="color" />
@@ -375,8 +380,8 @@ Azioni: `save()`, `delete()`, `reset()`, `restoreDraft()`, `discardDraft()`.
 <Checkbox name="active" valueChecked="yes" />
 <Switch name="gate" label="Passa dalla CI" disabled title="L'agente non committa" />   // CR-116: disabled (non cambia né con il clic né da tastiera), title anche sull'etichetta: il motivo al passaggio del mouse
 ```
-`Input` props: `name`(req) `label` `type` `required` `disabled` `placeholder` `min` `max` `step` `validator:(v)=>string|undefined`
-`type`: `'text' | 'number' | 'email' | 'password' | 'color' | 'date' | 'time' | 'datetime-local' | 'week' | 'month' | 'range' | 'checkbox' | 'radio' | 'url'`
+`Input` props: `name`(req) `label` `type` `required` `disabled` `placeholder` `min` `max` `step` `inputMode` `maxLength` `pattern` `autoComplete` `validator:(v)=>string|undefined`
+`type`: `'text' | 'number' | 'email' | 'tel' | 'password' | 'color' | 'date' | 'time' | 'datetime-local' | 'week' | 'month' | 'range' | 'checkbox' | 'radio' | 'url'`
 
 **NOTA**: il tipo HTML si passa con `type`. `inputType` e i sotto-componenti `Input.Number`/`Input.Email`/`Input.Date` non esistono.
 

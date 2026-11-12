@@ -41,7 +41,7 @@ interface FormProviderProps {
     wrapperClassName?: string;
 }
 export type FieldOnChange = (params: {event: ChangeHandler, name: string, value: FieldValue, record: RecordProps, onChange: FormHandleChange}) => void;
-export type InputType = "text" | "number" | "email" | "password" | "color" | "date" | "time" | "datetime-local" | "week" | "month" | "range" | "checkbox" | "radio" | "url" ;
+export type InputType = "text" | "number" | "email" | "tel" | "password" | "color" | "date" | "time" | "datetime-local" | "week" | "month" | "range" | "checkbox" | "radio" | "url" ;
 export type LabelMode = "default" | "floating";
 
 interface FormContextProps {
@@ -372,15 +372,31 @@ export type FormDeleteArgs = {
 
 export type FormFinallyArgs = {
     record?: RecordProps;
-    action: 'create' | 'update' | 'delete';
+    /** `submit` after `onSubmit` (action form); the others after a save or a delete. */
+    action: 'create' | 'update' | 'delete' | 'submit';
 }
 
-export type FormSaveHandler = (args: FormSaveArgs) => Promise<string | undefined>;
+/** What `onSubmit` receives: the record of the fields, as typed. */
+export type FormSubmitArgs = {
+    record: RecordProps;
+}
+
+/**
+ * Called on save. Return a provider path to write the record there, `undefined` to write it at the
+ * Form's `path` (nothing written without a `path`), `false` when it failed and the page already says
+ * why (nothing written, no notice, `save()` resolves `false`). Throwing shows its message in the Form's notice.
+ */
+export type FormSaveHandler = (args: FormSaveArgs) => Promise<string | undefined | false>;
 export type FormDeleteHandler = (args: FormDeleteArgs) => Promise<string | undefined>;
 export type FormFinallyHandler = (args: FormFinallyArgs) => Promise<boolean>;
+/**
+ * The action of an action form. Throwing shows its message in the Form's notice; returning `false` means it
+ * failed and the page already says why (no notice, no `onComplete`, `save()` resolves `false`).
+ */
+export type FormSubmitHandler = (args: FormSubmitArgs) => Promise<void | false> | void | false;
 
-/** Core props shared by all Form variants. */
-interface BaseFormProps {
+/** Props shared by both kinds of Form: the one that saves a record and the one that runs an action. */
+interface FormCommonProps {
     /** Visual wrapper: `"card"` adds a card shell; `"empty"` renders bare. */
     appearance?: "card" | "empty";
     /** Shared controller for external actions, custom save buttons and draft state. */
@@ -389,32 +405,16 @@ interface BaseFormProps {
     header?: React.ReactNode;
     /** Custom content rendered in the form footer area. */
     footer?: React.ReactNode;
-    /** Provider path for data load and save. Omit for a pure local form. */
-    path?: string;
-    /** Generate a custom primary key for new records instead of auto-push. */
-    keyGenerator?: (record: RecordProps) => string;
     /** Transform the record after loading from the provider. */
     onLoad?: (record: RecordProps) => void;
     /** Called on every field change with the current record state. */
     onRecordChange?: (record: RecordProps) => void;
-    /** Transform the record before saving. Return the final record or a custom path. */
-    onSave?: FormSaveHandler;
-    /** Called before deletion. Return a path override or `undefined`. */
-    onDelete?: FormDeleteHandler;
-    /** Called after save or delete. Return `false` to suppress default navigation. */
+    /** Called after a save, a delete or a submit that worked. Return `false` to suppress default navigation. */
     onComplete?: FormFinallyHandler;
     /** Log field-change events to the console (dev helper). */
     log?: boolean;
-    /** Show the inline save/delete notice banner. Defaults to `true`. */
+    /** Show the inline notice banner (saved, deleted, required fields, errors). Defaults to `true`; `false` lets an error of `onSave`/`onSubmit` reject `save()` instead. */
     showNotice?: boolean;
-    /**
-     * Whether saving needs a changed field. Defaults to `true`: an unchanged form says "No changes
-     * to save" and its save is disabled. `false` makes it an action form (CR-117), whose initial
-     * values are already a valid submission (e.g. start a release with the proposed version):
-     * `save()` validates and calls `onSave` even when nothing changed. `isDirty` still tells
-     * whether something did.
-     */
-    requireChanges?: boolean;
     /**
      * Stable bucket that isolates this form's local draft. Omit to disable draft persistence.
      * The Form appends its own path/route identity, so one bucket safely serves many forms.
@@ -441,35 +441,78 @@ interface BaseFormProps {
      * `[&>form]:` child selector on `wrapperClassName`.
      */
     formClassName?: string;
-}
-interface FormDefaultProps extends BaseFormProps {
-    children: React.ReactNode | ((fields: FormTree) => React.ReactNode) | ((args: { record?: RecordProps}) => React.ReactNode);
+    /** Field elements, a render-prop receiving the field tree, or a record-aware function. */
+    children?: React.ReactNode | ((fields: FormTree) => React.ReactNode) | ((args: { record?: RecordProps }) => React.ReactNode);
+    /** Initial field values (a new record, or the proposed values of an action). */
     defaultValues?: RecordProps;
 }
 
-interface FormDatabaseProps extends FormDefaultProps {
+/** What a Form that saves a record takes: where, how and what it writes. */
+interface FormSaveOptions {
+    /** Provider path the record is read from and written to. Omitted: read from the route hash if any, else nothing read; nothing written unless `onSave` returns a path. */
+    path?: string;
+    /** Generate a custom primary key for new records instead of auto-push. */
+    keyGenerator?: (record: RecordProps) => string;
+    /**
+     * Called on save, after the fields are valid and only when one changed. Return a provider path to
+     * write the record there, `undefined` to write it at `path`. To run an action instead (call a
+     * command, send a code) use `onSubmit`.
+     */
+    onSave?: FormSaveHandler;
+    /** Called before deletion. Return a path override or `undefined`. */
+    onDelete?: FormDeleteHandler;
+}
+
+/**
+ * A Form that saves a record: it reads it from `path`, writes it there (or where `onSave` says),
+ * shows "Saved", and saves only when a field changed. It shows its own Save button in the card.
+ */
+export interface FormSaveProps extends FormCommonProps, FormSaveOptions {
+    onSubmit?: never;
+}
+
+/**
+ * An action form: it saves nothing. On submit (Enter in a field, or `useFormController().save()` from
+ * your own button) it checks the fields and calls `onSubmit({ record })`, changed or not. No Save
+ * button, no "Saved": the button and what follows are yours; an error of `onSubmit` shows in its
+ * notice. It takes no `path`, `onSave`, `onDelete` or `keyGenerator`.
+ */
+export interface FormSubmitProps extends FormCommonProps {
+    /** The action: e.g. `({ record }) => call('requestLoginCode', record)`. */
+    onSubmit: FormSubmitHandler;
+    path?: never;
+    keyGenerator?: never;
+    onSave?: never;
+    onDelete?: never;
+}
+
+/** Public props for `<Form>`: a Form that saves a record (`FormSaveProps`) or an action form (`FormSubmitProps`, with `onSubmit`). */
+export type FormProps = FormSaveProps | FormSubmitProps;
+
+/** What the inner Form takes: either kind, checked by `Form`. */
+interface FormDataProps extends FormCommonProps, FormSaveOptions {
+    onSubmit?: FormSubmitHandler;
+}
+
+interface FormDatabaseProps extends FormDataProps {
     path: string;
 }
-interface FormModelProps extends BaseFormProps {
+interface FormModelProps extends Omit<FormCommonProps, 'children'>, FormSaveOptions {
     model: ModelProps;
     children?: ((fields: FormTree) => React.ReactNode);
 }
 
-/**
- * Public props for `<Form>`.
- * When `path` points to an existing record the form loads its data automatically.
- * When `keyGenerator` or `defaultValues` is set the form operates in create-only mode.
- */
-export interface FormProps extends BaseFormProps {
-    /** Field elements, a render-prop receiving the field tree, or a record-aware function. */
-    children?: React.ReactNode | ((fields: FormTree) => React.ReactNode) | ((args: { record?: RecordProps }) => React.ReactNode);
-    /** Initial field values for a new record. */
-    defaultValues?: RecordProps;
-}
-
 function Form(props: FormProps) {
     const location = useLocation();
-    const { path, keyGenerator, defaultValues, children, ...rest } = props;
+    const { path, keyGenerator, defaultValues, children, ...rest } = props as FormDataProps;
+
+    // An action form saves nothing: never with what a saving Form takes (JavaScript callers too).
+    if (rest.onSubmit && (path !== undefined || keyGenerator || rest.onSave || rest.onDelete)) {
+        throw new Error('Form: onSubmit makes an action form, which saves nothing: it takes no path, onSave, onDelete or keyGenerator.');
+    }
+    if (rest.onSubmit) {
+        return <FormData children={children} defaultValues={defaultValues} {...rest} />;
+    }
 
     const getDbPath = (p: string | undefined) => (
         p ?? (location.hash
@@ -588,7 +631,7 @@ const FormData = ({
     onComplete = undefined,
     log = false,
     showNotice = true,
-    requireChanges = true,
+    onSubmit = undefined,
     draftBucket = undefined,
     noticeAnchorRef = undefined,
     showBack = false,
@@ -597,7 +640,7 @@ const FormData = ({
     className = undefined,
     footerClassName = undefined,
     formClassName = undefined
-}: FormDefaultProps) => {
+}: FormDataProps) => {
     const location = useLocation();
     const theme = useTheme("form");
     const dict = useI18n('form');
@@ -634,7 +677,10 @@ const FormData = ({
             : undefined;
     }, [draftBucket, location.pathname, location.hash, path]);
 
-    const canSave = Boolean(onSave || path || !isNewRecord);
+    // An action form submits as it is (its values may already be the submission); a saving one needs a change.
+    const isAction = Boolean(onSubmit);
+    const requireChanges = !isAction;
+    const canSave = Boolean(onSubmit || onSave || path || !isNewRecord);
     const canDelete = Boolean(onDelete || !isNewRecord);
     // BUG FISSATO: girava `createRecordSnapshot` (clone ricorsivo completo di TUTTO il record +
     // JSON.stringify) dentro un useMemo con `record` come dep — quindi ad OGNI keystroke su
@@ -684,6 +730,7 @@ const FormData = ({
     const recordRef = useRef(record);
     const defaultValuesRef = useRef(defaultValues);
     const onSaveRef = useRef(onSave);
+    const onSubmitRef = useRef(onSubmit);
     const onDeleteRef = useRef(onDelete);
     const onCompleteRef = useRef(onComplete);
     const pathRef = useRef(path);
@@ -797,8 +844,8 @@ const FormData = ({
         return `/${parent}/${key}`;
     }, [path, keyGenerator, isNewRecord]);
 
-    const handleFinally = useCallback(async (action: 'create' | 'update' | 'delete') => {
-        if (logRef.current && pathRef.current && db) {
+    const handleFinally = useCallback(async (action: FormFinallyArgs['action']) => {
+        if (action !== 'submit' && logRef.current && pathRef.current && db) {
             const when = new Date().toISOString();
             const user = getGlobalVars("user");
             db.set(`/log/${pathRef.current}/${normalizeKey(when)}`, {
@@ -809,7 +856,8 @@ const FormData = ({
             });
         }
 
-        notice({ message: action === 'delete' ? dict.deleteSuccess : dict.saveSuccess, type: "success" });
+        // An action says nothing of its own: what follows it is the caller's.
+        if (action !== 'submit') notice({ message: action === 'delete' ? dict.deleteSuccess : dict.saveSuccess, type: "success" });
 
         return (await onCompleteRef.current?.({record: recordRef.current, action})) ?? true;
     }, [db, notice, dict]);
@@ -830,28 +878,54 @@ const FormData = ({
             return false;
         }
 
+        // The error of onSave/onSubmit in the notice; without a notice, save() rejects with it.
+        const failed = (error: unknown): false => {
+            if (!showNotice) throw error;
+            const message = error instanceof Error && error.message ? error.message : typeof error === 'string' && error ? error : dict.saveError;
+            setNotification({ message, type: "danger" });
+            return false;
+        };
+
+        if (onSubmitRef.current) {
+            setIsSaving(true);
+            try {
+                if ((await onSubmitRef.current({ record: safeClone(recordRef.current ?? {}) })) === false) return false;
+            } catch (error) {
+                return failed(error);
+            } finally {
+                setIsSaving(false);
+            }
+            clearDraftStorage();
+            setDraftNoticeState(null);
+            return await handleFinally('submit');
+        }
+
         const action = isNewRecord ? "create" : "update";
         setIsSaving(true);
         try {
-            const recordStoragePath =
-                (onSaveRef.current && await onSaveRef.current({
+            const returned = onSaveRef.current
+                ? await onSaveRef.current({
                     record: recordRef.current,
                     prevRecord: defaultValuesRef.current,
                     action,
                     storagePath: pathRef.current,
-                }))
-                ?? computeSavePath(recordRef.current ?? {});
+                })
+                : undefined;
+            if (returned === false) return false;
+            const recordStoragePath = returned ?? computeSavePath(recordRef.current ?? {});
 
             recordStoragePath && await db.set(recordStoragePath, cleanRecord(recordRef.current));
             baselineRecordRef.current = safeClone(recordRef.current ?? {});
             setBaselineSnapshot(createRecordSnapshot(recordRef.current));
             clearDraftStorage();
             setDraftNoticeState(null);
-            return await handleFinally(action);
+        } catch (error) {
+            return failed(error);
         } finally {
             setIsSaving(false);
         }
-    }, [clearDraftStorage, computeSavePath, db, dict.noticeRequiredFields, handleFinally, isDirty, isNewRecord, noChangesToSave, requireChanges, showNotice, validateFields]);
+        return await handleFinally(action);
+    }, [clearDraftStorage, computeSavePath, db, dict.noticeRequiredFields, dict.saveError, handleFinally, isDirty, isNewRecord, noChangesToSave, requireChanges, showNotice, validateFields]);
 
     const handleDelete = useCallback(async (event?: FormActionEvent): Promise<boolean> => {
         event?.preventDefault?.();
@@ -906,11 +980,12 @@ const FormData = ({
     useEffect(() => {
         defaultValuesRef.current = defaultValues;
         onSaveRef.current = onSave;
+        onSubmitRef.current = onSubmit;
         onDeleteRef.current = onDelete;
         onCompleteRef.current = onComplete;
         pathRef.current = path;
         logRef.current = log;
-    }, [defaultValues, log, onComplete, onDelete, onSave, path]);
+    }, [defaultValues, log, onComplete, onDelete, onSave, onSubmit, path]);
 
     useEffect(() => {
         if (!draftStorageKey || typeof localStorage === 'undefined' || record === undefined) return;
@@ -1007,6 +1082,16 @@ const FormData = ({
         keyboardEvent.preventDefault();
         void formController.save();
     }, [formController]);
+
+    const handleSubmitKey = useCallback((keyboardEvent: React.KeyboardEvent<HTMLFormElement>) => {
+        if (!isAction || keyboardEvent.defaultPrevented || keyboardEvent.key !== 'Enter') return;
+        if (keyboardEvent.shiftKey || keyboardEvent.altKey || keyboardEvent.nativeEvent.isComposing) return;
+        const target = keyboardEvent.target as HTMLElement;
+        if (!(target instanceof HTMLInputElement) || ['checkbox', 'radio', 'button', 'submit', 'file', 'color', 'range'].includes(target.type)) return;
+        if (target.getAttribute('role') === 'combobox' || target.getAttribute('aria-expanded') === 'true') return;
+        keyboardEvent.preventDefault();
+        if (!formController.saveDisabled) void formController.save();
+    }, [formController, isAction]);
 
     const validationContextValue = useMemo(() => ({
         registerField,
@@ -1105,11 +1190,11 @@ const FormData = ({
             default:
                 return (
                     <Card
-                        header={header || <Breadcrumbs rootItem={(isNewRecord ? dict.headerAdd : dict.headerEdit)} trail={path || undefined} />}
-                        footer={(footer || !isNewRecord || onSave || onDelete || showBack || !!path) && <>
+                        header={header || (isAction ? undefined : <Breadcrumbs rootItem={(isNewRecord ? dict.headerAdd : dict.headerEdit)} trail={path || undefined} />)}
+                        footer={(footer || notificationEl || !isNewRecord || onSave || onDelete || showBack || !!path) && <>
                             {footer}
                             {notificationEl}
-                            {(onSave || !!path || !isNewRecord) && <LoadingButton
+                            {!isAction && (onSave || !!path || !isNewRecord) && <LoadingButton
                                 className={cn(theme.Form.buttonSaveClass, formController.saveDisabled && "cursor-not-allowed opacity-50")}
                                 label={dict.buttonSave}
                                 title={formController.saveDisabled && !isDirty ? noChangesToSave : undefined}
@@ -1117,7 +1202,7 @@ const FormData = ({
                                 loading={formController.isSaving}
                                 onClick={(event) => formController.save(event)}
                             />}
-                            {(onDelete || !isNewRecord) && <LoadingButton
+                            {!isAction && (onDelete || !isNewRecord) && <LoadingButton
                                 className={theme.Form.buttonDeleteClass}
                                 label={dict.buttonDelete}
                                 disabled={formController.deleteDisabled}
@@ -1140,7 +1225,7 @@ const FormData = ({
                     </Card>
                 );
         }
-    }, [appearance, className, components, dict.buttonBack, dict.buttonDelete, dict.buttonSave, dict.headerAdd, dict.headerEdit, draftNoticeEl, footer, footerClassName, formController, header, headerClassName, isDirty, isNewRecord, noChangesToSave, notificationEl, onDelete, onSave, path, showBack, theme.Form.buttonDeleteClass, theme.Form.buttonSaveClass, theme.Form.buttonBackClass, theme.Form.Card.bodyClassName, theme.Form.Card.footerClassName, theme.Form.Card.headerClassName]);
+    }, [appearance, className, components, isAction, dict.buttonBack, dict.buttonDelete, dict.buttonSave, dict.headerAdd, dict.headerEdit, draftNoticeEl, footer, footerClassName, formController, header, headerClassName, isDirty, isNewRecord, noChangesToSave, notificationEl, onDelete, onSave, path, showBack, theme.Form.buttonDeleteClass, theme.Form.buttonSaveClass, theme.Form.buttonBackClass, theme.Form.Card.bodyClassName, theme.Form.Card.footerClassName, theme.Form.Card.headerClassName]);
 
     return (
         <Wrapper className={wrapperClassName || theme.Form.wrapperClassName}>
@@ -1150,7 +1235,7 @@ const FormData = ({
                 noValidate
                 onSubmit={event => event.preventDefault()}
                 onKeyDownCapture={handleFormKeyDown}
-                onKeyDown={handleFormKeyDown}
+                onKeyDown={(event) => { handleFormKeyDown(event); handleSubmitKey(event); }}
             >
                 {displayComponent}
             </form>
