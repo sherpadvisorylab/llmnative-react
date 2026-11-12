@@ -54,7 +54,7 @@ import '@llmnative/react/dist/index.css'
   themeProvider="default"            // 'default' | 'flat' | 'cyber' | AppThemeProviderConfig
   menuConfig={menuConfig}
   importPage={(path) => import(path)}
-  LayoutDefault={MyLayout}           // layout wrapper custom (opzionale)
+  LayoutDefault={MyLayout}           // layout wrapper custom (opzionale): avvolge ogni voce di menuConfig senza `layout`
   appName="MyApp"                    // nome app (opzionale)
   i18n={{ locale: 'it', translations: { ... } }}
   contextProviders={MyContextProvider}
@@ -112,6 +112,40 @@ The VS Code and Tokyo Night themes are compiled from the original VS Code theme 
 | email | `EmailProviderAdapter` | `gmail` | `providers.google` | no |
 | ai | `AIProviderAdapter` | `openai`, `gemini`, `anthropic`, `deepseek`, `mistral`, `openrouter`, `opencode`, `opencode-go`, `cloudflare`, `groq` | `Config.tsx AIConfig` | no |
 | credentials | `CredentialsAdapter` | `googleServiceAccount` | `providers.google.serviceAccount` | no |
+
+### Firebase: quale app usano auth, dati e storage
+
+- `providers.firebase` inizializza l'app Firebase **di default** dell'SDK (`[DEFAULT]`). `firestoreDb` e `firestorage` la
+  usano, e il driver `firebaseAuth` (`services.auth: 'firebaseAuth'`) fa login su quella stessa app: login, Firestore
+  e Storage condividono la sessione.
+- Un'app che chiama già `initializeApp(config)` per conto suo condivide l'app di default con il framework solo se ha lo
+  **stesso `appId`**. Con un `appId` diverso il framework chiude quell'app e la reinizializza con la propria config, e
+  la sessione dell'app cade. Per questo il client Firebase si crea una volta sola: o `providers.firebase`, o il codice
+  dell'app con la stessa config.
+- Una sessione separata, che non deve cadere quando l'app di default cambia (cambio di tenant): istanziare
+  `new FirebaseAuthProvider({ config, appName: 'control-plane' })`. `appName` è un'app con un nome suo; senza
+  `config` usa un'app già inizializzata con quel nome.
+- Le Cloud Functions callable: `callFirebaseFunction(name, data, appName?, region?)`, sull'app di default se non si
+  passa `appName`. Il token della sessione lo aggiunge l'SDK.
+
+### Layout per voce di menu
+
+Ogni voce di `menuConfig` è una route. Viene avvolta da `item.layout` se presente, altrimenti da `LayoutDefault` di
+`<App>`, altrimenti da `LayoutEmpty`. Una pagina con un guscio diverso, per esempio l'accesso a tutta pagina senza
+sidebar, dichiara `layout` sulla sua voce:
+
+```tsx
+export const menuConfig: MenuConfig = {
+  main: [
+    { path: '/', title: 'Home', icon: 'home', page: HomePage },          // LayoutDefault
+  ],
+  public: [
+    { path: '/login', page: LoginPage, layout: AccessLayout },           // senza header né sidebar
+  ],
+};
+```
+
+La home va dichiarata con `path: '/'`: senza quella voce, `/` mostra "Missing Page".
 
 ### Hooks
 

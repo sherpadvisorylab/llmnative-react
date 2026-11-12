@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.1] - 2026-11-12
+
+### Documentation
+- `llms-full.txt`: which Firebase app `firebaseAuth`, `firestoreDb` and `firestorage` use (the default one of
+  `providers.firebase`, shared only with an app initialized with the same `appId`; a separate session with
+  `FirebaseAuthProvider({ config, appName })`), and the layout of a route (`item.layout`, else `LayoutDefault`, else
+  `LayoutEmpty`; the home declared with `path: '/'`). An agent read the minified bundle to learn both.
+
 ## [2.0.0] - 2026-11-12
 
 ### Breaking
