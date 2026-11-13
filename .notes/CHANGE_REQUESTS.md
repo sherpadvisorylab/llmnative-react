@@ -160,6 +160,43 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
+## CR-126 — Cornice dell'app dai temi, scaffolding allineato al tema
+
+**Stato:** ✅ done (2.1.0)
+**Issue:** [#105](https://github.com/sherpadvisorylab/llmnative-react/issues/105)
+**Priorità:** Alta
+
+### Motivazione
+
+Emersa il 13/11/2026 guardando un consumer appena scaffoldato: `Header` e `Footer` dei template usano
+`border-b`/`border-t` senza colore e con Tailwind 4 il bordo prende il colore del testo (una riga quasi nera). I
+temi compilati dagli IDE portano solo i colori di base: title bar, side bar e status bar dell'IDE non arrivano
+all'app. Il menu laterale mostra come voci vuote anche le rotte che non sono pagine (senza titolo, con parametri,
+`*`). `create` propone solo `default`, `flat`, `cyber`.
+
+### Scope
+
+- Token di cornice opzionali in `ColorScale`: `header`, `headerForeground`, `headerBorder`, `sidebar`,
+  `sidebarForeground`, `sidebarBorder`, `sidebarAccent`, `sidebarAccentForeground`, `footer`, `footerForeground`,
+  `footerBorder`; `--rf-*` e utility Tailwind con ripiego sui token di base.
+- Compilatore VS Code: title bar → header, side bar → sidebar (selezione → sidebarAccent), status bar → footer,
+  con i default del registro di VS Code.
+- Base CSS: un bordo senza colore usa `border` del tema.
+- `SideNav` del tema di default sui token della sidebar; il menu salta le voci senza titolo, con parametri o `*`.
+- Template `_shared` sui token di cornice, `globals.css` dello scaffolding con le nuove utility, `create` con tutti
+  i temi (quelli degli IDE per primi).
+
+### Criteri di accettazione
+
+- [x] AC1: un tema VS Code compilato porta title bar, side bar e status bar del suo IDE, chiaro e scuro.
+- [x] AC2: un tema senza token di cornice resta come prima.
+- [x] AC3: `border`, `border-b`, `border-t` senza colore usano il bordo del tema.
+- [x] AC4: il menu non mostra rotte senza titolo, con parametri o `*`.
+- [x] AC5: un progetto scaffoldato ha header, sidebar e footer nei colori del tema (screenshot chiaro e scuro).
+- [x] AC6: test, `llms-full.txt`, docs dei temi, CHANGELOG.
+
+---
+
 ## CR-125 — Form d'azione con `onSubmit`, `Tel` e le prop di un codice su `Input`
 
 **Stato:** ✅ done (2.0.0, breaking)

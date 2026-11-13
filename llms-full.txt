@@ -98,6 +98,15 @@ The VS Code and Tokyo Night themes are compiled from the original VS Code theme 
 
 `ColorScale` tokens: `background`, `foreground`, `canvas` (page floor behind cards and panels, `bg-canvas`; falls back to `background`), `card`, `popover`, `primary`, `secondary`, `muted`, `accent`, `destructive`, `success`, `warning`, `info` (each with its `*Foreground`), `border`, `input` (border of form fields), `ring`. A consumer bridging the tokens in its own `@theme inline` adds `--color-canvas: hsl(var(--rf-canvas, var(--rf-background)));`.
 
+**The frame of the app** (CR-126), as the title bar, side bar and status bar of the IDE: `header`, `headerForeground`, `headerBorder`, `sidebar`, `sidebarForeground`, `sidebarBorder`, `sidebarAccent` (the selected entry), `sidebarAccentForeground`, `footer`, `footerForeground`, `footerBorder`. The IDE themes carry them (VS Code Light+: gray title bar, blue status bar); a theme without them falls back to the base tokens (header and footer on `background`, sidebar on `card`, borders on `border`). Utilities: `bg-header text-header-foreground border-header-border`, `bg-sidebar …`, `bg-footer …`. `SideNav` draws itself with the sidebar tokens. The top bar and status bar of a layout:
+
+```tsx
+<header className="flex h-14 shrink-0 items-center gap-3 border-b border-header-border bg-header px-4 text-header-foreground">…</header>
+<footer className="shrink-0 border-t border-footer-border bg-footer px-4 py-1.5 text-xs text-footer-foreground">…</footer>
+```
+
+A border without a color class (`border`, `border-b`) is the theme's `border`, not the text color. The scaffold (`npx @llmnative/react create`) starts in `vscode-light-modern` and bridges all these tokens in `src/styles/globals.css`; a consumer scaffolded before adds the `--color-header…`/`--color-sidebar…`/`--color-footer…` lines of `src/globals.css` to its own `@theme inline`.
+
 ---
 
 ## Provider System
@@ -146,6 +155,27 @@ export const menuConfig: MenuConfig = {
 ```
 
 La home va dichiarata con `path: '/'`: senza quella voce, `/` mostra "Missing Page".
+
+### Voci di menu e rotte
+
+`SideNav menuKey="main"` e `Menu menuKey="main"` mostrano solo le **voci**: le route di quella chiave con `title`,
+senza `hidden: true`, senza parametri (`:token`) e senza `*`. Le altre sono rotte e basta (CR-126). Ogni voce
+mostrata ha `title` **e** `icon`. Una pagina raggiunta da un link (accesso, invito, impostazioni dal menu utente)
+sta in una chiave che nessun menu mostra, oppure ha `hidden: true`:
+
+```tsx
+export const menuConfig: MenuConfig = {
+  main: [
+    { path: '/', title: 'Dashboard', icon: 'layout-dashboard', page: HomePage },
+    { path: '/contacts', title: 'Contatti', icon: 'users', page: ContactsPage },
+    { path: '/settings', title: 'Impostazioni', icon: 'settings', page: SettingsPage, hidden: true },
+  ],
+  routes: [
+    { path: '/invite/:token', page: InvitePage, layout: AccessLayout },
+    { path: '*', page: NotFoundPage },
+  ],
+};
+```
 
 ### Hooks
 

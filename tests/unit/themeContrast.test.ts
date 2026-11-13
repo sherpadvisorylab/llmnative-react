@@ -45,6 +45,11 @@ const PAIRS: Array<[Token, Token, number]> = [
     ['ring', 'background', 3],
     // A card edge must be visible over the card itself.
     ['border', 'card', 1.15],
+    // The frame of the app (CR-126): the text of the title bar, the side bar (and its selection), the status bar.
+    ['headerForeground', 'header', 4.5],
+    ['sidebarForeground', 'sidebar', 4.5],
+    ['sidebarAccentForeground', 'sidebarAccent', 4.5],
+    ['footerForeground', 'footer', 4.5],
 ];
 
 /** Themes compiled as a light/dark pair share both palettes: each pair is checked once. */
@@ -66,6 +71,8 @@ const KNOWN_FAILURES: Record<string, number> = {
     'flat/light mutedForeground/canvas': 4.05,
     'flat/light mutedForeground/card': 4.23,
     'flat/light mutedForeground/muted': 3.6,
+    // The footer of flat and cyber has no color of its own: muted text on the background, as above.
+    'flat/light footerForeground/footer': 4.05,
     'flat/dark mutedForeground/card': 4.44,
     'flat/dark mutedForeground/muted': 3.76,
     'flat/dark primaryForeground/primary': 3.76,
@@ -73,6 +80,7 @@ const KNOWN_FAILURES: Record<string, number> = {
     'cyber/light mutedForeground/canvas': 4.05,
     'cyber/light mutedForeground/card': 4.23,
     'cyber/light mutedForeground/muted': 3.67,
+    'cyber/light footerForeground/footer': 4.05,
     'cyber/light primary/card': 2.59,
     'cyber/light ring/background': 2.48,
     // VS Code Light+: descriptionForeground #717171 on the side bar and on list hover.
@@ -96,11 +104,27 @@ const KNOWN_FAILURES: Record<string, number> = {
     'tokyo-night/dark primary/card': 2.24,
     'tokyo-night/dark ring/background': 1.18,
     'tokyo-night/dark border/card': 1.11,
+    // Tokyo Night: title bar, side bar and status bar text #787c99 on #16161e.
+    'tokyo-night/dark headerForeground/header': 4.4,
+    'tokyo-night/dark sidebarForeground/sidebar': 4.4,
+    'tokyo-night/dark footerForeground/footer': 4.4,
 };
 
 function palettesOf(id: string): Array<['light' | 'dark', Palette]> {
     const { colors, dark } = BUILT_IN_THEMES[id as keyof typeof BUILT_IN_THEMES].preset;
-    const withCanvas = (scale: ColorScale) => ({ ...scale, canvas: scale.canvas ?? scale.background }) as Palette;
+    // Unset tokens take what the CSS gives them (globals.css): canvas and the frame fall back to the base tokens.
+    const withCanvas = (scale: ColorScale) => ({
+        ...scale,
+        canvas: scale.canvas ?? scale.background,
+        header: scale.header ?? scale.background,
+        headerForeground: scale.headerForeground ?? scale.foreground,
+        sidebar: scale.sidebar ?? scale.card,
+        sidebarForeground: scale.sidebarForeground ?? scale.foreground,
+        sidebarAccent: scale.sidebarAccent ?? scale.accent,
+        sidebarAccentForeground: scale.sidebarAccentForeground ?? scale.accentForeground,
+        footer: scale.footer ?? scale.background,
+        footerForeground: scale.footerForeground ?? scale.mutedForeground,
+    }) as Palette;
     return [['light', withCanvas({ ...colors })], ['dark', withCanvas({ ...colors, ...dark })]];
 }
 

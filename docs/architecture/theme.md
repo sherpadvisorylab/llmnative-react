@@ -30,6 +30,28 @@ The built-in themes live in `themes/default.ts`, `themes/flat.ts` and `themes/cy
 | `default` | `0.5` | Blue | clean, rounded, neutral |
 | `flat` | `0.125` | Slate | dense, administrative |
 | `cyber` | `0` | Green | dark-first, sharp, neon |
+| `vscode-light-modern` / `vscode-dark-modern` | — | VS Code blue | VS Code Modern, both modes; the scaffold default |
+| `vscode-light-plus` / `vscode-dark-plus` | — | VS Code blue | VS Code Plus: gray title bar, blue status bar |
+| `tokyo-night-light` / `tokyo-night` | — | Tokyo blue | Tokyo Night, both modes |
+
+The IDE themes are compiled from the VS Code theme JSON by `scripts/themes/compile-vscode-themes.js`.
+
+## The frame of the app
+
+An app has a frame, as an IDE: a top bar, a side bar and a status bar (CR-126). Their colors are tokens of the
+theme, optional: `header`, `headerForeground`, `headerBorder`, `sidebar`, `sidebarForeground`, `sidebarBorder`,
+`sidebarAccent`, `sidebarAccentForeground`, `footer`, `footerForeground`, `footerBorder`.
+
+| Token | VS Code key | Without it |
+|---|---|---|
+| `header*` | `titleBar.activeBackground`, `titleBar.activeForeground`, `titleBar.border` | `background`, `foreground`, `border` |
+| `sidebar*` | `sideBar.background`, `sideBar.foreground`, `sideBar.border` | `card`, `foreground`, `border` |
+| `sidebarAccent*` | `list.inactiveSelectionBackground`, `list.inactiveSelectionForeground` | `accent`, `accentForeground` |
+| `footer*` | `statusBar.background`, `statusBar.foreground`, `statusBar.border` | `background`, `mutedForeground`, `border` |
+
+A bar border VS Code does not draw takes the bar's own color. `SideNav` uses the sidebar tokens; the scaffold's
+`Header` and `Footer` use `bg-header`/`bg-footer` and their borders. A border without a color class is the theme's
+`border` (base rule of `globals.css`), never the text color.
 
 ## App override
 

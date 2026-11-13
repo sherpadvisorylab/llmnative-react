@@ -57,6 +57,29 @@ function mapVSCodeToSemantic(source, mode) {
         ring: pick(["focusBorder"], background),
     };
 
+    // The frame of the app (CR-126): the title bar, the side bar and the status bar of the IDE. Their borders
+    // default to none in VS Code (the bars stand apart by color): then the line takes the bar's own color.
+    const optional = (keys, backdrop, otherwise) => {
+        for (const key of keys) {
+            const value = resolve(key);
+            if (!value || isTransparent(value)) continue;
+            const opaque = composite(value, backdrop);
+            if (opaque) return opaque;
+        }
+        return otherwise;
+    };
+    hex.header = pick(["titleBar.activeBackground"], background);
+    hex.headerForeground = pick(["titleBar.activeForeground", "foreground"], hex.header);
+    hex.headerBorder = optional(["titleBar.border"], hex.header, hex.header);
+    hex.sidebar = sideBar;
+    hex.sidebarForeground = pick(["sideBar.foreground", "foreground"], sideBar);
+    hex.sidebarBorder = optional(["sideBar.border"], sideBar, sideBar);
+    hex.sidebarAccent = pick(["list.inactiveSelectionBackground", "list.hoverBackground"], sideBar);
+    hex.sidebarAccentForeground = pick(["list.inactiveSelectionForeground", "sideBar.foreground", "foreground"], hex.sidebarAccent);
+    hex.footer = pick(["statusBar.background"], background);
+    hex.footerForeground = pick(["statusBar.foreground", "foreground"], hex.footer);
+    hex.footerBorder = optional(["statusBar.border"], hex.footer, hex.footer);
+
     return {
         mode,
         palette: Object.fromEntries(Object.entries(hex).map(([token, value]) => [token, hexToHslString(value)])),

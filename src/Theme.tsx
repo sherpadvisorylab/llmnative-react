@@ -52,6 +52,25 @@ export interface ColorScale {
     border?: string;
     input?: string;
     ring?: string;
+    // The frame of the app, as the title bar, side bar and status bar of an IDE (CR-126). Each one is optional:
+    // unset, the frame falls back to the base tokens (header and footer on `background`, the side bar on `card`,
+    // their text on `foreground`, their borders on `border`, the selection on `accent`).
+    /** Top bar of the app (`bg-header`): the title bar of the IDE. */
+    header?: string;
+    headerForeground?: string;
+    /** The line under the top bar (`border-header-border`). */
+    headerBorder?: string;
+    /** Side navigation (`bg-sidebar`): the side bar of the IDE. */
+    sidebar?: string;
+    sidebarForeground?: string;
+    sidebarBorder?: string;
+    /** The selected entry of the side navigation (`bg-sidebar-accent`). */
+    sidebarAccent?: string;
+    sidebarAccentForeground?: string;
+    /** Bottom bar of the app (`bg-footer`): the status bar of the IDE. */
+    footer?: string;
+    footerForeground?: string;
+    footerBorder?: string;
 }
 
 // --- Per-component sub-interfaces -------------------------------------------

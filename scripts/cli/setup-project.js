@@ -6,6 +6,14 @@ const root = process.cwd();
 const args = process.argv.slice(2);
 const shouldReset = args.includes('--reset');
 
+// The built-in themes (BUILT_IN_THEME_IDS of src/Theme.tsx), those of the IDEs first: a new app starts in the
+// colors of an IDE, frame included (CR-126).
+const THEMES = [
+    'vscode-light-modern', 'vscode-dark-modern', 'vscode-light-plus', 'vscode-dark-plus',
+    'tokyo-night-light', 'tokyo-night', 'default', 'flat', 'cyber',
+];
+const DEFAULT_THEME = 'vscode-light-modern';
+
 function getArg(name, fallback = '') {
     const prefix = `--${name}=`;
     const arg = args.find((item) => item.startsWith(prefix));
@@ -88,10 +96,10 @@ async function askInteractive(callback) {
             ? iconProviderInput.trim()
             : 'lucide';
 
-        const themeInput = await question('Which theme? (default, flat, cyber; default: default) ');
-        const theme = ['default', 'flat', 'cyber'].includes(themeInput.trim())
+        const themeInput = await question(`Which theme? (${THEMES.join(', ')}; default: ${DEFAULT_THEME}) `);
+        const theme = THEMES.includes(themeInput.trim())
             ? themeInput.trim()
-            : 'default';
+            : DEFAULT_THEME;
 
         const localeInput = await question('Default locale? (en, it, fr, de, es; default: en) ');
         const locale = localeInput.trim() || 'en';
@@ -433,6 +441,18 @@ function createSourceFiles(params) {
     --color-border:                 hsl(var(--rf-border));
     --color-input:                  hsl(var(--rf-input));
     --color-ring:                   hsl(var(--rf-ring));
+    /* The frame of the app: the title bar, side bar and status bar of the theme. */
+    --color-header:                 hsl(var(--rf-header, var(--rf-background)));
+    --color-header-foreground:      hsl(var(--rf-header-foreground, var(--rf-foreground)));
+    --color-header-border:          hsl(var(--rf-header-border, var(--rf-border)));
+    --color-sidebar:                hsl(var(--rf-sidebar, var(--rf-card)));
+    --color-sidebar-foreground:     hsl(var(--rf-sidebar-foreground, var(--rf-foreground)));
+    --color-sidebar-border:         hsl(var(--rf-sidebar-border, var(--rf-border)));
+    --color-sidebar-accent:         hsl(var(--rf-sidebar-accent, var(--rf-accent)));
+    --color-sidebar-accent-foreground: hsl(var(--rf-sidebar-accent-foreground, var(--rf-accent-foreground)));
+    --color-footer:                 hsl(var(--rf-footer, var(--rf-background)));
+    --color-footer-foreground:      hsl(var(--rf-footer-foreground, var(--rf-muted-foreground)));
+    --color-footer-border:          hsl(var(--rf-footer-border, var(--rf-border)));
     --radius: 0.5rem;
 }
 
@@ -587,7 +607,7 @@ function scaffoldProject() {
             aiProvider:   getArg('ai-provider', 'none'),
             proxyProvider: getArg('proxy-provider', 'none'),
             iconProvider: getArg('icon-provider', 'lucide'),
-            theme:        getArg('theme', getArg('theme-provider', 'default')),
+            theme:        getArg('theme', getArg('theme-provider', DEFAULT_THEME)),
             locale:       getArg('locale', 'en'),
             template:     getArg('template', 'blank'),
             hosting:      getArg('hosting', 'n'),

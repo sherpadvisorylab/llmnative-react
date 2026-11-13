@@ -7,7 +7,7 @@ type HeaderProps = {
 
 export default function Header({ onMenuToggle }: HeaderProps) {
     return (
-        <header className="flex h-14 shrink-0 items-center gap-3 border-b bg-background px-4">
+        <header className="flex h-14 shrink-0 items-center gap-3 border-b border-header-border bg-header px-4 text-header-foreground">
             <ActionButton
                 icon="menu"
                 ariaLabel="Toggle navigation"

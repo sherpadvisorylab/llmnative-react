@@ -59,8 +59,11 @@ import { ProviderRegistryProvider, type SetProviderFn } from "./providers/Provid
 
 interface MenuItem {
     path: string;
+    /** The label of the entry in a menu (`SideNav`, `Menu`). A route without it is never an entry. */
     title?: string;
     icon?: string;
+    /** A route only, never an entry of a menu, title or not (CR-126): a page reached by a link. */
+    hidden?: boolean;
     children?: MenuItem[];
     page?: React.ComponentType;
     layout?: React.ComponentType;
@@ -444,8 +447,23 @@ function App({
 }
 
 
+/**
+ * Whether a route of `menuConfig` is a page to navigate to: it has a title, it is not `hidden`, and its path has
+ * no parameter (`/invite/:token`) and no wildcard (`*`). The others are routes only, never entries of a menu
+ * (CR-126). A parent stays when one of its children is an entry.
+ */
+export function isMenuEntry(item: MenuItem): boolean {
+    if (item.hidden) return false;
+    if (item.children?.some(isMenuEntry)) return true;
+    return Boolean(item.title?.trim()) && !/(^|\/):|\*/.test(item.path);
+}
+
+const menuEntries = (items: MenuItem[]): MenuItem[] => items
+    .filter(isMenuEntry)
+    .map((item) => (item.children ? { ...item, children: menuEntries(item.children) } : item));
+
 export const useMenu = (type: string): UseMenuItem[] => {
-    const menuItems: MenuItem[] = getStaticMenu(type);
+    const menuItems: MenuItem[] = menuEntries(getStaticMenu(type));
     const location = useLocation();
 
     // Funzione ricorsiva per determinare se l'item o uno dei suoi figli è attivo

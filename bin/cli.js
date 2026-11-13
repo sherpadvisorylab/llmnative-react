@@ -42,7 +42,7 @@ Interactive prompts:
   ai provider: none | openai | gemini | anthropic | mistral
   proxy provider: none | vite | express | nextjs-app | nextjs-pages | cloudflare
   icon provider: lucide | phosphor
-  theme: default | flat | cyber
+  theme: vscode-light-modern (default) | vscode-dark-modern | vscode-light-plus | vscode-dark-plus | tokyo-night-light | tokyo-night | default | flat | cyber
   provider credentials for Firebase, Supabase or the selected AI provider
 
 Options:
@@ -53,7 +53,7 @@ Options:
   --ai-provider=<none|openai|gemini|anthropic|mistral>
   --proxy-provider=<none|vite|express|nextjs-app|nextjs-pages|cloudflare>
   --icon-provider=<lucide|phosphor>
-  --theme=<default|flat|cyber>
+  --theme=<vscode-light-modern|vscode-dark-modern|vscode-light-plus|vscode-dark-plus|tokyo-night-light|tokyo-night|default|flat|cyber>
   --hosting=<site|n>
   --firebase-api-key=<value>
   --firebase-auth-domain=<value>

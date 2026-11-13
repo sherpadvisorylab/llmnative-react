@@ -9,6 +9,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-11-13
+
+### Added
+- **The frame of the app from the theme (CR-126).** `ColorScale` gets the optional tokens `header`,
+  `headerForeground`, `headerBorder`, `sidebar`, `sidebarForeground`, `sidebarBorder`, `sidebarAccent`,
+  `sidebarAccentForeground`, `footer`, `footerForeground`, `footerBorder` (utilities `bg-header`,
+  `border-sidebar-border`, `text-footer-foreground`, …), with a fallback on the base tokens. The VS Code and Tokyo
+  Night themes carry the title bar, side bar and status bar of their IDE (VS Code registry defaults included: Plus
+  has the gray title bar and the blue status bar).
+- `MenuItem.hidden`: a route that is never an entry of a menu.
+
+### Changed
+- A border without a color class (`border`, `border-b`) draws in the theme's `border` instead of the text color
+  (Tailwind 4 `currentColor`).
+- `SideNav` (default theme) draws itself with the sidebar tokens; the selected entry is `sidebarAccent`.
+- `SideNav` and `Menu` show only the entries of a menu: routes with a title, not `hidden`, without parameters
+  (`:token`) or `*`. Before, those routes appeared as empty entries.
+- Scaffold: `Header` and `Footer` on the frame tokens (the dark line under the top bar is gone), `globals.css`
+  bridging the frame tokens, `create` offering every built-in theme with `vscode-light-modern` as the default.
+
+### Migration
+- A consumer scaffolded before adds to its own `@theme inline` the `--color-header…`, `--color-sidebar…`,
+  `--color-footer…` lines of `src/globals.css`, and can put its top bar and status bar on `bg-header`/`bg-footer`.
+  An app relying on an untitled route showing in `SideNav` gives it a `title`.
+
 ## [2.0.1] - 2026-11-12
 
 ### Documentation

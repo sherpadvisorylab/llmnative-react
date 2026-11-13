@@ -105,7 +105,31 @@
     --color-border: hsl(var(--rf-border));
     --color-input: hsl(var(--rf-input));
     --color-ring: hsl(var(--rf-ring));
+    /* The frame of the app (CR-126): a theme that does not set it gets the base tokens. */
+    --color-header: hsl(var(--rf-header, var(--rf-background)));
+    --color-header-foreground: hsl(var(--rf-header-foreground, var(--rf-foreground)));
+    --color-header-border: hsl(var(--rf-header-border, var(--rf-border)));
+    --color-sidebar: hsl(var(--rf-sidebar, var(--rf-card)));
+    --color-sidebar-foreground: hsl(var(--rf-sidebar-foreground, var(--rf-foreground)));
+    --color-sidebar-border: hsl(var(--rf-sidebar-border, var(--rf-border)));
+    --color-sidebar-accent: hsl(var(--rf-sidebar-accent, var(--rf-accent)));
+    --color-sidebar-accent-foreground: hsl(var(--rf-sidebar-accent-foreground, var(--rf-accent-foreground)));
+    --color-footer: hsl(var(--rf-footer, var(--rf-background)));
+    --color-footer-foreground: hsl(var(--rf-footer-foreground, var(--rf-muted-foreground)));
+    --color-footer-border: hsl(var(--rf-footer-border, var(--rf-border)));
     --radius: 0.5rem;
+}
+
+/* Tailwind v4 draws a border without a color in the color of the text (currentColor): here it is the
+   border of the theme, as every component expects (CR-126). A color class still wins. */
+@layer base {
+    *,
+    ::before,
+    ::after,
+    ::backdrop,
+    ::file-selector-button {
+        border-color: hsl(var(--rf-border));
+    }
 }
 
 /* Tailwind v4 gives buttons the default cursor: every enabled button of the framework (and of
