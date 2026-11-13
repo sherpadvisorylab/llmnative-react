@@ -160,6 +160,63 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
+## CR-127 — Schermate di accesso, gate senza redirect e pagine nello scaffolding
+
+**Stato:** ✅ done (2.2.0)
+**Issue:** [#106](https://github.com/sherpadvisorylab/llmnative-react/issues/106)
+**Priorità:** Alta
+
+### Motivazione
+
+Emersa il 13/11/2026 da un consumer: ogni app rifà a mano le schermate di accesso (login, codice via email,
+registrazione, recupero della password) e le impagina male; il framework ha solo `AuthButton`. Un'app
+riservata vuole mostrare l'accesso al posto della pagina richiesta, senza una pagina di login e senza redirect:
+dopo l'accesso la persona resta sull'indirizzo che aveva aperto. Lo scaffolding non ha pagine di accesso.
+
+### Scope
+
+- **Schermate** (`src/components/auth/`), indipendenti dal backend: ricevono le funzioni da chiamare (una
+  promessa; un errore lanciato diventa il messaggio della schermata) e i link alle altre:
+  - `AuthLayout`: la cornice di ogni schermata (marchio, titolo, descrizione, contenuto, piè di pagina, angolo
+    per tema e lingua), centrata, nei token del tema, da 320 px in su.
+  - `SignIn`: password (con "Password dimenticata?"), codice via email (email → codice), provider esterni
+    (Google, Apple, GitHub, Microsoft…), in qualsiasi combinazione, con il separatore "oppure".
+  - `SignUp`: nome (opzionale), email, password con i requisiti mostrati mentre si scrive, consenso ai termini
+    (opzionale); poi "controlla la tua email" quando l'indirizzo va confermato.
+  - `ForgotPassword`: email → conferma neutra (non dice se l'account esiste), nuovo invio con attesa.
+  - `ResetPassword`: nuova password con i requisiti → conferma e link all'accesso; link scaduto.
+  - `VerifyEmail`: attivazione dell'account, con il codice del link (verifica, riuscita, link scaduto) o in
+    attesa della conferma (nuovo invio con attesa, "ho confermato").
+  - `VerifyCode` e `OneTimeCodeInput`: codice di N cifre in caselle (incolla, avanzamento, cancella indietro,
+    `one-time-code`), invio automatico a codice completo, nuovo invio con attesa, cambio email.
+- **`AuthGate`** e `App.authGate`: senza sessione mostra la schermata d'accesso al posto della pagina (layout
+  compreso), senza cambiare indirizzo; caricamento finché la sessione non è nota; `allow(user)` e `denied` per
+  chi è entrato ma non è ammesso. `MenuItem.public` per le rotte aperte (registrazione, link di un'email).
+- **Adapter**: metodi opzionali di `AuthProviderAdapter` — `whenReady`, `signUp`, `sendPasswordReset`,
+  `confirmPasswordReset`, `sendEmailVerification`, `verifyEmail`, `requestEmailCode`, `verifyEmailCode` —
+  implementati da Firebase e Supabase dove il servizio li ha; `MockAuthProvider` (`mockAuth`) di prova, in
+  memoria; `useAuthFlows(provider?)` lega le schermate all'adapter.
+- **Testi** nel dizionario `auth` in 6 lingue; i messaggi d'errore noti di Firebase e Supabase tradotti
+  (`authErrorMessage`), mai il testo grezzo del servizio.
+- **Scaffolding**: pagine `sign-up`, `forgot-password`, `reset-password`, `verify-email` pubbliche, gate attivo
+  con l'accesso al posto della pagina, adapter `mockAuth` quando il provider è `mock`.
+
+### Criteri di accettazione
+
+- [x] AC1: ogni schermata si usa con la tastiera e un lettore di schermo (etichette, errori annunciati e legati
+  al campo, focus sul primo campo e sul primo errore), con `autocomplete` corretti per i gestori di password.
+- [x] AC2: `SignIn` combina password, codice via email e provider; un errore della funzione appare nella
+  schermata, tradotto, senza perdere quanto scritto.
+- [x] AC3: `OneTimeCodeInput` accetta un codice incollato, avanza e torna indietro, invia a codice completo.
+- [x] AC4: `ForgotPassword` dà la stessa conferma con e senza account; i nuovi invii aspettano.
+- [x] AC5: `AuthGate` mostra il caricamento, poi la pagina o l'accesso al suo posto senza cambiare indirizzo;
+  dopo l'accesso la pagina richiesta; una rotta `public` non è mai coperta.
+- [x] AC6: Firebase, Supabase e mock implementano i metodi che il servizio ha; `useAuthFlows` li lega.
+- [x] AC7: le schermate a 1280 e 390 px, in chiaro e in scuro, su un progetto scaffoldato (screenshot).
+- [x] AC8: test, `llms-full.txt`, CHANGELOG, showcase.
+
+---
+
 ## CR-126 — Cornice dell'app dai temi, scaffolding allineato al tema
 
 **Stato:** ✅ done (2.1.0)

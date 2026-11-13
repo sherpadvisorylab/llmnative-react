@@ -16,6 +16,18 @@ export default defineLocaleMessages({
                     title: 'Integration connect',
                     description: 'Use a named auth service for external integrations. The showcase preview is disabled to avoid opening a real provider window.',
                 },
+                accessScreens: {
+                    title: 'Access screens',
+                    description: 'SignIn, SignUp, ForgotPassword, ResetPassword, VerifyEmail and VerifyCode, ready for the app: they call your functions and show errors translated. Here the code is 123456.',
+                },
+                forgotPassword: {
+                    title: 'Recover a password',
+                    description: 'The same answer whether the account exists or not, and a new send only after a wait.',
+                },
+                codeInput: {
+                    title: 'One-time code',
+                    description: 'Boxes for a code: paste it, type it, or let the phone fill it in.',
+                },
             },
             labels: {
                 authButtonPropsTitle: 'AuthButton props',

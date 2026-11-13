@@ -12,6 +12,7 @@ import { SupabaseDataProvider } from './data/supabase';
 import { SupabaseStorageProvider } from './storage/supabase';
 import { SupabaseAuthProvider } from './auth/supabase/SupabaseAuthProvider';
 import { MockDataProvider } from './data/mock';
+import { MockAuthProvider, type MockAuthProviderOptions } from './auth/mock/MockAuthProvider';
 import type { AIProviderAdapter } from './ai/AIProvider';
 import type { DataProviderAdapter } from './data/DataProvider';
 import type { StorageProviderAdapter } from './storage/StorageProvider';
@@ -63,6 +64,8 @@ export type SupabaseProviderConfig = SupabaseConfig;
 
 export type MockProviderConfig = {
     data?: ConstructorParameters<typeof MockDataProvider>[0];
+    /** Registers `mockAuth` (CR-127), a provider of access with no service behind it: demos and tests only. */
+    auth?: MockAuthProviderOptions | boolean;
 };
 
 // ── Firebase manifest ────────────────────────────────────────────────────────
@@ -105,6 +108,11 @@ export const SUPABASE_MANIFEST: DriverManifest<SupabaseProviderConfig> = {
 
 export const MOCK_MANIFEST: DriverManifest<MockProviderConfig> = {
     mock: { service: 'data', create: (cfg) => new MockDataProvider(cfg?.data) },
+    mockAuth: {
+        service: 'auth',
+        create: (cfg) => new MockAuthProvider(typeof cfg?.auth === 'object' ? cfg.auth : {}),
+        when: (cfg) => !!cfg?.auth,
+    },
 };
 
 // ── AI manifest ──────────────────────────────────────────────────────────────
@@ -164,7 +172,7 @@ export const PROVIDER_MANIFESTS: Record<string, DriverManifest<any>> = { // CR-0
 
 export type DataDriverName    = 'dbRealtime' | 'firestoreDb' | 'supabaseDb' | 'mock';
 export type StorageDriverName = 'firestorage' | 'supabaseStorage';
-export type AuthDriverName        = 'googleAuth' | 'firebaseAuth' | 'dropboxAuth' | 'supabaseAuth' | 'githubAuth';
+export type AuthDriverName        = 'googleAuth' | 'firebaseAuth' | 'dropboxAuth' | 'supabaseAuth' | 'githubAuth' | 'mockAuth';
 export type EmailDriverName       = 'gmail';
 export type AIDriverName          = 'openai' | 'openrouter' | 'opencode' | 'opencode-go' | 'openai-compatible' | 'deepseek' | 'gemini' | 'anthropic' | 'mistral' | 'cloudflare' | 'groq';
 export type CredentialsDriverName = 'googleServiceAccount';

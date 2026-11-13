@@ -9,6 +9,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-11-13
+
+### Added
+- **The access screens (CR-127).** `SignIn` (providers, email and password, a code by email, in any combination),
+  `SignUp` (the requirements of the password while typing, the terms, then "Check your email"), `ForgotPassword`
+  (the same answer whether the account exists or not), `ResetPassword` (an expired link says so), `VerifyEmail`
+  (the activation by the link of the email), `VerifyCode` and `OneTimeCodeInput` (a code in boxes: paste, forward
+  and back, `one-time-code`), `AuthLayout`, in the colors of the theme from 320 px up, light and dark. They call the
+  functions they are given and show an error translated, never the raw text of the service (`authErrorMessage`,
+  `authErrorReason`, `AuthFlowError`). Texts in the new `access` namespace, in the six languages.
+- **`AuthGate` and `<App authGate>`.** Without a session the sign-in shows in place of the page, layout included,
+  and the address does not change: once signed in the page appears. A loading state while the session of the last
+  visit is restored, `allow(user)` and "No access" for a user who is not allowed. `MenuItem.public` for the routes
+  open to everyone (sign up, the links of an email).
+- `AuthProviderAdapter`: optional `whenReady`, `signUp`, `sendPasswordReset`, `confirmPasswordReset`,
+  `sendEmailVerification`, `verifyEmail`, `requestEmailCode`, `verifyEmailCode`, implemented by Firebase and
+  Supabase where the service has them (`whenReady` by `githubAuth` too). `useAuthFlows` binds the screens to them,
+  `useAuthSession` says who is signed in, `linkCode` reads the code of a link.
+- `MockAuthProvider` (`mockAuth`, `providers.mock.auth`): every flow in memory, for demos and tests.
+- Icon names `check-circle`, `warning-circle`, `mail`, `mail-open`, `eye-off`, `shield-warning` resolve in both
+  icon providers (`warning-circle` drew nothing with Lucide).
+
+### Changed
+- `FirebaseAuthProvider`: `signIn({ method: 'oauth', provider: 'google' })` opens Google (`google.com`).
+- Scaffold: the pages of access (`pages/access/`) and their public routes (`conf/access.tsx`) in every template,
+  `authGate` with the sign-in in place of the pages, `mockAuth` for the `mock` provider (any email and password,
+  code `123456`), the header with the avatar menu of the user, the framework texts in the six languages
+  (`translations: { ...locales }`: before, a scaffolded app showed them in English whatever its locale).
+
+### Migration
+- Nothing breaks. An app with its own sign-in can replace it with `SignIn` and `authGate`; one scaffolded before
+  copies `pages/access/` and `conf/access.tsx` from a new scaffold and adds `authGate` to `index.tsx`.
+
 ## [2.1.0] - 2026-11-13
 
 ### Added

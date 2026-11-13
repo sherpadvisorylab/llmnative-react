@@ -1,6 +1,14 @@
 import type { SupabaseClient, User } from '@supabase/supabase-js';
 import { getSupabaseClient, getSupabaseConfigurationState } from '../../supabase-init';
-import type { AuthProviderAdapter, AuthSignInOptions, UserProfile } from '../AuthProvider';
+import type {
+    AuthEmailCodeOptions,
+    AuthLinkOptions,
+    AuthProviderAdapter,
+    AuthSignInOptions,
+    AuthSignUpInput,
+    AuthSignUpResult,
+    UserProfile,
+} from '../AuthProvider';
 import type { ProviderConfigurationState } from '../../ProviderConfiguration';
 
 // ── Config ────────────────────────────────────────────────────────────────────
@@ -165,4 +173,81 @@ export class SupabaseAuthProvider implements AuthProviderAdapter {
         if (!token) throw new Error('SupabaseAuthProvider: no active session');
         return token;
     }
+
+    // ── Flows of the access screens (CR-127) ──────────────────────────────────
+
+    async whenReady(): Promise<void> {
+        await this.client.auth.getSession();
+    }
+
+    async signUp({ email, password, name, redirectTo }: AuthSignUpInput): Promise<AuthSignUpResult> {
+        const { data, error } = await this.client.auth.signUp({
+            email,
+            password,
+            options: {
+                ...(name ? { data: { full_name: name } } : {}),
+                ...(redirectTo ? { emailRedirectTo: absoluteUrl(redirectTo) } : {}),
+            },
+        });
+        if (error) throw error;
+        // With "Confirm email" on, Supabase gives the user and no session until the link is opened.
+        return { user: mapUser(data.user), needsEmailVerification: !data.session };
+    }
+
+    async sendPasswordReset(email: string, options: AuthLinkOptions = {}): Promise<void> {
+        const { error } = await this.client.auth.resetPasswordForEmail(
+            email,
+            options.redirectTo ? { redirectTo: absoluteUrl(options.redirectTo) } : undefined,
+        );
+        if (error) throw error;
+    }
+
+    /**
+     * `code` is the `token_hash` of the recovery email (template `{{ .TokenHash }}`); empty when the link
+     * already opened a recovery session (the default template), and then only the password is set.
+     */
+    async confirmPasswordReset(code: string, newPassword: string): Promise<void> {
+        if (code) {
+            const { error } = await this.client.auth.verifyOtp({ token_hash: code, type: 'recovery' });
+            if (error) throw error;
+        }
+        const { error } = await this.client.auth.updateUser({ password: newPassword });
+        if (error) throw error;
+    }
+
+    async sendEmailVerification(options: AuthLinkOptions & { email?: string } = {}): Promise<void> {
+        const email = options.email ?? this.getUser()?.email;
+        if (!email) throw new Error('SupabaseAuthProvider.sendEmailVerification: email is required');
+        const { error } = await this.client.auth.resend({
+            type: 'signup',
+            email,
+            ...(options.redirectTo ? { options: { emailRedirectTo: absoluteUrl(options.redirectTo) } } : {}),
+        });
+        if (error) throw error;
+    }
+
+    /** `code` is the `token_hash` of the confirmation email (template `{{ .TokenHash }}`). */
+    async verifyEmail(code: string): Promise<void> {
+        const { error } = await this.client.auth.verifyOtp({ token_hash: code, type: 'email' });
+        if (error) throw error;
+    }
+
+    async requestEmailCode(email: string, options: AuthEmailCodeOptions = {}): Promise<void> {
+        const { error } = await this.client.auth.signInWithOtp({
+            email,
+            options: { shouldCreateUser: options.createUser ?? false },
+        });
+        if (error) throw error;
+    }
+
+    async verifyEmailCode(email: string, code: string): Promise<UserProfile | null> {
+        const { data, error } = await this.client.auth.verifyOtp({ email, token: code, type: 'email' });
+        if (error) throw error;
+        return mapUser(data.user);
+    }
+}
+
+/** The page a link of an email opens: an absolute URL, from a path of this app too. */
+function absoluteUrl(path: string): string {
+    return typeof window !== 'undefined' ? new URL(path, window.location.origin).toString() : path;
 }

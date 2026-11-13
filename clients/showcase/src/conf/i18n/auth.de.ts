@@ -16,6 +16,18 @@ export default defineLocaleMessages({
                     title: 'Integrationsverbindung',
                     description: 'Nutze einen benannten Auth-Service fuer externe Integrationen. Die Showcase-Vorschau ist deaktiviert, damit kein echtes Provider-Fenster geoeffnet wird.',
                 },
+                accessScreens: {
+                    title: 'Anmeldeseiten',
+                    description: 'SignIn, SignUp, ForgotPassword, ResetPassword, VerifyEmail und VerifyCode, fertig für die App: Sie rufen deine Funktionen auf und zeigen Fehler übersetzt. Hier ist der Code 123456.',
+                },
+                forgotPassword: {
+                    title: 'Passwort wiederherstellen',
+                    description: 'Dieselbe Antwort, ob das Konto existiert oder nicht, und ein erneutes Senden erst nach einer Wartezeit.',
+                },
+                codeInput: {
+                    title: 'Einmalcode',
+                    description: 'Felder für einen Code: einfügen, eintippen oder vom Telefon ausfüllen lassen.',
+                },
             },
             labels: {
                 authButtonPropsTitle: 'AuthButton-Props',

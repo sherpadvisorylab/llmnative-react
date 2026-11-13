@@ -16,6 +16,18 @@ export default defineLocaleMessages({
                     title: 'Integration connect',
                     description: 'Istakhdim auth service musamma lil external integrations. Al showcase preview muattal li tajannub fath nafitha haqiqiya lil provider.',
                 },
+                accessScreens: {
+                    title: 'شاشات الدخول',
+                    description: 'SignIn وSignUp وForgotPassword وResetPassword وVerifyEmail وVerifyCode جاهزة للتطبيق: تستدعي دوالك وتعرض الأخطاء مترجمة. الرمز هنا 123456.',
+                },
+                forgotPassword: {
+                    title: 'استعادة كلمة المرور',
+                    description: 'الرد نفسه سواء وُجد الحساب أم لا، وإعادة الإرسال بعد انتظار فقط.',
+                },
+                codeInput: {
+                    title: 'رمز لمرة واحدة',
+                    description: 'خانات الرمز: الصقه أو اكتبه أو دع الهاتف يملؤه.',
+                },
             },
             labels: {
                 authButtonPropsTitle: 'AuthButton props',

@@ -16,6 +16,18 @@ export default defineLocaleMessages({
                     title: 'Integration connect',
                     description: 'Ispolzuyte imenovannyy auth service dlya vneshnikh integratsiy. Preview v showcase otklyuchen, chtoby ne otkryvat realnoe okno provider.',
                 },
+                accessScreens: {
+                    title: 'Экраны входа',
+                    description: 'SignIn, SignUp, ForgotPassword, ResetPassword, VerifyEmail и VerifyCode, готовые для приложения: вызывают ваши функции и показывают ошибки в переводе. Здесь код 123456.',
+                },
+                forgotPassword: {
+                    title: 'Восстановление пароля',
+                    description: 'Один и тот же ответ, есть аккаунт или нет, и повторная отправка только после паузы.',
+                },
+                codeInput: {
+                    title: 'Одноразовый код',
+                    description: 'Поля для кода: вставьте его, введите или дайте телефону заполнить.',
+                },
             },
             labels: {
                 authButtonPropsTitle: 'AuthButton props',

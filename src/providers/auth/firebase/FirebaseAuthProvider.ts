@@ -5,9 +5,23 @@ import {
     signOut as firebaseSignOut,
     onAuthStateChanged,
     OAuthProvider,
+    createUserWithEmailAndPassword,
+    updateProfile,
+    sendEmailVerification as firebaseSendEmailVerification,
+    sendPasswordResetEmail,
+    confirmPasswordReset as firebaseConfirmPasswordReset,
+    applyActionCode,
+    type Auth,
     type User,
 } from 'firebase/auth';
-import type { AuthProviderAdapter, AuthSignInOptions, UserProfile } from '../AuthProvider';
+import type {
+    AuthLinkOptions,
+    AuthProviderAdapter,
+    AuthSignInOptions,
+    AuthSignUpInput,
+    AuthSignUpResult,
+    UserProfile,
+} from '../AuthProvider';
 import type { ProviderConfigurationState } from '../../ProviderConfiguration';
 import type { FirebaseConfig } from '../../../Config';
 import init, { getFirestoreConfigurationState, getSafeAuth } from '../../firebase-init';
@@ -34,6 +48,7 @@ export interface FirebaseSignInOptions extends AuthSignInOptions {
 // Maps short names to Firebase provider IDs.
 // Unlisted providers are passed through as-is (e.g. 'saml.my-provider').
 const PROVIDER_IDS: Record<string, string> = {
+    google:    'google.com',
     github:    'github.com',
     apple:     'apple.com',
     microsoft: 'microsoft.com',
@@ -206,4 +221,60 @@ export class FirebaseAuthProvider implements AuthProviderAdapter {
         const { claims } = await auth.currentUser.getIdTokenResult(forceRefresh);
         return claims;
     }
+
+    // ── Flows of the access screens (CR-127) ───────────────────────────────────
+
+    private async requireAuth(): Promise<Auth> {
+        await this.initPromise;
+        const auth = getSafeAuth(this.appName);
+        if (!auth) throw new Error('FirebaseAuthProvider: Firebase auth is not initialized');
+        return auth;
+    }
+
+    async whenReady(): Promise<void> {
+        await this.initPromise;
+        await getSafeAuth(this.appName)?.authStateReady();
+    }
+
+    async signUp({ email, password, name, redirectTo }: AuthSignUpInput): Promise<AuthSignUpResult> {
+        const auth = await this.requireAuth();
+        const { user } = await createUserWithEmailAndPassword(auth, email, password);
+        if (name) await updateProfile(user, { displayName: name });
+        await firebaseSendEmailVerification(user, linkSettings(redirectTo));
+        return { user: mapUser(user), needsEmailVerification: !user.emailVerified };
+    }
+
+    async sendPasswordReset(email: string, options: AuthLinkOptions = {}): Promise<void> {
+        const auth = await this.requireAuth();
+        try {
+            await sendPasswordResetEmail(auth, email, linkSettings(options.redirectTo));
+        } catch (error) {
+            // Without email enumeration protection Firebase says the account does not exist:
+            // the screen must not, so that answer is the same as a link sent.
+            if ((error as { code?: string }).code !== 'auth/user-not-found') throw error;
+        }
+    }
+
+    async confirmPasswordReset(code: string, newPassword: string): Promise<void> {
+        await firebaseConfirmPasswordReset(await this.requireAuth(), code, newPassword);
+    }
+
+    async sendEmailVerification(options: AuthLinkOptions = {}): Promise<void> {
+        const auth = await this.requireAuth();
+        if (!auth.currentUser) throw new Error('FirebaseAuthProvider.sendEmailVerification: no signed-in user');
+        await firebaseSendEmailVerification(auth.currentUser, linkSettings(options.redirectTo));
+    }
+
+    async verifyEmail(code: string): Promise<void> {
+        const auth = await this.requireAuth();
+        await applyActionCode(auth, code);
+        await auth.currentUser?.reload();
+    }
+}
+
+/** The page a link of an email opens: an absolute URL, from a path of this app too. */
+function linkSettings(redirectTo?: string) {
+    if (!redirectTo) return undefined;
+    const url = typeof window !== 'undefined' ? new URL(redirectTo, window.location.origin).toString() : redirectTo;
+    return { url };
 }

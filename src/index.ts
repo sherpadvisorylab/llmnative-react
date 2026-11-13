@@ -86,6 +86,8 @@ export type {
     ThemePresetConfig,
 } from './Theme';
 export { AuthButton, useAccessToken, getAccessToken } from './auth';
+// CR-127 — the access screens, the gate without a redirect, the binding to the auth provider.
+export * from './components/auth';
 export { useGlobalVars, getGlobalVars, setGlobalVars, removeGlobalVars} from './Global';
 
 // Providers
@@ -167,7 +169,20 @@ export { FirebaseStorageProvider } from './providers/storage/firebase';
 export type { FirebaseStorageProviderConfig } from './providers/storage/firebase';
 export { SupabaseStorageProvider } from './providers/storage/supabase';
 export { useStorageProvider, StorageProvider } from './providers/storage/StorageProviderContext';
-export type { AuthProviderAdapter, AuthIntent, AuthSignInOptions, UserProfile } from './providers/auth/AuthProvider';
+export type {
+    AuthProviderAdapter,
+    AuthIntent,
+    AuthSignInOptions,
+    UserProfile,
+    AuthSignUpInput,
+    AuthSignUpResult,
+    AuthLinkOptions,
+    AuthEmailCodeOptions,
+    AuthErrorReason,
+} from './providers/auth/AuthProvider';
+export { AuthFlowError } from './providers/auth/AuthProvider';
+export { MockAuthProvider } from './providers/auth/mock/MockAuthProvider';
+export type { MockAuthProviderOptions, MockAuthAccount } from './providers/auth/mock/MockAuthProvider';
 export { useAuthProvider, AuthProvider } from './providers/auth/AuthProviderContext';
 export { GoogleAuthProvider } from './providers/auth/google/GoogleAuthProvider';
 export type { FirebaseAuthProviderOptions, FirebaseSignInOptions } from './providers/auth/firebase/FirebaseAuthProvider';

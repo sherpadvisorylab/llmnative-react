@@ -453,6 +453,9 @@ interface ShowcaseAuthI18n {
     sections: {
         avatarLogin: ShowcasePageSectionCopy;
         integrationConnect: ShowcasePageSectionCopy;
+        accessScreens: ShowcasePageSectionCopy;
+        forgotPassword: ShowcasePageSectionCopy;
+        codeInput: ShowcasePageSectionCopy;
     };
     labels: {
         authButtonPropsTitle: string;

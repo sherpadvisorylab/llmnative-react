@@ -26,6 +26,11 @@ const ALIASES: Record<string, string> = {
     'rectangle':              'Square',
     'text-t':                 'Type',
     'trash':                  'Trash2',
+    // CR-127 — the names of the access screens, the same in both providers.
+    'check-circle':           'CircleCheck',
+    'warning-circle':         'CircleAlert',
+    'mail-open':              'MailOpen',
+    'shield-warning':         'ShieldAlert',
     'warning':                'TriangleAlert',
 };
 

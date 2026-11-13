@@ -100,6 +100,16 @@ vi.mock('firebase/auth', () => ({
             if (idx >= 0) mockAuth._listeners.splice(idx, 1);
         };
     }),
+
+    // CR-127 — the flows of the access screens.
+    createUserWithEmailAndPassword: vi.fn(async (_auth: any, email: string) => ({
+        user: { uid: 'uid-new', email, displayName: null, photoURL: null, isAnonymous: false, emailVerified: false },
+    })),
+    updateProfile: vi.fn(async () => undefined),
+    sendEmailVerification: vi.fn(async () => undefined),
+    sendPasswordResetEmail: vi.fn(async () => undefined),
+    confirmPasswordReset: vi.fn(async () => undefined),
+    applyActionCode: vi.fn(async () => undefined),
 }));
 
 // ── Import after mocks ────────────────────────────────────────────────────────
@@ -270,5 +280,44 @@ describe('getAccessToken()', () => {
 
     it('throws when no user is signed in', async () => {
         await expect(provider().getAccessToken()).rejects.toThrow('no active session');
+    });
+});
+
+// ── CR-127 — the flows of the access screens ──────────────────────────────────
+
+describe('access flows', () => {
+    it('signUp creates the account with its name and sends the confirmation to the page of the app', async () => {
+        const result = await provider().signUp({ email: 'ada@example.com', password: 'long-pass', name: 'Ada', redirectTo: '/verify-email' });
+
+        expect(firebaseAuth.createUserWithEmailAndPassword).toHaveBeenCalledWith(mockAuth, 'ada@example.com', 'long-pass');
+        expect(firebaseAuth.updateProfile).toHaveBeenCalledWith(expect.objectContaining({ uid: 'uid-new' }), { displayName: 'Ada' });
+        expect(firebaseAuth.sendEmailVerification).toHaveBeenCalledWith(
+            expect.objectContaining({ uid: 'uid-new' }),
+            { url: `${window.location.origin}/verify-email` },
+        );
+        expect(result).toEqual({ user: expect.objectContaining({ email: 'ada@example.com' }), needsEmailVerification: true });
+    });
+
+    it('sendPasswordReset answers the same when the account does not exist', async () => {
+        vi.mocked(firebaseAuth.sendPasswordResetEmail).mockRejectedValueOnce({ code: 'auth/user-not-found' });
+        await expect(provider().sendPasswordReset('nobody@example.com')).resolves.toBeUndefined();
+
+        vi.mocked(firebaseAuth.sendPasswordResetEmail).mockRejectedValueOnce({ code: 'auth/too-many-requests' });
+        await expect(provider().sendPasswordReset('ada@example.com')).rejects.toMatchObject({ code: 'auth/too-many-requests' });
+    });
+
+    it('confirmPasswordReset and verifyEmail use the code of the link', async () => {
+        await provider().confirmPasswordReset('oob-1', 'new-pass');
+        expect(firebaseAuth.confirmPasswordReset).toHaveBeenCalledWith(mockAuth, 'oob-1', 'new-pass');
+
+        await provider().verifyEmail('oob-2');
+        expect(firebaseAuth.applyActionCode).toHaveBeenCalledWith(mockAuth, 'oob-2');
+    });
+
+    it('whenReady waits for the session of the last visit', async () => {
+        const authStateReady = vi.fn(async () => undefined);
+        (mockAuth as any).authStateReady = authStateReady;
+        await provider().whenReady();
+        expect(authStateReady).toHaveBeenCalledOnce();
     });
 });

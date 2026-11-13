@@ -382,6 +382,9 @@ function copyTemplateFiles(params) {
     // Copy shared layouts and sections
     copyDir(path.join(sharedSrc, 'layouts'),  path.join(root, 'src/layouts'));
     copyDir(path.join(sharedSrc, 'sections'), path.join(root, 'src/sections'));
+    // The pages of access and their routes (CR-127), the same for every template
+    copyDir(path.join(sharedSrc, 'pages'), path.join(root, 'src/pages'));
+    copyDir(path.join(sharedSrc, 'conf'), path.join(root, 'src/conf'));
 
     // Copy template-specific files (pages, data, conf/menu.ts)
     // layouts and sections from template override shared ones if present
@@ -489,7 +492,8 @@ const storageDriver =
 const authDriver =
   selectedProvider === 'firebase' ? 'firebaseAuth'
     : selectedProvider === 'supabase' ? 'supabaseAuth'
-      : 'googleAuth';
+      : selectedProvider === 'mock' ? 'mockAuth'
+        : 'googleAuth';
 
 const aiDriver = selectedAIProvider !== 'none'
   ? selectedAIProvider
@@ -525,6 +529,8 @@ export const providers: AppProvidersConfig = {
   },
   mock: {
     data: mockData,
+    // A sign-in for the demo, with no service behind it: any email and password, code 123456.
+    auth: selectedProvider === 'mock',
   },
   firebase: {
     apiKey:            env.VITE_FIREBASE_APIKEY ?? '',
@@ -561,19 +567,24 @@ export const providers: AppProvidersConfig = {
     ensureFile(path.join(root, 'src/index.tsx'), `
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { App } from '@llmnative/react';
+import { App, locales } from '@llmnative/react';
 import './styles/globals.css';
 
 import { appConfig, providers } from './conf/app';
 import { menu } from './conf/menu';
+import { accessMenu } from './conf/access';
 import Default from './layouts/Default';
+import SignInPage from './pages/access/SignInPage';
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <App
       importPage={(pageSource) => import(/* @vite-ignore */ pageSource)}
-      menuConfig={menu}
+      menuConfig={{ ...menu, ...accessMenu }}
       LayoutDefault={Default}
+      // Without a session every page shows the sign-in in its place, at the same address;
+      // the routes of accessMenu are public. Remove it for an app open to everyone.
+      authGate={{ fallback: <SignInPage /> }}
       providers={providers}
       iconProvider={appConfig.iconProvider}
       themeProvider={{
@@ -585,9 +596,9 @@ createRoot(document.getElementById('root')!).render(
       }}
       i18n={{
         locale: appConfig.locale,
-        // translations: {
-        //   it: { common: { save: 'Salva', cancel: 'Annulla' }, form: { buttonSave: 'Salva' } },
-        // },
+        // The texts of the framework in its six languages; change one with a patch of yours:
+        // translations: { ...locales, it: { ...locales.it, common: { ...locales.it.common, save: 'Registra' } } },
+        translations: { ...locales },
       }}
     />
   </React.StrictMode>

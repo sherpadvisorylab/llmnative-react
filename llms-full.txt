@@ -248,6 +248,66 @@ await auth.signIn({ method: 'oauth', provider: 'github' })
 const token = await auth.getAccessToken('https://www.googleapis.com/auth/gmail.send')
 ```
 
+### Schermate di accesso e gate senza redirect (CR-127)
+
+Le schermate sono pronte: non scriverne a mano. Non conoscono il backend: ricevono le funzioni da
+chiamare (una promessa) e mostrano l'errore lanciato tradotto, mai il testo grezzo del servizio
+(`authErrorMessage`: codici di Firebase e Supabase, `AuthFlowError(reason)` per le funzioni tue).
+Testi nel namespace `access` delle 6 lingue. Ognuna ha `brand`, `toolbar`, `footer`, `bare` (solo il
+contenuto, in una modale), `errorMessage(error)`.
+
+| Componente | Cosa fa | Funzioni |
+|---|---|---|
+| `SignIn` | provider esterni, email + password, codice via email, in qualsiasi combinazione | `onPasswordSignIn({email,password})`, `onRequestCode(email)` + `onVerifyCode(email,code)`, `providers` + `onProviderSignIn(id)` |
+| `SignUp` | nome, email, password con i requisiti mentre si scrive, termini; poi "controlla la tua email" | `onSignUp({name,email,password})` → `{ needsEmailVerification }`, `onResendVerification(email)` |
+| `ForgotPassword` | email → stessa risposta con o senza account, nuovo invio dopo un'attesa | `onSendReset(email)` |
+| `ResetPassword` | nuova password dal link dell'email; link scaduto | `onResetPassword(password)`, `invalidLink` |
+| `VerifyEmail` | attivazione: con `code` verifica subito, senza aspetta la conferma | `onVerify(code)`, `onResend()`, `onContinue()` |
+| `VerifyCode` | codice di N cifre in caselle, inviato a codice completo | `onVerify(code)`, `onResend()`, `onChangeEmail()` |
+| `OneTimeCodeInput` | le caselle da sole (incolla, avanti/indietro, `one-time-code`) | `value`, `onChange`, `onComplete` |
+| `AuthLayout` | la cornice di una schermata (marchio, card, titolo, piè di pagina) | — |
+| `AuthGate` | la pagina solo con la sessione; senza, `fallback` al suo posto | `allow(user)`, `denied`, `loading` |
+
+```tsx
+import { App, SignIn, AuthFlowError } from '@llmnative/react';
+
+// Tutta l'app riservata: senza sessione ogni pagina mostra l'accesso al suo posto, l'indirizzo
+// resta quello aperto e dopo l'accesso compare la pagina. Nessuna pagina /login, nessun redirect.
+<App
+  menuConfig={{ main: [...], access: [{ path: '/invito/:token', page: InvitePage, public: true }] }}
+  authGate={{
+    fallback: <SignIn providers={['google', 'apple']} onProviderSignIn={enter}
+                      onRequestCode={sendCode} onVerifyCode={checkCode} appName="CRM" />,
+    allow: async (user) => (await isMember(user)),   // altrimenti "Accesso non consentito"
+  }}
+/>
+
+// Una funzione tua che rifiuta: la schermata dice "Il codice non è corretto o è scaduto."
+async function checkCode(email: string, code: string) {
+  const { token } = await callFunction('verifyLoginCode', { email, code }).catch(() => {
+    throw new AuthFlowError('invalidCode');
+  });
+  await signInWithCustomToken(token);
+}
+```
+
+Con gli adapter del framework `useAuthFlows(provider?, { verifyEmailPath, resetPasswordPath })` dà le
+funzioni pronte (`<SignIn {...flows.signIn} />`, `flows.signUp`, `flows.forgotPassword`,
+`flows.resetPassword(linkCode())`, `flows.verifyEmail`). Metodi opzionali di `AuthProviderAdapter`:
+
+| Metodo | Firebase | Supabase | `mockAuth` |
+|---|---|---|---|
+| `whenReady` (il gate aspetta la sessione) | ✅ | ✅ | ✅ (anche `githubAuth`) |
+| `signUp`, `sendPasswordReset`, `confirmPasswordReset` | ✅ | ✅ | ✅ |
+| `sendEmailVerification`, `verifyEmail` | ✅ | ✅ | ✅ |
+| `requestEmailCode`, `verifyEmailCode` | — (serve una funzione tua) | ✅ | ✅ |
+
+`useAuthSession(provider?)` dà `{ user, ready, signOut }`. `linkCode()` legge il codice del link
+(`oobCode`, `token_hash`, `code`). `mockAuth` (`providers.mock.auth: true`) è solo per demo e test:
+qualsiasi email e password, codice `123456`; con `accounts` rifiuta le credenziali sbagliate.
+Link delle email: in Firebase imposta l'URL di azione sulle tue pagine (`/reset-password`,
+`/verify-email`); in Supabase usa `{{ .TokenHash }}` nei template delle email.
+
 ### CredentialsAdapter (Google Service Account)
 ```tsx
 // Chiama Google APIs lato browser senza Node.js
@@ -1466,6 +1526,7 @@ src/
   conf/
     app.ts           ← providers config letta da .env (VITE_PROVIDER, VITE_AI_PROVIDER...)
     menu.ts          ← MenuConfig con path, title, icon, page (layout opzionale: c'è LayoutDefault)
+    access.tsx       ← rotte pubbliche delle pagine di accesso (CR-127)
   data/
     mockData.ts      ← dati fake per MockDataProvider
   layouts/
@@ -1474,6 +1535,7 @@ src/
     Header.tsx / Sidebar.tsx / PageHeader.tsx / Footer.tsx   ← solo componenti pubblici (SideNav, AuthButton, ActionButton, Brand, Breadcrumbs)
   pages/
     home/HomePage.tsx
+    access/          ← SignInPage (il fallback del gate), SignUp, ForgotPassword, ResetPassword, VerifyEmail
     [altre pagine dal template scelto]
   styles/
     globals.css      ← @import '@llmnative/react/dist/index.css' + Tailwind override
@@ -1491,11 +1553,12 @@ const env = import.meta.env
 export const providers: AppProvidersConfig = {
   mock: { data: mockData },
   ai: { openaiApiKey: env.VITE_OPENAI_API_KEY ?? '' },  // AI dentro providers, non prop <App>
-  services: { data: 'mock', auth: 'googleAuth' },
+  mock: { data: mockData, auth: true },               // mockAuth: accesso di prova
+  services: { data: 'mock', auth: 'mockAuth' },
 }
 ```
 
-Driver per `VITE_PROVIDER`: `firebase` → `firestoreDb` + `firestorage` + `firebaseAuth`; `supabase` → `supabaseDb` + `supabaseStorage` + `supabaseAuth`; `mock` → `mock` + `googleAuth`. `index.tsx` passa `LayoutDefault={Default}` ad `<App>`.
+Driver per `VITE_PROVIDER`: `firebase` → `firestoreDb` + `firestorage` + `firebaseAuth`; `supabase` → `supabaseDb` + `supabaseStorage` + `supabaseAuth`; `mock` → `mock` + `mockAuth`. `index.tsx` passa `LayoutDefault={Default}`, le traduzioni del framework (`translations: { ...locales }`) e `authGate={{ fallback: <SignInPage /> }}`: senza sessione ogni pagina mostra l'accesso al suo posto. Le pagine di accesso (`pages/access/`: SignInPage, SignUpPage, ForgotPasswordPage, ResetPasswordPage, VerifyEmailPage) e le loro rotte pubbliche (`conf/access.tsx`) sono uguali per ogni template; per un'app aperta a tutti togli `authGate`.
 
 ---
 
@@ -1507,6 +1570,7 @@ Driver per `VITE_PROVIDER`: `firebase` → `firestoreDb` + `firestorage` + `fire
 | `inputType` o `Input.Number`/`Input.Email` non esistono | Il tipo HTML è la prop `type` | `<Input type="number">`, `<Input type="email">`, `<Input type="date">` |
 | `Menu context=` non esiste | La prop si chiama `menuKey` | `<Menu menuKey="main" />` |
 | `SignInButton` non esiste | Rinominato | `<AuthButton />` |
+| Pagina `/login` con redirect, form di accesso fatti a mano | Le schermate e il gate ci sono (CR-127) | `<App authGate={{ fallback: <SignIn … /> }}>`, rotte aperte con `public: true` |
 | `firebase: { config: ... }` errato | FirebaseConfig è flat | `firebase: { apiKey, authDomain, databaseURL, ... }` |
 | `google: { oAuth2: { clientId } }` errato | GoogleProviderConfig è flat | `google: { clientId, scope }` |
 | `children` su `Grid` | Grid non accetta children | Usa `form={<Fields />}` per il form inline |

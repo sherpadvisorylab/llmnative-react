@@ -16,6 +16,18 @@ export default defineLocaleMessages({
                     title: 'Connessione integrazione',
                     description: 'Usa un servizio auth nominato per integrazioni esterne. La preview showcase e disabilitata per evitare l apertura di una finestra reale del provider.',
                 },
+                accessScreens: {
+                    title: 'Schermate di accesso',
+                    description: 'SignIn, SignUp, ForgotPassword, ResetPassword, VerifyEmail e VerifyCode, pronte per l’app: chiamano le tue funzioni e mostrano gli errori tradotti. Qui il codice è 123456.',
+                },
+                forgotPassword: {
+                    title: 'Recupero della password',
+                    description: 'La stessa risposta che l’account esista o no, e un nuovo invio solo dopo un’attesa.',
+                },
+                codeInput: {
+                    title: 'Codice monouso',
+                    description: 'Le caselle di un codice: incollalo, scrivilo o lascia che lo inserisca il telefono.',
+                },
             },
             labels: {
                 authButtonPropsTitle: 'Props AuthButton',

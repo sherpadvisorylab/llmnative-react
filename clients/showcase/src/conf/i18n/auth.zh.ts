@@ -16,6 +16,18 @@ export default defineLocaleMessages({
                     title: 'Integration connect',
                     description: 'Wei waibu jicheng shiyong mingming auth service. Showcase preview bei jinyong, yi bimian dakai zhenshi de provider chuangkou.',
                 },
+                accessScreens: {
+                    title: '登录界面',
+                    description: 'SignIn、SignUp、ForgotPassword、ResetPassword、VerifyEmail 和 VerifyCode 可直接用于应用：调用你的函数，并显示已翻译的错误。此处验证码为 123456。',
+                },
+                forgotPassword: {
+                    title: '找回密码',
+                    description: '无论账户是否存在都给出相同回复，且需等待后才能重新发送。',
+                },
+                codeInput: {
+                    title: '一次性验证码',
+                    description: '验证码输入框：可粘贴、输入，或由手机自动填写。',
+                },
             },
             labels: {
                 authButtonPropsTitle: 'AuthButton props',

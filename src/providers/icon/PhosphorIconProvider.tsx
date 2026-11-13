@@ -35,6 +35,10 @@ const ALIASES: Record<string, string> = {
     'trash':         'Trash',
     'warning':       'Warning',
     'layers':        'Stack',
+    // CR-127 — the names of the access screens, the same in both providers.
+    'mail':          'Envelope',
+    'mail-open':     'EnvelopeOpen',
+    'eye-off':       'EyeSlash',
 };
 
 function toPascalCase(name: string): string {

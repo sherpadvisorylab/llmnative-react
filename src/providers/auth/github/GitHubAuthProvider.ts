@@ -86,6 +86,11 @@ export class GitHubAuthProvider implements AuthProviderAdapter {
         return this.user;
     }
 
+    /** Resolves once the server said who is signed in (CR-127): `AuthGate` waits for it. */
+    async whenReady(): Promise<void> {
+        if (this.loading) await this.loading;
+    }
+
     async signOut(): Promise<void> {
         if (this.isConfigured()) {
             await fetch(`${this.base}/logout`, { method: 'POST', credentials: 'include' }).catch(() => undefined);

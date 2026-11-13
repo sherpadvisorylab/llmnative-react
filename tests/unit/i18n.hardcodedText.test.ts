@@ -13,6 +13,9 @@ import { describe, expect, it } from 'vitest';
 
 const ROOT = resolve(__dirname, '../../src/components');
 
+/** Return types of the props (`=> Promise<…>`), not text: the line-based patterns read them as JSX text. */
+const TYPES = ['Promise', '): Promise'];
+
 /** File (relative to src/components) → literals allowed there because they are not translatable text. */
 const GUARDED: Record<string, string[]> = {
     'blocks/Notifications.tsx': [],
@@ -30,6 +33,18 @@ const GUARDED: Record<string, string[]> = {
     // CR-109
     'widgets/chat/ChatMarkdown.tsx': [],
     'widgets/chat/ChatReasoning.tsx': [],
+    // CR-127 — the access screens
+    'auth/AuthLayout.tsx': TYPES,
+    'auth/SignIn.tsx': TYPES,
+    'auth/SignUp.tsx': TYPES,
+    'auth/ForgotPassword.tsx': TYPES,
+    'auth/ResetPassword.tsx': TYPES,
+    'auth/VerifyEmail.tsx': TYPES,
+    'auth/VerifyCode.tsx': TYPES,
+    'auth/OneTimeCodeInput.tsx': TYPES,
+    'auth/AuthGate.tsx': TYPES,
+    'auth/shared.tsx': TYPES,
+    'auth/providers.tsx': TYPES,
     'widgets/chat/ChatQuestions.tsx': [],
 };
 

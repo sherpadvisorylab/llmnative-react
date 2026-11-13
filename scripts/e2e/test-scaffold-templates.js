@@ -25,7 +25,7 @@ const CASES = [
 ].filter(({ template, provider }) => filters.every((f) => `${template}-${provider}`.includes(f)));
 
 const EXPECTED_DRIVERS = {
-    mock: { data: 'mock', auth: 'googleAuth' },
+    mock: { data: 'mock', auth: 'mockAuth' },
     firebase: { data: 'firestoreDb', auth: 'firebaseAuth' },
     supabase: { data: 'supabaseDb', auth: 'supabaseAuth' },
 };
@@ -53,6 +53,13 @@ function assertGeneratedSources(projectRoot, { template, provider }) {
     assert.ok(fs.existsSync(path.join(projectRoot, 'src/layouts/Default.tsx')), `${template}: layouts/Default.tsx missing`);
     assert.doesNotMatch(indexFile, /aiConfig=/);
     assert.match(indexFile, /LayoutDefault=\{Default\}/);
+    // CR-127: the sign-in in place of the pages, the public pages of access, the texts in the six languages.
+    assert.match(indexFile, /authGate=\{\{ fallback: <SignInPage \/> \}\}/);
+    assert.match(indexFile, /translations: \{ \.\.\.locales \}/);
+    for (const page of ['SignInPage', 'SignUpPage', 'ForgotPasswordPage', 'ResetPasswordPage', 'VerifyEmailPage']) {
+        assert.ok(fs.existsSync(path.join(projectRoot, `src/pages/access/${page}.tsx`)), `${template}: pages/access/${page}.tsx missing`);
+    }
+    assert.ok(fs.existsSync(path.join(projectRoot, 'src/conf/access.tsx')), `${template}: conf/access.tsx missing`);
     assert.match(appConfig, new RegExp(`'${EXPECTED_DRIVERS[provider].data}'`));
     assert.match(appConfig, new RegExp(`'${EXPECTED_DRIVERS[provider].auth}'`));
 

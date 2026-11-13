@@ -212,3 +212,55 @@ describe('getAccessToken()', () => {
         await expect(provider.getAccessToken()).rejects.toThrow();
     });
 });
+
+// ── CR-127 — the flows of the access screens ──────────────────────────────────
+
+describe('access flows', () => {
+    const withFlows = () => {
+        const created = createProvider();
+        Object.assign(created.auth, {
+            signUp: vi.fn(async () => ({ data: { user: { id: 'u1', email: 'ada@example.com', user_metadata: {} }, session: null }, error: null })),
+            resetPasswordForEmail: vi.fn(async () => ({ error: null })),
+            verifyOtp: vi.fn(async ({ email }: any) => ({ data: { user: { id: 'u1', email: email ?? 'ada@example.com', user_metadata: {} } }, error: null })),
+            updateUser: vi.fn(async () => ({ data: {}, error: null })),
+            resend: vi.fn(async () => ({ error: null })),
+        });
+        return created;
+    };
+
+    it('signUp says the email must be confirmed when Supabase gives no session', async () => {
+        const { provider, auth } = withFlows();
+        const result = await provider.signUp({ email: 'ada@example.com', password: 'long-pass', name: 'Ada' });
+
+        expect((auth as any).signUp).toHaveBeenCalledWith({
+            email: 'ada@example.com',
+            password: 'long-pass',
+            options: { data: { full_name: 'Ada' } },
+        });
+        expect(result.needsEmailVerification).toBe(true);
+    });
+
+    it('requestEmailCode never creates an account unless asked, verifyEmailCode signs in with it', async () => {
+        const { provider, auth } = withFlows();
+        await provider.requestEmailCode('ada@example.com');
+        expect(auth.signInWithOtp).toHaveBeenCalledWith({ email: 'ada@example.com', options: { shouldCreateUser: false } });
+
+        const user = await provider.verifyEmailCode('ada@example.com', '123456');
+        expect((auth as any).verifyOtp).toHaveBeenCalledWith({ email: 'ada@example.com', token: '123456', type: 'email' });
+        expect(user).toMatchObject({ email: 'ada@example.com' });
+    });
+
+    it('confirmPasswordReset checks the token of the link, then sets the password', async () => {
+        const { provider, auth } = withFlows();
+        await provider.confirmPasswordReset('hash-1', 'new-pass');
+
+        expect((auth as any).verifyOtp).toHaveBeenCalledWith({ token_hash: 'hash-1', type: 'recovery' });
+        expect((auth as any).updateUser).toHaveBeenCalledWith({ password: 'new-pass' });
+    });
+
+    it('an error of Supabase reaches the screen as it is, with its code', async () => {
+        const { provider, auth } = withFlows();
+        (auth as any).resetPasswordForEmail.mockResolvedValueOnce({ error: { code: 'over_email_send_rate_limit', status: 429 } });
+        await expect(provider.sendPasswordReset('ada@example.com')).rejects.toMatchObject({ code: 'over_email_send_rate_limit' });
+    });
+});

@@ -7,6 +7,7 @@ import {
 } from 'react-router-dom';
 
 import Authorize, { AUTH_REDIRECT_URI } from "./auth";
+import { AuthGate, type AuthGateProps } from "./components/auth/AuthGate";
 import { converter as convert } from "./libs/converter";
 import { AppThemeProviderConfig, ThemeProvider } from "./Theme";
 import Users from "./pages/Users";
@@ -64,6 +65,8 @@ interface MenuItem {
     icon?: string;
     /** A route only, never an entry of a menu, title or not (CR-126): a page reached by a link. */
     hidden?: boolean;
+    /** Open without a session even when `<App authGate>` is set (CR-127): sign up, the links of an email. */
+    public?: boolean;
     children?: MenuItem[];
     page?: React.ComponentType;
     layout?: React.ComponentType;
@@ -154,6 +157,12 @@ export type AppProps = AppProviderProps & {
     importPage: (pagesPath: string) => Promise<{ default: React.ComponentType }>;
     LayoutDefault?: React.ComponentType;
     menuConfig: MenuConfig;
+    /**
+     * Puts every route behind an `AuthGate` (CR-127): without a session the sign-in shows in place of the
+     * page, layout included, and the address does not change. `true` for the default sign-in, or the props
+     * of the gate (`fallback`, `allow`, `denied`, …). A route with `public: true` stays open.
+     */
+    authGate?: boolean | Omit<AuthGateProps, 'children'>;
 };
 
 function addCustomProviders<T>(registry: Record<string, T>, custom?: Record<string, T> | T): void {
@@ -353,10 +362,12 @@ function App({
     importPage,
     LayoutDefault = undefined,
     menuConfig = {},
+    authGate = undefined,
     children,
     ...providerProps
 }: AppProps) {
     setStaticMenu(menuConfig);
+    const gate = authGate === true ? {} : authGate || null;
 
     const LayoutEmpty = ({ children }: { children: React.ReactNode }) => <>{children}</>;
     const FallbackPage: React.FC<{ pageSource: string, message?: string }> = ({ pageSource, message }) => (
@@ -390,19 +401,21 @@ function App({
         );
 
         const LayoutComponent = item.layout || LayoutDefault || LayoutEmpty;
+        const page = (
+            <LayoutComponent>
+                <ErrorBoundary key={item.path} reportUrl={providerProps.errorReportUrl} debug={providerProps.debug}>
+                    <Suspense fallback={<PageLoader />}>
+                        <PageComponent />
+                    </Suspense>
+                </ErrorBoundary>
+            </LayoutComponent>
+        );
         return (
             <Route
                 key={`${key}-${index}`}
                 path={item.path}
-                element={
-                    <LayoutComponent>
-                        <ErrorBoundary key={item.path} reportUrl={providerProps.errorReportUrl} debug={providerProps.debug}>
-                            <Suspense fallback={<PageLoader />}>
-                                <PageComponent />
-                            </Suspense>
-                        </ErrorBoundary>
-                    </LayoutComponent>
-                }
+                // The gate is around the layout: without a session the sign-in takes the whole page (CR-127).
+                element={gate && !item.public ? <AuthGate {...gate}>{page}</AuthGate> : page}
             />
         );
     }

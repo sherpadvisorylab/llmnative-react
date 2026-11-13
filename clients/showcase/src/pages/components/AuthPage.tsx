@@ -1,5 +1,5 @@
 import React from 'react';
-import { AuthButton } from '@llmnative/react';
+import { AuthButton, AuthFlowError, ForgotPassword, OneTimeCodeInput, SignIn } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
@@ -148,7 +148,77 @@ export default function AuthPage() {
 const token = await getAccessToken(import.meta.env.VITE_DROPBOX_CLIENT_ID);`}
             />
 
+            <Section
+                title={t.sections.accessScreens.title}
+                description={t.sections.accessScreens.description}
+                preview={(
+                    <div className="mx-auto w-full max-w-sm">
+                        <SignIn
+                            bare
+                            providers={['google', 'apple']}
+                            onProviderSignIn={() => wait()}
+                            onPasswordSignIn={() => wait().then(() => { throw new AuthFlowError('credentials'); })}
+                            onRequestCode={() => wait()}
+                            onVerifyCode={(_email, code) => wait().then(() => {
+                                if (code !== '123456') throw new AuthFlowError('invalidCode');
+                            })}
+                            forgotPasswordLink={() => undefined}
+                        />
+                    </div>
+                )}
+                code={`import { App, SignIn } from '@llmnative/react';
+
+// Without a session every page shows the sign-in in its place: no /login page, no redirect.
+<App
+  authGate={{
+    fallback: (
+      <SignIn
+        providers={['google', 'apple']}
+        onProviderSignIn={(id) => signInWith(id)}
+        onRequestCode={(email) => sendCode(email)}
+        onVerifyCode={(email, code) => checkCode(email, code)}
+      />
+    ),
+  }}
+  menuConfig={{ main: [/* … */], access: [{ path: '/sign-up', page: SignUpPage, public: true }] }}
+/>`}
+            />
+
+            <Section
+                title={t.sections.forgotPassword.title}
+                description={t.sections.forgotPassword.description}
+                preview={(
+                    <div className="mx-auto w-full max-w-sm">
+                        <ForgotPassword bare onSendReset={() => wait()} />
+                    </div>
+                )}
+                code={`import { ForgotPassword, useAuthFlows } from '@llmnative/react';
+
+const flows = useAuthFlows(undefined, { resetPasswordPath: '/reset-password' });
+<ForgotPassword {...flows.forgotPassword} signInLink="/" />`}
+            />
+
+            <Section
+                title={t.sections.codeInput.title}
+                description={t.sections.codeInput.description}
+                preview={<CodeDemo />}
+                code={`import { OneTimeCodeInput } from '@llmnative/react';
+
+const [code, setCode] = useState('');
+<OneTimeCodeInput value={code} onChange={setCode} onComplete={(value) => verify(value)} />`}
+            />
+
             <PropDocsTable props={authButtonProps} title={t.labels.authButtonPropsTitle} />
         </PageLayout>
     );
+}
+
+/** A pause like a call to a service, to see the loading states of the screens. */
+function wait(ms = 700): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function CodeDemo() {
+    const [code, setCode] = React.useState('');
+    return <OneTimeCodeInput value={code} onChange={setCode} />;
 }

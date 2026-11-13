@@ -17,7 +17,7 @@ export default function Header({ onMenuToggle }: HeaderProps) {
             />
             <Brand url="/" label="[projectname]" />
             <div className="ms-auto">
-                <AuthButton />
+                <AuthButton aspect="avatar" />
             </div>
         </header>
     );
