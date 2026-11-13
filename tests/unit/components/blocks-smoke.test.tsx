@@ -18,6 +18,7 @@ vi.mock('react-router-dom', async () => {
 
 import Brand from '../../../src/components/blocks/Brand';
 import { Breadcrumbs } from '../../../src/components/blocks/Breadcrumbs';
+import { setStaticMenu } from '../../../src/App';
 import Carousel from '../../../src/components/blocks/Carousel';
 
 describe('Brand', () => {
@@ -38,7 +39,21 @@ describe('Breadcrumbs', () => {
             </MemoryRouter>
         );
         expect(container.querySelector('a[href="/"]')).toBeTruthy();
-        expect(container.textContent).toContain('products');
+        expect(container.textContent).toContain('Products');
+    });
+
+    it('names a segment by the title of its route in the menu, a word made readable, an id as it is', () => {
+        setStaticMenu({ main: [{ path: '/impostazioni', title: 'Impostazioni' }], routes: [{ path: '/lead-fermi', hidden: true, title: 'Lead fermi' }] });
+        const labels = (trail: string) => {
+            const { container, unmount } = render(<MemoryRouter><Breadcrumbs trail={trail} /></MemoryRouter>);
+            const text = [...container.querySelectorAll('li')].map((item) => item.textContent?.trim()).filter((text) => text && text !== '/');
+            unmount();
+            return text;
+        };
+        expect(labels('/impostazioni')).toEqual(['Impostazioni']);
+        expect(labels('/lead-fermi/a1B2c3')).toEqual(['Lead fermi', 'a1B2c3']);
+        expect(labels('/contatti-attivi')).toEqual(['Contatti attivi']);
+        setStaticMenu({});
     });
 });
 

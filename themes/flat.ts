@@ -46,7 +46,7 @@ export const preset: ThemePresetConfig = {
         mutedForeground:      '215 10% 55%',
         accent:               '215 20% 22%',
         accentForeground:     '215 10% 85%',
-        destructive:          '0 62% 40%',
+        destructive:          '0 72% 51%',
         destructiveForeground:'0 0% 100%',
         success:              '142.1 70.6% 45.3%',
         successForeground:    '0 0% 100%',

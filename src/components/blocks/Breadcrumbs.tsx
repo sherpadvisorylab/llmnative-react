@@ -2,6 +2,21 @@ import React from 'react';
 import { Link, useLocation } from "react-router-dom";
 import { trimSlash } from "../../libs/utils";
 import { useI18n } from "../../I18n";
+import { menuTitleOf } from "../../App";
+
+/**
+ * The label of a segment of the address: the title of its route in the menu ("Impostazioni"), else the
+ * segment made readable ("lead-fermi" → "Lead fermi"); an id or a code stays as it is.
+ */
+function segmentLabel(token: string, path: string): string {
+    const title = menuTitleOf(path);
+    if (title) return title;
+    let text = token;
+    try { text = decodeURIComponent(token); } catch { /* not an encoded segment */ }
+    if (!/^[\p{L}][\p{L}_-]*$/u.test(text)) return text;
+    const words = text.replace(/[-_]+/g, ' ');
+    return words.charAt(0).toUpperCase() + words.slice(1);
+}
 
 /**
  * A single breadcrumb item.
@@ -84,7 +99,7 @@ function resolveTrail(trail: string | BreadcrumbItem[] | undefined, pathname: st
     let tokenPath = '';
     const built: BreadcrumbItem[] = segments.map((token) => {
         tokenPath += `/${token}`;
-        return { label: token, href: tokenPath };
+        return { label: segmentLabel(token, tokenPath), href: tokenPath };
     });
 
     if (built.length === 0) return built;

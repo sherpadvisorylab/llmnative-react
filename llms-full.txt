@@ -1052,6 +1052,9 @@ Parti comuni per grafici propri: `useChartTooltip()` (`show`, `showAt`, `hide`, 
 ## Blocks
 
 ```tsx
+// Senza trail: dall'indirizzo, ogni pezzo col titolo della sua rotta nel menu ('/impostazioni' → 'Impostazioni'),
+// altrimenti leggibile ('lead-fermi' → 'Lead fermi'); un id resta com'è.
+<Breadcrumbs />
 <Breadcrumbs trail={[{ label: 'Home', href: '/' }, { label: 'Utenti' }]} separator="/" jsonLd />
 <Brand url="/" label="MyApp" logo="/logo.svg" width={120} />
 <Search onQueryChange={(e) => setQ(e.target.value)} />

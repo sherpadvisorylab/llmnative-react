@@ -122,11 +122,11 @@ const FieldAddon = ({
 
 export const FieldError = ({ message }: { message: string }) => (
     <div
-        className="mt-1 flex items-center gap-1 text-xs text-destructive"
+        className="mt-1 flex items-center gap-1 text-xs text-foreground"
         role="alert"
         aria-live="polite"
     >
-        <Icon name="warning-circle" size={12} className="shrink-0" />
+        <Icon name="warning-circle" size={12} className="shrink-0 text-destructive" />
         <span>{message}</span>
     </div>
 );

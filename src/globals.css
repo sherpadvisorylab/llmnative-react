@@ -53,7 +53,7 @@
     --rf-muted-foreground: 215 20.2% 65.1%;
     --rf-accent: 217.2 32.6% 17.5%;
     --rf-accent-foreground: 210 40% 98%;
-    --rf-destructive: 0 62.8% 30.6%;
+    --rf-destructive: 0 72% 51%;
     --rf-destructive-foreground: 210 40% 98%;
     --rf-success: 142.1 70.6% 45.3%;
     --rf-success-foreground: 0 0% 100%;
@@ -322,11 +322,12 @@
 
     /* -- Alert -- */
     .alert { @apply flex items-center gap-2 rounded-md border p-3 text-sm; }
-    .alert-info      { @apply border-info/30 bg-info/10 text-info; }
-    .alert-success   { @apply border-success/30 bg-success/10 text-success; }
-    .alert-warning   { @apply border-warning/30 bg-warning/10 text-warning; }
-    .alert-danger    { @apply border-destructive/30 bg-destructive/10 text-destructive; }
-    .alert-primary   { @apply border-primary/30 bg-primary/10 text-primary; }
+    /* The words of an alert are in the text color: a status color is a fill, not a text (CR: 2.2.2). */
+    .alert-info      { @apply border-info/30 bg-info/10 text-foreground [&_svg]:text-info; }
+    .alert-success   { @apply border-success/30 bg-success/10 text-foreground [&_svg]:text-success; }
+    .alert-warning   { @apply border-warning/40 bg-warning/10 text-foreground [&_svg]:text-warning; }
+    .alert-danger    { @apply border-destructive/40 bg-destructive/10 text-foreground [&_svg]:text-destructive; }
+    .alert-primary   { @apply border-primary/30 bg-primary/10 text-foreground [&_svg]:text-primary; }
     .alert-secondary { @apply border-border bg-secondary text-secondary-foreground; }
     .alert-light     { @apply border-border bg-muted text-muted-foreground; }
     .alert-dark      { @apply border-border bg-foreground/10 text-foreground; }

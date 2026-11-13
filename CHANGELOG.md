@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.2] - 2026-11-14
+
+### Fixed
+- Alerts and field errors are readable in dark mode: their words are in the text color of the theme, the status
+  color stays on the icon, the border and the tint. Before, `.alert-danger` and `FieldError` wrote in the dark
+  `destructive` red, a fill color nearly invisible as text on a dark page.
+- The dark `destructive` of the `default` and `flat` themes is `0 72% 51%` (as `cyber`): readable as an icon or a
+  border, white text on it still passes contrast.
+- `Breadcrumbs` names each segment of the address by the title of its route in the menu (`/impostazioni` →
+  "Impostazioni"), else makes it readable (`lead-fermi` → "Lead fermi"); an id stays as it is. Before, it showed the
+  lowercase segment.
+
 ## [2.2.1] - 2026-11-13
 
 ### Fixed

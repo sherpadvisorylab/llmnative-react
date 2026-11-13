@@ -244,6 +244,23 @@ export const getContextMenu = (): string[] => {
     return Object.keys(menu);
 };
 
+/** The title of the route at `path` in any menu of the app (hidden routes too), for a breadcrumb. */
+export const menuTitleOf = (path: string): string | undefined => {
+    const find = (items: MenuItem[]): string | undefined => {
+        for (const item of items) {
+            if (item.path === path && item.title?.trim()) return item.title;
+            const inner = item.children ? find(item.children) : undefined;
+            if (inner) return inner;
+        }
+        return undefined;
+    };
+    for (const items of Object.values(menu)) {
+        const title = find(items);
+        if (title) return title;
+    }
+    return undefined;
+};
+
 /**
  * The full framework provider stack as a standalone component.
  *
