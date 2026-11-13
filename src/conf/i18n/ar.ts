@@ -7,6 +7,7 @@ export const ar: I18nDict = {
         noDataFound: 'لم يتم العثور على بيانات', pageNavigation: 'تنقل الصفحات',
         previous: 'السابق', next: 'التالي',
         notFoundMessage: 'عفوًا! الصفحة غير موجودة.', goHome: 'الذهاب إلى الرئيسية',
+        openNavigation: 'فتح التنقل',
     },
     auth: {
         signIn: 'تسجيل الدخول', signOut: 'تسجيل الخروج', connect: 'ربط',

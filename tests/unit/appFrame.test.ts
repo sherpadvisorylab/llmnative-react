@@ -78,3 +78,24 @@ describe('the entries of a menu', () => {
         expect(isMenuEntry({ path: '/admin', children: [{ path: '/admin/:id' }] })).toBe(false);
     });
 });
+
+describe('the shared scaffold speaks the language of the app', () => {
+    it('has no hand-written sentence in its frame and pages of access: the texts come from the dictionary', () => {
+        const dirs = ['templates/_shared/sections', 'templates/_shared/layouts', 'templates/_shared/pages/access', 'templates/_shared/conf'];
+        const offenders: string[] = [];
+        for (const dir of dirs) {
+            for (const name of readdirSync(join(root, dir))) {
+                const lines = readFileSync(join(root, dir, name), 'utf8').split(/\r?\n/);
+                lines.forEach((line, index) => {
+                    // A literal label for a person (aria-label, title, label, placeholder) or a JSX text of words.
+                    const literal = /\b(?:ariaLabel|aria-label|title|label|placeholder)="(?!\[projectname\])[^"]*\p{L}{2,}[^"]*"/u.test(line);
+                    const text = />\s*[^<>{}\n]*\p{L}{3,}\s+\p{L}{2,}[^<>{}\n]*</u.test(line);
+                    // A line of words alone between tags (e.g. 'Powered by [projectname]'), not a comment nor code.
+                    const words = /^\s*\p{Lu}\p{L}+\s+\p{L}+[^;{}()=<>]*$/u.test(line) && !/^\s*(\/\/|\*|\/\*)/.test(line);
+                    if (literal || text || words) offenders.push(`${dir}/${name}:${index + 1}: ${line.trim()}`);
+                });
+            }
+        }
+        expect(offenders).toEqual([]);
+    });
+});

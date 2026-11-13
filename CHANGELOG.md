@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.1] - 2026-11-13
+
+### Fixed
+- Scaffold: the header and the footer have no text written in English any more. The button that opens the menu
+  is named by the dictionary (new `common.openNavigation`, six languages); the footer shows `© <year> <app>` instead
+  of "Powered by <app>". A test keeps the shared scaffold free of hand-written sentences.
+
+### Migration
+- A consumer scaffolded before can take the new `sections/Header.tsx` and `sections/Footer.tsx` of a scaffold.
+
 ## [2.2.0] - 2026-11-13
 
 ### Added

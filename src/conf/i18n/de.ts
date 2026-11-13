@@ -7,6 +7,7 @@ export const de: I18nDict = {
         noDataFound: 'Keine Daten gefunden', pageNavigation: 'Seitennavigation',
         previous: 'Zurück', next: 'Weiter',
         notFoundMessage: 'Ups! Seite nicht gefunden.', goHome: 'Zur Startseite',
+        openNavigation: 'Navigation öffnen',
     },
     auth: {
         signIn: 'Anmelden', signOut: 'Abmelden', connect: 'Verbinden',

@@ -7,6 +7,7 @@ export const ru: I18nDict = {
         noDataFound: 'Данные не найдены', pageNavigation: 'Навигация по страницам',
         previous: 'Назад', next: 'Вперёд',
         notFoundMessage: 'Упс! Страница не найдена.', goHome: 'На главную',
+        openNavigation: 'Открыть навигацию',
     },
     auth: {
         signIn: 'Войти', signOut: 'Выйти', connect: 'Подключить',

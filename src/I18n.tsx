@@ -20,6 +20,8 @@ export interface I18nDict {
         next:            string;
         notFoundMessage: string;
         goHome:          string;
+        /** The button that opens the menu on a small screen (the header of the scaffold). */
+        openNavigation:  string;
     };
     auth: {
         signIn:         string;

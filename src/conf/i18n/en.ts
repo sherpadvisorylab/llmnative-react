@@ -15,6 +15,7 @@ export const en: I18nDict = {
         next: 'Next',
         notFoundMessage: 'Oops! Page not found.',
         goHome: 'Go to Home',
+        openNavigation: 'Open navigation',
     },
     auth: {
         signIn: 'Sign in',
