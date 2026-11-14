@@ -3,6 +3,7 @@ import {useTheme} from "../../Theme";
 import { UIProps } from '../..';
 import { Wrapper } from "./GridSystem";
 import Icon from "./Icon";
+import { useI18nDictOrEnglish } from "../../I18n";
 
 interface LoaderProps extends UIProps {
     /** When `true`, renders the loading indicator instead of children. */
@@ -29,8 +30,10 @@ function Loader({
                     className      = undefined
 }: LoaderProps) {
     const theme = useTheme("loader");
+    const common = useI18nDictOrEnglish().common;
     icon = icon || theme.Loader.icon;
-    title = title || theme.Loader.title;
+    // A theme that names it wins; else the word of the app's language (it was "Loading.." in every language).
+    title = title || theme.Loader.title || common.loading;
     description = description || theme.Loader.description;
 
     return show ? (

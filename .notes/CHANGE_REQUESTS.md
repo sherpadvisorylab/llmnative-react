@@ -160,6 +160,27 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
+## CR-128 — Conferma di un'azione distruttiva e caricamento nella lingua dell'app
+
+**Stato:** ✅ done (2.3.0)
+**Issue:** [#107](https://github.com/sherpadvisorylab/llmnative-react/issues/107)
+**Priorità:** Media
+
+### Motivazione
+Emersa il 14/11/2026 provando un consumer: la conferma di «Revoca» di un invito usa `ModalYesNo`, che offre solo «Sì» (primario, blu) e «No», mentre un'azione che non si annulla va nominata e segnata in rosso. Il `Loader` dice «Loading..» in ogni lingua (titolo scritto nei temi) e il caricamento di `Form` dice «Loading...».
+
+### Scope
+- `ModalYesNo`: `yesLabel`, `noLabel`, `danger` (bottone di conferma `danger`, l'altro per primo). Senza le nuove prop resta com'è.
+- `Loader`: titolo del tema se c'è, altrimenti `common.loading`; i temi non scrivono più «Loading..». `Form` usa `common.loading`.
+
+### Criteri di accettazione
+- [x] AC1: con `danger`, `yesLabel`, `noLabel` la conferma mostra le parole date, la conferma è rossa e viene dopo l'altra.
+- [x] AC2: senza le nuove prop, «Sì» primario e «No» come prima.
+- [x] AC3: il `Loader` e il caricamento di `Form` sono nella lingua dell'app.
+- [x] AC4: test, `llms-full.txt`, CHANGELOG.
+
+---
+
 ## CR-127 — Schermate di accesso, gate senza redirect e pagine nello scaffolding
 
 **Stato:** ✅ done (2.2.0)

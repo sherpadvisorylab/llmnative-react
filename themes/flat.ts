@@ -226,7 +226,7 @@ export const components: Theme = {
         wrapperClassName: '',
         className: '',
         icon: 'loader-2',
-        title: 'Loading..',
+        title: '',
         description: '',
     },
     ActionButton: {

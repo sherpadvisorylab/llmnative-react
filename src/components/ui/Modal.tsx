@@ -89,6 +89,12 @@ export interface ModalYesNoProps {
     /** Async handler for the No button. Return `true` to close. */
     onNo?: (e: React.MouseEvent<HTMLElement>) => Promise<boolean>;
     onClose?: () => void;
+    /** The words of the confirming button: the action, e.g. "Revoca" (default "Yes" of the dictionary). */
+    yesLabel?: string;
+    /** The words of the other button, e.g. "Annulla" (default "No" of the dictionary). */
+    noLabel?: string;
+    /** The action cannot be undone: the confirming button is red (`danger`) and the other one comes first. */
+    danger?: boolean;
 }
 
 /** Props for a simple acknowledgment modal with an OK button. */
@@ -520,33 +526,38 @@ export const ModalYesNo = ({
                                title    = undefined,
                                onYes    = undefined,
                                onNo     = undefined,
-                               onClose  = undefined
+                               onClose  = undefined,
+                               yesLabel = undefined,
+                               noLabel  = undefined,
+                               danger   = false
 }: ModalYesNoProps) => {
     const dict = useI18n('modal');
+    const yes = onYes && <LoadingButton
+        key="yes"
+        variant={danger ? "danger" : "primary"}
+        label={yesLabel ?? dict.yes}
+        onClick={async (e) => {
+            e.preventDefault();
+            await onYes(e);
+            onClose?.()
+        }}
+    />;
+    const no = onNo && <LoadingButton
+        key="no"
+        variant="secondary"
+        label={noLabel ?? dict.no}
+        onClick={async (e) => {
+            e.preventDefault();
+            await onNo(e);
+            onClose?.()
+        }}
+    />;
     return <ModalDefault
         title={title}
         onClose={onClose}
         allowFullscreen={false}
-        footer={<>
-            {onYes && <LoadingButton
-                variant="primary"
-                label={dict.yes}
-                onClick={async (e) => {
-                    e.preventDefault();
-                    await onYes(e);
-                    onClose?.()
-                }}
-            />}
-            {onNo && <LoadingButton
-                variant="secondary"
-                label={dict.no}
-                onClick={async (e) => {
-                    e.preventDefault();
-                    await onNo(e);
-                    onClose?.()
-                }}
-            />}
-        </>}
+        // An action that cannot be undone: "cancel" first, the red action last (the order of a careful choice).
+        footer={<>{danger ? [no, yes] : [yes, no]}</>}
     >
         {children}
     </ModalDefault>

@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-11-14
+
+### Added
+- `ModalYesNo`: `yesLabel`, `noLabel` and `danger` (CR-128). An action that cannot be undone names itself ("Revoke")
+  and its button is red, after the other one. Without them it stays as before.
+
+### Fixed
+- `Loader` says loading in the language of the app (`common.loading`): the built-in themes wrote "Loading.." in
+  every language. The loading of `Form` too.
+
 ## [2.2.2] - 2026-11-14
 
 ### Fixed

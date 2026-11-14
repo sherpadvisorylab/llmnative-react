@@ -743,6 +743,8 @@ Quando `commands` e presente in `mode="run"`, `Prompt` monta internamente `Conte
   {content}
 </Modal>
 <ModalYesNo title="Sicuro?" onClose={() => {}} onYes={async () => true}>Eliminare il record?</ModalYesNo>
+// Un'azione che non si annulla: nominala e mettila in rosso (CR-128); "Annulla" viene per primo.
+<ModalYesNo title="Revocare l'invito?" danger yesLabel="Revoca" noLabel="Annulla" onYes={revoke} onNo={async () => true}>La persona non potrà più usare il link.</ModalYesNo>
 <ModalOk title="Completato!" onClose={() => {}}>Salvato.</ModalOk>
 ```
 `size`: `'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'fullscreen'`

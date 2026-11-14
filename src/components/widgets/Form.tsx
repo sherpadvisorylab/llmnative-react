@@ -531,6 +531,7 @@ function Form(props: FormProps) {
 export const FormDatabase = (props: FormDatabaseProps) => {
     const { path, defaultValues, ...rest } = props;
     const db = useDataProvider();
+    const common = useI18n('common');
 
     const [record, setRecord] = useState<RecordProps | undefined>(undefined);
 
@@ -544,7 +545,7 @@ export const FormDatabase = (props: FormDatabaseProps) => {
     }, [db, path, defaultValues]);
 
     if (!record) {
-        return <p className={"p-4"}><span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />Loading...</p>;
+        return <p className={"p-4"}><span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />{common.loading}</p>;
     }
 
     return <FormData {...rest} defaultValues={record} path={path} />;
