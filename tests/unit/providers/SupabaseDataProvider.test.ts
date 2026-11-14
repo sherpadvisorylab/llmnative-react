@@ -26,6 +26,7 @@ function buildMockClient(store: Store) {
         let _head  = false;
         let _count = false;
         let _single = false;
+        let _limit: number | undefined;
 
         const q: any = {
             select(cols: string, opts: any = {}) {
@@ -45,6 +46,9 @@ function buildMockClient(store: Store) {
                 return q;
             },
             is(col: string, val: any) { filters.push((rows) => rows.filter((r) => r[col] === val)); return q; },
+            contains(col: string, vals: any[]) { filters.push((rows) => rows.filter((r) => Array.isArray(r[col]) && vals.every((v) => r[col].includes(v)))); return q; },
+            overlaps(col: string, vals: any[]) { filters.push((rows) => rows.filter((r) => Array.isArray(r[col]) && vals.some((v) => r[col].includes(v)))); return q; },
+            limit(n: number) { _limit = n; return q; },
             order(col: string, opts: any = {}) {
                 orders.push((rows) => [...rows].sort((a, b) => {
                     const d = opts.ascending === false ? -1 : 1;
@@ -59,6 +63,9 @@ function buildMockClient(store: Store) {
                 let rows = [...t.values()];
                 for (const f of filters) rows = f(rows);
                 for (const o of orders)  rows = o(rows);
+                if (_limit !== undefined) rows = rows.slice(0, _limit);
+                const failure = (store as any).failure;
+                if (failure) return resolve({ data: null, error: failure });
 
                 if (_head && _count) return resolve({ count: rows.length, error: null });
                 if (_single) return resolve({ data: rows[0] ?? null, error: null });
@@ -394,5 +401,45 @@ describe('custom primaryKey config', () => {
         await provider.set('/orders/ord-1', { total: 99 });
         const result = await provider.read('/orders/ord-1');
         expect(result).toMatchObject({ total: 99, [RECORD_KEY]: 'ord-1' });
+    });
+});
+
+describe('CR-129 — contains, limit, record path and errors', () => {
+    const tagged = (): Store => new Map([['posts', new Map([
+        ['a', { id: 'a', n: 1, tags: ['x'] }],
+        ['b', { id: 'b', n: 2, tags: ['y'] }],
+        ['c', { id: 'c', n: 3, tags: ['x', 'y'] }],
+    ])]]);
+
+    it('translates contains, containsAny and limit', async () => {
+        const provider = createProvider(tagged());
+        expect((await provider.read('/posts', { where: { tags: { contains: 'x' } }, toArray: true })).map((r: any) => r.n)).toEqual([1, 3]);
+        expect((await provider.read('/posts', { where: { tags: { containsAny: ['y'] } }, toArray: true })).map((r: any) => r.n)).toEqual([2, 3]);
+        expect((await provider.read('/posts', { order: { n: 'desc' }, limit: 1, toArray: true })).map((r: any) => r.n)).toEqual([3]);
+    });
+
+    it('subscribe on a record path follows that record only', async () => {
+        const provider = createProvider(tagged());
+        const setRecords = vi.fn();
+        provider.subscribe('/posts/b', setRecords);
+        await new Promise((r) => setTimeout(r, 0));
+        expect(setRecords.mock.calls[0][0].map((r: any) => r.n)).toEqual([2]);
+    });
+
+    it('a refused query reaches onError; without it the list is empty as before', async () => {
+        const store = tagged();
+        (store as any).failure = { code: '42501', message: 'permission denied for table posts' };
+        const provider = createProvider(store);
+        const onError = vi.fn();
+        const setRecords = vi.fn();
+        provider.subscribe('/posts', setRecords, { onError });
+        await new Promise((r) => setTimeout(r, 0));
+        expect(setRecords).not.toHaveBeenCalled();
+        expect(onError.mock.calls[0][0]).toMatchObject({ code: 'permission-denied', path: '/posts' });
+
+        const quiet = vi.fn();
+        provider.subscribe('/posts', quiet);
+        await new Promise((r) => setTimeout(r, 0));
+        expect(quiet).toHaveBeenCalledWith([]);
     });
 });

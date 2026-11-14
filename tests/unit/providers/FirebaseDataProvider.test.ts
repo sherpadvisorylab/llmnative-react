@@ -46,6 +46,8 @@ vi.mock('firebase/database', () => ({
     equalTo:      vi.fn(() => 'equalTo'),
     startAt:      vi.fn(() => 'startAt'),
     endAt:        vi.fn(() => 'endAt'),
+    limitToFirst: vi.fn((n: number) => `limitToFirst:${n}`),
+    limitToLast:  vi.fn((n: number) => `limitToLast:${n}`),
 }));
 
 // ── Mock firebase/app ─────────────────────────────────────────────────────────
@@ -209,5 +211,33 @@ describe('subscribe()', () => {
         });
         provider().subscribe('/users', setRecords);
         expect(setRecords).toHaveBeenCalledWith([]);
+    });
+});
+
+describe('CR-129 — contains, limit and errors', () => {
+    it('contains runs in the browser, then the limit', async () => {
+        vi.mocked(fbDb.get).mockResolvedValueOnce(mockSnapshot({
+            a: { n: 1, tags: ['x'] }, b: { n: 2, tags: ['y'] }, c: { n: 3, tags: ['x', 'y'] },
+        }) as any);
+        const result = await provider().read('/posts', { where: { tags: { contains: 'x' } }, order: { n: 'asc' }, limit: 1, toArray: true });
+        expect(result.map((r: any) => r.n)).toEqual([1]);
+        expect(fbDb.limitToFirst).not.toHaveBeenCalled();
+    });
+
+    it('a limit with nothing left for the browser runs on the server', async () => {
+        await provider().read('/posts', { order: { n: 'desc' }, limit: 2 });
+        expect(fbDb.limitToLast).toHaveBeenCalledWith(2);
+        await provider().read('/posts', { limit: 4 });
+        expect(fbDb.limitToFirst).toHaveBeenCalledWith(4);
+    });
+
+    it('a cancelled subscription reaches onError', () => {
+        vi.mocked(fbDb.onValue).mockImplementationOnce((_ref: any, _cb: any, onError: any) => {
+            onError(Object.assign(new Error('permission_denied at /secret'), { code: 'PERMISSION_DENIED' }));
+            return () => {};
+        });
+        const onError = vi.fn();
+        provider().subscribe('/secret', vi.fn(), { onError });
+        expect(onError.mock.calls[0][0]).toMatchObject({ code: 'permission-denied', path: '/secret' });
     });
 });

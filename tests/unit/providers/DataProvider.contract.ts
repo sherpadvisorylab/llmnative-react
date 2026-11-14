@@ -112,6 +112,49 @@ export function runDataProviderContract(
         });
     });
 
+    // ── CR-129: the same reads on every provider ─────────────────────────────
+
+    describe('contains, containsAny and limit (CR-129)', () => {
+        beforeEach(async () => {
+            await provider.set('/tagged/a', { n: 1, tags: ['red', 'blue'] });
+            await provider.set('/tagged/b', { n: 2, tags: ['green'] });
+            await provider.set('/tagged/c', { n: 3, tags: ['blue'] });
+        });
+
+        it('contains keeps the records whose list holds the value', async () => {
+            const result = await provider.read('/tagged', { where: { tags: { contains: 'blue' } }, toArray: true });
+            expect(result.map((r: any) => r.n).sort()).toEqual([1, 3]);
+        });
+
+        it('containsAny keeps the records whose list holds one of the values', async () => {
+            const result = await provider.read('/tagged', { where: { tags: { containsAny: ['green', 'red'] } }, toArray: true });
+            expect(result.map((r: any) => r.n).sort()).toEqual([1, 2]);
+        });
+
+        it('limit keeps the first records after where and order', async () => {
+            const result = await provider.read('/tagged', { order: { n: 'desc' }, limit: 2, toArray: true });
+            expect(result.map((r: any) => r.n)).toEqual([3, 2]);
+        });
+
+        it('subscribe applies contains and limit too', async () => {
+            const seen: any[][] = [];
+            const stop = provider.subscribe('/tagged', (records) => seen.push(records), { where: { tags: { contains: 'blue' } }, order: { n: 'asc' }, limit: 1 });
+            await new Promise((r) => setTimeout(r, 0));
+            stop();
+            expect(seen.at(-1)?.map((r: any) => r.n)).toEqual([1]);
+        });
+
+        it('subscribe on a record path follows that record', async () => {
+            const seen: any[][] = [];
+            const stop = provider.subscribe('/tagged/b', (records) => seen.push(records));
+            await new Promise((r) => setTimeout(r, 0));
+            await provider.update('/tagged/b', { n: 20 });
+            await new Promise((r) => setTimeout(r, 0));
+            stop();
+            expect(seen.at(-1)).toEqual([expect.objectContaining({ _key: 'b', n: 20 })]);
+        });
+    });
+
     // ── isolation ────────────────────────────────────────────────────────────
 
     describe('collection isolation', () => {

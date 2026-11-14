@@ -17,7 +17,7 @@ export type RecordProps = FieldMap & { _key?: string; _index?: number };
 /** Ordered list of records returned by a provider `subscribe` or `read` call. */
 export type RecordArray = Array<RecordProps>;
 
-type Operator = "eq" | "lt" | "lte" | "gt" | "gte" | "nin" | "in";
+type Operator = "eq" | "lt" | "lte" | "gt" | "gte" | "nin" | "in" | "contains" | "containsAny";
 type ScalarValue = string | number | boolean | null;
 type RangeValue = string | number | boolean;
 type ListValue = string[] | number[];
@@ -30,6 +30,10 @@ export type Condition = {
     gte?: RangeValue;
     nin?: ListValue;
     in?: ListValue;
+    /** CR-129 — the field is a list that holds this value (Firestore `array-contains`, Supabase `contains`). */
+    contains?: ScalarValue;
+    /** CR-129 — the field is a list that holds at least one of these values (Firestore `array-contains-any`, Supabase `overlaps`). */
+    containsAny?: ListValue;
 };
 export type WhereClause = {
     [field: string]: Condition | OperatorValue;
@@ -38,9 +42,37 @@ export type OrderClause = {
     [field: string]: "asc" | "desc";
 };
 
+/**
+ * CR-129 — why a read failed, the same on every provider: the rules refused it (`permission-denied`), there
+ * is no session (`unauthenticated`), the query cannot run as written, e.g. a missing index or an operator the
+ * database refuses (`invalid-query`), the database cannot be reached (`unavailable`), or anything else.
+ */
+export type DataProviderErrorCode = 'permission-denied' | 'unauthenticated' | 'invalid-query' | 'unavailable' | 'unknown';
+
+/** CR-129 — a failed read, normalized from the error of the database (kept in `cause`). */
+export class DataProviderError extends Error {
+    readonly code: DataProviderErrorCode;
+    readonly path?: string;
+    readonly cause?: unknown;
+    constructor(code: DataProviderErrorCode, message: string, options: { path?: string; cause?: unknown } = {}) {
+        super(message);
+        this.name = 'DataProviderError';
+        this.code = code;
+        this.path = options.path;
+        this.cause = options.cause;
+    }
+}
+
 export interface DatabaseOptions {
     where?: WhereClause;
     order?: OrderClause;
+    /** CR-129 — at most this many records, after `where` and `order`. */
+    limit?: number;
+    /**
+     * CR-129 — called when the database refuses or loses the subscription. Without it the provider logs the
+     * error as before; with it the page can say why the data did not arrive.
+     */
+    onError?: (error: DataProviderError) => void;
     fieldMap?: Record<string, string>;
     onLoad?: (data: RecordObject) => RecordObject;
 }
@@ -52,6 +84,8 @@ export interface DBConfig extends DatabaseOptions {
 export interface ReadOptions {
     where?: WhereClause;
     order?: OrderClause;
+    /** CR-129 — at most this many records, after `where` and `order`. */
+    limit?: number;
     toArray?: boolean;
     exception?: boolean;
 }

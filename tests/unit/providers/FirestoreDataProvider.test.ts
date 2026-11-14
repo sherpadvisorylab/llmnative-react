@@ -45,6 +45,7 @@ vi.mock('firebase/firestore', () => ({
     onSnapshot:             vi.fn((_ref: any, cb: any) => { cb({ docs: [], size: 0, forEach: () => {} }); return () => {}; }),
     where:                  vi.fn(() => 'whereConstraint'),
     orderBy:                vi.fn(() => 'orderByConstraint'),
+    limit:                  vi.fn((n: number) => `limit:${n}`),
     query:                  vi.fn((_ref: any, ..._constraints: any[]) => _ref),
     getCountFromServer:     vi.fn(async () => ({ data: () => ({ count: 5 }) })),
 }));
@@ -241,5 +242,60 @@ describe('subscribe()', () => {
         const unsub = provider().subscribe('/users', vi.fn());
         expect(unsub).toBeTypeOf('function');
         expect(() => unsub()).not.toThrow();
+    });
+});
+
+describe('CR-129 — contains, limit and errors', () => {
+    it('translates contains, containsAny and limit to Firestore', async () => {
+        await provider().read('/posts', { where: { tags: { contains: 'a' }, cats: { containsAny: ['x', 'y'] } }, limit: 5 });
+        expect(fsStore.where).toHaveBeenCalledWith('tags', 'array-contains', 'a');
+        expect(fsStore.where).toHaveBeenCalledWith('cats', 'array-contains-any', ['x', 'y']);
+        expect(fsStore.limit).toHaveBeenCalledWith(5);
+    });
+
+    it('subscribe passes the limit to the query', () => {
+        provider().subscribe('/posts', vi.fn(), { order: { at: 'desc' }, limit: 3 });
+        expect(fsStore.limit).toHaveBeenCalledWith(3);
+    });
+
+    it('a refused subscription reaches onError as a DataProviderError', () => {
+        vi.mocked(fsStore.onSnapshot).mockImplementationOnce((_ref: any, _cb: any, onError: any) => {
+            onError(Object.assign(new Error('Missing or insufficient permissions.'), { code: 'permission-denied' }));
+            return () => {};
+        });
+        const onError = vi.fn();
+        const setRecords = vi.fn();
+        provider().subscribe('/secret', setRecords, { onError });
+        expect(setRecords).not.toHaveBeenCalled();
+        expect(onError).toHaveBeenCalledOnce();
+        expect(onError.mock.calls[0][0]).toMatchObject({ name: 'DataProviderError', code: 'permission-denied', path: '/secret' });
+    });
+
+    it('a missing index is an invalid query', () => {
+        vi.mocked(fsStore.onSnapshot).mockImplementationOnce((_ref: any, _cb: any, onError: any) => {
+            onError(Object.assign(new Error('The query requires an index.'), { code: 'failed-precondition' }));
+            return () => {};
+        });
+        const onError = vi.fn();
+        provider().subscribe('/posts', vi.fn(), { onError });
+        expect(onError.mock.calls[0][0].code).toBe('invalid-query');
+    });
+
+    it('without onError the error goes to the console as before', () => {
+        const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+        vi.mocked(fsStore.onSnapshot).mockImplementationOnce((_ref: any, _cb: any, onError: any) => {
+            onError(Object.assign(new Error('denied'), { code: 'permission-denied' }));
+            return () => {};
+        });
+        expect(() => provider().subscribe('/secret', vi.fn())).not.toThrow();
+        expect(spy).toHaveBeenCalled();
+        spy.mockRestore();
+    });
+
+    it('a query the SDK refuses to build reaches onError', () => {
+        vi.mocked(fsStore.query).mockImplementationOnce(() => { throw new Error('invalid-argument: two array filters'); });
+        const onError = vi.fn();
+        provider().subscribe('/posts', vi.fn(), { where: { a: { contains: 1 }, b: { contains: 2 } }, onError });
+        expect(onError.mock.calls[0][0].code).toBe('invalid-query');
     });
 });

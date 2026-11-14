@@ -13,6 +13,8 @@ import {
     equalTo,
     startAt,
     endAt,
+    limitToFirst,
+    limitToLast,
     type Database,
     type Query,
     type DatabaseReference,
@@ -39,6 +41,7 @@ import {
     RECORD_KEY,
 } from "./DataProvider";
 import type { ProviderConfigurationState } from "../ProviderConfiguration";
+import { applyLimit, matchCondition, reportSubscribeError } from "./query";
 
 type RecordObject = Record<string, Record<string, any>>; // CR-042: Firebase RTDB val() returns any-typed JSON
 type WhereEntry = [string, Condition | OperatorValue];
@@ -79,6 +82,9 @@ const normalizeCondition = (raw: Condition | OperatorValue): { condition: Condit
     if (condition.lt !== undefined) clientCondition = { ...clientCondition, lt: condition.lt };
     if (condition.in !== undefined) clientCondition = { ...clientCondition, in: condition.in };
     if (condition.nin !== undefined) clientCondition = { ...clientCondition, nin: condition.nin };
+    // CR-129 — the Realtime Database has no filter on lists: `contains` / `containsAny` run in the browser.
+    if (condition.contains !== undefined) clientCondition = { ...clientCondition, contains: condition.contains };
+    if (condition.containsAny !== undefined) clientCondition = { ...clientCondition, containsAny: condition.containsAny };
 
     return { condition, clientCondition };
 };
@@ -89,6 +95,20 @@ const getOrderedRef = (dbRef: DatabaseReference, field: string): Query => {
         case SYSTEM_FIELDS.value: return query(dbRef, orderByValue());
         default:                   return query(dbRef, orderByChild(field));
     }
+};
+
+/**
+ * CR-129 — the plan with its `limit`: on the server (`limitToFirst`, or `limitToLast` for a descending order)
+ * only when no condition is left for the browser, else the browser applies it after filtering.
+ */
+const buildLimitedQueryPlan = (dbRef: DatabaseReference, order?: OrderClause, where?: WhereClause, limit?: number): QueryPlan => {
+    const plan = buildQueryPlan(dbRef, order, where);
+    if (typeof limit !== "number" || !Number.isFinite(limit) || limit < 0) return plan;
+    if (plan.clientWhere && Object.keys(plan.clientWhere).length) return plan;
+    const [firstOrder] = Object.entries(order || {}) as OrderEntry[];
+    const ordered = firstOrder ? plan.dbRef : query(plan.dbRef, orderByKey());
+    const limited = firstOrder?.[1] === "desc" ? limitToLast(Math.floor(limit)) : limitToFirst(Math.floor(limit));
+    return { ...plan, dbRef: query(ordered, limited) };
 };
 
 const buildQueryPlan = (dbRef: DatabaseReference, order?: OrderClause, where?: WhereClause): QueryPlan => {
@@ -151,31 +171,14 @@ const compareValues = (left: unknown, right: unknown): number => {
     return globalThis.String(left).localeCompare(globalThis.String(right), undefined, { numeric: true, sensitivity: "base" });
 };
 
-const matchWhere = (value: unknown, raw: Condition | OperatorValue): boolean => {
-    const condition = typeof raw === "object" && raw !== null && !Array.isArray(raw) ? raw as Condition : { eq: raw };
-    for (const [op, target] of Object.entries(condition as Record<string, OperatorValue>)) {
-        switch (op) {
-            case "eq":  if (value !== target) return false; break;
-            case "gt":  if (!((value as string | number) > (target as string | number))) return false; break;
-            case "gte": if (!((value as string | number) >= (target as string | number))) return false; break;
-            case "lt":  if (!((value as string | number) < (target as string | number))) return false; break;
-            case "lte": if (!((value as string | number) <= (target as string | number))) return false; break;
-            case "in":  if (!Array.isArray(target) || !(target as unknown[]).includes(value)) return false; break;
-            case "nin": if (Array.isArray(target) && (target as unknown[]).includes(value)) return false; break;
-            default: return false;
-        }
-    }
-    return true;
-};
-
-const processRecordObject = (val: RecordObject, where?: WhereClause, order?: OrderClause): RecordObject => {
+const processRecordObject = (val: RecordObject, where?: WhereClause, order?: OrderClause, limit?: number): RecordObject => {
     const [firstOrder, ...restOrder] = Object.entries(order || {}) as OrderEntry[];
     const whereEntries = Object.entries(where || {}) as WhereEntry[];
     let filtered = Object.entries(val);
 
     if (whereEntries.length) {
         filtered = filtered.filter(([, value]) =>
-            whereEntries.every(([field, raw]) => matchWhere(getEntryValue(value, field), raw))
+            whereEntries.every(([field, raw]) => matchCondition(getEntryValue(value, field), raw))
         );
     }
 
@@ -190,7 +193,7 @@ const processRecordObject = (val: RecordObject, where?: WhereClause, order?: Ord
         });
     }
 
-    return Object.fromEntries(filtered);
+    return Object.fromEntries(applyLimit(filtered, limit));
 };
 
 const buildShallowURL = async (path: string): Promise<string> => {
@@ -235,13 +238,13 @@ export class FirebaseDataProvider implements DataProviderAdapter {
         }
     };
 
-    read = async (path: string, { where, order, toArray = false, exception = false }: ReadOptions = {}): Promise<any> => {
-        const { dbRef, clientWhere } = buildQueryPlan(ref(getDb(), path), order, where);
+    read = async (path: string, { where, order, limit, toArray = false, exception = false }: ReadOptions = {}): Promise<any> => {
+        const { dbRef, clientWhere } = buildLimitedQueryPlan(ref(getDb(), path), order, where, limit);
         try {
             const snapshot = await get(dbRef);
             if (snapshot.exists()) {
                 consoleLog(`Info: Data found in Firebase for path ${path}`);
-                const processed = processRecordObject(snapshot.val(), clientWhere, order);
+                const processed = processRecordObject(snapshot.val(), clientWhere, order, limit);
                 return toArray ? Object.values(processed) : processed;
             } else if (exception) {
                 handleError(`Data not found in Firebase for path ${path}`, null, exception);
@@ -311,21 +314,23 @@ export class FirebaseDataProvider implements DataProviderAdapter {
     subscribe = <T extends RecordProps = RecordProps>(
         path: string | undefined,
         setRecords: (records: T[]) => void,
-        { where, order, fieldMap, onLoad }: DatabaseOptions = {}
+        options: DatabaseOptions = {}
     ): (() => void) => {
+        const { where, order, limit, fieldMap, onLoad } = options;
         const auth = getSafeAuth();
         if (!auth || !path) return () => undefined;
+        const onFailure = (err: unknown) => { reportSubscribeError(options, err, path); };
 
         const fetchData = (): (() => void) => {
-            const { dbRef, clientWhere } = buildQueryPlan(ref(getDb(), path), order, where);
+            const { dbRef, clientWhere } = buildLimitedQueryPlan(ref(getDb(), path), order, where, limit);
 
             const onValueChange = (snapshot: DataSnapshot) => {
                 const val: RecordObject = snapshot.val();
                 if (!val) { setRecords([]); return; }
 
                 const data = onLoad
-                    ? onLoad(processRecordObject(val, clientWhere, order))
-                    : processRecordObject(val, clientWhere, order);
+                    ? onLoad(processRecordObject(val, clientWhere, order, limit))
+                    : processRecordObject(val, clientWhere, order, limit);
 
                 const entries = Object.entries(data);
 
@@ -358,7 +363,7 @@ export class FirebaseDataProvider implements DataProviderAdapter {
                 setRecords(records);
             };
 
-            return onValue(dbRef, onValueChange);
+            return onValue(dbRef, onValueChange, onFailure);
         };
 
         let unsubscribeData: (() => void) | undefined;
@@ -368,7 +373,7 @@ export class FirebaseDataProvider implements DataProviderAdapter {
             if (!user) {
                 setRecords([]);
             } else {
-                unsubscribeData = fetchData();
+                try { unsubscribeData = fetchData(); } catch (err) { onFailure(err); }
             }
         });
 

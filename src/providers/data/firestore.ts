@@ -14,6 +14,7 @@ import {
     query,
     where as fbWhere,
     orderBy,
+    limit as fbLimit,
     getCountFromServer,
     terminate,
     type Firestore as FirestoreDb,
@@ -40,6 +41,7 @@ import {
     RECORD_KEY,
 } from './DataProvider';
 import type { ProviderConfigurationState } from '../ProviderConfiguration';
+import { reportSubscribeError } from './query';
 import { converter } from '../../libs/converter';
 
 // ── Path helpers ─────────────────────────────────────────────────────────────
@@ -73,6 +75,8 @@ const OP_MAP: Partial<Record<string, WhereFilterOp>> = {
     gte: '>=',
     in:  'in',
     nin: 'not-in',
+    contains: 'array-contains',
+    containsAny: 'array-contains-any',
 };
 
 // ── Query builder ─────────────────────────────────────────────────────────────
@@ -82,11 +86,11 @@ const OP_MAP: Partial<Record<string, WhereFilterOp>> = {
  *
  * Firestore limitations to be aware of:
  * - Inequality filters on a field require the first orderBy() to be on that same field.
- * - `in` allows up to 30 values; `not-in` up to 10.
- * - Only one `not-in` / `!=` per query.
- * Violating these throws a runtime error from the Firestore SDK.
+ * - `in` and `array-contains-any` allow up to 30 values; `not-in` up to 10.
+ * - Only one `not-in` / `!=` and one `array-contains` / `array-contains-any` per query.
+ * Violating these throws a runtime error from the Firestore SDK (reported through `onError`, CR-129).
  */
-const buildConstraints = (where?: WhereClause, order?: OrderClause): QueryConstraint[] => {
+const buildConstraints = (where?: WhereClause, order?: OrderClause, limit?: number): QueryConstraint[] => {
     const constraints: QueryConstraint[] = [];
 
     if (where) {
@@ -110,6 +114,8 @@ const buildConstraints = (where?: WhereClause, order?: OrderClause): QueryConstr
             constraints.push(orderBy(field, dir));
         }
     }
+
+    if (typeof limit === 'number' && Number.isFinite(limit) && limit >= 0) constraints.push(fbLimit(Math.floor(limit)));
 
     return constraints;
 };
@@ -197,7 +203,7 @@ export class FirestoreDataProvider implements DataProviderAdapter {
 
     read = async (
         path: string,
-        { where, order, toArray = false, exception = false }: ReadOptions = {}
+        { where, order, limit, toArray = false, exception = false }: ReadOptions = {}
     ): Promise<any> => {
         const np = normalizePath(path);
         try {
@@ -217,7 +223,7 @@ export class FirestoreDataProvider implements DataProviderAdapter {
                 return { [RECORD_KEY]: snap.id, ...snap.data() };
             }
 
-            const constraints = buildConstraints(where, order);
+            const constraints = buildConstraints(where, order, limit);
             const q = constraints.length
                 ? query(collection(db, np), ...constraints)
                 : collection(db, np);
@@ -313,10 +319,12 @@ export class FirestoreDataProvider implements DataProviderAdapter {
     subscribe = <T extends RecordProps = RecordProps>(
         path: string | undefined,
         setRecords: (records: T[]) => void,
-        { where, order, fieldMap, onLoad }: DatabaseOptions = {}
+        options: DatabaseOptions = {}
     ): (() => void) => {
+        const { where, order, limit, fieldMap, onLoad } = options;
         const auth = getSafeAuth();
         if (!auth || !path) return () => undefined;
+        const onFailure = (err: unknown) => { reportSubscribeError(options, err, path); };
 
         const attachListener = (): (() => void) => {
             const db = this.getDb();
@@ -327,11 +335,11 @@ export class FirestoreDataProvider implements DataProviderAdapter {
                 return onSnapshot(doc(db, np), (snap) => {
                     if (!snap.exists()) { setRecords([]); return; }
                     setRecords([{ [RECORD_KEY]: snap.id, _index: 0, ...snap.data() } as T]);
-                }, (err) => console.error('Firestore onSnapshot error:', err));
+                }, onFailure);
             }
 
             // Collection listener
-            const constraints = buildConstraints(where, order);
+            const constraints = buildConstraints(where, order, limit);
             const q = constraints.length
                 ? query(collection(db, np), ...constraints)
                 : collection(db, np);
@@ -359,7 +367,7 @@ export class FirestoreDataProvider implements DataProviderAdapter {
                 } else {
                     setRecords(records as T[]);
                 }
-            }, (err) => console.error('Firestore onSnapshot error:', err));
+            }, onFailure);
         };
 
         let unsubscribeData: (() => void) | undefined;
@@ -372,7 +380,8 @@ export class FirestoreDataProvider implements DataProviderAdapter {
             if (!user) {
                 setRecords([]);
             } else {
-                unsubscribeData = attachListener();
+                // A query the SDK refuses to build (two array filters, too many values) throws here.
+                try { unsubscribeData = attachListener(); } catch (err) { onFailure(err); }
             }
         });
 

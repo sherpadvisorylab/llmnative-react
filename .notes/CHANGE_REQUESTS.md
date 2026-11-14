@@ -160,6 +160,37 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
+## CR-129 — Letture uguali su ogni provider: errori alla pagina, `contains` e `limit`
+
+**Stato:** ✅ done (2.4.0)
+**Issue:** [#108](https://github.com/sherpadvisorylab/llmnative-react/issues/108)
+**Priorità:** Alta
+
+### Motivazione
+Emersa il 14/11/2026 portando un consumer a leggere i dati in tempo reale dal data provider (pagine data-driven). Tre lacune costringono il consumer a scrivere codice suo:
+- un'iscrizione che il database rifiuta (regole, indice mancante, rete) non arriva mai alla pagina: Firestore e Realtime Database la scrivono in console, Supabase restituisce una lista vuota. La pagina resta in caricamento o mostra «vuoto» invece dell'errore;
+- non c'è un operatore «il campo lista contiene» né un `limit`: liste lunghe (un registro) si scaricano intere e un filtro su un array si fa a mano;
+- `MockDataProvider` non segue un singolo record (`subscribe('/users/u1')`), mentre Firestore sì: lo stesso codice si comporta diversamente nei test.
+
+La soluzione sta nell'adapter: lo stesso contratto e gli stessi operatori su ogni provider, tradotti nei comandi del database (o applicati nel browser dove il database non li ha), così il codice dell'app non cambia se cambia il database.
+
+### Scope
+- **Errori**: `DataProviderError` (`code`: `permission-denied` | `unauthenticated` | `invalid-query` | `unavailable` | `unknown`, `message`, `cause`, `path`); `DatabaseOptions.onError(error)` su `subscribe`. Ogni provider normalizza i suoi errori (Firestore, Realtime Database, Supabase) con un solo helper condiviso; senza `onError` il comportamento resta quello di prima.
+- **Operatori**: `contains` (il campo lista contiene il valore) e `containsAny` (contiene almeno uno dei valori) in `Condition`. Firestore `array-contains`/`array-contains-any`, Supabase `contains`/`overlaps`, Realtime Database e Mock nel browser.
+- **`limit`** in `DatabaseOptions` e `ReadOptions`: Firestore `limit()`, Supabase `.limit()`, Realtime Database `limitToFirst`/`limitToLast` secondo l'ordine (nel browser dopo i filtri che il database non applica), Mock dopo filtro e ordine.
+- **`useDataSubscription(path, options)`**: `{ records, loading, error }` sopra `subscribe` con `onError`, per ogni provider.
+- **`Grid`** con `path`: mostra l'errore di lettura (`common.loadError`, 6 lingue) invece della tabella vuota.
+- **Mock**: `subscribe` su un record segue quel record, come Firestore.
+
+### Criteri di accettazione
+- [x] AC1: un'iscrizione rifiutata chiama `onError` con un `DataProviderError` normalizzato su Firestore, Realtime Database e Supabase; senza `onError` nulla cambia.
+- [x] AC2: `contains`, `containsAny` e `limit` danno lo stesso risultato su Mock, Firestore, Supabase e Realtime Database (tradotti o applicati nel browser), in `read` e in `subscribe`.
+- [x] AC3: `useDataSubscription` dà `loading`, poi i record o l'errore; `Grid` con `path` mostra l'errore.
+- [x] AC4: Mock segue un singolo record come Firestore.
+- [x] AC5: test (contratto condiviso e provider), `llms-full.txt`, CHANGELOG.
+
+---
+
 ## CR-128 — Conferma di un'azione distruttiva e caricamento nella lingua dell'app
 
 **Stato:** ✅ done (2.3.0)

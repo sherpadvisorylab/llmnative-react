@@ -8,6 +8,7 @@ export const ar: I18nDict = {
         previous: 'السابق', next: 'التالي',
         notFoundMessage: 'عفوًا! الصفحة غير موجودة.', goHome: 'الذهاب إلى الرئيسية',
         openNavigation: 'فتح التنقل',
+        loadError: 'تعذّرت قراءة البيانات. حاول مرة أخرى بعد قليل.',
     },
     auth: {
         signIn: 'تسجيل الدخول', signOut: 'تسجيل الخروج', connect: 'ربط',

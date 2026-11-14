@@ -94,6 +94,17 @@ describe('Grid - provider source', () => {
         });
     });
 
+    it('shows the read error when the database refuses the subscription (CR-129)', async () => {
+        const provider = new MockDataProvider({ '/users': USERS });
+        provider.subscribe = (path, _set, options) => {
+            setTimeout(() => options?.onError?.(Object.assign(new Error('denied'), { name: 'DataProviderError', code: 'permission-denied', path }) as any), 0);
+            return () => undefined;
+        };
+        renderWithProviders(<Grid path="/users" columns={COLUMNS} />, { provider });
+        await waitFor(() => expect(screen.getByText("Couldn't read the data. Try again in a moment.")).toBeInTheDocument());
+        expect(screen.queryByText('Alice')).not.toBeInTheDocument();
+    });
+
     it('re-renders when the provider changes in real time', async () => {
         const provider = new MockDataProvider({ '/users': USERS });
         renderWithProviders(<Grid path="/users" columns={COLUMNS} />, { provider });

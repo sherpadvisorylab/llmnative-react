@@ -13,6 +13,7 @@ import {
 } from './DataProvider';
 import { getSupabaseClient, createSupabaseClient, disposeSupabaseClient, getSupabaseConfigurationState } from '../supabase-init';
 import type { ProviderConfigurationState } from '../ProviderConfiguration';
+import { reportSubscribeError } from './query';
 
 // ── Config ────────────────────────────────────────────────────────────────────
 
@@ -86,9 +87,17 @@ function applyWhere(query: any, where: WhereClause): any {
             if (cond.gte !== undefined) query = query.gte(field, cond.gte);
             if (cond.in)  query = query.in(field, cond.in);
             if (cond.nin) query = query.not(field, 'in', cond.nin);
+            // CR-129 — a list column (array or jsonb) holding the value, or one of the values.
+            if (cond.contains !== undefined) query = query.contains(field, [cond.contains]);
+            if (cond.containsAny) query = query.overlaps(field, cond.containsAny);
         }
     }
     return query;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function applyLimit(query: any, limit?: number): any {
+    return typeof limit === 'number' && Number.isFinite(limit) && limit >= 0 ? query.limit(Math.floor(limit)) : query;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -178,6 +187,7 @@ export class SupabaseDataProvider implements DataProviderAdapter {
             let query = this.client.from(table).select('*');
             if (options.where) query = applyWhere(query, options.where);
             if (options.order) query = applyOrder(query, options.order);
+            query = applyLimit(query, options.limit);
 
             const { data, error } = await query;
             if (error) throw error;
@@ -277,24 +287,35 @@ export class SupabaseDataProvider implements DataProviderAdapter {
         options: DatabaseOptions = {}
     ): (() => void) => {
         if (!path) return () => undefined;
-        const { table } = parsePath(path);
+        const { table, id } = parsePath(path);
         if (!table) return () => undefined;
 
         let channel: RealtimeChannel | null = null;
         let active = true;
 
+        // CR-129 — a refused query reaches `onError`; without it the list stays empty as before.
+        const fail = (err: unknown) => {
+            if (!active) return;
+            if (options.onError) reportSubscribeError(options, err, path);
+            else setRecords([]);
+        };
+
         const load = async () => {
             if (!active) return;
             try {
                 let query = this.client.from(table).select('*');
+                // A record path follows that record, as Firestore does.
+                if (id) query = query.eq(this.pk, id);
                 if (options.where) query = applyWhere(query, options.where);
                 if (options.order) query = applyOrder(query, options.order);
-                const { data } = await query;
+                query = applyLimit(query, options.limit);
+                const { data, error } = await query;
                 if (!active) return;
+                if (error) { fail(error); return; }
                 const rows = (data ?? []).map((row, i) => fromDbRecord(row, this.pk, i));
                 setRecords(rows);
-            } catch {
-                setRecords([]);
+            } catch (err) {
+                fail(err);
             }
         };
 

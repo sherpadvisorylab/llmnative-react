@@ -487,6 +487,8 @@ export type GridCoreProps<TRecord extends RecordProps> = GridBaseProps<TRecord> 
     records: TRecord[];
     recordId: GridRecordKey<TRecord>;
     sourcePath?: string;
+    /** CR-129 — the reading of `path` failed: this message replaces the records (and their empty state). */
+    loadError?: React.ReactNode;
 };
 
 export type GridArrayProps<TRecord extends RecordProps> = GridBaseProps<TRecord> & {

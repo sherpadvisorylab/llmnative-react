@@ -218,9 +218,9 @@ await oauth.getOrganizations(accessToken)   // [{ login, avatarUrl, role: 'admin
 
 ```ts
 // DataProviderAdapter
-read(path, options?) / set(path, data) / update(path, data) / remove(path)
-subscribe(path, callback: (records: RecordArray) => void): () => void
-count?(path, where?): Promise<number>
+read(path, { where?, order?, limit?, toArray?, exception? }) / set(path, data, exception?) / update(path, data, exception?) / remove(path, exception?)
+subscribe(path, callback: (records: RecordArray) => void, { where?, order?, limit?, fieldMap?, onLoad?, onError? }): () => void
+count?(path): Promise<number>
 
 // StorageProviderAdapter
 upload(file, path): Promise<string|undefined>
@@ -316,6 +316,35 @@ Link delle email: in Firebase imposta l'URL di azione sulle tue pagine (`/reset-
 const creds = useCredentialsProvider()
 const token = await creds.getToken('https://www.googleapis.com/auth/solar')
 ```
+
+### Letture: filtri, `limit`, errori (CR-129)
+
+Gli stessi operatori e lo stesso contratto su ogni provider (`firestoreDb`, `supabaseDb`, `dbRealtime`, `mock`):
+l'adapter li traduce nei comandi del database, o li applica nel browser dove il database non li ha.
+
+| `where` | Significato | Firestore | Supabase | Realtime DB / Mock |
+|---|---|---|---|---|
+| `{ f: 'x' }` / `{ f: { eq } }` | uguale | `==` | `eq` | server sul campo di `order`, altrimenti browser |
+| `lt` `lte` `gt` `gte` | confronto | `<` … `>=` | `lt` … `gte` | idem |
+| `{ f: ['a','b'] }` / `in`, `nin` | uno dei valori / nessuno | `in` (≤30), `not-in` (≤10) | `in`, `not.in` | browser |
+| `contains: v` | il campo lista contiene `v` | `array-contains` | `contains` | browser |
+| `containsAny: [..]` | contiene almeno uno | `array-contains-any` (≤30) | `overlaps` | browser |
+
+`limit: n` (in `read` e `subscribe`) tiene i primi `n` dopo `where` e `order`: Firestore `limit()`, Supabase
+`.limit()`, Realtime Database `limitToFirst`/`limitToLast` (nel browser se restano filtri da applicare lì).
+
+Un'iscrizione che il database rifiuta (regole, sessione, indice mancante, rete) arriva a `onError` come
+`DataProviderError` con `code`: `permission-denied` | `unauthenticated` | `invalid-query` | `unavailable` |
+`unknown` (l'errore originale in `cause`). Senza `onError` il provider la scrive in console come prima.
+Un percorso di record (`/users/u1`) segue quel record su ogni provider.
+
+```ts
+const { records, loading, error } = useDataSubscription('/registro', { order: { at: 'desc' }, limit: 50 })
+// error?.code === 'permission-denied' → la pagina dice che non può leggere, invece di restare in caricamento
+db.subscribe('/posts', setRecords, { where: { tags: { contains: 'news' } }, limit: 20, onError: (e) => show(e.code) })
+```
+
+`Grid` con `path` mostra `common.loadError` al posto delle righe quando la lettura fallisce.
 
 ### Provider custom
 ```ts
@@ -1473,7 +1502,10 @@ type FieldValue   = string | number | boolean | null | undefined | Record<string
 type RecordArray  = RecordProps[]
 
 type OrderConfig  = { field: string; dir: 'asc' | 'desc' }
-type WhereClause  = { field: string; op: '==' | '!=' | '<' | '<=' | '>' | '>=' | 'in' | 'not-in' | 'array-contains' | 'array-contains-any'; value: unknown }
+type Condition    = { eq?, lt?, lte?, gt?, gte?, in?: list, nin?: list, contains?: scalar, containsAny?: list }
+type WhereClause  = { [field: string]: Condition | scalar | list }   // scalar = eq, list = in
+type OrderClause  = { [field: string]: 'asc' | 'desc' }
+class DataProviderError extends Error { code: 'permission-denied' | 'unauthenticated' | 'invalid-query' | 'unavailable' | 'unknown'; path?: string; cause?: unknown }
 
 interface UIProps {
   before?: React.ReactNode

@@ -9,6 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.0] - 2026-11-14
+
+### Added
+- Reads the same on every data provider (CR-129):
+  - `where` with `contains` (the list field holds the value) and `containsAny` (one of the values): Firestore
+    `array-contains`/`array-contains-any`, Supabase `contains`/`overlaps`, Realtime Database and Mock in the browser.
+  - `limit` in `read` and `subscribe`: Firestore `limit()`, Supabase `.limit()`, Realtime Database
+    `limitToFirst`/`limitToLast` (in the browser when filters are left there), Mock.
+  - `onError` on `subscribe` with a `DataProviderError` (`permission-denied`, `unauthenticated`, `invalid-query`,
+    `unavailable`, `unknown`), normalized from Firestore, the Realtime Database and Supabase. Without it the
+    provider logs the error as before.
+  - `useDataSubscription(path, options)`: `{ records, loading, error }`, live.
+  - `Grid` with `path` shows `common.loadError` (6 languages) when its read fails, instead of an empty table.
+
+### Fixed
+- `MockDataProvider` and `SupabaseDataProvider`: `subscribe` on a record path follows that record, as Firestore
+  does (Supabase subscribed to the whole table).
+- `SupabaseDataProvider.subscribe` no longer ignores the error of its query.
+
 ## [2.3.0] - 2026-11-14
 
 ### Added

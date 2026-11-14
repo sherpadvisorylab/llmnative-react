@@ -22,6 +22,8 @@ export interface I18nDict {
         goHome:          string;
         /** The button that opens the menu on a small screen (the header of the scaffold). */
         openNavigation:  string;
+        /** CR-129 — a read the database refused or lost. */
+        loadError:  string;
     };
     auth: {
         signIn:         string;

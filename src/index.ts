@@ -91,7 +91,11 @@ export * from './components/auth';
 export { useGlobalVars, getGlobalVars, setGlobalVars, removeGlobalVars} from './Global';
 
 // Providers
-export type { DataProviderAdapter, FieldValue, RecordProps, RecordArray, DatabaseOptions, DBConfig, ReadOptions, WhereClause, OrderClause, Condition } from './providers/data/DataProvider';
+export type { DataProviderAdapter, FieldValue, RecordProps, RecordArray, DatabaseOptions, DBConfig, ReadOptions, WhereClause, OrderClause, Condition, DataProviderErrorCode } from './providers/data/DataProvider';
+export { DataProviderError } from './providers/data/DataProvider';
+export { toDataProviderError } from './providers/data/query';
+export { useDataSubscription } from './providers/data/useDataSubscription';
+export type { DataSubscriptionOptions, DataSubscriptionState } from './providers/data/useDataSubscription';
 export type { OrderConfig, OrderDirection } from './libs/order';
 export { Order } from './libs/order';
 export { PromptUtils } from './libs/promptUtils';

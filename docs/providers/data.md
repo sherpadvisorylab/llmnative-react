@@ -145,7 +145,32 @@ function CustomerStats() {
 
 ## Realtime records
 
-For live lists, use `subscribe()`. This is the same primitive used internally by `Grid`; React components should call it from `useEffect`.
+For live lists, use `useDataSubscription()` (CR-129): `{ records, loading, error }`, the same on every provider.
+
+```tsx
+function LiveCustomers() {
+  const { records, loading, error } = useDataSubscription('/customers', { order: { name: 'asc' }, limit: 100 });
+  if (error) return <Alert variant="danger">{error.code === 'permission-denied' ? 'Not allowed' : 'Try again'}</Alert>;
+  if (loading) return <Loader show />;
+  return <ul>{records.map((c) => <li key={c._key}>{c.name}</li>)}</ul>;
+}
+```
+
+### Filters, limit and errors
+
+| `where` | Meaning | Firestore | Supabase | Realtime DB / Mock |
+|---|---|---|---|---|
+| `{ f: 'x' }`, `eq`, `lt`, `lte`, `gt`, `gte` | compare | native | native | server on the `order` field, else browser |
+| `{ f: [..] }`, `in`, `nin` | one of / none of | `in`, `not-in` | `in`, `not.in` | browser |
+| `contains: v` | the list field holds `v` | `array-contains` | `contains` | browser |
+| `containsAny: [..]` | the list field holds one of them | `array-contains-any` | `overlaps` | browser |
+
+`limit: n` keeps the first `n` after `where` and `order`. A subscription the database refuses calls
+`onError(error: DataProviderError)` with a `code` (`permission-denied`, `unauthenticated`, `invalid-query`,
+`unavailable`, `unknown`); without `onError` it is logged as before. A record path (`/customers/c1`) follows that
+record on every provider. `Grid` with `path` shows `common.loadError` when its read fails.
+
+The low-level primitive is `subscribe()`, used internally by `Grid` and `useDataSubscription`; call it from `useEffect`.
 
 ```tsx
 function LiveCustomers() {

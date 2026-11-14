@@ -1,6 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { type DatabaseOptions, type RecordArray, type RecordProps } from "../../../providers/data/DataProvider";
-import { useDataProvider } from "../../../providers/data/DataProviderContext";
+import { type DatabaseOptions, type DataProviderError, type RecordProps } from "../../../providers/data/DataProvider";
+import { useDataSubscription } from "../../../providers/data/useDataSubscription";
 
 type UseGridDBRecordsArgs = {
     path?: string;
@@ -9,24 +8,15 @@ type UseGridDBRecordsArgs = {
     fieldMap?: DatabaseOptions["fieldMap"];
 };
 
+/** The records of a `Grid` with `path`, live, and why they did not arrive (CR-129). */
 function useGridDBRecords<TRecord extends RecordProps>({
     path,
     where,
     order,
     fieldMap,
-}: UseGridDBRecordsArgs) {
-    const db = useDataProvider();
-    const [records, setRecords] = useState<RecordArray>([]);
-    const options = useMemo<DatabaseOptions | undefined>(() => {
-        if (!where && !order && !fieldMap) return undefined;
-        return { where, order, fieldMap };
-    }, [fieldMap, order, where]);
-
-    useEffect(() => {
-        return db.subscribe(path, setRecords, options);
-    }, [db, options, path]);
-
-    return records as TRecord[];
+}: UseGridDBRecordsArgs): { records: TRecord[]; error: DataProviderError | null } {
+    const { records, error } = useDataSubscription(path, { where, order, fieldMap });
+    return { records: records as TRecord[], error };
 }
 
 export default useGridDBRecords;

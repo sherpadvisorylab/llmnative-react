@@ -8,6 +8,7 @@ export const it: I18nDict = {
         previous: 'Precedente', next: 'Successivo',
         notFoundMessage: 'Ops! Pagina non trovata.', goHome: 'Vai alla Home',
         openNavigation: 'Apri la navigazione',
+        loadError: 'Non riusciamo a leggere i dati. Riprova tra un momento.',
     },
     auth: {
         signIn: 'Accedi', signOut: 'Esci', connect: 'Connetti',

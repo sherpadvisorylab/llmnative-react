@@ -11,6 +11,7 @@ import {
     OrderClause,
     RECORD_KEY,
 } from './DataProvider';
+import { applyLimit, matchCondition } from './query';
 
 type CollectionStore = Record<string, Record<string, any>>; // CR-042: in-memory store holds arbitrary JSON record shapes
 type ListenerSet = Set<() => void>;
@@ -50,31 +51,14 @@ function compareValues(left: unknown, right: unknown): number {
     return globalThis.String(left).localeCompare(globalThis.String(right), undefined, { numeric: true, sensitivity: 'base' });
 }
 
-function matchWhere(value: unknown, raw: Condition | OperatorValue): boolean {
-    const condition = typeof raw === 'object' && raw !== null && !Array.isArray(raw) ? raw as Condition : { eq: raw };
-    for (const [op, target] of Object.entries(condition as Record<string, OperatorValue>)) {
-        switch (op) {
-            case 'eq': if (value !== target) return false; break;
-            case 'gt': if (!((value as string | number) > (target as string | number))) return false; break;
-            case 'gte': if (!((value as string | number) >= (target as string | number))) return false; break;
-            case 'lt': if (!((value as string | number) < (target as string | number))) return false; break;
-            case 'lte': if (!((value as string | number) <= (target as string | number))) return false; break;
-            case 'in': if (!Array.isArray(target) || !(target as unknown[]).includes(value)) return false; break;
-            case 'nin': if (Array.isArray(target) && (target as unknown[]).includes(value)) return false; break;
-            default: return false;
-        }
-    }
-    return true;
-}
-
-function processRecordObject(val: RecordObject, where?: WhereClause, order?: OrderClause): RecordObject {
+function processRecordObject(val: RecordObject, where?: WhereClause, order?: OrderClause, limit?: number): RecordObject {
     const orderEntries = Object.entries(order || {}) as OrderEntry[];
     const whereEntries = Object.entries(where || {}) as WhereEntry[];
     let filtered = Object.entries(val);
 
     if (whereEntries.length) {
         filtered = filtered.filter(([, value]) =>
-            whereEntries.every(([field, raw]) => matchWhere(getEntryValue(value, field), raw))
+            whereEntries.every(([field, raw]) => matchCondition(getEntryValue(value, field), raw))
         );
     }
 
@@ -88,7 +72,7 @@ function processRecordObject(val: RecordObject, where?: WhereClause, order?: Ord
         });
     }
 
-    return Object.fromEntries(filtered);
+    return Object.fromEntries(applyLimit(filtered, limit));
 }
 
 function mapRecordObjectToArray(
@@ -217,7 +201,7 @@ export class MockDataProvider implements DataProviderAdapter {
         if (id) {
             return col[id] ? { ...col[id] } : undefined;
         }
-        const processed = processRecordObject(col, options.where, options.order);
+        const processed = processRecordObject(col, options.where, options.order, options.limit);
         if (options.toArray) return Object.values(processed).map(v => ({ ...v }));
         return Object.fromEntries(Object.entries(processed).map(([k, v]) => [k, { ...v }]));
     };
@@ -264,9 +248,15 @@ export class MockDataProvider implements DataProviderAdapter {
     ): (() => void) => {
         if (!path) return () => undefined;
 
-        const col = path.startsWith('/') ? path : `/${path}`;
+        // CR-129 — a record path follows that record, as Firestore does (`[]` while it does not exist).
+        const { collection: col, id } = this.resolvePath(path);
         const dispatch = () => {
-            const processed = processRecordObject(this.getCollection(col), options?.where, options?.order);
+            if (id) {
+                const record = this.getCollection(col)[id];
+                setRecords(record === undefined ? [] : mapRecordObjectToArray({ [id]: record }, options?.fieldMap));
+                return;
+            }
+            const processed = processRecordObject(this.getCollection(col), options?.where, options?.order, options?.limit);
             const loaded = options?.onLoad ? options.onLoad(processed) : processed;
             setRecords(mapRecordObjectToArray(loaded, options?.fieldMap));
         };

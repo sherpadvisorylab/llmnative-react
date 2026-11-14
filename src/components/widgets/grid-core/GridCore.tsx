@@ -5,6 +5,7 @@ import { useDataProvider } from "../../../providers/data/DataProviderContext";
 import Card from "../../ui/Card";
 import Modal from "../../ui/Modal";
 import Badge from "../../ui/Badge";
+import Alert from "../../ui/Alert";
 import { ActionButton, buttonPrimaryClass } from "../../ui/Buttons";
 import { Dropdown } from "../../blocks/Dropdown";
 import { type GalleryOverlay } from "../../ui/Gallery";
@@ -268,6 +269,7 @@ function GridCore<TRecord extends RecordProps>({
     onComplete,
     audit = false,
     onLoad,
+    loadError,
 }: GridCoreProps<TRecord>) {
     const theme = useTheme("grid");
     const dict = useI18n('grid');
@@ -745,7 +747,9 @@ function GridCore<TRecord extends RecordProps>({
                 footerClassName={theme.Grid.Card.footerClassName}
                 loading={loading || preparedRecordsLoading}
             >
-                {resolvedView === "gallery" ? (
+                {loadError ? (
+                    <>{before}<Alert variant="danger">{loadError}</Alert>{after}</>
+                ) : resolvedView === "gallery" ? (
                     <GridGalleryView
                         records={searchedRecords}
                         recordId={recordId}

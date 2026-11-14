@@ -8,6 +8,7 @@ export const zh: I18nDict = {
         previous: '上一页', next: '下一页',
         notFoundMessage: '哎呀！页面未找到。', goHome: '返回首页',
         openNavigation: '打开导航',
+        loadError: '无法读取数据，请稍后再试。',
     },
     auth: {
         signIn: '登录', signOut: '退出', connect: '连接',
