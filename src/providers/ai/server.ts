@@ -13,6 +13,14 @@ export type { GitHubOAuth, GitHubOAuthConfig, GitHubOAuthOrganization, GitHubOAu
 export { canonicalModelName, buildModelIdentityIndex, resolveModel, modelOffers, loadModelIdentityIndex } from './modelIdentity';
 export type { ModelIdentity, ModelIdentityEntry, ModelIdentityIndex, ResolvedModel, ModelOffer, ModelCost } from './modelIdentity';
 
+// The AI adapters on a server (CR-132): the same ones the browser uses, with a key or what gives a fresh one,
+// structured answers validated against the project's schema, the tokens used, where each model processes the data.
+export { createAIProvider, AI_PROVIDER_DEFINITIONS, createOpenAICompatibleProviderDefinition, createCloudflareProviderDefinition, getAIModelCatalog, formatAIModelRef, parseAIModelRef, AIOutputError, validateJsonSchema, extractJson } from './index';
+export type {
+    AIProviderAdapter, AIProviderDefinition, AIModelDescriptor, AIProviderCapabilities, AICompleteRequest, AICompleteResult, AIStructuredOutput,
+    AIStructuredOutputMode, AIUsage, AIDataRegion, AICredential, AIAttachment, AIReasoningLevel, JsonSchema, JsonSchemaType,
+} from './index';
+
 /** The connection of a provider as the server keeps it, key included. */
 export type ServerAISecret = ServerAIConnection & { apiKey: string };
 

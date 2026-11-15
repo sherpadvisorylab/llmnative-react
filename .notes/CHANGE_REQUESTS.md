@@ -160,6 +160,84 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
+## CR-134 — Connettori AI: la pagina per collegare i provider, con l'archivio delle credenziali del progetto
+
+**Stato:** ⬜ todo
+**Issue:** [#113](https://github.com/sherpadvisorylab/llmnative-react/issues/113)
+**Priorità:** Alta
+**Dipende da:** CR-132, CR-133
+
+### Motivazione
+Emersa il 15/11/2026: lo studio di un consumer (Playbook) ha una sua schermata per collegare i provider AI (chiavi, più account per provider, ordine di preferenza, modelli, abbonamenti su un runner); un secondo consumer (un CRM) ne ha bisogno uguale, e Agentico la vuole nella sua modale delle impostazioni. Gli adapter descrivono già da sé i campi (`credentialFields`), la verifica (`validateApiKey`) e i modelli (`getCapabilities`): la pagina può nascere da loro, una volta sola, nel framework.
+
+### Scope
+- **`AIConnections`** (blocco) e una pagina pronta da menu: l'elenco dei provider registrati, per ciascuno lo stato (collegato, da collegare, errore), "Collega" in una modale con i campi dell'adapter, verifica della connessione, i modelli con prezzo e **zona dei dati** (CR-132), più account per provider con ordine di preferenza, ordine dei provider.
+- **Porta dell'archivio** (`AIConnectionStore`), implementata dal progetto: `list()` (cosa è collegato, senza valori segreti), `save(provider, account, fields)`, `remove`, `reorder`, `test`. I segreti restano dove li tiene il progetto (server, Firestore protetto…): la pagina non li rilegge mai, come per la chiave della posta. Un adattatore pronto per il server con il proxy di CR-102.
+- **Connettori del progetto**: oltre ai provider AI, il progetto registra connettori propri con un loro flusso (es. l'abbonamento di Claude Code o di opencode su un runner). Un connettore dichiara i campi che chiede, tra cui **dove sta il runner** (indirizzo e accesso), così due progetti possono usare lo stesso runner; la pagina li mostra accanto ai provider con il badge "Abbonamento".
+- **Regole dal codice**: provider ammessi, nascosti, in sola lettura; zona dei dati consigliata (avviso sui modelli fuori zona) o richiesta (blocco), come dichiara il progetto.
+- Tema, i18n (6 lingue), docs, showcase, test.
+
+### Criteri di accettazione
+- [ ] AC1: un progetto mostra la pagina con i soli provider registrati e salva tramite la sua porta; nessun segreto torna al browser dopo il salvataggio.
+- [ ] AC2: più account per provider e ordine dei provider, come nello studio.
+- [ ] AC3: un connettore del progetto con runner configurabile (indirizzo, accesso) compare e si collega dalla stessa pagina.
+- [ ] AC4: zona dei dati visibile per ogni modello; la regola di zona del progetto avvisa o blocca come dichiarato.
+- [ ] AC5: lo studio (Playbook) sostituisce la sua schermata con questa senza perdere funzioni; release minor.
+
+---
+
+## CR-133 — Provider AI Vertex: Gemini e Claude su Google Cloud, con l'account di servizio e la località
+
+**Stato:** ⬜ todo
+**Issue:** [#112](https://github.com/sherpadvisorylab/llmnative-react/issues/112)
+**Priorità:** Alta
+**Dipende da:** CR-132
+
+### Motivazione
+Emersa il 15/11/2026: un consumer (un CRM) vuole i suoi agenti su Vertex AI, pagati a consumo sul conto Google Cloud ed elaborati in UE; oggi lo fa con Genkit, fuori dal framework. Verifica reale dello stesso giorno: in UE i Gemini recenti rispondono solo sull'endpoint multi-regione `eu` (`aiplatform.eu.rep.googleapis.com`), non sulle regioni singole; i Claude 5.x sono nel catalogo `eu` ma con quota da chiedere; alcuni id (es. `gemini-3-flash-preview`) esistono solo su `global`.
+
+### Scope
+- **Adapter `vertex`** con tutte le funzioni degli altri: `complete` (testo, allegati e visione, ragionamento, temperatura), output strutturato (CR-132), `getCapabilities` con i modelli presi dal catalogo dell'endpoint (`publishers/google/models`, `publishers/anthropic/models`), prezzi (models.dev), verifica della connessione.
+- **Credenziali**: progetto, località (`eu`, `us`, `global` o una regione) e account di servizio; sul server anche l'identità del server (ADC) senza file. Token firmato dall'account di servizio (riuso di `GoogleServiceAccountProvider`), rinnovato prima della scadenza.
+- **Dal browser**: il proxy di CR-102 impara a mettere un token Bearer generato dal server al posto della chiave (`serverCredentials`); il browser non vede mai il JSON dell'account.
+- **Zona dei dati** di ogni modello dalla località (`eu` → `eu`; `global` → `global`, nessuna garanzia).
+- Gemini con `generateContent`, Claude con `rawPredict` (formato Anthropic), dietro lo stesso adapter.
+- Disponibile anche dall'entry `@llmnative/react/server`.
+- Docs (endpoint `eu`, quota dei modelli Claude), test con fetch finto, prova reale documentata.
+
+### Criteri di accettazione
+- [ ] AC1: un progetto chiama Gemini su `eu` dal server con ADC e dal browser tramite il proxy, con la stessa API degli altri provider.
+- [ ] AC2: i modelli offerti sono quelli del catalogo dell'endpoint scelto, ciascuno con la zona dei dati.
+- [ ] AC3: output strutturato nativo (`responseSchema`) per Gemini; per Claude come da CR-132.
+- [ ] AC4: errori senza segreti né testo del prompt; modello assente (404), quota (429) e permesso (403) distinti.
+- [ ] AC5: release minor.
+
+---
+
+## CR-132 — Provider AI: risposte strutturate decise dal progetto e zona dei dati dei modelli
+
+**Stato:** ✅ done (3.2.0)
+**Issue:** [#111](https://github.com/sherpadvisorylab/llmnative-react/issues/111)
+**Priorità:** Alta
+
+### Motivazione
+Emersa il 15/11/2026: gli agenti di un consumer (un CRM) vogliono la risposta in un formato che decide il progetto (uno schema JSON per agente), qualunque sia il provider scelto; oggi il contratto `AIProvider` restituisce solo testo e il consumer valida a mano. Lo stesso consumer vuole scegliere il provider per agente sapendo **dove viene elaborato il dato** da ogni modello, cosa che nessun descrittore dice.
+
+### Scope
+- **`complete({ …, output: { schema, name? } })`**: il progetto passa uno schema JSON; il risultato porta `data` già validato, oltre al testo. Ogni adapter usa il modo nativo dove c'è (Gemini/Vertex `responseSchema`, OpenAI e compatibili `response_format: json_schema`, Anthropic output strutturato o tool forzato); dove manca, il framework **istruisce il modello** con lo schema nel prompt, estrae il JSON dalla risposta, lo valida e, se non va, fa **un** tentativo di correzione con l'errore di validazione. Fallito anche quello: errore `invalid-output` con il motivo, mai dati non validi.
+- **Capacità** del modello: `structuredOutput: 'native' | 'prompted'`, per mostrarla nelle pagine.
+- **Validatore JSON Schema** del framework, sul sottoinsieme che i provider accettano (object, array, string con enum, number, integer, boolean, required, description), esportato anche da solo.
+- **Zona dei dati** su `AIModelDescriptor`: `dataRegion: 'eu' | 'us' | 'global' | … | 'unknown'`, con la fonte (dal provider, dall'endpoint configurato, dalla documentazione). Default `unknown`; ogni adapter mette solo quella che il suo endpoint garantisce, mai una supposta.
+- Docs (`llms-full.txt`), test per ogni adapter e per il ramo istruito.
+
+### Criteri di accettazione
+- [x] AC1: lo stesso schema dà `data` validato con almeno Gemini, OpenAI, Anthropic e un provider senza modo nativo.
+- [x] AC2: una risposta non conforme produce un solo tentativo di correzione, poi `invalid-output`.
+- [x] AC3: ogni modello ha `dataRegion`, `unknown` se il provider non la dichiara.
+- [x] AC4: retrocompatibile (senza `output` nulla cambia); release minor.
+
+---
+
 ## CR-131 — SectionNav: menu delle sezioni di una pagina, con la sezione corrente
 
 **Stato:** ✅ done (3.1.0)

@@ -1,6 +1,6 @@
 import { Prompt } from '../../conf/Prompt';
 import { fetchJson } from '../../libs/fetch';
-import { proxyFetch } from '../proxy';
+import { proxyFetch } from '../proxy/core';
 import { PromptUtils } from '../../libs/promptUtils';
 import { LLM_LOG_ID_HEADER } from '../proxy/logHeader';
 import type { AIProviderDefinition } from './shared';

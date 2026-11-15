@@ -1,13 +1,16 @@
 import { fetchJson } from '../../libs/fetch';
 import { Prompt } from '../../conf/Prompt';
-import { proxyFetch } from '../proxy';
+import { proxyFetch } from '../proxy/core';
 import { PromptUtils } from '../../libs/promptUtils';
 import { LLM_LOG_ID_HEADER } from '../proxy/logHeader';
-import { anthropicReasoning, type AIProviderDefinition } from './shared';
-import type { AIConversationTurn, AICompleteResult, AIToolDefinition } from './AIProvider';
+import { anthropicReasoning, withOutputInstructions, type AIDefinitionCompleteRequest, type AIProviderDefinition } from './shared';
+import type { AIConversationTurn, AICompleteResult, AIToolDefinition, AIUsage } from './AIProvider';
 
 const ANTHROPIC_MODELS_URL = 'https://api.anthropic.com/v1/models';
 const ANTHROPIC_MESSAGES_URL = 'https://api.anthropic.com/v1/messages';
+
+/** The tool a structured answer is asked through (CR-132): the model is made to call it, its input is the answer. */
+const ANSWER_TOOL = 'answer';
 
 function toAnthropicTool(tool: AIToolDefinition) {
     return { name: tool.name, description: tool.description, input_schema: tool.inputSchema };
@@ -39,14 +42,30 @@ function toAnthropicMessage(turn: AIConversationTurn): { role: 'user' | 'assista
     };
 }
 
-function parseAnthropicResponse(response: { content?: unknown } | null): AICompleteResult | null {
+function anthropicUsage(response: { usage?: Record<string, unknown> } | null): AIUsage | undefined {
+    const usage = response?.usage;
+    if (!usage) return undefined;
+    return { inputTokens: Number(usage.input_tokens) || 0, outputTokens: Number(usage.output_tokens) || 0 };
+}
+
+/**
+ * The answer of a Messages request (the Anthropic API and Vertex AI give the same one). With `structured`,
+ * the input of the answer tool is the answer, as JSON text (CR-132).
+ */
+export function parseAnthropicResponse(response: { content?: unknown; usage?: Record<string, unknown> } | null, structured = false): AICompleteResult | null {
     const content = response?.content;
     if (!Array.isArray(content)) return null;
+    const usage = anthropicUsage(response);
 
     const textParts = content
         .filter((b: Record<string, unknown>) => b?.type === 'text')
         .map((b: Record<string, unknown>) => String(b.text ?? ''));
     const toolUseBlocks = content.filter((b: Record<string, unknown>) => b?.type === 'tool_use');
+
+    if (structured) {
+        const answer = toolUseBlocks.find((b: Record<string, unknown>) => b.name === ANSWER_TOOL);
+        if (answer) return { type: 'text', text: JSON.stringify(answer.input ?? null), ...(usage ? { usage } : {}) };
+    }
 
     if (toolUseBlocks.length > 0) {
         return {
@@ -57,11 +76,67 @@ function parseAnthropicResponse(response: { content?: unknown } | null): AICompl
                 input: (b.input as Record<string, unknown>) ?? {},
             })),
             text: textParts.length ? textParts.join('\n') : undefined,
+            ...(usage ? { usage } : {}),
         };
     }
 
     const text = textParts.join('\n');
-    return text ? { type: 'text', text } : null;
+    return text ? { type: 'text', text, ...(usage ? { usage } : {}) } : null;
+}
+
+/**
+ * The body of a Messages request, without the model (Vertex AI puts it in the URL). A structured answer
+ * (CR-132) is a forced call of the answer tool; a model that reasons cannot be forced to call a tool, so
+ * there the schema goes in the prompt instead. `structured` says which way the answer comes back.
+ */
+export function anthropicMessagesBody(request: AIDefinitionCompleteRequest): { body: Record<string, unknown>; structured: boolean } {
+    const reasoning = anthropicReasoning(request.model, request.reasoning);
+    const forced = Boolean(request.output) && !('thinking' in reasoning) && !request.tools?.length;
+    const prompt = request.output && !forced ? withOutputInstructions(request.prompt, request.output) : request.prompt;
+    const attachments = request.attachments ?? [];
+    // Il blocco `document` dell'API Anthropic è documentato per PDF — un CSV/testo
+    // mandato lì come base64 non è supportato: i mimetype testuali vengono invece
+    // decodificati e inseriti come blocco `text` (stesso trattamento di
+    // openaiCompatible.ts/gemini.ts, vedi PromptUtils.isTextAttachment).
+    const userContent = attachments.length > 0
+        ? [
+            ...attachments.map((a) => {
+                if (a.mimeType.startsWith('image/')) {
+                    return { type: 'image', source: { type: 'base64', media_type: a.mimeType, data: a.base64 } };
+                }
+                if (PromptUtils.isTextAttachment(a.mimeType)) {
+                    return { type: 'text', text: `[File: ${a.name}]\n${PromptUtils.decodeBase64Text(a.base64)}` };
+                }
+                return { type: 'document', source: { type: 'base64', media_type: a.mimeType, data: a.base64 } };
+            }),
+            { type: 'text', text: prompt },
+          ]
+        : prompt;
+
+    const tools = forced && request.output
+        ? [{ name: ANSWER_TOOL, description: request.output.description ?? 'The answer, in the required shape.', input_schema: request.output.schema }]
+        : request.tools?.length ? request.tools.map(toAnthropicTool) : undefined;
+
+    return {
+        structured: forced,
+        body: {
+            max_tokens: request.maxOutputTokens ?? 4096,
+            ...(request.role ? { system: Prompt.parseRole(request.role, request as unknown as import('../../conf/Prompt').PromptVariables) } : {}),
+            messages: [
+                ...(request.history ?? []).map(toAnthropicMessage),
+                // Un prompt vuoto significa "nessun testo nuovo dell'utente in questo
+                // turno" (es. si continua solo perché il turno precedente era un
+                // tool_result) — il turno finale va omesso, non inviato vuoto: Anthropic
+                // richiede ruoli alternati e un tool_result è già un turno "user".
+                ...(request.prompt ? [{ role: 'user', content: userContent }] : []),
+            ],
+            ...(tools ? { tools } : {}),
+            ...(forced ? { tool_choice: { type: 'tool', name: ANSWER_TOOL } } : {}),
+            ...(typeof request.temperature === 'number' ? { temperature: request.temperature } : {}),
+            // How much it reasons (CR-122), on the models that take it.
+            ...reasoning,
+        },
+    };
 }
 
 export const ANTHROPIC_PROVIDER_DEFINITION: AIProviderDefinition = {
@@ -75,6 +150,7 @@ export const ANTHROPIC_PROVIDER_DEFINITION: AIProviderDefinition = {
     credentialsHint: 'Anthropic Console → Settings → API Keys → Create Key.',
     credentialFields: [{ key: 'apiKey', label: 'API Key', type: 'password' }],
     capabilities: { supportsTemperature: true, supportsVision: true, supportsDocuments: true },
+    structuredOutput: 'native',
     discoverModels: async (apiKey) => {
         const response = await fetchJson(ANTHROPIC_MODELS_URL, {
             headers: {
@@ -87,26 +163,7 @@ export const ANTHROPIC_PROVIDER_DEFINITION: AIProviderDefinition = {
             : [];
     },
     complete: async (apiKey, request) => {
-        const attachments = request.attachments ?? [];
-        // Il blocco `document` dell'API Anthropic è documentato per PDF — un CSV/testo
-        // mandato lì come base64 non è supportato: i mimetype testuali vengono invece
-        // decodificati e inseriti come blocco `text` (stesso trattamento di
-        // openaiCompatible.ts/gemini.ts, vedi PromptUtils.isTextAttachment).
-        const userContent = attachments.length > 0
-            ? [
-                ...attachments.map((a) => {
-                    if (a.mimeType.startsWith('image/')) {
-                        return { type: 'image', source: { type: 'base64', media_type: a.mimeType, data: a.base64 } };
-                    }
-                    if (PromptUtils.isTextAttachment(a.mimeType)) {
-                        return { type: 'text', text: `[File: ${a.name}]\n${PromptUtils.decodeBase64Text(a.base64)}` };
-                    }
-                    return { type: 'document', source: { type: 'base64', media_type: a.mimeType, data: a.base64 } };
-                }),
-                { type: 'text', text: request.prompt },
-              ]
-            : request.prompt;
-
+        const { body, structured } = anthropicMessagesBody(request);
         const response = await fetchJson(ANTHROPIC_MESSAGES_URL, {
             method: 'POST',
             headers: {
@@ -114,26 +171,10 @@ export const ANTHROPIC_PROVIDER_DEFINITION: AIProviderDefinition = {
                 'anthropic-version': '2023-06-01',
                 ...(request.logId ? { [LLM_LOG_ID_HEADER]: request.logId } : {}),
             },
-            body: {
-                model: request.model,
-                max_tokens: 4096,
-                ...(request.role ? { system: Prompt.parseRole(request.role, request as unknown as import("../../conf/Prompt").PromptVariables) } : {}),
-                messages: [
-                    ...(request.history ?? []).map(toAnthropicMessage),
-                    // Un prompt vuoto significa "nessun testo nuovo dell'utente in questo
-                    // turno" (es. si continua solo perché il turno precedente era un
-                    // tool_result) — il turno finale va omesso, non inviato vuoto: Anthropic
-                    // richiede ruoli alternati e un tool_result è già un turno "user".
-                    ...(request.prompt ? [{ role: 'user', content: userContent }] : []),
-                ],
-                ...(request.tools?.length ? { tools: request.tools.map(toAnthropicTool) } : {}),
-                ...(typeof request.temperature === 'number' ? { temperature: request.temperature } : {}),
-                // How much it reasons (CR-122), on the models that take it.
-                ...anthropicReasoning(request.model, request.reasoning),
-            },
+            body: { model: request.model, ...body },
             signal: request.signal,
         }, proxyFetch);
 
-        return parseAnthropicResponse(response);
+        return parseAnthropicResponse(response, structured);
     },
 };

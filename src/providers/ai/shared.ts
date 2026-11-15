@@ -4,9 +4,14 @@ import {
     createConfigurationState,
     type ProviderConfigurationState,
 } from '../ProviderConfiguration';
-import { isProxyEnabled } from '../proxy';
+import { isProxyEnabled } from '../proxy/core';
 import type { ProviderCredentialField } from '../ProviderDescriptor';
+import { extractJson, validateJsonSchema, type JsonSchema } from '../../libs/jsonSchema';
 import type {
+    AIDataRegion,
+    AIStructuredOutput,
+    AIStructuredOutputMode,
+    AIUsage,
     AICompleteRequest,
     AICompleteResult,
     AIKeyValidationResult,
@@ -17,10 +22,13 @@ import type {
     AIReasoningLevel,
     AIRequestOptions,
 } from './AIProvider';
-import { formatAIModelRef } from './AIProvider';
+import { AIOutputError, formatAIModelRef } from './AIProvider';
 import { withModelsDevPricing } from './modelsDevPricing';
 
-export type BuiltInAIProviderId = 'openai' | 'openrouter' | 'opencode' | 'opencode-go' | 'openai-compatible' | 'deepseek' | 'gemini' | 'anthropic' | 'mistral' | 'glm' | 'cloudflare' | 'groq';
+export type BuiltInAIProviderId = 'openai' | 'openrouter' | 'opencode' | 'opencode-go' | 'openai-compatible' | 'deepseek' | 'gemini' | 'anthropic' | 'mistral' | 'glm' | 'cloudflare' | 'groq' | 'vertex';
+
+/** The key of a provider, or what gives it fresh (a token that expires, e.g. Vertex AI): read before each call. */
+export type AICredential = string | (() => string | Promise<string>);
 
 /** A discovered model carrying the price its provider listing already reports (OpenRouter,
  * Cloudflare). Models discovered as a bare id get their price from models.dev instead. */
@@ -44,10 +52,17 @@ export type AIProviderDefinition = {
     /** Short guidance on where in the dashboard to find the credential. */
     credentialsHint?: string;
     capabilities?: Omit<AIProviderCapabilities, 'models'>;
+    /**
+     * `native`: `complete` honours `request.output` with the provider's own mode and answers the JSON as text.
+     * Absent: the framework instructs the model with the schema in the prompt (CR-132).
+     */
+    structuredOutput?: AIStructuredOutputMode;
+    /** Where the provider processes the data, as its endpoint guarantees (CR-132); absent: `unknown`. */
+    dataRegion?: AIDataRegion;
     discoverModels: (apiKey: string) => Promise<Array<string | DiscoveredAIModel>>;
     complete: (
         apiKey: string,
-        request: Required<Pick<AICompleteRequest, 'prompt' | 'model'>> & AIRequestOptions & Pick<AICompleteRequest, 'history' | 'tools' | 'signal' | 'logId'>,
+        request: AIDefinitionCompleteRequest,
     ) => Promise<AICompleteResult | null>;
     /**
      * Per-provider auth check. When omitted, the default implementation in
@@ -56,7 +71,42 @@ export type AIProviderDefinition = {
      * whose models endpoint is public MUST provide their own implementation.
      */
     validateApiKey?: (apiKey: string) => Promise<Omit<AIKeyValidationResult, 'dashboardUrl'>>;
+    /** Where the discovered models are cached; absent: the id. For a provider whose models depend on its connection (Vertex: project and location). */
+    cacheKey?: string;
+    /** The provider whose prices models.dev lists for these models; absent: the id. */
+    pricingProvider?: string;
 };
+
+/** What a definition's `complete` receives: the prompt already filled in, the model always set. */
+export type AIDefinitionCompleteRequest = Required<Pick<AICompleteRequest, 'prompt' | 'model'>> & AIRequestOptions
+    & Pick<AICompleteRequest, 'history' | 'tools' | 'signal' | 'logId' | 'output' | 'maxOutputTokens'>;
+
+/** The prompt that asks the model for an answer that follows `output` (CR-132): the instructed way. */
+export function withOutputInstructions(prompt: string, output: AIStructuredOutput): string {
+    return [
+        prompt,
+        '',
+        `Answer only with one JSON value that follows this JSON Schema${output.description ? ` (${output.description})` : ''}, with no other text and no code fence:`,
+        JSON.stringify(output.schema),
+    ].join('\n');
+}
+
+/** The text of an answer, for reading a structured answer out of it. */
+const answerText = (result: AICompleteResult | null): string => (result?.text ?? '').trim();
+
+const sumUsage = (a?: AIUsage, b?: AIUsage): AIUsage | undefined => (
+    a || b ? { inputTokens: (a?.inputTokens ?? 0) + (b?.inputTokens ?? 0), outputTokens: (a?.outputTokens ?? 0) + (b?.outputTokens ?? 0) } : undefined
+);
+
+/** The structured answer in a result, or the errors that make it not one. */
+function readStructured(result: AICompleteResult | null, schema: JsonSchema): { ok: true; data: unknown } | { ok: false; errors: string[] } {
+    const text = answerText(result);
+    if (!text) return { ok: false, errors: ['no answer'] };
+    const data = extractJson(text);
+    if (data === undefined) return { ok: false, errors: ['the answer is not JSON'] };
+    const errors = validateJsonSchema(schema, data);
+    return errors.length ? { ok: false, errors } : { ok: true, data };
+}
 
 export type AIModelCatalog = {
     models: AIModelDescriptor[];
@@ -174,16 +224,18 @@ const setCachedModels = (provider: string, items: AIModelDescriptor[]) => {
     }
 };
 
-const normalizeModels = (provider: BuiltInAIProviderId, label: string, models: Array<string | DiscoveredAIModel>): AIModelDescriptor[] => (
+const normalizeModels = (definition: AIProviderDefinition, models: Array<string | DiscoveredAIModel>): AIModelDescriptor[] => (
     models.map((entry) => {
         const { model, pricing } = typeof entry === 'string' ? { model: entry, pricing: undefined } : entry;
         return {
-            id: formatAIModelRef(provider, model),
-            provider,
+            id: formatAIModelRef(definition.id, model),
+            provider: definition.id,
             model,
-            label: `${label} / ${model}`,
-            providerLabel: label,
+            label: `${definition.label} / ${model}`,
+            providerLabel: definition.label,
             ...(pricing ? { pricing } : {}),
+            dataRegion: definition.dataRegion ?? 'unknown',
+            structuredOutput: definition.structuredOutput ?? 'prompted',
         };
     })
 );
@@ -243,9 +295,9 @@ export class RuntimeAIProvider implements AIProviderAdapter {
     defaultModel: string;
     dashboardUrl?: string;
     private readonly definition: AIProviderDefinition;
-    private readonly apiKey: string;
+    private readonly apiKey: AICredential;
 
-    constructor(definition: AIProviderDefinition, apiKey: string) {
+    constructor(definition: AIProviderDefinition, apiKey: AICredential) {
         this.definition = definition;
         this.id = definition.id;
         this.label = definition.label;
@@ -268,53 +320,113 @@ export class RuntimeAIProvider implements AIProviderAdapter {
         );
     }
 
+    /** The key to send now: a fixed one, or a fresh one from its source. */
+    private key(): Promise<string> {
+        return Promise.resolve(typeof this.apiKey === 'function' ? this.apiKey() : this.apiKey);
+    }
+
+    private get providerCapabilities(): Omit<AIProviderCapabilities, 'models'> {
+        return {
+            ...this.definition.capabilities,
+            structuredOutput: this.definition.structuredOutput ?? 'prompted',
+            dataRegion: this.definition.dataRegion ?? 'unknown',
+        };
+    }
+
     async getCapabilities(forceRefresh = false): Promise<AIProviderCapabilities> {
-        const cached = !forceRefresh ? getCachedModels(this.id) : null;
+        const cacheKey = this.definition.cacheKey ?? this.id;
+        const cached = !forceRefresh ? getCachedModels(cacheKey) : null;
         if (cached) {
             return {
-                ...this.definition.capabilities,
-                // Lists cached before providerLabel existed still group under the right name.
-                models: cached.map((model) => (model.providerLabel ? model : { ...model, providerLabel: this.label })),
+                ...this.providerCapabilities,
+                // Lists cached before providerLabel (or the data region, CR-132) existed still read right.
+                models: cached.map((model) => ({
+                    ...model,
+                    providerLabel: model.providerLabel ?? this.label,
+                    dataRegion: model.dataRegion ?? this.definition.dataRegion ?? 'unknown',
+                    structuredOutput: model.structuredOutput ?? this.definition.structuredOutput ?? 'prompted',
+                })),
             };
         }
 
-        let items = normalizeModels(this.id, this.label, this.definition.fallbackModels);
+        let items = normalizeModels(this.definition, this.definition.fallbackModels);
 
         try {
-            const discovered = await this.definition.discoverModels(this.apiKey);
+            const discovered = await this.definition.discoverModels(await this.key());
             if (discovered.length > 0) {
-                items = normalizeModels(this.id, this.label, discovered);
+                items = normalizeModels(this.definition, discovered);
             }
         } catch (error) {
             console.warn(`AIProvider:${this.id} model discovery failed`, error);
         }
 
-        items = await withModelsDevPricing(this.id, items);
-        setCachedModels(this.id, items);
+        items = await withModelsDevPricing(this.definition.pricingProvider ?? this.id, items);
+        setCachedModels(cacheKey, items);
 
         return {
-            ...this.definition.capabilities,
+            ...this.providerCapabilities,
             models: items,
         };
     }
 
-    complete(request: AICompleteRequest): Promise<AICompleteResult | null> {
-        return this.definition.complete(this.apiKey, {
+    async complete(request: AICompleteRequest): Promise<AICompleteResult | null> {
+        const filled: AIDefinitionCompleteRequest = {
             ...request,
             model: request.model || this.defaultModel,
             prompt: Prompt.parsePrompt(request.prompt, { ...request.data, ...request } as PromptVariables & AICompleteRequest),
+        };
+        if (!request.output) return this.definition.complete(await this.key(), filled);
+        return this.completeStructured(filled, request.output);
+    }
+
+    /**
+     * A structured answer (CR-132): the provider's own mode when it has one, otherwise the schema in the
+     * prompt; the JSON read out of the answer and validated; one correction with the errors; then
+     * `AIOutputError`, never data that does not follow the schema.
+     */
+    private async completeStructured(request: AIDefinitionCompleteRequest, output: AIStructuredOutput): Promise<AICompleteResult> {
+        if (request.tools?.length) throw new Error(`AIProvider:${this.id}: a structured answer (output) cannot be asked together with tools`);
+        const native = this.definition.structuredOutput === 'native';
+        const schema = output.schema as JsonSchema;
+        const ask = async (prompt: string) => this.definition.complete(await this.key(), {
+            ...request,
+            prompt: native ? prompt : withOutputInstructions(prompt, output),
+            output: native ? output : undefined,
         });
+
+        const first = await ask(request.prompt);
+        const read = readStructured(first, schema);
+        if (read.ok) return { type: 'text', text: answerText(first), data: read.data, ...(first?.usage ? { usage: first.usage } : {}) };
+
+        const correction = [
+            request.prompt,
+            '',
+            `Your previous answer did not follow the JSON Schema: ${read.errors.slice(0, 10).join('; ')}.`,
+            `Previous answer: ${answerText(first).slice(0, 4000) || '(none)'}`,
+            'Answer again, correctly.',
+        ].join('\n');
+        const second = await ask(correction);
+        const reread = readStructured(second, schema);
+        const usage = sumUsage(first?.usage, second?.usage);
+        if (reread.ok) return { type: 'text', text: answerText(second), data: reread.data, ...(usage ? { usage } : {}) };
+        throw new AIOutputError(this.id, reread.errors);
     }
 
     async validateApiKey(): Promise<AIKeyValidationResult> {
         const dashboardUrl = this.definition.dashboardUrl;
+        let apiKey: string;
+        try {
+            apiKey = await this.key();
+        } catch (err) {
+            return { valid: false, error: extractProviderError(err), dashboardUrl };
+        }
         if (this.definition.validateApiKey) {
-            const result = await this.definition.validateApiKey(this.apiKey);
+            const result = await this.definition.validateApiKey(apiKey);
             return { ...result, dashboardUrl };
         }
         // Default: call discoverModels live (bypasses cache); any thrown error = invalid key.
         try {
-            await this.definition.discoverModels(this.apiKey);
+            await this.definition.discoverModels(apiKey);
             return { valid: true, dashboardUrl };
         } catch (err) {
             return { valid: false, error: extractProviderError(err), dashboardUrl };

@@ -10,5 +10,7 @@ export const OPENAI_PROVIDER_DEFINITION = createOpenAICompatibleProviderDefiniti
     baseUrl: 'https://api.openai.com/v1',
     dashboardUrl: 'https://platform.openai.com/api-keys',
     credentialsHint: 'OpenAI dashboard → API keys → Create new secret key.',
+    structuredOutput: 'native',
+    maxTokensField: 'max_completion_tokens',
 });
 

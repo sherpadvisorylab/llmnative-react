@@ -1,5 +1,5 @@
 import { fetchJson } from '../../libs/fetch';
-import { proxyFetch } from '../proxy';
+import { proxyFetch } from '../proxy/core';
 import type { ProviderDescriptor } from '../ProviderDescriptor';
 import type { AIConversationTurn, AIModelPricing } from './AIProvider';
 import { extractProviderError, type AIProviderDefinition, type DiscoveredAIModel } from './shared';

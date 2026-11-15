@@ -1464,6 +1464,21 @@ l'account di Cloudflare): una destinazione diversa è rifiutata. `createProxyPlu
 lookup)` fa lo stesso nel proxy di sviluppo di Vite. Senza proxy, `proxyFetch` rifiuta di inviare
 un segnaposto. `createAIProviderRegistry` (chiavi nel browser) resta com'è.
 
+### Risposte strutturate e zona dei dati (CR-132)
+
+```ts
+const result = await provider.complete({ prompt, output: { schema, name: 'lead' }, maxOutputTokens: 1024 })
+// { type: 'text', text, data /* validato sullo schema */, usage: { inputTokens, outputTokens } }
+```
+
+Modo nativo dove c'è (Gemini/Vertex `responseSchema`, OpenAI `response_format: json_schema`, Anthropic tool di
+risposta forzato; con il ragionamento acceso lo schema va nel prompt), altrove lo schema nel prompt e il JSON letto
+dalla risposta. Una correzione con gli errori, poi `AIOutputError` (`code: 'invalid-output'`, `errors`). Non con
+`tools`. `validateJsonSchema`, `extractJson`, `JsonSchema` esportati. Ogni modello: `structuredOutput`
+(`native`|`prompted`) e `dataRegion` (`eu`|`us`|`global`|regione|`unknown`, solo quella garantita dall'endpoint).
+
+Su un server (senza React): `createAIProvider(id | definition, key | () => key)` da `@llmnative/react/server`.
+
 Configurazione API key in `Config.tsx`: `geminiApiKey`, `openaiApiKey`, `anthropicApiKey`, `deepSeekApiKey`, `mistralApiKey`, `openRouterApiKey`, `groqApiKey`, `cloudflare: { apiToken, accountId }` (Cloudflare Workers AI: l'account id fa parte dell'URL; discovery via `ai/models/search`, modelli Workers Paid esclusi salvo `includePaidModels`).
 
 ---

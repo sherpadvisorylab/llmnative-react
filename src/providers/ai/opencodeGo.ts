@@ -1,5 +1,5 @@
 import { fetchJson } from '../../libs/fetch';
-import { proxyFetch } from '../proxy';
+import { proxyFetch } from '../proxy/core';
 import type { AIProviderDefinition } from './shared';
 import { completeOpenCode, isOpenCodeFreeTierModel } from './opencode';
 

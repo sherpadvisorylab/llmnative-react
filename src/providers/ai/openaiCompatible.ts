@@ -1,6 +1,6 @@
 import { Prompt } from '../../conf/Prompt';
 import { fetchJson } from '../../libs/fetch';
-import { proxyFetch } from '../proxy';
+import { proxyFetch } from '../proxy/core';
 import { PromptUtils } from '../../libs/promptUtils';
 import { LLM_LOG_ID_HEADER } from '../proxy/logHeader';
 import type { AIProviderDefinition, BuiltInAIProviderId, DiscoveredAIModel } from './shared';
@@ -26,7 +26,14 @@ type OpenAICompatibleDefinitionOptions = {
     mapModelEntry?: (entry: Record<string, unknown>) => string | DiscoveredAIModel | undefined;
     /** How a reasoning level is sent (CR-122): `reasoning_effort` on the reasoning models of OpenAI, or OpenRouter's `reasoning.effort`. */
     reasoningStyle?: 'openai' | 'openrouter';
+    /** `native`: the endpoint takes `response_format: json_schema` (CR-132); absent: the schema goes in the prompt. */
+    structuredOutput?: 'native';
+    /** How the limit of the answer is sent: `max_completion_tokens` (OpenAI) or `max_tokens` (the default). */
+    maxTokensField?: 'max_tokens' | 'max_completion_tokens';
 };
+
+/** A name OpenAI takes for a `json_schema` response format. */
+const schemaName = (name?: string) => (name ?? 'answer').replace(/[^A-Za-z0-9_-]/g, '_').slice(0, 64) || 'answer';
 
 const defaultMapModelEntry = (entry: Record<string, unknown>) => (typeof entry.id === 'string' ? entry.id : undefined);
 
@@ -72,9 +79,12 @@ export function toOpenAIMessages(turn: AIConversationTurn): Array<Record<string,
     }));
 }
 
-export function parseOpenAIResponse(response: { choices?: Array<{ message?: Record<string, unknown> }> } | null): AICompleteResult | null {
+export function parseOpenAIResponse(response: { choices?: Array<{ message?: Record<string, unknown> }>; usage?: Record<string, unknown> } | null): AICompleteResult | null {
     const message = response?.choices?.[0]?.message;
     if (!message) return null;
+    const usage = response?.usage
+        ? { inputTokens: Number(response.usage.prompt_tokens) || 0, outputTokens: Number(response.usage.completion_tokens) || 0 }
+        : undefined;
 
     const toolCalls = Array.isArray(message.tool_calls) ? message.tool_calls as Array<Record<string, unknown>> : [];
     if (toolCalls.length > 0) {
@@ -86,11 +96,12 @@ export function parseOpenAIResponse(response: { choices?: Array<{ message?: Reco
                 return { id: String(c.id), name: String(fn.name ?? ''), input: safeParseJsonArgs(fn.arguments) };
             }),
             text: content || undefined,
+            ...(usage ? { usage } : {}),
         };
     }
 
     const text = parseTextResponse(message.content);
-    return text ? { type: 'text', text } : null;
+    return text ? { type: 'text', text, ...(usage ? { usage } : {}) } : null;
 }
 
 export const createOpenAICompatibleProviderDefinition = ({
@@ -109,6 +120,8 @@ export const createOpenAICompatibleProviderDefinition = ({
     validateApiKey: validateApiKeyOverride,
     mapModelEntry = defaultMapModelEntry,
     reasoningStyle,
+    structuredOutput,
+    maxTokensField = 'max_tokens',
 }: OpenAICompatibleDefinitionOptions): AIProviderDefinition => {
     const normalizedBaseUrl = trimTrailingSlash(baseUrl);
     const resolvedModelsUrl = modelsUrl || `${normalizedBaseUrl}/models`;
@@ -147,6 +160,7 @@ export const createOpenAICompatibleProviderDefinition = ({
               ]
             : [{ key: 'apiKey', label: 'API Key', type: 'password' }],
         capabilities: { supportsTemperature: true, supportsVision: true, supportsDocuments: true },
+        ...(structuredOutput ? { structuredOutput } : {}),
         validateApiKey: validateApiKeyOverride ?? defaultValidateApiKey,
         discoverModels: async (apiKey) => {
             const response = await fetchJson(resolvedModelsUrl, {
@@ -194,6 +208,11 @@ export const createOpenAICompatibleProviderDefinition = ({
                     ...(typeof request.temperature === 'number' ? { temperature: request.temperature } : {}),
                     // How much it reasons (CR-122), on the models that take it.
                     ...openAIReasoning(request.model, request.reasoning, reasoningStyle),
+                    ...(request.maxOutputTokens ? { [maxTokensField]: request.maxOutputTokens } : {}),
+                    // The structured answer with the endpoint's own mode (CR-132).
+                    ...(request.output && structuredOutput === 'native'
+                        ? { response_format: { type: 'json_schema', json_schema: { name: schemaName(request.output.name), schema: request.output.schema, strict: false } } }
+                        : {}),
                 },
                 signal: request.signal,
             }, proxyFetch);

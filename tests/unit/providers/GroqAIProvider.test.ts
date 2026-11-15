@@ -5,7 +5,7 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('../../../src/providers/proxy', () => ({
+vi.mock('../../../src/providers/proxy/core', () => ({
     proxyFetch: undefined,
     isProxyEnabled: vi.fn(() => false),
 }));

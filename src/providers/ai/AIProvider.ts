@@ -11,6 +11,16 @@ export interface AIModelPricing {
     source: 'provider' | 'models.dev';
 }
 
+/**
+ * Where a model processes the data sent to it (CR-132): `eu`, `us`, `global` (no residency guarantee), a
+ * cloud region id (e.g. `asia-northeast1`), or `unknown` when the provider does not declare it. Only what the
+ * provider's endpoint guarantees, never a guess.
+ */
+export type AIDataRegion = 'eu' | 'us' | 'global' | 'unknown' | (string & {});
+
+/** How a model gives a structured answer (CR-132): with the provider's own mode, or instructed in the prompt. */
+export type AIStructuredOutputMode = 'native' | 'prompted';
+
 export interface AIModelDescriptor {
     id: string;
     provider: string;
@@ -21,6 +31,10 @@ export interface AIModelDescriptor {
     deprecated?: boolean;
     /** Absent = price not found (neither in the provider listing nor on models.dev). */
     pricing?: AIModelPricing;
+    /** Where it processes the data (CR-132); absent means `unknown`. */
+    dataRegion?: AIDataRegion;
+    /** How it gives a structured answer (CR-132): every model gives one, natively or instructed. */
+    structuredOutput?: AIStructuredOutputMode;
 }
 
 export const isFreeAIModel = (model: Pick<AIModelDescriptor, 'pricing'>): boolean =>
@@ -31,6 +45,10 @@ export interface AIProviderCapabilities {
     supportsTemperature?: boolean;
     supportsVision?: boolean;
     supportsDocuments?: boolean;
+    /** How the models of the provider give a structured answer (CR-132). */
+    structuredOutput?: AIStructuredOutputMode;
+    /** Where the provider processes the data (CR-132), as its endpoint guarantees; absent means `unknown`. */
+    dataRegion?: AIDataRegion;
 }
 
 export interface AIAttachment {
@@ -92,6 +110,25 @@ export type AIConversationTurn =
     | { role: 'assistant'; content?: string; toolCalls?: AIToolCall[] }
     | { role: 'tool_result'; results: AIToolResult[] };
 
+/**
+ * The structured answer a project asks for (CR-132): a JSON Schema the answer must follow. The result then
+ * carries `data`, already validated; an answer that does not follow it, even after one correction, is an
+ * `AIOutputError`.
+ */
+export interface AIStructuredOutput {
+    schema: Record<string, unknown>;
+    /** A short name of the answer (e.g. `lead_classification`), for the providers that want one. */
+    name?: string;
+    /** What the answer is, for the model. */
+    description?: string;
+}
+
+/** The tokens a call used, as the provider reports them. */
+export interface AIUsage {
+    inputTokens: number;
+    outputTokens: number;
+}
+
 export interface AICompleteRequest extends AIRequestOptions {
     prompt: string;
     data?: PromptVariables;
@@ -108,13 +145,26 @@ export interface AICompleteRequest extends AIRequestOptions {
      * allo stesso file — un file per conversazione. Assente = nessun logging per questa
      * chiamata, comportamento identico a oggi. */
     logId?: string;
+    /** The structured answer the project wants (CR-132). Not with `tools`. */
+    output?: AIStructuredOutput;
+    /** The most tokens of the answer; absent: the provider's default (Anthropic: 4096). */
+    maxOutputTokens?: number;
 }
 
 /** Esito di una chiamata completate — testo semplice, oppure una o più richieste di tool
  * call (eventualmente accompagnate da testo, quando il modello commenta prima di invocare). */
 export type AICompleteResult =
-    | { type: 'text'; text: string }
-    | { type: 'tool_calls'; toolCalls: AIToolCall[]; text?: string };
+    | { type: 'text'; text: string; /** The structured answer (CR-132), when `output` was asked: valid against its schema. */ data?: unknown; usage?: AIUsage }
+    | { type: 'tool_calls'; toolCalls: AIToolCall[]; text?: string; usage?: AIUsage };
+
+/** A structured answer that does not follow its schema, after one correction (CR-132). Holds no prompt and no answer. */
+export class AIOutputError extends Error {
+    readonly code = 'invalid-output' as const;
+    constructor(readonly provider: string, readonly errors: string[]) {
+        super(`${provider}: the answer does not follow the schema (${errors.slice(0, 3).join('; ')}${errors.length > 3 ? '; …' : ''})`);
+        this.name = 'AIOutputError';
+    }
+}
 
 export interface AIKeyValidationResult {
     valid: boolean;

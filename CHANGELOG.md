@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Structured answers decided by the project (CR-132): `complete({ output: { schema, name?, description? } })` gives
+  `data` validated against the JSON Schema, natively where the provider has a mode (Gemini `responseSchema`, OpenAI
+  `response_format: json_schema`, Anthropic a forced answer tool) and instructed in the prompt elsewhere; one
+  correction with the errors, then `AIOutputError` (`invalid-output`). `validateJsonSchema`, `extractJson`,
+  `JsonSchema`. Results carry the tokens used (`usage`); `maxOutputTokens` on the request.
+- Where each model processes the data (CR-132): `AIModelDescriptor.dataRegion` (`eu`, `us`, `global`, a region,
+  `unknown` by default) and `structuredOutput` (`native` | `prompted`), also on the provider capabilities.
+- The AI adapters on a server, without React (CR-132): `createAIProvider(id | definition, key | () => key)` from
+  `@llmnative/react` and `@llmnative/react/server`; a key may be a function read before each call.
+
+### Changed
+- The proxy of the AI requests lives in `providers/proxy/core` (no config of `<App>`), wired to the config by
+  `providers/proxy`; key helpers in `libs/keys`. Public exports unchanged.
+- Gemini answers leave out the thought parts from the text.
+
 ## [3.1.1] - 2026-11-15
 
 ### Fixed

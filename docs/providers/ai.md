@@ -292,6 +292,57 @@ async function generateHeadline(title: string) {
 }
 ```
 
+## Structured answers (CR-132)
+
+A project asks for an answer in the shape it decides: a JSON Schema in `output`. The result carries `data`,
+already validated, and the tokens used (`usage`). Every provider gives one: with its own mode where it has one
+(Gemini and Vertex AI `responseSchema`, OpenAI `response_format: json_schema`, Anthropic a forced answer tool),
+otherwise the framework puts the schema in the prompt and reads the JSON out of the answer. An answer that does
+not follow the schema gets one correction (the same request, with the errors); then `AIOutputError`
+(`code: 'invalid-output'`, `errors`), never data that does not follow it.
+
+```ts
+import { AIOutputError, type JsonSchema } from '@llmnative/react';
+
+const schema: JsonSchema = {
+  type: 'object',
+  required: ['kind', 'services'],
+  properties: {
+    kind: { type: 'string', enum: ['person', 'company'] },
+    services: { type: 'array', items: { type: 'string' } },
+  },
+};
+
+const result = await provider.complete({
+  prompt: 'Classify this request: {text}',
+  data: { text },
+  output: { schema, name: 'lead' },
+  maxOutputTokens: 1024,
+});
+result?.type === 'text' && result.data;   // { kind: 'company', services: [...] }
+result?.usage;                            // { inputTokens, outputTokens }
+```
+
+The schema subset: `object`, `array`, `string` (with `enum`), `number`, `integer`, `boolean`, `null`, `required`,
+`description`, `nullable`, `minimum`/`maximum`, `minItems`/`maxItems`, `additionalProperties`.
+`validateJsonSchema(schema, value)` and `extractJson(text)` are exported too. Not together with `tools`.
+
+Each model says how it gives one (`AIModelDescriptor.structuredOutput`: `native` or `prompted`) and **where it
+processes the data** (`dataRegion`: `eu`, `us`, `global`, a region id, or `unknown`). A provider declares only
+what its endpoint guarantees: the API providers are `unknown`, Vertex AI takes it from its location.
+
+## On a server (CR-132)
+
+The same adapters run on a Node server, without React: `@llmnative/react/server` exports `createAIProvider`.
+The key may be a function, read before each call (a token that expires).
+
+```ts
+import { createAIProvider } from '@llmnative/react/server';
+
+const provider = createAIProvider('anthropic', process.env.ANTHROPIC_API_KEY!);
+const result = await provider.complete({ prompt, output: { schema } });
+```
+
 ## Access the provider directly
 
 Use hooks when you need direct provider access or diagnostics.

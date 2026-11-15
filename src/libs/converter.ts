@@ -1,4 +1,4 @@
-﻿import { normalizeKey } from "./utils";
+﻿import { normalizeKey } from "./keys";
 
 interface DateTimeResult {
     year: string;

@@ -1,4 +1,4 @@
-import {sleep} from "./utils";
+const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
 // Diagnostic console.warn/console.log calls below echo the request/URL for debugging — but
 // every AI provider adapter (react/src/providers/ai/*) sends its API key via a header

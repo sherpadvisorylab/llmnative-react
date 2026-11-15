@@ -13,18 +13,22 @@ import { GROQ_PROVIDER_DEFINITION } from './groq';
 import { OPENCODE_PROVIDER_DEFINITION } from './opencode';
 import { OPENCODE_GO_PROVIDER_DEFINITION } from './opencodeGo';
 import { OPENROUTER_PROVIDER_DEFINITION } from './openrouter';
-import { getAIModelCatalog, type AIProviderDefinition, type AIModelCatalog, type BuiltInAIProviderId, RuntimeAIProvider } from './shared';
+import { getAIModelCatalog, type AICredential, type AIProviderDefinition, type AIModelCatalog, type BuiltInAIProviderId, RuntimeAIProvider } from './shared';
 import { serverCredential } from './serverCredentials';
 
 export type {
     AIProviderAdapter, AIKeyValidationResult, AIModelDescriptor, AIModelPricing, AIProviderCapabilities, AIRequestOptions, AIReasoningLevel, AIAttachment,
     AICompleteRequest, AICompleteResult, AIConversationTurn, AIToolDefinition, AIToolCall, AIToolResult,
+    AIStructuredOutput, AIStructuredOutputMode, AIUsage, AIDataRegion,
 } from './AIProvider';
-export { formatAIModelRef, parseAIModelRef, isFreeAIModel } from './AIProvider';
-export type { DiscoveredAIModel } from './shared';
+export { formatAIModelRef, parseAIModelRef, isFreeAIModel, AIOutputError } from './AIProvider';
+export { validateJsonSchema, extractJson } from '../../libs/jsonSchema';
+export type { JsonSchema, JsonSchemaType } from '../../libs/jsonSchema';
+export type { DiscoveredAIModel, AICredential } from './shared';
 export type { AIModelCatalog, AIProviderDefinition } from './shared';
 export { getAIModelCatalog } from './shared';
 export { CLOUDFLARE_PROVIDER_DESCRIPTOR, createCloudflareProviderDefinition } from './cloudflare';
+export { createOpenAICompatibleProviderDefinition } from './openaiCompatible';
 export type { CloudflareProviderOptions } from './cloudflare';
 export { AI_PROVIDER_HOSTS, isAIProviderTarget, serverCredential, SERVER_CREDENTIAL_PREFIX } from './serverCredentials';
 export type { ServerAIConnection } from './serverCredentials';
@@ -108,6 +112,18 @@ const getDynamicAIProviderDefinitions = (aiConfig?: AIConfig): AIProviderDefinit
             chatCompletionsUrl: aiConfig?.openAICompatible?.chatCompletionsUrl?.trim() || undefined,
         }),
     ];
+};
+
+/**
+ * One adapter of a built-in provider with its key, or what gives a fresh one (CR-132): what a server uses
+ * (e.g. Cloud Functions) without the config of <App>. `openai-compatible` and Cloudflare need their own
+ * definition (`createCloudflareProviderDefinition`, `createOpenAICompatibleProviderDefinition`), passed
+ * instead of the id.
+ */
+export const createAIProvider = (provider: BuiltInAIProviderId | AIProviderDefinition, apiKey: AICredential): AIProviderAdapter => {
+    const definition = typeof provider === 'string' ? AI_PROVIDER_DEFINITIONS.find((entry) => entry.id === provider) : provider;
+    if (!definition) throw new Error(`createAIProvider: unknown provider "${String(provider)}"`);
+    return new RuntimeAIProvider(definition, apiKey);
 };
 
 export const createAIProviderRegistry = (aiConfig?: AIConfig): Record<string, AIProviderAdapter> => {

@@ -1,5 +1,5 @@
 import type { ApiProviderAdapter, ApiProviderRequest } from './ApiProvider';
-import { proxyFetch } from '../proxy';
+import { proxyFetch } from '../proxy/core';
 
 export type DirectApiProviderConfig = {
     baseUrl: string;
