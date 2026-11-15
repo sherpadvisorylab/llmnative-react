@@ -23,6 +23,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (service account, application default credentials, metadata server); in the browser `ai.vertex` and
   `createServerCredentialAIRegistry` with the token put by the proxy, only towards the project's Vertex hosts.
   `VertexAIError` codes. Prices from models.dev.
+- `AIConnections` (CR-134): the page where an app connects its AI providers — fields and check of each provider,
+  accounts tried in order, the order of the providers, the models with their data region and price, the
+  connectors of the app (e.g. a subscription on a runner the app names), `readOnly`, `allow`/`hide`, a region rule
+  that warns or refuses. The app keeps the secrets behind `AIConnectionStore`. `AIModelRegionBadge`,
+  `isModelInRegion`; i18n `aiConnections` in 6 languages; showcase page.
 - The AI adapters on a server, without React (CR-132): `createAIProvider(id | definition, key | () => key)` from
   `@llmnative/react` and `@llmnative/react/server`; a key may be a function read before each call.
 

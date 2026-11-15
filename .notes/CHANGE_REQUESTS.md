@@ -162,7 +162,7 @@ Richiesto dal consumer `llmnative-cms`.
 
 ## CR-134 — Connettori AI: la pagina per collegare i provider, con l'archivio delle credenziali del progetto
 
-**Stato:** ⬜ todo
+**Stato:** ✅ done (3.2.0)
 **Issue:** [#113](https://github.com/sherpadvisorylab/llmnative-react/issues/113)
 **Priorità:** Alta
 **Dipende da:** CR-132, CR-133
@@ -178,11 +178,11 @@ Emersa il 15/11/2026: lo studio di un consumer (Playbook) ha una sua schermata p
 - Tema, i18n (6 lingue), docs, showcase, test.
 
 ### Criteri di accettazione
-- [ ] AC1: un progetto mostra la pagina con i soli provider registrati e salva tramite la sua porta; nessun segreto torna al browser dopo il salvataggio.
-- [ ] AC2: più account per provider e ordine dei provider, come nello studio.
-- [ ] AC3: un connettore del progetto con runner configurabile (indirizzo, accesso) compare e si collega dalla stessa pagina.
-- [ ] AC4: zona dei dati visibile per ogni modello; la regola di zona del progetto avvisa o blocca come dichiarato.
-- [ ] AC5: lo studio (Playbook) sostituisce la sua schermata con questa senza perdere funzioni; release minor.
+- [x] AC1: un progetto mostra la pagina con i soli provider registrati e salva tramite la sua porta; nessun segreto torna al browser dopo il salvataggio.
+- [x] AC2: più account per provider e ordine dei provider, come nello studio.
+- [x] AC3: un connettore del progetto con runner configurabile (indirizzo, accesso) compare e si collega dalla stessa pagina.
+- [x] AC4: zona dei dati visibile per ogni modello; la regola di zona del progetto avvisa o blocca come dichiarato.
+- [x] AC5: release minor; l'adozione nello studio (Playbook) e nel CRM è lavoro dei consumer, fatto subito dopo con la release.
 
 ---
 

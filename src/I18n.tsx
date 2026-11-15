@@ -470,6 +470,56 @@ export interface I18nDict {
         activityChanges: string;
         activityEmpty: string;
     };
+    /** CR-134 — the page of the AI connections (`AIConnections`). */
+    aiConnections: {
+        intro: string;
+        subscriptions: string;
+        usage: string;
+        connected: string;
+        connect: string;
+        saveChanges: string;
+        disconnect: string;
+        disconnectConfirm: string;
+        savedSecret: string;
+        keepSecret: string;
+        whereToFind: string;
+        rejected: string;
+        readOnly: string;
+        accounts: string;
+        addAccount: string;
+        addAccountSave: string;
+        accountLabel: string;
+        accountUnnamed: string;
+        accountAddedOn: string;
+        removeAccount: string;
+        removeAccountConfirm: string;
+        accountsOrderHint: string;
+        ready: string;
+        exhausted: string;
+        available: string;
+        order: string;
+        orderAuto: string;
+        orderReset: string;
+        orderAutoHint: string;
+        orderManualHint: string;
+        orderProvider: string;
+        orderKind: string;
+        orderState: string;
+        subscription: string;
+        byUse: string;
+        models: string;
+        modelsLoading: string;
+        modelsNone: string;
+        regionEu: string;
+        regionUs: string;
+        regionGlobal: string;
+        regionUnknown: string;
+        outsideRegion: string;
+        notAllowed: string;
+        structuredNative: string;
+        structuredPrompted: string;
+        price: string;
+    };
     /** CR-112 — the charts: empty state, totals, the scale of the heatmaps, the data table. */
     charts: {
         noData:    string;

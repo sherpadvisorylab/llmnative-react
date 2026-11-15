@@ -384,6 +384,40 @@ resolveServerCredentials(request, async (scope, provider) =>
 
 The token goes only to the hosts of Vertex AI, for that project (or the public catalog of the models).
 
+## The page of the connections (CR-134)
+
+`AIConnections` is the page where an app connects its AI providers: the providers of the framework (their fields,
+check and models), the accounts of each (several keys, tried in order), the order the agents try the providers in,
+the models of each with **where they process the data** and their price, and the **connectors of the app** (e.g. a
+subscription that runs on a runner the app names). The app keeps the secrets behind its `AIConnectionStore`: the
+page sends them once and never reads them back.
+
+```tsx
+import { AIConnections, type AIConnectionStore } from '@llmnative/react';
+
+const store: AIConnectionStore = {
+  load: () => api.get('/ai/connections'),                       // { providers, order?, exhausted? } — no secrets
+  connect: (provider, fields) => api.post(`/ai/${provider}`, fields), // checks with the provider, { ok } | { ok: false, error }
+  disconnect: (provider) => api.delete(`/ai/${provider}`),
+  models: (provider) => api.get(`/ai/${provider}/models`),       // AIModelDescriptor[] with dataRegion
+  // optional: addAccount, removeAccount, orderAccounts, setOrder, subscribe
+};
+
+<AIConnections
+  store={store}
+  region={{ preferred: 'eu', mode: 'recommend' }}   // 'require' refuses the others
+  connectors={[{
+    id: 'claude-code', label: 'Claude Code', connected,
+    fields: [{ key: 'runnerUrl', label: 'Runner', type: 'text' }, { key: 'runnerToken', label: 'Access', type: 'password' }],
+    connect: (fields) => api.post('/ai/claude-code', fields),
+  }]}
+/>
+```
+
+An empty secret field of a connected provider means "keep the saved one". `readOnly` shows what the app fixes in
+code; `allow`/`hide` choose the providers; `renderProvider(id)` adds what the app sets on a connected provider.
+`AIModelRegionBadge` and `isModelInRegion(model, rule)` serve the model pickers of an app.
+
 ## Access the provider directly
 
 Use hooks when you need direct provider access or diagnostics.

@@ -1479,6 +1479,18 @@ dalla risposta. Una correzione con gli errori, poi `AIOutputError` (`code: 'inva
 
 Su un server (senza React): `createAIProvider(id | definition, key | () => key)` da `@llmnative/react/server`.
 
+### Pagina dei connettori AI (CR-134)
+
+```tsx
+<AIConnections store={store} region={{ preferred: 'eu', mode: 'recommend' | 'require' }} connectors={[...]} allow={[...]} readOnly />
+```
+
+`AIConnectionStore` (dell'app, i segreti restano lì): `load()` → `{ providers: [{ id, fields?, accounts? }], order?: { list, manual }, exhausted? }`,
+`connect(provider, fields)` → `{ ok } | { ok: false, error }` (verifica col provider; campo segreto vuoto = tieni il salvato),
+`disconnect`; opzionali `addAccount`, `removeAccount`, `orderAccounts`, `setOrder(list | null)`, `models(provider)`, `subscribe`.
+`AIConnector`: connettore dell'app (es. abbonamento su un runner) con `fields` + `connect`/`disconnect`, o `render({ close })`.
+`AIModelRegionBadge`, `isModelInRegion` per i selettori di modello. i18n `aiConnections` (6 lingue).
+
 ### Vertex AI (CR-133)
 
 ```ts

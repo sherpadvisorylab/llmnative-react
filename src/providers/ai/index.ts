@@ -26,6 +26,8 @@ export { formatAIModelRef, parseAIModelRef, isFreeAIModel, AIOutputError } from 
 export { validateJsonSchema, extractJson } from '../../libs/jsonSchema';
 export type { JsonSchema, JsonSchemaType } from '../../libs/jsonSchema';
 export type { DiscoveredAIModel, AICredential } from './shared';
+export { isModelInRegion } from './connections';
+export type { AIConnectionStore, AIConnectionsSnapshot, AIConnectionResult, AIConnectionAccount, AIProviderConnectionView, AIConnectionExhausted, AIConnector, AIRegionRule } from './connections';
 export type { AIModelCatalog, AIProviderDefinition } from './shared';
 export { getAIModelCatalog } from './shared';
 export { CLOUDFLARE_PROVIDER_DESCRIPTOR, createCloudflareProviderDefinition } from './cloudflare';
