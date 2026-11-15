@@ -9,6 +9,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-11-15
+
+### Breaking
+- The category `email` is replaced by two (CR-130): `emailSend` (`EmailSendAdapter`) and `emailRead`
+  (`EmailReadAdapter`), in `ProviderAdapterMap`, `services`, `providers.custom` and `<App>`; `useEmailSendProvider`
+  and `useEmailReadProvider` replace `useEmailProvider`. No alias of the old names.
+- `send()` takes `{ from?, to, cc?, bcc?, replyTo?, subject, html?, text?, threadId? }` (addresses as strings or
+  `{ email, name }`) instead of `{ to, bcc, subject, message }`, and returns `{ id, threadId? }`.
+- Removed `GmailEmailProvider`, `sendEmail` and `EMAIL_PROVIDER_DEFINITIONS` (now
+  `EMAIL_SEND_PROVIDER_DEFINITIONS`, `EMAIL_READ_PROVIDER_DEFINITIONS`); `EmailDriverName` is `EmailSendDriverName`.
+
+### Added
+- Email adapters (CR-130), also from `@llmnative/react/server` (no React):
+  - `ResendEmailSender` and `BrevoEmailSender` (`{ apiKey, from }`, only `fetch`).
+  - `GmailEmailSender`: the browser's Google sign-in (the `gmail` driver of the `google` provider) or, on a
+    server, the app's OAuth client and the mailbox's refresh token; `threadId` keeps a reply in its conversation.
+  - `GmailEmailReader`: history from a cursor, `start()` registers the push on a Pub/Sub topic;
+    `decodeGmailPushNotification`; `createGmailOAuth` (consent page, code → mailbox and refresh token);
+    `GMAIL_SCOPES`.
+  - `ImapEmailReader`: by UID with UIDVALIDITY; `imapflow` and `mailparser` are optional peers, loaded on the
+    first reading.
+  - `start()` / `read(cursor, { limit })` with the same `EmailMessage` on every provider, each with the `cursor`
+    after it (resume after the last message handled); an expired cursor starts again from now.
+  - `EmailProviderError` (`not-configured`, `invalid-message`, `unauthorized`, `rejected`, `rate-limited`,
+    `unavailable`, `unknown`) without keys in the message.
+  - Brevo and Gmail in the send definitions; Gmail and IMAP in the read definitions.
+
+### Changed
+- `firebase` and `@supabase/supabase-js` are optional peers: a server that imports only `@llmnative/react/server`
+  installs neither.
+
 ## [2.4.0] - 2026-11-14
 
 ### Added

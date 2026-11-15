@@ -17,7 +17,7 @@ import type { ProviderConfigurable } from '../ProviderConfiguration';
  * Registered/fixed fields always win over a matching key the caller passes — same
  * authoritative-merge rule as the tenant-session handshake.
  *
- * Other category adapters (an EmailProviderAdapter for Brevo, an AIProviderAdapter for a
+ * Other category adapters (an EmailSendAdapter for an internal mail API, an AIProviderAdapter for a
  * REST-only model) call an ApiProviderAdapter internally instead of fetch()/proxyFetch()
  * directly — a vendor adapter is just a few lines of normal code, no framework-provided bridge.
  *

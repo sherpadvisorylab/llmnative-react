@@ -160,6 +160,38 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
+## CR-130 — Mail: categorie `emailSend` ed `emailRead`, Resend, Brevo, Gmail e IMAP
+
+**Stato:** ✅ done (3.0.0)
+**Issue:** [#109](https://github.com/sherpadvisorylab/llmnative-react/issues/109)
+**Priorità:** Alta
+
+### Motivazione
+Emersa il 15/11/2026 portando un consumer (un CRM su Firebase) a spedire e leggere mail con i provider del framework. La categoria `email` ha un solo contratto, `send({ to, bcc, subject, message })`, e un solo adattatore, `GmailEmailProvider`, che vive nel browser (token OAuth di Google Identity Services). Le schede di `EMAIL_PROVIDER_DEFINITIONS` (Resend, SendGrid, …) non hanno un adattatore, Brevo manca. Leggere una casella non è previsto: il consumer ha scritto da sé l'invio con Resend, la lettura di Gmail (watch su Pub/Sub, history) e quella IMAP, tutte su un server.
+
+La soluzione è separare le due cose che fa una casella, ognuna con il suo contratto e i suoi adattatori come le altre categorie, così il codice dell'app non cambia se cambia il provider: `emailSend` (spedire) ed `emailRead` (leggere le mail nuove a partire da un cursore). È un cambiamento incompatibile: la categoria `email` sparisce senza alias.
+
+### Scope
+- **Categorie**: `emailSend` (`EmailSendAdapter`) ed `emailRead` (`EmailReadAdapter`) al posto di `email` in `ProviderAdapterMap`, `ServicesConfig`, `providers.custom`, `<App>`; hook `useEmailSendProvider(name?)` e `useEmailReadProvider(name?)` al posto di `useEmailProvider`.
+- **Invio**: `send({ from?, to, cc?, bcc?, replyTo?, subject, html?, text?, threadId? })` → `{ id, threadId? }`; indirizzi come stringa o `{ email, name }`. Adattatori `ResendEmailSender` e `BrevoEmailSender` (`{ apiKey, from }`, solo `fetch`) e `GmailEmailSender` (token del browser come oggi, oppure client OAuth + refresh token su un server). Il driver `gmail` del manifest diventa di `emailSend`.
+- **Lettura**: `start()` → `{ cursor, expiresAt? }` (da adesso: le mail già presenti restano fuori), `read(cursor, { limit? })` → `{ messages, cursor }` con `EmailMessage` (`id`, `threadId`, `from`, `to`, `subject`, `date` ISO, `text`, `direction`). Un cursore non più valido riparte da adesso, senza leggere il passato. Adattatori `GmailEmailReader` (watch su un topic Pub/Sub, history; `decodeGmailPushNotification`) e `ImapEmailReader` (per UID, UIDVALIDITY; `imapflow` e `mailparser` come peer opzionali, caricati solo quando serve).
+- **OAuth di Gmail sul server**: `createGmailOAuth({ clientId, clientSecret, redirectUri })` (URL di consenso, scambio del codice → indirizzo e refresh token), `GMAIL_SCOPES`.
+- **Cursore per messaggio**: ogni `EmailMessage` ha il `cursor` dopo di sé, per riprendere dopo l'ultimo messaggio gestito.
+- **Peer**: `firebase` e `@supabase/supabase-js` opzionali (un server che usa solo `/server` non li installa).
+- **Errori**: `EmailProviderError` (`code`: `not-configured` | `invalid-message` | `unauthorized` | `rejected` | `rate-limited` | `unavailable` | `unknown`, `provider`, `status`), con un messaggio che non porta mai chiavi né corpo della risposta.
+- **Schede**: `EMAIL_SEND_PROVIDER_DEFINITIONS` (con Brevo e Gmail) ed `EMAIL_READ_PROVIDER_DEFINITIONS` (Gmail, IMAP) al posto di `EMAIL_PROVIDER_DEFINITIONS`.
+- **Entry `@llmnative/react/server`**: esporta adattatori, errori e OAuth di Gmail (niente React); l'entry principale esporta i contratti, gli hook e gli adattatori senza dipendenze Node.
+- Rimossi `GmailEmailProvider`, `sendEmail` (helper di Gmail) e `libs/email.ts` (non usato).
+
+### Criteri di accettazione
+- [x] AC1: `emailSend` ed `emailRead` sono categorie del registro (`<App>`, `services`, `custom`, `setProvider`, hook); `email` non esiste più.
+- [x] AC2: Resend, Brevo e Gmail spediscono lo stesso messaggio (mittente, destinatari, cc, bcc, risposta, testo e HTML) traducendolo nell'API di ciascuno; gli errori diventano `EmailProviderError` senza segreti.
+- [x] AC3: Gmail e IMAP leggono dal cursore le mail nuove con lo stesso `EmailMessage`, rispettano `limit` riprendendo dal punto giusto e ripartono da adesso con un cursore scaduto (history di Gmail, UIDVALIDITY di IMAP).
+- [x] AC4: `@llmnative/react/server` si importa in Node senza React; IMAP chiede `imapflow`/`mailparser` solo quando legge.
+- [x] AC5: test degli adattatori (fetch e IMAP simulati), docs `docs/providers/email.md`, `llms-full.txt`, CHANGELOG, release 3.0.0.
+
+---
+
 ## CR-129 — Letture uguali su ogni provider: errori alla pagina, `contains` e `limit`
 
 **Stato:** ✅ done (2.4.0)

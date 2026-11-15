@@ -19,7 +19,7 @@ For an app developer, the important idea is simple: configure the services once 
 | Data | Records, CRUD, realtime lists | Mock, Firebase Realtime DB, Cloud Firestore, Supabase | [DataProvider](/providers/data) |
 | Storage | File upload, file URL, download, delete | Firebase Storage, Supabase Storage | [StorageProvider](/providers/storage) |
 | Auth | Current user, auth changes, access tokens | Google OAuth, Firebase Auth, Supabase Auth, Dropbox OAuth2 | [AuthProvider](/providers/auth) |
-| Email | Outbound email | Gmail | [EmailProvider](/providers/email) |
+| Email | Send mail; read the new mails of a mailbox | Resend, Brevo, Gmail; Gmail (Pub/Sub), IMAP | [Email providers](/providers/email) |
 | AI | Model execution, prompt orchestration, provider/model discovery | OpenAI, OpenRouter, OpenCode, DeepSeek, Gemini, Anthropic, Mistral | [AIProvider](/providers/ai) |
 | Credentials | App-level service account tokens for Google APIs | Google Service Account (Web Crypto JWT) | [CredentialsProvider](/providers/credentials) |
 | Proxy | Same-origin relay for browser-safe external requests | Vite dev proxy, Express proxy | [ProxyProvider](/providers/proxy) |
@@ -77,13 +77,13 @@ if (state && !state.configured) {
 Hooks are useful for custom screens, dashboards, workflow buttons and integration glue.
 
 ```tsx
-import { useDataProvider, useStorageProvider, useAuthProvider, useEmailProvider, useCredentialsProvider } from '@llmnative/react';
+import { useDataProvider, useStorageProvider, useAuthProvider, useEmailSendProvider, useCredentialsProvider } from '@llmnative/react';
 
 function WorkspaceSummary() {
   const data = useDataProvider();
   const storage = useStorageProvider();
   const auth = useAuthProvider();
-  const email = useEmailProvider();
+  const email = useEmailSendProvider();
   const creds = useCredentialsProvider(); // null if not configured
 
   // build custom app logic here
@@ -106,7 +106,7 @@ At a glance, provider selection looks like this:
       data: 'mock',
       storage: 'firestorage',
       auth: 'googleAuth',
-      email: 'gmail',
+      emailSend: 'gmail',
       ai: 'openai',
       proxy: 'viteDevProxy',
     },

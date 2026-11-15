@@ -7,7 +7,7 @@ import { GoogleServiceAccountProvider } from './credentials/google/GoogleService
 import type { CredentialsAdapter } from './credentials/CredentialsProvider';
 import { DropboxAuthProvider } from './auth/dropbox/DropboxAuthProvider';
 import { GitHubAuthProvider } from './auth/github/GitHubAuthProvider';
-import { GmailEmailProvider } from './email/google/GmailEmailProvider';
+import { BrowserGmailEmailSender } from './email/gmail/browser';
 import { SupabaseDataProvider } from './data/supabase';
 import { SupabaseStorageProvider } from './storage/supabase';
 import { SupabaseAuthProvider } from './auth/supabase/SupabaseAuthProvider';
@@ -17,7 +17,8 @@ import type { AIProviderAdapter } from './ai/AIProvider';
 import type { DataProviderAdapter } from './data/DataProvider';
 import type { StorageProviderAdapter } from './storage/StorageProvider';
 import type { AuthProviderAdapter } from './auth/AuthProvider';
-import type { EmailProviderAdapter } from './email/EmailProvider';
+import type { EmailSendAdapter } from './email/EmailSend';
+import type { EmailReadAdapter } from './email/EmailRead';
 import type { AIConfig, DropboxConfig, FirebaseConfig, GitHubAuthConfig, GoogleOAuth2, GoogleServiceAccount, SupabaseConfig } from '../Config';
 import { RuntimeAIProvider } from './ai/shared';
 import { ANTHROPIC_PROVIDER_DEFINITION } from './ai/anthropic';
@@ -34,14 +35,15 @@ import type { ProviderService } from './ProviderRegistryContext';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-/** The 6 built-in categories — alias of ProviderService (ProviderRegistryContext.tsx), derived from ProviderAdapterMap so the two can't drift. */
+/** The 7 built-in categories — alias of ProviderService (ProviderRegistryContext.tsx), derived from ProviderAdapterMap so the two can't drift. */
 export type ServiceCategory = ProviderService;
 
 type AnyAdapter =
     | DataProviderAdapter
     | StorageProviderAdapter
     | AuthProviderAdapter
-    | EmailProviderAdapter
+    | EmailSendAdapter
+    | EmailReadAdapter
     | AIProviderAdapter
     | CredentialsAdapter;
 
@@ -81,7 +83,7 @@ export const FIREBASE_MANIFEST: DriverManifest<FirebaseConfig> = {
 
 export const GOOGLE_MANIFEST: DriverManifest<GoogleProviderConfig> = {
     googleAuth:           { service: 'auth',        create: () => new GoogleAuthProvider() },
-    gmail:                { service: 'email',       create: () => new GmailEmailProvider() },
+    gmail:                { service: 'emailSend',   create: () => new BrowserGmailEmailSender() },
     googleServiceAccount: { service: 'credentials', create: (cfg) => new GoogleServiceAccountProvider(cfg.serviceAccount!), when: (cfg) => !!cfg.serviceAccount },
 };
 
@@ -173,7 +175,7 @@ export const PROVIDER_MANIFESTS: Record<string, DriverManifest<any>> = { // CR-0
 export type DataDriverName    = 'dbRealtime' | 'firestoreDb' | 'supabaseDb' | 'mock';
 export type StorageDriverName = 'firestorage' | 'supabaseStorage';
 export type AuthDriverName        = 'googleAuth' | 'firebaseAuth' | 'dropboxAuth' | 'supabaseAuth' | 'githubAuth' | 'mockAuth';
-export type EmailDriverName       = 'gmail';
+export type EmailSendDriverName   = 'gmail';
 export type AIDriverName          = 'openai' | 'openrouter' | 'opencode' | 'opencode-go' | 'openai-compatible' | 'deepseek' | 'gemini' | 'anthropic' | 'mistral' | 'cloudflare' | 'groq';
 export type CredentialsDriverName = 'googleServiceAccount';
 
@@ -181,7 +183,8 @@ export type ServicesConfig = {
     data?:        DataDriverName | string;
     storage?:     StorageDriverName | string;
     auth?:        AuthDriverName | string;
-    email?:       EmailDriverName | string;
+    emailSend?:   EmailSendDriverName | string;
+    emailRead?:   string;
     ai?:          AIDriverName | string;
     credentials?: CredentialsDriverName | string;
 };

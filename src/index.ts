@@ -11,7 +11,7 @@ export type {
     DataDriverName,
     StorageDriverName,
     AuthDriverName,
-    EmailDriverName,
+    EmailSendDriverName,
     AIDriverName,
 } from './providers/manifest';
 export type { ProxyConfig, GitHubAuthConfig } from './Config';
@@ -199,9 +199,20 @@ export type { GitHubSessionProfile } from './providers/auth/github/GitHubAuthPro
 export type { CredentialsAdapter } from './providers/credentials/CredentialsProvider';
 export { useCredentialsProvider } from './providers/credentials/CredentialsProviderContext';
 export { GoogleServiceAccountProvider } from './providers/credentials/google/GoogleServiceAccountProvider';
-export type { EmailProviderAdapter, EmailSendParams } from './providers/email/EmailProvider';
-export type { EmailProviderId } from './providers/email/definitions';
-export { EMAIL_PROVIDER_DEFINITIONS } from './providers/email/definitions';
+export type { EmailSendAdapter, EmailSendParams, EmailSendResult, EmailAddress, EmailRecipient } from './providers/email/EmailSend';
+export type { EmailReadAdapter, EmailMessage, EmailReadStart, EmailReadBatch, EmailReadOptions } from './providers/email/EmailRead';
+export { EmailProviderError } from './providers/email/EmailError';
+export type { EmailProviderErrorCode } from './providers/email/EmailError';
+export type { EmailSendProviderId, EmailReadProviderId } from './providers/email/definitions';
+export { EMAIL_SEND_PROVIDER_DEFINITIONS, EMAIL_READ_PROVIDER_DEFINITIONS } from './providers/email/definitions';
+export { ResendEmailSender } from './providers/email/resend/ResendEmailSender';
+export type { ResendEmailSenderConfig } from './providers/email/resend/ResendEmailSender';
+export { BrevoEmailSender } from './providers/email/brevo/BrevoEmailSender';
+export type { BrevoEmailSenderConfig } from './providers/email/brevo/BrevoEmailSender';
+export { GmailEmailSender } from './providers/email/gmail/GmailEmailSender';
+export type { GmailEmailSenderConfig } from './providers/email/gmail/GmailEmailSender';
+export { GMAIL_SCOPES } from './providers/email/gmail/gmailApi';
+export type { GmailAuth } from './providers/email/gmail/gmailApi';
 export type { BuildManifest, BuildArtifacts, DeployOptions, DeployResult, Deployment, PublishProviderAdapter } from './providers/publish/PublishProvider';
 export type { PublishProviderId } from './providers/publish/definitions';
 export { PUBLISH_PROVIDER_DEFINITIONS } from './providers/publish/definitions';
@@ -214,8 +225,7 @@ export type { AppIconProviderConfig, IconController } from './providers/icon/Ico
 export { GoogleMapsProvider, useGoogleMapsConfig } from './providers/googleMaps/GoogleMapsProviderContext';
 export { loadGoogleMaps } from './providers/googleMaps/loadGoogleMaps';
 export type { GoogleMapsConfig } from './providers/googleMaps/loadGoogleMaps';
-export { useEmailProvider, EmailProvider } from './providers/email/EmailProviderContext';
-export { GmailEmailProvider } from './providers/email/google/GmailEmailProvider';
+export { useEmailSendProvider, useEmailReadProvider, EmailSendProvider, EmailReadProvider } from './providers/email/EmailProviderContext';
 export type {
     AIRequestOptions, AIReasoningLevel, AIAttachment, AIProviderAdapter, AIKeyValidationResult, AIModelDescriptor, AIModelPricing, DiscoveredAIModel, AIProviderCapabilities, AIModelCatalog, AIProviderDefinition,
     AICompleteRequest, AICompleteResult, AIConversationTurn, AIToolDefinition, AIToolCall, AIToolResult, CloudflareProviderOptions,
@@ -226,7 +236,6 @@ export type { ProviderDescriptor, ProviderCredentialField } from './providers/Pr
 export { useAIProvider, useAIProviderRegistry, AIProvider } from './providers/ai/AIProviderContext';
 export { proxyFetch, useProxy, configureProxy, isProxyEnabled } from './providers/proxy';
 export { googleGetAccessToken } from './providers/auth/google/GoogleAuth';
-export { sendEmail } from './providers/email/google/email';
 export { getKeywordIdeas } from './providers/seo/google/keyword';
 export { getGoogleTrendsData, getGoogleTrendsRelated } from './providers/seo/google/trend';
 

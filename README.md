@@ -213,11 +213,12 @@ export default function UserForm() {
 
 @llmnative/react uses a **Ports & Adapters** architecture. Swap backends without changing your UI.
 
-The framework exposes five service slots:
+The framework exposes six service slots:
 - `data`
 - `storage`
 - `auth`
-- `email`
+- `emailSend`
+- `emailRead`
 - `ai`
 
 ### Firebase

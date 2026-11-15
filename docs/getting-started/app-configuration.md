@@ -60,14 +60,15 @@ interface AppProps {
 
 ## Service map
 
-@llmnative/react currently has seven service slots.
+@llmnative/react currently has eight service slots.
 
 | Service slot | What it does | Main entry points | Built-in drivers |
 |---|---|---|---|
 | `data` | Record CRUD and collection access | `Grid`, `Form`, `useDataProvider` | `dbRealtime`, `firestore`, `supabaseDb`, `mock` |
 | `storage` | Upload, download, delete, file URL | `Upload`, `useStorageProvider` | `firestorage`, `supabaseStorage` |
 | `auth` | Current user, sign-in/out, access token | `AuthButton`, `useAuthProvider` | `googleAuth`, `dropboxAuth`, `firebaseAuth`, `supabaseAuth` |
-| `email` | Outbound email | `useEmailProvider` | `gmail` |
+| `emailSend` | Outbound email | `useEmailSendProvider` | `gmail` (Resend, Brevo, Gmail on a server via `custom`) |
+| `emailRead` | New mails of a mailbox, from a cursor | `useEmailReadProvider` | — (Gmail, IMAP on a server via `custom`) |
 | `ai` | Prompt execution and model orchestration | `Prompt`, `WorkflowAI`, `AI.fetch(...)`, `useAIProvider` | `openai`, `openrouter`, `opencode`, `opencode-go`, `openai-compatible`, `deepseek`, `gemini`, `anthropic`, `mistral`, `glm`, `cloudflare`, `groq` |
 | `credentials` | Service account credentials and token generation | `useCredentialsProvider`, `getAccessToken` | `googleServiceAccount` |
 | `proxy` | Same-origin relay for browser-safe external requests | `proxyFetch(...)`, `useProxyProvider` | `viteDevProxy`, `expressProxy` |
@@ -101,7 +102,8 @@ interface AppProvidersConfig {
     data?: DataProviderAdapter | Record<string, DataProviderAdapter>;
     storage?: StorageProviderAdapter | Record<string, StorageProviderAdapter>;
     auth?: AuthProviderAdapter | Record<string, AuthProviderAdapter>;
-    email?: EmailProviderAdapter | Record<string, EmailProviderAdapter>;
+    emailSend?: EmailSendAdapter | Record<string, EmailSendAdapter>;
+    emailRead?: EmailReadAdapter | Record<string, EmailReadAdapter>;
     credentials?: CredentialsAdapter | Record<string, CredentialsAdapter>;
     ai?: AIProviderAdapter | Record<string, AIProviderAdapter>;
     proxy?: ProxyProviderAdapter | Record<string, ProxyProviderAdapter>;
@@ -111,7 +113,8 @@ interface AppProvidersConfig {
     data?: 'dbRealtime' | 'firestore' | 'supabaseDb' | 'mock' | string;
     storage?: 'firestorage' | 'supabaseStorage' | string;
     auth?: 'googleAuth' | 'dropboxAuth' | 'firebaseAuth' | 'supabaseAuth' | string;
-    email?: 'gmail' | string;
+    emailSend?: 'gmail' | string;
+    emailRead?: string;
     ai?: 'openai' | 'openrouter' | 'opencode' | 'opencode-go' | 'openai-compatible' | 'deepseek' | 'gemini' | 'anthropic' | 'mistral' | 'glm' | 'cloudflare' | 'groq' | string;
     credentials?: 'googleServiceAccount' | string;
     proxy?: 'viteDevProxy' | 'expressProxy' | string;
@@ -288,7 +291,8 @@ import {
   useDataProvider,
   useStorageProvider,
   useAuthProvider,
-  useEmailProvider,
+  useEmailSendProvider,
+  useEmailReadProvider,
   useCredentialsProvider,
   useAIProvider,
   useProxyProvider,
@@ -297,7 +301,8 @@ import {
 const data = useDataProvider();
 const storage = useStorageProvider();
 const auth = useAuthProvider();
-const email = useEmailProvider();
+const emailSend = useEmailSendProvider();
+const emailRead = useEmailReadProvider();
 const credentials = useCredentialsProvider();
 const ai = useAIProvider();
 const proxy = useProxyProvider();

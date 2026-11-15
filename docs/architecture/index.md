@@ -53,7 +53,7 @@ src/
     data/             ← DataProviderAdapter + FirebaseDataProvider (RTDB), FirestoreDataProvider, SupabaseDataProvider, MockDataProvider
     storage/          ← StorageProviderAdapter + FirebaseStorageProvider, SupabaseStorageProvider
     auth/             ← AuthProviderAdapter + GoogleAuthProvider, FirebaseAuthProvider, SupabaseAuthProvider, DropboxAuthProvider
-    email/            ← EmailProviderAdapter + GmailEmailProvider
+    email/            ← EmailSendAdapter (Resend, Brevo, Gmail) + EmailReadAdapter (Gmail, IMAP)
     credentials/      ← CredentialsAdapter + GoogleServiceAccountProvider
     ai/               ← AIProviderAdapter + runtime OpenAI/Gemini/Anthropic/Mistral/DeepSeek/OpenRouter/OpenCode/GLM adapters + orchestration
     icon/             ← IconProviderAdapter + LucideIconProvider, PhosphorIconProvider

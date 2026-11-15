@@ -1,6 +1,6 @@
 // Generic, category-agnostic description of a provider a consuming app can offer the user
 // to connect — separate from the runtime adapter contract each category defines (e.g.
-// AIProviderAdapter, EmailProviderAdapter), which is about *executing* requests once
+// AIProviderAdapter, EmailSendAdapter), which is about *executing* requests once
 // configured. This is about telling a "connect" UI what to render before that: what the
 // provider is called, what credential fields it needs, and where to go get them.
 

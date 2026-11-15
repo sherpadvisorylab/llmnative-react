@@ -1,6 +1,6 @@
 {
   "name": "@llmnative/react",
-  "version": "2.4.0",
+  "version": "3.0.0",
   "description": "LLM-native React framework for deterministic UI generation. Data-driven by default, schema-driven optional. Ultra-low token consumption — built for AI agents, not just humans.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -87,7 +87,9 @@
     "@phosphor-icons/react": "^2.1.0",
     "@supabase/supabase-js": "^2.110.0",
     "firebase": "^12.16.0",
+    "imapflow": "^1.0.0 || ^2.0.0",
     "lucide-react": "^1.26.0",
+    "mailparser": "^3.6.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.18.1"
@@ -96,7 +98,19 @@
     "@phosphor-icons/react": {
       "optional": true
     },
+    "@supabase/supabase-js": {
+      "optional": true
+    },
+    "firebase": {
+      "optional": true
+    },
+    "imapflow": {
+      "optional": true
+    },
     "lucide-react": {
+      "optional": true
+    },
+    "mailparser": {
       "optional": true
     }
   },
@@ -111,6 +125,7 @@
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.7",
     "@types/google.maps": "^3.66.4",
+    "@types/mailparser": "^3.9.0",
     "@types/papaparse": "^5.5.2",
     "@types/prismjs": "^1.26.6",
     "@types/react": "^19.3.0",
@@ -120,8 +135,10 @@
     "autoprefixer": "^10.6.1",
     "firebase": "^12.19.0",
     "happy-dom": "^20.14.5",
+    "imapflow": "^2.11.0",
     "jsdom": "^30.1.1",
     "lucide-react": "^1.49.0",
+    "mailparser": "^3.14.3",
     "postcss": "^8.5.28",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",

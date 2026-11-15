@@ -38,8 +38,9 @@ import { MockDataProvider } from "./providers/data/mock";
 import type { AuthProviderAdapter } from "./providers/auth/AuthProvider";
 import { AuthProvider } from "./providers/auth/AuthProviderContext";
 import { GoogleAuthProvider } from "./providers/auth/google/GoogleAuthProvider";
-import type { EmailProviderAdapter } from "./providers/email/EmailProvider";
-import { EmailProvider } from "./providers/email/EmailProviderContext";
+import type { EmailSendAdapter } from "./providers/email/EmailSend";
+import type { EmailReadAdapter } from "./providers/email/EmailRead";
+import { EmailReadProvider, EmailSendProvider } from "./providers/email/EmailProviderContext";
 import type { CredentialsAdapter } from "./providers/credentials/CredentialsProvider";
 import { CredentialsProvider } from "./providers/credentials/CredentialsProviderContext";
 import { IconProvider, type AppIconProviderConfig } from "./providers/icon/IconProviderContext";
@@ -96,7 +97,7 @@ export type AppProvidersConfig = {
     proxy?: ProxyConfig;
     /**
      * Pre-built adapter instances, registered directly rather than resolved from a
-     * vendor config above. The 6 named categories are typed for convenience, but any
+     * vendor config above. The 7 named categories are typed for convenience, but any
      * other key works too — an entirely new category the framework has no built-in
      * knowledge of (e.g. `{ payments: { stripe: new StripeAdapter() } }`). Consume a
      * custom category with useProvider('payments', 'stripe') — see ProviderRegistryContext.
@@ -105,7 +106,8 @@ export type AppProvidersConfig = {
         data?:        Record<string, DataProviderAdapter>    | DataProviderAdapter;
         storage?:     Record<string, StorageProviderAdapter> | StorageProviderAdapter;
         auth?:        Record<string, AuthProviderAdapter>    | AuthProviderAdapter;
-        email?:       Record<string, EmailProviderAdapter>   | EmailProviderAdapter;
+        emailSend?:   Record<string, EmailSendAdapter>       | EmailSendAdapter;
+        emailRead?:   Record<string, EmailReadAdapter>       | EmailReadAdapter;
         ai?:          Record<string, AIProviderAdapter>      | AIProviderAdapter;
         credentials?: Record<string, CredentialsAdapter>     | CredentialsAdapter;
         [category: string]: unknown;
@@ -185,15 +187,15 @@ function selectDefaultKey<T>(registry: Record<string, T>, preferred?: string, em
 }
 
 /**
- * category → registry of adapters. Open-ended: the 6 built-in categories
- * (data/storage/auth/email/ai/credentials) are always present, but a vertical
+ * category → registry of adapters. Open-ended: the 7 built-in categories
+ * (data/storage/auth/emailSend/emailRead/ai/credentials) are always present, but a vertical
  * can add entirely new categories via providers.custom.<anyName>, or later at
  * runtime via setProvider() — this map has no fixed shape.
  */
 type ProviderRegistries = Record<string, Record<string, unknown>>; // CR-042: heterogeneous adapter map, each category registry has a different value type
 
 function resolveProviderRegistries(providers: AppProvidersConfig = {}) {
-    const registries: ProviderRegistries = { data: {}, storage: {}, auth: {}, email: {}, ai: {}, credentials: {} };
+    const registries: ProviderRegistries = { data: {}, storage: {}, auth: {}, emailSend: {}, emailRead: {}, ai: {}, credentials: {} };
     const ensure = (category: string) => (registries[category] ??= {});
 
     // Manifest-driven: one loop for all providers - adding a new provider
@@ -226,7 +228,8 @@ function resolveProviderRegistries(providers: AppProvidersConfig = {}) {
         data:        { registry: Record<string, DataProviderAdapter>;    defaultKey: string };
         storage:     { registry: Record<string, StorageProviderAdapter>; defaultKey: string };
         auth:        { registry: Record<string, AuthProviderAdapter>;    defaultKey: string };
-        email:       { registry: Record<string, EmailProviderAdapter>;   defaultKey: string };
+        emailSend:   { registry: Record<string, EmailSendAdapter>;       defaultKey: string };
+        emailRead:   { registry: Record<string, EmailReadAdapter>;       defaultKey: string };
         ai:          { registry: Record<string, AIProviderAdapter>;      defaultKey: string };
         credentials: { registry: Record<string, CredentialsAdapter>;     defaultKey: string };
         [category: string]: { registry: Record<string, unknown>; defaultKey: string };
@@ -266,7 +269,7 @@ export const menuTitleOf = (path: string): string | undefined => {
  *
  * Wraps children with: ErrorBoundary → BrowserRouter → RuntimeProvider →
  * AuthProvider → CredentialsProvider → DataProvider → StorageProvider →
- * EmailProvider → AIProvider → IconProvider → GoogleMapsProvider → HeadProvider →
+ * EmailSendProvider → EmailReadProvider → AIProvider → IconProvider → GoogleMapsProvider → HeadProvider →
  * I18nProvider → ThemeProvider → [contextProviders] → children.
  *
  * `contextProviders` runs inside DataProvider, so vertical-specific providers
@@ -347,7 +350,8 @@ export function AppProvider({
                     <CredentialsProvider {...registries.credentials}>
                     <DataProvider {...registries.data}>
                         <StorageProvider {...registries.storage}>
-                            <EmailProvider {...registries.email}>
+                            <EmailSendProvider {...registries.emailSend}>
+                            <EmailReadProvider {...registries.emailRead}>
                                 <AIProvider {...registries.ai}>
                                     <IconProvider config={iconProvider}>
                                         <GoogleMapsProvider config={googleMaps}>
@@ -363,7 +367,8 @@ export function AppProvider({
                                         </GoogleMapsProvider>
                                     </IconProvider>
                                 </AIProvider>
-                            </EmailProvider>
+                            </EmailReadProvider>
+                            </EmailSendProvider>
                         </StorageProvider>
                     </DataProvider>
                     </CredentialsProvider>

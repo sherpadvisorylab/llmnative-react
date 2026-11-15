@@ -1,27 +1,32 @@
 import React, { createContext, useContext, useMemo } from 'react';
-import type { EmailProviderAdapter } from './EmailProvider';
+import type { EmailSendAdapter } from './EmailSend';
+import type { EmailReadAdapter } from './EmailRead';
 
-type EmailProviderContextValue = {
-    registry: Record<string, EmailProviderAdapter>;
-    defaultKey: string;
-};
+// The registries of the categories `emailSend` and `emailRead` (CR-130), as <App> builds them.
 
-const EmailProviderContext = createContext<EmailProviderContextValue | null>(null);
+type Registry<T> = { registry: Record<string, T>; defaultKey: string };
 
-export const EmailProvider = ({
-    registry,
-    defaultKey,
-    children,
-}: EmailProviderContextValue & { children: React.ReactNode }) => {
+const EmailSendContext = createContext<Registry<EmailSendAdapter> | null>(null);
+const EmailReadContext = createContext<Registry<EmailReadAdapter> | null>(null);
+
+export const EmailSendProvider = ({ registry, defaultKey, children }: Registry<EmailSendAdapter> & { children: React.ReactNode }) => {
     const value = useMemo(() => ({ registry, defaultKey }), [registry, defaultKey]);
-    return <EmailProviderContext.Provider value={value}>{children}</EmailProviderContext.Provider>;
+    return <EmailSendContext.Provider value={value}>{children}</EmailSendContext.Provider>;
 };
 
-export const useEmailProvider = (name?: string): EmailProviderAdapter | null => {
-    const ctx = useContext(EmailProviderContext);
-    if (!ctx) return null;
-    const key = name ?? ctx.defaultKey;
-    return ctx.registry[key] ?? null;
+export const EmailReadProvider = ({ registry, defaultKey, children }: Registry<EmailReadAdapter> & { children: React.ReactNode }) => {
+    const value = useMemo(() => ({ registry, defaultKey }), [registry, defaultKey]);
+    return <EmailReadContext.Provider value={value}>{children}</EmailReadContext.Provider>;
 };
 
-export default EmailProviderContext;
+/** The adapter that sends (the default one, or `name`), or `null` when none is registered. */
+export const useEmailSendProvider = (name?: string): EmailSendAdapter | null => {
+    const ctx = useContext(EmailSendContext);
+    return ctx ? ctx.registry[name ?? ctx.defaultKey] ?? null : null;
+};
+
+/** The adapter that reads (the default one, or `name`), or `null` when none is registered. */
+export const useEmailReadProvider = (name?: string): EmailReadAdapter | null => {
+    const ctx = useContext(EmailReadContext);
+    return ctx ? ctx.registry[name ?? ctx.defaultKey] ?? null : null;
+};

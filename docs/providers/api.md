@@ -18,7 +18,7 @@ Use `ApiProvider` when a widget or adapter needs to call a specific third-party 
 - a REST-only AI service
 - any vendor whose API is a simple request/response shape
 
-Do NOT use it for generic HTTP calls — use `fetch()` or `proxyFetch()` directly. `ApiProvider` is for calls that need a registered **base URL + fixed headers + optional secret** so that other framework adapters (e.g. an `EmailProviderAdapter` for Brevo) can stay thin.
+Do NOT use it for generic HTTP calls — use `fetch()` or `proxyFetch()` directly. `ApiProvider` is for calls that need a registered **base URL + fixed headers + optional secret** so that other framework adapters (e.g. an `AIProviderAdapter` for an internal model gateway) can stay thin.
 
 ## Contract
 

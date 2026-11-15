@@ -22,6 +22,7 @@ import { useTheme, useThemeController } from '../../src/Theme';
 import { components as defaultComponents, motion as defaultMotion } from '../../themes/default';
 import { useDataProvider } from '../../src/providers/data/DataProviderContext';
 import { useSetProvider } from '../../src/providers/ProviderRegistryContext';
+import { useEmailReadProvider, useEmailSendProvider } from '../../src/providers/email/EmailProviderContext';
 import type { DataProviderAdapter } from '../../src/providers/data/DataProvider';
 import type { IconComponentProps, IconProviderAdapter } from '../../src/providers/icon/IconProvider';
 import {
@@ -314,6 +315,30 @@ describe('App provider orchestration', () => {
         });
 
         expect(screen.getByTestId('data-provider')).toHaveTextContent('mock-data');
+    });
+
+    it('registers the email categories emailSend and emailRead (CR-130)', () => {
+        const sender = (id: string) => ({ id, send: vi.fn(async () => ({ id: 'm' })) });
+        const reader = { id: 'imap', start: vi.fn(), read: vi.fn() };
+        const EmailProbe = () => {
+            const send = useEmailSendProvider() as unknown as { id: string };
+            const named = useEmailSendProvider('resend') as unknown as { id: string };
+            const read = useEmailReadProvider() as unknown as { id: string };
+            return <span data-testid="email">{`${send.id}|${named.id}|${read.id}`}</span>;
+        };
+        renderApp({
+            menuConfig: { main: [{ path: '/probe', page: EmailProbe }] },
+            providers: {
+                custom: {
+                    data: createDataProvider('single-data'),
+                    emailSend: { resend: sender('resend'), brevo: sender('brevo') },
+                    emailRead: reader,
+                },
+                services: { data: 'custom', emailSend: 'brevo' },
+            },
+        });
+
+        expect(screen.getByTestId('email')).toHaveTextContent('brevo|resend|imap');
     });
 
     it('does not dispose an adapter when it is registered again by identity', async () => {

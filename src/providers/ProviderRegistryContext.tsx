@@ -2,7 +2,8 @@ import React, { createContext, useContext } from 'react';
 import type { DataProviderAdapter } from './data/DataProvider';
 import type { StorageProviderAdapter } from './storage/StorageProvider';
 import type { AuthProviderAdapter } from './auth/AuthProvider';
-import type { EmailProviderAdapter } from './email/EmailProvider';
+import type { EmailSendAdapter } from './email/EmailSend';
+import type { EmailReadAdapter } from './email/EmailRead';
 import type { AIProviderAdapter } from './ai/AIProvider';
 import type { CredentialsAdapter } from './credentials/CredentialsProvider';
 
@@ -10,19 +11,20 @@ export type ProviderAdapterMap = {
     data: DataProviderAdapter;
     storage: StorageProviderAdapter;
     auth: AuthProviderAdapter;
-    email: EmailProviderAdapter;
+    emailSend: EmailSendAdapter;
+    emailRead: EmailReadAdapter;
     ai: AIProviderAdapter;
     credentials: CredentialsAdapter;
 };
 
-/** The 6 categories the framework ships out of the box. Any other string is a valid category too — see customCategories on <App>. */
+/** The 7 categories the framework ships out of the box. Any other string is a valid category too — see customCategories on <App>. */
 export type ProviderService = keyof ProviderAdapterMap;
 
 export type ProviderRegistrySnapshot = Record<string, { registry: Record<string, unknown>; defaultKey: string }>;
 
 /**
  * Replaces a single named adapter in a provider registry at runtime, in ANY
- * category — one of the 6 built-in ones (typed) or an arbitrary custom one a
+ * category — one of the 7 built-in ones (typed) or an arbitrary custom one a
  * vertical registered (string). Calls the previous adapter's dispose() (if
  * defined) only when the instance changes, then propagates the new registry to every
  * useXProvider()/useProvider() consumer. If `category` didn't exist yet, it's
@@ -61,7 +63,7 @@ export const useSetProvider = (): SetProviderFn => useRegistryContext().setProvi
 
 /**
  * Generic read access to any provider category — built-in or custom. Prefer the
- * typed useDataProvider()/useStorageProvider()/... for the 6 built-ins; reach for
+ * typed useDataProvider()/useStorageProvider()/... for the 7 built-ins; reach for
  * this when consuming a category the framework doesn't know about (registered via
  * providers.customCategories or a runtime setProvider() call).
  */

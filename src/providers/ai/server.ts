@@ -1,4 +1,5 @@
-// `@llmnative/react/server`: what a Node proxy needs for server-held AI credentials (CR-102).
+// `@llmnative/react/server`: what a Node server needs: server-held AI credentials (CR-102), GitHub sign-in,
+// the email adapters (CR-130).
 // No React and no browser API: it runs in the app's own server or in the Vite dev proxy.
 
 import { findServerCredentials, isAIProviderTarget, type ServerAIConnection } from './serverCredentials';
@@ -49,3 +50,26 @@ export async function resolveServerCredentials(request: ServerCredentialRequest,
     }
     return { ok: true, url, headers };
 }
+
+// Email (CR-130): the adapters of `emailSend` and `emailRead` for a server, Gmail's OAuth and push. IMAP loads
+// the optional packages `imapflow` and `mailparser` only when it reads.
+export { EmailProviderError } from '../email/EmailError';
+export type { EmailProviderErrorCode } from '../email/EmailError';
+export type { EmailSendAdapter, EmailSendParams, EmailSendResult, EmailAddress, EmailRecipient } from '../email/EmailSend';
+export type { EmailReadAdapter, EmailMessage, EmailReadStart, EmailReadBatch, EmailReadOptions } from '../email/EmailRead';
+export { EMAIL_SEND_PROVIDER_DEFINITIONS, EMAIL_READ_PROVIDER_DEFINITIONS } from '../email/definitions';
+export type { EmailSendProviderId, EmailReadProviderId } from '../email/definitions';
+export { ResendEmailSender } from '../email/resend/ResendEmailSender';
+export type { ResendEmailSenderConfig } from '../email/resend/ResendEmailSender';
+export { BrevoEmailSender } from '../email/brevo/BrevoEmailSender';
+export type { BrevoEmailSenderConfig } from '../email/brevo/BrevoEmailSender';
+export { GmailEmailSender } from '../email/gmail/GmailEmailSender';
+export type { GmailEmailSenderConfig } from '../email/gmail/GmailEmailSender';
+export { GmailEmailReader, decodeGmailPushNotification } from '../email/gmail/GmailEmailReader';
+export type { GmailEmailReaderConfig } from '../email/gmail/GmailEmailReader';
+export { createGmailOAuth } from '../email/gmail/gmailOAuth';
+export type { GmailOAuth, GmailOAuthConfig } from '../email/gmail/gmailOAuth';
+export { GMAIL_SCOPES } from '../email/gmail/gmailApi';
+export type { GmailAuth } from '../email/gmail/gmailApi';
+export { ImapEmailReader } from '../email/imap/ImapEmailReader';
+export type { ImapEmailReaderConfig, ImapModules } from '../email/imap/ImapEmailReader';

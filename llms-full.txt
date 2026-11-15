@@ -45,7 +45,8 @@ import '@llmnative/react/dist/index.css'
       data:        'dbRealtime',      // DataDriverName
       storage:     'firestorage',     // StorageDriverName | null
       auth:        'googleAuth',      // AuthDriverName | null
-      email:       'gmail',           // EmailDriverName | null
+      emailSend:   'gmail',           // EmailSendDriverName | null
+      emailRead:   'imap',            // un adapter registrato in custom.emailRead
       ai:          'openai',          // AIDriverName | null
       credentials: 'googleServiceAccount',
     },
@@ -118,7 +119,8 @@ A border without a color class (`border`, `border-b`) is the theme's `border`, n
 | data | `DataProviderAdapter` | `mock`, `dbRealtime`, `firestoreDb`, `supabaseDb` | `providers.mock/firebase/supabase` | sì (fallback: mock) |
 | storage | `StorageProviderAdapter` | `firestorage`, `supabaseStorage` | `providers.firebase/supabase` | no |
 | auth | `AuthProviderAdapter` | `googleAuth`, `firebaseAuth`, `supabaseAuth`, `dropboxAuth`, `githubAuth` | `providers.google/firebase/supabase/dropbox/github` | sì (fallback: googleAuth) |
-| email | `EmailProviderAdapter` | `gmail` | `providers.google` | no |
+| emailSend | `EmailSendAdapter` | `gmail` (+ `ResendEmailSender`, `BrevoEmailSender`, `GmailEmailSender` in `custom`) | `providers.google` / `custom.emailSend` | no |
+| emailRead | `EmailReadAdapter` | — (`GmailEmailReader`, `ImapEmailReader` in `custom`) | `custom.emailRead` | no |
 | ai | `AIProviderAdapter` | `openai`, `gemini`, `anthropic`, `deepseek`, `mistral`, `openrouter`, `opencode`, `opencode-go`, `cloudflare`, `groq` | `Config.tsx AIConfig` | no |
 | credentials | `CredentialsAdapter` | `googleServiceAccount` | `providers.google.serviceAccount` | no |
 
@@ -183,13 +185,43 @@ export const menuConfig: MenuConfig = {
 const data    = useDataProvider()           // DataProviderAdapter | null
 const storage = useStorageProvider()        // StorageProviderAdapter | null
 const auth    = useAuthProvider()           // AuthProviderAdapter | null
-const email   = useEmailProvider()          // EmailProviderAdapter | null
+const send    = useEmailSendProvider()      // EmailSendAdapter | null
+const read    = useEmailReadProvider()      // EmailReadAdapter | null
 const ai      = useAIProvider()             // AIProviderAdapter | null
 const creds   = useCredentialsProvider()    // CredentialsAdapter | null
 
 // Named provider (multi-provider setup)
 const supabase = useDataProvider('supabase')
 ```
+
+### Email (`emailSend`, `emailRead`)
+
+Due categorie: `emailSend` spedisce, `emailRead` legge le mail nuove da un cursore che l'app conserva. Gli
+adapter con chiavi, token o password girano sul server, da `@llmnative/react/server` (senza React).
+
+```ts
+import { ResendEmailSender, BrevoEmailSender, GmailEmailSender, GmailEmailReader, ImapEmailReader,
+  createGmailOAuth, decodeGmailPushNotification, GMAIL_SCOPES, EmailProviderError } from '@llmnative/react/server'
+
+const mail = new BrevoEmailSender({ apiKey, from: { email: 'noreply@acme.it', name: 'Acme' } })  // o ResendEmailSender
+await mail.send({ to, cc, bcc, replyTo, subject, html, text })   // → { id, threadId? }; to/cc/bcc: stringa, { email, name } o lista
+new GmailEmailSender({ auth: { clientId, clientSecret, refreshToken }, from? })  // send con threadId per restare nella conversazione
+
+const reader = new GmailEmailReader({ auth: { clientId, clientSecret, refreshToken }, topic: 'projects/p/topics/gmail' })
+// o new ImapEmailReader({ host, port: 993, secure: true, user, password })  — peer opzionali imapflow + mailparser
+const { cursor, expiresAt } = await reader.start()    // da adesso; Gmail: watch su Pub/Sub, rinnovare prima di expiresAt
+const batch = await reader.read(cursor, { limit: 50 }) // { messages: EmailMessage[], cursor } — cursore scaduto: riparte da adesso
+decodeGmailPushNotification(pubsubData)                // { emailAddress, historyId } | null
+createGmailOAuth({ clientId, clientSecret, redirectUri })  // authorizationUrl({ state, scopes }), exchangeCode(code) → { email, refreshToken }
+```
+
+`EmailMessage`: `{ id, threadId, from, to, subject, date (ISO), text, direction: 'inbound' | 'outbound', cursor }` — `cursor` è dove riprendere dopo quel messaggio (se un gestore fallisce, si salva il cursore dell'ultimo gestito).
+Errori: `EmailProviderError` con `code` (`not-configured`, `invalid-message`, `unauthorized`, `rejected`,
+`rate-limited`, `unavailable`, `unknown`), `provider`, `status`; il messaggio non contiene mai chiavi.
+Schede per una UI di collegamento: `EMAIL_SEND_PROVIDER_DEFINITIONS`, `EMAIL_READ_PROVIDER_DEFINITIONS`.
+Nel browser il provider `google` registra il driver `gmail` di `emailSend` (utente con Google);
+`useEmailSendProvider(name?)`, `useEmailReadProvider(name?)`. La categoria `email` e `useEmailProvider` non
+esistono più (3.0.0).
 
 ### GitHub (`githubAuth`, sessione sul server dell'app)
 
@@ -1457,7 +1489,8 @@ removeGlobalVars('key')
 | `useDataProvider(name?)` | `DataProviderAdapter \| null` |
 | `useStorageProvider(name?)` | `StorageProviderAdapter \| null` |
 | `useAuthProvider(name?)` | `AuthProviderAdapter \| null` |
-| `useEmailProvider(name?)` | `EmailProviderAdapter \| null` |
+| `useEmailSendProvider(name?)` | `EmailSendAdapter \| null` |
+| `useEmailReadProvider(name?)` | `EmailReadAdapter \| null` |
 | `useAIProvider(name?)` | `AIProviderAdapter \| null` |
 | `useAIProviderRegistry()` | `Record<string, AIProviderAdapter>` |
 | `useCredentialsProvider()` | `CredentialsAdapter \| null` |
@@ -1635,7 +1668,7 @@ Driver per `VITE_PROVIDER`: `firebase` → `firestoreDb` + `firestorage` + `fire
 | Provider auth Supabase | `src/providers/auth/supabase/` |
 | Provider auth Google | `src/providers/auth/google/` |
 | Provider auth Dropbox | `src/providers/auth/dropbox/` |
-| Provider email Gmail | `src/providers/email/google/GmailEmailProvider.ts` |
+| Provider email (Resend, Brevo, Gmail, IMAP) | `src/providers/email/` |
 | Provider AI definitions | `src/providers/ai/` |
 | Provider credenziali | `src/providers/credentials/` |
 | Provider session | `src/providers/ProviderSession.ts` |
@@ -1646,7 +1679,7 @@ Driver per `VITE_PROVIDER`: `firebase` → `firestoreDb` + `firestorage` + `fire
 | Interfaccia DataProvider | `src/providers/data/DataProvider.ts` |
 | Interfaccia StorageProvider | `src/providers/storage/StorageProvider.ts` |
 | Interfaccia AuthProvider | `src/providers/auth/AuthProvider.ts` |
-| Interfaccia EmailProvider | `src/providers/email/EmailProvider.ts` |
+| Interfacce email | `src/providers/email/EmailSend.ts`, `src/providers/email/EmailRead.ts` |
 | Interfaccia AIProvider | `src/providers/ai/AIProvider.ts` |
 | Registry provider | `src/providers/manifest.ts` |
 | Config provider | `src/providers/ProviderConfiguration.ts` |
