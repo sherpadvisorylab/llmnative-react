@@ -395,6 +395,21 @@ export interface ThemeConfig {
         labelClassName?: string;
         valueClassName?: string;
     };
+    /** CR-131 — the menu of the sections of a page. */
+    SectionNav?: {
+        className?: string;
+        itemClassName?: string;
+        activeClassName?: string;
+        groupClassName?: string;
+    };
+    /** CR-131 — a section of a long page, with its anchor. */
+    PageSection?: {
+        className?: string;
+        headerClassName?: string;
+        titleClassName?: string;
+        descriptionClassName?: string;
+        bodyClassName?: string;
+    };
     Tab?: {
         wrapperClassName?: string;
         className?: string;

@@ -24,6 +24,8 @@ export interface I18nDict {
         openNavigation:  string;
         /** CR-129 — a read the database refused or lost. */
         loadError:  string;
+        /** CR-131 — the name of the menu of the sections of a page. */
+        pageSections: string;
     };
     auth: {
         signIn:         string;

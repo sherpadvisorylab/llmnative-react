@@ -17,6 +17,7 @@ export const en: I18nDict = {
         goHome: 'Go to Home',
         openNavigation: 'Open navigation',
         loadError: "Couldn't read the data. Try again in a moment.",
+        pageSections: 'Sections of the page',
     },
     auth: {
         signIn: 'Sign in',

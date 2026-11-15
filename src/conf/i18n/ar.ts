@@ -9,6 +9,7 @@ export const ar: I18nDict = {
         notFoundMessage: 'عفوًا! الصفحة غير موجودة.', goHome: 'الذهاب إلى الرئيسية',
         openNavigation: 'فتح التنقل',
         loadError: 'تعذّرت قراءة البيانات. حاول مرة أخرى بعد قليل.',
+        pageSections: 'أقسام الصفحة',
     },
     auth: {
         signIn: 'تسجيل الدخول', signOut: 'تسجيل الخروج', connect: 'ربط',

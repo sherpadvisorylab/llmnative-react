@@ -160,6 +160,30 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
+## CR-131 — SectionNav: menu delle sezioni di una pagina, con la sezione corrente
+
+**Stato:** ✅ done (3.1.0)
+**Issue:** [#110](https://github.com/sherpadvisorylab/llmnative-react/issues/110)
+**Priorità:** Media
+
+### Motivazione
+Emersa il 15/11/2026 rifacendo la pagina Impostazioni di un consumer (un CRM): tante sezioni in una colonna (configurazione e dati), come le pagine di impostazioni di Stripe, Linear, Vercel e GitHub, con un menu che resta fermo a lato, dice in che sezione si è e porta a ciascuna. Il framework non ha né il menu né un blocco di sezione con un'ancora: il consumer dovrebbe scrivere a mano IntersectionObserver, scroll, hash e layout responsive.
+
+### Scope
+- **`SectionNav`**: il menu delle sezioni (`sections: { id, label, icon?, badge?, group? }[]`). Su schermi larghi una colonna verticale `sticky`, raggruppata per `group`; su schermi stretti una fila orizzontale che scorre, `sticky` in alto. La voce della sezione visibile è evidenziata (`aria-current="location"`); il clic porta alla sezione (scorrimento morbido, istantaneo con `prefers-reduced-motion`), ne aggiorna l'hash dell'indirizzo senza navigare e le sposta il focus. All'apertura con un hash va a quella sezione.
+- **`useActiveSection(ids, { offset, menu })`**: la sezione corrente, come la vede chi legge: l'ultima il cui inizio ha passato la linea sotto l'header (e sotto la fila del menu su schermi stretti), misurata nell'area che scorre (la finestra o il `main` del layout); in fondo alla pagina resta quella scelta. `goToSection(id)`.
+- **`PageSection`**: una sezione con `id` (ancora), titolo, descrizione, azioni a destra e `scroll-margin` per non finire sotto un header fisso.
+- **`SectionLayout`**: menu e contenuto affiancati (menu sopra su schermi stretti), con `offset` per l'header dell'app.
+- Tema (`SectionNav`, `PageSection`), i18n `common.pageSections` (6 lingue), docs, showcase, test.
+
+### Criteri di accettazione
+- [x] AC1: il menu evidenzia la sezione visibile e porta a quella cliccata, aggiornando l'hash senza una navigazione del router; un hash all'apertura porta alla sua sezione.
+- [x] AC2: tastiera e lettori di schermo: link veri, `nav` con etichetta tradotta, `aria-current`, focus sulla sezione raggiunta; movimento ridotto rispettato.
+- [x] AC3: su schermi stretti il menu diventa una fila orizzontale `sticky`, senza scroll orizzontale della pagina.
+- [x] AC4: test, `llms-full.txt`, showcase, CHANGELOG, release minor.
+
+---
+
 ## CR-130 — Mail: categorie `emailSend` ed `emailRead`, Resend, Brevo, Gmail e IMAP
 
 **Stato:** ✅ done (3.0.0)

@@ -1217,6 +1217,30 @@ e lasciano il menu aperto salvo `closeOnClick`.
 | `onClick` | `(e) => void` |
 | Classi CSS: `titleClassName`, `descriptionClassName`, `metaClassName`, `badgeClassName`, `leadingClassName`, `bodyClassName`, `headerClassName`, `trailingClassName`, `footerClassName` | `string` |
 
+**SectionNav, SectionLayout, PageSection (CR-131):** le sezioni di una pagina lunga (impostazioni, una scheda in
+una colonna) con un menu accanto che resta fermo, dice in che sezione si è e porta a ciascuna. Su schermi larghi
+colonna `sticky` raggruppata per `group`; su schermi stretti fila orizzontale `sticky` che scorre. La sezione visibile
+ha `aria-current="location"`; il clic scorre (istantaneo con movimento ridotto), mette `#id` nell'indirizzo senza
+navigare e sposta il focus; un hash all'apertura porta alla sua sezione.
+
+```tsx
+<SectionLayout offset={64} sections={[
+  { id: 'posta', label: 'Posta in uscita', group: 'Configurazione', badge: <Badge variant="warning">Da fare</Badge> },
+  { id: 'catalogo', label: 'Catalogo', group: 'Dati' },
+]}>
+  <PageSection id="posta" title="Posta in uscita" description="…" actions={<ActionButton label="Modifica" />} offset={64}>…</PageSection>
+  <PageSection id="catalogo" title="Catalogo" offset={64}><Grid … /></PageSection>
+</SectionLayout>
+```
+
+| Export | |
+|---|---|
+| `SectionNav` | `sections` (`{ id, label, icon?, badge?, group? }[]`), `offset` (px di ciò che è fisso sopra l'area che scorre; 0 se scorre il `main` del layout), `label` (default `common.pageSections`) |
+| `SectionLayout` | menu + contenuto (menu sopra su schermi stretti); `sections`, `offset`, `label`, `children` |
+| `PageSection` | `id` (ancora), `title`, `description`, `actions`, `offset` (`scroll-margin`) |
+| `useActiveSection(ids, { offset, menu })` | `[active, select]`: l'ultima sezione il cui inizio ha passato la linea sotto l'header (e sotto la fila del menu su schermi stretti), misurata nell'area che scorre (finestra o `main`); in fondo alla pagina resta quella scelta |
+| `goToSection(id)` | scorre, aggiorna l'hash, sposta il focus |
+
 **SortableList (CR-120):** card compatte (ListCard) in un ordine che la persona sceglie: le trascina per la
 maniglia, o con le frecce su/giù sulla maniglia; l'annuncio della nuova posizione va agli screen reader.
 ```tsx

@@ -463,6 +463,19 @@ export const components: Theme = {
         labelClassName: '',
         valueClassName: '',
     },
+    SectionNav: {
+        className: '',
+        itemClassName: '',
+        activeClassName: '',
+        groupClassName: '',
+    },
+    PageSection: {
+        className: '',
+        headerClassName: '',
+        titleClassName: '',
+        descriptionClassName: '',
+        bodyClassName: '',
+    },
     Tab: {
         wrapperClassName: '',
         className: '',

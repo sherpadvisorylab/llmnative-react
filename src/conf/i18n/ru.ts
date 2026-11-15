@@ -9,6 +9,7 @@ export const ru: I18nDict = {
         notFoundMessage: 'Упс! Страница не найдена.', goHome: 'На главную',
         openNavigation: 'Открыть навигацию',
         loadError: 'Не удалось прочитать данные. Попробуйте ещё раз чуть позже.',
+        pageSections: 'Разделы страницы',
     },
     auth: {
         signIn: 'Войти', signOut: 'Выйти', connect: 'Подключить',

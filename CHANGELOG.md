@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.0] - 2026-11-15
+
+### Added
+- `SectionNav`, `SectionLayout`, `PageSection`, `useActiveSection`, `goToSection` (CR-131): the sections of a long page
+  with a menu at their side. Sticky column grouped by `group` on large screens, sticky row that scrolls sideways on
+  small ones; the section on screen (the last whose top passed the line below the header, measured in the area that
+  scrolls: the window or a layout's `main`) has `aria-current="location"`; a click scrolls to it (instantly with
+  reduced motion), puts `#id` in the address without a router navigation and moves the focus; a hash on load opens
+  its section. Breakpoint styles only in `max-lg:`/`lg:`, so an app stylesheet loaded later cannot undo them. Theme slots `SectionNav`, `PageSection`; `common.pageSections` in 6 languages; showcase page.
+
 ## [3.0.0] - 2026-11-15
 
 ### Breaking
