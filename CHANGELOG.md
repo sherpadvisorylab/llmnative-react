@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.2.0] - 2026-11-15
+
 ### Added
 - Structured answers decided by the project (CR-132): `complete({ output: { schema, name?, description? } })` gives
   `data` validated against the JSON Schema, natively where the provider has a mode (Gemini `responseSchema`, OpenAI
