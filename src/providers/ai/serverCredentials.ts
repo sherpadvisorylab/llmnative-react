@@ -15,6 +15,9 @@ export type ServerAIConnection = {
     accountId?: string;
     /** openai-compatible: the endpoint. */
     baseUrl?: string;
+    /** Vertex AI (CR-133): the project its token may go to. */
+    projectId?: string;
+    location?: string;
 };
 
 /** The placeholder an adapter writes where the key goes: `llmnative-server-credential:<scope>:<provider>`. */
@@ -47,7 +50,17 @@ export const AI_PROVIDER_HOSTS: Readonly<Record<string, string>> = {
 const trimSlashes = (path: string) => path.replace(/\/+$/, '');
 
 /** Whether `target` is an API URL of the provider of `connection`: where its key may go. */
+/** The hosts of Vertex AI: global, the multi-regions (`eu`, `us`) and the regions. */
+const VERTEX_HOST = /^(?:aiplatform\.googleapis\.com|aiplatform\.(?:eu|us)\.rep\.googleapis\.com|[a-z]+-[a-z]+\d+-aiplatform\.googleapis\.com)$/;
+
 export const isAIProviderTarget = (connection: ServerAIConnection, target: URL): boolean => {
+    // Vertex AI (CR-133): the token only goes to its project, or to the public catalog of the models.
+    if (connection.id === 'vertex') {
+        if (target.protocol !== 'https:' || !VERTEX_HOST.test(target.host) || !connection.projectId) return false;
+        const project = encodeURIComponent(connection.projectId.trim());
+        return target.pathname.startsWith(`/v1/projects/${project}/`) || target.pathname.startsWith(`/v1beta1/projects/${project}/`)
+            || /^\/v1beta1\/publishers\/(?:google|anthropic)\/models$/.test(target.pathname);
+    }
     if (connection.id === 'openai-compatible') {
         if (!connection.baseUrl) return false;
         const base = new URL(connection.baseUrl);

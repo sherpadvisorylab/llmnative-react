@@ -1479,6 +1479,21 @@ dalla risposta. Una correzione con gli errori, poi `AIOutputError` (`code: 'inva
 
 Su un server (senza React): `createAIProvider(id | definition, key | () => key)` da `@llmnative/react/server`.
 
+### Vertex AI (CR-133)
+
+```ts
+// Server: identità del server su Google Cloud, GOOGLE_APPLICATION_CREDENTIALS, gcloud ADC o serviceAccount
+const vertex = await createVertexAIProvider({ projectId, location: 'eu' })   // da @llmnative/react/server
+await vertex.complete({ model: 'gemini-3.5-flash', prompt, output: { schema } })
+// Browser tramite il proxy: createServerCredentialAIRegistry([{ id: 'vertex', projectId, location }], { scope })
+// il lookup del server dà { id: 'vertex', projectId, apiKey: <token fresco> }
+```
+
+Località `eu`/`us` (multi-regione, host `aiplatform.<loc>.rep.googleapis.com`), `global`, o una regione. Modelli dal
+catalogo della località (Gemini `generateContent`, Claude `rawPredict`), `dataRegion` dalla località. Errori
+`VertexAIError` con `code` `not-found` | `quota` | `forbidden` | `unauthorized` | `invalid` | `unavailable`. Config
+browser: `ai.vertex = { projectId, location, accessToken, defaultModel }`. `googleAccessToken()` per il solo token.
+
 Configurazione API key in `Config.tsx`: `geminiApiKey`, `openaiApiKey`, `anthropicApiKey`, `deepSeekApiKey`, `mistralApiKey`, `openRouterApiKey`, `groqApiKey`, `cloudflare: { apiToken, accountId }` (Cloudflare Workers AI: l'account id fa parte dell'URL; discovery via `ai/models/search`, modelli Workers Paid esclusi salvo `includePaidModels`).
 
 ---

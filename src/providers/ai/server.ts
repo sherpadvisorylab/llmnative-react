@@ -16,6 +16,11 @@ export type { ModelIdentity, ModelIdentityEntry, ModelIdentityIndex, ResolvedMod
 // The AI adapters on a server (CR-132): the same ones the browser uses, with a key or what gives a fresh one,
 // structured answers validated against the project's schema, the tokens used, where each model processes the data.
 export { createAIProvider, AI_PROVIDER_DEFINITIONS, createOpenAICompatibleProviderDefinition, createCloudflareProviderDefinition, getAIModelCatalog, formatAIModelRef, parseAIModelRef, AIOutputError, validateJsonSchema, extractJson } from './index';
+// Vertex AI on a server (CR-133): its tokens from a service account or the application default credentials.
+export { createVertexProviderDefinition, vertexHost, vertexDataRegion, isVertexClaudeModel, VertexAIError } from './index';
+export type { VertexLocation, VertexProviderOptions, VertexAIErrorCode } from './index';
+export { googleAccessToken, createVertexAIProvider, CLOUD_PLATFORM_SCOPE } from './vertexAuth';
+export type { GoogleAccessToken, GoogleAccessTokenOptions, GoogleCredentialKind, VertexAIProviderOptions } from './vertexAuth';
 export type {
     AIProviderAdapter, AIProviderDefinition, AIModelDescriptor, AIProviderCapabilities, AICompleteRequest, AICompleteResult, AIStructuredOutput,
     AIStructuredOutputMode, AIUsage, AIDataRegion, AICredential, AIAttachment, AIReasoningLevel, JsonSchema, JsonSchemaType,

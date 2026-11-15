@@ -188,7 +188,7 @@ Emersa il 15/11/2026: lo studio di un consumer (Playbook) ha una sua schermata p
 
 ## CR-133 — Provider AI Vertex: Gemini e Claude su Google Cloud, con l'account di servizio e la località
 
-**Stato:** ⬜ todo
+**Stato:** ✅ done (3.2.0)
 **Issue:** [#112](https://github.com/sherpadvisorylab/llmnative-react/issues/112)
 **Priorità:** Alta
 **Dipende da:** CR-132
@@ -205,12 +205,15 @@ Emersa il 15/11/2026: un consumer (un CRM) vuole i suoi agenti su Vertex AI, pag
 - Disponibile anche dall'entry `@llmnative/react/server`.
 - Docs (endpoint `eu`, quota dei modelli Claude), test con fetch finto, prova reale documentata.
 
+### Verifica
+Prova reale il 15/11/2026 dal bundle server su un progetto con Vertex attivo, località `eu`: `gemini-3.5-flash-lite`, `gemini-3.5-flash` e `gemini-4-argon` danno dati validi sullo schema con i token; `claude-haiku-5-5` dà `quota` (429, quota iniziale 0); `gemini-3-flash` dà `not-found`; 23 modelli di testo nel catalogo `eu`, tutti con prezzo.
+
 ### Criteri di accettazione
-- [ ] AC1: un progetto chiama Gemini su `eu` dal server con ADC e dal browser tramite il proxy, con la stessa API degli altri provider.
-- [ ] AC2: i modelli offerti sono quelli del catalogo dell'endpoint scelto, ciascuno con la zona dei dati.
-- [ ] AC3: output strutturato nativo (`responseSchema`) per Gemini; per Claude come da CR-132.
-- [ ] AC4: errori senza segreti né testo del prompt; modello assente (404), quota (429) e permesso (403) distinti.
-- [ ] AC5: release minor.
+- [x] AC1: un progetto chiama Gemini su `eu` dal server con ADC e dal browser tramite il proxy, con la stessa API degli altri provider.
+- [x] AC2: i modelli offerti sono quelli del catalogo dell'endpoint scelto, ciascuno con la zona dei dati.
+- [x] AC3: output strutturato nativo (`responseSchema`) per Gemini; per Claude come da CR-132.
+- [x] AC4: errori senza segreti né testo del prompt; modello assente (404), quota (429) e permesso (403) distinti.
+- [x] AC5: release minor.
 
 ---
 

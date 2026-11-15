@@ -230,9 +230,10 @@ export type {
     AIRequestOptions, AIReasoningLevel, AIAttachment, AIProviderAdapter, AIKeyValidationResult, AIModelDescriptor, AIModelPricing, DiscoveredAIModel, AIProviderCapabilities, AIModelCatalog, AIProviderDefinition,
     AICompleteRequest, AICompleteResult, AIConversationTurn, AIToolDefinition, AIToolCall, AIToolResult, CloudflareProviderOptions,
     AIStructuredOutput, AIStructuredOutputMode, AIUsage, AIDataRegion, AICredential, JsonSchema, JsonSchemaType,
+    VertexLocation, VertexProviderOptions, VertexAIErrorCode,
     ServerAIProviderConnection, ServerAIConnection, ModelIdentity, ModelIdentityEntry, ModelIdentityIndex, ResolvedModel, ModelOffer, ModelCost,
 } from './providers/ai';
-export { createAIProviderRegistry, createAIProvider, getAIModelCatalog, formatAIModelRef, parseAIModelRef, isFreeAIModel, AIOutputError, validateJsonSchema, extractJson, AI_PROVIDER_DEFINITIONS, AI_PROVIDER_DESCRIPTORS, OPENAI_COMPATIBLE_PROVIDER_DESCRIPTOR, CLOUDFLARE_PROVIDER_DESCRIPTOR, createCloudflareProviderDefinition, toProviderDescriptor, createServerCredentialAIRegistry, serverCredential, SERVER_CREDENTIAL_PREFIX, AI_PROVIDER_HOSTS, isAIProviderTarget, canonicalModelName, buildModelIdentityIndex, resolveModel, modelOffers, loadModelIdentityIndex } from './providers/ai';
+export { createAIProviderRegistry, createAIProvider, getAIModelCatalog, formatAIModelRef, parseAIModelRef, isFreeAIModel, AIOutputError, validateJsonSchema, extractJson, createVertexProviderDefinition, VERTEX_PROVIDER_DESCRIPTOR, vertexHost, vertexDataRegion, isVertexClaudeModel, VertexAIError, AI_PROVIDER_DEFINITIONS, AI_PROVIDER_DESCRIPTORS, OPENAI_COMPATIBLE_PROVIDER_DESCRIPTOR, CLOUDFLARE_PROVIDER_DESCRIPTOR, createCloudflareProviderDefinition, toProviderDescriptor, createServerCredentialAIRegistry, serverCredential, SERVER_CREDENTIAL_PREFIX, AI_PROVIDER_HOSTS, isAIProviderTarget, canonicalModelName, buildModelIdentityIndex, resolveModel, modelOffers, loadModelIdentityIndex } from './providers/ai';
 export type { ProviderDescriptor, ProviderCredentialField } from './providers/ProviderDescriptor';
 export { useAIProvider, useAIProviderRegistry, AIProvider } from './providers/ai/AIProviderContext';
 export { proxyFetch, useProxy, configureProxy, isProxyEnabled } from './providers/proxy';

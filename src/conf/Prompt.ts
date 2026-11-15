@@ -1,6 +1,15 @@
 ﻿import { converter } from "../libs/converter";
 import { currentCountry, currentLang, COUNTRIES, LANGS } from "../libs/locale";
 
+/** A preference kept in the browser; none on a server (no localStorage there). */
+const storedPreference = (key: string): string | null => {
+    try {
+        return typeof localStorage !== 'undefined' ? localStorage.getItem(key) : null;
+    } catch {
+        return null;
+    }
+};
+
 export const PROMPT_CLEANUP = `Please ignore all previous instructions.`;
 export const PROMPT_NO_REFERENCE = `Do not repeat yourself. Do not self reference. Do not explain what you are doing.`;
 
@@ -310,10 +319,10 @@ export const LABELS = {
 
 
 export const getPromptVoice = () => {
-  return localStorage.getItem("promptVoice") || PROMPT_VOICE_DEFAULT
+  return storedPreference("promptVoice") || PROMPT_VOICE_DEFAULT
 }
 export const getPromptStyle = () => {
-  return localStorage.getItem("promptStyle") || PROMPT_STYLE_DEFAULT
+  return storedPreference("promptStyle") || PROMPT_STYLE_DEFAULT
 }
 
 export const getPromptCountries = () => {
@@ -518,8 +527,8 @@ export class Prompt {
       role: PROMPT_ROLE_DEFAULT,
       language: currentLang(),
       country: currentCountry(),
-      voice: localStorage.getItem("prompt.voice") || PROMPT_VOICE_DEFAULT,
-      style: localStorage.getItem("prompt.style") || PROMPT_STYLE_DEFAULT,
+      voice: storedPreference("prompt.voice") || PROMPT_VOICE_DEFAULT,
+      style: storedPreference("prompt.style") || PROMPT_STYLE_DEFAULT,
     };
   }
 

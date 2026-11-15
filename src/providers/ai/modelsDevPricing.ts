@@ -22,6 +22,8 @@ const MODELS_DEV_PROVIDER_KEYS: Record<string, string[]> = {
     glm: ['zhipuai', 'zai'],
     cloudflare: ['cloudflare-workers-ai'],
     groq: ['groq'],
+    // Vertex AI (CR-133): its own listing first, then the vendor's.
+    vertex: ['google-vertex', 'google-vertex-anthropic', 'google', 'anthropic'],
 };
 
 /** Compact cache shape: providerKey → modelId → [input, output]. The raw catalog is ~5 MB,

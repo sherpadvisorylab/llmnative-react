@@ -28,6 +28,7 @@ The goal is the same as for `data`, `storage`, `auth` and `email`: keep the exte
 | `glm` | ZhipuAI API | GLM chat models |
 | `cloudflare` | Cloudflare Workers AI | Open-weight models (Llama, GPT-OSS, Qwen, Gemma…) with a free daily allowance |
 | `groq` | Groq API | Very fast inference on open-weight models (GPT-OSS, Qwen…), with a free tier |
+| `vertex` | Vertex AI (Google Cloud) | Gemini and Claude paid on a Google Cloud project, in the location you pick (`eu` keeps the data in the EU) |
 | custom | Your adapter | internal gateways, proxy routers, vendor aggregators |
 
 For complete configuration, see [AppProvidersConfig](/docs/app-configuration#appprovidersconfig) and [AIConfig](/docs/app-configuration#aiconfig--centralized-api-keys-for-the-ai-service).
@@ -342,6 +343,46 @@ import { createAIProvider } from '@llmnative/react/server';
 const provider = createAIProvider('anthropic', process.env.ANTHROPIC_API_KEY!);
 const result = await provider.complete({ prompt, output: { schema } });
 ```
+
+## Vertex AI (CR-133)
+
+Gemini and Claude on Google Cloud, through the same API as every provider (completions, attachments, reasoning,
+structured answers, models with prices). No API key: a Google access token.
+
+- **Location.** `eu` and `us` are the multi-regions (`aiplatform.<loc>.rep.googleapis.com`): the data stays there.
+  `global` has no guarantee. A single region (`europe-west4`) works too, but the newest models are often only on the
+  multi-regions: in November 2026 the Gemini 3.x models answered in the EU only on `eu`. Each model's `dataRegion`
+  follows the location.
+- **Models.** Taken from the catalog of the location (`publishers/google/models`, `publishers/anthropic/models`),
+  text models only. Claude models answer through Anthropic's Messages format (`rawPredict`), the others through
+  `generateContent`. Claude starts with a quota of 0 on a new project: ask Google for it.
+- **Errors.** `VertexAIError` with `code`: `not-found` (the model is not in that location), `quota` (429),
+  `forbidden`, `unauthorized`, `invalid`, `unavailable`. No prompt, answer or token in the message.
+
+On a server (Cloud Functions, Cloud Run, a Node server):
+
+```ts
+import { createVertexAIProvider } from '@llmnative/react/server';
+
+// On Google Cloud: the identity of the server (give its service account the role Vertex AI User).
+// Elsewhere: GOOGLE_APPLICATION_CREDENTIALS, `gcloud auth application-default login`, or `serviceAccount`.
+const vertex = await createVertexAIProvider({ projectId: 'my-project', location: 'eu' });
+const result = await vertex.complete({ model: 'gemini-3.5-flash', prompt, output: { schema } });
+```
+
+`googleAccessToken()` gives the token alone (service account, application default credentials, metadata server),
+renewed before it expires.
+
+In the browser, through the app's server (CR-102): the browser knows project and location, the proxy puts the token.
+
+```ts
+const registry = createServerCredentialAIRegistry([{ id: 'vertex', projectId: 'my-project', location: 'eu' }], { scope });
+// The server's lookup gives a fresh token as the key of `vertex`:
+resolveServerCredentials(request, async (scope, provider) =>
+  provider === 'vertex' ? { id: 'vertex', projectId: 'my-project', apiKey: await tokens.token() } : keysOf(scope)[provider]);
+```
+
+The token goes only to the hosts of Vertex AI, for that project (or the public catalog of the models).
 
 ## Access the provider directly
 

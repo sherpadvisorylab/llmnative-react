@@ -15,6 +15,7 @@ import { OPENCODE_GO_PROVIDER_DEFINITION } from './opencodeGo';
 import { OPENROUTER_PROVIDER_DEFINITION } from './openrouter';
 import { getAIModelCatalog, type AICredential, type AIProviderDefinition, type AIModelCatalog, type BuiltInAIProviderId, RuntimeAIProvider } from './shared';
 import { serverCredential } from './serverCredentials';
+import { createVertexProviderDefinition, VERTEX_CREDENTIAL_FIELDS } from './vertex';
 
 export type {
     AIProviderAdapter, AIKeyValidationResult, AIModelDescriptor, AIModelPricing, AIProviderCapabilities, AIRequestOptions, AIReasoningLevel, AIAttachment,
@@ -29,6 +30,8 @@ export type { AIModelCatalog, AIProviderDefinition } from './shared';
 export { getAIModelCatalog } from './shared';
 export { CLOUDFLARE_PROVIDER_DESCRIPTOR, createCloudflareProviderDefinition } from './cloudflare';
 export { createOpenAICompatibleProviderDefinition } from './openaiCompatible';
+export { createVertexProviderDefinition, vertexHost, vertexDataRegion, isVertexClaudeModel, VertexAIError, VERTEX_CREDENTIAL_FIELDS } from './vertex';
+export type { VertexLocation, VertexProviderOptions, VertexAIErrorCode } from './vertex';
 export type { CloudflareProviderOptions } from './cloudflare';
 export { AI_PROVIDER_HOSTS, isAIProviderTarget, serverCredential, SERVER_CREDENTIAL_PREFIX } from './serverCredentials';
 export type { ServerAIConnection } from './serverCredentials';
@@ -60,12 +63,23 @@ export const toProviderDescriptor = (definition: AIProviderDefinition): Provider
     credentialsHint: definition.credentialsHint,
 });
 
+/** Vertex AI (CR-133): what a "connect" UI asks (project, location, service account). */
+export const VERTEX_PROVIDER_DESCRIPTOR: ProviderDescriptor = {
+    id: 'vertex',
+    label: 'Vertex AI',
+    description: 'Gemini and Claude on Google Cloud, in the location you pick (eu keeps the data in the EU).',
+    credentialFields: VERTEX_CREDENTIAL_FIELDS,
+    credentialsUrl: 'https://console.cloud.google.com/iam-admin/serviceaccounts',
+    credentialsHint: 'Google Cloud → IAM → a service account with the role Vertex AI User → Keys → JSON.',
+};
+
 /** Includes Cloudflare: like openai-compatible its working definition needs a second credential
  * (the account id) before it can be built, but unlike openai-compatible it is a fixed, named
  * vendor — a "connect" UI should list it alongside the others. */
 export const AI_PROVIDER_DESCRIPTORS: ProviderDescriptor[] = [
     ...AI_PROVIDER_DEFINITIONS.map(toProviderDescriptor),
     CLOUDFLARE_PROVIDER_DESCRIPTOR,
+    VERTEX_PROVIDER_DESCRIPTOR,
 ];
 
 /** The user-configurable "bring your own endpoint" slot — metadata-only counterpart of the
@@ -92,6 +106,19 @@ const getDynamicAIProviderDefinitions = (aiConfig?: AIConfig): AIProviderDefinit
             defaultModel: aiConfig?.cloudflare?.defaultModel?.trim() || undefined,
             includePaidModels: aiConfig?.cloudflare?.includePaidModels,
         }));
+    }
+
+    const vertex = aiConfig?.vertex;
+    if (vertex?.projectId?.trim() && vertex.location?.trim()) {
+        try {
+            definitions.push(createVertexProviderDefinition({
+                projectId: vertex.projectId,
+                location: vertex.location,
+                defaultModel: vertex.defaultModel?.trim() || undefined,
+            }));
+        } catch (error) {
+            console.warn('AIProvider:vertex not registered', error);
+        }
     }
 
     const baseUrl = aiConfig?.openAICompatible?.baseUrl?.trim();
@@ -139,6 +166,8 @@ export const createAIProviderRegistry = (aiConfig?: AIConfig): Record<string, AI
             ? aiConfig.openAICompatible?.apiKey?.trim() || ''
             : definition.id === 'cloudflare'
             ? aiConfig.cloudflare?.apiToken?.trim() || ''
+            : definition.id === 'vertex'
+            ? aiConfig.vertex?.accessToken?.trim() || ''
             : typeof definition.configKey === 'string' && typeof aiConfig[definition.configKey as keyof AIConfig] === 'string'
                 ? String(aiConfig[definition.configKey as keyof AIConfig] || '').trim()
                 : '';
@@ -161,6 +190,9 @@ export type ServerAIProviderConnection = {
     /** openai-compatible: its name and default model. */
     label?: string;
     defaultModel?: string;
+    /** Vertex AI: the Google Cloud project and the location. */
+    projectId?: string;
+    location?: string;
 };
 
 /**
@@ -183,6 +215,11 @@ export const createServerCredentialAIRegistry = (
         }
         if (connection.id === 'cloudflare') {
             return connection.accountId ? { ...next, cloudflare: { apiToken: placeholder, accountId: connection.accountId } } : next;
+        }
+        if (connection.id === 'vertex') {
+            return connection.projectId && connection.location
+                ? { ...next, vertex: { accessToken: placeholder, projectId: connection.projectId, location: connection.location, defaultModel: connection.defaultModel } }
+                : next;
         }
         const configKey = AI_PROVIDER_DEFINITIONS.find((definition) => definition.id === connection.id)?.configKey;
         return configKey ? { ...next, [configKey]: placeholder } : next;

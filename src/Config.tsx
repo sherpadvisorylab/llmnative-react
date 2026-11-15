@@ -66,6 +66,17 @@ export type AIConfig = {
         /** Keep models that require the Workers Paid plan in model discovery. Default: false. */
         includePaidModels?: boolean;
     };
+    /**
+     * Vertex AI (CR-133): project and location, and an access token. In a browser the token is normally the
+     * placeholder of a server-held credential (createServerCredentialAIRegistry), which the app's proxy turns
+     * into a fresh token; on a server use createVertexAIProvider from `@llmnative/react/server`.
+     */
+    vertex?: {
+        projectId?: string;
+        location?: string;
+        accessToken?: string;
+        defaultModel?: string;
+    };
     openAICompatible?: {
         apiKey?: string;
         baseUrl?: string;

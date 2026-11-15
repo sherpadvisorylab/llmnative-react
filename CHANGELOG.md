@@ -17,6 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `JsonSchema`. Results carry the tokens used (`usage`); `maxOutputTokens` on the request.
 - Where each model processes the data (CR-132): `AIModelDescriptor.dataRegion` (`eu`, `us`, `global`, a region,
   `unknown` by default) and `structuredOutput` (`native` | `prompted`), also on the provider capabilities.
+- Vertex AI as an AI provider (CR-133): `vertex`, Gemini (`generateContent`) and Claude (`rawPredict`) on Google
+  Cloud with every function of the other providers; models from the catalog of the location, `dataRegion` from it
+  (`eu`/`us` multi-regions, `global`, regions). On a server `createVertexAIProvider` and `googleAccessToken`
+  (service account, application default credentials, metadata server); in the browser `ai.vertex` and
+  `createServerCredentialAIRegistry` with the token put by the proxy, only towards the project's Vertex hosts.
+  `VertexAIError` codes. Prices from models.dev.
 - The AI adapters on a server, without React (CR-132): `createAIProvider(id | definition, key | () => key)` from
   `@llmnative/react` and `@llmnative/react/server`; a key may be a function read before each call.
 
@@ -24,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The proxy of the AI requests lives in `providers/proxy/core` (no config of `<App>`), wired to the config by
   `providers/proxy`; key helpers in `libs/keys`. Public exports unchanged.
 - Gemini answers leave out the thought parts from the text.
+- The prompt helpers read their browser preferences only where there is a `localStorage` (they run on a server too).
 
 ## [3.1.1] - 2026-11-15
 
