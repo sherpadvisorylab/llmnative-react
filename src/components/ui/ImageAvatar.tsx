@@ -73,7 +73,8 @@ const ImageAvatar = ({
 
         // Cache remote avatars opportunistically. If CORS blocks the fetch,
         // keep the browser-rendered image instead of replacing it with fallback.
-        fetch(src)
+        // No referrer: Google profile photos refuse requests that carry one.
+        fetch(src, { referrerPolicy: 'no-referrer' })
             .then(res => {
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 return res.blob();
@@ -115,6 +116,7 @@ const ImageAvatar = ({
             >
                 <img
                     src={imgSrc}
+                    referrerPolicy="no-referrer"
                     alt={resolvedAlt}
                     width={width ?? size}
                     height={height ?? size}

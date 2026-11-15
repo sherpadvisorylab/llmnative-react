@@ -47,6 +47,18 @@ describe('ImageAvatar', () => {
         expect(screen.getByRole('img')).toHaveAttribute('src', 'https://example.com/avatar.jpg');
     });
 
+    it('sends no referrer, for the image and its cache fetch (Google photos refuse one)', () => {
+        const fetchSpy = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('offline'));
+        try {
+            render(<ImageAvatar src="https://example.com/no-referrer.jpg" label="User" />);
+            expect(screen.getByRole('img')).toHaveAttribute('referrerpolicy', 'no-referrer');
+            expect(fetchSpy).toHaveBeenCalledWith('https://example.com/no-referrer.jpg', { referrerPolicy: 'no-referrer' });
+        } finally {
+            fetchSpy.mockRestore();
+            localStorage.clear();
+        }
+    });
+
     it('renders with a BadgeOverlay when badge prop is provided', () => {
         render(
             <ImageAvatar
