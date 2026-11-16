@@ -135,7 +135,7 @@ export const de: I18nDict = {
         columns: 'Spalten',
         fields: 'Felder',
     },
-    select: { placeholder: 'Auswählen...', loading: 'Lädt...' },
+    select: { placeholder: 'Auswählen...', loading: 'Lädt...', search: 'Suchen...' },
     modal: { save: 'Speichern', delete: 'Löschen', cancel: 'Abbrechen', close: 'Schließen', ok: 'Ok', yes: 'Ja', no: 'Nein' },
     upload: {
         clickOrDrag: 'Klicken oder ziehen zum Hochladen...', dropToUpload: 'Loslassen zum Hochladen',

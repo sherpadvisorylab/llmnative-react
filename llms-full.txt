@@ -1479,6 +1479,16 @@ dalla risposta. Una correzione con gli errori, poi `AIOutputError` (`code: 'inva
 
 Su un server (senza React): `createAIProvider(id | definition, key | () => key)` da `@llmnative/react/server`.
 
+### Select con ricerca e gruppi (CR-135)
+
+```tsx
+<Select name="model" label="Modello" searchable options={[{ label: 'gemini-3.5-flash · UE', value: 'vertex/gemini-3.5-flash', group: 'Vertex AI' }]} />
+```
+
+Un valore come il `Select` nativo; aperto: casella di ricerca (etichetta, valore, gruppo) e opzioni raggruppate per
+`group` con l'intestazione sticky. Tastiera, Esc chiude solo la lista. Senza `searchable` resta il `<select>` nativo,
+che ora mostra i `group` come `optgroup`.
+
 ### Pagina dei connettori AI (CR-134)
 
 ```tsx

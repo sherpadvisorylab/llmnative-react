@@ -135,7 +135,7 @@ export const ru: I18nDict = {
         columns: 'Столбцы',
         fields: 'Поля',
     },
-    select: { placeholder: 'Выбрать...', loading: 'Загрузка...' },
+    select: { placeholder: 'Выбрать...', loading: 'Загрузка...', search: 'Поиск...' },
     modal: { save: 'Сохранить', delete: 'Удалить', cancel: 'Отменить', close: 'Закрыть', ok: 'Ок', yes: 'Да', no: 'Нет' },
     upload: {
         clickOrDrag: 'Нажмите или перетащите для загрузки...', dropToUpload: 'Отпустите для загрузки',

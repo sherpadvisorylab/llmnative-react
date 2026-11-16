@@ -44,6 +44,8 @@ interface BaseProps extends FormFieldProps {
 export interface SelectProps extends BaseProps {
     placeholderOption?: Option;
     value?: string | number;
+    /** CR-135: a list with a search box on top and the options grouped by `group`, each group's header sticky. */
+    searchable?: boolean;
 }
 
 export interface AutocompleteProps extends BaseProps {
@@ -85,7 +87,9 @@ const normalizeOption = (
 
     return {
         label: String(fieldMap?.label ?? '') || '',
-        value: String(fieldMap?.value ?? '') || ''
+        value: String(fieldMap?.value ?? '') || '',
+        // The group of an option (optgroup, CR-135 headers): kept, it was lost here.
+        ...(fieldMap?.group ? { group: String(fieldMap.group) } : {}),
     };
 };
 
@@ -149,7 +153,9 @@ const SelectAddon = ({ children, side }: { children: React.ReactNode; side: 'bef
     </span>
 );
 
-export const Select = ({
+export const Select = (props: SelectProps) => (props.searchable ? <SearchableSelect {...props} /> : <NativeSelect {...props} />);
+
+const NativeSelect = ({
     name,
     onChange = undefined,
     defaultValue = undefined,
@@ -256,6 +262,287 @@ type AutocompleteItem =
     | { kind: 'create'; text: string };
 
 type ListPosition = { top?: number; bottom?: number; left: number; width: number; maxHeight: number };
+
+/**
+ * CR-135 — a select with a search and groups: one value, like `Select`; opened, a search box on top and the options
+ * grouped by `group` with the header of each group sticky while the list scrolls (as the model picker of `Chatbot`).
+ */
+const SearchableSelect = ({
+    name,
+    onChange = undefined,
+    defaultValue = undefined,
+    required = false,
+    readOnlyAfterSet = false,
+    disabled = false,
+    placeholderOption = undefined,
+    label = undefined,
+    title = undefined,
+    before = undefined,
+    after = undefined,
+    feedback = undefined,
+    options = [],
+    optionsSource = undefined,
+    order = undefined,
+    inheritWrapperClassName = true,
+    wrapperClassName = undefined,
+    className = undefined,
+    validator = undefined,
+}: SelectProps) => {
+    const { value, handleChange, formWrapClass } = useFormContext({ name, onChange, wrapperClassName, defaultValue, inheritWrapperClassName });
+    const error = useFieldValidation(name, { required, label, validator });
+    const theme = useTheme("select");
+    const dict = useI18n('select');
+    const autocomplete = useI18n('autocomplete');
+    const resolvedPlaceholder = placeholderOption ?? { label: dict.placeholder, value: "" };
+
+    const dbOptions = useMemo(() => getOptionsDB(optionsSource), [optionsSource?.fieldMap, optionsSource?.where, optionsSource?.order, optionsSource?.onLoad]);
+    const database = useDataProvider();
+    const [lookup, setLookup] = useState<Option[]>([]);
+    useEffect(() => {
+        return database.subscribe(optionsSource?.path, (records) => setLookup(normalizeLookup(records)), dbOptions);
+    }, [database, optionsSource?.path, dbOptions]);
+    const opts = useMemo(
+        () => arrayUnique(getOptions(options, lookup, order, optionsSource?.order, dbOptions.fieldMap), 'value') as Option[],
+        [options, lookup, order, optionsSource?.order, dbOptions.fieldMap],
+    );
+
+    const current = value === undefined || value === null ? '' : String(value);
+    const chosen = opts.find((op) => op.value === current);
+    const isDisabled = disabled || (readOnlyAfterSet && !isEmpty(value));
+
+    const [open, setOpen] = useState(false);
+    const [query, setQuery] = useState('');
+    const [active, setActive] = useState(0);
+    const [position, setPosition] = useState<ListPosition | null>(null);
+    const fieldRef = useRef<HTMLButtonElement | null>(null);
+    const popRef = useRef<HTMLDivElement | null>(null);
+    const searchRef = useRef<HTMLInputElement | null>(null);
+
+    // The options that match the search, the empty one first when there is a placeholder and no search.
+    const visible = useMemo(() => {
+        const needle = searchable(query.trim());
+        const found = opts.filter((op) => !needle
+            || searchable(op.label || op.value).includes(needle)
+            || searchable(op.value).includes(needle)
+            || searchable(op.group ?? '').includes(needle));
+        return !needle && resolvedPlaceholder ? [{ ...resolvedPlaceholder, group: undefined } as Option, ...found] : found;
+    }, [opts, query, resolvedPlaceholder]);
+    // The groups in order of first appearance; the options without a group first.
+    const groups = useMemo(() => {
+        const ordered: Array<{ group?: string; items: Array<{ option: Option; index: number }> }> = [];
+        visible.forEach((option, index) => {
+            const key = option.group || undefined;
+            let entry = ordered.find((g) => g.group === key);
+            if (!entry) {
+                entry = { group: key, items: [] };
+                if (key === undefined) ordered.unshift(entry); else ordered.push(entry);
+            }
+            entry.items.push({ option, index });
+        });
+        return ordered;
+    }, [visible]);
+    const flat = useMemo(() => groups.flatMap((g) => g.items), [groups]);
+
+    const id = useId();
+    const listId = `${id}-options`;
+    const optionId = (index: number) => `${id}-option-${index}`;
+
+    const updatePosition = useCallback(() => {
+        const field = fieldRef.current;
+        if (!field) return;
+        const rect = field.getBoundingClientRect();
+        const spaceBelow = window.innerHeight - rect.bottom - 8;
+        const spaceAbove = rect.top - 8;
+        const below = spaceBelow >= 260 || spaceBelow >= spaceAbove;
+        setPosition({
+            ...(below ? { top: rect.bottom + 4 } : { bottom: window.innerHeight - rect.top + 4 }),
+            left: rect.left,
+            width: Math.max(rect.width, 240),
+            maxHeight: Math.max(160, Math.min(360, below ? spaceBelow : spaceAbove)),
+        });
+    }, []);
+
+    useEffect(() => {
+        if (!open) return undefined;
+        updatePosition();
+        const onScrollOrResize = (event: Event) => {
+            // The list scrolling inside itself moves nothing.
+            if (event.target instanceof Node && popRef.current?.contains(event.target)) return;
+            updatePosition();
+        };
+        const onPointerDown = (event: MouseEvent) => {
+            const target = event.target as Node;
+            if (fieldRef.current?.contains(target) || popRef.current?.contains(target)) return;
+            setOpen(false);
+        };
+        window.addEventListener('resize', onScrollOrResize);
+        window.addEventListener('scroll', onScrollOrResize, true);
+        document.addEventListener('mousedown', onPointerDown);
+        return () => {
+            window.removeEventListener('resize', onScrollOrResize);
+            window.removeEventListener('scroll', onScrollOrResize, true);
+            document.removeEventListener('mousedown', onPointerDown);
+        };
+    }, [open, updatePosition]);
+
+    // Opened: the search focused, the chosen option active and in sight.
+    useEffect(() => {
+        if (!open) return;
+        setQuery('');
+        const at = visible.findIndex((op) => op.value === current);
+        setActive(at >= 0 ? at : 0);
+        const timer = window.setTimeout(() => searchRef.current?.focus(), 0);
+        return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [open]);
+
+    useEffect(() => {
+        setActive((at) => Math.min(at, Math.max(0, flat.length - 1)));
+    }, [flat.length]);
+
+    useEffect(() => {
+        if (!open) return;
+        const element = document.getElementById(optionId(active));
+        if (element && typeof element.scrollIntoView === 'function') element.scrollIntoView({ block: 'nearest' });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [active, open]);
+
+    const choose = (option: Option | undefined) => {
+        if (!option) return;
+        handleChange?.({ target: { name, value: option.value } });
+        setOpen(false);
+        fieldRef.current?.focus();
+    };
+
+    const onKeyDown = (event: React.KeyboardEvent) => {
+        if (event.key === 'ArrowDown') {
+            event.preventDefault();
+            setActive((at) => Math.min(at + 1, Math.max(0, flat.length - 1)));
+        } else if (event.key === 'ArrowUp') {
+            event.preventDefault();
+            setActive((at) => Math.max(at - 1, 0));
+        } else if (event.key === 'Enter') {
+            event.preventDefault();
+            choose(flat.find((item) => item.index === active)?.option ?? flat[0]?.option);
+        } else if (event.key === 'Escape') {
+            // Closes the list only: the keydown must not reach the Modal's Escape handler.
+            event.preventDefault();
+            event.nativeEvent.stopPropagation();
+            setOpen(false);
+            fieldRef.current?.focus();
+        } else if (event.key === 'Tab') {
+            setOpen(false);
+        }
+    };
+
+    const list = open && position && (
+        <div
+            ref={popRef}
+            className={cn(
+                "fixed z-[250] flex flex-col overflow-hidden rounded-xl border border-border/60 bg-popover text-sm text-popover-foreground shadow-xl shadow-black/5 dark:shadow-black/20",
+                theme.Autocomplete.listClassName,
+            )}
+            style={{ top: position.top, bottom: position.bottom, left: position.left, width: position.width, maxHeight: position.maxHeight }}
+        >
+            <div className="border-b border-border/60 p-1.5">
+                <input
+                    ref={searchRef}
+                    type="search"
+                    role="combobox"
+                    aria-expanded
+                    aria-controls={listId}
+                    aria-autocomplete="list"
+                    aria-activedescendant={flat.length ? optionId(active) : undefined}
+                    aria-label={dict.search}
+                    autoComplete="off"
+                    placeholder={dict.search}
+                    className="h-8 w-full rounded-md border border-input bg-background px-2.5 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring/30"
+                    value={query}
+                    onChange={(event) => { setQuery(event.target.value); setActive(0); }}
+                    onKeyDown={onKeyDown}
+                />
+            </div>
+            <div id={listId} role="listbox" aria-label={labelText(label) || title || name} className="min-h-0 flex-1 overflow-y-auto px-1 pb-1">
+                {flat.length === 0 ? (
+                    <div role="presentation" className="px-2.5 py-2 text-muted-foreground">{autocomplete.noResults}</div>
+                ) : groups.map(({ group, items }) => {
+                    const rows = items.map(({ option, index }) => (
+                        <div
+                            key={`${group ?? ''}-${option.value}`}
+                            id={optionId(index)}
+                            role="option"
+                            aria-selected={option.value === current}
+                            className={cn(
+                                "flex cursor-pointer select-none items-center justify-between gap-2 rounded-md px-2.5 py-2 transition-colors",
+                                index === active ? "bg-accent text-accent-foreground" : "hover:bg-accent/60",
+                                option.value === current && "font-medium",
+                                theme.Autocomplete.optionClassName,
+                            )}
+                            onMouseDown={(event) => event.preventDefault()}
+                            onMouseEnter={() => setActive(index)}
+                            onClick={() => choose(option)}
+                        >
+                            <span className="truncate">{option.label || option.value}</span>
+                            {option.value === current && <span aria-hidden="true">✓</span>}
+                        </div>
+                    ));
+                    return group ? (
+                        <div key={group} role="group" aria-label={group}>
+                            <div role="presentation" className="sticky top-0 z-10 -mx-1 border-b border-border/40 bg-popover px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{group}</div>
+                            {rows}
+                        </div>
+                    ) : <React.Fragment key="no-group">{rows}</React.Fragment>;
+                })}
+            </div>
+        </div>
+    );
+
+    return (
+        <Wrapper className={formWrapClass || theme.Select.wrapperClassName}>
+            {label && <Label label={label} required={required} htmlFor={id} />}
+            <Wrapper className={before || after ? cn(fieldGroupClass, "flex-nowrap") : ""}>
+                {before && <SelectAddon side="before">{before}</SelectAddon>}
+                <button
+                    ref={fieldRef}
+                    id={id}
+                    type="button"
+                    aria-haspopup="listbox"
+                    aria-expanded={Boolean(open && position)}
+                    aria-controls={open ? listId : undefined}
+                    disabled={isDisabled}
+                    title={title}
+                    className={cn(
+                        fieldControlBaseClass,
+                        "flex w-full min-w-48 items-center justify-between gap-2 pr-2 text-left",
+                        before && "!rounded-l-none",
+                        after && "!rounded-r-none",
+                        error && 'border-destructive focus-visible:ring-destructive/20',
+                        className || theme.Select.className,
+                    )}
+                    onClick={() => setOpen((was) => !was)}
+                    onKeyDown={(event) => {
+                        if (!open && (event.key === 'ArrowDown' || event.key === 'Enter' || event.key === ' ')) {
+                            event.preventDefault();
+                            setOpen(true);
+                        }
+                    }}
+                >
+                    <span className={cn("truncate", !chosen && "text-muted-foreground")}>
+                        {chosen ? (chosen.group ? `${chosen.group} · ${chosen.label || chosen.value}` : chosen.label || chosen.value) : (current || resolvedPlaceholder.label)}
+                    </span>
+                    <span aria-hidden="true" className="shrink-0 text-muted-foreground">▾</span>
+                </button>
+                <input type="hidden" name={name} value={current} />
+                {after && <SelectAddon side="after">{after}</SelectAddon>}
+            </Wrapper>
+            {list && typeof document !== 'undefined' ? createPortal(list, document.body) : null}
+            {error
+                ? <FieldError message={error} />
+                : feedback && <div className={fieldFeedbackClass}>{feedback}</div>}
+        </Wrapper>
+    );
+};
+
 
 /** Combobox with a themed listbox (CR-096): the list is drawn by the framework, as wide as the
  *  field, shows labels only and is driven by keyboard and mouse. The stored value is unchanged:

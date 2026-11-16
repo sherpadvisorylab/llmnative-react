@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.3.0] - 2026-11-16
+
+### Added
+- `Select` with `searchable` (CR-135): one value like the native select; opened, a search box on top (label, value
+  and group, without accents or case) and the options grouped by `group`, the header of each group sticky while the
+  list scrolls, as the model picker of `Chatbot`. Keyboard (arrows, Enter, Escape closes the list only, Tab), combobox
+  and listbox roles with the groups, a hidden input with `name`. i18n `select.search` in 6 languages; showcase.
+
+### Fixed
+- `Select`: the `group` of an option is kept; the native select showed no `optgroup` since the options were normalized.
+
 ## [3.2.0] - 2026-11-15
 
 ### Added

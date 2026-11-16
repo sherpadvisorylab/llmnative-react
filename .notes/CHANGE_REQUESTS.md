@@ -160,6 +160,32 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
+## CR-135 — Select con ricerca e gruppi con l'intestazione sticky
+
+**Stato:** ✅ done (3.3.0)
+**Issue:** [#114](https://github.com/sherpadvisorylab/llmnative-react/issues/114)
+**Priorità:** Media
+
+### Motivazione
+Emersa il 16/11/2026 in un consumer (un CRM): la scelta del modello di ogni agente tra decine di modelli di più provider. Il `Select` nativo con `optgroup` non cerca e non tiene a vista il provider mentre si scorre; il picker raggruppato con header sticky esiste solo dentro `Chatbot` (CR-086), non come campo di un form; `Autocomplete` cerca ma è a più valori e senza gruppi.
+
+### Scope
+- `Select` con `searchable`: un combobox a un valore. Il campo mostra l'etichetta scelta; aperto, una casella di ricerca in cima e la lista delle opzioni raggruppate per `group` (ordine di prima comparsa) con l'intestazione del gruppo sticky in cima mentre si scorre, come il picker di `Chatbot`. La ricerca filtra su etichetta, valore e gruppo (senza accenti né maiuscole).
+- Tastiera: frecce, Invio, Esc (chiude solo la lista, non la Modal), Tab; mouse; `aria` di combobox/listbox con i gruppi (`role="group"` con `aria-label`).
+- Il valore resta una stringa come il `Select` nativo; il segnaposto (`placeholderOption`) come opzione vuota; un input nascosto con `name` per chi legge il form.
+- i18n `select.search` (6 lingue); docs, showcase, test.
+
+### Verifica
+Test: 5. Verifica visiva nello showcase a 1280 px: intestazioni sticky durante lo scorrimento, ricerca, gruppi. Corretto anche `normalizeOption`, che perdeva `group`.
+
+### Criteri di accettazione
+- [x] AC1: con `searchable` si cerca e si sceglie un'opzione, il valore va al form come con il `Select` nativo.
+- [x] AC2: i gruppi hanno l'intestazione sticky; senza `group` la lista è piatta.
+- [x] AC3: tastiera e lettori di schermo; Esc non chiude la Modal.
+- [x] AC4: senza `searchable` nulla cambia; release minor.
+
+---
+
 ## CR-134 — Connettori AI: la pagina per collegare i provider, con l'archivio delle credenziali del progetto
 
 **Stato:** ✅ done (3.2.0)
