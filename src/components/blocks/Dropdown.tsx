@@ -72,6 +72,10 @@ export interface AsyncDropdownProps<TItem> extends Omit<DropdownProps, 'children
      * header, sticky below the search while the list scrolls — as the model picker of `Chatbot`.
      */
     getItemGroup?: (item: TItem) => string | undefined;
+    /** CR-137: the content of the header of a group (default: its name), e.g. the name with a badge on the right. */
+    renderGroupHeader?: (group: string, items: TItem[]) => React.ReactNode;
+    /** CR-137: a class for the row of an item (e.g. a highlighted free model). */
+    getItemClassName?: (item: TItem) => string | undefined;
 }
 
 interface DropdownButtonProps extends Pick<MotionUIProps, 'motion'> {
@@ -343,6 +347,8 @@ export function AsyncDropdown<TItem>({
     headerClassName = undefined,
     staticOpen = false,
     getItemGroup = undefined,
+    renderGroupHeader = undefined,
+    getItemClassName = undefined,
     ...dropdownProps
 }: AsyncDropdownProps<TItem>) {
     const common = useI18n('common');
@@ -475,7 +481,7 @@ export function AsyncDropdown<TItem>({
                         <DropdownItem
                             key={itemId}
                             onClick={() => { void handleSelect(item); }}
-                            className={cn(itemId === selectedId && 'bg-accent text-accent-foreground', selectedClassName)}
+                            className={cn(getItemClassName?.(item), itemId === selectedId && 'bg-accent text-accent-foreground', selectedClassName)}
                         >
                             {renderItem(item)}
                         </DropdownItem>
@@ -491,7 +497,7 @@ export function AsyncDropdown<TItem>({
                                 // Right below the search, which sits at -4px (the padding of the menu).
                                 style={{ top: Math.max(0, searchHeight - 4) }}
                             >
-                                {group}
+                                {renderGroupHeader ? renderGroupHeader(group, groupItems) : group}
                             </div>
                         )}
                         {groupItems.map(row)}

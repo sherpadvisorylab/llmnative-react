@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { Prompt as PromptConf } from '../../conf/Prompt';
 import { useI18n } from '../../I18n';
 import type { AIModelPricing } from '../../providers/ai/AIProvider';
-import { Dropdown, DropdownHeader, DropdownItem } from '../blocks/Dropdown';
+import { AsyncDropdown, Dropdown, DropdownItem } from '../blocks/Dropdown';
 import Icon from '../ui/Icon';
 import Badge, { type BadgeType } from '../ui/Badge';
 import {
@@ -88,6 +88,8 @@ const formatModelPrice = (value: number) => {
     return String(Number(value.toFixed(value < 1 ? 3 : 2)));
 };
 
+const normalizeSearch = (text: string) => text.toLocaleLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+
 export const isFreeModelOption = (option: ChatbotModelOption) =>
     Boolean(option.pricing && option.pricing.input === 0 && option.pricing.output === 0);
 
@@ -138,9 +140,6 @@ export interface ChatbotProps {
 }
 
 const chatbotGhostIcon = 'h-7 w-7 cursor-pointer rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground';
-// Sticky inside the menu's scroll box: `-top-1`/`-mx-1` cancel the menu's `p-1`, so scrolled
-// items never show through above or beside the header; opaque background for the same reason.
-const chatbotModelGroupHeader = 'sticky -top-1 z-10 -mx-1 border-b border-border/60 bg-popover px-3 py-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground';
 const chatbotModelItem = 'gap-3';
 const chatbotModelItemFree = 'gap-3 bg-success/10 hover:bg-success/20 focus:bg-success/20';
 const chatbotModelPrice = 'ml-auto shrink-0 whitespace-nowrap text-xs tabular-nums text-muted-foreground';
@@ -207,6 +206,19 @@ export function Chatbot({
     useEffect(() => {
         return () => { attachedFiles.forEach(({ objectUrl }) => URL.revokeObjectURL(objectUrl)); };
     }, [attachedFiles]);
+
+    // The search of the model picker: on the name, the value and the group, accents ignored. Reloaded only when the
+    // options change, not on every render of a consumer that passes a new array with the same models.
+    const modelsRef = useRef(models);
+    modelsRef.current = models;
+    const modelsKey = JSON.stringify(models);
+    const loadModels = useCallback(async (query: string) => {
+        const needle = normalizeSearch(query.trim());
+        const all = modelsRef.current;
+        if (!needle) return all;
+        return all.filter((opt) => [opt.label, opt.value, opt.group ?? ''].some((text) => normalizeSearch(text).includes(needle)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [modelsKey]);
 
     const removeAttachment = useCallback((idx: number) => {
         setAttachedFiles((prev) => {
@@ -480,43 +492,42 @@ export function Chatbot({
                     )}
 
                     {models.length > 0 && (
-                        <Dropdown
+                        // CR-137: the menu of the framework with its search and its groups (sticky headers).
+                        <AsyncDropdown<ChatbotModelOption>
                             trigger={{ icon: 'cpu', text: modelLabel ?? modelPlaceholder ?? dict.defaultOption }}
                             placement="top"
                             position="start"
                             triggerClassName={chatbotModelTrigger}
-                        >
-                            {groupModelOptions(models).map(({ group, badge, options }) => (
-                                <React.Fragment key={group ?? ''}>
-                                    {group !== undefined && (
-                                        <DropdownHeader className={chatbotModelGroupHeader}>
-                                            {badge ? (
-                                                <span className="flex items-center justify-between gap-2">
-                                                    <span className="min-w-0 truncate">{group}</span>
-                                                    <Badge variant={badge.variant ?? 'light'}>{badge.label}</Badge>
-                                                </span>
-                                            ) : group}
-                                        </DropdownHeader>
-                                    )}
-                                    {options.map((opt) => (
-                                        <DropdownItem
-                                            key={opt.value}
-                                            onClick={() => onModelChange?.(opt.value)}
-                                            className={isFreeModelOption(opt) ? chatbotModelItemFree : opt.pricing !== undefined ? chatbotModelItem : undefined}
-                                        >
-                                            <span className="min-w-0">{opt.label}</span>
-                                            {opt.pricing ? (
-                                                <span className={chatbotModelPrice} title={dict.modelPricing}>
-                                                    ${formatModelPrice(opt.pricing.input)} / ${formatModelPrice(opt.pricing.output)}
-                                                </span>
-                                            ) : opt.pricing === null ? (
-                                                <span className={chatbotModelPriceMissing}>{dict.modelPriceNotFound}</span>
-                                            ) : null}
-                                        </DropdownItem>
-                                    ))}
-                                </React.Fragment>
-                            ))}
-                        </Dropdown>
+                            loadItems={loadModels}
+                            debounceMs={0}
+                            getItemId={(opt) => opt.value}
+                            getItemGroup={(opt) => opt.group}
+                            renderGroupHeader={(group, options) => {
+                                const badge = options.find((opt) => opt.groupBadge)?.groupBadge
+                                    ?? models.find((opt) => opt.group === group && opt.groupBadge)?.groupBadge;
+                                return badge ? (
+                                    <span className="flex items-center justify-between gap-2">
+                                        <span className="min-w-0 truncate">{group}</span>
+                                        <Badge variant={badge.variant ?? 'light'}>{badge.label}</Badge>
+                                    </span>
+                                ) : group;
+                            }}
+                            getItemClassName={(opt) => (isFreeModelOption(opt) ? chatbotModelItemFree : opt.pricing !== undefined ? chatbotModelItem : undefined)}
+                            selectedId={selectedModel ?? null}
+                            onSelect={(opt) => { onModelChange?.(opt.value); }}
+                            renderItem={(opt) => (
+                                <>
+                                    <span className="min-w-0">{opt.label}</span>
+                                    {opt.pricing ? (
+                                        <span className={chatbotModelPrice} title={dict.modelPricing}>
+                                            ${formatModelPrice(opt.pricing.input)} / ${formatModelPrice(opt.pricing.output)}
+                                        </span>
+                                    ) : opt.pricing === null ? (
+                                        <span className={chatbotModelPriceMissing}>{dict.modelPriceNotFound}</span>
+                                    ) : null}
+                                </>
+                            )}
+                        />
                     )}
 
                     {showSettings && (

@@ -31,6 +31,7 @@
 
 | CR | State | Evidence |
 |----|-------|----------|
+| CR-137 | Done | Il picker dei modelli di `Chatbot` su `AsyncDropdown` (ricerca e gruppi), con `renderGroupHeader` e `getItemClassName`; il raggruppamento solo in `AsyncDropdown`. Test: 1 nuovo, Chatbot adeguati. Released in 3.5.0. Issue #116. |
 | CR-136 | Done | `AsyncDropdown` con `getItemGroup` (intestazioni sticky sotto la ricerca, ricerca con il cursore all'apertura) e `DropdownSelect`, campo da form con ricerca e gruppi; `Select.searchable` di CR-135 tolto. Test: 4 (1115 verdi), verifica visiva nello showcase. Released in 3.4.0, pubblicata dal workflow con trusted publishing. Issue #115. |
 | CR-135 | Done | `Select` con `searchable`: ricerca in cima, opzioni raggruppate per `group` con intestazione sticky, tastiera e ruoli ARIA; `group` delle opzioni conservato (anche `optgroup` del nativo). i18n `select.search` (6 lingue), showcase. Test: 5. Released in 3.3.0. Issue #114. |
 | CR-134 | Done | `AIConnections`: pagina dei connettori AI (provider del framework con campi, verifica e modelli; account in ordine; ordine dei provider; modelli con zona dei dati e prezzo; connettori dell'app, es. abbonamento su un runner indicato dall'app; `readOnly`, `allow`/`hide`, regola di zona che avvisa o blocca). Segreti dietro `AIConnectionStore` dell'app, mai riletti dalla pagina. i18n `aiConnections` in 6 lingue, showcase verificato a 1280 px. Test: 8. Released in 3.2.0. Issue #113. |

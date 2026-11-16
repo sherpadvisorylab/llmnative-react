@@ -122,7 +122,7 @@ export default function AsyncDropdownPage() {
             />
             <Section
                 title="Groups, and a form field (CR-136)"
-                description="getItemGroup groups the items under a header that stays below the search while the list scrolls. DropdownSelect is the same menu as a field of a form: one value, the search, the groups."
+                description="getItemGroup groups the items under a header that stays below the search while the list scrolls. DropdownSelect is the same menu as a field of a form: one value, the search, the groups. renderGroupHeader and getItemClassName shape the headers and the rows, as in the model picker of Chatbot."
                 preview={
                     <div className="w-full max-w-md">
                         <Form appearance="empty">

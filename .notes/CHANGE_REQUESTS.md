@@ -160,6 +160,28 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
+## CR-137 — Il selettore dei modelli di Chatbot su AsyncDropdown: ricerca e gruppi, una sola volta
+
+**Stato:** ✅ done
+**Issue:** [#116](https://github.com/sherpadvisorylab/llmnative-react/issues/116)
+**Priorità:** Media
+**Dipende da:** CR-136
+
+### Motivazione
+Decisione dell'utente del 16/11/2026: il raggruppamento con le intestazioni sticky esisteva due volte, nel selettore dei modelli di `Chatbot` (CR-086, CR-121) e in `AsyncDropdown` (`getItemGroup`, CR-136). `Dropdown` resta il menu di base, `AsyncDropdown` la sua estensione con ricerca e gruppi; `Chatbot` usa `AsyncDropdown` e guadagna la ricerca tra i modelli.
+
+### Scope
+- `AsyncDropdown`: `renderGroupHeader(group)` per il contenuto dell'intestazione di un gruppo (es. il nome e un badge) e `getItemClassName(item)` per lo stile di una voce (es. un modello gratuito).
+- `Chatbot`: il selettore dei modelli è un `AsyncDropdown` (in alto, a sinistra del composer) con la ricerca (etichetta, valore, gruppo), i gruppi con il loro badge (`groupBadge`), il prezzo a destra, i gratuiti evidenziati; il codice di raggruppamento proprio di `Chatbot` va via (`groupModelOptions` resta esportata, con la stessa logica).
+- Test di `Chatbot` adeguati, showcase e verifica in Agentico.
+
+### Criteri di accettazione
+- [x] AC1: il selettore di `Chatbot` cerca e raggruppa con l'intestazione sticky, badge e prezzi come prima.
+- [x] AC2: un solo raggruppamento nel framework (in `AsyncDropdown`).
+- [x] AC3: API pubblica di `Chatbot` invariata; release minor.
+
+---
+
 ## CR-136 — AsyncDropdown con i gruppi, e DropdownSelect: il campo con ricerca e gruppi; Select torna semplice
 
 **Stato:** ✅ done (3.4.0)

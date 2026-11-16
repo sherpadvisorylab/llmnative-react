@@ -67,7 +67,7 @@ describe('Chatbot', () => {
         });
     });
 
-    it('reports the selected model on submit and via onModelChange', () => {
+    it('reports the selected model on submit and via onModelChange', async () => {
         const onSubmit = vi.fn();
         const onModelChange = vi.fn();
         renderWithProviders(
@@ -82,14 +82,14 @@ describe('Chatbot', () => {
 
         // The trigger says the name of the model picked (CR-121).
         fireEvent.click(screen.getAllByText('Claude Sonnet')[0]);
-        fireEvent.click(screen.getByText('GPT-4o'));
+        fireEvent.click(await screen.findByText('GPT-4o'));
         expect(onModelChange).toHaveBeenCalledWith('openai/gpt-4o');
 
         fireEvent.click(screen.getByRole('button', { name: /Run/i }));
         expect(onSubmit.mock.calls[0][0]).toMatchObject({ model: 'anthropic/claude-sonnet-4-0' });
     });
 
-    it('shows the name of the model picked, and the badge of each group on the right of its header (CR-121)', () => {
+    it('shows the name of the model picked, and the badge of each group on the right of its header (CR-121)', async () => {
         const opaque = JSON.stringify({ provider: 'claude-code', model: 'claude-opus-5-5' });
         renderWithProviders(
             <ControlledChatbot
@@ -105,14 +105,38 @@ describe('Chatbot', () => {
 
         // The name, never the value cut after its last slash.
         fireEvent.click(screen.getAllByText('Claude Opus 5.5')[0]);
-        expect(screen.getByText('Subscription')).toBeInTheDocument();
+        expect(await screen.findByText('Subscription')).toBeInTheDocument();
         expect(screen.getByText('Pay as you go')).toBeInTheDocument();
         expect(screen.getByText('Claude Code').closest('[class*="sticky"]')).toContainElement(screen.getByText('Subscription'));
         // A group without a badge: its name only.
         expect(screen.getByText('OpenAI').className).toContain('sticky');
     });
 
-    it('shows per-1M input/output prices, highlights free models and flags missing prices', () => {
+    it('searches the models on name, value and group, keeping the groups (CR-137)', async () => {
+        const onModelChange = vi.fn();
+        renderWithProviders(
+            <ControlledChatbot
+                onSubmit={vi.fn()}
+                models={[
+                    { label: 'gpt-oss-120b', value: 'groq/openai/gpt-oss-120b', group: 'Groq' },
+                    { label: 'deepseek-flash', value: 'deepseek/deepseek-flash', group: 'DeepSeek' },
+                    { label: 'Gemini Flash', value: 'vertex/gemini-flash', group: 'Vertex AI' },
+                ]}
+                onModelChange={onModelChange}
+                modelPlaceholder="Choose a model"
+            />
+        );
+        fireEvent.click(screen.getByText('Choose a model'));
+        const search = await screen.findByPlaceholderText(/Search|Cerca/);
+        fireEvent.change(search, { target: { value: 'flash' } });
+        await waitFor(() => expect(screen.getAllByRole('menuitem').map((i) => i.textContent)).toEqual(['deepseek-flash', 'Gemini Flash']));
+        expect(screen.getAllByRole('group').map((g) => g.getAttribute('aria-label'))).toEqual(['DeepSeek', 'Vertex AI']);
+        fireEvent.change(search, { target: { value: 'vertex' } });
+        fireEvent.click(await screen.findByRole('menuitem', { name: 'Gemini Flash' }));
+        expect(onModelChange).toHaveBeenCalledWith('vertex/gemini-flash');
+    });
+
+    it('shows per-1M input/output prices, highlights free models and flags missing prices', async () => {
         renderWithProviders(
             <ControlledChatbot
                 onSubmit={vi.fn()}
@@ -128,7 +152,7 @@ describe('Chatbot', () => {
 
         fireEvent.click(screen.getByText('Choose a model'));
 
-        expect(screen.getByText('$0.25 / $2')).toBeInTheDocument();
+        expect(await screen.findByText('$0.25 / $2')).toBeInTheDocument();
         expect(screen.getByText('$0 / $0')).toBeInTheDocument();
         expect(screen.getByText('Free').closest('button')?.className).toContain('bg-success/10');
         expect(screen.getByText('Paid').closest('button')?.className).not.toContain('bg-success/10');
@@ -136,7 +160,7 @@ describe('Chatbot', () => {
         expect(screen.getByText('Unknown').closest('button')).toHaveTextContent('Price not found');
     });
 
-    it('lists grouped models under one sticky header per group, in first-appearance order', () => {
+    it('lists grouped models under one sticky header per group, in first-appearance order', async () => {
         const onModelChange = vi.fn();
         renderWithProviders(
             <ControlledChatbot
@@ -153,6 +177,7 @@ describe('Chatbot', () => {
 
         fireEvent.click(screen.getByText('Choose a model'));
 
+        await screen.findByText('gpt-oss-20b');
         const menu = screen.getByRole('menu');
         const texts = Array.from(menu.querySelectorAll('div, button')).map((el) => el.textContent).filter((t) => t && !t.includes('\n'));
         expect(texts.filter((t) => ['Groq', 'DeepSeek', 'gpt-oss-120b', 'gpt-oss-20b', 'deepseek-flash'].includes(t!)))

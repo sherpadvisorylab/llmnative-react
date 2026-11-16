@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.5.0] - 2026-11-16
+
+### Added
+- `AsyncDropdown` `renderGroupHeader(group, items)` and `getItemClassName(item)` (CR-137): the content of the header
+  of a group (e.g. its name with a badge) and a class for the row of an item.
+
+### Changed
+- The model picker of `Chatbot` is an `AsyncDropdown` (CR-137): it searches the models by name, value and group,
+  with the groups under sticky headers, their `groupBadge`, the prices and the free models highlighted as before. The
+  grouping lives only in `AsyncDropdown`; the public API of `Chatbot` (`ChatbotModelOption`, `groupModelOptions`,
+  `isFreeModelOption`) is unchanged.
+
 ## [3.4.0] - 2026-11-16
 
 ### Added

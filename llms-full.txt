@@ -1490,6 +1490,10 @@ Su un server (senza React): `createAIProvider(id | definition, key | () => key)`
 intestazioni sticky, come il picker dei modelli di `Chatbot`. `Select` resta il `<select>` nativo (i `group` come
 `optgroup`); `searchable` di CR-135 è stato tolto.
 
+CR-137: `renderGroupHeader(group, items)` (contenuto dell'intestazione di un gruppo, es. nome e badge) e
+`getItemClassName(item)` (classe di una riga). Il picker dei modelli di `Chatbot` è un `AsyncDropdown`: cerca per
+nome, valore e gruppo, con i gruppi, il loro `groupBadge` e i prezzi; il raggruppamento vive solo in `AsyncDropdown`.
+
 ### Pagina dei connettori AI (CR-134)
 
 ```tsx
