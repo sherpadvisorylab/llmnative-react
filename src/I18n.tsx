@@ -163,6 +163,11 @@ export interface I18nDict {
         filtersSelectedCountTemplate: string;
         tableView:   string;
         galleryView: string;
+        boardView: string;
+        boardMoveTo: string;
+        boardMoved: string;
+        boardMoveFailed: string;
+        boardEmptyColumn: string;
         columns:     string;
         fields:      string;
     };

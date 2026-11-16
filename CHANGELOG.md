@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.6.0] - 2026-11-16
+
+### Added
+- `Grid` board view (CR-138): `view="board"` with `views.board` — one column per stage (`columns`, `column` field or
+  function), the same filtered, searched and sorted records as cards, a sticky header with name and count per
+  column. Cards move by drag, by their "Move to" menu or with the left/right arrow keys; `onMove(record, to, from)`
+  decides (`false` or a throw puts the card back), `canMove` limits the targets, `renderCard` replaces the default
+  card. A click on a card does what a click on a row does.
+- `views.toggle` accepts the list of views to offer (e.g. `['table', 'board']`); `true` offers table and gallery, plus
+  the board when `views.board` is set.
+
 ## [3.5.0] - 2026-11-16
 
 ### Added

@@ -96,6 +96,8 @@ interface ShowcaseGridI18n {
         layout: ShowcaseExamplesGroup<{
             table: ShowcaseExampleCopy;
             gallery: ShowcaseExampleCopy;
+            customCard: ShowcaseExampleCopy;
+            board: ShowcaseExampleCopy;
         }>;
     };
     selection: {

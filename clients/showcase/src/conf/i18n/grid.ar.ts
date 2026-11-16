@@ -100,6 +100,7 @@ export default defineLocaleMessages({
                         table: { tab: 'Table', title: 'تخطيط الجدول', description: 'السطح الافتراضي للقوائم. يستخدم نفس records الموجودة في gallery tab، لذلك يكون التغيير الوحيد هو السطح.' },
                         gallery: { tab: 'Gallery', title: 'تخطيط المعرض', description: 'نفس records ولكنها معروضة كبطاقات. تبقى التسميات والترتيب والبيانات متوافقة مع table tab.' },
                         customCard: { tab: 'Gallery (بطاقة مخصصة)', title: 'بطاقة مخصصة، بدون صورة', description: 'views.gallery.renderItem (يُمرَّر إلى Gallery، انظر صفحة Gallery) يستبدل بطاقة الصورة الافتراضية بالكامل — لبطاقة بدون أي صورة (أيقونة، نص، badge)، بنفس records الموجودة في التبويبات الأخرى.' },
+                        board: { tab: 'Board', title: 'لوحة كانبان', description: 'views.board يعرض نفس records كبطاقات، عمود لكل مرحلة (هنا: الحالة). اسحب بطاقة أو استخدم قائمة نقل إلى أو اضغط الأسهم يمينًا/يسارًا؛ onMove يقرّر، وfalse يعيدها. البحث والفلاتر مشتركة مع الجدول، وviews.toggle يمكنه عرض الجدول واللوحة معًا.' },
                     },
                 },
             },

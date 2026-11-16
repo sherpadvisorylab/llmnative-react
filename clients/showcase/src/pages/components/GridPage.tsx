@@ -1990,6 +1990,12 @@ export default function GridPage() {
     const nonSortableCompactColumns = React.useMemo(() => getNonSortableCompactColumns(t), [t]);
     const partiallySortableCompactColumns = React.useMemo(() => getPartiallySortableCompactColumns(t), [t]);
     const layoutColumns = React.useMemo(() => getLayoutColumns(t), [t]);
+    // CR-138 — the board example moves the records between the statuses locally.
+    const [boardStatuses, setBoardStatuses] = React.useState<Record<string, UserRecord['status']>>({});
+    const boardRecords = React.useMemo(
+        () => layoutRecords.map((record) => (record._key && boardStatuses[record._key] ? { ...record, status: boardStatuses[record._key] } : record)),
+        [layoutRecords, boardStatuses]
+    );
 
     return (
         <PageLayout
@@ -2633,6 +2639,55 @@ const [selectedRecords, setSelectedRecords] = useState<RecordArray>([]);
           <span>{record.role}</span>
         </div>
       ),
+    },
+  }}
+/>`,
+                    },
+                    {
+                        label: t.examples.layout.items.board.tab,
+                        title: t.examples.layout.items.board.title,
+                        description: t.examples.layout.items.board.description,
+                        preview: (
+                            <GridArray
+                                records={boardRecords}
+                                recordId="_key"
+                                columns={layoutColumns}
+                                wrapperClassName="w-full"
+                                view="board"
+                                searchable
+                                views={{
+                                    toggle: ['table', 'board'],
+                                    board: {
+                                        columns: [
+                                            { id: 'review', label: t.values.statuses.review },
+                                            { id: 'active', label: t.values.statuses.active },
+                                            { id: 'inactive', label: t.values.statuses.inactive },
+                                        ],
+                                        column: 'status',
+                                        onMove: (record: UserRecord, to) => {
+                                            if (record._key) setBoardStatuses((current) => ({ ...current, [record._key!]: to as UserRecord['status'] }));
+                                        },
+                                    },
+                                }}
+                            />
+                        ),
+                        code: `<GridArray
+  records={records}
+  recordId="_key"
+  view="board"
+  searchable
+  views={{
+    toggle: ["table", "board"],
+    board: {
+      columns: [
+        { id: "review", label: "Review" },
+        { id: "active", label: "Active" },
+        { id: "inactive", label: "Inactive" },
+      ],
+      column: "status",
+      // Return false (or throw) to put the card back.
+      onMove: (record, to, from) => save(record._key, { status: to }),
+      canMove: (record, to) => true,
     },
   }}
 />`,

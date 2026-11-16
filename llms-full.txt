@@ -395,7 +395,7 @@ export class RestDataProvider implements DataProviderAdapter {
 
 ---
 
-## Grid — CRUD table/gallery
+## Grid — CRUD table/gallery/board
 
 ```tsx
 <Grid
@@ -407,7 +407,7 @@ export class RestDataProvider implements DataProviderAdapter {
     { key: 'date',  label: 'Data',   render: 'date' },
   ]}
   actions={['add', 'edit', 'delete']}   // oppure Record<string, GridAction>
-  view="table"                          // 'table' | 'gallery'
+  view="table"                          // 'table' | 'gallery' | 'board'
   pagination={{ limit: 20 }}
   groupBy="status"
   sortable={{ field: 'name', dir: 'asc' }}
@@ -428,7 +428,8 @@ export class RestDataProvider implements DataProviderAdapter {
 | `records` | `RecordArray` | Dati in memoria (alternativa a path) |
 | `columns` | `GridColumn[]` | `{ key, label, sortable?, render?, className? }` |
 | `actions` | `Array<'add'\|'edit'\|'delete'> \| Record<string, GridAction>` | |
-| `view` | `'table' \| 'gallery'` | |
+| `view` | `'table' \| 'gallery' \| 'board'` | Vista iniziale; `'board'` richiede `views.board` |
+| `views` | `GridViewsConfig` | `{ toggle?: boolean \| GridLayout[], table?, gallery?, board? }` — lo switch delle viste e le opzioni di ciascuna |
 | `groupBy` | `string \| string[]` | |
 | `pagination` | `PaginationParams` | `{ limit, page?, maxPageButtons?, align?, sticky? }` |
 | `sortable` | `boolean \| OrderConfig` | |
@@ -453,6 +454,38 @@ export class RestDataProvider implements DataProviderAdapter {
 | `filters` | `GridFilterConfig[]` | Checkbox toggle nell'header default, applicati PRIMA di `searchable` — `{ key, label, defaultValue?, predicate(record, value) }` |
 
 **GridAction kind:** `'modal'` (default), `'route'`, `'external'`, `'inline'`, `'delete'`
+
+### Vista kanban (CR-138)
+
+```tsx
+<Grid
+  records={pratiche}
+  recordId="id"
+  columns={columns}                       // la card di default mostra le prime colonne
+  searchable
+  filters={filters}
+  view="board"
+  views={{
+    toggle: ['table', 'board'],           // lo switch: tabella e kanban, ricerca e filtri condivisi
+    board: {
+      columns: fasi.map((f) => ({ id: f.id, label: f.nome, hint: f.tempoMassimo })),
+      column: 'faseId',                   // campo (anche a punti) o (record) => id della colonna
+      onMove: async (record, to, from) => { await cambiaFase(record.id, to); },  // false o un errore = torna indietro
+      canMove: (record, to) => record.aperta,
+      renderCard: (record, { pending, moveTo }) => <MiaCard pratica={record} />,
+    },
+  }}
+/>
+```
+
+Una colonna per fase, nell'ordine di `columns`; i record (gli stessi della tabella: filtrati, cercati e ordinati
+da `sortable`) come card nella colonna di `column`. Un record la cui colonna non è tra `columns` non compare.
+Spostamento col trascinamento, col menu "Sposta in" della card o con le frecce sinistra/destra sulla card: la card
+passa subito alla nuova colonna e torna indietro se `onMove` restituisce `false` o lancia; resta nella nuova finché
+il dato non cambia. Senza `onMove` le card non si spostano. Il clic su una card fa quello del clic su una riga
+(`onRowClick`, l'azione `edit`). Paginazione e selezione non valgono sulla board. Altre opzioni: `emptyColumn`,
+`columnClassName` (default `w-72`), `heightClassName` (default `max-h-[70vh]`, la colonna scorre dentro con
+l'intestazione sticky, nome e conteggio).
 
 ---
 

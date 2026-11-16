@@ -100,6 +100,7 @@ export default defineLocaleMessages({
                         table: { tab: 'Table', title: 'Layout tabella', description: 'La superficie predefinita per le liste. Usa gli stessi record del tab gallery, quindi cambia solo la superficie.' },
                         gallery: { tab: 'Gallery', title: 'Layout gallery', description: 'Gli stessi record renderizzati come card. Etichette, ordine e dati restano allineati al tab table.' },
                         customCard: { tab: 'Gallery (card personalizzata)', title: 'Card personalizzata, senza immagine', description: 'views.gallery.renderItem (inoltrato a Gallery, vedi la pagina Gallery) sostituisce interamente la card basata su immagine di default — per una card senza alcuna immagine (icona, testo, badge), stessi record degli altri tab.' },
+                        board: { tab: 'Kanban', title: 'Board kanban', description: 'views.board mostra gli stessi record come card, una colonna per fase (qui: lo stato). Trascina una card, usa il suo menu Sposta in o premi le frecce sinistra/destra su di essa; decide onMove, e false la riporta indietro. Ricerca e filtri sono quelli della tabella, e views.toggle può offrire tabella e board insieme.' },
                     },
                 },
             },

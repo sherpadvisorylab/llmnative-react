@@ -39,6 +39,8 @@ const ALIASES: Record<string, string> = {
     'mail':          'Envelope',
     'mail-open':     'EnvelopeOpen',
     'eye-off':       'EyeSlash',
+    // CR-138 — the kanban view of Grid.
+    'move-horizontal': 'ArrowsLeftRight',
 };
 
 function toPascalCase(name: string): string {

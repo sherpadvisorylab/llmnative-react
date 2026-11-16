@@ -160,6 +160,31 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
+## CR-138 — Grid con la vista kanban (board), accanto a tabella e galleria
+
+**Stato:** ✅ done
+**Issue:** [#117](https://github.com/sherpadvisorylab/llmnative-react/issues/117)
+**Priorità:** Media
+**Dipende da:** —
+
+### Motivazione
+Decisione dell'utente del 16/11/2026: un'applicazione che porta dei record lungo delle fasi (le Pratiche di un CRM in una Pipeline) li vuole vedere anche a colonne, una per fase, e spostarli da una colonna all'altra. Il kanban è una vista della `Grid`, non un componente a parte: la stessa ricerca, gli stessi filtri e lo stesso switch delle viste di tabella e galleria.
+
+### Scope
+- `GridLayout` con `"board"`; `views.board: GridBoardViewConfig` — `columns` (`{ id, label, hint?, className? }`, in ordine), `column` (campo o funzione che dà la colonna di un record), `renderCard(record, ctx)` (di default una card con i valori delle prime colonne della tabella), `onMove(record, to, from)` (spostamento ottimistico; `false` o un errore lo annullano), `canMove(record, to)`, `emptyColumn`, `columnClassName`, `heightClassName`.
+- Spostamento con il trascinamento e da tastiera: un menu "Sposta in" su ogni card e le frecce sinistra/destra sulla card; un annuncio per chi usa uno screen reader.
+- Colonne con l'intestazione sticky (nome e conteggio), scorrimento verticale per colonna e orizzontale sulla board; il clic su una card fa quello del clic su una riga.
+- `views.toggle` accetta anche l'elenco delle viste (`['table', 'board']`); con `true` mostra tabella, galleria e — se configurata — la board.
+- Testi i18n in tutte le lingue, icone dal provider, test, docs, showcase.
+
+### Criteri di accettazione
+- [x] AC1: la board mostra i record filtrati e cercati nelle loro colonne, con il conteggio e lo stato vuoto.
+- [x] AC2: lo switch tabella/board conserva ricerca e filtri.
+- [x] AC3: spostare una card (trascinamento, menu o tastiera) chiama `onMove` con le colonne; `false` o un errore la riportano indietro.
+- [x] AC4: release minor.
+
+---
+
 ## CR-137 — Il selettore dei modelli di Chatbot su AsyncDropdown: ricerca e gruppi, una sola volta
 
 **Stato:** ✅ done

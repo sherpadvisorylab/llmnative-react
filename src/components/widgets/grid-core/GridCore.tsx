@@ -13,6 +13,8 @@ import { getRecordValue } from "../../../libs/utils";
 import { cn } from "../../../libs/cn";
 import { type RecordProps } from "../../../providers/data/DataProvider";
 import GridGalleryView from "./GridGalleryView";
+import GridBoardView from "./GridBoardView";
+import { Order } from "../../../libs/order";
 import GridTableView from "./GridTableView";
 import {
     type GridAction,
@@ -412,6 +414,13 @@ function GridCore<TRecord extends RecordProps>({
     const viewsConfig = views ?? {};
     const tableViewConfig = viewsConfig.table ?? {};
     const galleryViewConfig = viewsConfig.gallery ?? {};
+    const boardViewConfig = viewsConfig.board;
+    // CR-138 — the views the switch offers: the list given, or table and gallery (and the board when configured).
+    const toggleViews: GridLayout[] = Array.isArray(viewsConfig.toggle)
+        ? viewsConfig.toggle.filter((layout) => layout !== "board" || !!boardViewConfig)
+        : viewsConfig.toggle
+            ? (boardViewConfig ? ["table", "gallery", "board"] : ["table", "gallery"])
+            : [];
 
     // `view` is the initial/default display mode. When `views.toggle` is enabled, the
     // user can switch at runtime — `resolvedView` tracks that, re-synced if the caller
@@ -598,28 +607,27 @@ function GridCore<TRecord extends RecordProps>({
     // gives a subtle but reliable lift off the floor in every theme without introducing an
     // accent color. No `variant` prop here — a fully custom className instead, so the base
     // `.btn` sizing/focus-ring still applies but bg/text are ours to control.
-    const viewToggleControl = viewsConfig.toggle ? (
+    const viewButtons: Record<GridLayout, { icon: string; label: string }> = {
+        table: { icon: "list", label: dict.tableView },
+        gallery: { icon: "layout-grid", label: dict.galleryView },
+        board: { icon: "kanban", label: dict.boardView },
+    };
+    const viewToggleControl = toggleViews.length > 1 ? (
         <span className="inline-flex rounded-md border border-border overflow-hidden">
-            <ActionButton
-                icon="list"
-                ariaLabel={dict.tableView}
-                title={dict.tableView}
-                className={
-                    "rounded-none border-0 "
-                    + (resolvedView === "table" ? "bg-card text-foreground shadow-sm" : "bg-transparent text-muted-foreground")
-                }
-                onClick={() => setResolvedView("table")}
-            />
-            <ActionButton
-                icon="layout-grid"
-                ariaLabel={dict.galleryView}
-                title={dict.galleryView}
-                className={
-                    "rounded-none border-0 border-l border-border "
-                    + (resolvedView === "gallery" ? "bg-card text-foreground shadow-sm" : "bg-transparent text-muted-foreground")
-                }
-                onClick={() => setResolvedView("gallery")}
-            />
+            {toggleViews.map((layout, index) => (
+                <ActionButton
+                    key={layout}
+                    icon={viewButtons[layout].icon}
+                    ariaLabel={viewButtons[layout].label}
+                    title={viewButtons[layout].label}
+                    className={
+                        "rounded-none border-0 "
+                        + (index > 0 ? "border-l border-border " : "")
+                        + (resolvedView === layout ? "bg-card text-foreground shadow-sm" : "bg-transparent text-muted-foreground")
+                    }
+                    onClick={() => setResolvedView(layout)}
+                />
+            ))}
         </span>
     ) : null;
 
@@ -749,6 +757,18 @@ function GridCore<TRecord extends RecordProps>({
             >
                 {loadError ? (
                     <>{before}<Alert variant="danger">{loadError}</Alert>{after}</>
+                ) : resolvedView === "board" && boardViewConfig ? (
+                    <GridBoardView
+                        {...boardViewConfig}
+                        records={initialSort ? (Order.records(searchedRecords, initialSort) ?? searchedRecords) : searchedRecords}
+                        recordId={recordId}
+                        displayColumns={displayedColumns}
+                        runAction={runAction}
+                        onCardClick={rowClickHandler}
+                        activeKey={activeKey}
+                        before={before}
+                        after={after}
+                    />
                 ) : resolvedView === "gallery" ? (
                     <GridGalleryView
                         records={searchedRecords}

@@ -4,7 +4,7 @@ import { type PaginationParams } from "../../ui/Pagination";
 import { type GalleryItemRenderContext, type GalleryOverlay } from "../../ui/Gallery";
 import { type DatabaseOptions, type RecordProps } from "../../../providers/data/DataProvider";
 
-export type GridLayout = "table" | "gallery";
+export type GridLayout = "table" | "gallery" | "board";
 export type GridSticky = "top" | "bottom";
 export type GridSelectionMode = false | "single" | "multiple";
 
@@ -88,6 +88,58 @@ export type GridGalleryViewConfig<TRecord> = {
     renderItem?: (record: TRecord, index: number, ctx: GalleryItemRenderContext) => React.ReactNode;
 };
 
+/** CR-138 — one column of the board view: the records whose `column` is its `id`, in the order of `columns`. */
+export type GridBoardColumn = {
+    /** The value of `GridBoardViewConfig.column` that places a record here. */
+    id: string;
+    /** The name in the column header. */
+    label: React.ReactNode;
+    /** A short note under the name (e.g. the maximum time in the stage). */
+    hint?: React.ReactNode;
+    /** Extra classes on the column. */
+    className?: string;
+};
+
+/** What `GridBoardViewConfig.renderCard` gets besides the record. */
+export type GridBoardCardContext<TRecord> = {
+    /** The column the card is shown in (the new one while a move is pending). */
+    columnId: string;
+    /** Position of the card in its column. */
+    index: number;
+    /** A move of this card is waiting for `onMove`. */
+    pending: boolean;
+    /** Moves the card to another column — the same path as a drag. */
+    moveTo: (columnId: string) => void;
+    runAction: (actionKey: string, record?: TRecord) => void;
+};
+
+/**
+ * CR-138 — the kanban view (`view="board"`): one column per stage, the records of the Grid (filtered,
+ * searched and in the order of `sortable`) as cards in the column of their stage. Pagination and selection
+ * do not apply to the board; a click on a card does what a click on a row does.
+ */
+export type GridBoardViewConfig<TRecord> = {
+    /** The columns, in order. A record whose column is not among them is not shown on the board. */
+    columns: GridBoardColumn[];
+    /** The column of a record: a field (dot-notation accepted) or a function. */
+    column: keyof TRecord | string | ((record: TRecord) => string | undefined | null);
+    /** The content of a card. Default: the values of the first table columns. */
+    renderCard?: (record: TRecord, ctx: GridBoardCardContext<TRecord>) => React.ReactNode;
+    /**
+     * A card moved to another column (drag, the "Move to" menu or the arrow keys). The card shows in the new
+     * column at once; return `false` or throw to put it back. Without `onMove` the cards cannot be moved.
+     */
+    onMove?: (record: TRecord, toColumnId: string, fromColumnId: string) => void | boolean | Promise<void | boolean>;
+    /** Whether a record may go to a column. Default: any column. */
+    canMove?: (record: TRecord, toColumnId: string) => boolean;
+    /** What an empty column shows. Default: the localized "No records". */
+    emptyColumn?: React.ReactNode;
+    /** Classes on every column (e.g. its width). Default `w-72`. */
+    columnClassName?: string;
+    /** Height of the cards area of a column, which scrolls inside. Default `max-h-[70vh]`. */
+    heightClassName?: string;
+};
+
 /**
  * Groups every Table/Gallery-view-switching concern under one input, instead of a flat
  * spray of booleans on `<Grid>` — `toggle` decides whether the switch exists at all,
@@ -96,10 +148,12 @@ export type GridGalleryViewConfig<TRecord> = {
  * don't need to show the same fields).
  */
 export type GridViewsConfig<TRecord> = {
-    /** Show the built-in Table/Gallery switch in the header, letting the user change the active view at runtime. Default `false` — `view` behaves as a fixed initial mode when omitted, same as before this existed. */
-    toggle?: boolean;
+    /** Show the built-in view switch in the header, letting the user change the active view at runtime. `true`: table and gallery, plus the board when `board` is set; or the list of the views to offer (CR-138, e.g. `['table', 'board']`). Default `false` — `view` behaves as a fixed initial mode when omitted, same as before this existed. */
+    toggle?: boolean | GridLayout[];
     table?: GridTableViewConfig;
     gallery?: GridGalleryViewConfig<TRecord>;
+    /** CR-138 — the kanban view: see `GridBoardViewConfig`. */
+    board?: GridBoardViewConfig<TRecord>;
 };
 
 export type GridFormat =
@@ -300,7 +354,7 @@ export type GridAfterActionHandler<TRecord> = (
 
 /** Visual / layout props for `<Grid>`. */
 export type GridPresentation<TRecord> = {
-    /** Display mode: `"table"` (default) or `"gallery"` card layout. Acts as the initial/default view — see `views.toggle` to let the user switch at runtime. */
+    /** Display mode: `"table"` (default), `"gallery"` card layout or `"board"` (kanban, needs `views.board`). Acts as the initial/default view — see `views.toggle` to let the user switch at runtime. */
     view?: GridLayout;
     /** Table/Gallery switch + per-view options (column picker, gallery field picker, cards-per-row, …) — see `GridViewsConfig`. Omit entirely to keep the pre-existing fixed-`view` behavior. */
     views?: GridViewsConfig<TRecord>;
@@ -575,3 +629,16 @@ export type GridGalleryViewProps<TRecord extends RecordProps> = {
     renderItem?: (record: TRecord, index: number, ctx: GalleryItemRenderContext) => React.ReactNode;
 };
 
+
+export type GridBoardViewProps<TRecord extends RecordProps> = GridBoardViewConfig<TRecord> & {
+    records: TRecord[];
+    recordId: GridRecordKey<TRecord>;
+    /** The table columns: the default card shows the first ones. */
+    displayColumns: GridColumn<TRecord>[];
+    runAction: (actionKey: string, record?: TRecord) => void;
+    onCardClick?: (record: TRecord) => void;
+    activeKey?: string | null;
+    wrapperClassName?: string;
+    before?: React.ReactNode;
+    after?: React.ReactNode;
+};
