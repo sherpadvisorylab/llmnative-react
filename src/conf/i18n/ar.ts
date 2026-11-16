@@ -135,7 +135,7 @@ export const ar: I18nDict = {
         columns: 'الأعمدة',
         fields: 'الحقول',
     },
-    select: { placeholder: 'اختر...', loading: 'جارٍ التحميل...', search: 'بحث...' },
+    select: { placeholder: 'اختر...', loading: 'جارٍ التحميل...' },
     modal: { save: 'حفظ', delete: 'حذف', cancel: 'إلغاء', close: 'إغلاق', ok: 'موافق', yes: 'نعم', no: 'لا' },
     upload: {
         clickOrDrag: 'انقر أو اسحب للتحميل...', dropToUpload: 'أفلت للتحميل',

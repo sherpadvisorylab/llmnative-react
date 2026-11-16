@@ -169,8 +169,6 @@ export interface I18nDict {
     select: {
         placeholder: string;
         loading:     string;
-        /** CR-135 — the search box of a searchable Select. */
-        search:      string;
     };
     modal: {
         save:   string;

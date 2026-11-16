@@ -1,5 +1,5 @@
 import React from 'react';
-import { AsyncDropdown, Icon } from '@llmnative/react';
+import { AsyncDropdown, DropdownSelect, Form, Icon } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
@@ -119,6 +119,31 @@ export default function AsyncDropdownPage() {
   renderItem={(item) => item.name}
   onSelect={selectWorkspace}
 />`}
+            />
+            <Section
+                title="Groups, and a form field (CR-136)"
+                description="getItemGroup groups the items under a header that stays below the search while the list scrolls. DropdownSelect is the same menu as a field of a form: one value, the search, the groups."
+                preview={
+                    <div className="w-full max-w-md">
+                        <Form appearance="empty">
+                            <DropdownSelect
+                                name="model"
+                                label="Model"
+                                options={[
+                                    ...['gemini-3.1-flash-lite', 'gemini-3.5-flash', 'gemini-3.8-flash', 'gemini-4-argon', 'gemini-4-hydrogen'].map((model) => ({ label: model, value: `vertex/${model}`, group: 'Vertex AI', hint: 'EU' })),
+                                    ...['claude-haiku-5-5', 'claude-sonnet-5-5', 'claude-opus-5-5'].map((model) => ({ label: model, value: `anthropic/${model}`, group: 'Anthropic' })),
+                                    ...['haiku', 'sonnet', 'opus'].map((model) => ({ label: model, value: `runner/claude-code:${model}`, group: 'Subscriptions on the runner' })),
+                                ]}
+                            />
+                        </Form>
+                    </div>
+                }
+                code={`<DropdownSelect name="model" label="Model" options={[
+    { label: 'gemini-3.5-flash', value: 'vertex/gemini-3.5-flash', group: 'Vertex AI', hint: 'EU' },
+    { label: 'claude-haiku-5-5', value: 'anthropic/claude-haiku-5-5', group: 'Anthropic' },
+]} />
+
+<AsyncDropdown loadItems={…} getItemId={…} renderItem={…} getItemGroup={(item) => item.provider} onSelect={…} />`}
             />
             <PropDocsTable props={props} title="Properties" />
         </PageLayout>

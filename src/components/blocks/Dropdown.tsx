@@ -67,6 +67,11 @@ export interface AsyncDropdownProps<TItem> extends Omit<DropdownProps, 'children
     selectedClassName?: string;
     header?: React.ReactNode;
     onOpenChange?: (open: boolean) => void;
+    /**
+     * CR-136: the group of an item. With it the items are grouped (order of first appearance), each group under its
+     * header, sticky below the search while the list scrolls — as the model picker of `Chatbot`.
+     */
+    getItemGroup?: (item: TItem) => string | undefined;
 }
 
 interface DropdownButtonProps extends Pick<MotionUIProps, 'motion'> {
@@ -337,9 +342,14 @@ export function AsyncDropdown<TItem>({
     footer = undefined,
     headerClassName = undefined,
     staticOpen = false,
+    getItemGroup = undefined,
     ...dropdownProps
 }: AsyncDropdownProps<TItem>) {
     const common = useI18n('common');
+    // The search stays on top while the list scrolls; the headers of the groups stick right below it.
+    const searchRef = React.useRef<HTMLDivElement | null>(null);
+    const inputRef = React.useRef<HTMLInputElement | null>(null);
+    const [searchHeight, setSearchHeight] = React.useState(0);
     const [uncontrolledOpen, setUncontrolledOpen] = React.useState(defaultOpen);
     const [query, setQuery] = React.useState('');
     const [items, setItems] = React.useState<TItem[]>([]);
@@ -379,6 +389,46 @@ export function AsyncDropdown<TItem>({
         return () => { window.clearTimeout(timeout); controller.abort(); };
     }, [open, query, debounceMs, loadItems]);
 
+    // Opened: the search takes the cursor (the menu stays mounted while closed, so `autoFocus` alone is not enough).
+    React.useEffect(() => {
+        if (!open || staticOpen) return;
+        // Again a moment later: the menu becomes visible once it is placed, and a hidden input takes no focus.
+        const timers = [0, 60, 150].map((delay) => window.setTimeout(() => {
+            if (document.activeElement !== inputRef.current) inputRef.current?.focus();
+        }, delay));
+        return () => timers.forEach((timer) => window.clearTimeout(timer));
+    }, [open, staticOpen]);
+
+    React.useLayoutEffect(() => {
+        if (!open || !getItemGroup) return;
+        const element = searchRef.current;
+        if (!element) return;
+        // The whole header of the menu (the search and its divider): the groups stick below it.
+        const header = element.parentElement ?? element;
+        const measure = () => setSearchHeight(header.offsetHeight);
+        measure();
+        if (typeof ResizeObserver === 'undefined') return;
+        const observer = new ResizeObserver(measure);
+        observer.observe(header);
+        return () => observer.disconnect();
+    }, [open, getItemGroup]);
+
+    /** The items in their groups, in the order each group first appears; ungrouped items first. */
+    const groups = React.useMemo(() => {
+        if (!getItemGroup) return null;
+        const ordered: Array<{ group?: string; items: TItem[] }> = [];
+        for (const item of items) {
+            const group = getItemGroup(item) || undefined;
+            let entry = ordered.find((candidate) => candidate.group === group);
+            if (!entry) {
+                entry = { group, items: [] };
+                if (group === undefined) ordered.unshift(entry); else ordered.push(entry);
+            }
+            entry.items.push(item);
+        }
+        return ordered;
+    }, [items, getItemGroup]);
+
     const handleSelect = React.useCallback(async (item: TItem) => {
         const selectionAccepted = await onSelect(item);
         if (closeOnSelect && selectionAccepted !== false) setOpen(false);
@@ -395,9 +445,10 @@ export function AsyncDropdown<TItem>({
             onOpenChange={setOpen}
             header={(
                 <>
-                    <div className="relative">
+                    <div className="relative" ref={searchRef}>
                         <Icon name="search" size={14} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/60" />
                         <input
+                            ref={inputRef}
                             autoFocus
                             value={query}
                             onChange={(event) => setQuery(event.target.value)}
@@ -408,7 +459,7 @@ export function AsyncDropdown<TItem>({
                     {header}
                 </>
             )}
-            headerClassName={cn('px-2 pt-2 pb-1.5', headerClassName)}
+            headerClassName={cn('px-2 pt-2 pb-1.5', getItemGroup && 'sticky -top-1 z-20 -mx-1 bg-popover px-3', headerClassName)}
             footer={footer}
         >
             {loading ? (
@@ -417,18 +468,36 @@ export function AsyncDropdown<TItem>({
                 <div className="px-2 py-3 text-center text-sm text-destructive">{errorState?.(error) ?? (error instanceof Error ? error.message : common.noDataFound)}</div>
             ) : items.length === 0 ? (
                 <div className="px-2 py-3 text-center text-sm text-muted-foreground">{emptyState ?? common.noDataFound}</div>
-            ) : items.map((item) => {
-                const itemId = getItemId(item);
-                return (
-                    <DropdownItem
-                        key={itemId}
-                        onClick={() => { void handleSelect(item); }}
-                        className={cn(itemId === selectedId && 'bg-accent text-accent-foreground', selectedClassName)}
-                    >
-                        {renderItem(item)}
-                    </DropdownItem>
-                );
-            })}
+            ) : (() => {
+                const row = (item: TItem) => {
+                    const itemId = getItemId(item);
+                    return (
+                        <DropdownItem
+                            key={itemId}
+                            onClick={() => { void handleSelect(item); }}
+                            className={cn(itemId === selectedId && 'bg-accent text-accent-foreground', selectedClassName)}
+                        >
+                            {renderItem(item)}
+                        </DropdownItem>
+                    );
+                };
+                if (!groups) return items.map(row);
+                return groups.map(({ group, items: groupItems }) => (
+                    <div key={group ?? ''} role="group" aria-label={group}>
+                        {group !== undefined && (
+                            <div
+                                role="presentation"
+                                className="sticky z-10 -mx-1 border-b border-border/60 bg-popover px-3 py-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground"
+                                // Right below the search, which sits at -4px (the padding of the menu).
+                                style={{ top: Math.max(0, searchHeight - 4) }}
+                            >
+                                {group}
+                            </div>
+                        )}
+                        {groupItems.map(row)}
+                    </div>
+                ));
+            })()}
         </Dropdown>
     );
 }

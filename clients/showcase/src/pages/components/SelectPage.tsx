@@ -276,30 +276,6 @@ const ROLES = [
 </Form>`}
             />
 
-            <Section
-                title="Searchable, grouped (CR-135)"
-                description="With searchable: a search box on top, the options grouped by `group` and the header of each group sticky while the list scrolls."
-                preview={
-                    <div className="max-w-md">
-                        <Form appearance="empty">
-                            <Select
-                                name="model"
-                                label="Model"
-                                searchable
-                                options={[
-                                    ...['gemini-3.1-flash-lite', 'gemini-3.5-flash', 'gemini-3.8-flash', 'gemini-4-argon', 'gemini-4-hydrogen'].map((model) => ({ label: `${model} · EU`, value: `vertex/${model}`, group: 'Vertex AI' })),
-                                    ...['claude-haiku-5-5', 'claude-sonnet-5-5', 'claude-opus-5-5'].map((model) => ({ label: model, value: `anthropic/${model}`, group: 'Anthropic' })),
-                                    ...['haiku', 'sonnet', 'opus'].map((model) => ({ label: model, value: `runner/claude-code:${model}`, group: 'Subscriptions on the runner' })),
-                                ]}
-                            />
-                        </Form>
-                    </div>
-                }
-                code={`<Select name="model" label="Model" searchable options={[
-    { label: 'gemini-3.5-flash · EU', value: 'vertex/gemini-3.5-flash', group: 'Vertex AI' },
-    { label: 'claude-haiku-5-5', value: 'anthropic/claude-haiku-5-5', group: 'Anthropic' },
-]} />`}
-            />
             <PropDocsTable props={selectProps} title={t.propsDocs.title} />
         </PageLayout>
     );

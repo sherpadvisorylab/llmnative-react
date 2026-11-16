@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.4.0] - 2026-11-16
+
+### Added
+- `AsyncDropdown` with `getItemGroup` (CR-136): the items under the header of their group, sticky below the search
+  (which stays on top too) while the list scrolls, as the model picker of `Chatbot`. The search takes the cursor
+  when the menu opens.
+- `DropdownSelect` (CR-136): a form field on `AsyncDropdown` to pick one of many grouped options —
+  `options: { label, value, group?, hint? }[]` searched by label, value and group; the field shows
+  "group · label"; a hidden input with `name`.
+
+### Removed
+- `Select` `searchable` (CR-135, released the day before and used by no other consumer): `Select` stays the simple
+  native select; grouped choices with a search use `DropdownSelect`. The `group` of the options is still kept
+  (`optgroup`).
+
 ## [3.3.0] - 2026-11-16
 
 ### Added

@@ -135,7 +135,7 @@ export const it: I18nDict = {
         columns: 'Colonne',
         fields: 'Campi',
     },
-    select: { placeholder: 'Seleziona...', loading: 'Caricamento...', search: 'Cerca...' },
+    select: { placeholder: 'Seleziona...', loading: 'Caricamento...' },
     modal: { save: 'Salva', delete: 'Elimina', cancel: 'Annulla', close: 'Chiudi', ok: 'Ok', yes: 'Sì', no: 'No' },
     upload: {
         clickOrDrag: 'Clicca o trascina per caricare...', dropToUpload: 'Rilascia per caricare',

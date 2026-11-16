@@ -135,7 +135,7 @@ export const zh: I18nDict = {
         columns: '列',
         fields: '字段',
     },
-    select: { placeholder: '请选择...', loading: '加载中...', search: '搜索...' },
+    select: { placeholder: '请选择...', loading: '加载中...' },
     modal: { save: '保存', delete: '删除', cancel: '取消', close: '关闭', ok: '确定', yes: '是', no: '否' },
     upload: {
         clickOrDrag: '点击或拖拽上传...', dropToUpload: '松开上传',

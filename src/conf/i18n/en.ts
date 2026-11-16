@@ -161,7 +161,6 @@ export const en: I18nDict = {
     select: {
         placeholder: 'Select...',
         loading: 'Loading...',
-        search: 'Search...',
     },
     modal: {
         save: 'Save',

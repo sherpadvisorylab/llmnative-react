@@ -160,9 +160,36 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
+## CR-136 — AsyncDropdown con i gruppi, e DropdownSelect: il campo con ricerca e gruppi; Select torna semplice
+
+**Stato:** ✅ done (3.4.0)
+**Issue:** [#115](https://github.com/sherpadvisorylab/llmnative-react/issues/115)
+**Priorità:** Media
+**Dipende da:** CR-135
+
+### Motivazione
+Decisione dell'utente del 16/11/2026, dopo CR-135: `Select` resta il campo semplice; la scelta tra molte opzioni raggruppate (i modelli di più provider) si fa con il menu che il framework ha già — `Dropdown` con le intestazioni sticky (il picker dei modelli di `Chatbot`) e `AsyncDropdown` con la ricerca — portato a un campo da form. CR-135 aveva messo ricerca e gruppi dentro `Select`.
+
+### Scope
+- `AsyncDropdown` con `getItemGroup(item)`: gli elementi raggruppati per gruppo (ordine di prima comparsa), ogni gruppo con la sua intestazione sticky sotto la casella di ricerca, che resta anch'essa ferma in cima; come il picker dei modelli di `Chatbot`.
+- `DropdownSelect`: un campo da form (un valore, `name`, `label`, `required`, `validator`, `feedback`) su `AsyncDropdown`, con `options: { label, value, group?, hint? }[]` filtrate in locale per etichetta, valore e gruppo; il campo mostra "gruppo · etichetta"; un input nascosto con `name`.
+- `Select`: tolto `searchable` (CR-135, pubblicato il giorno prima, usato solo dal consumer che lo chiede); resta la correzione che conserva `group` delle opzioni (`optgroup`).
+- Test, docs, showcase (pagina AsyncDropdown).
+
+### Verifica
+Test: 4 (1115 verdi). Verifica visiva nello showcase (pagina AsyncDropdown) a 1280×520: ricerca ferma in cima e con il cursore all'apertura, intestazioni dei gruppi sticky sotto la ricerca durante lo scorrimento, filtro per gruppo.
+
+### Criteri di accettazione
+- [x] AC1: `AsyncDropdown` con `getItemGroup` mostra le intestazioni sticky durante lo scorrimento, la ricerca sempre a vista.
+- [x] AC2: `DropdownSelect` cerca, sceglie e dà il valore al form come gli altri campi; Esc chiude solo il menu.
+- [x] AC3: `Select` senza `searchable`, nativo come prima di CR-135.
+- [x] AC4: release minor.
+
+---
+
 ## CR-135 — Select con ricerca e gruppi con l'intestazione sticky
 
-**Stato:** ✅ done (3.3.0)
+**Stato:** ✅ done (3.3.0) — `searchable` tolto in 3.4.0 da CR-136
 **Issue:** [#114](https://github.com/sherpadvisorylab/llmnative-react/issues/114)
 **Priorità:** Media
 

@@ -1479,15 +1479,16 @@ dalla risposta. Una correzione con gli errori, poi `AIOutputError` (`code: 'inva
 
 Su un server (senza React): `createAIProvider(id | definition, key | () => key)` da `@llmnative/react/server`.
 
-### Select con ricerca e gruppi (CR-135)
+### DropdownSelect e AsyncDropdown con i gruppi (CR-136)
 
 ```tsx
-<Select name="model" label="Modello" searchable options={[{ label: 'gemini-3.5-flash · UE', value: 'vertex/gemini-3.5-flash', group: 'Vertex AI' }]} />
+<DropdownSelect name="model" label="Modello" options={[{ label: 'gemini-3.5-flash', value: 'vertex/gemini-3.5-flash', group: 'Vertex AI', hint: 'UE' }]} />
+<AsyncDropdown loadItems={…} getItemId={…} renderItem={…} getItemGroup={(item) => item.provider} onSelect={…} />
 ```
 
-Un valore come il `Select` nativo; aperto: casella di ricerca (etichetta, valore, gruppo) e opzioni raggruppate per
-`group` con l'intestazione sticky. Tastiera, Esc chiude solo la lista. Senza `searchable` resta il `<select>` nativo,
-che ora mostra i `group` come `optgroup`.
+`DropdownSelect`: campo da form a un valore, con ricerca (etichetta, valore, gruppo) e opzioni raggruppate sotto
+intestazioni sticky, come il picker dei modelli di `Chatbot`. `Select` resta il `<select>` nativo (i `group` come
+`optgroup`); `searchable` di CR-135 è stato tolto.
 
 ### Pagina dei connettori AI (CR-134)
 
