@@ -63,7 +63,8 @@ describe('DropdownSelect', () => {
             </Form>,
         );
         const menu = await openMenu();
-        expect(within(menu).getAllByRole('group').map((g) => g.getAttribute('aria-label'))).toEqual(['Vertex AI', 'Abbonamenti sul runner']);
+        // The items load after the menu opens: wait for the groups, never read them at once.
+        expect((await within(menu).findAllByRole('group')).map((g) => g.getAttribute('aria-label'))).toEqual(['Vertex AI', 'Abbonamenti sul runner']);
         expect(within(menu).getAllByText('UE')).toHaveLength(2);
         fireEvent.change(within(menu).getByPlaceholderText(/Search|Cerca/), { target: { value: 'abbonamenti' } });
         await waitFor(() => expect(within(menu).getAllByRole('menuitem').map((i) => i.textContent)).toEqual(['haiku']));
