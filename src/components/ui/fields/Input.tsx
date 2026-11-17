@@ -153,21 +153,27 @@ const useCheckboxField = ({
         onChange,
         wrapperClassName,
         inputType: typeof valueChecked === "number" ? "number" : "text",
+        // CR-140: a boolean default stays a boolean (a yes/no field of a record).
         defaultValue:
-            defaultValue !== undefined
-                ? (toValueString(defaultValue) === toValueString(valueChecked) ? toValueString(valueChecked) : "")
-                : undefined,
+            defaultValue === undefined || typeof defaultValue === "boolean"
+                ? defaultValue
+                : (toValueString(defaultValue) === toValueString(valueChecked) ? toValueString(valueChecked) : ""),
         inheritWrapperClassName,
     });
 
     const id = useId();
-    const checked = toValueString(value) === toValueString(valueChecked);
+    // CR-140: a field whose value is a boolean (`true`/`false` in the record, or a boolean default) is checked by
+    // `true` and writes a boolean; otherwise it compares with `valueChecked` and writes it or "", as before.
+    const booleano = typeof value === "boolean" || ((value === undefined || value === null) && typeof defaultValue === "boolean");
+    const checked = booleano
+        ? (typeof value === "boolean" ? value : defaultValue === true)
+        : toValueString(value) === toValueString(valueChecked);
 
     const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         handleChange?.({
             target: {
                 name,
-                value: event.target.checked ? valueChecked : "",
+                value: booleano ? event.target.checked : event.target.checked ? valueChecked : "",
             },
         });
     };

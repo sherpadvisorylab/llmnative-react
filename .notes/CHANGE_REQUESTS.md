@@ -160,6 +160,33 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
+## CR-140 — Repeat con i nomi completi, Switch su un booleano, annunci delle liste dentro la pagina
+
+**Stato:** ✅ done
+**Issue:** [#119](https://github.com/sherpadvisorylab/llmnative-react/issues/119)
+**Priorità:** Alta
+**Dipende da:** CR-139
+
+### Motivazione
+Tre difetti visti nel CRM il 17/11/2026:
+- un campo di una riga di `Repeat` scritto con il nome completo, come nell'esempio della documentazione (`items.${index}.name`), riceveva il prefisso due volte (`items.0.0.name`): la modale si apriva vuota e salvava nel posto sbagliato;
+- `Switch` (e `Checkbox`) in un `Form` restava spento con il valore `true` e scriveva `"on"`/`""`: confrontava con `valueChecked` (`"on"`);
+- l'annuncio per gli screen reader di `SortableList` e del kanban della `Grid` (`sr-only`, assoluto) usciva da un contenitore che scorre non posizionato e allungava la pagina: una seconda barra di scorrimento, il footer che sale.
+
+### Scope
+- `setParentName`: un nome che comincia già con il prefisso della riga resta com'è; un nome relativo riceve il prefisso come prima.
+- `useCheckboxField`: con un valore booleano (o un default booleano) il campo è acceso per `true` e scrive un booleano; altrimenti come prima.
+- La radice di `SortableList` e del kanban è posizionata (`relative`).
+- Test, documentazione di `Repeat`, CHANGELOG.
+
+### Criteri di accettazione
+- [x] AC1: in una riga di `Repeat` un campo con il nome relativo e uno con il nome completo leggono e scrivono `items.0.name`.
+- [x] AC2: `Switch` con il valore `true` è acceso, spegnerlo scrive `false`; anche in una riga di `Repeat`; un valore non booleano resta come prima.
+- [x] AC3: la radice di `SortableList` e del kanban ha `relative`.
+- [x] AC4: release patch.
+
+---
+
 ## CR-139 — SortableList: una card si clicca e apre il suo elemento
 
 **Stato:** ✅ done

@@ -302,6 +302,8 @@ export const useHandleDrop = ({ name, value, handleChange }: UseHandleDropProps)
 };
 
 function setParentName(name: string, parentName: string) {
+    // CR-140: a name already under its parent (`items.0.name` in the row `items.0`) stays as it is.
+    if (name.startsWith(`${parentName}.`)) return name;
     if (name.indexOf('.') === -1 || parentName.indexOf('.') === -1) return `${parentName}.${name}`;
 
     const min = Math.min(name.length, parentName.length);

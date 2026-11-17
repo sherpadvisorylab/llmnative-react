@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.7.1] - 2026-11-17
+
+### Fixed
+- `Repeat` (CR-140): a field of a row named in full (`items.${index}.name`, as the docs show) no longer gets the prefix of the row twice (`items.0.0.name`), so it reads and saves its value; relative names (`name`) work as before.
+- `Switch` and `Checkbox` on a boolean (CR-140): on for `true`, off for `false`, and toggling writes a boolean; a non-boolean value works as before (`valueChecked` / `""`).
+- `SortableList` and the kanban of `Grid` (CR-140): their root is positioned, so the screen reader announcement (`sr-only`, absolute) no longer stretches a scrolling page that is not positioned (a second scrollbar, the footer moving up).
+
 ## [3.7.0] - 2026-11-17
 
 ### Added

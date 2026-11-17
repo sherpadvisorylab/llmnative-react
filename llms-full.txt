@@ -763,6 +763,8 @@ Quando `commands` e presente, `CodeEditor` apre internamente `ContextMenu` sul t
 </Repeat>
 ```
 
+I nomi dei campi di una riga si scrivono completi (`items.${index}.name`) o relativi alla riga (`name`): valgono entrambi (CR-140).
+
 | Prop | Tipo | Note |
 |---|---|---|
 | `name` | `string` (required) | |

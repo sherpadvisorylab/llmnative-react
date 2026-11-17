@@ -113,7 +113,9 @@ export default function SortableList<TItem>({
     };
 
     return (
-        <div className={className}>
+        // CR-140: positioned, so the announcement (`sr-only`, absolute) stays inside the list and never
+        // stretches a scrolling page that is not positioned.
+        <div className={cn('relative', className)}>
             <ul className="flex flex-col gap-2" aria-label={label}>
                 {items.map((item, index) => {
                     const card = renderItem(item, index);

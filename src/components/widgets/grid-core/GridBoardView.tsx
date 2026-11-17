@@ -160,7 +160,8 @@ function GridBoardView<TRecord extends RecordProps>({
     const byKey = useMemo(() => new Map(records.map((record) => [getRecordKey(record), record])), [records, getRecordKey]);
 
     return (
-        <div className={wrapperClassName}>
+        // CR-140: positioned, so the announcement (`sr-only`, absolute) stays inside the board.
+        <div className={cn("relative", wrapperClassName)}>
             {before}
             <div className="flex gap-3 overflow-x-auto pb-2" role="list" aria-label={dict.boardView}>
                 {columns.map((boardColumn) => {
