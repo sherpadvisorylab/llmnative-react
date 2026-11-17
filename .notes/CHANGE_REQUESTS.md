@@ -160,6 +160,28 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
+## CR-141 — Una collezione Firestore vuota lascia il caricamento
+
+**Stato:** ✅ done
+**Issue:** [#120](https://github.com/sherpadvisorylab/llmnative-react/issues/120)
+**Priorità:** Alta
+**Dipende da:** —
+
+### Motivazione
+Visto in un'applicazione il 17/11/2026: le Grid su collezioni vuote (settori, zone, tariffe) restavano in «Loading…» per sempre. Il listener di Firestore salta la prima istantanea vuota presa dalla cache, per non mostrare un attimo di «nessun dato», e aspetta quella del server; ma se il server conferma lo stesso risultato vuoto cambiano solo i metadati, e Firestore non emette niente se non gli si chiede `includeMetadataChanges`.
+
+### Scope
+- `FirestoreDataProvider.subscribe` di una collezione: `onSnapshot` con `{ includeMetadataChanges: true }`; resta saltata solo l'istantanea vuota dalla cache; una volta consegnati i record, un cambio dei soli metadati (nessun `docChanges`) non li riconsegna.
+- Il listener di un documento non cambia (non salta niente). Supabase e il provider mock non hanno il problema.
+- Test.
+
+### Criteri di accettazione
+- [x] AC1: una collezione vuota consegna `[]` quando arriva l'istantanea del server.
+- [x] AC2: i record dalla cache arrivano subito; un cambio dei soli metadati non li riconsegna.
+- [x] AC3: release patch.
+
+---
+
 ## CR-140 — Repeat con i nomi completi, Switch su un booleano, annunci delle liste dentro la pagina
 
 **Stato:** ✅ done

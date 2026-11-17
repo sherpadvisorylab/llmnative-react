@@ -31,6 +31,7 @@
 
 | CR | State | Evidence |
 |----|-------|----------|
+| CR-141 | Done | Collezione Firestore vuota: `onSnapshot` con `includeMetadataChanges`, la conferma vuota del server lascia il caricamento; nessuna riconsegna per i soli metadati. Test: 2. Released in 3.7.2. Issue #120. |
 | CR-140 | Done | `Repeat` con i nomi completi (`items.${index}.name`) senza prefisso doppio; `Switch`/`Checkbox` su un booleano (acceso per `true`, scrive un booleano); radice di `SortableList` e del kanban posizionata (l'annuncio `sr-only` non allunga la pagina). Test: 6. Released in 3.7.1. Issue #119. |
 | CR-139 | Done | `SortableList`: `onClick` sulle card (la card è un pulsante), maniglia e `trailing` fuori dal pulsante. Test: 1 (6 in SortableList). Released in 3.7.0. Issue #118. |
 | CR-138 | Done | `Grid` con la vista kanban (`view="board"`, `views.board`): colonne per fase con intestazione sticky e conteggio, spostamento con trascinamento, menu "Sposta in" e frecce, `onMove` ottimistico che torna indietro su `false`; `views.toggle` con l'elenco delle viste. Test: 6 nuovi (1122 verdi). Released in 3.6.0. Issue #117. |

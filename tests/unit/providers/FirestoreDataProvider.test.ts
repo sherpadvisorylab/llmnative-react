@@ -42,7 +42,7 @@ vi.mock('firebase/firestore', () => ({
     deleteDoc:              vi.fn(async () => undefined),
     addDoc:                 vi.fn(async () => ({ id: 'new-id' })),
     writeBatch:             vi.fn(() => ({ set: vi.fn(), delete: vi.fn(), commit: vi.fn(async () => undefined) })),
-    onSnapshot:             vi.fn((_ref: any, cb: any) => { cb({ docs: [], size: 0, forEach: () => {} }); return () => {}; }),
+    onSnapshot:             vi.fn((_ref: any, ...args: any[]) => { const cb = args.find((a) => typeof a === 'function'); cb({ docs: [], size: 0, forEach: () => {} }); return () => {}; }),
     where:                  vi.fn(() => 'whereConstraint'),
     orderBy:                vi.fn(() => 'orderByConstraint'),
     limit:                  vi.fn((n: number) => `limit:${n}`),
@@ -207,7 +207,7 @@ describe('subscribe()', () => {
     it('calls onSnapshot and invokes setRecords with records', () => {
         const setRecords = vi.fn();
         const docs = [mockDocSnap('uid1', { name: 'Alice' })];
-        vi.mocked(fsStore.onSnapshot).mockImplementationOnce((_ref: any, cb: any) => {
+        vi.mocked(fsStore.onSnapshot).mockImplementationOnce((_ref: any, _options: any, cb: any) => {
             cb(mockQuerySnap(docs));
             return () => {};
         });
@@ -245,6 +245,46 @@ describe('subscribe()', () => {
     });
 });
 
+describe('CR-141 — an empty collection leaves loading', () => {
+    const snapshot = (docs: ReturnType<typeof mockDocSnap>[], fromCache: boolean, changes: number) => ({
+        ...mockQuerySnap(docs), metadata: { fromCache }, docChanges: () => new Array(changes).fill({}),
+    });
+    const signedIn = () => vi.mocked(fbAuth.onIdTokenChanged).mockImplementationOnce((_auth: any, cb: any) => { cb({ uid: 'u1' }); return () => {}; });
+
+    it('asks for the metadata changes, so the server confirming an empty result arrives', () => {
+        signedIn();
+        let next: (snap: any) => void = () => {};
+        vi.mocked(fsStore.onSnapshot).mockImplementationOnce((_ref: any, options: any, cb: any) => {
+            expect(options).toEqual({ includeMetadataChanges: true });
+            next = cb;
+            return () => {};
+        });
+        const setRecords = vi.fn();
+        provider().subscribe('/settori', setRecords);
+        next(snapshot([], true, 0));
+        expect(setRecords).not.toHaveBeenCalled();
+        next(snapshot([], false, 0));
+        expect(setRecords).toHaveBeenCalledOnce();
+        expect(setRecords).toHaveBeenCalledWith([]);
+    });
+
+    it('records from the cache arrive at once; a later change of the metadata only does not re-emit', () => {
+        signedIn();
+        let next: (snap: any) => void = () => {};
+        vi.mocked(fsStore.onSnapshot).mockImplementationOnce((_ref: any, _options: any, cb: any) => { next = cb; return () => {}; });
+        const setRecords = vi.fn();
+        provider().subscribe('/users', setRecords);
+        const docs = [mockDocSnap('uid1', { name: 'Alice' })];
+        next(snapshot(docs, true, 1));
+        expect(setRecords).toHaveBeenCalledOnce();
+        next(snapshot(docs, false, 0));
+        expect(setRecords).toHaveBeenCalledOnce();
+        next(snapshot([...docs, mockDocSnap('uid2', { name: 'Bob' })], false, 1));
+        expect(setRecords).toHaveBeenCalledTimes(2);
+        expect(setRecords.mock.calls[1][0]).toHaveLength(2);
+    });
+});
+
 describe('CR-129 — contains, limit and errors', () => {
     it('translates contains, containsAny and limit to Firestore', async () => {
         await provider().read('/posts', { where: { tags: { contains: 'a' }, cats: { containsAny: ['x', 'y'] } }, limit: 5 });
@@ -259,7 +299,7 @@ describe('CR-129 — contains, limit and errors', () => {
     });
 
     it('a refused subscription reaches onError as a DataProviderError', () => {
-        vi.mocked(fsStore.onSnapshot).mockImplementationOnce((_ref: any, _cb: any, onError: any) => {
+        vi.mocked(fsStore.onSnapshot).mockImplementationOnce((_ref: any, _options: any, _cb: any, onError: any) => {
             onError(Object.assign(new Error('Missing or insufficient permissions.'), { code: 'permission-denied' }));
             return () => {};
         });
@@ -272,7 +312,7 @@ describe('CR-129 — contains, limit and errors', () => {
     });
 
     it('a missing index is an invalid query', () => {
-        vi.mocked(fsStore.onSnapshot).mockImplementationOnce((_ref: any, _cb: any, onError: any) => {
+        vi.mocked(fsStore.onSnapshot).mockImplementationOnce((_ref: any, _options: any, _cb: any, onError: any) => {
             onError(Object.assign(new Error('The query requires an index.'), { code: 'failed-precondition' }));
             return () => {};
         });
@@ -283,7 +323,7 @@ describe('CR-129 — contains, limit and errors', () => {
 
     it('without onError the error goes to the console as before', () => {
         const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
-        vi.mocked(fsStore.onSnapshot).mockImplementationOnce((_ref: any, _cb: any, onError: any) => {
+        vi.mocked(fsStore.onSnapshot).mockImplementationOnce((_ref: any, _options: any, _cb: any, onError: any) => {
             onError(Object.assign(new Error('denied'), { code: 'permission-denied' }));
             return () => {};
         });

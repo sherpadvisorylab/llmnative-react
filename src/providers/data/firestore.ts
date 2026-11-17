@@ -344,15 +344,23 @@ export class FirestoreDataProvider implements DataProviderAdapter {
                 ? query(collection(db, np), ...constraints)
                 : collection(db, np);
 
-            return onSnapshot(q as any, (snap: QuerySnapshot<DocumentData>) => {
+            // CR-141: `includeMetadataChanges` so that a genuinely empty collection still gets its
+            // server snapshot: the server confirming the same empty result changes only the
+            // metadata (`fromCache` true → false), which Firestore emits only when asked.
+            let delivered = false;
+            return onSnapshot(q as any, { includeMetadataChanges: true }, (snap: QuerySnapshot<DocumentData>) => {
                 // With offline persistence, the SDK's first emission for a not-yet-cached
                 // query is often an empty from-cache snapshot, immediately followed by the
                 // real server snapshot. Consumers that gate a loading spinner on "first
                 // snapshot received" (e.g. the CMS's ComponentsPage) would otherwise flash an
-                // unblurred "no data" state for that one frame. A genuinely empty collection
-                // still resolves via the subsequent non-cache snapshot, so this only delays
-                // the empty state rather than hiding it.
+                // unblurred "no data" state for that one frame: that snapshot is skipped, and
+                // the empty state arrives with the server snapshot (CR-141).
                 if (snap.metadata?.fromCache && snap.size === 0) return;
+                // Once records were delivered, a change of the metadata only (a pending write
+                // confirmed, the cache becoming the server's) carries no new data: no re-emission.
+                const changes = typeof (snap as any).docChanges === 'function' ? (snap as any).docChanges() : null;
+                if (delivered && changes && changes.length === 0) return;
+                delivered = true;
                 const records = snapshotToRecordArray(snap, fieldMap);
 
                 if (onLoad) {

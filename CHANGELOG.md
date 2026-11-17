@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.7.2] - 2026-11-17
+
+### Fixed
+- A realtime read of an empty Firestore collection left the loading state (CR-141): the collection listener asks for the metadata changes, so the server confirming an empty result arrives; a change of the metadata only no longer re-delivers the records.
+
 ## [3.7.1] - 2026-11-17
 
 ### Fixed
