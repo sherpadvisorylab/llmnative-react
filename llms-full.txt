@@ -1291,7 +1291,7 @@ moveItem(['a', 'b', 'c'], 0, 2)   // ['b', 'c', 'a']
 | Prop | Tipo |
 |---|---|
 | `items` / `getKey` | `TItem[]` / `(item) => string` |
-| `renderItem` | `(item, index) => SortableListCard` (`title`, `description`, `meta`, `badge`, `icon`, `trailing`, `active`, `disabled` di ListCard) |
+| `renderItem` | `(item, index) => SortableListCard` (`title`, `description`, `meta`, `badge`, `icon`, `trailing`, `active`, `disabled` di ListCard; `onClick` (CR-139): la card è un pulsante che apre l'elemento, maniglia e pulsanti di `trailing` restano fuori e non la attivano) |
 | `onReorder` | `(items, { fromIndex, toIndex, item }) => void`; senza, nessuna maniglia |
 | `label` / `numbered` / `disabled` / `emptyState` | `string` / `boolean` / `boolean` / `ReactNode` |
 | Classi CSS: `className`, `itemClassName`, `cardClassName` | `string` |

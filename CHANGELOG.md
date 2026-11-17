@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.7.0] - 2026-11-17
+
+### Added
+- `SortableList` cards with `onClick` (CR-139): the card is a button that opens its item; the drag handle (drag
+  and arrow keys) and the buttons of `trailing` stay outside it and never open it.
+
 ## [3.6.0] - 2026-11-16
 
 ### Added

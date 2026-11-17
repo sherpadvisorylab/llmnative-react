@@ -31,6 +31,7 @@
 
 | CR | State | Evidence |
 |----|-------|----------|
+| CR-139 | Done | `SortableList`: `onClick` sulle card (la card è un pulsante), maniglia e `trailing` fuori dal pulsante. Test: 1 (6 in SortableList). Released in 3.7.0. Issue #118. |
 | CR-138 | Done | `Grid` con la vista kanban (`view="board"`, `views.board`): colonne per fase con intestazione sticky e conteggio, spostamento con trascinamento, menu "Sposta in" e frecce, `onMove` ottimistico che torna indietro su `false`; `views.toggle` con l'elenco delle viste. Test: 6 nuovi (1122 verdi). Released in 3.6.0. Issue #117. |
 | CR-137 | Done | Il picker dei modelli di `Chatbot` su `AsyncDropdown` (ricerca e gruppi), con `renderGroupHeader` e `getItemClassName`; il raggruppamento solo in `AsyncDropdown`. Test: 1 nuovo, Chatbot adeguati. Released in 3.5.0. Issue #116. |
 | CR-136 | Done | `AsyncDropdown` con `getItemGroup` (intestazioni sticky sotto la ricerca, ricerca con il cursore all'apertura) e `DropdownSelect`, campo da form con ricerca e gruppi; `Select.searchable` di CR-135 tolto. Test: 4 (1115 verdi), verifica visiva nello showcase. Released in 3.4.0, pubblicata dal workflow con trusted publishing. Issue #115. |

@@ -160,6 +160,29 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
+## CR-139 — SortableList: una card si clicca e apre il suo elemento
+
+**Stato:** ✅ done
+**Issue:** [#118](https://github.com/sherpadvisorylab/llmnative-react/issues/118)
+**Priorità:** Media
+**Dipende da:** CR-120
+
+### Motivazione
+Richiesta del 17/11/2026 da un consumer: i documenti di un prodotto si ordinano trascinandoli e un clic su un documento apre la sua modale. `SortableList` oggi ha card solo da leggere.
+
+### Scope
+- `SortableListCard` accetta `onClick`: la card diventa un pulsante.
+- La maniglia (trascinamento e frecce) resta fuori dal pulsante e non lo attiva.
+- I pulsanti di `trailing` restano fuori dal pulsante della card (un pulsante dentro un pulsante non è valido e il suo clic aprirebbe la card), posati sul bordo destro; la card tiene lo spazio per loro.
+- Test, llms-full, changelog.
+
+### Criteri di accettazione
+- [x] AC1: un clic sulla card chiama `onClick`; un clic su un pulsante di `trailing` chiama solo il suo.
+- [x] AC2: maniglia, frecce e trascinamento riordinano come prima senza aprire la card.
+- [x] AC3: release minor.
+
+---
+
 ## CR-138 — Grid con la vista kanban (board), accanto a tabella e galleria
 
 **Stato:** ✅ done

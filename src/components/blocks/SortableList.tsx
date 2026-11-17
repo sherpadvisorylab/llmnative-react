@@ -1,11 +1,43 @@
-import React, { useState } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import { interpolate, useI18n } from '../../I18n';
 import { cn } from '../../libs/cn';
 import ListCard, { type ListCardProps } from './ListCard';
 import Icon from '../ui/Icon';
 
-/** What a card of the list shows: the content of a compact ListCard. */
-export type SortableListCard = Pick<ListCardProps, 'title' | 'description' | 'meta' | 'badge' | 'icon' | 'trailing' | 'active' | 'disabled'>;
+/**
+ * What a card of the list shows: the content of a compact ListCard. With `onClick` (CR-139) the card is a
+ * button (e.g. it opens the item); the drag handle and the `trailing` buttons keep their own actions.
+ */
+export type SortableListCard = Pick<ListCardProps, 'title' | 'description' | 'meta' | 'badge' | 'icon' | 'trailing' | 'active' | 'disabled' | 'onClick'>;
+
+/**
+ * A card that is a button and has its own buttons on the right (CR-139): they stay outside the button of the
+ * card (a button inside a button is not valid, and their clicks would open the card), placed over its right
+ * edge, and the card keeps room for them.
+ */
+function ClickableCard({ card, className }: { card: SortableListCard; className?: string }) {
+    const { trailing, ...rest } = card;
+    const trailingRef = useRef<HTMLDivElement | null>(null);
+    const [room, setRoom] = useState(0);
+    useLayoutEffect(() => {
+        const element = trailingRef.current;
+        if (!element) return;
+        const measure = () => setRoom(element.offsetWidth);
+        measure();
+        if (typeof ResizeObserver === 'undefined') return;
+        const observer = new ResizeObserver(measure);
+        observer.observe(element);
+        return () => observer.disconnect();
+    }, []);
+    return (
+        <div className="relative min-w-0 flex-1">
+            <ListCard compact className={className} {...rest} style={room ? { paddingInlineEnd: room + 24 } : undefined} />
+            <div ref={trailingRef} className="absolute inset-y-0 end-3 flex items-center">
+                {trailing}
+            </div>
+        </div>
+    );
+}
 
 export type SortableListReorderMeta<TItem> = { fromIndex: number; toIndex: number; item: TItem };
 
@@ -146,7 +178,9 @@ export default function SortableList<TItem>({
                                     {index + 1}
                                 </span>
                             )}
-                            <ListCard compact wrapperClassName="min-w-0 flex-1" className={cardClassName} {...card} />
+                            {card.onClick && card.trailing
+                                ? <ClickableCard card={card} className={cardClassName} />
+                                : <ListCard compact wrapperClassName="min-w-0 flex-1" className={cardClassName} {...card} />}
                         </li>
                     );
                 })}

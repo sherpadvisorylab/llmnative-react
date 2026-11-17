@@ -72,4 +72,37 @@ describe('SortableList', () => {
         expect(moveItem(['a', 'b', 'c'], 0, 2)).toEqual(['b', 'c', 'a']);
         expect(moveItem(['a', 'b', 'c'], 2, 0)).toEqual(['c', 'a', 'b']);
     });
+
+    // CR-139: a card that is a button opens its item; the handle and the buttons of the card keep their own actions.
+    it('a card with onClick opens its item; the handle and the trailing buttons do not', () => {
+        const opened: string[] = [];
+        const removed: string[] = [];
+        const moves: Array<{ fromIndex: number; toIndex: number }> = [];
+        function Clickable() {
+            const [items, setItems] = useState(accounts);
+            return (
+                <SortableList
+                    items={items}
+                    getKey={(item) => item.id}
+                    renderItem={(item) => ({
+                        title: item.name,
+                        onClick: () => opened.push(item.id),
+                        trailing: <button type="button" onClick={() => removed.push(item.id)}>Remove {item.name}</button>,
+                    })}
+                    onReorder={(next, meta) => { setItems(next); moves.push({ fromIndex: meta.fromIndex, toIndex: meta.toIndex }); }}
+                    label="Accounts"
+                />
+            );
+        }
+        renderList(<Clickable />);
+        fireEvent.click(screen.getByRole('button', { name: 'Lucia' }));
+        expect(opened).toEqual(['b']);
+        fireEvent.click(screen.getByRole('button', { name: 'Remove Anna' }));
+        expect(removed).toEqual(['c']);
+        expect(screen.getByRole('button', { name: 'Remove Anna' }).closest('button')?.textContent).toBe('Remove Anna');
+        fireEvent.click(screen.getByLabelText(/Move item 1 of 3/));
+        fireEvent.keyDown(screen.getByLabelText(/Move item 1 of 3/), { key: 'ArrowDown' });
+        expect(moves).toEqual([{ fromIndex: 0, toIndex: 1 }]);
+        expect(opened).toEqual(['b'], 'neither the trailing button nor the handle opened a card');
+    });
 });
