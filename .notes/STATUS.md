@@ -31,6 +31,7 @@
 
 | CR | State | Evidence |
 |----|-------|----------|
+| CR-143 | Done | La modale di un'azione della Grid dentro `FormControllerContext` con il controller della Grid: il `Form` del `body` si salva dal footer (di default o personalizzato con `useFormActions`). Test: 1 (1138 verdi). Released in 3.9.0. Issue #122. |
 | CR-142 | Done | `DangerZone` (azioni con conferma: nessuna, sì/no, chiave da digitare copiabile) e `Form.dangerZone`, un solo parametro che sostituisce il pulsante Elimina con la zona (eliminazione per prima, poi azioni personalizzate). i18n in 6 lingue, showcase. Test: 5 (1136 verdi). Released in 3.8.0. Issue #121. |
 | CR-141 | Done | Collezione Firestore vuota: `onSnapshot` con `includeMetadataChanges`, la conferma vuota del server lascia il caricamento; nessuna riconsegna per i soli metadati. Test: 2. Released in 3.7.2. Issue #120. |
 | CR-140 | Done | `Repeat` con i nomi completi (`items.${index}.name`) senza prefisso doppio; `Switch`/`Checkbox` su un booleano (acceso per `true`, scrive un booleano); radice di `SortableList` e del kanban posizionata (l'annuncio `sr-only` non allunga la pagina). Test: 6. Released in 3.7.1. Issue #119. |

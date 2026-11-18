@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.9.0] - 2026-11-18
+
+### Added
+- The modal of a `Grid` action shares the form controller of the Grid with its `body` and `footer` (CR-143): a `Form` of the body with `controller={useContext(FormControllerContext)}` is saved by the Save of the footer, or by a custom footer with `useFormActions().save()` (and its `isSaving`).
+
 ## [3.8.1] - 2026-11-18
 
 ### Fixed

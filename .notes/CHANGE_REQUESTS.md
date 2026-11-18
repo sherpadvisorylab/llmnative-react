@@ -160,6 +160,28 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
+## CR-143 — La modale di un'azione della Grid dà il suo controller del form al contenuto e al footer
+
+**Stato:** ✅ done
+**Issue:** [#122](https://github.com/sherpadvisorylab/llmnative-react/issues/122)
+**Priorità:** Media
+**Dipende da:** CR-142
+
+### Motivazione
+Visto in un'applicazione il 18/11/2026: una modale di modifica della Grid con il form dell'applicazione (`body`) aveva i pulsanti Salva/Annulla dentro il contenuto, sopra la zona pericolosa, invece che nel footer fisso della modale. Il footer personalizzato (`footer: (ctx) => …`) non poteva salvare il form del contenuto né sapere se stava salvando.
+
+### Scope
+- La modale di un'azione `modal` (e `delete`) della Grid è dentro `FormControllerContext` con il controller del form della Grid: un `Form` nel `body` lo usa con `controller={useContext(FormControllerContext)}`, un footer personalizzato salva con `useFormActions().save()` e mostra `isSaving`.
+- Il footer di default (Salva della Grid) salva anche un form del `body` che usa quel controller.
+- Documentazione e test.
+
+### Criteri di accettazione
+- [x] AC1: un footer personalizzato con `useFormActions().save()` salva il `Form` del `body` che usa il controller del contesto.
+- [x] AC2: il comportamento delle modali con `form` della Grid non cambia.
+- [x] AC3: release minor.
+
+---
+
 ## CR-142 — DangerZone, e il Form che la usa al posto del pulsante Elimina
 
 **Stato:** ✅ done

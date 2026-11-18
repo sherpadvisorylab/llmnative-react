@@ -1,3 +1,4 @@
+import { FormControllerContext } from "../form-controller";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTheme } from "../../../Theme";
 import { useI18n, type I18nDict } from "../../../I18n";
@@ -816,6 +817,9 @@ function GridCore<TRecord extends RecordProps>({
             </Card>
             {filterPanel}
             {activeAction && activeActionConfig && (activeActionConfig.kind === "modal" || activeActionConfig.kind === "delete") && (
+                // CR-143: the body and the footer of the modal share the form controller of the Grid: a Form of the
+                // body that uses it is saved by the Save of the footer, or by a custom footer with useFormActions().
+                <FormControllerContext.Provider value={formController}>
                 <Modal
                     size={
                         activeActionConfig.kind === "modal" || activeActionConfig.kind === "delete"
@@ -892,6 +896,7 @@ function GridCore<TRecord extends RecordProps>({
                 >
                     {activeActionBody}
                 </Modal>
+                </FormControllerContext.Provider>
             )}
         </>
     );

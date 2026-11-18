@@ -437,6 +437,8 @@ export class RestDataProvider implements DataProviderAdapter {
 | `form` | `ReactElement \| ((ctx) => ReactNode)` | Form condiviso per CRUD |
 | `onSave` | `GridMutationSaveHandler` | `async ({ record, action }) => string` |
 | `onDelete` | `GridMutationDeleteHandler` | `async ({ record }) => string` |
+
+CR-143: la modale di un'azione `modal`/`delete` è dentro `FormControllerContext` con il controller del form della Grid: un `Form` del `body` con `controller={useContext(FormControllerContext)}` lo salva il Salva del footer, o un `footer: (ctx) => <MioFooter />` che usa `useFormActions()` (`save()`, `isSaving`). Così i pulsanti stanno nel footer fisso della modale e il contenuto (campi, `dangerZone`) scorre sopra.
 | `onComplete` | `GridAfterActionHandler` | `async ({ record, action }) => boolean` |
 | `onRowClick` | `(record) => void` | |
 | `reorderable` | `boolean` | Abilita drag & drop righe |

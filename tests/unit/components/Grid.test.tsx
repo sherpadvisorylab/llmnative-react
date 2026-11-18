@@ -53,6 +53,9 @@ import GridDB from '../../../src/components/widgets/grid-core/GridDB';
 import { resolveGridPathFromUrl } from '../../../src/components/widgets/grid-core/resolveGridPathFromUrl';
 import { MockDataProvider } from '../../../src/providers/data/mock';
 import { renderWithProviders } from '../../helpers/renderWithProviders';
+import Form from '../../../src/components/widgets/Form';
+import { Input } from '../../../src/components/ui/fields/Input';
+import { FormControllerContext, useFormActions } from '../../../src/components/widgets/form-controller';
 
 const USERS = {
     u1: { name: 'Alice', role: 'admin', status: 'active', email: 'alice@example.com' },
@@ -423,6 +426,38 @@ describe('Grid - form and modal workflows', () => {
             screen.getByText('Alice').click();
         });
         await waitFor(() => expect(screen.getByText('Editing Alice')).toBeInTheDocument());
+    });
+
+    it('shares its form controller with the body and a custom footer (CR-143)', async () => {
+        const provider = new MockDataProvider({ '/users': USERS });
+        const onSubmit = vi.fn(async () => undefined);
+        function Corpo() {
+            const controller = React.useContext(FormControllerContext) ?? undefined;
+            return <Form controller={controller} appearance="empty" defaultValues={{ name: 'Alice' }} onSubmit={onSubmit}><Input name="name" label="Name" /></Form>;
+        }
+        function Piede() {
+            const form = useFormActions();
+            return <button type="button" onClick={() => void form.save()}>Save it</button>;
+        }
+
+        renderWithProviders(
+            <Grid
+                path="/users"
+                columns={COLUMNS}
+                actions={{ edit: { kind: 'modal', title: 'Own editor', body: () => <Corpo />, footer: () => <Piede /> } }}
+            />,
+            { provider }
+        );
+
+        await waitFor(() => expect(screen.getByText('Alice')).toBeInTheDocument());
+        await act(async () => {
+            screen.getAllByText('Alice')[0].click();
+        });
+        await waitFor(() => expect(screen.getByText('Save it')).toBeInTheDocument());
+        await act(async () => {
+            screen.getByText('Save it').click();
+        });
+        await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
     });
 
     it('shows save, delete and cancel in the default edit modal footer', async () => {
