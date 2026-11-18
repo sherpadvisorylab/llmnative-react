@@ -535,7 +535,8 @@ function GridCore<TRecord extends RecordProps>({
     // disabled click-to-edit for a very common pattern (Grid used purely as a list, with
     // a dedicated edit page navigated to via `{ kind: 'route' }`).
     const editAction = normalizedActions.edit;
-    const canOpenEditFromRow = !!editAction && (editAction.kind !== "modal" || !!form);
+    // A modal edit opens from the row with the form of the Grid or with its own `body` (a consumer's form).
+    const canOpenEditFromRow = !!editAction && (editAction.kind !== "modal" || !!form || editAction.body !== undefined);
 
     const handleRowClick = useCallback((record: TRecord) => {
         onRowClick?.(record);

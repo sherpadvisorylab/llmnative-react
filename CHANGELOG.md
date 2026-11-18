@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.8.1] - 2026-11-18
+
+### Fixed
+- `Grid`: an `edit` action of kind `modal` with its own `body` opens with a click on the row, as with the `form` of the Grid (it needed the `form` before).
+
 ## [3.8.0] - 2026-11-18
 
 ### Added

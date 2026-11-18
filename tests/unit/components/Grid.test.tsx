@@ -406,6 +406,25 @@ describe('Grid - form and modal workflows', () => {
         expect(screen.getByTestId('location-hash').textContent).toBe('');
     });
 
+    it('opens a modal edit with its own body from a row click, without the form of the Grid', async () => {
+        const provider = new MockDataProvider({ '/users': USERS });
+
+        renderWithProviders(
+            <Grid
+                path="/users"
+                columns={COLUMNS}
+                actions={{ edit: { kind: 'modal', title: 'Own editor', footer: false, body: (ctx) => <p>Editing {String((ctx.record as any)?.name)}</p> } }}
+            />,
+            { provider }
+        );
+
+        await waitFor(() => expect(screen.getByText('Alice')).toBeInTheDocument());
+        await act(async () => {
+            screen.getByText('Alice').click();
+        });
+        await waitFor(() => expect(screen.getByText('Editing Alice')).toBeInTheDocument());
+    });
+
     it('shows save, delete and cancel in the default edit modal footer', async () => {
         const provider = new MockDataProvider({ '/users': USERS });
 
