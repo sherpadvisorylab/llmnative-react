@@ -7,7 +7,11 @@ import type { NetworkCanvasNode, NetworkCanvasProps } from './network-canvas/typ
 // motion (none with `prefers-reduced-motion`). @xyflow/react is loaded only when a canvas is shown, as ImageEditor
 // does with its editor.
 
-const NetworkCanvasImpl = lazy(() => import('./network-canvas/NetworkCanvasImpl'));
+// Its stylesheet comes first; where a stylesheet cannot be imported (Node, a test runner) the canvas still works.
+const NetworkCanvasImpl = lazy(async () => {
+    await import('@xyflow/react/dist/style.css').catch(() => undefined);
+    return import('./network-canvas/NetworkCanvasImpl');
+});
 
 export function NetworkCanvas<TNode extends NetworkCanvasNode = NetworkCanvasNode>(props: NetworkCanvasProps<TNode>) {
     return (

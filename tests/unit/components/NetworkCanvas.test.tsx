@@ -13,7 +13,6 @@ vi.mock('../../../src/Theme', () => ({
     useTheme: vi.fn(() => ({ Loader: { wrapClass: '', className: '', icon: '', title: '', description: '' } })),
     ThemeProvider: ({ children }: any) => children,
 }));
-vi.mock('@xyflow/react/dist/style.css', () => ({}));
 
 const flow = { setCenter: vi.fn(), fitView: vi.fn(), getZoom: () => 1 };
 // A stand-in for @xyflow/react: each node drawn by its type, a click on its box is a click on the node.

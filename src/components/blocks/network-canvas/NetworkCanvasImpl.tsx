@@ -14,7 +14,6 @@ import {
     type Node,
     type NodeProps,
 } from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
 import { useI18n } from '../../../I18n';
 import { cn } from '../../../libs/cn';
 import Icon from '../../ui/Icon';
