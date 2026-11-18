@@ -536,6 +536,7 @@ l'intestazione sticky, nome e conteggio).
 | `onRecordChange` | `(record) => void` | Cambio campo in tempo reale |
 | `onSave` | `FormSaveHandler` | `async ({ record, prevRecord?, storagePath?, action }) => string \| undefined`. Form che **salva un record**, solo se un campo è cambiato: restituisce il path dove scriverlo, `undefined` = il `path` del Form (senza `path` non scrive), `false` = è fallito e la pagina dice già perché (non scrive, nessun avviso, `save()` dà `false`). Per un'azione (chiamare un comando) usa `onSubmit`. L'errore lanciato appare nell'avviso del Form |
 | `onDelete` | `FormDeleteHandler` | `async ({ record }) => string \| undefined` |
+| `dangerZone` | `FormDangerZone` | CR-142: valorizzato, il pulsante Elimina sparisce dal footer e in fondo al form c'è la `DangerZone`: prima l'eliminazione (lo stesso `onDelete`/path, solo su un record che esiste) con la chiave da digitare (`delete.key`: stringa o `(record) => string`, default la chiave del record), poi `actions` (array o `({ record }) => array`). `delete: false` = solo le azioni. Omesso: Form com'era |
 | `onComplete` | `FormFinallyHandler` | `async ({ record, action }) => boolean`; `action` è `'create' \| 'update' \| 'delete' \| 'submit'` |
 
 **Form controller** — stato e azioni native del form accessibili da qualsiasi punto della pagina.
@@ -1275,6 +1276,24 @@ navigare e sposta il focus; un hash all'apertura porta alla sua sezione.
 | `PageSection` | `id` (ancora), `title`, `description`, `actions`, `offset` (`scroll-margin`) |
 | `useActiveSection(ids, { offset, menu })` | `[active, select]`: l'ultima sezione il cui inizio ha passato la linea sotto l'header (e sotto la fila del menu su schermi stretti), misurata nell'area che scorre (finestra o `main`); in fondo alla pagina resta quella scelta |
 | `goToSection(id)` | scorre, aggiorna l'hash, sposta il focus |
+
+**DangerZone (CR-142):** la zona pericolosa di un record, in fondo alla sua pagina e a parte: ogni azione con
+titolo, descrizione e pulsante, e la sua conferma (nessuna, sì/no, o la chiave da digitare per ciò che non si annulla:
+mostrata, copiabile con un pulsante, il pulsante rosso si attiva solo con la chiave esatta). In un Form: `dangerZone`.
+
+```tsx
+<DangerZone actions={[
+  { title: 'Disabilita il Partner', label: 'Disabilita', icon: 'ban', onConfirm: disabilita },              // sì/no
+  { title: 'Elimina il Partner', label: 'Elimina', icon: 'trash-2', confirm: { key: partner.nome }, onConfirm: elimina },
+  { title: 'Sblocca', label: 'Sblocca', variant: 'secondary', confirm: false, onConfirm: sblocca },         // subito
+]} />
+<Form path={`partner/${id}`} dangerZone={{ delete: { key: (r) => r.nome }, actions: [/* … */] }}>…</Form>
+```
+
+| Prop | |
+|---|---|
+| `actions` | `{ id?, title, description?, label, icon?, variant?: 'danger' \| 'secondary', confirm?: boolean \| { title?, message?, key?, confirmLabel? }, onConfirm, disabled? }[]`; `onConfirm` che restituisce `false` lascia aperta la conferma |
+| `title` / `description` | titolo (default `dangerZone.title`) e una riga sotto |
 
 **SortableList (CR-120):** card compatte (ListCard) in un ordine che la persona sceglie: le trascina per la
 maniglia, o con le frecce su/giù sulla maniglia; l'annuncio della nuova posizione va agli screen reader.

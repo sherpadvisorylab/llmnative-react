@@ -249,6 +249,16 @@ export const de: I18nDict = {
         tryAgain: 'Erneut versuchen',
         goHome: 'Zur Startseite',
     },
+    dangerZone: {
+        title: 'Gefahrenzone',
+        cancel: 'Abbrechen',
+        typeToConfirm: 'Zur Bestätigung den Schlüssel unten eingeben (mit der Schaltfläche kopieren).',
+        copy: 'Kopieren',
+        copied: 'Kopiert',
+        deleteTitle: 'Diesen Datensatz löschen',
+        deleteDescription: 'Er wird endgültig entfernt: das lässt sich nicht rückgängig machen.',
+        deleteLabel: 'Löschen',
+    },
     themeSwitcher: {
         title: 'Theme anpassen',
         subtitle: 'Theme-Tokens und Modus live ändern, ohne Neuladen.',

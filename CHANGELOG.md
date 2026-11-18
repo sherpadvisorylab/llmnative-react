@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.8.0] - 2026-11-18
+
+### Added
+- `DangerZone` (CR-142): the destructive actions of a record at the bottom of its page, each with its confirmation (none, yes or no, or a key to type — shown, copyable with a button — for what cannot be undone).
+- `Form.dangerZone` (CR-142): one prop; set, the Delete button leaves the footer and the zone shows at the bottom of the form, the deletion first (same `onDelete` and path, confirmed with a key), then custom actions.
+- i18n namespace `dangerZone` in the six languages; showcase page `DangerZone`.
+
 ## [3.7.2] - 2026-11-17
 
 ### Fixed

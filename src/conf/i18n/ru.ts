@@ -249,6 +249,16 @@ export const ru: I18nDict = {
         tryAgain: 'Повторить',
         goHome: 'На главную',
     },
+    dangerZone: {
+        title: 'Опасная зона',
+        cancel: 'Отмена',
+        typeToConfirm: 'Для подтверждения введите ключ ниже (скопируйте его кнопкой).',
+        copy: 'Копировать',
+        copied: 'Скопировано',
+        deleteTitle: 'Удалить эту запись',
+        deleteDescription: 'Запись удаляется навсегда: это нельзя отменить.',
+        deleteLabel: 'Удалить',
+    },
     themeSwitcher: {
         title: 'Настройка темы',
         subtitle: 'Токены темы и режим меняются сразу, без перезагрузки.',

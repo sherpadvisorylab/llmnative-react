@@ -14,6 +14,7 @@ import Alert from "../ui/Alert";
 import { FieldValue, RecordProps, RECORD_KEY } from "../../providers/data/DataProvider";
 import { FormTree, ModelProps, buildFormFields } from "../Component";
 import Breadcrumbs from "../blocks/Breadcrumbs";
+import { DangerZone, type DangerZoneAction } from "../blocks/DangerZone";
 import { UIProps } from '../';
 import { cn } from '../../libs/cn';
 import { labelText } from '../../libs/labelText';
@@ -397,8 +398,36 @@ export type FormFinallyHandler = (args: FormFinallyArgs) => Promise<boolean>;
  */
 export type FormSubmitHandler = (args: FormSubmitArgs) => Promise<void | false> | void | false;
 
+/**
+ * CR-142 — the danger zone of a Form (`Form.dangerZone`): set, it replaces the Delete button of the footer. Its first
+ * action deletes the record (the same `onDelete` and path as the button), confirmed by typing a key; `actions` follow.
+ */
+export interface FormDangerZone {
+    /** Title of the zone. Default: "Danger zone" in the language of the app. */
+    title?: React.ReactNode;
+    description?: React.ReactNode;
+    /**
+     * The deletion, first action of the zone (only on a record that exists, as the Delete button): its texts and the
+     * key to type, by default the key of the record. `false`: no deletion, only `actions`.
+     */
+    delete?: false | {
+        title?: React.ReactNode;
+        description?: React.ReactNode;
+        label?: string;
+        /** The key the person types to delete: the name of the record, its id. */
+        key?: string | ((record: RecordProps) => string);
+    };
+    /** Other actions after the deletion (block, disable, anonymize…), from the record when a function. */
+    actions?: DangerZoneAction[] | ((args: { record: RecordProps }) => DangerZoneAction[]);
+}
+
 /** Props shared by both kinds of Form: the one that saves a record and the one that runs an action. */
 interface FormCommonProps {
+    /**
+     * CR-142: the danger zone at the bottom of the form, in place of the Delete button of the footer: the deletion
+     * first (with a key to type), then `actions`. Omitted, the Form has its Delete button as before.
+     */
+    dangerZone?: FormDangerZone;
     /** Visual wrapper: `"card"` adds a card shell; `"empty"` renders bare. */
     appearance?: "card" | "empty";
     /** Shared controller for external actions, custom save buttons and draft state. */
@@ -642,11 +671,13 @@ const FormData = ({
     headerClassName = undefined,
     className = undefined,
     footerClassName = undefined,
-    formClassName = undefined
+    formClassName = undefined,
+    dangerZone = undefined
 }: FormDataProps) => {
     const location = useLocation();
     const theme = useTheme("form");
     const dict = useI18n('form');
+    const dictDanger = useI18n('dangerZone');
     const db = useDataProvider();
     const formController = useFormController(controller);
     const controllerStore = getFormControllerStore(formController);
@@ -1185,16 +1216,39 @@ const FormData = ({
         restoreStoredDraft,
     ]);
 
+    // CR-142: the danger zone, the deletion first (as the Delete button would: a record that exists, or `onDelete`).
+    const dangerZoneEl = useMemo(() => {
+        if (!dangerZone) return null;
+        const current = record ?? EMPTY_RECORD;
+        const actions: DangerZoneAction[] = [];
+        if (!isAction && dangerZone.delete !== false && (onDelete || !isNewRecord)) {
+            const opts = dangerZone.delete ?? {};
+            const key = typeof opts.key === 'function' ? opts.key(current) : opts.key;
+            actions.push({
+                id: 'delete',
+                title: opts.title ?? dictDanger.deleteTitle,
+                description: opts.description ?? dictDanger.deleteDescription,
+                label: opts.label ?? dictDanger.deleteLabel,
+                icon: 'trash-2',
+                confirm: { key: key || String(current[RECORD_KEY] ?? '') || dictDanger.deleteLabel },
+                onConfirm: () => formController.delete(),
+            });
+        }
+        const extra = typeof dangerZone.actions === 'function' ? dangerZone.actions({ record: current }) : dangerZone.actions ?? [];
+        actions.push(...extra);
+        return <DangerZone title={dangerZone.title} description={dangerZone.description} actions={actions} />;
+    }, [dangerZone, dictDanger, formController, isAction, isNewRecord, onDelete, record]);
+
     const displayComponent = useMemo(() => {
         switch (appearance) {
             case "empty":
-                return <>{draftNoticeEl}{components}{notificationEl}</>;
+                return <>{draftNoticeEl}{components}{notificationEl}{dangerZoneEl}</>;
             case "card":
             default:
                 return (
                     <Card
                         header={header || (isAction ? undefined : <Breadcrumbs rootItem={(isNewRecord ? dict.headerAdd : dict.headerEdit)} trail={path || undefined} />)}
-                        footer={(footer || notificationEl || !isNewRecord || onSave || onDelete || showBack || !!path) && <>
+                        footer={(footer || notificationEl || (!isNewRecord && !dangerZone) || onSave || (onDelete && !dangerZone) || showBack || !!path) && <>
                             {footer}
                             {notificationEl}
                             {!isAction && (onSave || !!path || !isNewRecord) && <LoadingButton
@@ -1205,7 +1259,7 @@ const FormData = ({
                                 loading={formController.isSaving}
                                 onClick={(event) => formController.save(event)}
                             />}
-                            {!isAction && (onDelete || !isNewRecord) && <LoadingButton
+                            {!isAction && !dangerZone && (onDelete || !isNewRecord) && <LoadingButton
                                 className={theme.Form.buttonDeleteClass}
                                 label={dict.buttonDelete}
                                 disabled={formController.deleteDisabled}
@@ -1224,11 +1278,12 @@ const FormData = ({
                         <>
                             {draftNoticeEl}
                             {components}
+                            {dangerZoneEl}
                         </>
                     </Card>
                 );
         }
-    }, [appearance, className, components, isAction, dict.buttonBack, dict.buttonDelete, dict.buttonSave, dict.headerAdd, dict.headerEdit, draftNoticeEl, footer, footerClassName, formController, header, headerClassName, isDirty, isNewRecord, noChangesToSave, notificationEl, onDelete, onSave, path, showBack, theme.Form.buttonDeleteClass, theme.Form.buttonSaveClass, theme.Form.buttonBackClass, theme.Form.Card.bodyClassName, theme.Form.Card.footerClassName, theme.Form.Card.headerClassName]);
+    }, [appearance, className, components, dangerZone, dangerZoneEl, isAction, dict.buttonBack, dict.buttonDelete, dict.buttonSave, dict.headerAdd, dict.headerEdit, draftNoticeEl, footer, footerClassName, formController, header, headerClassName, isDirty, isNewRecord, noChangesToSave, notificationEl, onDelete, onSave, path, showBack, theme.Form.buttonDeleteClass, theme.Form.buttonSaveClass, theme.Form.buttonBackClass, theme.Form.Card.bodyClassName, theme.Form.Card.footerClassName, theme.Form.Card.headerClassName]);
 
     return (
         <Wrapper className={wrapperClassName || theme.Form.wrapperClassName}>

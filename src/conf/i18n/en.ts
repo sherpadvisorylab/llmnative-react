@@ -329,6 +329,16 @@ export const en: I18nDict = {
         tryAgain: 'Try again',
         goHome: 'Go to home',
     },
+    dangerZone: {
+        title: 'Danger zone',
+        cancel: 'Cancel',
+        typeToConfirm: 'To confirm, type the key below (copy it with the button).',
+        copy: 'Copy',
+        copied: 'Copied',
+        deleteTitle: 'Delete this record',
+        deleteDescription: 'It is removed for good: it cannot be undone.',
+        deleteLabel: 'Delete',
+    },
     themeSwitcher: {
         title: 'Customize theme',
         subtitle: 'Live theme tokens and mode controls with no reload.',

@@ -249,6 +249,16 @@ export const it: I18nDict = {
         tryAgain: 'Riprova',
         goHome: 'Vai alla home',
     },
+    dangerZone: {
+        title: 'Zona pericolosa',
+        cancel: 'Annulla',
+        typeToConfirm: 'Per confermare, scrivi la chiave qui sotto (la copi con il pulsante).',
+        copy: 'Copia',
+        copied: 'Copiata',
+        deleteTitle: 'Elimina questo record',
+        deleteDescription: 'Viene tolto per sempre: non si può annullare.',
+        deleteLabel: 'Elimina',
+    },
     themeSwitcher: {
         title: 'Personalizza tema',
         subtitle: 'Token del tema e modalità in tempo reale, senza ricaricare.',

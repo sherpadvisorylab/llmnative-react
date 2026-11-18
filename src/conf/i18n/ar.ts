@@ -249,6 +249,16 @@ export const ar: I18nDict = {
         tryAgain: 'إعادة المحاولة',
         goHome: 'الذهاب إلى الرئيسية',
     },
+    dangerZone: {
+        title: 'منطقة الخطر',
+        cancel: 'إلغاء',
+        typeToConfirm: 'للتأكيد، اكتب المفتاح أدناه (انسخه بالزر).',
+        copy: 'نسخ',
+        copied: 'تم النسخ',
+        deleteTitle: 'حذف هذا السجل',
+        deleteDescription: 'سيُحذف نهائيًا: لا يمكن التراجع عن ذلك.',
+        deleteLabel: 'حذف',
+    },
     themeSwitcher: {
         title: 'تخصيص السمة',
         subtitle: 'رموز السمة وأوضاعها مباشرةً دون إعادة تحميل.',

@@ -68,6 +68,8 @@ export { default as ListCard } from './blocks/ListCard';
 export type { ListCardProps } from './blocks/ListCard';
 export { default as SortableList, moveItem } from './blocks/SortableList';
 export { SectionNav, SectionLayout, PageSection, useActiveSection, goToSection } from './blocks/SectionNav';
+export { DangerZone } from './blocks/DangerZone';
+export type { DangerZoneProps, DangerZoneAction, DangerZoneConfirm } from './blocks/DangerZone';
 export type { SectionNavItem, SectionNavProps, SectionLayoutProps, PageSectionProps, UseActiveSectionOptions } from './blocks/SectionNav';
 export { default as AIConnections, AIModelRegionBadge, useRegionLabel } from './blocks/AIConnections';
 export type { AIConnectionsProps } from './blocks/AIConnections';
@@ -76,7 +78,7 @@ export { default as SideNav } from './blocks/SideNav';
 export type { SideNavProps, SideNavItemDef } from './blocks/SideNav';
 
 export { default as Form, useFormContext } from './widgets/Form';
-export type { FieldLabel, FormFieldProps, FormProps, FormDeleteArgs, FormDeleteHandler, FormFinallyArgs, FormFinallyHandler, FormSaveArgs, FormSaveHandler, FormSaveProps, FormSubmitArgs, FormSubmitHandler, FormSubmitProps, ChangeHandler, FieldOnChange } from './widgets/Form';
+export type { FieldLabel, FormFieldProps, FormProps, FormDangerZone, FormDeleteArgs, FormDeleteHandler, FormFinallyArgs, FormFinallyHandler, FormSaveArgs, FormSaveHandler, FormSaveProps, FormSubmitArgs, FormSubmitHandler, FormSubmitProps, ChangeHandler, FieldOnChange } from './widgets/Form';
 export { FormControllerContext, useFormActions, useFormController } from './widgets/form-controller';
 export type { FormActionEvent, FormController, FormControllerActions, FormControllerState, FormDraftStatus } from './widgets/form-controller';
 export { default as Grid } from './widgets/Grid';

@@ -160,6 +160,30 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
+## CR-142 — DangerZone, e il Form che la usa al posto del pulsante Elimina
+
+**Stato:** ✅ done
+**Issue:** [#121](https://github.com/sherpadvisorylab/llmnative-react/issues/121)
+**Priorità:** Media
+**Dipende da:** —
+
+### Motivazione
+Visto in un'applicazione il 18/11/2026: nelle tabelle ogni riga aveva i pulsanti «Modifica» ed «Elimina»/«Disabilita» in rosso, pesanti da vedere e facili da premere per sbaglio. La convenzione delle applicazioni mature è aprire la scheda con un clic sulla riga e raccogliere le azioni pericolose in una «zona pericolosa» in fondo alla scheda; quelle che non si annullano chiedono di digitare una chiave.
+
+### Scope
+- Nuovo componente `DangerZone`: una sezione in fondo (bordo e titolo in tono distruttivo tenue) con un elenco di azioni, ciascuna con titolo, descrizione e pulsante. Ogni azione ha la sua conferma: nessuna, sì/no, oppure digitare una chiave (mostrata, copiabile con un pulsante, incollabile in un campo; il pulsante rosso si attiva solo quando la chiave coincide). `onConfirm` può restituire `false` per lasciare aperta la conferma.
+- `Form` con un solo parametro nuovo, `dangerZone` (oggetto): valorizzato, il pulsante Elimina sparisce dal footer e la DangerZone compare in fondo al form; la sua prima azione è l'eliminazione del record (lo stesso `onDelete`/percorso di prima, conferma con la chiave), seguita da `actions` personalizzate. Senza `dangerZone`, il Form è com'era.
+- i18n del namespace `dangerZone` nelle 6 lingue; documentazione (`llms-full.txt`, `AI_REFERENCE.md`), showcase, test.
+
+### Criteri di accettazione
+- [x] AC1: `DangerZone` mostra le azioni; la conferma con la chiave attiva il pulsante solo con la chiave esatta; il pulsante «Copia» copia la chiave.
+- [x] AC2: un'azione senza conferma esegue subito; con sì/no chiede prima; `onConfirm` che restituisce `false` lascia aperta la conferma.
+- [x] AC3: `Form` con `dangerZone`: niente Elimina nel footer, eliminazione come prima azione della DangerZone (stesso percorso o `onDelete`), poi le azioni personalizzate; un record nuovo non ha l'eliminazione.
+- [x] AC4: `Form` senza `dangerZone` invariato.
+- [x] AC5: i18n nelle 6 lingue, documentazione, showcase; release minor.
+
+---
+
 ## CR-141 — Una collezione Firestore vuota lascia il caricamento
 
 **Stato:** ✅ done

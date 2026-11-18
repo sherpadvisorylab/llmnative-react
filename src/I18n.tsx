@@ -337,6 +337,17 @@ export interface I18nDict {
         tryAgain:         string;
         goHome:           string;
     };
+    /** CR-142: the danger zone of a record (`DangerZone`, `Form.dangerZone`). */
+    dangerZone: {
+        title:             string;
+        cancel:            string;
+        typeToConfirm:     string;
+        copy:              string;
+        copied:            string;
+        deleteTitle:       string;
+        deleteDescription: string;
+        deleteLabel:       string;
+    };
     themeSwitcher: {
         title:               string;
         subtitle:            string;

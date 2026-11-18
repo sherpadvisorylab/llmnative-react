@@ -249,6 +249,16 @@ export const zh: I18nDict = {
         tryAgain: '重试',
         goHome: '返回首页',
     },
+    dangerZone: {
+        title: '危险区域',
+        cancel: '取消',
+        typeToConfirm: '请输入下方的密钥以确认（可用按钮复制）。',
+        copy: '复制',
+        copied: '已复制',
+        deleteTitle: '删除此记录',
+        deleteDescription: '将被永久删除：无法撤销。',
+        deleteLabel: '删除',
+    },
     themeSwitcher: {
         title: '自定义主题',
         subtitle: '实时调整主题令牌和模式，无需重新加载。',
