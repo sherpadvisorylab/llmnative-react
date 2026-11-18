@@ -26,6 +26,7 @@ import {
     type GridGalleryField,
     type GridHeaderContext,
     type GridLayout,
+    type GridViewId,
     type GridModalActionContext,
 } from "./types";
 import {
@@ -417,16 +418,19 @@ function GridCore<TRecord extends RecordProps>({
     const galleryViewConfig = viewsConfig.gallery ?? {};
     const boardViewConfig = viewsConfig.board;
     // CR-138 — the views the switch offers: the list given, or table and gallery (and the board when configured).
-    const toggleViews: GridLayout[] = Array.isArray(viewsConfig.toggle)
-        ? viewsConfig.toggle.filter((layout) => layout !== "board" || !!boardViewConfig)
+    // CR-145 — the views of the page, after the built-in ones.
+    const customViews = viewsConfig.custom ?? [];
+    const toggleViews: GridViewId[] = Array.isArray(viewsConfig.toggle)
+        ? viewsConfig.toggle.filter((layout) => (layout === "board" ? !!boardViewConfig : layout === "table" || layout === "gallery" || customViews.some((c) => c.id === layout)))
         : viewsConfig.toggle
-            ? (boardViewConfig ? ["table", "gallery", "board"] : ["table", "gallery"])
+            ? [...(boardViewConfig ? ["table", "gallery", "board"] : ["table", "gallery"]), ...customViews.map((c) => c.id)]
             : [];
 
     // `view` is the initial/default display mode. When `views.toggle` is enabled, the
     // user can switch at runtime — `resolvedView` tracks that, re-synced if the caller
     // changes `view` from outside (e.g. a controlled parent).
-    const [resolvedView, setResolvedView] = useState<GridLayout>(view);
+    const [resolvedView, setResolvedView] = useState<GridViewId>(view);
+    const activeCustomView = customViews.find((c) => c.id === resolvedView);
     useEffect(() => { setResolvedView(view); }, [view]);
 
     // Column visibility (opt-in via `views.table.columnPicker`) — tracks HIDDEN keys
@@ -609,10 +613,14 @@ function GridCore<TRecord extends RecordProps>({
     // gives a subtle but reliable lift off the floor in every theme without introducing an
     // accent color. No `variant` prop here — a fully custom className instead, so the base
     // `.btn` sizing/focus-ring still applies but bg/text are ours to control.
-    const viewButtons: Record<GridLayout, { icon: string; label: string }> = {
+    const builtInViewButtons: Record<GridLayout, { icon: string; label: string }> = {
         table: { icon: "list", label: dict.tableView },
         gallery: { icon: "layout-grid", label: dict.galleryView },
         board: { icon: "kanban", label: dict.boardView },
+    };
+    const viewButtons: Record<string, { icon: string; label: string }> = {
+        ...builtInViewButtons,
+        ...Object.fromEntries(customViews.map((c) => [c.id, { icon: c.icon, label: c.label }])),
     };
     const viewToggleControl = toggleViews.length > 1 ? (
         <span className="inline-flex rounded-md border border-border overflow-hidden">
@@ -759,6 +767,16 @@ function GridCore<TRecord extends RecordProps>({
             >
                 {loadError ? (
                     <>{before}<Alert variant="danger">{loadError}</Alert>{after}</>
+                ) : activeCustomView ? (
+                    <>
+                        {before}
+                        {activeCustomView.render({
+                            records: initialSort ? (Order.records(searchedRecords, initialSort) ?? searchedRecords) : searchedRecords,
+                            runAction,
+                            onRecordClick: rowClickHandler,
+                        })}
+                        {after}
+                    </>
                 ) : resolvedView === "board" && boardViewConfig ? (
                     <GridBoardView
                         {...boardViewConfig}

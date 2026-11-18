@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.11.0] - 2026-11-18
+
+### Added
+- Grid custom views (CR-145): `views.custom` adds views of the page to the switch (after the built-in ones with `toggle: true`, or by `id` in the `toggle` list); each receives the records searched, filtered and sorted, `runAction` and the click on a record. `view` accepts the `id` of a custom view. Types `GridViewId`, `GridCustomView`, `GridCustomViewContext`.
+
+### Changed
+- `NetworkCanvas`: the label of a node wraps on two lines instead of being cut.
+
 ## [3.10.0] - 2026-11-18
 
 ### Added

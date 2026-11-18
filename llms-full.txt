@@ -428,8 +428,8 @@ export class RestDataProvider implements DataProviderAdapter {
 | `records` | `RecordArray` | Dati in memoria (alternativa a path) |
 | `columns` | `GridColumn[]` | `{ key, label, sortable?, render?, className? }` |
 | `actions` | `Array<'add'\|'edit'\|'delete'> \| Record<string, GridAction>` | |
-| `view` | `'table' \| 'gallery' \| 'board'` | Vista iniziale; `'board'` richiede `views.board` |
-| `views` | `GridViewsConfig` | `{ toggle?: boolean \| GridLayout[], table?, gallery?, board? }` — lo switch delle viste e le opzioni di ciascuna |
+| `view` | `'table' \| 'gallery' \| 'board' \| string` | Vista iniziale; `'board'` richiede `views.board`, un altro nome è l'`id` di una vista di `views.custom` (CR-145) |
+| `views` | `GridViewsConfig` | `{ toggle?: boolean \| GridViewId[], table?, gallery?, board?, custom? }` — lo switch delle viste e le opzioni di ciascuna |
 | `groupBy` | `string \| string[]` | |
 | `pagination` | `PaginationParams` | `{ limit, page?, maxPageButtons?, align?, sticky? }` |
 | `sortable` | `boolean \| OrderConfig` | |
@@ -456,6 +456,25 @@ CR-143: la modale di un'azione `modal`/`delete` è dentro `FormControllerContext
 | `filters` | `GridFilterConfig[]` | Checkbox toggle nell'header default, applicati PRIMA di `searchable` — `{ key, label, defaultValue?, predicate(record, value) }` |
 
 **GridAction kind:** `'modal'` (default), `'route'`, `'external'`, `'inline'`, `'delete'`
+
+### Viste personalizzate (CR-145)
+
+Una pagina aggiunge allo switch della Grid una vista sua: riceve le righe già cercate, filtrate e ordinate, e il
+click su un record come quello su una riga (apre la modifica se la Grid ce l'ha). `toggle: true` la offre dopo le
+viste di serie; in un elenco si nomina per `id`.
+
+```tsx
+<Grid records={persone} recordId="uid" columns={colonne} searchable={{ fields: ['nome'] }}
+  views={{
+    toggle: ['albero', 'table'],
+    custom: [{ id: 'albero', label: 'Albero', icon: 'network',
+      render: ({ records, onRecordClick }) => (
+        <NetworkCanvas nodes={records.map((p) => ({ id: p.uid, parentId: p.sponsorId, label: p.nome }))}
+          onNodeClick={(n) => onRecordClick?.(records.find((p) => p.uid === n.id)!)} />
+      ) }],
+  }}
+  view="albero" />
+```
 
 ### Vista kanban (CR-138)
 

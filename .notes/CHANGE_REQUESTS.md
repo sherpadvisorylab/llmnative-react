@@ -160,6 +160,29 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
+## CR-145 — Viste personalizzate della Grid
+
+**Stato:** ✅ done
+**Issue:** [#124](https://github.com/sherpadvisorylab/llmnative-react/issues/124)
+**Priorità:** Media
+**Dipende da:** CR-138, CR-144
+
+### Motivazione
+Un'applicazione vuole mostrare le persone di una Grid anche come albero (il `NetworkCanvas`), dallo stesso switch di tabella, galleria e kanban, con la stessa ricerca e gli stessi filtri.
+
+### Scope
+- `views.custom: GridCustomView[]` (`id`, `label`, `icon`, `render(ctx)`), con `ctx.records` cercati/filtrati/ordinati, `ctx.runAction`, `ctx.onRecordClick`.
+- `views.toggle: true` le offre dopo quelle di serie; un elenco le nomina per `id`; `view` accetta un `id`.
+- `NetworkCanvas`: l'etichetta di un nodo va a capo su due righe.
+
+### Criteri di accettazione
+- [x] AC1: lo switch mostra le viste personalizzate con icona e nome.
+- [x] AC2: la vista riceve le righe cercate e filtrate e il click su un record.
+- [x] AC3: `view` iniziale su una vista personalizzata; elenco del toggle per id.
+- [x] AC4: test, documentazione, showcase; release minor.
+
+---
+
 ## CR-144 — NetworkCanvas, un albero a livelli su canvas
 
 **Stato:** ✅ done

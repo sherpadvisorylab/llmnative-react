@@ -65,8 +65,8 @@ function PersonNode({ data }: NodeProps<Node<PersonData, 'person'>>) {
         >
             <Handle type="target" position={Position.Top} isConnectable={false} className={hiddenHandle} />
             <div className="flex min-w-0 items-center gap-2">
-                {node.icon && <Icon name={node.icon} size={16} className="shrink-0 text-primary" />}
-                <span className={cn('truncate text-sm font-semibold', node.muted && 'line-through')} title={node.label}>{node.label}</span>
+                {node.icon && <Icon name={node.icon} size={16} className="shrink-0 self-start text-primary" />}
+                <span className={cn('line-clamp-2 break-words text-sm font-semibold leading-tight', node.muted && 'line-through')} title={node.label}>{node.label}</span>
                 {node.badge && <span className="ms-auto shrink-0 rounded-full bg-secondary px-2 py-0.5 text-[10px] font-medium text-secondary-foreground">{node.badge}</span>}
             </div>
             {node.description && <span className="truncate text-xs text-muted-foreground" title={node.description}>{node.description}</span>}

@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { NetworkCanvas, type NetworkCanvasNode } from '@llmnative/react';
+import { Grid, NetworkCanvas, type NetworkCanvasNode } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
 import PropDocsTable from '../../docs-kit/docs/PropDocsTable';
@@ -66,6 +66,37 @@ export default function NetworkCanvasPage() {
     nodes={people.map((p) => ({ id: p.uid, parentId: p.sponsorId, label: p.name, description: p.kind }))}
     levelLabel={(level) => (level === 0 ? 'You' : \`Level \${level}\`)}
     onNodeClick={(node) => open(node.id)}
+/>`}
+            />
+            <Section
+                title="As a view of a Grid"
+                description="CR-145: views.custom adds the tree to the switch of the Grid, next to the table; the search and the filters of the Grid hold for the tree too."
+                preview={(
+                    <div className="w-full">
+                        <Grid<NetworkCanvasNode>
+                            records={nodes}
+                            recordId="id"
+                            columns={[{ key: 'label', label: 'Name' }, { key: 'description', label: 'Kind' }]}
+                            searchable={{ fields: ['label', 'description'] }}
+                            view="tree"
+                            views={{
+                                toggle: ['tree', 'table'],
+                                custom: [{
+                                    id: 'tree',
+                                    label: 'Tree',
+                                    icon: 'network',
+                                    render: ({ records }) => <NetworkCanvas nodes={records} height={460} searchable={false} />,
+                                }],
+                            }}
+                        />
+                    </div>
+                )}
+                code={`<Grid records={people} recordId="id" columns={columns} searchable={{ fields: ['label'] }}
+    view="tree"
+    views={{
+        toggle: ['tree', 'table'],
+        custom: [{ id: 'tree', label: 'Tree', icon: 'network', render: ({ records }) => <NetworkCanvas nodes={records} /> }],
+    }}
 />`}
             />
             <PropDocsTable props={PROPS} title="NetworkCanvas props" />

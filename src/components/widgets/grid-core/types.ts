@@ -5,6 +5,26 @@ import { type GalleryItemRenderContext, type GalleryOverlay } from "../../ui/Gal
 import { type DatabaseOptions, type RecordProps } from "../../../providers/data/DataProvider";
 
 export type GridLayout = "table" | "gallery" | "board";
+/** CR-145 — a view of the Grid: a built-in one, or the `id` of one of `views.custom`. */
+export type GridViewId = GridLayout | (string & {});
+
+/** CR-145 — what a custom view receives: the records searched, filtered and sorted by the Grid. */
+export type GridCustomViewContext<TRecord> = {
+    records: TRecord[];
+    /** Runs an action of the Grid on a record (`edit`, a custom one…), as a row would. */
+    runAction: (key: string, record?: TRecord) => void;
+    /** The click on a record, as the click on a row of the table (opens the edit when the Grid has one). */
+    onRecordClick?: (record: TRecord) => void;
+};
+
+/** CR-145 — a view the page adds to the switch of the Grid (a tree, a map, a timeline…). */
+export type GridCustomView<TRecord> = {
+    /** Its id: the name of the view in `view` and in the `views.toggle` list. */
+    id: string;
+    label: string;
+    icon: string;
+    render: (context: GridCustomViewContext<TRecord>) => React.ReactNode;
+};
 export type GridSticky = "top" | "bottom";
 export type GridSelectionMode = false | "single" | "multiple";
 
@@ -149,11 +169,13 @@ export type GridBoardViewConfig<TRecord> = {
  */
 export type GridViewsConfig<TRecord> = {
     /** Show the built-in view switch in the header, letting the user change the active view at runtime. `true`: table and gallery, plus the board when `board` is set; or the list of the views to offer (CR-138, e.g. `['table', 'board']`). Default `false` — `view` behaves as a fixed initial mode when omitted, same as before this existed. */
-    toggle?: boolean | GridLayout[];
+    toggle?: boolean | GridViewId[];
     table?: GridTableViewConfig;
     gallery?: GridGalleryViewConfig<TRecord>;
     /** CR-138 — the kanban view: see `GridBoardViewConfig`. */
     board?: GridBoardViewConfig<TRecord>;
+    /** CR-145 — views of the page, offered by the switch after the built-in ones (`toggle: true`) or by their `id` in the `toggle` list. */
+    custom?: GridCustomView<TRecord>[];
 };
 
 export type GridFormat =
@@ -355,7 +377,7 @@ export type GridAfterActionHandler<TRecord> = (
 /** Visual / layout props for `<Grid>`. */
 export type GridPresentation<TRecord> = {
     /** Display mode: `"table"` (default), `"gallery"` card layout or `"board"` (kanban, needs `views.board`). Acts as the initial/default view — see `views.toggle` to let the user switch at runtime. */
-    view?: GridLayout;
+    view?: GridViewId;
     /** Table/Gallery switch + per-view options (column picker, gallery field picker, cards-per-row, …) — see `GridViewsConfig`. Omit entirely to keep the pre-existing fixed-`view` behavior. */
     views?: GridViewsConfig<TRecord>;
     /** Stick the header (`"top"`) or footer (`"bottom"`) while scrolling. */

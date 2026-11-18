@@ -31,6 +31,7 @@
 
 | CR | State | Evidence |
 |----|-------|----------|
+| CR-145 | Done | Viste personalizzate della Grid (`views.custom`: id, label, icon, render con le righe cercate/filtrate/ordinate, `runAction`, `onRecordClick`), nello switch dopo quelle di serie o per id; `view` iniziale su una vista personalizzata. `NetworkCanvas`: etichetta su due righe. Test: 2. Released in 3.11.0. Issue #124. |
 | CR-144 | Done | `NetworkCanvas` su `@xyflow/react` (import dinamico): albero dall'alto con fasce dei livelli numerate, apri/chiudi dei rami, "+N" oltre `collapseAfter`, ricerca che apre il ramo e centra, zoom/pan/minimappa, animazioni leggere senza `prefers-reduced-motion`. Funzioni pure del layout. i18n in 6 lingue, showcase. Test: 6. Released in 3.10.0. Issue #123. |
 | CR-143 | Done | La modale di un'azione della Grid dentro `FormControllerContext` con il controller della Grid: il `Form` del `body` si salva dal footer (di default o personalizzato con `useFormActions`). Test: 1 (1138 verdi). Released in 3.9.0. Issue #122. |
 | CR-142 | Done | `DangerZone` (azioni con conferma: nessuna, sì/no, chiave da digitare copiabile) e `Form.dangerZone`, un solo parametro che sostituisce il pulsante Elimina con la zona (eliminazione per prima, poi azioni personalizzate). i18n in 6 lingue, showcase. Test: 5 (1136 verdi). Released in 3.8.0. Issue #121. |
