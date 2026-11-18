@@ -308,12 +308,12 @@ export default function NetworkCanvasImpl<TNode extends NetworkCanvasNode>(props
             )}
             style={{
                 height: props.height ?? 600,
-                ['--xy-edge-stroke' as string]: 'hsl(var(--muted-foreground) / 0.45)',
-                ['--xy-controls-button-background-color' as string]: 'hsl(var(--background))',
-                ['--xy-controls-button-color' as string]: 'hsl(var(--foreground))',
-                ['--xy-controls-button-border-color' as string]: 'hsl(var(--border))',
-                ['--xy-minimap-background-color' as string]: 'hsl(var(--background))',
-                ['--xy-background-pattern-color' as string]: 'hsl(var(--border))',
+                ['--xy-edge-stroke' as string]: 'hsl(var(--rf-muted-foreground) / 0.45)',
+                ['--xy-controls-button-background-color' as string]: 'hsl(var(--rf-background))',
+                ['--xy-controls-button-color' as string]: 'hsl(var(--rf-foreground))',
+                ['--xy-controls-button-border-color' as string]: 'hsl(var(--rf-border))',
+                ['--xy-minimap-background-color' as string]: 'hsl(var(--rf-background))',
+                ['--xy-background-pattern-color' as string]: 'hsl(var(--rf-border))',
             }}
         >
             <ReactFlowProvider>

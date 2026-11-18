@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.11.1] - 2026-11-18
+
+### Fixed
+- `NetworkCanvas`: the edges, the controls, the minimap and the dots take the colours of the theme (the `--rf-*` variables).
+
 ## [3.11.0] - 2026-11-18
 
 ### Added
