@@ -1,6 +1,6 @@
 {
   "name": "@llmnative/react",
-  "version": "3.9.0",
+  "version": "3.10.0",
   "description": "LLM-native React framework for deterministic UI generation. Data-driven by default, schema-driven optional. Ultra-low token consumption — built for AI agents, not just humans.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -170,6 +170,7 @@
     "@tiptap/extension-underline": "^3.31.4",
     "@tiptap/react": "^3.31.4",
     "@tiptap/starter-kit": "^3.31.4",
+    "@xyflow/react": "^12.12.0",
     "buffer": "^6.0.3",
     "clsx": "^2.1.1",
     "codemirror": "^6.0.2",

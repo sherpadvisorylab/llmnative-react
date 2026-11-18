@@ -259,6 +259,16 @@ export const ru: I18nDict = {
         deleteDescription: 'Запись удаляется навсегда: это нельзя отменить.',
         deleteLabel: 'Удалить',
     },
+    networkCanvas: {
+        title: 'Сеть',
+        level: 'Уровень {n}',
+        search: 'Поиск в сети',
+        noResults: 'Ничего не найдено',
+        next: 'Следующий результат',
+        more: '+{n} ещё',
+        expand: 'Показать {n} ниже',
+        collapse: 'Скрыть нижние',
+    },
     themeSwitcher: {
         title: 'Настройка темы',
         subtitle: 'Токены темы и режим меняются сразу, без перезагрузки.',

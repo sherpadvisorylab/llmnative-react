@@ -31,6 +31,7 @@
 
 | CR | State | Evidence |
 |----|-------|----------|
+| CR-144 | Done | `NetworkCanvas` su `@xyflow/react` (import dinamico): albero dall'alto con fasce dei livelli numerate, apri/chiudi dei rami, "+N" oltre `collapseAfter`, ricerca che apre il ramo e centra, zoom/pan/minimappa, animazioni leggere senza `prefers-reduced-motion`. Funzioni pure del layout. i18n in 6 lingue, showcase. Test: 6. Released in 3.10.0. Issue #123. |
 | CR-143 | Done | La modale di un'azione della Grid dentro `FormControllerContext` con il controller della Grid: il `Form` del `body` si salva dal footer (di default o personalizzato con `useFormActions`). Test: 1 (1138 verdi). Released in 3.9.0. Issue #122. |
 | CR-142 | Done | `DangerZone` (azioni con conferma: nessuna, sì/no, chiave da digitare copiabile) e `Form.dangerZone`, un solo parametro che sostituisce il pulsante Elimina con la zona (eliminazione per prima, poi azioni personalizzate). i18n in 6 lingue, showcase. Test: 5 (1136 verdi). Released in 3.8.0. Issue #121. |
 | CR-141 | Done | Collezione Firestore vuota: `onSnapshot` con `includeMetadataChanges`, la conferma vuota del server lascia il caricamento; nessuna riconsegna per i soli metadati. Test: 2. Released in 3.7.2. Issue #120. |

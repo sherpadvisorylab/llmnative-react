@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.10.0] - 2026-11-18
+
+### Added
+- `NetworkCanvas` (CR-144): a network drawn as a tree on a canvas (on `@xyflow/react`, loaded only when a canvas is shown): numbered bands per level, branches that open and close, a `+N` for the many children of a node, search that opens the branch of a match and centres it, zoom, pan, minimap, light motion (none with `prefers-reduced-motion`). Pure helpers `layoutNetwork`, `searchNetwork`, `revealNode`, `initiallyOpen`.
+- i18n namespace `networkCanvas` in the six languages; showcase page `NetworkCanvas`.
+- Dependency `@xyflow/react`.
+
 ## [3.9.0] - 2026-11-18
 
 ### Added

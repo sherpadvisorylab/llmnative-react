@@ -259,6 +259,16 @@ export const de: I18nDict = {
         deleteDescription: 'Er wird endgültig entfernt: das lässt sich nicht rückgängig machen.',
         deleteLabel: 'Löschen',
     },
+    networkCanvas: {
+        title: 'Netzwerk',
+        level: 'Ebene {n}',
+        search: 'Im Netzwerk suchen',
+        noResults: 'Kein Treffer',
+        next: 'Nächster Treffer',
+        more: '+{n} weitere',
+        expand: '{n} darunter zeigen',
+        collapse: 'Die darunter ausblenden',
+    },
     themeSwitcher: {
         title: 'Theme anpassen',
         subtitle: 'Theme-Tokens und Modus live ändern, ohne Neuladen.',

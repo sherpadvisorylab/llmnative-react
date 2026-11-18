@@ -160,6 +160,31 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
+## CR-144 — NetworkCanvas, un albero a livelli su canvas
+
+**Stato:** ✅ done
+**Issue:** [#123](https://github.com/sherpadvisorylab/llmnative-react/issues/123)
+**Priorità:** Media
+
+### Motivazione
+Un'applicazione disegna il network dei suoi collaboratori (chi ha invitato chi, fino a dieci livelli): una tabella non mostra la forma della rete. Serve un canvas con i livelli in fasce, i rami che si aprono, i gruppi quando un nodo ha molti figli, la ricerca.
+
+### Scope
+- `NetworkCanvas` su `@xyflow/react`, caricato con un import dinamico (come `ImageEditor`): nodi con `parentId`, layout ad albero dall'alto, una fascia numerata per livello (`rootLevel`, `levelLabel`).
+- Rami aperti fino a `initialDepth`; il "+" sotto un nodo apre e chiude i suoi figli; oltre `collapseAfter` figli un nodo "+N" li mostra tutti.
+- Ricerca per etichetta e descrizione (senza maiuscole né accenti): apre il ramo del risultato e lo centra; `focusId` fa lo stesso dalla pagina.
+- Zoom, pan, minimappa, controlli; animazioni leggere delle posizioni, nessuna con `prefers-reduced-motion`.
+- Tema (token del framework), icon provider, i18n `networkCanvas` in 6 lingue, showcase, documentazione.
+
+### Criteri di accettazione
+- [x] AC1: layout ad albero, padre centrato sui figli, fasce dei livelli.
+- [x] AC2: apri/chiudi; "+N" che si espande al click; un ciclo nei dati non si disegna all'infinito.
+- [x] AC3: ricerca che apre il ramo e centra il nodo.
+- [x] AC4: zoom, pan, minimappa; animazioni rispettose di `prefers-reduced-motion`.
+- [x] AC5: test unitari (layout e componente), showcase, documentazione; release minor.
+
+---
+
 ## CR-143 — La modale di un'azione della Grid dà il suo controller del form al contenuto e al footer
 
 **Stato:** ✅ done

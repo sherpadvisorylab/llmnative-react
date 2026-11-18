@@ -348,6 +348,17 @@ export interface I18nDict {
         deleteDescription: string;
         deleteLabel:       string;
     };
+    /** CR-144: the canvas of a network (`NetworkCanvas`). `{n}` is a number. */
+    networkCanvas: {
+        title:     string;
+        level:     string;
+        search:    string;
+        noResults: string;
+        next:      string;
+        more:      string;
+        expand:    string;
+        collapse:  string;
+    };
     themeSwitcher: {
         title:               string;
         subtitle:            string;

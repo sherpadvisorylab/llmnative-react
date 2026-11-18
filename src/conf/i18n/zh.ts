@@ -259,6 +259,16 @@ export const zh: I18nDict = {
         deleteDescription: '将被永久删除：无法撤销。',
         deleteLabel: '删除',
     },
+    networkCanvas: {
+        title: '网络',
+        level: '第 {n} 级',
+        search: '在网络中搜索',
+        noResults: '无结果',
+        next: '下一个结果',
+        more: '另外 {n} 个',
+        expand: '显示下方 {n} 个',
+        collapse: '隐藏下方',
+    },
     themeSwitcher: {
         title: '自定义主题',
         subtitle: '实时调整主题令牌和模式，无需重新加载。',

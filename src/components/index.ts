@@ -69,6 +69,8 @@ export type { ListCardProps } from './blocks/ListCard';
 export { default as SortableList, moveItem } from './blocks/SortableList';
 export { SectionNav, SectionLayout, PageSection, useActiveSection, goToSection } from './blocks/SectionNav';
 export { DangerZone } from './blocks/DangerZone';
+export { NetworkCanvas, layoutNetwork, searchNetwork, revealNode, initiallyOpen } from './blocks/NetworkCanvas';
+export type { NetworkCanvasNode, NetworkCanvasProps } from './blocks/NetworkCanvas';
 export type { DangerZoneProps, DangerZoneAction, DangerZoneConfirm } from './blocks/DangerZone';
 export type { SectionNavItem, SectionNavProps, SectionLayoutProps, PageSectionProps, UseActiveSectionOptions } from './blocks/SectionNav';
 export { default as AIConnections, AIModelRegionBadge, useRegionLabel } from './blocks/AIConnections';

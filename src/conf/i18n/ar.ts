@@ -259,6 +259,16 @@ export const ar: I18nDict = {
         deleteDescription: 'سيُحذف نهائيًا: لا يمكن التراجع عن ذلك.',
         deleteLabel: 'حذف',
     },
+    networkCanvas: {
+        title: 'الشبكة',
+        level: 'المستوى {n}',
+        search: 'ابحث في الشبكة',
+        noResults: 'لا نتائج',
+        next: 'النتيجة التالية',
+        more: '+{n} أخرى',
+        expand: 'إظهار {n} في الأسفل',
+        collapse: 'إخفاء ما في الأسفل',
+    },
     themeSwitcher: {
         title: 'تخصيص السمة',
         subtitle: 'رموز السمة وأوضاعها مباشرةً دون إعادة تحميل.',

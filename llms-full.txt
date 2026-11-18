@@ -1297,6 +1297,31 @@ mostrata, copiabile con un pulsante, il pulsante rosso si attiva solo con la chi
 | `actions` | `{ id?, title, description?, label, icon?, variant?: 'danger' \| 'secondary', confirm?: boolean \| { title?, message?, key?, confirmLabel? }, onConfirm, disabled? }[]`; `onConfirm` che restituisce `false` lascia aperta la conferma |
 | `title` / `description` | titolo (default `dangerZone.title`) e una riga sotto |
 
+**NetworkCanvas (CR-144):** una rete gerarchica (chi sta sotto chi) disegnata come albero su un canvas
+(`@xyflow/react`, caricato solo quando il canvas si vede): fasce dei livelli numerate, rami che si aprono e si
+chiudono (il "+" sotto un nodo), un "+N" per i figli oltre `collapseAfter`, ricerca (apre il ramo del risultato e lo
+centra), zoom, pan, minimappa; animazioni leggere, nessuna con `prefers-reduced-motion`.
+
+```tsx
+<NetworkCanvas
+  nodes={persone.map((p) => ({ id: p.uid, parentId: p.sponsorId, label: p.nome, description: p.tipo, muted: p.bloccato }))}
+  rootLevel={0}
+  levelLabel={(l) => (l === 0 ? 'Tu' : `Livello ${l}`)}
+  onNodeClick={(n) => apri(n.id)}
+/>
+```
+
+| Prop | |
+|---|---|
+| `nodes` | `{ id, parentId?, label, description?, icon?, badge?, muted? }[]`; senza `parentId` (o con un padre assente) in cima |
+| `rootLevel` / `levelLabel` | livello dei nodi in cima (default 0) ed etichetta della fascia (default `networkCanvas.level`) |
+| `initialDepth` / `collapseAfter` | livelli aperti all'inizio (default 2); figli disegnati prima del "+N" (default 8) |
+| `onNodeClick` / `selectedId` / `focusId` | click su un nodo (non sul suo "+"); nodo selezionato; nodo da aprire e centrare |
+| `searchable` / `minimap` / `height` | ricerca e minimappa (default `true`); altezza (default 600) |
+
+Funzioni pure: `layoutNetwork(nodes, { open, showAll, collapseAfter })`, `searchNetwork(nodes, q)`,
+`revealNode(nodes, id, collapseAfter)`, `initiallyOpen(nodes, depth)`.
+
 **SortableList (CR-120):** card compatte (ListCard) in un ordine che la persona sceglie: le trascina per la
 maniglia, o con le frecce su/giù sulla maniglia; l'annuncio della nuova posizione va agli screen reader.
 ```tsx

@@ -339,6 +339,16 @@ export const en: I18nDict = {
         deleteDescription: 'It is removed for good: it cannot be undone.',
         deleteLabel: 'Delete',
     },
+    networkCanvas: {
+        title: 'Network',
+        level: 'Level {n}',
+        search: 'Search the network',
+        noResults: 'No match',
+        next: 'Next match',
+        more: '+{n} more',
+        expand: 'Show {n} below',
+        collapse: 'Hide the ones below',
+    },
     themeSwitcher: {
         title: 'Customize theme',
         subtitle: 'Live theme tokens and mode controls with no reload.',

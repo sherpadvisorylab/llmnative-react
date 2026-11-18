@@ -259,6 +259,16 @@ export const it: I18nDict = {
         deleteDescription: 'Viene tolto per sempre: non si può annullare.',
         deleteLabel: 'Elimina',
     },
+    networkCanvas: {
+        title: 'Network',
+        level: 'Livello {n}',
+        search: 'Cerca nel network',
+        noResults: 'Nessun risultato',
+        next: 'Risultato successivo',
+        more: '+{n} altri',
+        expand: 'Mostra i {n} sotto',
+        collapse: 'Nascondi quelli sotto',
+    },
     themeSwitcher: {
         title: 'Personalizza tema',
         subtitle: 'Token del tema e modalità in tempo reale, senza ricaricare.',
