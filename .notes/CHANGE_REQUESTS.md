@@ -160,6 +160,15 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
+## CR-148.1 — IconPicker compatto
+
+**Stato:** ✅ done
+**Issue:** [#128](https://github.com/sherpadvisorylab/llmnative-react/issues/128)
+
+L'icona nel titolo di una pagina che si cambia al clic: `compact` mostra solo il pulsante (nome nel tooltip), `iconSize` la dimensione dell'icona. Test e docs; release patch 3.14.1.
+
+---
+
 ## CR-148 — IconPicker: scegliere un'icona del provider attivo
 
 **Stato:** ✅ done

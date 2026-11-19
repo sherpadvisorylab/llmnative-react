@@ -99,6 +99,16 @@ describe('IconPicker (CR-148)', () => {
         expect(within(dialog).getAllByRole('option').map((o) => o.getAttribute('title'))).toEqual(['house']);
     });
 
+    it('compact: only the button, its name in the tooltip', async () => {
+        const user = userEvent.setup();
+        renderPicker({ compact: true, options: ['landmark', 'car'] });
+        expect(screen.queryByText('landmark')).toBeNull();
+        const button = screen.getByRole('button', { name: /landmark/ });
+        expect(button.getAttribute('title')).toMatch(/^landmark/);
+        await user.click(button);
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
+    });
+
     it('without options, shows the icons of the active provider, at most a page of them', async () => {
         const user = userEvent.setup();
         renderPicker({}, '');

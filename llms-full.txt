@@ -718,7 +718,8 @@ con la ricerca in alto (nome, con o senza trattini, e `keywords`), la griglia de
 restringe) e Salva nel footer; doppio clic sceglie e chiude. Senza `options` elenca le icone del provider attivo
 (`IconProviderAdapter.list()`: Lucide e Phosphor la hanno; un provider dell'app può aggiungerla). `exclude` toglie dei
 nomi ma lascia scegliere quello attuale; `clearable` aggiunge "Nessuna icona". Phosphor risolve anche i nomi esportati
-solo con il suffisso `Icon` (es. `activity`).
+solo con il suffisso `Icon` (es. `activity`). `compact` (CR-148.1) mostra solo il pulsante, con il nome nel tooltip
+(es. l'icona nel titolo di una pagina che si cambia al clic); `iconSize` la sua icona (default 26).
 
 ### ImageField
 ```tsx

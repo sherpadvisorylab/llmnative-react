@@ -31,6 +31,7 @@
 
 | CR | State | Evidence |
 |----|-------|----------|
+| CR-148.1 | Done | `IconPicker` `compact` (solo il pulsante, nome nel tooltip) e `iconSize`. Test: 1. Released in 3.14.1. Issue #128. |
 | CR-148 | Done | `IconPicker`: campo dell'icona con modale (ricerca, griglia delle icone del provider attivo o di `options`, `exclude`, `keywords`, `clearable`, Salva nel footer). `list()` opzionale degli `IconProviderAdapter`, implementato da Lucide e Phosphor; Phosphor risolve i nomi solo con suffisso `Icon`. Showcase (pagina Icon, 6 lingue). Test: 4. Released in 3.14.0. Issue #127. |
 | CR-147 | Done | `Autocomplete` con le opzioni raggruppate per `group`: intestazione sticky per gruppo (spinta via dal gruppo dopo), gruppi nell'ordine di `options`, prima le opzioni senza gruppo, filtro anche sul gruppo, tastiera che salta le intestazioni, ARIA `group`. Formati di `accept` dell'Upload a capo. Showcase (6 lingue). Test: 3. Released in 3.13.0. Issue #126. |
 | CR-146 | Done | Allegati e header di risposta nell'invio delle mail (Resend, Brevo, Gmail multipart/mixed), solo header di risposta e `X-`, nessun a capo; Message-ID, In-Reply-To e References nella lettura (Gmail, IMAP). Test: 4. Released in 3.12.0. Issue #125. |

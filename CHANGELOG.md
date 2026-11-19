@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.14.1] - 2026-11-19
+
+### Added
+- `IconPicker` `compact` (CR-148.1): only the button with the current icon, its name in the tooltip; `iconSize`.
+
 ## [3.14.0] - 2026-11-19
 
 ### Added

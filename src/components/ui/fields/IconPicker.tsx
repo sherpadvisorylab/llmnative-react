@@ -28,6 +28,10 @@ export interface IconPickerProps extends FormFieldProps {
     validator?: (value: FieldValue) => string | undefined | Promise<string | undefined>;
     /** Class of the button that shows the current icon. */
     className?: string;
+    /** Only the button, without the name and the link beside it (its name in the tooltip): e.g. the icon in the title of a page. */
+    compact?: boolean;
+    /** Size of the icon in the button, in pixels (default 26). */
+    iconSize?: number;
 }
 
 const searchable = (value: string) => value.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
@@ -54,6 +58,8 @@ export const IconPicker = ({
     clearable = false,
     feedback = undefined,
     validator = undefined,
+    compact = false,
+    iconSize = 26,
 }: IconPickerProps) => {
     const { value, handleChange, formWrapClass } = useFormContext({ name, onChange, wrapperClassName, defaultValue, inheritWrapperClassName });
     const error = useFieldValidation(name, { required, label, validator });
@@ -95,7 +101,7 @@ export const IconPicker = ({
                     type="button"
                     disabled={disabled}
                     onClick={openPicker}
-                    title={dict.choose}
+                    title={compact && current ? `${current} · ${dict.change}` : dict.choose}
                     aria-label={current ? `${dict.choose}: ${current}` : dict.choose}
                     className={cn(
                         'group flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-input bg-primary/10 text-primary transition-colors hover:border-primary hover:bg-primary/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
@@ -103,12 +109,14 @@ export const IconPicker = ({
                         className,
                     )}
                 >
-                    {current ? <Icon name={current} size={26} /> : <Icon name="plus" size={20} className="opacity-60" />}
+                    {current ? <Icon name={current} size={iconSize} /> : <Icon name="plus" size={Math.round(iconSize * 0.8)} className="opacity-60" />}
                 </button>
-                <div className="flex min-w-0 flex-col">
-                    <span className="truncate text-sm font-medium">{current || dict.none}</span>
-                    {!disabled && <button type="button" onClick={openPicker} className="self-start text-xs text-primary underline-offset-4 hover:underline">{current ? dict.change : dict.choose}</button>}
-                </div>
+                {!compact && (
+                    <div className="flex min-w-0 flex-col">
+                        <span className="truncate text-sm font-medium">{current || dict.none}</span>
+                        {!disabled && <button type="button" onClick={openPicker} className="self-start text-xs text-primary underline-offset-4 hover:underline">{current ? dict.change : dict.choose}</button>}
+                    </div>
+                )}
             </div>
             {error
                 ? <FieldError message={error} />
