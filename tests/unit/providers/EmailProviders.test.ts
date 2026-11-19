@@ -316,7 +316,7 @@ describe('ImapEmailReader', () => {
         const reader = new ImapEmailReader(CONFIG, { modules: imap.modules });
         const first = await reader.read('7:1', { limit: 1 });
         expect(first).toEqual({
-            messages: [{ id: '7-2', threadId: '<b@x>', from: 'Ada <ada@example.com>', to: 'info@acme.it', subject: 'b', date: '2026-11-15T10:00:00.000Z', text: 'y', direction: 'inbound', cursor: '7:2' }],
+            messages: [{ id: '7-2', threadId: '<b@x>', messageId: '<b@x>', from: 'Ada <ada@example.com>', to: 'info@acme.it', subject: 'b', date: '2026-11-15T10:00:00.000Z', text: 'y', direction: 'inbound', cursor: '7:2' }],
             cursor: '7:2',
         });
         expect((await reader.read(first.cursor)).messages.map((m) => m.subject)).toEqual(['c']);
@@ -334,5 +334,60 @@ describe('ImapEmailReader', () => {
         const down = fakeImap({ uidValidity: 1, mails: [] }, async () => { throw new Error('ETIMEDOUT'); });
         await expect(new ImapEmailReader(CONFIG, { modules: down.modules }).start()).rejects.toMatchObject({ code: 'unavailable' });
         await expect(new ImapEmailReader({ ...CONFIG, password: '' }).start()).rejects.toMatchObject({ code: 'not-configured' });
+    });
+});
+
+// CR-146: attachments and the headers of a reply, sent and read.
+describe('attachments and reply headers (CR-146)', () => {
+    const FILE = { filename: 'visura.pdf', content: Buffer.from('%PDF-1.4 visura').toString('base64'), contentType: 'application/pdf' };
+    const REPLY = { 'Message-ID': '<c1.p42@crm.acme.it>', 'In-Reply-To': '<c0.p42@crm.acme.it>', References: '<c0.p42@crm.acme.it>' };
+
+    it('Resend and Brevo send the files and the headers as each takes them', async () => {
+        const resend = fakeFetch([[RESEND_EMAIL_URL, () => ({ body: { id: 'r-1' } })]]);
+        await new ResendEmailSender({ apiKey: 'k', fetch: resend.http }).send({ ...MESSAGE, attachments: [FILE], headers: REPLY });
+        expect(body(resend.calls[0]).attachments).toEqual([{ filename: 'visura.pdf', content: FILE.content, content_type: 'application/pdf' }]);
+        expect(body(resend.calls[0]).headers).toEqual(REPLY);
+        const brevo = fakeFetch([[BREVO_EMAIL_URL, () => ({ body: { messageId: 'b-1' } })]]);
+        await new BrevoEmailSender({ apiKey: 'k', fetch: brevo.http }).send({ ...MESSAGE, attachments: [FILE], headers: REPLY });
+        expect(body(brevo.calls[0]).attachment).toEqual([{ name: 'visura.pdf', content: FILE.content }]);
+        expect(body(brevo.calls[0]).headers).toEqual(REPLY);
+    });
+
+    it('Gmail puts the body and the files in a multipart/mixed, with the headers', async () => {
+        const { http, calls } = fakeFetch([
+            [TOKEN_URL, () => ({ body: { access_token: 'a' } })],
+            [`${GMAIL}/messages/send`, () => ({ body: { id: 'g-1', threadId: 't-1' } })],
+        ]);
+        await new GmailEmailSender({ auth: SERVER_AUTH, fetch: http }).send({ ...MESSAGE, attachments: [FILE], headers: REPLY });
+        const raw = fromBase64Url(body(calls[1]).raw);
+        expect(raw).toContain('In-Reply-To: <c0.p42@crm.acme.it>');
+        expect(raw).toContain('Message-ID: <c1.p42@crm.acme.it>');
+        expect(raw).toMatch(/Content-Type: multipart\/mixed; boundary="llmnative-mixed-/);
+        expect(raw).toContain('multipart/alternative');
+        expect(raw).toContain('Content-Disposition: attachment; filename="visura.pdf"');
+        expect(raw).toContain(FILE.content);
+    });
+
+    it('refuses a header that is not of a reply nor of the app, a value with a line break, an attachment without content', async () => {
+        const { http } = fakeFetch([[RESEND_EMAIL_URL, () => ({ body: { id: 'r-1' } })]]);
+        const sender = new ResendEmailSender({ apiKey: 'k', fetch: http });
+        await expect(sender.send({ ...MESSAGE, headers: { Bcc: 'x@y.it' } })).rejects.toMatchObject({ code: 'invalid-message' });
+        await expect(sender.send({ ...MESSAGE, headers: { 'In-Reply-To': '<a>\r\nBcc: x@y.it' } })).rejects.toMatchObject({ code: 'invalid-message' });
+        await expect(sender.send({ ...MESSAGE, attachments: [{ filename: 'a.pdf', content: 'not base64!' }] })).rejects.toMatchObject({ code: 'invalid-message' });
+        await expect(sender.send({ ...MESSAGE, headers: { 'X-Pratica': 'p42' } })).resolves.toEqual({ id: 'r-1' });
+    });
+
+    it('Gmail reads the Message-ID, In-Reply-To and References of a message', async () => {
+        const reply = gmailMessage('m9', { payload: { mimeType: 'text/plain', body: { data: base64Url('Ok') }, headers: [
+            { name: 'From', value: 'ada@example.com' }, { name: 'Subject', value: 'Re: [Pratica P-42] Documenti' },
+            { name: 'Message-ID', value: '<r9@mail.example.com>' }, { name: 'In-Reply-To', value: '<c1.p42@crm.acme.it>' }, { name: 'References', value: '<c0.p42@crm.acme.it> <c1.p42@crm.acme.it>' },
+        ] } });
+        const { http } = fakeFetch([
+            [TOKEN_URL, () => ({ body: { access_token: 'a' } })],
+            [`${GMAIL}/history`, () => ({ body: { history: [{ id: '201', messagesAdded: [{ message: { id: 'm9' } }] }], historyId: '201' } })],
+            [`${GMAIL}/messages/m9`, () => ({ body: reply })],
+        ]);
+        const batch = await new GmailEmailReader({ auth: SERVER_AUTH, fetch: http }).read('200');
+        expect(batch.messages[0]).toMatchObject({ messageId: '<r9@mail.example.com>', inReplyTo: '<c1.p42@crm.acme.it>', references: '<c0.p42@crm.acme.it> <c1.p42@crm.acme.it>' });
     });
 });

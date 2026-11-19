@@ -90,19 +90,35 @@ export function gmailRawMessage(mail: PreparedEmail): string {
         mail.bcc.length ? `Bcc: ${mail.bcc.map(headerAddress).join(', ')}` : null,
         mail.replyTo ? `Reply-To: ${headerAddress(mail.replyTo)}` : null,
         `Subject: ${headerText(mail.subject)}`,
+        ...Object.entries(mail.headers ?? {}).map(([name, value]) => `${name}: ${value}`),
         'MIME-Version: 1.0',
     ].filter((line): line is string => line !== null);
-    let body: string;
+    // The body: text, HTML, or both as alternatives.
+    let contentHeaders: string[];
+    let content: string;
     if (mail.html && mail.text) {
         const boundary = `llmnative-${Math.random().toString(36).slice(2)}`;
-        headers.push(`Content-Type: multipart/alternative; boundary="${boundary}"`);
-        const section = (type: string, content: string) => [`--${boundary}`, ...partHeaders(type), '', partBody(content)].join(CRLF);
-        body = [section('text/plain', mail.text), section('text/html', mail.html), `--${boundary}--`].join(CRLF);
+        contentHeaders = [`Content-Type: multipart/alternative; boundary="${boundary}"`];
+        const section = (type: string, text: string) => [`--${boundary}`, ...partHeaders(type), '', partBody(text)].join(CRLF);
+        content = [section('text/plain', mail.text), section('text/html', mail.html), `--${boundary}--`].join(CRLF);
     } else {
-        headers.push(...partHeaders(mail.html ? 'text/html' : 'text/plain'));
-        body = partBody(mail.html ?? mail.text ?? '');
+        contentHeaders = partHeaders(mail.html ? 'text/html' : 'text/plain');
+        content = partBody(mail.html ?? mail.text ?? '');
     }
-    return base64Url([...headers, '', body].join(CRLF));
+    // CR-146: with attachments, the body and each file in a multipart/mixed.
+    const attachments = mail.attachments ?? [];
+    if (!attachments.length) return base64Url([...headers, ...contentHeaders, '', content].join(CRLF));
+    const mixed = `llmnative-mixed-${Math.random().toString(36).slice(2)}`;
+    const files = attachments.map((a) => [
+        `--${mixed}`,
+        `Content-Type: ${a.contentType}; name="${a.filename}"`,
+        `Content-Disposition: attachment; filename="${a.filename}"`,
+        'Content-Transfer-Encoding: base64',
+        '',
+        (a.content.match(/.{1,76}/g) ?? []).join(CRLF),
+    ].join(CRLF));
+    const body = [`--${mixed}`, ...contentHeaders, '', content, ...files, `--${mixed}--`].join(CRLF);
+    return base64Url([...headers, `Content-Type: multipart/mixed; boundary="${mixed}"`, '', body].join(CRLF));
 }
 
 // ── The messages Gmail reads ──────────────────────────────────────────────────
@@ -146,6 +162,9 @@ export function toEmailMessage(message: GmailApiMessage, cursor: string): EmailM
         from: header('from'),
         to: header('to'),
         subject: header('subject'),
+        ...(header('message-id') ? { messageId: header('message-id') } : {}),
+        ...(header('in-reply-to') ? { inReplyTo: header('in-reply-to') } : {}),
+        ...(header('references') ? { references: header('references') } : {}),
         date: (Number.isNaN(arrived.getTime()) ? new Date() : arrived).toISOString(),
         text: (textOf(message.payload) || String(message.snippet ?? '')).trim(),
         direction: (message.labelIds ?? []).includes('SENT') ? 'outbound' : 'inbound',

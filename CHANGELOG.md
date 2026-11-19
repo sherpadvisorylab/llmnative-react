@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.12.0] - 2026-11-19
+
+### Added
+- Email attachments and reply headers (CR-146): `EmailSendParams.attachments` (`{ filename, content` in base64`, contentType? }`) and `headers` (`Message-ID`, `In-Reply-To`, `References`, `X-…`; any other name, or a value with a line break, is `invalid-message`) with Resend, Brevo and Gmail (a `multipart/mixed` message). `EmailMessage.messageId`, `inReplyTo`, `references` from the Gmail and IMAP readers. Type `EmailAttachment`.
+
 ## [3.11.1] - 2026-11-18
 
 ### Fixed

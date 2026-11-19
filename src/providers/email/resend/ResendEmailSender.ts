@@ -42,6 +42,8 @@ export class ResendEmailSender implements EmailSendAdapter {
                 subject: mail.subject,
                 html: mail.html,
                 text: mail.text,
+                attachments: mail.attachments.length ? mail.attachments.map((a) => ({ filename: a.filename, content: a.content, content_type: a.contentType })) : undefined,
+                headers: Object.keys(mail.headers).length ? mail.headers : undefined,
             }),
         });
         return { id: String(sent.id ?? '') };

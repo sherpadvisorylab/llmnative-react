@@ -205,7 +205,7 @@ export type { GitHubSessionProfile } from './providers/auth/github/GitHubAuthPro
 export type { CredentialsAdapter } from './providers/credentials/CredentialsProvider';
 export { useCredentialsProvider } from './providers/credentials/CredentialsProviderContext';
 export { GoogleServiceAccountProvider } from './providers/credentials/google/GoogleServiceAccountProvider';
-export type { EmailSendAdapter, EmailSendParams, EmailSendResult, EmailAddress, EmailRecipient } from './providers/email/EmailSend';
+export type { EmailSendAdapter, EmailSendParams, EmailSendResult, EmailAddress, EmailRecipient, EmailAttachment } from './providers/email/EmailSend';
 export type { EmailReadAdapter, EmailMessage, EmailReadStart, EmailReadBatch, EmailReadOptions } from './providers/email/EmailRead';
 export { EmailProviderError } from './providers/email/EmailError';
 export type { EmailProviderErrorCode } from './providers/email/EmailError';

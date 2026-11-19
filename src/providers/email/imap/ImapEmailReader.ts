@@ -31,6 +31,8 @@ type ImapClient = {
 type ParsedAddress = { text?: string };
 type ParsedMail = {
     messageId?: string;
+    inReplyTo?: string;
+    references?: string | string[];
     from?: ParsedAddress;
     to?: ParsedAddress | ParsedAddress[];
     subject?: string;
@@ -128,6 +130,9 @@ export class ImapEmailReader implements EmailReadAdapter {
                         from: addresses(mail.from),
                         to: addresses(mail.to),
                         subject: mail.subject ?? '',
+                        ...(mail.messageId ? { messageId: mail.messageId } : {}),
+                        ...(mail.inReplyTo ? { inReplyTo: mail.inReplyTo } : {}),
+                        ...(mail.references ? { references: Array.isArray(mail.references) ? mail.references.join(' ') : mail.references } : {}),
                         date: (mail.date ?? new Date()).toISOString(),
                         text,
                         direction: 'inbound',

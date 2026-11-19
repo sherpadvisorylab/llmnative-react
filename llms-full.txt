@@ -205,6 +205,9 @@ import { ResendEmailSender, BrevoEmailSender, GmailEmailSender, GmailEmailReader
 
 const mail = new BrevoEmailSender({ apiKey, from: { email: 'noreply@acme.it', name: 'Acme' } })  // o ResendEmailSender
 await mail.send({ to, cc, bcc, replyTo, subject, html, text })   // → { id, threadId? }; to/cc/bcc: stringa, { email, name } o lista
+await mail.send({ to, subject, text,                              // CR-146: allegati e header di una risposta
+  attachments: [{ filename: 'visura.pdf', content: base64, contentType: 'application/pdf' }],
+  headers: { 'Message-ID': '<c1.p42@crm.acme.it>', 'In-Reply-To': '<c0.p42@crm.acme.it>', References: '<c0.p42@crm.acme.it>' } })
 new GmailEmailSender({ auth: { clientId, clientSecret, refreshToken }, from? })  // send con threadId per restare nella conversazione
 
 const reader = new GmailEmailReader({ auth: { clientId, clientSecret, refreshToken }, topic: 'projects/p/topics/gmail' })
@@ -215,7 +218,9 @@ decodeGmailPushNotification(pubsubData)                // { emailAddress, histor
 createGmailOAuth({ clientId, clientSecret, redirectUri })  // authorizationUrl({ state, scopes }), exchangeCode(code) → { email, refreshToken }
 ```
 
-`EmailMessage`: `{ id, threadId, from, to, subject, date (ISO), text, direction: 'inbound' | 'outbound', cursor }` — `cursor` è dove riprendere dopo quel messaggio (se un gestore fallisce, si salva il cursore dell'ultimo gestito).
+`EmailMessage`: `{ id, threadId, from, to, subject, messageId?, inReplyTo?, references?, date (ISO), text, direction: 'inbound' | 'outbound', cursor }`
+(CR-146: gli header di risposta, per riconoscere la risposta a una mail mandata). `headers` accetta solo
+`Message-ID`, `In-Reply-To`, `References` e header `X-…`, senza a capo nel valore; altrimenti `invalid-message`. — `cursor` è dove riprendere dopo quel messaggio (se un gestore fallisce, si salva il cursore dell'ultimo gestito).
 Errori: `EmailProviderError` con `code` (`not-configured`, `invalid-message`, `unauthorized`, `rejected`,
 `rate-limited`, `unavailable`, `unknown`), `provider`, `status`; il messaggio non contiene mai chiavi.
 Schede per una UI di collegamento: `EMAIL_SEND_PROVIDER_DEFINITIONS`, `EMAIL_READ_PROVIDER_DEFINITIONS`.

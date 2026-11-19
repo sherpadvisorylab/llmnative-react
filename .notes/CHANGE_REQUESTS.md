@@ -160,6 +160,29 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
+## CR-146 — Allegati e header di risposta nelle mail inviate e lette
+
+**Stato:** ✅ done
+**Issue:** [#125](https://github.com/sherpadvisorylab/llmnative-react/issues/125)
+**Priorità:** Media
+**Dipende da:** CR-130
+
+### Motivazione
+Un'applicazione manda per mail un commento con i suoi allegati e deve riconoscere la risposta che torna nella sua casella: servono gli allegati e gli header di una risposta nell'invio, e gli stessi header nella lettura.
+
+### Scope
+- `EmailSendParams.attachments` (`filename`, `content` base64, `contentType`) con Resend, Brevo, Gmail (`multipart/mixed`).
+- `EmailSendParams.headers`: solo `Message-ID`, `In-Reply-To`, `References` e `X-…`, valori senza a capo (header injection).
+- `EmailMessage.messageId`, `inReplyTo`, `references` dai lettori Gmail e IMAP.
+
+### Criteri di accettazione
+- [x] AC1: gli allegati arrivano con i tre mittenti.
+- [x] AC2: gli header in più arrivano; un nome non permesso o un valore con un a capo è rifiutato.
+- [x] AC3: i lettori danno gli header di risposta.
+- [x] AC4: test, documentazione; release minor.
+
+---
+
 ## CR-145 — Viste personalizzate della Grid
 
 **Stato:** ✅ done

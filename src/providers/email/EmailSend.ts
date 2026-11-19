@@ -9,6 +9,16 @@ export type EmailAddress = { email: string; name?: string };
 /** An address as text (`ada@example.com`) or with its name. */
 export type EmailRecipient = string | EmailAddress;
 
+/** CR-146 — a file sent with a message. */
+export type EmailAttachment = {
+    /** The name the reader sees. */
+    filename: string;
+    /** The content, in base64. */
+    content: string;
+    /** Its MIME type. Default: `application/octet-stream`. */
+    contentType?: string;
+};
+
 export interface EmailSendParams {
     /** The sender; without it, the adapter's own `from`. */
     from?: EmailRecipient;
@@ -22,6 +32,13 @@ export interface EmailSendParams {
     text?: string;
     /** Gmail: the conversation the message joins. The other providers ignore it. */
     threadId?: string;
+    /** CR-146 — files sent with the message. */
+    attachments?: EmailAttachment[];
+    /**
+     * CR-146 — headers to add: `Message-ID`, `In-Reply-To`, `References` (a reply recognised by its client) or an
+     * `X-` header of the app. A name outside these, or a value with a line break, is refused (`invalid-message`).
+     */
+    headers?: Record<string, string>;
 }
 
 export interface EmailSendResult {
@@ -61,6 +78,18 @@ export function prepareEmail(provider: string, params: EmailSendParams, defaultF
     const bcc = toEmailAddresses(params.bcc);
     if (to.length + cc.length + bcc.length === 0) throw new EmailProviderError('invalid-message', provider, 'The message has no recipient');
     if (!params.html && !params.text) throw new EmailProviderError('invalid-message', provider, 'The message has no body');
+    const attachments = (params.attachments ?? []).map((a) => {
+        if (!a || typeof a.filename !== 'string' || !a.filename.trim() || /[\r\n"]/.test(a.filename) || typeof a.content !== 'string' || !/^[A-Za-z0-9+/=\s]*$/.test(a.content)) {
+            throw new EmailProviderError('invalid-message', provider, 'An attachment is not valid');
+        }
+        return { filename: a.filename.trim(), content: a.content.replace(/\s+/g, ''), contentType: a.contentType && /^[\w.+-]+\/[\w.+-]+$/.test(a.contentType) ? a.contentType : 'application/octet-stream' };
+    });
+    const headers: Record<string, string> = {};
+    for (const [name, value] of Object.entries(params.headers ?? {})) {
+        if (!HEADER_PERMESSI.has(name.toLowerCase()) && !/^x-[a-z0-9-]+$/i.test(name)) throw new EmailProviderError('invalid-message', provider, `The header ${name} is not allowed`);
+        if (typeof value !== 'string' || /[\r\n]/.test(value)) throw new EmailProviderError('invalid-message', provider, `The header ${name} is not valid`);
+        headers[name] = value;
+    }
     return {
         from: sender?.email ? sender : undefined,
         to, cc, bcc,
@@ -69,7 +98,12 @@ export function prepareEmail(provider: string, params: EmailSendParams, defaultF
         html: params.html || undefined,
         text: params.text || undefined,
         threadId: params.threadId,
+        attachments,
+        headers,
     };
 }
+
+/** The headers a message may add besides the `X-` ones of the app: those of a reply. */
+const HEADER_PERMESSI = new Set(['message-id', 'in-reply-to', 'references']);
 
 export type PreparedEmail = ReturnType<typeof prepareEmail>;

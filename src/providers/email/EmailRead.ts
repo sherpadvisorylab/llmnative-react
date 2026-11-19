@@ -12,6 +12,10 @@ export interface EmailMessage {
     from: string;
     to: string;
     subject: string;
+    /** CR-146 — its `Message-ID`, and the ones it answers (`In-Reply-To`, `References`): a reply is recognised by them. */
+    messageId?: string;
+    inReplyTo?: string;
+    references?: string;
     /** When it arrived, ISO 8601. */
     date: string;
     /** The plain text: the text part, else the HTML without tags. */

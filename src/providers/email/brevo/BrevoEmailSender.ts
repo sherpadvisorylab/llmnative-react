@@ -46,6 +46,8 @@ export class BrevoEmailSender implements EmailSendAdapter {
                 subject: mail.subject,
                 htmlContent: mail.html,
                 textContent: mail.text,
+                attachment: mail.attachments.length ? mail.attachments.map((a) => ({ name: a.filename, content: a.content })) : undefined,
+                headers: Object.keys(mail.headers).length ? mail.headers : undefined,
             }),
         });
         return { id: String(sent.messageId ?? '') };
