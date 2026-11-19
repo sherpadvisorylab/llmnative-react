@@ -663,6 +663,15 @@ Azioni: `save()`, `delete()`, `reset()`, `restoreDraft()`, `discardDraft()`.
 
 `Autocomplete` è una combobox accessibile: la lista (in un portal, larga quanto il campo, stile popover del tema) mostra solo le label e filtra per label/value senza distinzione di maiuscole e accenti; i chip mostrano la label; tastiera: frecce, Invio, Esc (chiude solo la lista, non il `Modal`), Tab, Backspace su campo vuoto rimuove l'ultimo valore. Con `creatable` compare la voce "Crea «testo»". Il valore salvato è sempre l'array dei `value`. `Autocomplete` e `Checklist` sono export nominati: `Select.Autocomplete`/`Select.Checklist` non esistono.
 
+CR-147: le opzioni di `Autocomplete` con `group` stanno sotto un'intestazione per gruppo, che resta sticky in alto mentre le sue opzioni scorrono (la spinge via il gruppo dopo). Prima le opzioni senza gruppo, poi i gruppi nell'ordine in cui compaiono in `options` (dentro un gruppo vale `order`); il filtro cerca anche nel nome del gruppo; frecce e Invio saltano le intestazioni; "Crea «testo»" resta in fondo. Ruoli: `group` con `aria-labelledby` dentro il `listbox`.
+```tsx
+<Autocomplete name="destinatari" label="Invia anche a" creatable options={[
+  { label: 'Rossi Srl', value: 'info@rossi.it', group: 'Questa Pratica' },
+  { label: 'Bianchi Spa', value: 'bianchi@x.it', group: 'Clienti' },
+]} />
+```
+`UploadDocument`/`UploadImage`: l'elenco dei formati di `accept` nella drop zone va a capo (separato da virgola e spazio).
+
 ### UploadImage / UploadDocument / UploadCSV
 ```tsx
 <UploadImage name="cover" label="Copertina" />    {/* con crop editor */}

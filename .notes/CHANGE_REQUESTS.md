@@ -160,6 +160,28 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
+## CR-147 — Autocomplete con le opzioni raggruppate
+
+**Stato:** ✅ done
+**Issue:** [#126](https://github.com/sherpadvisorylab/llmnative-react/issues/126)
+**Priorità:** Media
+**Dipende da:** CR-135, CR-136
+
+### Motivazione
+Un campo a più valori (es. i destinatari di una mail) mostra opzioni di provenienza diversa: prima quelle del contesto, poi le altre per tipo. Senza intestazioni non si capisce a chi appartiene una voce.
+
+### Scope
+- `Autocomplete`: opzioni con `group` sotto un'intestazione per gruppo, sticky in alto mentre la lista scorre; prima le opzioni senza gruppo, poi i gruppi nell'ordine di `options`; filtro anche sul gruppo; tastiera che salta le intestazioni; "Crea" in fondo.
+- `UploadDocument`/`UploadImage`: i formati di `accept` vanno a capo nella drop zone.
+
+### Criteri di accettazione
+- [x] AC1: intestazioni per gruppo, sticky durante lo scroll, non selezionabili.
+- [x] AC2: frecce/Invio saltano le intestazioni; filtro per etichetta, valore o gruppo.
+- [x] AC3: formati dell'Upload a capo in una colonna stretta.
+- [x] AC4: test, docs (`llms-full.txt`), showcase; release minor 3.13.0.
+
+---
+
 ## CR-146 — Allegati e header di risposta nelle mail inviate e lette
 
 **Stato:** ✅ done

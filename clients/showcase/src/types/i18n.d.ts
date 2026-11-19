@@ -1194,6 +1194,7 @@ interface ShowcaseAutocompleteI18n {
         defaultValues: ShowcasePageSectionCopy;
         tagInput: ShowcasePageSectionCopy;
         creatable: ShowcasePageSectionCopy;
+        grouped: ShowcasePageSectionCopy & { groupTeam: string; groupClients: string; groupPartners: string };
         dataProviderBacked: ShowcasePageSectionCopy;
     };
     labels: {

@@ -11,6 +11,7 @@ export default defineLocaleMessages({
                 basic: { title: 'Базовый autocomplete', description: 'Введите текст для фильтрации подсказок. Выбранные элементы отображаются как удаляемые теги.' },
                 defaultValues: { title: 'Со значениями по умолчанию и ограничением', description: 'Предзаполняйте существующими значениями. max=3 не позволяет выбрать больше 3 элементов.' },
                 tagInput: { title: 'Ввод тегов', description: 'Подходит не только для людей, но и для свободных тегов. Подойдет любой массив опций.' },
+                grouped: { title: 'Сгруппированные опции', description: 'Задайте опциям группу: у каждой группы есть заголовок, который остаётся вверху при прокрутке её опций. Группы сохраняют переданный порядок.', groupTeam: 'Команда', groupClients: 'Клиенты', groupPartners: 'Партнёры' },
                 creatable: { title: 'Creatable - свободный ввод с сохранением', description: 'Включите creatable, чтобы разрешить значения вне списка. Нажмите Enter для подтверждения. Используйте onCreate для сохранения новой опции.' },
                 dataProviderBacked: { title: 'С DataProvider', description: 'Передайте optionsSource вместо options, чтобы загружать подсказки из активного DataProvider.' },
             },

@@ -448,7 +448,8 @@ export const UploadDocument = ({
                         <span className="text-sm font-medium">
                             {dragOver ? dict.dropToUpload : dict.clickOrDrag}
                         </span>
-                        <span className="text-xs opacity-60">{accept}</span>
+                        {/* The formats wrap inside the zone, however narrow it is. */}
+                        <span className="max-w-full break-words text-center text-xs opacity-60">{accept.split(',').map((x) => x.trim()).filter(Boolean).join(', ')}</span>
                     </button>
                 )}
 

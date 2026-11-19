@@ -31,6 +31,7 @@
 
 | CR | State | Evidence |
 |----|-------|----------|
+| CR-147 | Done | `Autocomplete` con le opzioni raggruppate per `group`: intestazione sticky per gruppo (spinta via dal gruppo dopo), gruppi nell'ordine di `options`, prima le opzioni senza gruppo, filtro anche sul gruppo, tastiera che salta le intestazioni, ARIA `group`. Formati di `accept` dell'Upload a capo. Showcase (6 lingue). Test: 3. Released in 3.13.0. Issue #126. |
 | CR-146 | Done | Allegati e header di risposta nell'invio delle mail (Resend, Brevo, Gmail multipart/mixed), solo header di risposta e `X-`, nessun a capo; Message-ID, In-Reply-To e References nella lettura (Gmail, IMAP). Test: 4. Released in 3.12.0. Issue #125. |
 | CR-145 | Done | Viste personalizzate della Grid (`views.custom`: id, label, icon, render con le righe cercate/filtrate/ordinate, `runAction`, `onRecordClick`), nello switch dopo quelle di serie o per id; `view` iniziale su una vista personalizzata. `NetworkCanvas`: etichetta su due righe. Test: 2. Released in 3.11.0. Issue #124. |
 | CR-144 | Done | `NetworkCanvas` su `@xyflow/react` (import dinamico): albero dall'alto con fasce dei livelli numerate, apri/chiudi dei rami, "+N" oltre `collapseAfter`, ricerca che apre il ramo e centra, zoom/pan/minimappa, animazioni leggere senza `prefers-reduced-motion`. Funzioni pure del layout. i18n in 6 lingue, showcase. Test: 6. Released in 3.10.0. Issue #123. |

@@ -72,6 +72,16 @@ describe('UploadDocument', () => {
         expect(screen.getByText('2.00 KB')).toBeInTheDocument();
     });
 
+    it('lists the accepted formats so that they wrap inside the drop zone', () => {
+        renderWithProviders(
+            <Form defaultValues={{ attachments: [] }}>
+                <UploadDocument name="attachments" accept=".pdf,.docx,.xlsx" />
+            </Form>
+        );
+        const formats = screen.getByText('.pdf, .docx, .xlsx');
+        expect(formats).toHaveClass('break-words', 'max-w-full');
+    });
+
     it('hides upload button when max is reached', () => {
         renderWithProviders(
             <Form defaultValues={{ attachments: [fileRecord()] }}>

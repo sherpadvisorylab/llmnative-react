@@ -11,6 +11,7 @@ export default defineLocaleMessages({
                 basic: { title: 'Basis-Autocomplete', description: 'Tippe zum Filtern der Vorschlaege. Ausgewaehlte Elemente erscheinen als entfernbar Tags.' },
                 defaultValues: { title: 'Mit Standardwerten und Maximalgrenze', description: 'Mit vorhandenen Werten vorbelegen. max=3 verhindert mehr als 3 Auswahlen.' },
                 tagInput: { title: 'Tag-Eingabe', description: 'Funktioniert genauso gut fuer freie Tags und nicht nur fuer Personen. Jedes Options-Array ist moeglich.' },
+                grouped: { title: 'Gruppierte Optionen', description: 'Gib den Optionen eine Gruppe: Jede Gruppe hat ihre Ueberschrift, die oben bleibt, waehrend ihre Optionen scrollen. Die Gruppen behalten die uebergebene Reihenfolge.', groupTeam: 'Team', groupClients: 'Kunden', groupPartners: 'Partner' },
                 creatable: { title: 'Creatable - freie Eingabe mit Persistenz', description: 'Aktiviere creatable, um Werte ausserhalb der Liste zu erlauben. Mit Enter bestaetigen. Verwende onCreate, um die neue Option zu speichern.' },
                 dataProviderBacked: { title: 'Mit DataProvider', description: 'Uebergib optionsSource statt options, um Vorschlaege aus dem aktiven DataProvider zu laden.' },
             },

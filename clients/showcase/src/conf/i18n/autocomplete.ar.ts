@@ -11,6 +11,7 @@ export default defineLocaleMessages({
                 basic: { title: 'Autocomplete اساسي', description: 'اكتب لتصفية الاقتراحات. تظهر العناصر المختارة كوسوم قابلة للازالة.' },
                 defaultValues: { title: 'مع قيم ابتدائية وحد اقصى', description: 'املأ الحقل مسبقا بقيم موجودة. max=3 يمنع اختيار اكثر من 3 عناصر.' },
                 tagInput: { title: 'ادخال الوسوم', description: 'يعمل جيدا ايضا مع الوسوم الحرة وليس فقط مع الاشخاص. يمكن استخدام اي مصفوفة خيارات.' },
+                grouped: { title: 'خيارات مجمعة', description: 'امنح الخيارات مجموعة: لكل مجموعة عنوانها الذي يبقى في الأعلى أثناء تمرير خياراتها. تحافظ المجموعات على الترتيب الذي تمرره.', groupTeam: 'الفريق', groupClients: 'العملاء', groupPartners: 'الشركاء' },
                 creatable: { title: 'Creatable - ادخال حر مع حفظ', description: 'فعّل creatable للسماح بقيم غير موجودة في القائمة. اضغط Enter للتأكيد. استخدم onCreate لحفظ الخيار الجديد.' },
                 dataProviderBacked: { title: 'مدعوم بـ DataProvider', description: 'مرر optionsSource بدلا من options لتحميل الاقتراحات من DataProvider النشط.' },
             },

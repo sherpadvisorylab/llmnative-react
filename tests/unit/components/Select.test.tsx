@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import React from 'react';
 
 vi.mock('../../../src/Config', () => ({
@@ -167,6 +167,41 @@ describe('Autocomplete', () => {
         await user.type(input, 'Paolo{Enter}');
         expect(last()).toEqual(['Paolo']);
         expect(screen.getByText('Paolo')).toBeInTheDocument();
+    });
+
+    describe('grouped options (CR-147)', () => {
+        const MAIL = [
+            { label: 'Rossi Srl', value: 'info@rossi.it', group: 'This case' },
+            { label: 'Carla', value: 'carla@x.it', group: 'This case' },
+            { label: 'Bianchi Spa', value: 'bianchi@x.it', group: 'Clients' },
+            { label: 'Anna', value: 'anna@x.it', group: 'Partners' },
+            { label: 'Free text', value: 'free@x.it' },
+        ];
+
+        it('shows the options under a sticky heading per group, in the order given, the ungrouped ones first', async () => {
+            const user = userEvent.setup();
+            const { input } = renderAutocomplete({ options: MAIL });
+            await user.click(input);
+            const groups = screen.getAllByRole('group');
+            expect(groups.map((g) => g.getAttribute('aria-labelledby') && document.getElementById(g.getAttribute('aria-labelledby')!)?.textContent))
+                .toEqual(['This case', 'Clients', 'Partners']);
+            const heading = document.getElementById(groups[0].getAttribute('aria-labelledby')!)!;
+            expect(heading).toHaveClass('sticky', 'top-0');
+            expect(heading).not.toHaveAttribute('role', 'option');
+            // Sorted by label inside a group; the ungrouped option on top.
+            expect(screen.getAllByRole('option').map((o) => o.textContent)).toEqual(['Free text', 'Carla', 'Rossi Srl', 'Bianchi Spa', 'Anna']);
+            expect(within(groups[1]).getAllByRole('option').map((o) => o.textContent)).toEqual(['Bianchi Spa']);
+        });
+
+        it('skips the headings with the keyboard and filters by the name of the group', async () => {
+            const user = userEvent.setup();
+            const { input, last } = renderAutocomplete({ options: MAIL });
+            await user.click(input);
+            await user.keyboard('{ArrowDown}{Enter}');
+            expect(last()).toEqual(['carla@x.it']);
+            await user.type(input, 'partn');
+            expect(screen.getAllByRole('option').map((o) => o.textContent)).toEqual(['Anna']);
+        });
     });
 
     it('shows an empty state when nothing matches', async () => {

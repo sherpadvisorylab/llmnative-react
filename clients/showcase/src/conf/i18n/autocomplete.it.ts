@@ -20,6 +20,7 @@ export default defineLocaleMessages({
                     title: 'Input tag',
                     description: 'Funziona bene anche per tag liberi, non solo per persone. Qualsiasi array di opzioni va bene.',
                 },
+                grouped: { title: 'Opzioni raggruppate', description: 'Dai un gruppo alle opzioni: ogni gruppo ha la sua intestazione, che resta in alto mentre le sue opzioni scorrono. I gruppi restano nell\'ordine in cui li passi.', groupTeam: 'Squadra', groupClients: 'Clienti', groupPartners: 'Partner' },
                 creatable: {
                     title: 'Creatable - input libero con persistenza',
                     description: 'Abilita creatable per permettere valori non presenti in lista. Premi Invio per confermare. Usa onCreate per persistere la nuova opzione.',

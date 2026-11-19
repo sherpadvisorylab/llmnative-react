@@ -257,6 +257,25 @@ type AutocompleteItem =
     | { kind: 'option'; option: Option }
     | { kind: 'create'; text: string };
 
+/** The options in their groups (CR-147): those without a group first, then the groups in the order given (where each
+ *  first appears in the options passed, before any sorting); inside a group, the order of the options stays. */
+const byGroup = (options: Option[], groups: string[]): Option[] => {
+    const order = [...groups, ...options.map((op) => op.group).filter((g): g is string => Boolean(g) && !groups.includes(g as string))];
+    return [...options.filter((op) => !op.group), ...[...new Set(order)].flatMap((group) => options.filter((op) => op.group === group))];
+};
+
+/** The rows of the list, by group: a section for the options without a group, one for each group. */
+const sectionsOf = (items: AutocompleteItem[]) => {
+    const sections: { group: string; entries: { item: AutocompleteItem; index: number }[] }[] = [];
+    items.forEach((item, index) => {
+        const group = item.kind === 'option' ? item.option.group ?? '' : '';
+        const last = sections[sections.length - 1];
+        if (last && last.group === group) last.entries.push({ item, index });
+        else sections.push({ group, entries: [{ item, index }] });
+    });
+    return sections;
+};
+
 type ListPosition = { top?: number; bottom?: number; left: number; width: number; maxHeight: number };
 
 
@@ -318,6 +337,8 @@ export const Autocomplete = ({
     }, [options, localOpts, lookup, order, optionsSource?.order, dbOptions.fieldMap]);
 
     const labelOf = useMemo(() => new Map(opts.map((op) => [op.value, op.label || op.value])), [opts]);
+    // The groups in the order the options were given (CR-147).
+    const groups = useMemo(() => [...new Set([...options.map(normalizeOption), ...lookup].map((op) => op.group).filter((g): g is string => Boolean(g)))], [options, lookup]);
 
     const [query, setQuery] = useState('');
     const [open, setOpen] = useState(false);
@@ -334,13 +355,13 @@ export const Autocomplete = ({
     const items = useMemo<AutocompleteItem[]>(() => {
         const text = query.trim();
         const needle = searchable(text);
-        const matches = opts
+        const matches = byGroup(opts
             .filter((op) => !selected.includes(op.value))
-            .filter((op) => !needle || searchable(op.label || op.value).includes(needle) || searchable(op.value).includes(needle))
+            .filter((op) => !needle || searchable(op.label || op.value).includes(needle) || searchable(op.value).includes(needle) || (Boolean(op.group) && searchable(op.group ?? '').includes(needle))), groups)
             .map((option): AutocompleteItem => ({ kind: 'option', option }));
         const exists = Boolean(text) && opts.some((op) => searchable(op.label || op.value) === needle || op.value === text);
         return creatable && text && !exists ? [...matches, { kind: 'create', text }] : matches;
-    }, [opts, selected, query, creatable]);
+    }, [opts, selected, query, creatable, groups]);
 
     const id = useId();
     const listId = `${id}-options`;
@@ -472,7 +493,8 @@ export const Autocomplete = ({
         >
             {items.length === 0 ? (
                 <li role="presentation" className="px-2.5 py-2 text-muted-foreground">{dict.noResults}</li>
-            ) : items.map((item, index) => (
+            ) : sectionsOf(items).map((section, sectionIndex) => {
+                const rows = section.entries.map(({ item, index }) => (
                 <li
                     key={item.kind === 'option' ? `option-${item.option.value}` : `create-${item.text}`}
                     id={optionId(index)}
@@ -492,7 +514,23 @@ export const Autocomplete = ({
                         ? (item.option.label || item.option.value)
                         : dict.create.replace('{value}', item.text)}
                 </li>
-            ))}
+                ));
+                if (!section.group) return <React.Fragment key={`section-${sectionIndex}`}>{rows}</React.Fragment>;
+                // A group: its heading stays on top while its options scroll under it, until the next group pushes it.
+                const headingId = `${id}-group-${sectionIndex}`;
+                return (
+                    <li key={`section-${sectionIndex}`} role="presentation">
+                        <ul role="group" aria-labelledby={headingId}>
+                            <li
+                                id={headingId}
+                                role="presentation"
+                                className="sticky top-0 z-10 -mx-1 bg-popover px-3.5 pb-1 pt-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+                            >{section.group}</li>
+                            {rows}
+                        </ul>
+                    </li>
+                );
+            })}
         </ul>
     );
 

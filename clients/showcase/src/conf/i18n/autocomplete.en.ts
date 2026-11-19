@@ -20,6 +20,7 @@ export default defineLocaleMessages({
                     title: 'Tag input',
                     description: 'Works equally well for free-form tags, not just people. Any options array applies.',
                 },
+                grouped: { title: 'Grouped options', description: 'Give the options a group: each group has its heading, which stays on top while its options scroll. The groups keep the order you pass.', groupTeam: 'Team', groupClients: 'Clients', groupPartners: 'Partners' },
                 creatable: {
                     title: 'Creatable - free input with persistence',
                     description: 'Enable creatable to let users type values not in the list. Press Enter to confirm. Use onCreate to persist the new option.',

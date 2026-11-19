@@ -11,6 +11,7 @@ export default defineLocaleMessages({
                 basic: { title: '基础自动完成', description: '输入内容以过滤建议。已选项目会显示为可移除标签。' },
                 defaultValues: { title: '带默认值和上限', description: '可用已有值预填充。max=3 可防止选择超过 3 项。' },
                 tagInput: { title: '标签输入', description: '不仅适用于人员，也适用于自由标签。任何选项数组都可以使用。' },
+                grouped: { title: '分组选项', description: '为选项设置分组：每个分组都有标题，滚动其选项时标题固定在顶部。分组保持传入的顺序。', groupTeam: '团队', groupClients: '客户', groupPartners: '合作伙伴' },
                 creatable: { title: 'Creatable - 可持久化自由输入', description: '开启 creatable 后，用户可以输入列表中没有的值。按 Enter 确认。使用 onCreate 持久化新选项。' },
                 dataProviderBacked: { title: '由 DataProvider 驱动', description: '传入 optionsSource 而不是 options，即可从当前 DataProvider 加载建议。' },
             },

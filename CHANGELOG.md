@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.13.0] - 2026-11-19
+
+### Added
+- Autocomplete grouped options (CR-147): options with a `group` are listed under a heading per group that stays sticky on top while its options scroll; ungrouped options first, then the groups in the order they appear in `options`; the filter also matches the group name; the keyboard skips the headings. ARIA `group` with `aria-labelledby` inside the `listbox`.
+
+### Fixed
+- `UploadDocument`/`UploadImage`: the accepted formats in the drop zone wrap (comma and space) instead of overflowing it.
+
 ## [3.12.0] - 2026-11-19
 
 ### Added

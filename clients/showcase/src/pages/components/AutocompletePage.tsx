@@ -213,6 +213,38 @@ export default function AutocompletePage() {
     />
 </Form>`}
             />
+            <Section
+                bare
+                title={t.sections.grouped.title}
+                description={t.sections.grouped.description}
+                preview={(
+                    <div className="w-full max-w-md">
+                        <Form appearance="empty">
+                            <Autocomplete
+                                name="recipients"
+                                label={t.labels.assignees}
+                                placeholder={t.labels.typeName}
+                                options={[
+                                    ...people.slice(0, 2).map((p) => ({ ...p, group: t.sections.grouped.groupTeam })),
+                                    ...people.slice(2, 4).map((p) => ({ ...p, group: t.sections.grouped.groupClients })),
+                                    ...people.slice(4).map((p) => ({ ...p, group: t.sections.grouped.groupPartners })),
+                                    ...tags.map((p) => ({ ...p, group: t.sections.grouped.groupPartners })),
+                                ]}
+                            />
+                        </Form>
+                    </div>
+                )}
+                code={`<Autocomplete
+    name="recipients"
+    label="Recipients"
+    creatable
+    options={[
+        { label: 'Alice Johnson', value: 'alice@x.it', group: 'This case' },
+        { label: 'Bob Martinez', value: 'bob@x.it', group: 'Clients' },
+        { label: 'Carla Rossi', value: 'carla@x.it', group: 'Partners' },
+    ]}
+/>`}
+            />
 
             <Section
                 bare
