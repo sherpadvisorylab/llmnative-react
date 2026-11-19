@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-    AnimatedNumber, AreaChart, BarList, CalendarHeatmap, MeasureBarList, ColumnChart, DivergingBarChart, Heatmap, LineChart, ScatterChart, SequenceColumnChart, Sparkline, StackedColumnChart,
+    AnimatedNumber, AreaChart, BarList, CalendarHeatmap, MeasureBarList, ColumnChart, DivergingBarChart, DonutChart, Heatmap, LineChart, ScatterChart, SequenceColumnChart, Sparkline, StackedColumnChart,
 } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
@@ -189,6 +189,32 @@ export default function ChartsPage() {
   ariaLabel="Value and cost"
   upLabel="Value" downLabel="Cost"
   bars={days.map((day) => ({ label: day.label, up: day.value, down: day.cost }))}   // null: no data
+/>`}
+            />
+            <Section
+                title={t.sections.donut.title}
+                description={t.sections.donut.description}
+                preview={(
+                    <DonutChart
+                        ariaLabel={t.labels.commissionSplit}
+                        total={100}
+                        format={(value) => `${value}%`}
+                        center={{ value: '100%', label: t.labels.commissionSplit }}
+                        slices={[
+                            { id: 'company', label: t.labels.company, value: 55 },
+                            { id: 'agent', label: t.labels.agent, value: 25 },
+                            { id: 'referrer', label: t.labels.referrer, value: 10 },
+                            { id: 'network', label: t.labels.network, value: 5 },
+                        ]}
+                    />
+                )}
+                code={`<DonutChart
+  ariaLabel="Commission split"
+  total={100}                                   // what the slices leave is the empty track
+  format={(value) => \`\${value}%\`}
+  center={{ value: '100%', label: 'Commission' }}
+  slices={[{ id: 'company', label: 'Company', value: 55 }, { id: 'agent', label: 'Agent', value: 25, color: 3 }]}
+  onSliceClick={(slice) => {}}
 />`}
             />
             <Section

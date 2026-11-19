@@ -5,6 +5,8 @@ export type { ColumnChartColumn, ColumnChartMarker, ColumnChartProps, ChartSerie
 export { LineChart, AreaChart, Sparkline } from './LineCharts';
 export type { LineSeries, LineChartProps, AreaChartProps, SparklineProps } from './LineCharts';
 export { ScatterChart } from './ScatterChart';
+export { DonutChart } from './DonutChart';
+export type { DonutSlice, DonutChartProps } from './DonutChart';
 export type { ScatterPoint, ScatterChartProps } from './ScatterChart';
 export { BarList, MeasureBarList, Heatmap, CalendarHeatmap, AnimatedNumber } from './ListCharts';
 export type { BarListRow, BarListProps, MeasureBarPart, MeasureBarColumn, MeasureBarRow, MeasureBarListProps, HeatmapProps, CalendarHeatmapProps } from './ListCharts';

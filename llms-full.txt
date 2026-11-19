@@ -1183,6 +1183,8 @@ finché sono al massimo 40), tabella dei dati `sr-only` con `ariaLabel` come did
 <ScatterChart ariaLabel="Costo contro rework" xLabel="Costo" yLabel="Rework" sizeLabel="Turni"
   series={[{ id: 'sonnet', label: 'Sonnet' }]} points={[{ id: '1', label: 'Developer', x: 0.04, y: 0.3, size: 30, series: 'sonnet' }]} onPointClick={(point) => {}} />
 <DivergingBarChart ariaLabel="Valore e costo" upLabel="Valore" downLabel="Costo" bars={[{ label: 'lun', up: 120, down: null }]} />
+<DonutChart ariaLabel="Provvigione" total={100} format={(v) => `${v}%`} center={{ value: '100%', label: 'provvigione' }}   // CR-149: una fetta per parte, il resto del totale come traccia vuota; hover/focus alza la fetta e sbiadisce le altre (anche in legenda)
+  slices={[{ id: 'soc', label: 'Società', value: 55 }, { id: 'col', label: 'Collaboratore', value: 25, color: 3 }]} activeId={null} legend size={220} thickness={28} onSliceClick={(slice) => {}} />
 <BarList ariaLabel="Costo per agente" rows={[{ id: 'dev', label: 'Developer', value: 1.84, trailing: { text: '+12%', tone: 'bad' } }]} />
 <Heatmap ariaLabel="Turni per ora" rowLabels={agents} columnLabels={hours} columnLabelEvery={2} values={matrix} />
 <CalendarHeatmap ariaLabel="Turni per giorno" days={[{ date: '2026-11-02', value: 4 }, { date: '2026-11-03', value: null }]} />

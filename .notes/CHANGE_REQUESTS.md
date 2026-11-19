@@ -160,6 +160,27 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
+## CR-149 — DonutChart: un intero diviso in fette
+
+**Stato:** ✅ done
+**Issue:** [#129](https://github.com/sherpadvisorylab/llmnative-react/issues/129)
+**Priorità:** Media
+
+### Motivazione
+Mostrare come si divide un intero (una provvigione fatta 100: chi prende cosa) in modo leggibile a colpo d'occhio: le barre del modulo charts non danno l'idea della parte sul tutto.
+
+### Scope
+- `DonutChart` nel modulo charts: fette con i colori del tema (slot o token), valore al centro (`center`, di default la somma), `total` maggiore delle fette lascia il resto come traccia vuota.
+- Legenda con etichetta e valore di ogni fetta; hover/focus alza la fetta e sbiadisce le altre, anche passando sulla legenda; `activeId`; `onSliceClick`.
+- Tooltip con la quota sul totale; tabella sr-only; animazione (spenta con `prefers-reduced-motion`); stato vuoto.
+
+### Criteri di accettazione
+- [x] AC1: una fetta per valore sopra zero, del suo colore, in ordine; il resto di `total` come traccia.
+- [x] AC2: tooltip con la quota, tastiera, clic; legenda e tabella con i valori.
+- [x] AC3: test, docs (`llms-full.txt`), showcase in 6 lingue; release minor 3.15.0.
+
+---
+
 ## CR-148.1 — IconPicker compatto
 
 **Stato:** ✅ done

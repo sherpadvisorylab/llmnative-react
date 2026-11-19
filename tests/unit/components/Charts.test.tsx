@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import {
-    AnimatedNumber, AreaChart, BarList, CalendarHeatmap, ColumnChart, DivergingBarChart, Heatmap, LineChart, MeasureBarList, ScatterChart, SequenceColumnChart, Sparkline, StackedColumnChart,
+    AnimatedNumber, AreaChart, BarList, CalendarHeatmap, ColumnChart, DivergingBarChart, DonutChart, Heatmap, LineChart, MeasureBarList, ScatterChart, SequenceColumnChart, Sparkline, StackedColumnChart,
     chartToken, niceMax, ticks,
 } from '../../../src/components';
 import { I18nProvider } from '../../../src/I18n';
@@ -241,5 +241,36 @@ describe('SequenceColumnChart', () => {
         expect(screen.getByRole('tooltip').textContent).toContain('4. Developer');
         fireEvent.click(column);
         expect(clicked).toBe('#38');
+    });
+});
+
+describe('DonutChart', () => {
+    const slices = [{ id: 'a', label: 'Company', value: 60 }, { id: 'b', label: 'Agent', value: 25, color: '--rf-success' }, { id: 'c', label: 'Network', value: 0 }];
+
+    it('draws a slice per value above zero, of its colour, the rest of the total as the track, with the legend and the table', () => {
+        const { container } = render(<DonutChart ariaLabel="Commission" slices={slices} total={100} format={(value) => `${value}%`} center={{ value: '100%', label: 'commission' }} />);
+        const drawn = [...container.querySelectorAll('[data-rf-donut-slice]')];
+        expect(drawn.map((slice) => slice.getAttribute('data-rf-donut-slice'))).toEqual(['a', 'b']);
+        expect(drawn[1]!.getAttribute('stroke')).toBe('hsl(var(--rf-success))');
+        // The slices cover 85 of 100: the first starts at 0, the second after the first.
+        expect(drawn[1]!.getAttribute('stroke-dashoffset')).not.toBe('0');
+        expect(screen.getByText('commission')).toBeTruthy();
+        for (const label of ['Company', 'Agent', 'Network']) expect(screen.getAllByText(label).length).toBeGreaterThan(0);
+        expect([...table(container)!.querySelectorAll('tbody tr')].map((row) => row.textContent)).toEqual(['Company60%', 'Agent25%', 'Network0%']);
+    });
+
+    it('tells a slice and its share in the tooltip, and clicks', () => {
+        let clicked = '';
+        render(<DonutChart ariaLabel="Commission" slices={slices} total={100} format={(value) => `${value}%`} onSliceClick={(slice) => { clicked = slice.id; }} />);
+        const slice = screen.getByRole('img', { name: /^Agent: 25% 25%/ });
+        fireEvent.focus(slice);
+        expect(screen.getByRole('tooltip').textContent).toContain('Agent');
+        fireEvent.click(slice);
+        expect(clicked).toBe('b');
+    });
+
+    it('shows the empty state with nothing to share', () => {
+        render(<I18nProvider config={{ locale: 'it', translations: { it: italian } }}><DonutChart ariaLabel="Commission" slices={[{ id: 'a', label: 'A', value: 0 }]} /></I18nProvider>);
+        expect(screen.getByText(italian.charts.noData)).toBeTruthy();
     });
 });

@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.15.0] - 2026-11-19
+
+### Added
+- `DonutChart` (CR-149): a ring split in slices with a value in the hole (`center`), `total` larger than the slices leaves the rest as the empty track, legend with the value of each slice, hover/focus lifts a slice and fades the others, tooltip with the share, `activeId`, `onSliceClick`, data table for screen readers, animated.
+
 ## [3.14.1] - 2026-11-19
 
 ### Added
