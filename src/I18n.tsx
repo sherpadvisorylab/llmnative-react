@@ -312,6 +312,16 @@ export interface I18nDict {
         createPlaceholder: string;
         remove:            string;
     };
+    iconPicker: {
+        title:             string;
+        choose:            string;
+        change:            string;
+        none:              string;
+        searchPlaceholder: string;
+        noResults:         string;
+        count:             string;
+        tooMany:           string;
+    };
     addressAutocomplete: {
         placeholder:     string;
         noResults:       string;

@@ -224,6 +224,16 @@ export const zh: I18nDict = {
         createPlaceholder: '输入或按回车创建...',
         remove: '移除',
     },
+    iconPicker: {
+        title: '选择图标',
+        choose: '选择图标',
+        change: '更改',
+        none: '无图标',
+        searchPlaceholder: '搜索图标（英文：bank, car, house）',
+        noResults: '未找到图标',
+        count: '{total} 个图标',
+        tooMany: '显示前 {shown} 个，共 {total} 个：搜索以缩小范围',
+    },
     addressAutocomplete: {
         placeholder: '搜索地址...',
         noResults: '未找到匹配地址',

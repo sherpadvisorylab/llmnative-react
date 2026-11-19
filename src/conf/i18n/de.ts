@@ -224,6 +224,16 @@ export const de: I18nDict = {
         createPlaceholder: 'Tippen oder Enter drücken zum Erstellen...',
         remove: 'Entfernen',
     },
+    iconPicker: {
+        title: 'Symbol waehlen',
+        choose: 'Symbol waehlen',
+        change: 'Aendern',
+        none: 'Kein Symbol',
+        searchPlaceholder: 'Symbol suchen (englisch: bank, car, house)',
+        noResults: 'Kein Symbol gefunden',
+        count: '{total} Symbole',
+        tooMany: 'Die ersten {shown} von {total}: suchen zum Eingrenzen',
+    },
     addressAutocomplete: {
         placeholder: 'Adresse suchen...',
         noResults: 'Keine passende Adresse',

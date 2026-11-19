@@ -1,5 +1,5 @@
 import * as LucideIcons from 'lucide-react';
-import type { IconProviderAdapter, IconComponentProps } from './IconProvider';
+import { toKebabCase, type IconProviderAdapter, type IconComponentProps } from './IconProvider';
 
 // Names that diverge from kebab→PascalCase convention in Lucide
 const ALIASES: Record<string, string> = {
@@ -40,6 +40,16 @@ function toPascalCase(name: string): string {
 
 export class LucideIconProvider implements IconProviderAdapter {
     readonly id = 'lucide' as const;
+    private _names: string[] | null = null;
+
+    /** Every icon of Lucide by its name (CR-148). */
+    list(): string[] {
+        if (!this._names) {
+            const icons = (LucideIcons as unknown as { icons?: Record<string, unknown> }).icons ?? {};
+            this._names = [...new Set(Object.keys(icons).map(toKebabCase))].filter((n) => this.resolve(n)).sort();
+        }
+        return this._names;
+    }
 
     resolve(name: string): import('react').ComponentType<IconComponentProps> | null {
         const key = ALIASES[name] ?? toPascalCase(name);

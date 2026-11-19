@@ -224,6 +224,16 @@ export const ar: I18nDict = {
         createPlaceholder: 'اكتب أو اضغط Enter للإنشاء...',
         remove: 'إزالة',
     },
+    iconPicker: {
+        title: 'اختر أيقونة',
+        choose: 'اختر أيقونة',
+        change: 'تغيير',
+        none: 'بلا أيقونة',
+        searchPlaceholder: 'ابحث عن أيقونة (بالإنجليزية: bank, car, house)',
+        noResults: 'لم يتم العثور على أيقونة',
+        count: '{total} أيقونة',
+        tooMany: 'أول {shown} من {total}: ابحث للتضييق',
+    },
     addressAutocomplete: {
         placeholder: 'ابحث عن عنوان...',
         noResults: 'لا يوجد عنوان مطابق',

@@ -7,6 +7,7 @@ export default defineLocaleMessages({
             sections: {
                 basicUsage: { description: 'اعرض أي أيقونة بالاسم. الموفر النشط يحل الاسم إلى مكوّنه المناسب.' },
                 catalog: { title: 'فهرس الأيقونات', description: 'أسماء أيقونات شائعة تدعمها كل الموفرات المدمجة. الموفر النشط: {providerId}.' },
+                picker: { title: 'IconPicker', description: 'حقل لاختيار أيقونة: انقر على الأيقونة وابحث في النافذة بين أيقونات المزود النشط ثم احفظ. القيمة هي اسم الأيقونة.', label: 'أيقونة' },
                 sizes: { description: 'تقوم الخاصية size بتحديد العرض والارتفاع بالبكسل. القيمة الافتراضية هي 16.' },
                 colors: { title: 'الألوان عبر className', description: 'ترث الأيقونات لون النص من CSS. استخدم أي أداة Tailwind من نوع text-*. ' },
                 providers: { title: 'الموفرات المدمجة: lucide مقابل phosphor', description: 'lucide هو الافتراضي. phosphor مدمج أيضاً. كلاهما يحل نفس أسماء الأيقونات.' },

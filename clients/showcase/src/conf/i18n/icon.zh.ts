@@ -7,6 +7,7 @@ export default defineLocaleMessages({
             sections: {
                 basicUsage: { description: '通过名称渲染任意图标。当前 provider 会将名称解析为对应组件。' },
                 catalog: { title: '图标目录', description: '所有内置 provider 都支持的常用图标名称。当前 provider：{providerId}。' },
+                picker: { title: 'IconPicker', description: '选择图标的表单字段：点击图标，在弹窗中搜索当前提供者的图标，然后保存。值为图标名称。', label: '图标' },
                 sizes: { description: 'size prop 用于设置像素宽高。默认值为 16。' },
                 colors: { title: '通过 className 设置颜色', description: '图标会继承 CSS 文本颜色。可使用任意 Tailwind `text-*` 工具类。' },
                 providers: { title: '内置 provider：lucide 与 phosphor', description: 'lucide 是默认 provider。phosphor 也内置支持。两者解析相同的图标名称。' },

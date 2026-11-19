@@ -1,6 +1,6 @@
 import React from 'react';
 import * as PhosphorIcons from '@phosphor-icons/react';
-import type { IconProviderAdapter, IconComponentProps } from './IconProvider';
+import { toKebabCase, type IconProviderAdapter, type IconComponentProps } from './IconProvider';
 
 export type PhosphorWeight = 'thin' | 'light' | 'regular' | 'bold' | 'fill' | 'duotone';
 
@@ -50,6 +50,16 @@ function toPascalCase(name: string): string {
 export class PhosphorIconProvider implements IconProviderAdapter {
     readonly id = 'phosphor' as const;
     private readonly _cache = new Map<string, React.ComponentType<IconComponentProps>>();
+    private _names: string[] | null = null;
+
+    /** Every icon of Phosphor by its name (CR-148): the exports with the `Icon` suffix, without it. */
+    list(): string[] {
+        if (!this._names) {
+            const keys = Object.keys(PhosphorIcons).filter((k) => /^[A-Z]/.test(k) && k.endsWith('Icon') && k !== 'Icon');
+            this._names = [...new Set(keys.map((k) => toKebabCase(k.slice(0, -'Icon'.length))))].filter((n) => n && this.resolve(n)).sort();
+        }
+        return this._names;
+    }
 
     constructor(public weight: PhosphorWeight = 'regular') {}
 
@@ -58,7 +68,9 @@ export class PhosphorIconProvider implements IconProviderAdapter {
         if (cached) return cached;
 
         const key = ALIASES[name] ?? toPascalCase(name);
-        const Base = (PhosphorIcons as unknown as Record<string, React.ComponentType<IconComponentProps & { weight?: PhosphorWeight }>>)[key];
+        // Some icons are exported only with the `Icon` suffix (CR-148).
+        const all = PhosphorIcons as unknown as Record<string, React.ComponentType<IconComponentProps & { weight?: PhosphorWeight }>>;
+        const Base = all[key] ?? all[`${key}Icon`];
         if (!Base) return null;
 
         // Always wrap so props.weight overrides the provider default at render time.

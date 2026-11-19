@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.14.0] - 2026-11-19
+
+### Added
+- `IconPicker` (CR-148): a form field to choose an icon; a click opens a modal with a search box, the grid of the icons of the active provider (or `options`), `exclude`, `keywords`, `clearable`, and Save in the footer. The value is the icon name.
+- `IconProviderAdapter.list()` (optional): the names of the icons of a provider; Lucide and Phosphor implement it.
+
+### Fixed
+- Phosphor resolves the names exported only with the `Icon` suffix (e.g. `activity`).
+
 ## [3.13.0] - 2026-11-19
 
 ### Added

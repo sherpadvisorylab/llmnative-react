@@ -113,6 +113,7 @@ function createAliasedProvider(provider: IconProviderAdapter, aliases: Record<st
         resolve(name) {
             return provider.resolve(aliases[name] ?? name);
         },
+        ...(provider.list ? { list: () => provider.list!() } : {}),
     };
 }
 

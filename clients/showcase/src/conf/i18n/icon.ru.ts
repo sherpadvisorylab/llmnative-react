@@ -7,6 +7,7 @@ export default defineLocaleMessages({
             sections: {
                 basicUsage: { description: 'Рендерит любую иконку по имени. Активный провайдер разрешает имя в соответствующий компонент.' },
                 catalog: { title: 'Каталог иконок', description: 'Общие имена иконок, поддерживаемые всеми встроенными провайдерами. Активный провайдер: {providerId}.' },
+                picker: { title: 'IconPicker', description: 'Поле формы для выбора иконки: нажмите на иконку, найдите в окне среди иконок активного провайдера, сохраните. Значение — имя иконки.', label: 'Иконка' },
                 sizes: { description: 'Prop size задает ширину и высоту в пикселях. Значение по умолчанию - 16.' },
                 colors: { title: 'Цвета через className', description: 'Иконки наследуют CSS-цвет текста. Используйте любые utility-классы Tailwind вида text-*.' },
                 providers: { title: 'Встроенные провайдеры: lucide vs phosphor', description: 'lucide используется по умолчанию. phosphor встроен. Оба провайдера поддерживают одинаковые имена иконок.' },

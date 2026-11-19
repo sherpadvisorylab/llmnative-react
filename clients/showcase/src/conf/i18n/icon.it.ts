@@ -6,6 +6,7 @@ export default defineLocaleMessages({
             sections: {
                 basicUsage: { description: 'Renderizza qualsiasi icona per nome. Il provider attivo risolve il nome nel relativo componente.' },
                 catalog: { title: 'Catalogo icone', description: 'Nomi di icone comuni supportati da tutti i provider integrati. Provider attivo: {providerId}.' },
+                picker: { title: 'IconPicker', description: 'Un campo per scegliere un\'icona: clicca l\'icona, cerca nella modale tra le icone del provider attivo, Salva. Il valore e il nome dell\'icona.', label: 'Icona' },
                 sizes: { description: 'La prop size imposta larghezza e altezza in pixel. Il valore predefinito e 16.' },
                 colors: { title: 'Colori tramite className', description: 'Le icone ereditano il colore del testo CSS. Usa qualsiasi utility Tailwind text-*.' },
                 providers: { title: 'Provider integrati: lucide vs phosphor', description: 'lucide e il predefinito. phosphor e integrato. Entrambi risolvono gli stessi nomi di icona.' },

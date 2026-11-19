@@ -160,6 +160,28 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
+## CR-148 — IconPicker: scegliere un'icona del provider attivo
+
+**Stato:** ✅ done
+**Issue:** [#127](https://github.com/sherpadvisorylab/llmnative-react/issues/127)
+**Priorità:** Media
+
+### Motivazione
+Un record con la sua icona (es. un prodotto) va scelto tra le icone della libreria dell'app, cercandole, senza scrivere il nome a mano.
+
+### Scope
+- `IconPicker`: pulsante con l'icona attuale; modale con ricerca, griglia (al massimo 240 risultati), Salva nel footer; `options`, `exclude` (l'attuale resta), `keywords`, `clearable`, `modalTitle`.
+- `IconProviderAdapter.list()` opzionale; Lucide e Phosphor lo implementano; gli alias lo mantengono.
+- Phosphor: risolve anche i nomi esportati solo con il suffisso `Icon`.
+
+### Criteri di accettazione
+- [x] AC1: la modale cerca per nome e `keywords`, sceglie e salva il nome nel campo.
+- [x] AC2: `exclude` toglie i nomi presi tranne l'attuale; senza `options` le icone del provider attivo.
+- [x] AC3: `list()` di Lucide e Phosphor restituisce solo nomi che `resolve` trova.
+- [x] AC4: test, docs (`llms-full.txt`), showcase; release minor 3.14.0.
+
+---
+
 ## CR-147 — Autocomplete con le opzioni raggruppate
 
 **Stato:** ✅ done

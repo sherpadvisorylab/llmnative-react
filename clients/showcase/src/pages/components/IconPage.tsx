@@ -1,5 +1,5 @@
 import React from 'react';
-import { Icon, LucideIconProvider, PhosphorIconProvider, useIconController } from '@llmnative/react';
+import { Form, Icon, IconPicker, LucideIconProvider, PhosphorIconProvider, useIconController } from '@llmnative/react';
 import type { IconProviderAdapter } from '@llmnative/react';
 import type { PhosphorWeight } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
@@ -170,6 +170,23 @@ export default function IconPage() {
 <Icon name="edit" />
 <Icon name="trash" />
 <Icon name="settings" />`}
+                bare
+            />
+
+            {/* ── IconPicker (CR-148) ── */}
+            <Section
+                title={t.sections.picker.title}
+                description={t.sections.picker.description}
+                preview={
+                    <div className="w-full max-w-sm">
+                        <Form appearance="empty" defaultValues={{ icon: 'landmark' }}>
+                            <IconPicker name="icon" label={t.sections.picker.label} clearable />
+                        </Form>
+                    </div>
+                }
+                code={`<IconPicker name="icon" label="Icon" clearable />
+// Only some icons, without those already taken, found also by other words:
+<IconPicker name="icon" options={['landmark', 'car', 'house']} exclude={taken} keywords={{ landmark: 'bank' }} />`}
                 bare
             />
 

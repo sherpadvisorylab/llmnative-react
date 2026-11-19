@@ -224,6 +224,16 @@ export const ru: I18nDict = {
         createPlaceholder: 'Введите или нажмите Enter, чтобы создать...',
         remove: 'Удалить',
     },
+    iconPicker: {
+        title: 'Выберите иконку',
+        choose: 'Выберите иконку',
+        change: 'Изменить',
+        none: 'Без иконки',
+        searchPlaceholder: 'Поиск иконки (по-английски: bank, car, house)',
+        noResults: 'Иконка не найдена',
+        count: '{total} иконок',
+        tooMany: 'Первые {shown} из {total}: уточните поиск',
+    },
     addressAutocomplete: {
         placeholder: 'Поиск адреса...',
         noResults: 'Нет подходящего адреса',

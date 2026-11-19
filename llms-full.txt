@@ -708,6 +708,18 @@ CR-147: le opzioni di `Autocomplete` con `group` stanno sotto un'intestazione pe
 | `delimiter` | `string` |
 | `label` / `icon` | Opzionali |
 
+### IconPicker (CR-148)
+```tsx
+<IconPicker name="icona" label="Icona" clearable />
+<IconPicker name="icona" options={['landmark', 'car', 'house']} exclude={giaUsate} keywords={{ landmark: 'banca' }} modalTitle="Icona del prodotto" />
+```
+Il valore è il nome dell'icona, come lo prende `<Icon name>`. Un pulsante mostra l'icona attuale; il clic apre una modale
+con la ricerca in alto (nome, con o senza trattini, e `keywords`), la griglia delle icone (al massimo 240: la ricerca
+restringe) e Salva nel footer; doppio clic sceglie e chiude. Senza `options` elenca le icone del provider attivo
+(`IconProviderAdapter.list()`: Lucide e Phosphor la hanno; un provider dell'app può aggiungerla). `exclude` toglie dei
+nomi ma lascia scegliere quello attuale; `clearable` aggiunge "Nessuna icona". Phosphor risolve anche i nomi esportati
+solo con il suffisso `Icon` (es. `activity`).
+
 ### ImageField
 ```tsx
 <ImageField
@@ -1648,6 +1660,7 @@ theme.setMode('dark')        // 'light' | 'dark' | 'system'
 
 const icons = useIconController()
 icons.setProvider('phosphor')   // 'lucide' | 'phosphor' | custom
+new LucideIconProvider().list()  // CR-148: i nomi di tutte le icone del provider (per un selettore)
 ```
 
 ---

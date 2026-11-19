@@ -7,6 +7,7 @@ export default defineLocaleMessages({
             sections: {
                 basicUsage: { description: 'Rendert jedes Icon ueber seinen Namen. Der aktive Provider loest den Namen in die entsprechende Komponente auf.' },
                 catalog: { title: 'Icon-Katalog', description: 'Gaengige Icon-Namen, die von allen integrierten Providern unterstuetzt werden. Aktiver Provider: {providerId}.' },
+                picker: { title: 'IconPicker', description: 'Ein Formularfeld zur Wahl eines Symbols: Symbol anklicken, im Dialog unter den Symbolen des aktiven Providers suchen, Speichern. Der Wert ist der Symbolname.', label: 'Symbol' },
                 sizes: { description: 'Die Prop size setzt Breite und Hoehe in Pixeln. Standard ist 16.' },
                 colors: { title: 'Farben ueber className', description: 'Icons erben die CSS-Textfarbe. Verwende beliebige Tailwind-Utilities vom Typ text-*.' },
                 providers: { title: 'Integrierte Provider: lucide vs phosphor', description: 'lucide ist der Standard. phosphor ist integriert. Beide loesen dieselben Icon-Namen auf.' },

@@ -304,6 +304,16 @@ export const en: I18nDict = {
         createPlaceholder: 'Type or press Enter to create...',
         remove: 'Remove',
     },
+    iconPicker: {
+        title: 'Choose an icon',
+        choose: 'Choose an icon',
+        change: 'Change',
+        none: 'No icon',
+        searchPlaceholder: 'Search an icon (e.g. bank, car, house)',
+        noResults: 'No icon found',
+        count: '{total} icons',
+        tooMany: 'The first {shown} of {total}: search to narrow',
+    },
     addressAutocomplete: {
         placeholder: 'Search an address...',
         noResults: 'No matching address',

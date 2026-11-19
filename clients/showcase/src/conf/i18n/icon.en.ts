@@ -7,6 +7,7 @@ export default defineLocaleMessages({
             sections: {
                 basicUsage: { description: 'Render any icon by name. The active provider resolves the name to its component.' },
                 catalog: { title: 'Icon catalog', description: 'Common icon names supported by all built-in providers. Active provider: {providerId}.' },
+                picker: { title: 'IconPicker', description: 'A form field to choose an icon: click the icon, search in the modal among the icons of the active provider, Save. The value is the icon name.', label: 'Icon' },
                 sizes: { description: 'The size prop sets width and height in pixels. Default is 16.' },
                 colors: { title: 'Colors via className', description: 'Icons inherit the CSS text color. Use any Tailwind text-* utility.' },
                 providers: { title: 'Built-in providers: lucide vs phosphor', description: 'lucide is the default. phosphor is built-in. Both resolve the same icon names.' },

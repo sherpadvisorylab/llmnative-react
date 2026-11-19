@@ -237,6 +237,7 @@ interface ShowcaseIconI18n {
     sections: {
         basicUsage: { description: string; };
         catalog: ShowcasePageSectionCopy;
+        picker: ShowcasePageSectionCopy & { label: string };
         sizes: { description: string; };
         colors: ShowcasePageSectionCopy;
         providers: ShowcasePageSectionCopy;

@@ -55,6 +55,7 @@ export * from './ui/fields/Select';
 export { DropdownSelect } from './ui/fields/DropdownSelect';
 export type { DropdownSelectProps, DropdownSelectOption } from './ui/fields/DropdownSelect';
 export * from './ui/fields/AddressAutocomplete';
+export * from './ui/fields/IconPicker';
 export * from './ui/fields/Upload';
 export * from './ui/fields/Crop';
 export * from './ui/fields/UploadCSV';
