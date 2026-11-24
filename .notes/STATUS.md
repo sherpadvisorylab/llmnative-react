@@ -178,7 +178,8 @@
 
 | CR | Real state | What is missing |
 |----|-----------|-----------------|
-| CR-153 | ⬜ todo | Peer opzionali (Supabase, Firebase) caricati solo all'uso: oggi l'import di `@llmnative/react` in Node fallisce senza `@supabase/supabase-js` installato. Issue #134. |
+| CR-154 | ⬜ todo | Peer opzionali Firebase e provider di icone (lucide, phosphor) caricati solo all'uso, come Supabase in CR-153: oggi l'import in Node fallisce senza di loro. Issue #135. |
+| CR-153 | 🔄 in progress | Peer opzionali (Supabase, Firebase) caricati solo all'uso: oggi l'import di `@llmnative/react` in Node fallisce senza `@supabase/supabase-js` installato. Issue #134. |
 | CR-152 | ⬜ todo | `PageTitle`: briciole a più livelli (`parents`), un posto accanto al titolo (`after`), un titolo interattivo nell'`h1`; perché `llmnative-cms` porti la sua barra sul `PageBar`. Issue #133. |
 | CR-098 | ⬜ todo | Repeat: docs con nomi completi (raddoppiati da `setParentName`), firma children sbagliata, `layout="vertical"` che non disegna nulla, pulsanti senza nome accessibile. Issue #69. |
 | CR-072 | **Diagnosed — not fixable via config alone** | 890 `tsc --noEmit` errori in `clients/showcase` causati da TypeScript 6.0.3: named exports da `.d.ts` files fuori dallo scope del progetto (`include: ["src"]`) non sono visibili in modalità named import (`import { Icon }`), mentre `import * as` e `typeof import()` funzionano. Tentate: `paths`, `moduleResolution: node10/bundler`, `include` espanso, `.ts` proxy, `.d.ts` proxy, skipLibCheck toggle — stesso risultato. Root cause: regressione TS 6.0.3 nel cross-project type resolution. `npm run build` (Vite/esbuild) è l'unico gate reale e passa. 15 errori prismjs risolti (wildcard declaration in `vite-env.d.ts`). Issue #14 aperta. |

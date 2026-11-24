@@ -160,9 +160,44 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
-## CR-153 — Peer opzionali (Supabase, Firebase) non caricati all'import in Node
+## CR-154 — Peer opzionali Firebase e provider di icone non caricati all'import
 
 **Stato:** ⬜ todo
+**Issue:** [#135](https://github.com/sherpadvisorylab/llmnative-react/issues/135)
+**Priorità:** Media
+**Dipende da:** CR-153
+
+### Motivazione
+Seguito di CR-153, che carica Supabase solo all'uso. L'entry radice carica ancora all'import altri peer opzionali:
+- `firebase/app`, `firebase/auth`, `firebase/database`, `firebase/firestore`, `firebase/storage`;
+- i provider di icone `lucide-react` e `@phosphor-icons/react` (dal chunk del layout).
+
+Un'app che non li installa non importa `@llmnative/react` in Node (Vitest, SSR, script): fallisce con «module not found». Questo succede a un'app su Supabase o su dati mock che non ha Firebase, e a un'app che usa un solo provider di icone.
+
+A differenza di Supabase, i provider Firebase usano l'SDK in modo sincrono in molti punti:
+- `firebase-init`;
+- data RTDB e Firestore;
+- `FirebaseStorageProvider`;
+- auth Firebase e Google, e `GoogleAuth`.
+
+Per questo serve una CR a sé. `callFirebaseFunction` carica già `firebase/functions` con un import dinamico.
+
+### Scope
+- Firebase: caricare l'SDK al primo avvio di un provider Firebase, con import dinamico o con un entry separato; la scelta si fa in implementazione, senza cambiare cosa esporta l'entry radice. I metodi sincroni del contratto (`getUser()`, `subscribe`, `onAuthChange`) mantengono la firma, come in CR-153.
+- Icone: il pacchetto di un provider si carica solo quando quel provider è attivo. Le icone del provider predefinito compaiono senza flash.
+- Senza un peer, l'errore è chiaro e compare solo all'uso.
+
+### Criteri di accettazione
+- [ ] AC1: un test in Node conferma che l'import di `@llmnative/react` funziona senza firebase, lucide-react o @phosphor-icons/react installati. La verifica copre anche il `dist`, sia ESM sia CJS.
+- [ ] AC2: i provider Firebase restano invariati. Passano gli unit test e l'integrazione con l'emulatore (`npm run test:integration`).
+- [ ] AC3: le icone restano identiche con Lucide e con Phosphor. Lo confermano lo showcase e l'E2E di scaffolding.
+- [ ] AC4: verifica nel consumer `llmnative-cms`; release minor.
+
+---
+
+## CR-153 — Peer opzionali (Supabase, Firebase) non caricati all'import in Node
+
+**Stato:** 🔄 in progress
 **Issue:** [#134](https://github.com/sherpadvisorylab/llmnative-react/issues/134)
 **Priorità:** Media
 **Dipende da:** CR-151
