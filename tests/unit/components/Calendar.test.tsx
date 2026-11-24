@@ -145,6 +145,21 @@ describe('Calendar', () => {
         expect(onSlotClick).toHaveBeenCalledWith({ start: giorno(25, 14, 30), end: giorno(25, 15), allDay: false });
     });
 
+    it('the head of the grid keeps the room of the scrollbar of the body; fill takes the height of the container', () => {
+        const { container, unmount } = mount();
+        const scroller = container.querySelector('[data-rf-calendar-scroll]') as HTMLElement;
+        expect(scroller.getAttribute('style')).toMatch(/scrollbar-gutter: stable/);
+        const heads = [...container.querySelectorAll('.grid.shrink-0')] as HTMLElement[];
+        expect(heads.length).toBeGreaterThan(0);
+        expect(heads.every((head) => /scrollbar-gutter: stable/.test(head.getAttribute('style') ?? '') && head.style.overflowY === 'hidden')).toBe(true);
+        unmount();
+        const pieno = mount({ fill: true });
+        expect(pieno.container.querySelector('section')!.className).toContain('h-full');
+        const grid = pieno.container.querySelector('[data-rf-calendar-scroll]') as HTMLElement;
+        expect(grid.className).toContain('flex-1');
+        expect(grid.getAttribute('style') ?? '').not.toMatch(/(^|;\s*)height/);
+    });
+
     it('keys: t today, n and p the periods, d w m a the views', () => {
         const onViewChange = vi.fn();
         const onDateChange = vi.fn();

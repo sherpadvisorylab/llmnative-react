@@ -1399,6 +1399,7 @@ t (oggi), n/p (periodo), d/w/m/a (viste); su uno schermo stretto parte dall'Elen
 | `onEventClick` / `onSlotClick` / `renderEvent` | clic su un evento; clic su uno spazio libero `{ start, end, allDay }`; contenuto dell'evento |
 | `weekStartsOn` / `scrollToHour` / `hourHeight` / `maxEventsPerDay` | default 1 (lunedì), 8, 48 px, 3 |
 | `sidebar` / `loading` / `actions` / `height` / `ariaLabel` | colonna laterale (default con calendari); caricamento; pulsanti nella barra; altezza della griglia oraria |
+| `fill` | (CR-150.1) prende l'altezza del contenitore: griglia oraria, mese ed elenco lo riempiono e scorrono dentro; la testata della griglia tiene lo spazio della barra di scorrimento, colonne allineate |
 
 Funzioni pure: `viewRange(view, date, weekStartsOn)`, `stepDate(view, date, ±1)`, `monthGrid(date, weekStartsOn)`,
 `normalizeEvent(event, defaultDuration)`, `eventsInRange(events, range)`, `eventsByDay(events, range)`,

@@ -160,6 +160,15 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
+## CR-150.1 — Calendar: colonne allineate e fill
+
+**Stato:** ✅ done
+**Issue:** [#131](https://github.com/sherpadvisorylab/llmnative-react/issues/131)
+
+La testata e la fascia di tutto il giorno della griglia oraria tengono lo spazio della barra di scorrimento del corpo (`scrollbar-gutter: stable`): le colonne sono allineate. `fill`: il calendario prende l'altezza del contenitore; griglia oraria, mese (settimane che si dividono l'altezza) ed elenco lo riempiono e scorrono dentro. Test: 1 (11 del calendario). Docs; release patch 3.16.1.
+
+---
+
 ## CR-150 — Calendar: calendario a giorno, settimana, mese ed elenco
 
 **Stato:** ✅ done

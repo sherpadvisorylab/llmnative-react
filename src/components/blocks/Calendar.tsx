@@ -81,6 +81,8 @@ export interface CalendarProps {
     defaultDuration?: number;
     /** The side column (mini month and calendars); by default when there are calendars. */
     sidebar?: boolean;
+    /** The calendar takes the height of its container: the time grid, the month and the list fill it and scroll inside. */
+    fill?: boolean;
     loading?: boolean;
     /** Next to the views, in the bar. */
     actions?: ReactNode;
@@ -136,7 +138,7 @@ export function Calendar({
     events, calendars, selectedCalendarIds, defaultSelectedCalendarIds, onSelectedCalendarsChange, maxSelected,
     view: viewProp, defaultView, onViewChange, views = VIEWS, date: dateProp, defaultDate, onDateChange, onRangeChange,
     onEventClick, onSlotClick, renderEvent, weekStartsOn = 1, scrollToHour = 8, hourHeight = 48, maxEventsPerDay = 3,
-    defaultDuration = 30, sidebar, loading = false, actions, height, ariaLabel, className,
+    defaultDuration = 30, sidebar, fill = false, loading = false, actions, height, ariaLabel, className,
 }: CalendarProps) {
     const dict = useI18n('calendar');
     const { locale } = useI18n();
@@ -205,7 +207,7 @@ export function Calendar({
 
     const eventProps = { onEventClick, renderEvent, tokenOf, format, dict };
     return (
-        <section aria-label={ariaLabel ?? dict.title} className={cn('flex min-w-0 flex-col gap-3', className)} onKeyDown={onKeyDown} data-rf-calendar={view}>
+        <section aria-label={ariaLabel ?? dict.title} className={cn('flex min-w-0 flex-col gap-3', fill && 'h-full min-h-0', className)} onKeyDown={onKeyDown} data-rf-calendar={view}>
             <div className="flex flex-wrap items-center gap-2">
                 {showSidebar ? (
                     <ActionButton icon="menu" variant="link" ariaLabel={dict.calendars} wrapperClassName="lg:hidden" onClick={() => setSidebarOpen((open) => !open)} />
@@ -226,22 +228,22 @@ export function Calendar({
                     </div>
                 ) : null}
             </div>
-            <div className="flex min-w-0 gap-4">
+            <div className={cn('flex min-w-0 gap-4', fill && 'min-h-0 flex-1')}>
                 {showSidebar ? (
-                    <aside className={cn('w-60 shrink-0 flex-col gap-5', sidebarOpen ? 'flex' : 'hidden lg:flex')} aria-label={dict.calendars}>
+                    <aside className={cn('w-60 shrink-0 flex-col gap-5', fill && 'min-h-0 overflow-y-auto', sidebarOpen ? 'flex' : 'hidden lg:flex')} aria-label={dict.calendars}>
                         <MiniMonth date={date} range={range} weekStartsOn={weekStartsOn} format={format} dict={dict} onPick={(day) => { go(day); setSidebarOpen(false); }} />
                         {calendars?.length ? (
                             <CalendarList calendars={calendars} colors={colors} shown={shown} maxSelected={maxSelected} selectedCount={selected.length} onToggle={toggle} dict={dict} />
                         ) : null}
                     </aside>
                 ) : null}
-                <div className={cn('min-w-0 flex-1 transition-opacity', loading && 'opacity-60')}>
+                <div className={cn('min-w-0 flex-1 transition-opacity', fill && 'min-h-0', loading && 'opacity-60')}>
                     {view === 'day' || view === 'week' ? (
-                        <TimeGrid days={daysOf(range)} events={normalized} hourHeight={hourHeight} scrollToHour={scrollToHour} height={height} view={view} onSlotClick={onSlotClick} openDay={views.includes('day') ? openDay : undefined} {...eventProps} />
+                        <TimeGrid days={daysOf(range)} events={normalized} hourHeight={hourHeight} scrollToHour={scrollToHour} height={height} view={view} fill={fill} onSlotClick={onSlotClick} openDay={views.includes('day') ? openDay : undefined} {...eventProps} />
                     ) : view === 'month' ? (
-                        <MonthView date={date} weekStartsOn={weekStartsOn} events={normalized} maxEventsPerDay={maxEventsPerDay} onSlotClick={onSlotClick} openDay={openDay} {...eventProps} />
+                        <MonthView date={date} weekStartsOn={weekStartsOn} events={normalized} maxEventsPerDay={maxEventsPerDay} fill={fill} onSlotClick={onSlotClick} openDay={openDay} {...eventProps} />
                     ) : (
-                        <AgendaView range={range} events={normalized} {...eventProps} />
+                        <AgendaView range={range} events={normalized} fill={fill} {...eventProps} />
                     )}
                 </div>
             </div>
@@ -305,9 +307,12 @@ function EventButton({ item, compact, view, className, style, onEventClick, rend
     );
 }
 
+/** The head of the time grid keeps the room of the scrollbar of its body, so that their columns line up. */
+const GUTTER: React.CSSProperties = { overflowY: 'hidden', scrollbarGutter: 'stable' };
+
 /** Day and week: the days in columns, the hours down, the all-day events on top, the line of now. */
-function TimeGrid({ days, events, hourHeight, scrollToHour, height, view, onSlotClick, openDay, ...eventProps }: EventProps & {
-    days: Date[]; events: NormalizedEvent<CalendarEvent>[]; hourHeight: number; scrollToHour: number; height?: number | string;
+function TimeGrid({ days, events, hourHeight, scrollToHour, height, view, fill, onSlotClick, openDay, ...eventProps }: EventProps & {
+    days: Date[]; events: NormalizedEvent<CalendarEvent>[]; hourHeight: number; scrollToHour: number; height?: number | string; fill: boolean;
     view: CalendarView; onSlotClick?: (slot: CalendarSlot) => void; openDay?: (day: Date) => void;
 }) {
     const { format, dict } = eventProps;
@@ -336,8 +341,8 @@ function TimeGrid({ days, events, hourHeight, scrollToHour, height, view, onSlot
     };
 
     return (
-        <div className="overflow-hidden rounded-lg border border-border bg-card">
-            <div className="grid border-b border-border" style={{ gridTemplateColumns: columns }}>
+        <div className={cn('overflow-hidden rounded-lg border border-border bg-card', fill && 'flex h-full flex-col')}>
+            <div className="grid shrink-0 border-b border-border" style={{ gridTemplateColumns: columns, ...GUTTER }}>
                 <div />
                 {days.map((day) => {
                     const isToday = sameDay(day, new Date());
@@ -355,7 +360,7 @@ function TimeGrid({ days, events, hourHeight, scrollToHour, height, view, onSlot
                 })}
             </div>
             {hasAllDay ? (
-                <div className="grid border-b border-border" style={{ gridTemplateColumns: columns }}>
+                <div className="grid shrink-0 border-b border-border" style={{ gridTemplateColumns: columns, ...GUTTER }}>
                     <div className="px-1 py-1 text-end text-[10px] text-muted-foreground">{dict.allDay}</div>
                     {allDay.map((list, i) => (
                         <div key={i} className="flex min-w-0 flex-col gap-0.5 border-l border-border p-0.5">
@@ -364,7 +369,7 @@ function TimeGrid({ days, events, hourHeight, scrollToHour, height, view, onSlot
                     ))}
                 </div>
             ) : null}
-            <div ref={scroller} className="overflow-y-auto" style={{ height: height ?? 'min(70vh, 44rem)' }}>
+            <div ref={scroller} data-rf-calendar-scroll className={cn('overflow-y-auto', fill && 'min-h-0 flex-1')} style={{ scrollbarGutter: 'stable', ...(fill ? {} : { height: height ?? 'min(70vh, 44rem)' }) }}>
                 <div className="relative grid" style={{ gridTemplateColumns: columns, height: 24 * hourHeight }}>
                     <div className="relative">
                         {hours.map((h) => (
@@ -408,8 +413,8 @@ function TimeGrid({ days, events, hourHeight, scrollToHour, height, view, onSlot
 }
 
 /** The month: its weeks, a few events per day and «+N» that opens the day. */
-function MonthView({ date, weekStartsOn, events, maxEventsPerDay, onSlotClick, openDay, ...eventProps }: EventProps & {
-    date: Date; weekStartsOn: number; events: NormalizedEvent<CalendarEvent>[]; maxEventsPerDay: number;
+function MonthView({ date, weekStartsOn, events, maxEventsPerDay, fill, onSlotClick, openDay, ...eventProps }: EventProps & {
+    date: Date; weekStartsOn: number; events: NormalizedEvent<CalendarEvent>[]; maxEventsPerDay: number; fill: boolean;
     onSlotClick?: (slot: CalendarSlot) => void; openDay: (day: Date) => void;
 }) {
     const { format, dict } = eventProps;
@@ -417,7 +422,7 @@ function MonthView({ date, weekStartsOn, events, maxEventsPerDay, onSlotClick, o
     const range = { start: weeks[0]![0]!, end: addDays(weeks[weeks.length - 1]![6]!, 1) };
     const byDay = useMemo(() => eventsByDay(events, range), [events, range.start.getTime(), range.end.getTime()]); // eslint-disable-line react-hooks/exhaustive-deps
     return (
-        <div className="overflow-hidden rounded-lg border border-border bg-card" role="grid" aria-label={format.monthYear.format(date)}>
+        <div className={cn('overflow-hidden rounded-lg border border-border bg-card', fill && 'grid h-full')} style={fill ? { gridTemplateRows: `auto repeat(${weeks.length}, minmax(0, 1fr))` } : undefined} role="grid" aria-label={format.monthYear.format(date)}>
             <div className="grid grid-cols-7 border-b border-border" role="row">
                 {weeks[0]!.map((day) => (
                     <div key={dayKey(day)} role="columnheader" className="py-2 text-center text-xs uppercase tracking-wide text-muted-foreground">{format.weekday.format(day)}</div>
@@ -434,7 +439,7 @@ function MonthView({ date, weekStartsOn, events, maxEventsPerDay, onSlotClick, o
                             <div
                                 key={dayKey(day)}
                                 role="gridcell"
-                                className={cn('flex min-h-[6.5rem] min-w-0 flex-col gap-0.5 border-b border-border p-1', i > 0 && 'border-l', other && 'bg-muted/40', onSlotClick && 'cursor-pointer')}
+                                className={cn('flex min-w-0 flex-col gap-0.5 border-b border-border p-1', fill ? 'min-h-0 overflow-hidden' : 'min-h-[6.5rem]', i > 0 && 'border-l', other && 'bg-muted/40', onSlotClick && 'cursor-pointer')}
                                 onClick={onSlotClick ? () => onSlotClick({ start: day, end: addDays(day, 1), allDay: true }) : undefined}
                             >
                                 <button
@@ -468,13 +473,13 @@ function MonthView({ date, weekStartsOn, events, maxEventsPerDay, onSlotClick, o
 }
 
 /** The agenda: the days of the period with something, each with its events in order. */
-function AgendaView({ range, events, ...eventProps }: EventProps & { range: CalendarRange; events: NormalizedEvent<CalendarEvent>[] }) {
+function AgendaView({ range, events, fill, ...eventProps }: EventProps & { range: CalendarRange; events: NormalizedEvent<CalendarEvent>[]; fill: boolean }) {
     const { format, dict, tokenOf, onEventClick, renderEvent } = eventProps;
     const byDay = useMemo(() => eventsByDay(events, range), [events, range]);
     const days = daysOf(range).filter((day) => (byDay.get(dayKey(day)) ?? []).length > 0);
     if (!days.length) return <p className="rounded-lg border border-border bg-card p-6 text-center text-sm text-muted-foreground">{dict.noEvents}</p>;
     return (
-        <ol className="flex flex-col divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
+        <ol className={cn('flex flex-col divide-y divide-border rounded-lg border border-border bg-card', fill ? 'h-full overflow-y-auto' : 'overflow-hidden')}>
             {days.map((day) => {
                 const isToday = sameDay(day, new Date());
                 return (

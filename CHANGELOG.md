@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.16.1] - 2026-11-24
+
+### Fixed
+- `Calendar` (CR-150.1): the head and the all-day row of the time grid keep the room of the scrollbar of its body, so that the columns line up.
+
+### Added
+- `Calendar` `fill`: the calendar takes the height of its container; the time grid, the month (weeks sharing the height) and the list fill it and scroll inside.
+
 ## [3.16.0] - 2026-11-24
 
 ### Added
