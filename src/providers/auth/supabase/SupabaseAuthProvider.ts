@@ -1,5 +1,5 @@
 import type { SupabaseClient, User } from '@supabase/supabase-js';
-import { getSupabaseClient, getSupabaseConfigurationState } from '../../supabase-init';
+import { getSupabaseClient, getSupabaseConfigurationState, peekSupabaseClient } from '../../supabase-init';
 import type {
     AuthEmailCodeOptions,
     AuthLinkOptions,
@@ -57,7 +57,8 @@ function mapUser(user: User | null): UserProfile | null {
 
 export class SupabaseAuthProvider implements AuthProviderAdapter {
     private config: SupabaseAuthConfig;
-    private get client(): SupabaseClient { return getSupabaseClient(this.config.url, this.config.anonKey); }
+    // The SDK is loaded with the first client (CR-153): an optional peer, never loaded at import.
+    private client(): Promise<SupabaseClient> { return getSupabaseClient(this.config.url, this.config.anonKey); }
 
     constructor(config: SupabaseAuthConfig) {
         this.config = config;
@@ -79,8 +80,14 @@ export class SupabaseAuthProvider implements AuthProviderAdapter {
      */
     getUser(): UserProfile | null {
         // `getSession()` is async - use the cached session from the client internals.
-        // This is synchronous and safe to call from render-path code.
-        const session = (this.client as any).auth?._session ?? null;
+        // This is synchronous and safe to call from render-path code. Before the SDK has loaded there is no
+        // session yet: start loading it and answer null (`onAuthChange` reports the session once known).
+        const client = peekSupabaseClient(this.config.url);
+        if (!client) {
+            if (this.isConfigured()) this.client().catch(() => {});
+            return null;
+        }
+        const session = (client as any).auth?._session ?? null;
         return mapUser(session?.user ?? null);
     }
 
@@ -102,7 +109,7 @@ export class SupabaseAuthProvider implements AuthProviderAdapter {
         const method = options.method ?? 'password';
 
         if (method === 'anonymous') {
-            const { data, error } = await this.client.auth.signInAnonymously();
+            const { data, error } = await (await this.client()).auth.signInAnonymously();
             if (error) throw error;
             return mapUser(data.user);
         }
@@ -111,7 +118,7 @@ export class SupabaseAuthProvider implements AuthProviderAdapter {
             const email = options.email;
             if (!email) throw new Error('SupabaseAuthProvider.signIn: email is required for magic_link');
 
-            const { error } = await this.client.auth.signInWithOtp({
+            const { error } = await (await this.client()).auth.signInWithOtp({
                 email,
                 options: { emailRedirectTo: options.redirectTo },
             });
@@ -123,7 +130,7 @@ export class SupabaseAuthProvider implements AuthProviderAdapter {
             const provider = options.provider as any;
             if (!provider) throw new Error('SupabaseAuthProvider.signIn: provider is required for oauth');
 
-            const { error } = await this.client.auth.signInWithOAuth({
+            const { error } = await (await this.client()).auth.signInWithOAuth({
                 provider,
                 options: { redirectTo: options.redirectTo },
             });
@@ -137,7 +144,7 @@ export class SupabaseAuthProvider implements AuthProviderAdapter {
             throw new Error('SupabaseAuthProvider.signIn: email and password are required');
         }
 
-        const { data, error } = await this.client.auth.signInWithPassword({ email, password });
+        const { data, error } = await (await this.client()).auth.signInWithPassword({ email, password });
         if (error) throw error;
         return mapUser(data.user);
     }
@@ -145,29 +152,42 @@ export class SupabaseAuthProvider implements AuthProviderAdapter {
     // ── signOut ───────────────────────────────────────────────────────────────
 
     async signOut(): Promise<void> {
-        const { error } = await this.client.auth.signOut();
+        const { error } = await (await this.client()).auth.signOut();
         if (error) throw error;
     }
 
     // ── onAuthChange ──────────────────────────────────────────────────────────
 
     onAuthChange(callback: (user: UserProfile | null) => void): () => void {
-        // Fire immediately with the current session state
-        this.client.auth.getSession().then(({ data }) => {
-            callback(mapUser(data.session?.user ?? null));
+        let active = true;
+        let unsubscribe: (() => void) | undefined;
+
+        this.client().then((client) => {
+            if (!active) return;
+            // Fire with the current session state
+            client.auth.getSession().then(({ data }) => {
+                if (active) callback(mapUser(data.session?.user ?? null));
+            });
+
+            const { data: { subscription } } = client.auth.onAuthStateChange((_event, session) => {
+                if (active) callback(mapUser(session?.user ?? null));
+            });
+            unsubscribe = () => subscription.unsubscribe();
+        }, (err: unknown) => {
+            console.error('SupabaseAuthProvider.onAuthChange:', err);
+            if (active) callback(null);
         });
 
-        const { data: { subscription } } = this.client.auth.onAuthStateChange((_event, session) => {
-            callback(mapUser(session?.user ?? null));
-        });
-
-        return () => subscription.unsubscribe();
+        return () => {
+            active = false;
+            unsubscribe?.();
+        };
     }
 
     // ── getAccessToken ────────────────────────────────────────────────────────
 
     async getAccessToken(): Promise<string> {
-        const { data, error } = await this.client.auth.getSession();
+        const { data, error } = await (await this.client()).auth.getSession();
         if (error) throw error;
         const token = data.session?.access_token;
         if (!token) throw new Error('SupabaseAuthProvider: no active session');
@@ -177,11 +197,11 @@ export class SupabaseAuthProvider implements AuthProviderAdapter {
     // ── Flows of the access screens (CR-127) ──────────────────────────────────
 
     async whenReady(): Promise<void> {
-        await this.client.auth.getSession();
+        await (await this.client()).auth.getSession();
     }
 
     async signUp({ email, password, name, redirectTo }: AuthSignUpInput): Promise<AuthSignUpResult> {
-        const { data, error } = await this.client.auth.signUp({
+        const { data, error } = await (await this.client()).auth.signUp({
             email,
             password,
             options: {
@@ -195,7 +215,7 @@ export class SupabaseAuthProvider implements AuthProviderAdapter {
     }
 
     async sendPasswordReset(email: string, options: AuthLinkOptions = {}): Promise<void> {
-        const { error } = await this.client.auth.resetPasswordForEmail(
+        const { error } = await (await this.client()).auth.resetPasswordForEmail(
             email,
             options.redirectTo ? { redirectTo: absoluteUrl(options.redirectTo) } : undefined,
         );
@@ -208,17 +228,17 @@ export class SupabaseAuthProvider implements AuthProviderAdapter {
      */
     async confirmPasswordReset(code: string, newPassword: string): Promise<void> {
         if (code) {
-            const { error } = await this.client.auth.verifyOtp({ token_hash: code, type: 'recovery' });
+            const { error } = await (await this.client()).auth.verifyOtp({ token_hash: code, type: 'recovery' });
             if (error) throw error;
         }
-        const { error } = await this.client.auth.updateUser({ password: newPassword });
+        const { error } = await (await this.client()).auth.updateUser({ password: newPassword });
         if (error) throw error;
     }
 
     async sendEmailVerification(options: AuthLinkOptions & { email?: string } = {}): Promise<void> {
         const email = options.email ?? this.getUser()?.email;
         if (!email) throw new Error('SupabaseAuthProvider.sendEmailVerification: email is required');
-        const { error } = await this.client.auth.resend({
+        const { error } = await (await this.client()).auth.resend({
             type: 'signup',
             email,
             ...(options.redirectTo ? { options: { emailRedirectTo: absoluteUrl(options.redirectTo) } } : {}),
@@ -228,12 +248,12 @@ export class SupabaseAuthProvider implements AuthProviderAdapter {
 
     /** `code` is the `token_hash` of the confirmation email (template `{{ .TokenHash }}`). */
     async verifyEmail(code: string): Promise<void> {
-        const { error } = await this.client.auth.verifyOtp({ token_hash: code, type: 'email' });
+        const { error } = await (await this.client()).auth.verifyOtp({ token_hash: code, type: 'email' });
         if (error) throw error;
     }
 
     async requestEmailCode(email: string, options: AuthEmailCodeOptions = {}): Promise<void> {
-        const { error } = await this.client.auth.signInWithOtp({
+        const { error } = await (await this.client()).auth.signInWithOtp({
             email,
             options: { shouldCreateUser: options.createUser ?? false },
         });
@@ -241,7 +261,7 @@ export class SupabaseAuthProvider implements AuthProviderAdapter {
     }
 
     async verifyEmailCode(email: string, code: string): Promise<UserProfile | null> {
-        const { data, error } = await this.client.auth.verifyOtp({ email, token: code, type: 'email' });
+        const { data, error } = await (await this.client()).auth.verifyOtp({ email, token: code, type: 'email' });
         if (error) throw error;
         return mapUser(data.user);
     }

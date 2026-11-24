@@ -68,7 +68,8 @@ function buildMockAuthClient(initialUser: any = null) {
 
 function createProvider(initialUser: any = null) {
     const { client, auth, setSession } = buildMockAuthClient(initialUser);
-    vi.spyOn(supabaseInit, 'getSupabaseClient').mockReturnValue(client as any);
+    vi.spyOn(supabaseInit, 'getSupabaseClient').mockResolvedValue(client as any);
+    vi.spyOn(supabaseInit, 'peekSupabaseClient').mockReturnValue(client as any);
     return {
         provider: new SupabaseAuthProvider({ url: 'https://test.supabase.co', anonKey: 'key' }),
         auth,

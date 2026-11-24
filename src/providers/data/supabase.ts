@@ -139,8 +139,9 @@ export class SupabaseDataProvider implements DataProviderAdapter {
 
     // A scoped (accessToken) client is created once per instance and never shared —
     // each tenant switch produces a new SupabaseDataProvider, never mutates this one.
-    private scopedClient: SupabaseClient | undefined;
-    private get client(): SupabaseClient {
+    // The SDK is loaded with the first client (CR-153): an optional peer, never loaded at import.
+    private scopedClient: Promise<SupabaseClient> | undefined;
+    private client(): Promise<SupabaseClient> {
         if (!this.config.accessToken) return getSupabaseClient(this.config.url, this.config.anonKey);
         if (!this.scopedClient) this.scopedClient = createSupabaseClient(this.config.url, this.config.anonKey, this.config.accessToken);
         return this.scopedClient;
@@ -152,7 +153,9 @@ export class SupabaseDataProvider implements DataProviderAdapter {
 
     /** Force-closes any realtime channels left open before this adapter is discarded. No-op for the shared (non-scoped) client. */
     dispose = async (): Promise<void> => {
-        if (this.scopedClient) await disposeSupabaseClient(this.scopedClient);
+        if (!this.scopedClient) return;
+        const client = await this.scopedClient.catch(() => undefined);
+        if (client) await disposeSupabaseClient(client);
     };
 
     getConfigurationState(): ProviderConfigurationState {
@@ -170,9 +173,10 @@ export class SupabaseDataProvider implements DataProviderAdapter {
         if (!table) return undefined;
 
         try {
+            const client = await this.client();
             if (id) {
                 // Single document
-                const { data, error } = await this.client
+                const { data, error } = await client
                     .from(table)
                     .select('*')
                     .eq(this.pk, id)
@@ -184,7 +188,7 @@ export class SupabaseDataProvider implements DataProviderAdapter {
             }
 
             // Collection
-            let query = this.client.from(table).select('*');
+            let query = client.from(table).select('*');
             if (options.where) query = applyWhere(query, options.where);
             if (options.order) query = applyOrder(query, options.order);
             query = applyLimit(query, options.limit);
@@ -213,7 +217,7 @@ export class SupabaseDataProvider implements DataProviderAdapter {
 
         try {
             const record = toDbRecord(data, id, this.pk);
-            const { error } = await this.client
+            const { error } = await (await this.client())
                 .from(table)
                 .upsert(record, { onConflict: this.pk });
             if (error) throw error;
@@ -230,23 +234,24 @@ export class SupabaseDataProvider implements DataProviderAdapter {
 
         try {
             const { _key, _index, ...rest } = data as any;
+            const client = await this.client();
 
             if (id) {
                 // Merge existing record with partial update
-                const { data: existing } = await this.client
+                const { data: existing } = await client
                     .from(table)
                     .select('*')
                     .eq(this.pk, id)
                     .maybeSingle();
 
                 const merged = { ...(existing ?? {}), ...rest, [this.pk]: id };
-                const { error } = await this.client
+                const { error } = await client
                     .from(table)
                     .upsert(merged, { onConflict: this.pk });
                 if (error) throw error;
             } else {
                 // No id in path - insert as new record
-                const { error } = await this.client.from(table).insert(rest);
+                const { error } = await client.from(table).insert(rest);
                 if (error) throw error;
             }
         } catch (err) {
@@ -264,7 +269,7 @@ export class SupabaseDataProvider implements DataProviderAdapter {
         }
 
         try {
-            const { error } = await this.client
+            const { error } = await (await this.client())
                 .from(table)
                 .delete()
                 .eq(this.pk, id);
@@ -290,6 +295,7 @@ export class SupabaseDataProvider implements DataProviderAdapter {
         const { table, id } = parsePath(path);
         if (!table) return () => undefined;
 
+        let client: SupabaseClient | null = null;
         let channel: RealtimeChannel | null = null;
         let active = true;
 
@@ -300,10 +306,10 @@ export class SupabaseDataProvider implements DataProviderAdapter {
             else setRecords([]);
         };
 
-        const load = async () => {
+        const load = async (client: SupabaseClient) => {
             if (!active) return;
             try {
-                let query = this.client.from(table).select('*');
+                let query = client.from(table).select('*');
                 // A record path follows that record, as Firestore does.
                 if (id) query = query.eq(this.pk, id);
                 if (options.where) query = applyWhere(query, options.where);
@@ -319,25 +325,28 @@ export class SupabaseDataProvider implements DataProviderAdapter {
             }
         };
 
-        void load();
-
-        try {
-            channel = this.client
-                .channel(`llmnative:${table}`)
-                .on(
-                    'postgres_changes',
-                    { event: '*', schema: 'public', table },
-                    () => void load()
-                )
-                .subscribe();
-        } catch {
-            // Realtime not available - subscription works with initial fetch only
-        }
+        this.client().then((ready) => {
+            if (!active) return;
+            client = ready;
+            void load(ready);
+            try {
+                channel = ready
+                    .channel(`llmnative:${table}`)
+                    .on(
+                        'postgres_changes',
+                        { event: '*', schema: 'public', table },
+                        () => void load(ready)
+                    )
+                    .subscribe();
+            } catch {
+                // Realtime not available - subscription works with initial fetch only
+            }
+        }, fail);
 
         return () => {
             active = false;
-            if (channel) {
-                this.client.removeChannel(channel).catch(() => {});
+            if (client && channel) {
+                client.removeChannel(channel).catch(() => {});
                 channel = null;
             }
         };
@@ -350,7 +359,7 @@ export class SupabaseDataProvider implements DataProviderAdapter {
         if (!table) return 0;
 
         try {
-            const { count, error } = await this.client
+            const { count, error } = await (await this.client())
                 .from(table)
                 .select('*', { count: 'exact', head: true });
             if (error) throw error;
@@ -379,9 +388,10 @@ export class SupabaseDataProvider implements DataProviderAdapter {
         const entries = Object.entries(data as Record<string, object>);
 
         try {
+            const client = await this.client();
             if (purge) {
                 // Delete all existing rows - use neq trick since Supabase requires a filter
-                await this.client.from(table).delete().neq(this.pk, '__purge_all__');
+                await client.from(table).delete().neq(this.pk, '__purge_all__');
             }
 
             for (let i = 0; i < entries.length; i += chunkSize) {
@@ -389,7 +399,7 @@ export class SupabaseDataProvider implements DataProviderAdapter {
                     .slice(i, i + chunkSize)
                     .map(([id, record]) => toDbRecord(record, id, this.pk));
 
-                const { error } = await this.client
+                const { error } = await client
                     .from(table)
                     .upsert(chunk, { onConflict: this.pk });
                 if (error) throw error;

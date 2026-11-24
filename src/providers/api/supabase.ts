@@ -14,7 +14,7 @@ export class SupabaseApiProviderAdapter implements ApiProviderAdapter {
     constructor(private config: SupabaseApiProviderConfig) {}
 
     async fetch(request: ApiProviderRequest): Promise<unknown> {
-        const client = getSupabaseClient(this.config.url, this.config.anonKey);
+        const client = await getSupabaseClient(this.config.url, this.config.anonKey);
         const { data, error } = await client.functions.invoke(this.config.functionName, {
             body: { provider: this.config.providerName, request },
         });

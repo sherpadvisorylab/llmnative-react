@@ -1,35 +1,63 @@
-import * as supabaseJs from '@supabase/supabase-js';
 import type { SupabaseClient } from '@supabase/supabase-js';
-
-// `@supabase/supabase-js` is an optional peer: imported as a namespace, an app that does not install it (one on Firebase
-// or on mock data) still builds; the bundlers refuse a named import from a peer that is not there (Vite 8, Rolldown).
-// Read from the namespace at call time (the bundler does not warn about a peer that is not there).
-const createClient: typeof supabaseJs.createClient = (...args) => {
-    const create = Reflect.get(supabaseJs, 'createClient') as typeof supabaseJs.createClient | undefined;
-    if (typeof create !== 'function') throw new Error('Install @supabase/supabase-js to use the Supabase providers.');
-    return create(...args);
-};
 import {
     createConfigurationState,
     getMissingKeys,
     type ProviderConfigurationState,
 } from './ProviderConfiguration';
 
-// ── Singleton registry keyed by project URL ────────────────────────────────────
+type SupabaseModule = typeof import('@supabase/supabase-js');
+type CreateClient = SupabaseModule['createClient'];
 
-const _clients = new Map<string, SupabaseClient>();
+const MISSING = 'Install @supabase/supabase-js to use the Supabase providers.';
+
+// `@supabase/supabase-js` is an optional peer (CR-153): loaded when a Supabase provider first needs a client, never when
+// the package is imported. An app without it (on Firebase or mock data) builds and runs, in the browser and in Node
+// (Vitest, SSR, scripts). Vite turns a missing optional peer into an empty module, so `createClient` is read at call time.
+let sdk: Promise<CreateClient> | undefined;
+
+function loadCreateClient(): Promise<CreateClient> {
+    sdk ??= import('@supabase/supabase-js').then(
+        (mod) => {
+            const create = Reflect.get(mod, 'createClient') as CreateClient | undefined;
+            if (typeof create !== 'function') throw new Error(MISSING);
+            return create;
+        },
+        (cause: unknown) => { throw new Error(MISSING, { cause }); },
+    ).catch((err: unknown) => {
+        sdk = undefined; // installed later (a dev server): the next call tries again
+        throw err;
+    });
+    return sdk;
+}
+
+// ── Singleton registry keyed by project URL ─────────────────────────────────
+
+const _clients = new Map<string, Promise<SupabaseClient>>();
+const _ready = new Map<string, SupabaseClient>();
 
 /**
- * Returns a shared SupabaseClient for the given project.
+ * Returns a shared SupabaseClient for the given project, loading the SDK the first time.
  * One client per URL - subsequent calls with the same URL return the same instance.
  * For single-project apps only. Multi-tenant session switching must use
  * createSupabaseClient() instead — see below.
  */
-export function getSupabaseClient(url: string, anonKey: string): SupabaseClient {
-    if (!_clients.has(url)) {
-        _clients.set(url, createClient(url, anonKey));
+export function getSupabaseClient(url: string, anonKey: string): Promise<SupabaseClient> {
+    let client = _clients.get(url);
+    if (!client) {
+        client = loadCreateClient().then((create) => {
+            const created = create(url, anonKey);
+            _ready.set(url, created);
+            return created;
+        });
+        client.catch(() => _clients.delete(url));
+        _clients.set(url, client);
     }
-    return _clients.get(url)!;
+    return client;
+}
+
+/** The shared client of the project when already created, else undefined: for synchronous reads (the cached session). */
+export function peekSupabaseClient(url: string): SupabaseClient | undefined {
+    return _ready.get(url);
 }
 
 // ── Scoped, disposable client (multi-tenant session switch) ───────────────────
@@ -47,8 +75,9 @@ export function getSupabaseClient(url: string, anonKey: string): SupabaseClient 
  * that JWT is simply attached as the Authorization header on every request —
  * PostgREST/Realtime verify it directly, no separate session exchange call.
  */
-export function createSupabaseClient(url: string, anonKey: string, accessToken?: string): SupabaseClient {
-    return createClient(url, anonKey, {
+export async function createSupabaseClient(url: string, anonKey: string, accessToken?: string): Promise<SupabaseClient> {
+    const create = await loadCreateClient();
+    return create(url, anonKey, {
         auth: {
             persistSession: false,
             autoRefreshToken: false,
@@ -79,4 +108,5 @@ export function getSupabaseConfigurationState(
 /** Clears all cached clients - useful for tests. */
 export function _resetSupabaseClients(): void {
     _clients.clear();
+    _ready.clear();
 }

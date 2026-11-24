@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.17.1] - 2026-11-24
+
+### Fixed
+- `@supabase/supabase-js` (an optional peer) is loaded when a Supabase provider first needs a client, no longer when the package is imported (CR-153): an app without it imports `@llmnative/react` in Node too (Vitest, SSR, scripts), where the import failed with "module not found". Without the SDK, the Supabase providers say to install it through their own errors (`read`/`set`/… with `exception`, `onError` of `subscribe`, the rejected promise of the auth methods). `SupabaseAuthProvider.getUser()` answers `null` until the SDK has loaded; `onAuthChange` reports the session once known, as before.
+
 ## [3.17.0] - 2026-11-24
 
 ### Added

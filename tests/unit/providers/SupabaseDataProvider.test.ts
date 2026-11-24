@@ -160,7 +160,7 @@ function buildMockClient(store: Store) {
 
 function createProvider(store: Store = new Map()): SupabaseDataProvider {
     const mockClient = buildMockClient(store);
-    vi.spyOn(supabaseInit, 'getSupabaseClient').mockReturnValue(mockClient as any);
+    vi.spyOn(supabaseInit, 'getSupabaseClient').mockResolvedValue(mockClient as any);
     return new SupabaseDataProvider({ url: 'https://test.supabase.co', anonKey: 'test-key' });
 }
 
@@ -390,7 +390,7 @@ describe('custom primaryKey config', () => {
     it('uses the configured pk column for reads and writes', async () => {
         const store: Store = new Map([['orders', new Map([['ord-1', { uuid: 'ord-1', total: 99 }]])]]);
         const mockClient = buildMockClient(store);
-        vi.spyOn(supabaseInit, 'getSupabaseClient').mockReturnValue(mockClient as any);
+        vi.spyOn(supabaseInit, 'getSupabaseClient').mockResolvedValue(mockClient as any);
 
         const provider = new SupabaseDataProvider({
             url: 'https://test.supabase.co',

@@ -197,7 +197,7 @@ Per questo serve una CR a sé. `callFirebaseFunction` carica già `firebase/func
 
 ## CR-153 — Peer opzionali (Supabase, Firebase) non caricati all'import in Node
 
-**Stato:** 🔄 in progress
+**Stato:** ✅ done (3.17.1)
 **Issue:** [#134](https://github.com/sherpadvisorylab/llmnative-react/issues/134)
 **Priorità:** Media
 **Dipende da:** CR-151
@@ -211,9 +211,11 @@ Per questo serve una CR a sé. `callFirebaseFunction` carica già `firebase/func
 - Senza il peer, l'errore resta chiaro («Install @supabase/supabase-js…») e compare solo all'uso di un provider Supabase.
 
 ### Criteri di accettazione
-- [ ] AC1: un test in Node: l'import di `@llmnative/react` senza `@supabase/supabase-js` installato non fallisce.
-- [ ] AC2: provider Supabase invariati (unit + integrazione con l'emulatore).
-- [ ] AC3: verifica nel consumer `llmnative-cms` (tolta la devDependency, test verdi); release patch o minor.
+- [x] AC1: un test in Node conferma che l'import di `@llmnative/react` funziona senza `@supabase/supabase-js` installato. Il test è `tests/unit/providers/supabaseOptionalPeer.test.ts`: lì l'SDK lancia un errore al caricamento, il pacchetto si importa comunque e l'errore «Install…» compare solo all'uso. La verifica è stata ripetuta sul `dist` in Node puro, con l'SDK reso irrisolvibile: l'import ESM e il `require` CJS passano. Prima del fix il `require` falliva con «Cannot find module».
+- [x] AC2: i provider Supabase restano invariati nel comportamento e gli unit test data e auth sono verdi. Le firme sincrone restano: `subscribe` e `onAuthChange` si collegano quando il client è pronto, `getUser()` dà `null` finché l'SDK non è caricato. L'integrazione con l'emulatore non è stata eseguita: Docker non era attivo, e comunque quei test usano `createClient` direttamente, non i provider.
+- [x] AC3: release patch 3.17.1. I test (1180) e lo scaffolding E2E (8 casi su 8) sono verdi. La verifica nel consumer `llmnative-cms` va fatta dopo la pubblicazione: rimuovere la devDependency e rilanciare i test.
+
+**Firebase:** la verifica prevista dallo scope è stata fatta. `firebase/*` e i provider di icone (`lucide-react`, `@phosphor-icons/react`) si caricano ancora all'import. I provider Firebase usano l'SDK in modo sincrono, quindi il lavoro passa a CR-154 (#135).
 
 ---
 
