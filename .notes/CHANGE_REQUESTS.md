@@ -160,6 +160,28 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
+## CR-153 — Peer opzionali (Supabase, Firebase) non caricati all'import in Node
+
+**Stato:** ⬜ todo
+**Issue:** [#134](https://github.com/sherpadvisorylab/llmnative-react/issues/134)
+**Priorità:** Media
+**Dipende da:** CR-151
+
+### Motivazione
+`@supabase/supabase-js` è un peer opzionale, ma l'entry radice (`dist/index.js`, `dist/index.mjs`) lo carica in testa (`require("@supabase/supabase-js")` / import statico del namespace). Il fix della 3.17.0 fa compilare un'app Vite senza Supabase, ma in Node (Vitest, SSR, script) l'import di `@llmnative/react` fallisce con «module not found» se Supabase non è installato. `llmnative-cms` (su Firebase) deve tenere `@supabase/supabase-js` come devDependency solo per far girare i test.
+
+### Scope
+- Caricare l'SDK Supabase solo quando si usa un provider Supabase (import dinamico all'avvio del provider, o un entry separato come `@llmnative/react/supabase`), senza cambiare cosa esporta l'entry radice.
+- Stessa verifica per `firebase`, anch'esso peer opzionale caricato dall'entry radice.
+- Senza il peer, l'errore resta chiaro («Install @supabase/supabase-js…») e compare solo all'uso di un provider Supabase.
+
+### Criteri di accettazione
+- [ ] AC1: un test in Node: l'import di `@llmnative/react` senza `@supabase/supabase-js` installato non fallisce.
+- [ ] AC2: provider Supabase invariati (unit + integrazione con l'emulatore).
+- [ ] AC3: verifica nel consumer `llmnative-cms` (tolta la devDependency, test verdi); release patch o minor.
+
+---
+
 ## CR-152 — PageBar: briciole a più livelli e un posto accanto al titolo
 
 **Stato:** ⬜ todo
