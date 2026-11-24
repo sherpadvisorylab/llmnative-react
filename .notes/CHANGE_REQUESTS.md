@@ -160,6 +160,29 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
+## CR-151 — Layout a sidebar piena: titolo e azioni della pagina nella barra, account nella sidebar
+
+**Stato:** ✅ done
+**Issue:** [#132](https://github.com/sherpadvisorylab/llmnative-react/issues/132)
+**Priorità:** Media
+
+### Motivazione
+Il layout dei gestionali moderni: la sidebar a tutta altezza, con il marchio in testata e l'account nel piede, e la barra in alto che porta il titolo e le azioni della pagina. Il contenuto guadagna lo spazio che oggi prendono briciole, titolo e sottotitolo.
+
+### Scope
+- `PageBarProvider`, `PageBar` (titolo, icona, genitore, azioni della pagina; le briciole quando la pagina non dà un titolo) e `PageTitle` (portal nella barra: le azioni conservano i contesti della pagina; senza provider al suo posto).
+- `SideNav`: `header` e `footer` anche come funzioni (`{ expanded, collapsed, toggle }`) sempre disegnate; `collapseButtonPlacement: 'header'` per il bottone in testata.
+- `AccountMenu`: avatar, nome e una riga, il menu verso l'alto con le voci dell'app ed Esci; ridotto solo l'avatar.
+- Scaffolding: il layout a sidebar piena predefinito per ogni template e tema; quello di prima con `--layout topbar`.
+- Correzione: un'app senza `@supabase/supabase-js` (peer opzionale) torna a compilare con Vite 8; le icone Phosphor della sidebar e dell'account.
+
+### Criteri di accettazione
+- [x] AC1: il titolo e le azioni di una pagina stanno nella barra; senza titolo le briciole.
+- [x] AC2: sidebar ridotta a icone dalla testata; account nel piede con il suo menu.
+- [x] AC3: scaffolding con le due varianti (E2E: 8 progetti, tipi e build); test (5), docs (`llms-full.txt`); release minor 3.17.0.
+
+---
+
 ## CR-150.1 — Calendar: colonne allineate e fill
 
 **Stato:** ✅ done

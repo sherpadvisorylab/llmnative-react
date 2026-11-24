@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.17.0] - 2026-11-24
+
+### Added
+- Layout with the sidebar at full height (CR-151): `PageBarProvider`, `PageBar` (the title and the actions of the page in the bar on top of the content; the breadcrumbs when the page gives none) and `PageTitle` (a portal into the bar that keeps the contexts of the page; in place without a provider); `AccountMenu` (avatar, name and a line, the menu above it with the entries of the app and sign out; compact with the avatar alone); `SideNav` `header`/`footer` as functions of `{ expanded, collapsed, toggle }`, always drawn, and `collapseButtonPlacement: 'header'`.
+- Scaffolding: the new layout is the default one; `--layout=topbar` keeps the previous (bar on top of everything, breadcrumbs in the page).
+
+### Fixed
+- An app without `@supabase/supabase-js` (an optional peer: apps on Firebase or mock data) builds again with Vite 8 (Rolldown refused the named import of the missing peer); the Supabase providers read it from its namespace at call time and say to install it when it is missing. The scaffold of every template builds.
+- Phosphor icons: `chevron-left`, `chevron-right`, `chevrons-left`, `chevrons-right`, `chevrons-up-down`, `log-out` resolve (the collapse button of `SideNav` had no icon with Phosphor).
+
 ## [3.16.1] - 2026-11-24
 
 ### Fixed

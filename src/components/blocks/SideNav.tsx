@@ -35,6 +35,17 @@ export interface SideNavItemDef {
     children?: SideNavItemDef[];
 }
 
+/** What a slot of the sidebar knows (CR-151): whether it is drawn wide, collapsed, and how to switch. */
+export interface SideNavSlotContext {
+    /** Drawn wide: not collapsed, or collapsed and hovered. */
+    readonly expanded: boolean;
+    readonly collapsed: boolean;
+    readonly toggle: () => void;
+}
+
+/** A slot of the sidebar: content (hidden while collapsed) or a function of its state (always drawn). */
+export type SideNavSlot = React.ReactNode | ((context: SideNavSlotContext) => React.ReactNode);
+
 export interface SideNavProps {
     /** Menu key registered in App menuConfig — calls useMenu() internally */
     menuKey?: string;
@@ -68,13 +79,16 @@ export interface SideNavProps {
     showIcons?: boolean;
     /** Show collapse/expand toggle button in the footer. Default true. */
     showCollapseButton?: boolean;
-    /** Optional content rendered in the footer alongside the collapse button. */
-    footer?: React.ReactNode;
+    /** Optional content rendered in the footer alongside the collapse button; as a function (CR-151) it gets the
+     * state of the sidebar and is always drawn (e.g. the account, its avatar alone while collapsed). */
+    footer?: SideNavSlot;
     /**
      * Optional content rendered in a pinned header at the top of the sidebar.
-     * Hidden when empty (default).
+     * Hidden when empty (default). As a function (CR-151) it gets the state of the sidebar and is always drawn.
      */
-    header?: React.ReactNode;
+    header?: SideNavSlot;
+    /** Where the collapse button is (CR-151): in the footer (default) or in the header, at its end. */
+    collapseButtonPlacement?: 'footer' | 'header';
     /**
      * Embedded mode — renders only the nav items without the sidebar shell
      * (no sticky wrapper, no collapse button). Use inside drawers or panels.
@@ -338,6 +352,7 @@ export default function SideNav({
     showCollapseButton = true,
     footer,
     header,
+    collapseButtonPlacement = 'footer',
     embedded = false,
 }: SideNavProps) {
     const { pathname } = useLocation();
@@ -360,6 +375,25 @@ export default function SideNav({
     const leaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const isExpanded = !collapsed || hovered;
+    // CR-151: what the slots know, and where the collapse button goes.
+    const toggleCollapsed = () => { setCollapsed(c => !c); setHovered(false); };
+    const slotContext: SideNavSlotContext = { expanded: isExpanded, collapsed, toggle: toggleCollapsed };
+    const toggleInHeader = showCollapseButton && collapseButtonPlacement === 'header';
+    const toggleInFooter = showCollapseButton && collapseButtonPlacement !== 'header';
+    const collapseButton = (
+        <button
+            type="button"
+            onClick={toggleCollapsed}
+            title={collapsed ? dict.expandSidebar : dict.collapseSidebar}
+            aria-label={collapsed ? dict.expandSidebar : dict.collapseSidebar}
+            className={cn(
+                'shrink-0 flex items-center justify-center rounded-md w-8 h-8 transition-colors text-muted-foreground hover:text-foreground hover:bg-accent',
+                theme.SideNav.collapseButtonClassName,
+            )}
+        >
+            <Icon name={collapsed ? 'chevrons-right' : 'chevrons-left'} size={16} />
+        </button>
+    );
 
     // Auto-open parent groups when navigating to a child route
     useEffect(() => {
@@ -446,16 +480,21 @@ export default function SideNav({
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
             >
-                {header && (
-                    <div className={cn('flex h-14 shrink-0 items-center border-b px-1.5', theme.SideNav.headerClassName)} style={{
-                        opacity: isExpanded ? 1 : 0,
-                        maxWidth: isExpanded ? '100%' : '0px',
-                        overflow: 'hidden',
-                        transition: 'opacity 150ms ease, max-width 200ms ease',
-                    }}>
-                        <div className="min-w-0 flex-1">
-                            {header}
-                        </div>
+                {(header || toggleInHeader) && (
+                    <div className={cn('flex h-14 shrink-0 items-center gap-1 border-b px-1.5', theme.SideNav.headerClassName)}>
+                        {typeof header === 'function' ? (
+                            <div className="min-w-0 flex-1">{header(slotContext)}</div>
+                        ) : header ? (
+                            <div className="min-w-0 flex-1" style={{
+                                opacity: isExpanded ? 1 : 0,
+                                maxWidth: isExpanded ? '100%' : '0px',
+                                overflow: 'hidden',
+                                transition: 'opacity 150ms ease, max-width 200ms ease',
+                            }}>
+                                {header}
+                            </div>
+                        ) : <div className="flex-1" />}
+                        {toggleInHeader && collapseButton}
                     </div>
                 )}
                 <nav className={cn('min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-1.5 py-2', theme.SideNav.navClassName)}>
@@ -466,22 +505,12 @@ export default function SideNav({
                         {renderGroups(bottomGroups, isExpanded)}
                     </div>
                 )}
-                {(showCollapseButton || footer) && (
+                {(toggleInFooter || footer) && (
                     <div className={cn('shrink-0 border-t px-1.5 py-2 flex items-center gap-1', theme.SideNav.footerClassName)}>
-                        {showCollapseButton && (
-                            <button
-                                onClick={() => { setCollapsed(c => !c); setHovered(false); }}
-                                title={collapsed ? dict.expandSidebar : dict.collapseSidebar}
-                                aria-label={collapsed ? dict.expandSidebar : dict.collapseSidebar}
-                                className={cn(
-                                    'shrink-0 flex items-center justify-center rounded-md w-8 h-8 transition-colors text-muted-foreground hover:text-foreground hover:bg-accent',
-                                    theme.SideNav.collapseButtonClassName,
-                                )}
-                            >
-                                <Icon name={collapsed ? 'chevrons-right' : 'chevrons-left'} size={16} />
-                            </button>
-                        )}
-                        {footer && (
+                        {toggleInFooter && collapseButton}
+                        {typeof footer === 'function' ? (
+                            <div className="min-w-0 flex-1">{footer(slotContext)}</div>
+                        ) : footer ? (
                             <div style={{
                                 flex: 1,
                                 minWidth: 0,
@@ -492,7 +521,7 @@ export default function SideNav({
                             }}>
                                 {footer}
                             </div>
-                        )}
+                        ) : null}
                     </div>
                 )}
             </aside>

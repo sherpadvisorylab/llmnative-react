@@ -101,6 +101,11 @@ async function askInteractive(callback) {
             ? themeInput.trim()
             : DEFAULT_THEME;
 
+        // CR-151: the sidebar at full height (the title of the page in the bar, the account in the sidebar), or the
+        // bar on top of everything with the sidebar under it.
+        const layoutInput = await question('Which layout? (sidebar, topbar; default: sidebar) ');
+        const layout = layoutInput.trim() === 'topbar' ? 'topbar' : 'sidebar';
+
         const localeInput = await question('Default locale? (en, it, fr, de, es; default: en) ');
         const locale = localeInput.trim() || 'en';
 
@@ -157,7 +162,7 @@ async function askInteractive(callback) {
         }
 
         rl.close();
-        callback({ projectname, provider, aiProvider, proxyProvider, iconProvider, theme, locale, template, hosting, firebase, supabase, ai });
+        callback({ projectname, provider, aiProvider, proxyProvider, iconProvider, theme, layout, locale, template, hosting, firebase, supabase, ai });
     } catch (error) {
         rl.close();
         console.error('Error during interactive prompt:', error);
@@ -379,6 +384,9 @@ function copyTemplateFiles(params) {
         throw new Error(`Template "${params.template}" not found in ${path.dirname(templateSrc)}`);
     }
 
+    // CR-151: the layout with the bar on top of everything instead of the default one (sidebar at full height); first,
+    // since a file already there is never overwritten.
+    if (params.layout === 'topbar') copyDir(path.join(sharedSrc, 'variants/topbar'), path.join(root, 'src'));
     // Copy shared layouts and sections
     copyDir(path.join(sharedSrc, 'layouts'),  path.join(root, 'src/layouts'));
     copyDir(path.join(sharedSrc, 'sections'), path.join(root, 'src/sections'));
@@ -619,6 +627,7 @@ function scaffoldProject() {
             proxyProvider: getArg('proxy-provider', 'none'),
             iconProvider: getArg('icon-provider', 'lucide'),
             theme:        getArg('theme', getArg('theme-provider', DEFAULT_THEME)),
+            layout:       getArg('layout', 'sidebar') === 'topbar' ? 'topbar' : 'sidebar',
             locale:       getArg('locale', 'en'),
             template:     getArg('template', 'blank'),
             hosting:      getArg('hosting', 'n'),

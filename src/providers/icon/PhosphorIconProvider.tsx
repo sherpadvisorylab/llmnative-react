@@ -41,6 +41,13 @@ const ALIASES: Record<string, string> = {
     'eye-off':       'EyeSlash',
     // CR-138 — the kanban view of Grid.
     'move-horizontal': 'ArrowsLeftRight',
+    // CR-151: the names of the sidebar and of the account, as Phosphor calls them.
+    'chevron-left':     'CaretLeft',
+    'chevron-right':    'CaretRight',
+    'chevrons-left':    'CaretDoubleLeft',
+    'chevrons-right':   'CaretDoubleRight',
+    'chevrons-up-down': 'CaretUpDown',
+    'log-out':          'SignOut',
 };
 
 function toPascalCase(name: string): string {

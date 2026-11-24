@@ -1,4 +1,14 @@
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import * as supabaseJs from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js';
+
+// `@supabase/supabase-js` is an optional peer: imported as a namespace, an app that does not install it (one on Firebase
+// or on mock data) still builds; the bundlers refuse a named import from a peer that is not there (Vite 8, Rolldown).
+// Read from the namespace at call time (the bundler does not warn about a peer that is not there).
+const createClient: typeof supabaseJs.createClient = (...args) => {
+    const create = Reflect.get(supabaseJs, 'createClient') as typeof supabaseJs.createClient | undefined;
+    if (typeof create !== 'function') throw new Error('Install @supabase/supabase-js to use the Supabase providers.');
+    return create(...args);
+};
 import {
     createConfigurationState,
     getMissingKeys,

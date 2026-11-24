@@ -945,7 +945,8 @@ Accessibilità: il dialog ha `role="dialog"`, `aria-modal="true"` (non con `stac
 | `groupBy` | `string \| string[]` |
 | `activeKey` | `string \| null` |
 | `selectedKeys` | `string[]` |
-| `header` / `footer` | `ReactNode` |
+| `header` / `footer` | `ReactNode` (nascosti da compressa), o (CR-151) funzione `({ expanded, collapsed, toggle }) => ReactNode` sempre disegnata |
+| `collapseButtonPlacement` | `'footer' \| 'header'` (CR-151, default `footer`) — il bottone che la riduce a icone, in fondo o in testata |
 | `headerClassName` / `bodyClassName` / `footerClassName` / `scrollClassName` / `selectedClassName` / `heightClassName` | `string` |
 
 ### Gallery
@@ -1246,6 +1247,28 @@ Parti comuni per grafici propri: `useChartTooltip()` (`show`, `showAt`, `hide`, 
   bottomItems={[{ path: '/settings', title: 'Impostazioni', icon: 'settings' }]}
 />
 ```
+
+**Layout a sidebar piena (CR-151):** la sidebar a tutta altezza con il marchio e il bottone di riduzione in testata e
+l'account nel piede; la barra in alto solo sopra il contenuto, con il titolo e le azioni della pagina. È il layout dello
+scaffolding (`create`, predefinito); `--layout=topbar` dà quello con la barra su tutto e le briciole nella pagina.
+
+```tsx
+<PageBarProvider>                        // nel layout
+  <SideNav menuKey="main" collapseButtonPlacement="header"
+    header={({ expanded }) => (expanded ? <Brand url="/" label="App" /> : null)}
+    footer={({ expanded }) => <AccountMenu compact={!expanded} description={ruolo} items={[{ id: 'profilo', label: 'Profilo', icon: 'user', onClick: apri }]} />} />
+  <header><PageBar /></header>          // il titolo della pagina; senza, le briciole (`fallback`)
+  <main>{children}</main>
+</PageBarProvider>
+
+<PageTitle title="Pratiche" icon="folder" parent={{ label: 'Clienti', to: '/clienti' }}   // in una pagina
+  actions={<ActionButton label="Nuova" icon="plus" onClick={nuova} />} />
+```
+
+`PageTitle` va nella barra con un portal: le azioni restano nei contesti della pagina; senza `PageBarProvider` si
+disegna al suo posto. `AccountMenu`: avatar, nome (default quello dell'utente) e `description` (default l'email); al
+clic il menu verso l'alto con `items` (`{ id, label, icon?, onClick? | href? }`), `children` (es. un interruttore del
+tema) ed Esci (`signOut`, default `true`); `compact` solo l'avatar; nulla senza utente.
 
 **ImageAvatar:**
 | Prop | Tipo |
@@ -1823,7 +1846,7 @@ npx @llmnative/react create
 npx @llmnative/react create --yes --provider=mock --template=admin
 ```
 
-Flag disponibili: `--name` `--provider=firebase|supabase|mock|custom` `--ai-provider` `--icon-provider` `--theme` `--template=blank|admin|crm|inventory|project`
+Flag disponibili: `--name` `--provider=firebase|supabase|mock|custom` `--ai-provider` `--icon-provider` `--theme` `--layout=sidebar|topbar` (CR-151, default `sidebar`) `--template=blank|admin|crm|inventory|project`
 
 **5 template disponibili:**
 | Template | Pagine incluse | Uso tipico |

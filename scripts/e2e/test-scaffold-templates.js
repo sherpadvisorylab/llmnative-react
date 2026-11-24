@@ -22,7 +22,9 @@ const CASES = [
     { template: 'project', provider: 'mock' },
     { template: 'blank', provider: 'firebase' },
     { template: 'blank', provider: 'supabase' },
-].filter(({ template, provider }) => filters.every((f) => `${template}-${provider}`.includes(f)));
+    // CR-151: the layout with the bar on top of everything, instead of the sidebar at full height.
+    { template: 'crm', provider: 'mock', layout: 'topbar' },
+].filter(({ template, provider, layout = 'sidebar' }) => filters.every((f) => `${template}-${provider}-${layout}`.includes(f)));
 
 const EXPECTED_DRIVERS = {
     mock: { data: 'mock', auth: 'mockAuth' },
@@ -44,8 +46,12 @@ function packFramework(workdir) {
     return { tarball, cliPath: path.join(extracted, 'package/bin/cli.js') };
 }
 
-function assertGeneratedSources(projectRoot, { template, provider }) {
+function assertGeneratedSources(projectRoot, { template, provider, layout = 'sidebar' }) {
     const read = (file) => fs.readFileSync(path.join(projectRoot, file), 'utf8');
+    // CR-151: the sidebar at full height with the bar of the page, or the bar on top of everything.
+    const layoutFile = read('src/layouts/Default.tsx');
+    if (layout === 'topbar') assert.match(layoutFile, /<PageHeader \/>/, `${template}: the topbar layout`);
+    else assert.match(layoutFile, /<PageBarProvider>/, `${template}: the sidebar layout`);
     const appConfig = read('src/conf/app.ts');
     const indexFile = read('src/index.tsx');
 
@@ -80,7 +86,7 @@ function listFiles(dir) {
 }
 
 function scaffoldCase(workdir, pack, testCase) {
-    const name = `${testCase.template}-${testCase.provider}`;
+    const name = `${testCase.template}-${testCase.provider}${testCase.layout ? `-${testCase.layout}` : ""}`;
     const projectRoot = path.join(workdir, name);
     fs.mkdirSync(projectRoot);
 
@@ -91,6 +97,7 @@ function scaffoldCase(workdir, pack, testCase) {
         `--name=scaffold-${name}`,
         `--template=${testCase.template}`,
         `--provider=${testCase.provider}`,
+        `--layout=${testCase.layout ?? 'sidebar'}`,
     ], { cwd: projectRoot, stdio: 'pipe' });
 
     assertGeneratedSources(projectRoot, testCase);
@@ -113,7 +120,7 @@ function main() {
     const failures = [];
 
     for (const testCase of CASES) {
-        const name = `${testCase.template}-${testCase.provider}`;
+        const name = `${testCase.template}-${testCase.provider}${testCase.layout ? `-${testCase.layout}` : ""}`;
         try {
             scaffoldCase(workdir, pack, testCase);
             console.log(`ok   ${name}`);
