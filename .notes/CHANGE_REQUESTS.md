@@ -160,6 +160,33 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
+## CR-152 — PageBar: briciole a più livelli e un posto accanto al titolo
+
+**Stato:** ⬜ todo
+**Issue:** [#133](https://github.com/sherpadvisorylab/llmnative-react/issues/133)
+**Priorità:** Media
+**Dipende da:** CR-151
+
+### Motivazione
+`llmnative-cms` non può portare la sua barra in alto su `PageBar`/`PageTitle` (CR-151) senza perdere quello che mostra oggi. Gli switcher di tenant e sito e i bottoni dell'app restano nell'header del consumer, ai lati di `<PageBar />`; mancano invece due cose della pagina:
+- le briciole a più livelli: `PageTitle` ha un solo `parent`, il CMS ha percorsi come `Library › Components › Edit component` o `Site › Settings › Email`;
+- un posto accanto al titolo, prima delle azioni, per un controllo che riguarda la pagina aperta (lo switcher della lingua della Page, con lo stato di traduzione di ogni lingua).
+
+Il CMS usa anche il titolo come nodo interattivo (lo switcher dell'entità: un menu per passare a un'altra Page/Component della stessa lista): `title` è già un `ReactNode`, ma va disegnato bene dentro l'`h1` (niente troncamento del menu, nome accessibile).
+
+### Scope
+- `PageTitle.parents`: la catena delle pagine sopra, dalla più alta (`{ label, to }[]`), con i separatori; `parent` resta come scorciatoia di un livello. Su schermi stretti i livelli intermedi si riducono (ellissi con il percorso completo nel `title`), il genitore diretto resta.
+- `PageTitle.after`: un nodo subito dopo il titolo, prima delle azioni (uno switcher, un badge di stato).
+- Un `title` interattivo (un menu) dentro l'`h1`: troncato il testo, non il menu; esempio nei docs.
+- Nessuna modifica a `PageBar`: le zone dell'app restano dell'header del consumer (docs con l'esempio: menu, switcher, `<PageBar />`, azioni dell'app).
+
+### Criteri di accettazione
+- [ ] AC1: `parents` disegna la catena con i link; `parent` invariato; riduzione su schermo stretto.
+- [ ] AC2: `after` tra il titolo e le azioni; un `title` con un menu resta usabile e accessibile.
+- [ ] AC3: test, docs (`llms-full.txt`), showcase; verifica nel consumer `llmnative-cms` (Header sul `PageBar`); release minor.
+
+---
+
 ## CR-151 — Layout a sidebar piena: titolo e azioni della pagina nella barra, account nella sidebar
 
 **Stato:** ✅ done
