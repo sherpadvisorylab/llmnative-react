@@ -72,6 +72,8 @@ export { SectionNav, SectionLayout, PageSection, useActiveSection, goToSection }
 export { DangerZone } from './blocks/DangerZone';
 export { NetworkCanvas, layoutNetwork, searchNetwork, revealNode, initiallyOpen } from './blocks/NetworkCanvas';
 export type { NetworkCanvasNode, NetworkCanvasProps } from './blocks/NetworkCanvas';
+export { Calendar, viewRange, stepDate, monthGrid, layoutDay, normalizeEvent, eventsInRange, eventsByDay } from './blocks/Calendar';
+export type { CalendarProps, CalendarEvent, CalendarSource, CalendarSlot, CalendarView, CalendarRange } from './blocks/Calendar';
 export type { DangerZoneProps, DangerZoneAction, DangerZoneConfirm } from './blocks/DangerZone';
 export type { SectionNavItem, SectionNavProps, SectionLayoutProps, PageSectionProps, UseActiveSectionOptions } from './blocks/SectionNav';
 export { default as AIConnections, AIModelRegionBadge, useRegionLabel } from './blocks/AIConnections';

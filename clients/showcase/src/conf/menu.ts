@@ -50,6 +50,7 @@ const SortableListPage = lazyPage(() => import('../pages/components/SortableList
 const SectionNavPage = lazyPage(() => import('../pages/components/SectionNavPage'));
 const DangerZonePage = lazyPage(() => import('../pages/components/DangerZonePage'));
 const NetworkCanvasPage = lazyPage(() => import('../pages/components/NetworkCanvasPage'));
+const CalendarPage = lazyPage(() => import('../pages/components/CalendarPage'));
 const AIConnectionsPage = lazyPage(() => import('../pages/components/AIConnectionsPage'));
 const ListGroupPage = lazyPage(() => import('../pages/components/ListGroupPage'));
 const MenuPage = lazyPage(() => import('../pages/components/MenuPage'));
@@ -261,6 +262,7 @@ export const menu = {
         { path: '/components/section-nav', title: 'SectionNav', page: SectionNavPage, group: 'Blocks' },
         { path: '/components/danger-zone', title: 'DangerZone', page: DangerZonePage, group: 'Blocks' },
         { path: '/components/network-canvas', title: 'NetworkCanvas', page: NetworkCanvasPage, group: 'Blocks' },
+        { path: '/components/calendar', title: 'Calendar', page: CalendarPage, group: 'Blocks' },
         { path: '/components/ai-connections', title: 'AIConnections', page: AIConnectionsPage, group: 'Blocks' },
         { path: '/components/menu', title: 'Menu', page: MenuPage, group: 'Blocks' },
         { path: '/components/notifications', title: 'Notifications', page: NotificationsPage, group: 'Blocks' },

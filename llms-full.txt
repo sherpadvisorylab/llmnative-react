@@ -1370,6 +1370,40 @@ centra), zoom, pan, minimappa; animazioni leggere, nessuna con `prefers-reduced-
 Funzioni pure: `layoutNetwork(nodes, { open, showAll, collapseAfter })`, `searchNetwork(nodes, q)`,
 `revealNode(nodes, id, collapseAfter)`, `initiallyOpen(nodes, depth)`.
 
+**Calendar (CR-150):** un calendario come quelli di uso comune: viste Giorno e Settimana (griglia oraria, eventi
+affiancati se si sovrappongono, quelli di tutto il giorno in alto, linea dell'ora attuale), Mese (al massimo
+`maxEventsPerDay` eventi per giorno, poi «+N altri» che apre il giorno) ed Elenco (il mese, giorno per giorno). Barra con
+Oggi, precedente/successivo, periodo e viste; colonna laterale con mini-mese e i calendari (persone, risorse) con il loro
+colore e la spunta. Date e nomi con `Intl` nella lingua dell'app, colori del tema, nessuna libreria esterna; tasti
+t (oggi), n/p (periodo), d/w/m/a (viste); su uno schermo stretto parte dall'Elenco.
+
+```tsx
+<Calendar
+  events={attivita.map((a) => ({ id: a.id, calendarId: a.persona, title: a.titolo, start: a.inizio, end: a.fine, icon: 'phone' }))}
+  calendars={persone.map((p) => ({ id: p.uid, label: p.nome, group: p.ruolo, description: p.tipo }))}
+  defaultSelectedCalendarIds={[me]} maxSelected={10}
+  onRangeChange={({ start, end, view }) => carica(start, end)}   // il periodo visibile, fine esclusa
+  onEventClick={(e) => apri(e.id)}
+  onSlotClick={({ start, end, allDay }) => nuova(start)}   // mezz'ora libera del giorno/settimana, o un giorno del mese
+/>
+```
+
+| Prop | |
+|---|---|
+| `events` | `{ id, title, start, end?, allDay?, calendarId?, icon?, color?, description? }[]`; `start`/`end` `Date` o ISO, `end` esclusa (senza: `defaultDuration` minuti, default 30) |
+| `calendars` | `{ id, label, color?, description?, group? }[]`; `color` slot del tema (1–8) o `--token`, default la posizione |
+| `selectedCalendarIds` / `defaultSelectedCalendarIds` / `onSelectedCalendarsChange` / `maxSelected` | calendari mostrati (controllati o no, default tutti); al massimo `maxSelected` insieme |
+| `view` / `defaultView` / `onViewChange` / `views` | `'day' \| 'week' \| 'month' \| 'agenda'` (default `week`, `agenda` su schermo stretto); viste offerte |
+| `date` / `defaultDate` / `onDateChange` | data mostrata (default oggi) |
+| `onRangeChange` | `{ start, end, view }` all'inizio e a ogni cambio: carica solo il periodo visibile |
+| `onEventClick` / `onSlotClick` / `renderEvent` | clic su un evento; clic su uno spazio libero `{ start, end, allDay }`; contenuto dell'evento |
+| `weekStartsOn` / `scrollToHour` / `hourHeight` / `maxEventsPerDay` | default 1 (lunedì), 8, 48 px, 3 |
+| `sidebar` / `loading` / `actions` / `height` / `ariaLabel` | colonna laterale (default con calendari); caricamento; pulsanti nella barra; altezza della griglia oraria |
+
+Funzioni pure: `viewRange(view, date, weekStartsOn)`, `stepDate(view, date, ±1)`, `monthGrid(date, weekStartsOn)`,
+`normalizeEvent(event, defaultDuration)`, `eventsInRange(events, range)`, `eventsByDay(events, range)`,
+`layoutDay(events, day)` (colonne delle sovrapposizioni). Testi nel namespace i18n `calendar`.
+
 **SortableList (CR-120):** card compatte (ListCard) in un ordine che la persona sceglie: le trascina per la
 maniglia, o con le frecce su/giù sulla maniglia; l'annuncio della nuova posizione va agli screen reader.
 ```tsx

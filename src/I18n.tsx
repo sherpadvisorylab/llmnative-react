@@ -369,6 +369,25 @@ export interface I18nDict {
         expand:    string;
         collapse:  string;
     };
+    /** CR-150: the calendar (`Calendar`). `{n}` is a number. */
+    calendar: {
+        title:           string;
+        today:           string;
+        previous:        string;
+        next:            string;
+        previousMonth:   string;
+        nextMonth:       string;
+        view:            string;
+        views:           { day: string; week: string; month: string; agenda: string };
+        calendars:       string;
+        searchCalendars: string;
+        noCalendars:     string;
+        maxSelected:     string;
+        allDay:          string;
+        more:            string;
+        noEvents:        string;
+        loading:         string;
+    };
     themeSwitcher: {
         title:               string;
         subtitle:            string;

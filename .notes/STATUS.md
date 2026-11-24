@@ -31,6 +31,7 @@
 
 | CR | State | Evidence |
 |----|-------|----------|
+| CR-150 | Done | `Calendar`: viste giorno e settimana (griglia oraria, sovrapposizioni affiancate, fascia di tutto il giorno, linea dell'ora attuale), mese (`maxEventsPerDay` poi «+N» che apre il giorno) ed elenco; barra con oggi, periodo e viste; colonna con mini-mese e calendari (colore, spunta, gruppi, ricerca, `maxSelected`); `onRangeChange`, `onEventClick`, `onSlotClick`, `renderEvent`; vista, data e calendari controllati o no; `Intl` nella lingua dell'app, colori del tema, tasti. Funzioni pure esportate. i18n `calendar` in 6 lingue, showcase. Test: 10 (1171 verdi). Released in 3.16.0. Issue #130. |
 | CR-149 | Done | `DonutChart`: anello in fette con valore al centro, `total` con la traccia vuota per il resto, legenda con i valori, hover/focus che alza la fetta e sbiadisce le altre (anche in legenda), tooltip con la quota, `activeId`, `onSliceClick`, tabella sr-only, animazione. Showcase (pagina Charts, 6 lingue). Test: 3. Released in 3.15.0. Issue #129. |
 | CR-148.1 | Done | `IconPicker` `compact` (solo il pulsante, nome nel tooltip) e `iconSize`. Test: 1. Released in 3.14.1. Issue #128. |
 | CR-148 | Done | `IconPicker`: campo dell'icona con modale (ricerca, griglia delle icone del provider attivo o di `options`, `exclude`, `keywords`, `clearable`, Salva nel footer). `list()` opzionale degli `IconProviderAdapter`, implementato da Lucide e Phosphor; Phosphor risolve i nomi solo con suffisso `Icon`. Showcase (pagina Icon, 6 lingue). Test: 4. Released in 3.14.0. Issue #127. |

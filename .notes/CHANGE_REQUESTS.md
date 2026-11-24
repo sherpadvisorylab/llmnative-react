@@ -160,6 +160,30 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
+## CR-150 — Calendar: calendario a giorno, settimana, mese ed elenco
+
+**Stato:** ✅ done
+**Issue:** [#130](https://github.com/sherpadvisorylab/llmnative-react/issues/130)
+**Priorità:** Media
+
+### Motivazione
+Le app gestionali mostrano attività e appuntamenti di più persone: serve un calendario come quelli di uso comune (viste a giorno, settimana, mese, elenco; più calendari con il loro colore da mostrare o nascondere), leggero, nel sistema di temi, icone e lingue del framework, senza una libreria esterna.
+
+### Scope
+- `Calendar`: barra con Oggi, precedente/successivo, periodo e scelta della vista (`views`); viste `day`, `week` (griglia oraria, eventi affiancati se si sovrappongono, eventi di tutto il giorno in alto, linea dell'ora attuale, apertura su `scrollToHour`), `month` (al massimo alcuni eventi per giorno, poi «+N altri» che apre il giorno), `agenda` (elenco per giorno).
+- Colonna laterale (`sidebar`): mini-mese per saltare a una data; `calendars` (id, label, colore del tema, descrizione) con la spunta controllata o non controllata (`selectedCalendarIds`, `onSelectedCalendarsChange`, `maxSelected`).
+- Dati dall'app: `events` (id, calendarId, title, start, end, allDay, icon, color, description), `onRangeChange` con il periodo visibile, `onEventClick`, `onSlotClick` (predisposto per creare), `renderEvent`, `loading`, `actions` nella barra.
+- Stato controllato o no di vista e data (`view`/`defaultView`, `date`/`defaultDate`); `weekStartsOn`; date e nomi con `Intl` nella lingua dell'app; i18n `calendar` in 6 lingue; tastiera e ARIA; su schermi stretti la vista `agenda` o `day`.
+- Funzioni pure esportate per il calcolo (periodo di una vista, griglia del mese, disposizione degli eventi sovrapposti).
+
+### Criteri di accettazione
+- [x] AC1: le quattro viste mostrano gli eventi nel periodo giusto; le sovrapposizioni stanno affiancate; il mese limita gli eventi per giorno con «+N altri».
+- [x] AC2: navigazione (Oggi, precedente/successivo, vista) e `onRangeChange` con il periodo visibile; calendari con colore e spunta.
+- [x] AC3: clic su evento e su uno spazio vuoto; tastiera e ARIA.
+- [x] AC4: test (10), docs (`llms-full.txt`), testi del componente in 6 lingue, pagina di showcase; release minor 3.16.0.
+
+---
+
 ## CR-149 — DonutChart: un intero diviso in fette
 
 **Stato:** ✅ done

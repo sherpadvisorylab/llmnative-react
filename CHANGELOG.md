@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.16.0] - 2026-11-24
+
+### Added
+- `Calendar` (CR-150): day, week (time grid, overlapping events side by side, all-day band, line of now), month (`maxEventsPerDay` then «+N» that opens the day) and list views; bar with today, previous/next, period and views; side column with a mini month and the calendars (colour, check, groups, search, `maxSelected`); `onRangeChange` with the visible period, `onEventClick`, `onSlotClick`, `renderEvent`; controlled or uncontrolled view, date and calendars; `Intl` dates in the app language, theme colours, keys t/n/p/d/w/m/a; pure functions `viewRange`, `stepDate`, `monthGrid`, `normalizeEvent`, `eventsInRange`, `eventsByDay`, `layoutDay`; i18n `calendar` in 6 languages; showcase page.
+
 ## [3.15.0] - 2026-11-19
 
 ### Added
