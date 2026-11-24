@@ -398,6 +398,7 @@ export const ru: I18nDict = {
     },
     breadcrumbs: {
         label: 'Навигационная цепочка',
+        more: 'Показать полный путь',
     },
     chat: {
         reasoning: 'Рассуждение',

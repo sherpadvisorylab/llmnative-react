@@ -48,6 +48,8 @@ const ALIASES: Record<string, string> = {
     'chevrons-right':   'CaretDoubleRight',
     'chevrons-up-down': 'CaretUpDown',
     'log-out':          'SignOut',
+    // CR-152: the levels of the trail of PageTitle hidden on a narrow screen.
+    'ellipsis':         'DotsThree',
 };
 
 function toPascalCase(name: string): string {

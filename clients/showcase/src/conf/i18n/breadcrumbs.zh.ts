@@ -31,6 +31,10 @@ export default defineLocaleMessages({
                     title: 'buildBreadcrumbSchema - 独立用法',
                     description: '使用导出的工具函数为 SSR、站点地图或自定义 head 注入单独生成 schema.org 数据。stringify: true 会返回可直接用于 dangerouslySetInnerHTML 的字符串。',
                 },
+                pageTitle: {
+                    title: 'PageTitle：路径、带菜单的标题、标题后的位置',
+                    description: '页面标题及其上级页面（parents；窄屏时较高层级收进 … 菜单），可切换记录的菜单式标题，标题后的控件（after）以及操作。',
+                },
             },
             labels: {
                 home: '首页',
@@ -44,6 +48,7 @@ export default defineLocaleMessages({
                 jsonLdOutput: 'JSON-LD 输出（schema.org BreadcrumbList）',
                 generatedScriptTag: '生成的 <script type="application/ld+json">',
                 currentPageOmitted: '无 href -> 当前页面',
+                switchComponent: '切换组件',
             },
             propsDocs: {
                 items: {

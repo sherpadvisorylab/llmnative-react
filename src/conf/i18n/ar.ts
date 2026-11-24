@@ -398,6 +398,7 @@ export const ar: I18nDict = {
     },
     breadcrumbs: {
         label: 'مسار التنقل',
+        more: 'عرض المسار الكامل',
     },
     chat: {
         reasoning: 'التفكير',

@@ -1408,6 +1408,7 @@ interface ShowcaseBreadcrumbsI18n {
         chevronSeparator: ShowcasePageSectionCopy;
         jsonLdStructuredData: ShowcasePageSectionCopy;
         standaloneSchema: ShowcasePageSectionCopy;
+        pageTitle: ShowcasePageSectionCopy;
     };
     labels: {
         home: string;
@@ -1421,6 +1422,7 @@ interface ShowcaseBreadcrumbsI18n {
         jsonLdOutput: string;
         generatedScriptTag: string;
         currentPageOmitted: string;
+        switchComponent: string;
     };
     propsDocs: {
         items: Record<string, ShowcaseGridDocFieldCopy>;

@@ -478,6 +478,7 @@ export const en: I18nDict = {
     },
     breadcrumbs: {
         label: 'Breadcrumb',
+        more: 'Show the full path',
     },
     chat: {
         reasoning: 'Reasoning',

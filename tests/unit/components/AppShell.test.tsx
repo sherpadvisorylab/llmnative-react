@@ -48,6 +48,64 @@ describe('PageBar and PageTitle', () => {
     });
 });
 
+// CR-152 — the trail of the pages above, a place after the title, a title with a menu.
+describe('PageTitle: parents, after, interactive title', () => {
+    const parents = [
+        { label: 'Library', to: '/library' },
+        { label: 'Components', to: '/library/components' },
+    ];
+
+    it('parents draw the chain of links, from the highest; parent stays a one-level shorthand', () => {
+        const { container } = wrap(<PageTitle title="Edit component" parents={parents} />);
+        const links = [...container.querySelectorAll('[data-rf-page-trail] > a')];
+        expect(links.map((a) => a.textContent)).toEqual(['Library', 'Components']);
+        expect(links.map((a) => a.getAttribute('href'))).toEqual(['/library', '/library/components']);
+        expect(screen.getByRole('navigation')).toBeInTheDocument();
+
+        const single = wrap(<PageTitle title="Rossi Srl" parent={{ label: 'Pratiche', to: '/pratiche' }} />);
+        expect([...single.container.querySelectorAll('[data-rf-page-trail] > a')].map((a) => a.textContent)).toEqual(['Pratiche']);
+        expect(single.container.querySelector('[data-rf-page-trail] button')).toBeNull();
+    });
+
+    it('on a narrow screen the levels before the direct parent go into a menu; the direct parent stays', async () => {
+        const { container } = wrap(<PageTitle title="Edit component" parents={parents} />);
+        const [library, components] = [...container.querySelectorAll('[data-rf-page-trail] > a')];
+        expect(library.className).toMatch(/\bhidden\b/);
+        expect(library.className).toMatch(/\bsm:block\b/);
+        expect(components.className).not.toMatch(/\bhidden\b/);
+
+        fireEvent.click(screen.getByTitle('Show the full path'));
+        const item = await screen.findByRole('menuitem', { name: 'Library' });
+        expect(item.getAttribute('href')).toBe('/library');
+        expect(screen.queryByRole('menuitem', { name: 'Components' })).toBeNull();
+    });
+
+    it('after sits between the title and the actions', () => {
+        const { container } = wrap(
+            <PageTitle title="Home" after={<span>IT</span>} actions={<button type="button">Save</button>} />,
+        );
+        const title = container.querySelector('[data-rf-page-title]')!;
+        const order = [...title.querySelectorAll('h1, [data-rf-page-title-after], button')].map((el) => el.textContent);
+        expect(order).toEqual(['Home', 'IT', 'Save']);
+    });
+
+    it('a title with a menu is not clipped by the heading and keeps an accessible name', () => {
+        const { container } = wrap(
+            <PageTitle
+                label="Hero banner"
+                title={<button type="button"><span className="truncate">Hero banner</span> ▾</button>}
+            />,
+        );
+        const h1 = container.querySelector('h1')!;
+        expect(h1.className).not.toMatch(/\btruncate\b/);
+        expect(screen.getByRole('heading', { level: 1, name: 'Hero banner' })).toBe(h1);
+        expect(screen.getByRole('button', { name: /Hero banner/ })).toBeInTheDocument();
+
+        const text = wrap(<PageTitle title="A text title" />);
+        expect(text.container.querySelector('h1')!.className).toMatch(/\btruncate\b/);
+    });
+});
+
 describe('AccountMenu', () => {
     const adapter = (user: UserProfile | null): AuthProviderAdapter => ({
         getUser: vi.fn(() => user),

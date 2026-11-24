@@ -398,6 +398,7 @@ export const it: I18nDict = {
     },
     breadcrumbs: {
         label: 'Percorso di navigazione',
+        more: 'Mostra il percorso completo',
     },
     chat: {
         reasoning: 'Ragionamento',

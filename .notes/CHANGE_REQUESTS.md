@@ -221,7 +221,7 @@ Per questo serve una CR a sé. `callFirebaseFunction` carica già `firebase/func
 
 ## CR-152 — PageBar: briciole a più livelli e un posto accanto al titolo
 
-**Stato:** ⬜ todo
+**Stato:** ✅ done (3.18.0)
 **Issue:** [#133](https://github.com/sherpadvisorylab/llmnative-react/issues/133)
 **Priorità:** Media
 **Dipende da:** CR-151
@@ -240,9 +240,9 @@ Il CMS usa anche il titolo come nodo interattivo (lo switcher dell'entità: un m
 - Nessuna modifica a `PageBar`: le zone dell'app restano dell'header del consumer (docs con l'esempio: menu, switcher, `<PageBar />`, azioni dell'app).
 
 ### Criteri di accettazione
-- [ ] AC1: `parents` disegna la catena con i link; `parent` invariato; riduzione su schermo stretto.
-- [ ] AC2: `after` tra il titolo e le azioni; un `title` con un menu resta usabile e accessibile.
-- [ ] AC3: test, docs (`llms-full.txt`), showcase; verifica nel consumer `llmnative-cms` (Header sul `PageBar`); release minor.
+- [x] AC1: `parents` disegna la catena con i link e i separatori. `parent` resta invariato, come scorciatoia di un livello. Su schermo stretto i livelli prima del genitore diretto vanno in un menu `…` (`Dropdown`, i18n `breadcrumbs.more`); è un menu e non un `title`, quindi funziona anche al tocco.
+- [x] AC2: `after` sta tra il titolo e le azioni. Quando il `title` è un nodo, l'`h1` non lo tronca e il menu si apre in un portal; `label` dà il nome all'heading. Test: 4 in `AppShell.test.tsx` (1184 verdi).
+- [x] AC3: docs in `llms-full.txt`; sezione nello showcase (pagina Breadcrumbs, 6 lingue, build Vite verde); release minor 3.18.0. Verifica nel consumer `llmnative-cms`: l'Header disegna `PageTitle` con `parents`, lo switcher dell'entità come `title`, la lingua in `after` e le azioni della pagina; tsc, test (508) e build verdi con il pacchetto locale. Non verificato nel browser. Restano lavoro del CMS gli `h1` delle pagine, che duplicherebbero il titolo della barra, e l'adozione di `PageBarProvider`/`PageBar`.
 
 ---
 

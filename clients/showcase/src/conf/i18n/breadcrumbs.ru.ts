@@ -31,6 +31,10 @@ export default defineLocaleMessages({
                     title: 'buildBreadcrumbSchema - samostoyatelnoe ispolzovanie',
                     description: 'Ispolzuyte eksportiruemuyu utility dlya generatsii dannykh schema.org otdelno dlya SSR, sitemap ili sobstvennogo head injection. stringify: true vozvrashchaet stroku, gotovuyu dlya dangerouslySetInnerHTML.',
                 },
+                pageTitle: {
+                    title: 'PageTitle: путь, заголовок с меню, место после него',
+                    description: 'Заголовок страницы со страницами выше (parents; на узком экране верхние уровни уходят в меню …), заголовок-меню для смены записи, элемент после заголовка (after) и действия.',
+                },
             },
             labels: {
                 home: 'Glavnaya',
@@ -44,6 +48,7 @@ export default defineLocaleMessages({
                 jsonLdOutput: 'JSON-LD vyvod (schema.org BreadcrumbList)',
                 generatedScriptTag: 'sgenerirovannyy <script type="application/ld+json">',
                 currentPageOmitted: 'bez href -> tekushchaya stranitsa',
+                switchComponent: 'Сменить компонент',
             },
             propsDocs: {
                 items: {

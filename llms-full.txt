@@ -1270,6 +1270,34 @@ disegna al suo posto. `AccountMenu`: avatar, nome (default quello dell'utente) e
 clic il menu verso l'alto con `items` (`{ id, label, icon?, onClick? | href? }`), `children` (es. un interruttore del
 tema) ed Esci (`signOut`, default `true`); `compact` solo l'avatar; nulla senza utente.
 
+**PageTitle: percorso, posto accanto al titolo, titolo con un menu (CR-152).**
+- `parents`: la catena delle pagine sopra, partendo dalla più alta (`{ label, to }[]`). `parent` resta la scorciatoia per un solo livello.
+- Su schermo stretto i livelli prima del genitore diretto finiscono in un menu `…`; il genitore diretto resta visibile.
+- `after`: un nodo subito dopo il titolo e prima delle azioni, per esempio lo switcher della lingua o un badge di stato.
+- `title` come nodo (un menu per passare a un altro record): l'`h1` non lo taglia, e il testo lo tronca il nodo stesso.
+- `label`: dà il nome all'heading quando il testo del nodo non è il nome della pagina.
+- Le zone dell'app (switcher di tenant o di sito, bottoni globali) restano nell'header del consumer, ai lati di `<PageBar />`.
+
+```tsx
+<header className="flex items-center gap-3">
+  <TenantSwitcher />                         // dell'app: prima della barra
+  <PageBar />
+  <ActionButton icon="bot" label="Assistente" onClick={apri} />   // dell'app: dopo
+</header>
+
+<PageTitle                                  // in una pagina
+  parents={[{ label: 'Libreria', to: '/library' }, { label: 'Componenti', to: '/library/components' }]}
+  label={componente.nome}
+  title={
+    <Dropdown trigger={<span className="flex min-w-0 items-center gap-1"><span className="truncate">{componente.nome}</span><Icon name="chevron-down" size={14} /></span>}>
+      {altri.map((c) => <DropdownItem key={c.id} url={`/library/components/${c.id}`}>{c.nome}</DropdownItem>)}
+    </Dropdown>
+  }
+  after={<Badge>IT</Badge>}
+  actions={<ActionButton label="Salva" icon="save" onClick={salva} />}
+/>
+```
+
 **ImageAvatar:**
 | Prop | Tipo |
 |---|---|

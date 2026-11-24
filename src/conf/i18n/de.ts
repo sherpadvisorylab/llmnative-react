@@ -398,6 +398,7 @@ export const de: I18nDict = {
     },
     breadcrumbs: {
         label: 'Brotkrumennavigation',
+        more: 'Vollständigen Pfad anzeigen',
     },
     chat: {
         reasoning: 'Überlegung',

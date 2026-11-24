@@ -1,5 +1,5 @@
 import React from 'react';
-import { Breadcrumbs, buildBreadcrumbSchema } from '@llmnative/react';
+import { ActionButton, Breadcrumbs, buildBreadcrumbSchema, Dropdown, DropdownItem, Icon, PageTitle } from '@llmnative/react';
 import type { BreadcrumbItem } from '@llmnative/react';
 import PageLayout from '../../showcase/page';
 import Section from '../../docs-kit/page/Section';
@@ -306,6 +306,52 @@ const schemaString = buildBreadcrumbSchema({
 <script
     type="application/ld+json"
     dangerouslySetInnerHTML={{ __html: schemaString }}
+/>`}
+            />
+
+            <Section
+                title={t.sections.pageTitle.title}
+                description={t.sections.pageTitle.description}
+                preview={
+                    <PageTitle
+                        parents={[
+                            { label: t.labels.docs, to: '/docs' },
+                            { label: t.labels.components, to: '/docs/components' },
+                        ]}
+                        label={t.labels.breadcrumbs}
+                        title={
+                            <Dropdown
+                                trigger={(
+                                    <span className="flex min-w-0 items-center gap-1" title={t.labels.switchComponent}>
+                                        <span className="truncate">{t.labels.breadcrumbs}</span>
+                                        <Icon name="chevron-down" size={14} className="shrink-0 text-muted-foreground" />
+                                    </span>
+                                )}
+                            >
+                                <DropdownItem url="/components/breadcrumbs">{t.labels.breadcrumbs}</DropdownItem>
+                                <DropdownItem url="/components/dropdown">Dropdown</DropdownItem>
+                            </Dropdown>
+                        }
+                        after={<span className="rounded border px-1.5 py-0.5 text-xs font-medium text-muted-foreground">IT</span>}
+                        actions={<ActionButton label="Save" icon="save" onClick={() => undefined} />}
+                    />
+                }
+                code={`import { PageTitle, Dropdown, DropdownItem, Icon } from '@llmnative/react';
+
+<PageTitle
+    parents={[
+        { label: 'Docs', to: '/docs' },
+        { label: 'Components', to: '/docs/components' },   // the direct parent: always shown
+    ]}
+    label="Breadcrumbs"                                     // the name of the heading
+    title={
+        <Dropdown trigger={<span className="flex min-w-0 items-center gap-1"><span className="truncate">Breadcrumbs</span><Icon name="chevron-down" size={14} /></span>}>
+            <DropdownItem url="/components/breadcrumbs">Breadcrumbs</DropdownItem>
+            <DropdownItem url="/components/dropdown">Dropdown</DropdownItem>
+        </Dropdown>
+    }
+    after={<Badge>IT</Badge>}                              // between the title and the actions
+    actions={<ActionButton label="Save" icon="save" onClick={save} />}
 />`}
             />
 

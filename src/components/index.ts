@@ -84,7 +84,7 @@ export type { SideNavProps, SideNavItemDef, SideNavSlot, SideNavSlotContext } fr
 export { AccountMenu } from './blocks/AccountMenu';
 export type { AccountMenuProps, AccountMenuItem } from './blocks/AccountMenu';
 export { PageBarProvider, PageBar, PageTitle } from './blocks/PageBar';
-export type { PageBarProps, PageTitleProps } from './blocks/PageBar';
+export type { PageBarProps, PageTitleProps, PageTitleLink } from './blocks/PageBar';
 
 export { default as Form, useFormContext } from './widgets/Form';
 export type { FieldLabel, FormFieldProps, FormProps, FormDangerZone, FormDeleteArgs, FormDeleteHandler, FormFinallyArgs, FormFinallyHandler, FormSaveArgs, FormSaveHandler, FormSaveProps, FormSubmitArgs, FormSubmitHandler, FormSubmitProps, ChangeHandler, FieldOnChange } from './widgets/Form';

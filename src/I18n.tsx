@@ -490,6 +490,8 @@ export interface I18nDict {
     };
     breadcrumbs: {
         label: string;
+        /** CR-152 — the menu of the levels a narrow screen hides in the trail of `PageTitle`. */
+        more: string;
     };
     /** CR-109 — ChatReasoning and ChatQuestions (code blocks of ChatMarkdown use `code`). */
     chat: {

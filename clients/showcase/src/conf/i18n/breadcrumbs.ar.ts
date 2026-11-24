@@ -31,6 +31,10 @@ export default defineLocaleMessages({
                     title: 'buildBreadcrumbSchema - استخدام مستقل',
                     description: 'استخدم الأداة المصدّرة لتوليد بيانات schema.org بشكل مستقل من أجل SSR أو ملفات sitemap أو حقن مخصص داخل head. تعيد stringify: true سلسلة جاهزة لـ dangerouslySetInnerHTML.',
                 },
+                pageTitle: {
+                    title: 'PageTitle: المسار، عنوان بقائمة، مكان بعده',
+                    description: 'عنوان الصفحة مع الصفحات الأعلى (parents؛ على الشاشة الضيقة تنتقل المستويات الأعلى إلى قائمة …)، وعنوان هو قائمة لتبديل السجل، وعنصر تحكم بعد العنوان (after) والإجراءات.',
+                },
             },
             labels: {
                 home: 'الرئيسية',
@@ -44,6 +48,7 @@ export default defineLocaleMessages({
                 jsonLdOutput: 'مخرجات JSON-LD ‏(schema.org BreadcrumbList)',
                 generatedScriptTag: 'الوسم <script type="application/ld+json"> المولّد',
                 currentPageOmitted: 'بدون href -> الصفحة الحالية',
+                switchComponent: 'تبديل المكوّن',
             },
             propsDocs: {
                 items: {

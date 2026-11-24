@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.18.0] - 2026-11-24
+
+### Added
+- `PageTitle` (CR-152):
+  - `parents` takes the chain of the pages above, from the highest (`{ label, to }[]`); `parent` stays as the one-level shorthand. On a narrow screen the levels before the direct parent go into a `…` menu and the direct parent stays visible.
+  - `after` takes a node right after the title and before the actions, for example a language switcher or a status badge.
+  - A `title` that is a node, such as a menu to switch to another record, is no longer clipped by the heading; it truncates its own text. `label` names the heading when that node's text is not the page name.
+  - New `PageTitleLink` type, a `breadcrumbs.more` i18n key in all 6 languages, and the Phosphor alias `ellipsis` → `DotsThree`.
+
 ## [3.17.1] - 2026-11-24
 
 ### Fixed

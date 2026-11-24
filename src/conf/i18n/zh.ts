@@ -398,6 +398,7 @@ export const zh: I18nDict = {
     },
     breadcrumbs: {
         label: '面包屑导航',
+        more: '显示完整路径',
     },
     chat: {
         reasoning: '推理',
