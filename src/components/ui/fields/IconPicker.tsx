@@ -4,7 +4,7 @@ import { Label, FieldError, fieldFeedbackClass } from './Input';
 import { Wrapper } from '../GridSystem';
 import Modal from '../Modal';
 import Icon from '../Icon';
-import { useIconProvider } from '../../../providers/icon/IconProviderContext';
+import { useIconProvider, useIconProviderReady } from '../../../providers/icon/IconProviderContext';
 import { FormFieldProps, useFormContext, useFieldValidation } from '../../widgets/Form';
 import type { FieldValue } from '../../../providers/data/DataProvider';
 import { cn } from '../../../libs/cn';
@@ -65,6 +65,7 @@ export const IconPicker = ({
     const error = useFieldValidation(name, { required, label, validator });
     const dict = useI18n('iconPicker');
     const provider = useIconProvider();
+    const providerReady = useIconProviderReady(provider); // CR-154: the list once its package is loaded
     const id = useId();
     const current = typeof value === 'string' ? value : '';
 
@@ -76,7 +77,7 @@ export const IconPicker = ({
         const names = options ?? provider?.list?.() ?? [];
         const out = new Set(exclude ?? []);
         return names.filter((n) => n === current || !out.has(n));
-    }, [options, provider, exclude, current]);
+    }, [options, provider, providerReady, exclude, current]);
 
     const matches = useMemo(() => {
         const needle = searchable(query.trim());

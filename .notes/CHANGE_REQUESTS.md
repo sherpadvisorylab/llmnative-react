@@ -162,7 +162,7 @@ Richiesto dal consumer `llmnative-cms`.
 
 ## CR-154 — Peer opzionali Firebase e provider di icone non caricati all'import
 
-**Stato:** ⬜ todo
+**Stato:** ✅ done (3.19.0)
 **Issue:** [#135](https://github.com/sherpadvisorylab/llmnative-react/issues/135)
 **Priorità:** Media
 **Dipende da:** CR-153
@@ -188,10 +188,15 @@ Per questo serve una CR a sé. `callFirebaseFunction` carica già `firebase/func
 - Senza un peer, l'errore è chiaro e compare solo all'uso.
 
 ### Criteri di accettazione
-- [ ] AC1: un test in Node conferma che l'import di `@llmnative/react` funziona senza firebase, lucide-react o @phosphor-icons/react installati. La verifica copre anche il `dist`, sia ESM sia CJS.
-- [ ] AC2: i provider Firebase restano invariati. Passano gli unit test e l'integrazione con l'emulatore (`npm run test:integration`).
-- [ ] AC3: le icone restano identiche con Lucide e con Phosphor. Lo confermano lo showcase e l'E2E di scaffolding.
-- [ ] AC4: verifica nel consumer `llmnative-cms`; release minor.
+- [x] AC1: `libs/lazyModule` (import dinamico, modulo tenuto dopo il primo caricamento, errore «Install…»); `providers/firebase-sdk` (app, auth, Firestore, Realtime Database, Storage, ognuno un chunk). Test `optionalPeersFirebaseIcons`: con firebase, lucide e phosphor «non installati» il pacchetto si importa; i provider dicono di installare firebase solo all'uso; un'icona tiene il suo posto. Verificato anche sul `dist` in Node puro, con firebase, lucide, phosphor e supabase irrisolvibili: ESM e CJS passano. La 3.18.0 falliva con «Cannot find module lucide-react».
+- [x] AC2: le firme dei provider Firebase non cambiano; caricato l'SDK, anche i tempi sono quelli di prima. Al primo uso `subscribe` e `onAuthChange` si collegano quando l'SDK è pronto. Unit test Firebase verdi: 84. Nuova suite `tests/integration/firebase/firebase-providers.test.ts`, che passa dai provider veri, verde sugli emulatori: 4 test, con auth anonima e `subscribe`. È stata eseguita su porte temporanee, perché gli emulatori di un altro progetto erano attivi. `test:integration` ora avvia anche l'emulatore auth.
+- [x] AC3:
+  - Al primo render `<App>` aspetta il provider attivo (`IconProvider` sospende), e `setProvider` carica il nuovo provider prima di mostrarlo.
+  - `Icon` tiene il posto dell'icona finché il pacchetto non c'è; `IconPicker` si aggiorna quando il pacchetto è caricato.
+  - `Table` passa dal provider attivo, con gli alias Phosphor `arrow-up-down` e `grip-vertical`.
+  - Test `IconLazyProvider`: 2. Suite completa verde, 1189 test; build dello showcase verde; E2E di scaffolding 8 su 8.
+  - Le icone non sono state confrontate a vista nel browser.
+- [x] AC4: verificato in `llmnative-cms` con il pacchetto locale: tsc, test (508) e build verdi. Release minor 3.19.0.
 
 ---
 

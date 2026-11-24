@@ -52,6 +52,37 @@ export interface IconController {
     resolve: IconProviderAdapter['resolve'];
 }
 
+// ── CR-154: providers whose package loads on demand ───────────────────────────
+
+const loads = new WeakMap<IconProviderAdapter, Promise<void>>();
+
+/** The load of a provider, once; a package that is not there leaves its icons empty, the app keeps working. */
+export function loadIconProvider(provider: IconProviderAdapter | null | undefined): Promise<void> {
+    if (!provider?.load || provider.isReady?.() !== false) return Promise.resolve();
+    let pending = loads.get(provider);
+    if (!pending) {
+        pending = provider.load().catch((error: unknown) => {
+            loads.delete(provider);
+            console.warn(`[IconProvider] "${provider.id}" could not load:`, error instanceof Error ? error.message : error);
+        });
+        loads.set(provider, pending);
+    }
+    return pending;
+}
+
+/** True when the provider can resolve its icons now; otherwise it loads it and renders again once it can. */
+export function useIconProviderReady(provider: IconProviderAdapter | null | undefined): boolean {
+    const ready = !provider || provider.isReady?.() !== false;
+    const [, rerender] = React.useReducer((n: number) => n + 1, 0);
+    React.useEffect(() => {
+        if (ready) return;
+        let live = true;
+        void loadIconProvider(provider).then(() => { if (live) rerender(); });
+        return () => { live = false; };
+    }, [ready, provider]);
+    return ready;
+}
+
 const BUILT_IN_ICON_PROVIDERS: Record<string, IconProviderAdapter> = {
     lucide: new LucideIconProvider(),
     phosphor: new PhosphorIconProvider(),
@@ -114,6 +145,8 @@ function createAliasedProvider(provider: IconProviderAdapter, aliases: Record<st
             return provider.resolve(aliases[name] ?? name);
         },
         ...(provider.list ? { list: () => provider.list!() } : {}),
+        ...(provider.isReady ? { isReady: () => provider.isReady!() } : {}),
+        ...(provider.load ? { load: () => provider.load!() } : {}),
     };
 }
 
@@ -139,6 +172,12 @@ export function IconProvider({
     }, [normalized]);
 
     const activeProvider = providers[providerId] ?? providers[DEFAULT_ICON_PROVIDER_ID];
+
+    // CR-154 — the first render waits for the package of the active provider (the app appears with its icons, no
+    // flash); a later switch loads the new provider before showing it (`setProvider`), so nothing suspends then.
+    const firstRender = React.useRef(true);
+    React.useEffect(() => { firstRender.current = false; }, []);
+    if (firstRender.current && activeProvider?.isReady?.() === false) React.use(loadIconProvider(activeProvider));
     const providerWithAliases = React.useMemo(
         () => activeProvider ? createAliasedProvider(activeProvider, normalized.aliases) : null,
         [activeProvider, normalized.aliases]
@@ -150,7 +189,9 @@ export function IconProvider({
         aliases: normalized.aliases,
         setProvider(id: string) {
             if (providers[id]) {
-                setProviderId(id);
+                // CR-154 — a provider still to load is shown once loaded: nothing suspends on a switch.
+                if (providers[id].isReady?.() === false) void loadIconProvider(providers[id]).then(() => setProviderId(id));
+                else setProviderId(id);
                 return;
             }
 

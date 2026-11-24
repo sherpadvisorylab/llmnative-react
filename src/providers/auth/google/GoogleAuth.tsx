@@ -1,5 +1,5 @@
 import React from "react";
-import {getAuth, GoogleAuthProvider, signInWithCredential, getAdditionalUserInfo, signOut} from 'firebase/auth';
+import { firebaseAuthSdk, loadFirebase } from '../../firebase-sdk';
 import {Dropdown, DropdownDivider, DropdownItem, DropdownMenu} from "../../../components/blocks/Dropdown";
 import {decodeJWT, loadScripts} from "../../../libs/utils";
 import {PLACEHOLDER_USER, useTheme} from "../../../Theme";
@@ -112,6 +112,8 @@ const GoogleAuth = ({
 
     const firebaseSignInWithGoogleCredential = async(credentialToken: string): Promise<void> => {
         try {
+            await loadFirebase(); // CR-154: never at import
+            const { GoogleAuthProvider, signInWithCredential, getAuth, getAdditionalUserInfo } = firebaseAuthSdk.get();
             const credential = GoogleAuthProvider.credential(credentialToken);
             const userCredential = await signInWithCredential(getAuth(), credential);
             const additionalUserInfo = getAdditionalUserInfo(userCredential);
@@ -131,6 +133,8 @@ const GoogleAuth = ({
         localStorage.removeItem("googleCredentialToken");
 
         removeUser();
+        await loadFirebase();
+        const { getAuth, signOut } = firebaseAuthSdk.get();
         const auth = getAuth();
 
         await signOut(auth);

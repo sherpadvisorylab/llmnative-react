@@ -1,7 +1,7 @@
 # Project status
 
 > Snapshot verified against the real codebase, not against the historical plan.
-> Last reviewed: 2026-11-24
+> Last reviewed: 2026-11-25
 
 ---
 
@@ -21,7 +21,7 @@
 | TypeScript | `strict: true`; `npm run build` generates bundle + declarations. CR-042 done: `any` count → 6 justified exceptions, all annotated. | No remaining structural gap. |
 | Dead code | Removed: `Helper.tsx` (1696 lines), `Blog.tsx`, `Template.tsx`, `FormEnhancer.tsx`, `AssistantAI.tsx`, `BlogPost.tsx`, `Component.tsx` dead exports, `libs/log.ts`, `libs/cache.ts`, `libs/database.ts`, `libs/storage.ts`, `libs/seo.ts`, `Command.tsx`. Log logic inlined in `Form.tsx` via `useDataProvider()`. Cache logic inlined in `scrape/index.ts` via `DataProviderAdapter`. | No remaining structural gap. |
 | Tests | 86 unit/component files / 987 tests + 10 Firebase emulator + 8 Supabase emulator integration tests + 16 Playwright E2E (all pass). Suites: libs (utils, converter, path, sanitizer, fetch, promptUtils), providers (Mock, Firebase RTDB, Firestore, FirebaseStorage, Supabase, SupabaseStorage, SupabaseAuth, AIProviders, DropboxStorage, Gmail, Google Service Account, Scrape, ProxyRegistry), App, theme/icon, motion, auth, Form/Grid/Input/Select/Upload/Repeat/MarkdownReader/Table/Modal/Dropdown/Gallery/Buttons/Prompt + form-controller + smoke tests (blocks, switchers, fields, ui, widgets) plus the public export contract and proxy runtime e2e. Integration: Firebase RTDB/Firestore/Storage emulator CRUD + Supabase Postgres CRUD + Auth. E2E: 16 Playwright tests covering 30+ showcase pages (smoke + navigation + CRUD flow). GitHub Actions CI present (test + build + showcase jobs). | Google OAuth E2E ancora assente. |
-| Library build | `npm run build` passes. Output: `dist/index.js`, `dist/index.mjs`, `dist/index.css`, `dist/types`, plus the `vite` and `server` (Node, CR-102) entries. `ImageEditor` heavy runtime is now split into a separate lazy chunk (`dist/ImageEditorImpl-*`) instead of being forced into the root bundle. Published as `@llmnative/react@3.18.0` on npm (dependencies on latest releases, TypeScript 7 toolchain). | No structural gap. |
+| Library build | `npm run build` passes. Output: `dist/index.js`, `dist/index.mjs`, `dist/index.css`, `dist/types`, plus the `vite` and `server` (Node, CR-102) entries. `ImageEditor` heavy runtime is now split into a separate lazy chunk (`dist/ImageEditorImpl-*`) instead of being forced into the root bundle. Published as `@llmnative/react@3.19.0` on npm (dependencies on latest releases, TypeScript 7 toolchain). | No structural gap. |
 | Showcase app | `clients/showcase` is a real Vite consumer. Pages: Auth, Alert, Badge, Buttons, Card, Code, Dropdown, Gallery, GridSystem, Icon, Image, ImageAvatar, ImageField, ImageEditor, Loader, LocaleSwitcher, Modal (incl. ModalYesNo/ModalOk sub-pages), Motion, Notifications, Pagination, Prompt, Search, Select, Autocomplete, Checklist, Upload, Form, Grid, GridArray, GridDB, MarkdownReader, Repeat, LayoutBuilder. SideNav collapsible with icon-only mode. | Stub routes remain for concrete provider demos and application examples. |
 | Markdown docs | `AI_REFERENCE.md` and `PROMPT_TEMPLATE.md` added for LLM consumption of the full API surface. Docs with frontmatter load in showcase via `import.meta.glob`. | Operational docs (STATUS, ROADMAP, CHANGE_REQUESTS) remain maintainer-only. |
 
@@ -31,6 +31,7 @@
 
 | CR | State | Evidence |
 |----|-------|----------|
+| CR-154 | Done | `firebase`, `lucide-react` e `@phosphor-icons/react` caricati all'uso con import dinamici (`libs/lazyModule`, `providers/firebase-sdk`): l'import del pacchetto in Node non li richiede più (verificato su `dist`, ESM e CJS). Provider Firebase invariati quando l'SDK è caricato; `IconProvider` aspetta il provider attivo al primo render, `Icon` tiene il posto; `IconProviderAdapter.isReady/load`. Test: 4 nuovi (1189 verdi), integrazione con gli emulatori sui provider (4), scaffold 8/8, showcase. Released in 3.19.0. Issue #135. |
 | CR-152 | Done | `PageTitle`: `parents` (catena dall'alto; su schermo stretto i livelli prima del genitore diretto in un menu `…`), `after` (tra titolo e azioni), `title` come nodo non tagliato dall'`h1` e `label` per il nome dell'heading; tipo `PageTitleLink`, i18n `breadcrumbs.more` (6 lingue), alias Phosphor `ellipsis`. Docs `llms-full.txt`, showcase (Breadcrumbs). Test: 4 (1184 verdi). Verificato in `llmnative-cms` (Header su `PageTitle`). Released in 3.18.0. Issue #133. |
 | CR-153 | Done | `@supabase/supabase-js` caricato con `import()` dinamico al primo client (`supabase-init`); provider data/auth/API asincroni sul client, firme sincrone invariate (`subscribe`, `onAuthChange`; `getUser()` `null` finché l'SDK non c'è). L'import del pacchetto in Node non richiede più Supabase (verificato su `dist` ESM e CJS). Firebase e icone: CR-154. Test: 1 nuovo + 2 aggiornati (1180 verdi), E2E scaffold 8/8. Released in 3.17.1. Issue #134. |
 | CR-151 | Done | Layout a sidebar piena: `PageBarProvider`/`PageBar`/`PageTitle` (portal nella barra), `AccountMenu`, `SideNav` con testata e piede funzione e bottone in testata; scaffolding con il nuovo layout predefinito e `--layout=topbar`; un'app senza `@supabase/supabase-js` torna a compilare con Vite 8; icone Phosphor della sidebar. Test: 5 (1177 verdi), E2E scaffold 8/8. Released in 3.17.0. Issue #132. |
@@ -180,7 +181,6 @@
 
 | CR | Real state | What is missing |
 |----|-----------|-----------------|
-| CR-154 | ⬜ todo | Peer opzionali Firebase e provider di icone (lucide, phosphor) caricati solo all'uso, come Supabase in CR-153: oggi l'import in Node fallisce senza di loro. Issue #135. |
 | CR-098 | ⬜ todo | Repeat: docs con nomi completi (raddoppiati da `setParentName`), firma children sbagliata, `layout="vertical"` che non disegna nulla, pulsanti senza nome accessibile. Issue #69. |
 | CR-072 | **Diagnosed — not fixable via config alone** | 890 `tsc --noEmit` errori in `clients/showcase` causati da TypeScript 6.0.3: named exports da `.d.ts` files fuori dallo scope del progetto (`include: ["src"]`) non sono visibili in modalità named import (`import { Icon }`), mentre `import * as` e `typeof import()` funzionano. Tentate: `paths`, `moduleResolution: node10/bundler`, `include` espanso, `.ts` proxy, `.d.ts` proxy, skipLibCheck toggle — stesso risultato. Root cause: regressione TS 6.0.3 nel cross-project type resolution. `npm run build` (Vite/esbuild) è l'unico gate reale e passa. 15 errori prismjs risolti (wildcard declaration in `vite-env.d.ts`). Issue #14 aperta. |
 | CR-037 | ⬜ | Component Builder System — `useImage()` pattern non ancora standardizzato. |

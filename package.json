@@ -1,6 +1,6 @@
 {
   "name": "@llmnative/react",
-  "version": "3.18.0",
+  "version": "3.19.0",
   "description": "LLM-native React framework for deterministic UI generation. Data-driven by default, schema-driven optional. Ultra-low token consumption — built for AI agents, not just humans.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -34,7 +34,7 @@
     "test:e2e:proxy-scaffold": "node scripts/e2e/test-proxy-scaffold.js",
     "test:e2e:scaffold": "node scripts/e2e/test-scaffold-templates.js",
     "test:e2e:proxy-runtime": "vitest run tests/e2e/proxy-runtime.test.ts --environment node",
-    "test:integration": "npx firebase emulators:exec --only database,firestore,storage --project demo-test \"npx vitest run --config vitest.integration.config.mts\"",
+    "test:integration": "npx firebase emulators:exec --only auth,database,firestore,storage --project demo-test \"npx vitest run --config vitest.integration.config.mts\"",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "release:check": "node scripts/release/check-release.mjs"

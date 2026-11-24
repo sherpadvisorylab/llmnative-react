@@ -11,6 +11,12 @@ export interface IconProviderAdapter {
     resolve(name: string): React.ComponentType<IconComponentProps> | null;
     /** The names of the icons it draws, each one that `resolve` finds (CR-148: the grid of `IconPicker`). */
     list?(): string[];
+    /**
+     * CR-154 — a provider whose package loads on demand (an optional peer): `resolve` finds nothing until it is loaded.
+     * `Icon` keeps the place of the icon meanwhile, `<App>` waits for the active provider before its first render.
+     */
+    isReady?(): boolean;
+    load?(): Promise<void>;
 }
 
 /** An icon name of a component name, so that the kebab→PascalCase of `resolve` finds it again (`ArrowUp01` → `arrow-up-01`). */

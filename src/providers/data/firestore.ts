@@ -1,29 +1,11 @@
-import { getApp } from 'firebase/app';
-import {
-    getFirestore,
-    collection,
-    doc,
-    getDocs,
-    getDoc,
-    setDoc,
-    updateDoc,
-    deleteDoc,
-    addDoc,
-    writeBatch,
-    onSnapshot,
-    query,
-    where as fbWhere,
-    orderBy,
-    limit as fbLimit,
-    getCountFromServer,
-    terminate,
-    type Firestore as FirestoreDb,
-    type QueryConstraint,
-    type DocumentData,
-    type WhereFilterOp,
-    type QuerySnapshot,
+import type {
+    Firestore as FirestoreDb,
+    QueryConstraint,
+    DocumentData,
+    WhereFilterOp,
+    QuerySnapshot,
 } from 'firebase/firestore';
-import { onIdTokenChanged } from 'firebase/auth';
+import { firebaseAppSdk, firebaseAuthSdk, firestoreSdk, isFirebaseLoaded, loadFirebase } from '../firebase-sdk';
 import { consoleLog } from '../../constant';
 import { Config, onConfigChange } from '../../Config';
 import init, { getFirestoreConfigurationState, getSafeAuth } from '../firebase-init';
@@ -43,6 +25,28 @@ import {
 import type { ProviderConfigurationState } from '../ProviderConfiguration';
 import { reportSubscribeError } from './query';
 import { converter } from '../../libs/converter';
+
+// CR-154 — the Firestore SDK is loaded with the first call (`loadFirebase(firestoreSdk)`), never at import.
+const getApp = firebaseAppSdk.fn('getApp');
+const onIdTokenChanged = firebaseAuthSdk.fn('onIdTokenChanged');
+const getFirestore = firestoreSdk.fn('getFirestore');
+const collection = firestoreSdk.fn('collection');
+const doc = firestoreSdk.fn('doc');
+const getDocs = firestoreSdk.fn('getDocs');
+const getDoc = firestoreSdk.fn('getDoc');
+const setDoc = firestoreSdk.fn('setDoc');
+const updateDoc = firestoreSdk.fn('updateDoc');
+const deleteDoc = firestoreSdk.fn('deleteDoc');
+const addDoc = firestoreSdk.fn('addDoc');
+const writeBatch = firestoreSdk.fn('writeBatch');
+const onSnapshot = firestoreSdk.fn('onSnapshot');
+const query = firestoreSdk.fn('query');
+const fbWhere = firestoreSdk.fn('where');
+const orderBy = firestoreSdk.fn('orderBy');
+const fbLimit = firestoreSdk.fn('limit');
+const getCountFromServer = firestoreSdk.fn('getCountFromServer');
+const terminate = firestoreSdk.fn('terminate');
+const loadSdk = () => loadFirebase(firestoreSdk);
 
 // ── Path helpers ─────────────────────────────────────────────────────────────
 
@@ -188,6 +192,7 @@ export class FirestoreDataProvider implements DataProviderAdapter {
      * FirestoreDataProvider({databaseId})` for the same id gets a fresh client, not a dead one.
      */
     dispose = async (): Promise<void> => {
+        if (!isFirebaseLoaded(firestoreSdk)) return; // never connected
         try { await terminate(this.getDb()); } catch { /* nothing to terminate, or already gone */ }
     };
 
@@ -212,6 +217,7 @@ export class FirestoreDataProvider implements DataProviderAdapter {
             // session — see docs/24-tenant-platform.md and TenantContext's `tenantSessionReady`
             // in the CMS repo). Left outside, that throw escaped as an unhandled promise
             // rejection instead of going through `handleError` like every other failure here.
+            if (!isFirebaseLoaded(firestoreSdk)) await loadSdk();
             const db = this.getDb();
             if (isDocPath(path)) {
                 const snap = await getDoc(doc(db, np));
@@ -241,6 +247,7 @@ export class FirestoreDataProvider implements DataProviderAdapter {
     set = async (path: string, data: object, exception = false): Promise<void> => {
         const np = normalizePath(path);
         try {
+            if (!isFirebaseLoaded(firestoreSdk)) await loadSdk();
             const db = this.getDb();
             if (isDocPath(path)) {
                 await setDoc(doc(db, np), data);
@@ -259,6 +266,7 @@ export class FirestoreDataProvider implements DataProviderAdapter {
     update = async (path: string, data: object, exception = false): Promise<void> => {
         const np = normalizePath(path);
         try {
+            if (!isFirebaseLoaded(firestoreSdk)) await loadSdk();
             const db = this.getDb();
             if (isDocPath(path)) {
                 await updateDoc(doc(db, np), data as DocumentData);
@@ -276,6 +284,7 @@ export class FirestoreDataProvider implements DataProviderAdapter {
     remove = async (path: string, exception = false): Promise<void> => {
         const np = normalizePath(path);
         try {
+            if (!isFirebaseLoaded(firestoreSdk)) await loadSdk();
             const db = this.getDb();
             if (isDocPath(path)) {
                 await deleteDoc(doc(db, np));
@@ -292,6 +301,7 @@ export class FirestoreDataProvider implements DataProviderAdapter {
 
     count = async (path: string): Promise<number> => {
         if (isDocPath(path)) return 1;
+        if (!isFirebaseLoaded(firestoreSdk)) await loadSdk();
         const db = this.getDb();
         try {
             const snap = await getCountFromServer(collection(db, normalizePath(path)));
@@ -322,8 +332,7 @@ export class FirestoreDataProvider implements DataProviderAdapter {
         options: DatabaseOptions = {}
     ): (() => void) => {
         const { where, order, limit, fieldMap, onLoad } = options;
-        const auth = getSafeAuth();
-        if (!auth || !path) return () => undefined;
+        if (!path) return () => undefined;
         const onFailure = (err: unknown) => { reportSubscribeError(options, err, path); };
 
         const attachListener = (): (() => void) => {
@@ -378,24 +387,34 @@ export class FirestoreDataProvider implements DataProviderAdapter {
             }, onFailure);
         };
 
+        let active = true;
         let unsubscribeData: (() => void) | undefined;
-        // Firestore rules can depend on custom claims. Those claims may change while
-        // the same user remains signed in, so auth-state changes alone are not enough:
-        // reopen the data listener whenever Firebase refreshes the ID token.
-        const unsubscribeAuth = onIdTokenChanged(auth, (user) => {
-            unsubscribeData?.();
-            unsubscribeData = undefined;
-            if (!user) {
-                setRecords([]);
-            } else {
-                // A query the SDK refuses to build (two array filters, too many values) throws here.
-                try { unsubscribeData = attachListener(); } catch (err) { onFailure(err); }
-            }
-        });
+        let unsubscribeAuth: (() => void) | undefined;
+        const start = () => {
+            const auth = getSafeAuth();
+            if (!auth) return;
+            // Firestore rules can depend on custom claims. Those claims may change while
+            // the same user remains signed in, so auth-state changes alone are not enough:
+            // reopen the data listener whenever Firebase refreshes the ID token.
+            unsubscribeAuth = onIdTokenChanged(auth, (user) => {
+                unsubscribeData?.();
+                unsubscribeData = undefined;
+                if (!user) {
+                    setRecords([]);
+                } else {
+                    // A query the SDK refuses to build (two array filters, too many values) throws here.
+                    try { unsubscribeData = attachListener(); } catch (err) { onFailure(err); }
+                }
+            });
+        };
+        // CR-154 — synchronous as before once the SDK is loaded; the first use waits for it.
+        if (isFirebaseLoaded(firestoreSdk)) start();
+        else loadSdk().then(() => { if (active) start(); }, onFailure);
 
         return () => {
+            active = false;
             unsubscribeData?.();
-            unsubscribeAuth();
+            unsubscribeAuth?.();
         };
     };
 
@@ -409,6 +428,7 @@ export class FirestoreDataProvider implements DataProviderAdapter {
     readShallow = async (path: string, exception = false): Promise<string[]> => {
         const np = normalizePath(path);
         try {
+            if (!isFirebaseLoaded(firestoreSdk)) await loadSdk();
             const db = this.getDb();
             if (isDocPath(path)) {
                 const snap = await getDoc(doc(db, np));
@@ -440,6 +460,7 @@ export class FirestoreDataProvider implements DataProviderAdapter {
         const batchSize = Math.min(chunkSize, 500);
 
         try {
+            if (!isFirebaseLoaded(firestoreSdk)) await loadSdk();
             const db = this.getDb();
 
             // ── Purge ────────────────────────────────────────────────────

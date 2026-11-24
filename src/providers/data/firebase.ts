@@ -1,26 +1,10 @@
-import {
-    getDatabase as getFirebaseDatabase,
-    ref,
-    get,
-    set as fbSet,
-    update as fbUpdate,
-    remove as fbRemove,
-    onValue,
-    query,
-    orderByKey,
-    orderByValue,
-    orderByChild,
-    equalTo,
-    startAt,
-    endAt,
-    limitToFirst,
-    limitToLast,
-    type Database,
-    type Query,
-    type DatabaseReference,
-    type DataSnapshot,
+import type {
+    Database,
+    Query,
+    DatabaseReference,
+    DataSnapshot,
 } from 'firebase/database';
-import { onAuthStateChanged } from "firebase/auth";
+import { firebaseAuthSdk, firebaseDatabaseSdk, isFirebaseLoaded, loadFirebase } from '../firebase-sdk';
 import { converter } from "../../libs/converter";
 import { consoleLog } from "../../constant";
 import { Config, onConfigChange } from "../../Config";
@@ -55,6 +39,26 @@ export const SYSTEM_FIELDS = {
     key: "@key",
     value: "@value",
 };
+
+// CR-154 — the Realtime Database SDK is loaded with the first call (`loadSdk()`), never at import.
+const getFirebaseDatabase = firebaseDatabaseSdk.fn('getDatabase');
+const ref = firebaseDatabaseSdk.fn('ref');
+const get = firebaseDatabaseSdk.fn('get');
+const fbSet = firebaseDatabaseSdk.fn('set');
+const fbUpdate = firebaseDatabaseSdk.fn('update');
+const fbRemove = firebaseDatabaseSdk.fn('remove');
+const onValue = firebaseDatabaseSdk.fn('onValue');
+const query = firebaseDatabaseSdk.fn('query');
+const orderByKey = firebaseDatabaseSdk.fn('orderByKey');
+const orderByValue = firebaseDatabaseSdk.fn('orderByValue');
+const orderByChild = firebaseDatabaseSdk.fn('orderByChild');
+const equalTo = firebaseDatabaseSdk.fn('equalTo');
+const startAt = firebaseDatabaseSdk.fn('startAt');
+const endAt = firebaseDatabaseSdk.fn('endAt');
+const limitToFirst = firebaseDatabaseSdk.fn('limitToFirst');
+const limitToLast = firebaseDatabaseSdk.fn('limitToLast');
+const onAuthStateChanged = firebaseAuthSdk.fn('onAuthStateChanged');
+const loadSdk = () => loadFirebase(firebaseDatabaseSdk);
 
 const getDb = (): Database => getFirebaseDatabase();
 
@@ -197,6 +201,7 @@ const processRecordObject = (val: RecordObject, where?: WhereClause, order?: Ord
 };
 
 const buildShallowURL = async (path: string): Promise<string> => {
+    if (!isFirebaseLoaded(firebaseDatabaseSdk)) await loadSdk();
     const auth = getSafeAuth();
     const token = await auth?.currentUser?.getIdToken().catch(() => undefined);
     const u = new URL(`${path}.json`, ref(getDb()).toString());
@@ -239,8 +244,9 @@ export class FirebaseDataProvider implements DataProviderAdapter {
     };
 
     read = async (path: string, { where, order, limit, toArray = false, exception = false }: ReadOptions = {}): Promise<any> => {
-        const { dbRef, clientWhere } = buildLimitedQueryPlan(ref(getDb(), path), order, where, limit);
         try {
+            if (!isFirebaseLoaded(firebaseDatabaseSdk)) await loadSdk();
+            const { dbRef, clientWhere } = buildLimitedQueryPlan(ref(getDb(), path), order, where, limit);
             const snapshot = await get(dbRef);
             if (snapshot.exists()) {
                 consoleLog(`Info: Data found in Firebase for path ${path}`);
@@ -256,6 +262,7 @@ export class FirebaseDataProvider implements DataProviderAdapter {
 
     update = async (path: string, data: object, exception = false): Promise<void> => {
         try {
+            if (!isFirebaseLoaded(firebaseDatabaseSdk)) await loadSdk();
             await fbUpdate(ref(getDb(), path), data);
             consoleLog(`Data successfully merged in Firebase for ${path}`);
         } catch (error) {
@@ -265,6 +272,7 @@ export class FirebaseDataProvider implements DataProviderAdapter {
 
     set = async (path: string, data: object, exception = false): Promise<void> => {
         try {
+            if (!isFirebaseLoaded(firebaseDatabaseSdk)) await loadSdk();
             await fbSet(ref(getDb(), path), data);
             consoleLog(`Data successfully updated in Firebase for ${path}`);
         } catch (error) {
@@ -277,9 +285,9 @@ export class FirebaseDataProvider implements DataProviderAdapter {
         data: object,
         { chunkSize = 1000, purge = false, onProgress }: SetChunksOptions = {}
     ): Promise<void> => {
-        const db = getDb();
-        const dbRef = ref(db, path);
         try {
+            if (!isFirebaseLoaded(firebaseDatabaseSdk)) await loadSdk();
+            const dbRef = ref(getDb(), path);
             if (purge) {
                 await fbRemove(dbRef);
                 onProgress?.(0, 0, `Purging existing data at ${path}`);
@@ -299,6 +307,7 @@ export class FirebaseDataProvider implements DataProviderAdapter {
 
     remove = async (path: string, exception = false): Promise<void> => {
         try {
+            if (!isFirebaseLoaded(firebaseDatabaseSdk)) await loadSdk();
             await fbRemove(ref(getDb(), path));
             consoleLog(`Data successfully removed from Firebase for ${path}`);
         } catch (error) {
@@ -317,8 +326,7 @@ export class FirebaseDataProvider implements DataProviderAdapter {
         options: DatabaseOptions = {}
     ): (() => void) => {
         const { where, order, limit, fieldMap, onLoad } = options;
-        const auth = getSafeAuth();
-        if (!auth || !path) return () => undefined;
+        if (!path) return () => undefined;
         const onFailure = (err: unknown) => { reportSubscribeError(options, err, path); };
 
         const fetchData = (): (() => void) => {
@@ -366,20 +374,30 @@ export class FirebaseDataProvider implements DataProviderAdapter {
             return onValue(dbRef, onValueChange, onFailure);
         };
 
+        let active = true;
         let unsubscribeData: (() => void) | undefined;
-        const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-            unsubscribeData?.();
-            unsubscribeData = undefined;
-            if (!user) {
-                setRecords([]);
-            } else {
-                try { unsubscribeData = fetchData(); } catch (err) { onFailure(err); }
-            }
-        });
+        let unsubscribeAuth: (() => void) | undefined;
+        const start = () => {
+            const auth = getSafeAuth();
+            if (!auth) return;
+            unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+                unsubscribeData?.();
+                unsubscribeData = undefined;
+                if (!user) {
+                    setRecords([]);
+                } else {
+                    try { unsubscribeData = fetchData(); } catch (err) { onFailure(err); }
+                }
+            });
+        };
+        // CR-154 — synchronous as before once the SDK is loaded; the first use waits for it.
+        if (isFirebaseLoaded(firebaseDatabaseSdk)) start();
+        else loadSdk().then(() => { if (active) start(); }, onFailure);
 
         return () => {
+            active = false;
             unsubscribeData?.();
-            unsubscribeAuth();
+            unsubscribeAuth?.();
         };
     };
 }

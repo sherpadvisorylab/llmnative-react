@@ -1,4 +1,4 @@
-import * as LucideIcons from 'lucide-react';
+import { lazyModule } from '../../libs/lazyModule';
 import { toKebabCase, type IconProviderAdapter, type IconComponentProps } from './IconProvider';
 
 // Names that diverge from kebab→PascalCase convention in Lucide
@@ -34,6 +34,9 @@ const ALIASES: Record<string, string> = {
     'warning':                'TriangleAlert',
 };
 
+/** CR-154 — `lucide-react` (an optional peer) is loaded on demand, never when the package is imported. */
+export const lucideSdk = lazyModule(() => import('lucide-react'), 'Install lucide-react to use the Lucide icons.');
+
 function toPascalCase(name: string): string {
     return name.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join('');
 }
@@ -44,6 +47,8 @@ export class LucideIconProvider implements IconProviderAdapter {
 
     /** Every icon of Lucide by its name (CR-148). */
     list(): string[] {
+        const LucideIcons = lucideSdk.peek();
+        if (!LucideIcons) return [];
         if (!this._names) {
             const icons = (LucideIcons as unknown as { icons?: Record<string, unknown> }).icons ?? {};
             this._names = [...new Set(Object.keys(icons).map(toKebabCase))].filter((n) => this.resolve(n)).sort();
@@ -51,7 +56,17 @@ export class LucideIconProvider implements IconProviderAdapter {
         return this._names;
     }
 
+    isReady(): boolean {
+        return lucideSdk.peek() !== undefined;
+    }
+
+    async load(): Promise<void> {
+        await lucideSdk.load();
+    }
+
     resolve(name: string): import('react').ComponentType<IconComponentProps> | null {
+        const LucideIcons = lucideSdk.peek();
+        if (!LucideIcons) return null;
         const key = ALIASES[name] ?? toPascalCase(name);
         return (LucideIcons as unknown as Record<string, import('react').ComponentType<IconComponentProps>>)[key] ?? null;
     }

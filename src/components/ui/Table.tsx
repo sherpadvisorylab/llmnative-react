@@ -1,5 +1,5 @@
 ﻿import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
-import { ArrowDown, ArrowUp, ArrowUpDown, GripVertical } from 'lucide-react';
+import Icon from './Icon';
 import { useTheme } from "../../Theme";
 import { useI18n, interpolate } from "../../I18n";
 import { RecordArray, RecordProps } from "../../providers/data/DataProvider";
@@ -381,9 +381,9 @@ function Table({
                                             aria-hidden="true"
                                         >
                                             {isActiveSort ? (
-                                                currentOrder?.dir === 'desc' ? <ArrowDown size={14} /> : <ArrowUp size={14} />
+                                                currentOrder?.dir === 'desc' ? <Icon name="arrow-down" size={14} /> : <Icon name="arrow-up" size={14} />
                                             ) : (
-                                                <ArrowUpDown size={14} />
+                                                <Icon name="arrow-up-down" size={14} />
                                             )}
                                         </span>
                                         <span>{hdr.label}</span>
@@ -537,7 +537,7 @@ function Table({
                                                 setDropIndicator(null);
                                             }}
                                         >
-                                            <GripVertical size={14} />
+                                            <Icon name="grip-vertical" size={14} />
                                         </button>
                                     </td>
                                 )}

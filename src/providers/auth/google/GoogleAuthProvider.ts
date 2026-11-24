@@ -1,10 +1,4 @@
-import {
-    getAdditionalUserInfo,
-    GoogleAuthProvider as FirebaseGoogleAuthProvider,
-    onAuthStateChanged,
-    signInWithCredential,
-    signOut as firebaseSignOut,
-} from 'firebase/auth';
+import { firebaseAuthSdk, isFirebaseLoaded, loadFirebase } from '../../firebase-sdk';
 import { AuthProviderAdapter, AuthSignInOptions, UserProfile } from '../AuthProvider';
 import { getGlobalVars, removeGlobalVars, setGlobalVars } from '../../../Global';
 import { getSafeAuth } from '../../firebase-init';
@@ -15,6 +9,12 @@ import {
     getMissingKeys,
     type ProviderConfigurationState,
 } from '../../ProviderConfiguration';
+
+// CR-154 — the Firebase auth SDK is loaded with the first use, never at import.
+const getAdditionalUserInfo = firebaseAuthSdk.fn('getAdditionalUserInfo');
+const onAuthStateChanged = firebaseAuthSdk.fn('onAuthStateChanged');
+const signInWithCredential = firebaseAuthSdk.fn('signInWithCredential');
+const firebaseSignOut = firebaseAuthSdk.fn('signOut');
 
 type GoogleUserProfile = { email?: string; name?: string; picture?: string; sub?: string };
 type UserStore = { uid?: string; email?: string; displayName?: string; photoURL?: string; profile?: GoogleUserProfile };
@@ -72,13 +72,14 @@ export class GoogleAuthProvider implements AuthProviderAdapter {
                     const credentialDecoded = decodeJWT(credential);
                     localStorage.setItem('googleCredentialToken', credential);
 
+                    await loadFirebase();
                     const firebaseAuth = getSafeAuth();
                     if (!firebaseAuth) {
                         reject(new Error('GoogleAuthProvider: Firebase auth is not initialized.'));
                         return;
                     }
 
-                    const firebaseCredential = FirebaseGoogleAuthProvider.credential(credential);
+                    const firebaseCredential = firebaseAuthSdk.get().GoogleAuthProvider.credential(credential);
                     const userCredential = await signInWithCredential(firebaseAuth, firebaseCredential);
                     const additionalUserInfo = getAdditionalUserInfo(userCredential);
 
@@ -121,6 +122,19 @@ export class GoogleAuthProvider implements AuthProviderAdapter {
     }
 
     onAuthChange(callback: (user: UserProfile | null) => void): () => void {
+        // CR-154: the same once the Firebase SDK is loaded; the first use waits for it (without it, the stored user).
+        if (!isFirebaseLoaded()) {
+            let cancelled = false;
+            let unsubscribe = () => {};
+            loadFirebase().then(
+                () => { if (!cancelled) unsubscribe = this.onAuthChange(callback); },
+                () => { if (!cancelled) callback(this.getUser()); },
+            );
+            return () => {
+                cancelled = true;
+                unsubscribe();
+            };
+        }
         const auth = getSafeAuth();
         if (!auth) {
             callback(this.getUser());

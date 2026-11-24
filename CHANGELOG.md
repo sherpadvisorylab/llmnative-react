@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.19.0] - 2026-11-25
+
+### Added
+- `IconProviderAdapter.isReady()` / `load()` (optional, CR-154): a provider whose package loads on demand. `Icon` keeps the place of the icon until it is loaded (same size, `data-rf-icon-pending`); `<App>` waits for the active provider before its first render; `setProvider` loads the new provider before showing it.
+
+### Changed
+- `firebase`, `lucide-react` and `@phosphor-icons/react` (optional peers) are loaded on first use, no longer when the package is imported (CR-154), as `@supabase/supabase-js` since 3.17.1. An app without them imports `@llmnative/react` in Node too (Vitest, SSR, scripts), and each Firebase part (Firestore, Realtime Database, Storage) is a chunk of its own.
+  - Firebase: `init()` and the first call of a provider load the SDK; once loaded, signatures and timing are those of before. On first use `subscribe` and `onAuthChange` attach once the SDK is ready, and `FirebaseAuthProvider.getUser()` answers `null` until it is. Without the SDK the providers say to install it through their own errors.
+  - Icons: a component rendered outside `<App>` (e.g. in a test) shows the placeholder until the package is loaded; tests that look for the SVG can preload it with `await new LucideIconProvider().load()`.
+- `Table` draws its sort and drag icons through the active icon provider (Phosphor aliases `arrow-up-down`, `grip-vertical`).
+- `test:integration` starts the auth emulator too; a new suite drives the Firebase providers themselves against the emulators.
+
 ## [3.18.0] - 2026-11-24
 
 ### Added

@@ -1,5 +1,6 @@
-import { initializeApp, getApp, getApps, deleteApp, type FirebaseApp } from 'firebase/app';
-import { getAuth, getAdditionalUserInfo, signInWithCredential, signInWithCustomToken, setPersistence, inMemoryPersistence, onAuthStateChanged, type Auth, type User } from "firebase/auth";
+import type { FirebaseApp } from 'firebase/app';
+import type { Auth, User } from 'firebase/auth';
+import { firebaseAppSdk, firebaseAuthSdk, loadFirebase } from './firebase-sdk';
 import { getGoogleCredential } from "./auth/google/auth";
 import { FirebaseConfig } from "../Config";
 import { consoleLog } from "../constant";
@@ -8,6 +9,18 @@ import {
     getMissingKeys,
     type ProviderConfigurationState,
 } from "./ProviderConfiguration";
+
+// CR-154 — the SDK is loaded by `init()` (and by every async entry below), never at import.
+const initializeApp = firebaseAppSdk.fn('initializeApp');
+const getApp = firebaseAppSdk.fn('getApp');
+const getApps = firebaseAppSdk.fn('getApps');
+const deleteApp = firebaseAppSdk.fn('deleteApp');
+const getAuth = firebaseAuthSdk.fn('getAuth');
+const getAdditionalUserInfo = firebaseAuthSdk.fn('getAdditionalUserInfo');
+const signInWithCredential = firebaseAuthSdk.fn('signInWithCredential');
+const signInWithCustomToken = firebaseAuthSdk.fn('signInWithCustomToken');
+const setPersistence = firebaseAuthSdk.fn('setPersistence');
+const onAuthStateChanged = firebaseAuthSdk.fn('onAuthStateChanged');
 
 interface TokenInfo {
     accessToken?: string;
@@ -53,7 +66,9 @@ export const getFirestoreConfigurationState = (appName: string = DEFAULT_APP_NAM
     ], 'firebase.')
 );
 
+/** The auth of the app, or null: also while the SDK is not loaded yet (`loadFirebase()`). */
 export const getSafeAuth = (appName: string = DEFAULT_APP_NAME): Auth | null => {
+    if (!firebaseAppSdk.peek() || !firebaseAuthSdk.peek()) return null;
     try {
         return appName === DEFAULT_APP_NAME ? getAuth() : getAuth(getApp(appName));
     } catch (error: unknown) {
@@ -72,6 +87,7 @@ const getUser = (auth: Auth): Promise<User | null> => {
 };
 
 const requestLogin = async (): Promise<boolean> => {
+    await loadFirebase();
     const googleCredential = getGoogleCredential();
     if (!googleCredential) {
         console.error("Firebase: Google credential not found.");
@@ -108,6 +124,7 @@ function getTokenInfo(user: User): TokenInfo {
 }
 
 export const getFirebaseAuthorization = async (): Promise<boolean> => {
+    await loadFirebase();
     const auth = getSafeAuth();
     if (!auth) return false;
 
@@ -143,11 +160,12 @@ export const getFirebaseAuthorization = async (): Promise<boolean> => {
  * Call init(config) to point the app at the right project *before* calling this.
  */
 export const signInWithFirebaseCustomToken = async (token: string): Promise<boolean> => {
+    await loadFirebase();
     const auth = getSafeAuth();
     if (!auth) return false;
 
     try {
-        await setPersistence(auth, inMemoryPersistence);
+        await setPersistence(auth, firebaseAuthSdk.get().inMemoryPersistence);
         await signInWithCustomToken(auth, token);
         return true;
     } catch (error) {
@@ -162,6 +180,7 @@ export const signInWithFirebaseCustomToken = async (token: string): Promise<bool
 
 const init = async (config: FirebaseConfig, appName: string = DEFAULT_APP_NAME): Promise<FirebaseApp> => {
     setFirebaseConfigState(config, appName);
+    await loadFirebase();
     const existingApp = getApps().find((app) => app.name === appName);
 
     if (existingApp) {
@@ -190,6 +209,7 @@ export async function callFirebaseFunction<T = unknown>(
     appName: string = DEFAULT_APP_NAME,
     region?: string,
 ): Promise<T> {
+    await loadFirebase();
     const { getFunctions, httpsCallable } = await import('firebase/functions');
     const app = appName === DEFAULT_APP_NAME ? getApp() : getApp(appName);
     const call = httpsCallable<unknown, T>(getFunctions(app, region), functionName);

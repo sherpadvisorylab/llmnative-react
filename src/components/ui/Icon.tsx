@@ -1,5 +1,5 @@
 import React from 'react';
-import { useIconProvider } from '../../providers/icon/IconProviderContext';
+import { useIconProvider, useIconProviderReady } from '../../providers/icon/IconProviderContext';
 import type { IconProviderAdapter } from '../../providers/icon/IconProvider';
 import { LucideIconProvider } from '../../providers/icon/LucideIconProvider';
 
@@ -23,7 +23,12 @@ const defaultProvider = new LucideIconProvider();
 const Icon = ({ name, size = 16, className, style, provider: overrideProvider, label, weight }: IconProps) => {
     const contextProvider = useIconProvider();
     const provider = overrideProvider ?? contextProvider ?? defaultProvider;
+    const ready = useIconProviderReady(provider);
     if (!provider || typeof name !== 'string' || !name.trim()) return null;
+    // CR-154 — the package of the provider is still loading: keep the place of the icon (no layout shift).
+    if (!ready) {
+        return <span aria-hidden className={className} style={{ display: 'inline-block', width: size, height: size, flexShrink: 0, ...style }} data-rf-icon-pending />;
+    }
     const Component = provider.resolve(name);
     if (!Component) return null;
     return <Component size={size} className={className} style={style} weight={weight} aria-label={label} aria-hidden={label ? undefined : true} />;

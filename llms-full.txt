@@ -1752,6 +1752,24 @@ icons.setProvider('phosphor')   // 'lucide' | 'phosphor' | custom
 new LucideIconProvider().list()  // CR-148: i nomi di tutte le icone del provider (per un selettore)
 ```
 
+**Peer opzionali caricati all'uso (CR-153, CR-154).** `firebase`, `@supabase/supabase-js`, `lucide-react` e
+`@phosphor-icons/react` non vengono caricati quando si importa `@llmnative/react`. Ognuno entra con un import dinamico al
+primo uso, quindi un'app che non ne ha uno si importa anche in Node (Vitest, SSR, script). Se il pacchetto manca,
+l'errore («Install firebase…») compare solo quando lo si usa.
+
+- **Firebase:** `init()` e i primi metodi dei provider caricano l'SDK. Ogni parte (Firestore, Realtime Database,
+  Storage) è un chunk a sé. Dopo il primo caricamento le firme e i tempi sono quelli di prima. Al primo uso:
+  - `subscribe` e `onAuthChange` si collegano quando l'SDK è pronto;
+  - `getUser()` vale `null` finché l'SDK non è caricato.
+- **Icone:**
+  - Al primo render `<App>` aspetta il pacchetto del provider attivo: l'app compare già con le sue icone.
+  - `setProvider` carica il nuovo provider prima di mostrarlo.
+  - Un `Icon` fuori da `<App>` tiene il posto dell'icona (stesse misure, `data-rf-icon-pending`) finché il pacchetto
+    non è caricato.
+  - Un provider dell'app può fare lo stesso: `IconProviderAdapter` ha `isReady()` e `load()`, entrambi opzionali.
+- **Test del consumer:** prima di renderizzare componenti con icone fuori da `<App>`, precaricare il pacchetto:
+  `await new LucideIconProvider().load()`.
+
 ---
 
 ## Head (SEO)

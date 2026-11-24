@@ -1,5 +1,5 @@
 import {decodeJWT} from "../../../libs/utils";
-import {GoogleAuthProvider} from "firebase/auth";
+import { firebaseAuthSdk } from "../../firebase-sdk";
 import {Config, getConfig, GoogleConfig, onConfigChange} from "../../../Config";
 
 let config: GoogleConfig | undefined = getConfig?.()?.google;
@@ -28,7 +28,8 @@ export const getGoogleCredential = () => {
     }
 
     try {
-        return GoogleAuthProvider.credential(googleCredentialToken);
+        // Called once the Firebase SDK is loaded (getFirebaseAuthorization), CR-154.
+        return firebaseAuthSdk.get().GoogleAuthProvider.credential(googleCredentialToken);
     } catch (error) {
         console.error(error);
     }

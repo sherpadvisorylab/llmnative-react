@@ -1,19 +1,5 @@
-import {
-    signInWithEmailAndPassword,
-    signInAnonymously,
-    signInWithPopup,
-    signOut as firebaseSignOut,
-    onAuthStateChanged,
-    OAuthProvider,
-    createUserWithEmailAndPassword,
-    updateProfile,
-    sendEmailVerification as firebaseSendEmailVerification,
-    sendPasswordResetEmail,
-    confirmPasswordReset as firebaseConfirmPasswordReset,
-    applyActionCode,
-    type Auth,
-    type User,
-} from 'firebase/auth';
+import type { Auth, OAuthProvider, User } from 'firebase/auth';
+import { firebaseAuthSdk, isFirebaseLoaded, loadFirebase } from '../../firebase-sdk';
 import type {
     AuthLinkOptions,
     AuthProviderAdapter,
@@ -25,6 +11,19 @@ import type {
 import type { ProviderConfigurationState } from '../../ProviderConfiguration';
 import type { FirebaseConfig } from '../../../Config';
 import init, { getFirestoreConfigurationState, getSafeAuth } from '../../firebase-init';
+
+// CR-154 — the auth SDK is loaded with the first use (`ready()`), never at import.
+const signInWithEmailAndPassword = firebaseAuthSdk.fn('signInWithEmailAndPassword');
+const signInAnonymously = firebaseAuthSdk.fn('signInAnonymously');
+const signInWithPopup = firebaseAuthSdk.fn('signInWithPopup');
+const firebaseSignOut = firebaseAuthSdk.fn('signOut');
+const onAuthStateChanged = firebaseAuthSdk.fn('onAuthStateChanged');
+const createUserWithEmailAndPassword = firebaseAuthSdk.fn('createUserWithEmailAndPassword');
+const updateProfile = firebaseAuthSdk.fn('updateProfile');
+const firebaseSendEmailVerification = firebaseAuthSdk.fn('sendEmailVerification');
+const sendPasswordResetEmail = firebaseAuthSdk.fn('sendPasswordResetEmail');
+const firebaseConfirmPasswordReset = firebaseAuthSdk.fn('confirmPasswordReset');
+const applyActionCode = firebaseAuthSdk.fn('applyActionCode');
 
 // ── Sign-in options ────────────────────────────────────────────────────────────
 
@@ -59,7 +58,7 @@ const PROVIDER_IDS: Record<string, string> = {
 
 function buildOAuthProvider(provider: string): OAuthProvider {
     const id = PROVIDER_IDS[provider] ?? provider;
-    return new OAuthProvider(id);
+    return new (firebaseAuthSdk.get().OAuthProvider)(id);
 }
 
 // ── User mapping ───────────────────────────────────────────────────────────────
@@ -97,13 +96,19 @@ export interface FirebaseAuthProviderOptions {
 
 export class FirebaseAuthProvider implements AuthProviderAdapter {
     private readonly appName?: string;
-    private readonly initPromise: Promise<void>;
+    private readonly initPromise?: Promise<void>;
 
     constructor(private readonly options: FirebaseAuthProviderOptions = {}) {
         this.appName = options.appName;
-        this.initPromise = options.config
-            ? init(options.config, this.appName).then(() => undefined)
-            : Promise.resolve();
+        if (options.config) {
+            this.initPromise = init(options.config, this.appName).then(() => undefined);
+            this.initPromise.catch(() => undefined); // reported by the calls that await it
+        }
+    }
+
+    /** Its own app initialized, or else the SDK loaded (CR-154: never at import). */
+    private ready(): Promise<void> {
+        return this.initPromise ?? loadFirebase();
     }
 
     getConfigurationState(): ProviderConfigurationState {
@@ -130,7 +135,7 @@ export class FirebaseAuthProvider implements AuthProviderAdapter {
     // ── signIn ─────────────────────────────────────────────────────────────────
 
     async signIn(options: FirebaseSignInOptions = {}): Promise<UserProfile | null> {
-        await this.initPromise;
+        await this.ready();
         const auth = getSafeAuth(this.appName);
         if (!auth) throw new Error('FirebaseAuthProvider: Firebase auth is not initialized');
 
@@ -161,7 +166,7 @@ export class FirebaseAuthProvider implements AuthProviderAdapter {
     // ── signOut ────────────────────────────────────────────────────────────────
 
     async signOut(): Promise<void> {
-        await this.initPromise;
+        await this.ready();
         const auth = getSafeAuth(this.appName);
         if (!auth) throw new Error('FirebaseAuthProvider: Firebase auth is not initialized');
         await firebaseSignOut(auth);
@@ -175,26 +180,26 @@ export class FirebaseAuthProvider implements AuthProviderAdapter {
         // defer when this instance's own init() call is actually still in flight — an
         // unconditional await here would push every caller's callback a tick later, even
         // in the common case, which callers relying on an immediate callback don't expect.
-        if (!this.options.config) {
+        // CR-154: the same once the SDK is loaded; the first use waits for it.
+        const subscribe = (): (() => void) => {
             const auth = getSafeAuth(this.appName);
             if (!auth) {
                 callback(null);
                 return () => {};
             }
             return onAuthStateChanged(auth, (user) => callback(mapUser(user)));
-        }
+        };
+        if (!this.options.config && isFirebaseLoaded()) return subscribe();
 
         let unsubscribe = () => {};
         let cancelled = false;
 
-        this.initPromise.then(() => {
+        this.ready().then(() => {
             if (cancelled) return;
-            const auth = getSafeAuth(this.appName);
-            if (!auth) {
-                callback(null);
-                return;
-            }
-            unsubscribe = onAuthStateChanged(auth, (user) => callback(mapUser(user)));
+            unsubscribe = subscribe();
+        }, (error: unknown) => {
+            console.error('FirebaseAuthProvider.onAuthChange:', error);
+            if (!cancelled) callback(null);
         });
 
         return () => {
@@ -206,7 +211,7 @@ export class FirebaseAuthProvider implements AuthProviderAdapter {
     // ── getAccessToken ─────────────────────────────────────────────────────────
 
     async getAccessToken(): Promise<string> {
-        await this.initPromise;
+        await this.ready();
         const auth = getSafeAuth(this.appName);
         if (!auth?.currentUser) throw new Error('FirebaseAuthProvider: no active session');
         return auth.currentUser.getIdToken();
@@ -215,7 +220,7 @@ export class FirebaseAuthProvider implements AuthProviderAdapter {
     // ── getIdTokenClaims ───────────────────────────────────────────────────────
 
     async getIdTokenClaims(forceRefresh = false): Promise<Record<string, unknown> | null> {
-        await this.initPromise;
+        await this.ready();
         const auth = getSafeAuth(this.appName);
         if (!auth?.currentUser) return null;
         const { claims } = await auth.currentUser.getIdTokenResult(forceRefresh);
@@ -225,14 +230,14 @@ export class FirebaseAuthProvider implements AuthProviderAdapter {
     // ── Flows of the access screens (CR-127) ───────────────────────────────────
 
     private async requireAuth(): Promise<Auth> {
-        await this.initPromise;
+        await this.ready();
         const auth = getSafeAuth(this.appName);
         if (!auth) throw new Error('FirebaseAuthProvider: Firebase auth is not initialized');
         return auth;
     }
 
     async whenReady(): Promise<void> {
-        await this.initPromise;
+        await this.ready();
         await getSafeAuth(this.appName)?.authStateReady();
     }
 

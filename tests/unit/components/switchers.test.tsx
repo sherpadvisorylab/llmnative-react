@@ -55,6 +55,7 @@ vi.mock('../../../src/providers/icon/IconProviderContext', () => ({
     useIconProvider: vi.fn(() => ({
         resolve: vi.fn(() => null),
     })),
+    useIconProviderReady: vi.fn(() => true),
 }));
 
 vi.mock('../../../src/I18n', async () => {

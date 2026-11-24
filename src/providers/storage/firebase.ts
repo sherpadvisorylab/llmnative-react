@@ -1,16 +1,17 @@
-import {
-    getStorage as getFirebaseStorage,
-    ref as storageRef,
-    uploadString,
-    uploadBytesResumable,
-    getDownloadURL,
-    getMetadata,
-    deleteObject,
-    listAll,
-    type FirebaseStorage,
-    type StorageReference,
-} from 'firebase/storage';
-import { getApp } from 'firebase/app';
+import type { FirebaseStorage, StorageReference } from 'firebase/storage';
+import { firebaseAppSdk, firebaseStorageSdk, isFirebaseLoaded, loadFirebase } from '../firebase-sdk';
+
+// CR-154 — the Storage SDK is loaded with the first call (`loadSdk()`), never at import.
+const getApp = firebaseAppSdk.fn('getApp');
+const getFirebaseStorage = firebaseStorageSdk.fn('getStorage');
+const storageRef = firebaseStorageSdk.fn('ref');
+const uploadString = firebaseStorageSdk.fn('uploadString');
+const uploadBytesResumable = firebaseStorageSdk.fn('uploadBytesResumable');
+const getDownloadURL = firebaseStorageSdk.fn('getDownloadURL');
+const getMetadata = firebaseStorageSdk.fn('getMetadata');
+const deleteObject = firebaseStorageSdk.fn('deleteObject');
+const listAll = firebaseStorageSdk.fn('listAll');
+const loadSdk = () => loadFirebase(firebaseStorageSdk);
 import { Config, onConfigChange } from '../../Config';
 import init, { getFirebaseConfigurationState } from '../firebase-init';
 import type {
@@ -97,6 +98,7 @@ export class FirebaseStorageProvider implements StorageProviderAdapter {
     ): Promise<string | undefined> => {
         if (!file) return;
         try {
+            if (!isFirebaseLoaded(firebaseStorageSdk)) await loadSdk();
             const ref = storageRef(getStorage(this.resolveBucket(opts.bucket)), path);
 
             if (typeof file === 'string') {
@@ -136,6 +138,25 @@ export class FirebaseStorageProvider implements StorageProviderAdapter {
         path: string,
         opts: UploadOptions = {}
     ): UploadHandle => {
+        // CR-154 — the first upload waits for the SDK; the handle drives the real one once it exists.
+        if (!isFirebaseLoaded(firebaseStorageSdk)) {
+            let inner: UploadHandle | undefined;
+            let cancelled = false;
+            const url = loadSdk().then(
+                () => {
+                    if (cancelled) return undefined;
+                    inner = this.createUpload(file, path, opts);
+                    return inner.url;
+                },
+                () => undefined,
+            );
+            return {
+                url,
+                pause: () => { inner?.pause(); },
+                resume: () => { inner?.resume(); },
+                cancel: () => { cancelled = true; inner?.cancel(); },
+            };
+        }
         const ref = storageRef(getStorage(this.resolveBucket(opts.bucket)), path);
 
         // Data URL: uploadString has no native pause/resume
@@ -242,6 +263,7 @@ export class FirebaseStorageProvider implements StorageProviderAdapter {
 
     getURL = async (path: string, opts: StorageOptions = {}): Promise<string | undefined> => {
         try {
+            if (!isFirebaseLoaded(firebaseStorageSdk)) await loadSdk();
             return await getDownloadURL(storageRef(getStorage(this.resolveBucket(opts.bucket)), path));
         } catch (error) {
             console.error(`[FirebaseStorage] getURL error for ${path}:`, error);
@@ -252,6 +274,7 @@ export class FirebaseStorageProvider implements StorageProviderAdapter {
 
     getFileInfo = async (path: string, opts: StorageOptions = {}): Promise<StorageFileInfo | undefined> => {
         try {
+            if (!isFirebaseLoaded(firebaseStorageSdk)) await loadSdk();
             const ref = storageRef(getStorage(this.resolveBucket(opts.bucket)), path);
             const meta = await getMetadata(ref);
             return {
@@ -293,6 +316,7 @@ export class FirebaseStorageProvider implements StorageProviderAdapter {
             return this._deleteFolder(path, opts);
         }
         try {
+            if (!isFirebaseLoaded(firebaseStorageSdk)) await loadSdk();
             await deleteObject(storageRef(getStorage(this.resolveBucket(opts.bucket)), path));
             return 1;
         } catch (error: unknown) {
@@ -304,6 +328,7 @@ export class FirebaseStorageProvider implements StorageProviderAdapter {
 
     private _deleteFolder = async (path: string, opts: StorageOptions): Promise<number> => {
         try {
+            if (!isFirebaseLoaded(firebaseStorageSdk)) await loadSdk();
             const ref = storageRef(getStorage(this.resolveBucket(opts.bucket)), path);
             const { items, prefixes } = await listAll(ref);
 
@@ -349,6 +374,8 @@ export class FirebaseStorageProvider implements StorageProviderAdapter {
         const showFolders = opts.includeFolders === true;
 
         try {
+
+            if (!isFirebaseLoaded(firebaseStorageSdk)) await loadSdk();
             const ref = storageRef(getStorage(this.resolveBucket(opts.bucket)), path);
             const { items, prefixes } = await listAll(ref);
 
