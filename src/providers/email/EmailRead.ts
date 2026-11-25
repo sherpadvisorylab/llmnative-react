@@ -70,6 +70,21 @@ export interface EmailReadOptions {
     attachments?: boolean | { maxBytes?: number };
 }
 
+/** CR-156 — the mails of a period: `from` included, `to` excluded (ISO dates), a page at a time. */
+export interface EmailReadRangeOptions extends EmailReadOptions {
+    from: string;
+    to: string;
+    /** The `next` of the page before; none for the first page. */
+    page?: string;
+}
+
+/** CR-156 — a page of a period. The messages carry `cursor: ''`: a period is not a reading position. */
+export interface EmailReadRangeBatch {
+    messages: EmailMessage[];
+    /** The page after this one; absent on the last page. */
+    next?: string;
+}
+
 export interface EmailReadAdapter extends ProviderConfigurable {
     /** Reading starts now: the mails already in the mailbox stay out. */
     start(): Promise<EmailReadStart>;
@@ -78,6 +93,18 @@ export interface EmailReadAdapter extends ProviderConfigurable {
      * knows (Gmail's history expired, IMAP's UIDVALIDITY changed) starts again from now, reading nothing old.
      */
     read(cursor: string, options?: EmailReadOptions): Promise<EmailReadBatch>;
+    /**
+     * CR-156 — the mails received in a period, a page at a time (an app that connects a mailbox late, or reads a
+     * past period again). Optional: an adapter without it reads no period.
+     */
+    readRange?(options: EmailReadRangeOptions): Promise<EmailReadRangeBatch>;
+}
+
+/** The two ends of a period, checked: `from` before `to`. */
+export function rangeOf({ from, to }: { from: string; to: string }): { from: Date; to: Date } | null {
+    const start = new Date(from);
+    const end = new Date(to);
+    return Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || start >= end ? null : { from: start, to: end };
 }
 
 export const DEFAULT_EMAIL_READ_LIMIT = 50;

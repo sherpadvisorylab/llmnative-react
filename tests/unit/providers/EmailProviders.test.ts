@@ -475,3 +475,55 @@ describe('attachments of the messages read (CR-155)', () => {
 });
 
 const CONFIG_IMAP = { host: 'imap.acme.it', user: 'info@acme.it', password: 'app-pass' };
+
+// CR-156: the mails of a period.
+describe('the mails of a period (CR-156)', () => {
+    it('Gmail lists the period with the label and the seconds, a page at a time', async () => {
+        const { http, calls } = fakeFetch([
+            [TOKEN_URL, () => ({ body: { access_token: 'a' } })],
+            [`${GMAIL}/messages?`, (url) => (new URL(url).searchParams.get('pageToken') === 'p2'
+                ? { body: { messages: [{ id: 'm3' }] } }
+                : { body: { messages: [{ id: 'm1' }, { id: 'm2' }], nextPageToken: 'p2' } })],
+            [`${GMAIL}/messages/m2`, () => ({ status: 404 })],
+            [`${GMAIL}/messages/`, (url) => ({ body: gmailMessage(url.split('/messages/')[1].split('?')[0]) })],
+        ]);
+        const reader = new GmailEmailReader({ auth: SERVER_AUTH, fetch: http });
+        const first = await reader.readRange({ from: '2026-11-01T00:00:00Z', to: '2026-11-08T00:00:00Z', limit: 2 });
+        const query = new URL(calls[1].url).searchParams;
+        expect([query.get('q'), query.get('labelIds'), query.get('maxResults')]).toEqual([`after:${Date.UTC(2026, 10, 1) / 1000} before:${Date.UTC(2026, 10, 8) / 1000}`, 'INBOX', '2']);
+        expect(first.messages.map((m) => [m.id, m.cursor])).toEqual([['m1', '']]);
+        expect(first.next).toBe('p2');
+        const second = await reader.readRange({ from: '2026-11-01T00:00:00Z', to: '2026-11-08T00:00:00Z', page: first.next });
+        expect(second).toEqual({ messages: [expect.objectContaining({ id: 'm3' })] });
+        await expect(reader.readRange({ from: '2026-11-08T00:00:00Z', to: '2026-11-01T00:00:00Z' })).rejects.toMatchObject({ code: 'invalid-message' });
+    });
+
+    it('IMAP searches the days of the period, keeps the exact period, a page at a time', async () => {
+        const dates: Record<string, string> = { a: '2026-10-31T23:00:00Z', b: '2026-11-01T09:00:00Z', c: '2026-11-03T09:00:00Z', d: '2026-11-07T22:00:00Z' };
+        const searched: { since?: Date; before?: Date }[] = [];
+        const imap = fakeImap({ uidValidity: 7, mails: [{ uid: 1, raw: 'a|x' }, { uid: 2, raw: 'b|y' }, { uid: 3, raw: 'c|z' }, { uid: 4, raw: 'd|w' }] });
+        const modules = async (): Promise<ImapModules> => {
+            const base = await imap.modules();
+            const Base = base.ImapFlow as unknown as new (o: Record<string, unknown>) => Record<string, unknown>;
+            return {
+                ImapFlow: class extends (Base as any) {
+                    async search(query: { since?: Date; before?: Date }) { searched.push(query); return [4, 1, 2, 3]; }
+                    async *fetch(range: string) {
+                        for (const uid of range.split(',').map(Number)) yield { uid, source: Buffer.from(`${'abcd'[uid - 1]}|x`) };
+                    }
+                } as unknown as ImapModules['ImapFlow'],
+                simpleParser: async (source) => {
+                    const subject = source.toString().split('|')[0];
+                    return { subject, text: 'x', from: { text: 'ada@example.com' }, date: new Date(dates[subject]) };
+                },
+            };
+        };
+        const reader = new ImapEmailReader(CONFIG_IMAP, { modules });
+        const first = await reader.readRange({ from: '2026-11-01T00:00:00Z', to: '2026-11-07T12:00:00Z', limit: 3 });
+        expect(searched[0]).toEqual({ since: new Date('2026-11-01T00:00:00Z'), before: new Date('2026-11-08T00:00:00Z') });
+        expect(first.messages.map((m) => [m.subject, m.id, m.cursor])).toEqual([['b', '7-2', ''], ['c', '7-3', '']]);
+        expect(first.next).toBe('3');
+        const second = await reader.readRange({ from: '2026-11-01T00:00:00Z', to: '2026-11-07T12:00:00Z', limit: 3, page: first.next });
+        expect(second).toEqual({ messages: [] });
+    });
+});

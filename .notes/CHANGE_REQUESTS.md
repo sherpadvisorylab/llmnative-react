@@ -160,6 +160,32 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
+## CR-156 — Le mail di un periodo con `emailRead` (Gmail, IMAP)
+
+**Stato:** ✅ done (3.21.0)
+**Issue:** [#137](https://github.com/sherpadvisorylab/llmnative-react/issues/137)
+**Priorità:** Alta
+**Dipende da:** CR-130, CR-155
+
+### Motivazione
+I lettori di `emailRead` leggono le mail nuove da un cursore (CR-130). Un'app che collega una casella dopo, o che vuole
+rielaborare le mail di un periodo passato, non può leggere le mail di un intervallo di date.
+
+### Scope
+- `EmailReadAdapter.readRange?(options)`: le mail ricevute da `from` (incluso) a `to` (escluso), a pagine (`limit`, `page` =
+  `next` della pagina prima), `attachments` come in `read`; i messaggi hanno `cursor: ''`.
+- Gmail: `messages.list` con `after:`/`before:` in secondi sull'etichetta del lettore; `nextPageToken` come `next`.
+- IMAP: `SEARCH SINCE/BEFORE` per giorno, poi solo il periodo esatto; UID crescenti, la posizione come `next`.
+- Facoltativo nel contratto.
+
+### Criteri di accettazione
+- [x] AC1: Gmail legge un periodo a pagine, con l'etichetta, la query in secondi; un messaggio cancellato nel frattempo si salta.
+- [x] AC2: IMAP legge un periodo a pagine, esattamente da `from` a `to`.
+- [x] AC3: tipi esportati (`EmailReadRangeOptions`, `EmailReadRangeBatch`), `llms-full.txt`, test unitari (2), release minor 3.21.0.
+  Verifica nel consumer: un CRM che sincronizza le mail di un periodo passato delle sue caselle.
+
+---
+
 ## CR-155 — Allegati dei messaggi letti da `emailRead` (Gmail, IMAP)
 
 **Stato:** ✅ done (3.20.0)

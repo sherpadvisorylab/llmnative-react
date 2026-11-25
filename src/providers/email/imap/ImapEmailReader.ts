@@ -1,6 +1,6 @@
 import { createConfigurationState, getMissingKeys, type ProviderConfigurationState } from '../../ProviderConfiguration';
 import { EmailProviderError } from '../EmailError';
-import { attachmentMaxBytes, DEFAULT_EMAIL_READ_LIMIT, type EmailMessage, type EmailReadAttachment, type EmailReadAdapter, type EmailReadBatch, type EmailReadOptions, type EmailReadStart } from '../EmailRead';
+import { attachmentMaxBytes, DEFAULT_EMAIL_READ_LIMIT, rangeOf, type EmailMessage, type EmailReadAttachment, type EmailReadRangeBatch, type EmailReadRangeOptions, type EmailReadAdapter, type EmailReadBatch, type EmailReadOptions, type EmailReadStart } from '../EmailRead';
 
 export type ImapEmailReaderConfig = {
     host: string;
@@ -25,6 +25,8 @@ type ImapClient = {
     connect(): Promise<void>;
     mailboxOpen(path: string, options?: { readOnly?: boolean }): Promise<{ uidValidity: bigint | number; uidNext: number }>;
     fetch(range: string, query: { uid?: boolean; source?: boolean }, options?: { uid?: boolean }): AsyncIterable<{ uid: number; source?: Buffer }>;
+    /** CR-156: the UIDs of the messages of a period (by day, as IMAP searches). */
+    search(query: { since?: Date; before?: Date }, options?: { uid?: boolean }): Promise<number[] | false>;
     logout(): Promise<void>;
 };
 
@@ -55,6 +57,36 @@ const loadModules = async (): Promise<ImapModules> => {
 
 const addresses = (value: ParsedAddress | ParsedAddress[] | undefined): string =>
     (Array.isArray(value) ? value : value ? [value] : []).map((a) => a.text ?? '').filter(Boolean).join(', ');
+
+/** A parsed mail as an `EmailMessage`, with the content of its files up to `maxBytes` (CR-155). */
+function toMessage(mail: ParsedMail, id: string, cursor: string, maxBytes: number | null): EmailMessage {
+    const files: EmailReadAttachment[] = (mail.attachments ?? []).filter((a) => a.filename).map((a) => {
+        const size = Number(a.size ?? a.content?.byteLength ?? 0);
+        return {
+            filename: String(a.filename),
+            contentType: a.contentType || 'application/octet-stream',
+            size,
+            ...(a.contentDisposition === 'inline' || a.related ? { inline: true } : {}),
+            ...(maxBytes !== null && a.content && size <= maxBytes ? { content: new Uint8Array(a.content) } : {}),
+        };
+    });
+    const text = (mail.text ?? (typeof mail.html === 'string' ? mail.html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ') : '')).trim();
+    return {
+        id,
+        threadId: mail.messageId ?? id,
+        from: addresses(mail.from),
+        to: addresses(mail.to),
+        subject: mail.subject ?? '',
+        ...(mail.messageId ? { messageId: mail.messageId } : {}),
+        ...(mail.inReplyTo ? { inReplyTo: mail.inReplyTo } : {}),
+        ...(mail.references ? { references: Array.isArray(mail.references) ? mail.references.join(' ') : mail.references } : {}),
+        date: (mail.date ?? new Date()).toISOString(),
+        text,
+        direction: 'inbound',
+        cursor,
+        ...(files.length ? { attachments: files } : {}),
+    };
+}
 
 /** `<uidValidity>:<last uid read>`. */
 const cursorOf = (uidValidity: string, lastUid: number) => `${uidValidity}:${lastUid}`;
@@ -112,6 +144,36 @@ export class ImapEmailReader implements EmailReadAdapter {
         return this.withMailbox(async (_client, box) => ({ cursor: cursorOf(box.uidValidity, box.lastUid) }));
     }
 
+    /**
+     * CR-156: the mails received in a period, oldest first, a page at a time: `SEARCH SINCE/BEFORE` (by day), then
+     * only those of the exact period; the position in the list as `next`.
+     */
+    async readRange({ from, to, page, limit = DEFAULT_EMAIL_READ_LIMIT, attachments }: EmailReadRangeOptions): Promise<EmailReadRangeBatch> {
+        const range = rangeOf({ from, to });
+        if (!range) throw new EmailProviderError('invalid-message', PROVIDER, 'The period needs a start before its end');
+        const maxBytes = attachmentMaxBytes(attachments);
+        return this.withMailbox(async (client, box, { simpleParser }) => {
+            const day = (date: Date) => new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+            const before = day(range.to);
+            if (before < range.to) before.setUTCDate(before.getUTCDate() + 1);
+            const found = await client.search({ since: day(range.from), before }, { uid: true });
+            const uids = (found || []).slice().sort((a, b) => a - b);
+            const start = Math.max(0, Number(page) || 0);
+            const slice = uids.slice(start, start + limit);
+            const messages: EmailMessage[] = [];
+            if (slice.length) {
+                for await (const item of client.fetch(slice.join(','), { uid: true, source: true }, { uid: true })) {
+                    if (!item.source) continue;
+                    const message = toMessage(await simpleParser(item.source), `${box.uidValidity}-${item.uid}`, '', maxBytes);
+                    const at = new Date(message.date).getTime();
+                    if (at >= range.from.getTime() && at < range.to.getTime()) messages.push(message);
+                }
+            }
+            const next = start + limit;
+            return { messages, ...(next < uids.length ? { next: String(next) } : {}) };
+        });
+    }
+
     async read(cursor: string, { limit = DEFAULT_EMAIL_READ_LIMIT, attachments }: EmailReadOptions = {}): Promise<EmailReadBatch> {
         const maxBytes = attachmentMaxBytes(attachments);
         return this.withMailbox(async (client, box, { simpleParser }) => {
@@ -123,35 +185,7 @@ export class ImapEmailReader implements EmailReadAdapter {
                 for await (const item of client.fetch(`${from.lastUid + 1}:*`, { uid: true, source: true }, { uid: true })) {
                     // `n:*` always returns the last message, even when it is older than n.
                     if (item.uid <= from.lastUid || !item.source) continue;
-                    const mail = await simpleParser(item.source);
-                    const id = `${box.uidValidity}-${item.uid}`;
-                    // CR-155: the parts with a file name; their bytes when asked for and not above the limit.
-                    const files: EmailReadAttachment[] = (mail.attachments ?? []).filter((a) => a.filename).map((a) => {
-                        const size = Number(a.size ?? a.content?.byteLength ?? 0);
-                        return {
-                            filename: String(a.filename),
-                            contentType: a.contentType || 'application/octet-stream',
-                            size,
-                            ...(a.contentDisposition === 'inline' || a.related ? { inline: true } : {}),
-                            ...(maxBytes !== null && a.content && size <= maxBytes ? { content: new Uint8Array(a.content) } : {}),
-                        };
-                    });
-                    const text = (mail.text ?? (typeof mail.html === 'string' ? mail.html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ') : '')).trim();
-                    messages.push({
-                        id,
-                        threadId: mail.messageId ?? id,
-                        from: addresses(mail.from),
-                        to: addresses(mail.to),
-                        subject: mail.subject ?? '',
-                        ...(mail.messageId ? { messageId: mail.messageId } : {}),
-                        ...(mail.inReplyTo ? { inReplyTo: mail.inReplyTo } : {}),
-                        ...(mail.references ? { references: Array.isArray(mail.references) ? mail.references.join(' ') : mail.references } : {}),
-                        date: (mail.date ?? new Date()).toISOString(),
-                        text,
-                        direction: 'inbound',
-                        cursor: cursorOf(box.uidValidity, item.uid),
-                        ...(files.length ? { attachments: files } : {}),
-                    });
+                    messages.push(toMessage(await simpleParser(item.source), `${box.uidValidity}-${item.uid}`, cursorOf(box.uidValidity, item.uid), maxBytes));
                     lastUid = Math.max(lastUid, item.uid);
                     if (messages.length >= limit) break;
                 }

@@ -1,6 +1,6 @@
 import type { ProviderConfigurationState } from '../../ProviderConfiguration';
 import { callEmailApi, EmailProviderError } from '../EmailError';
-import { attachmentMaxBytes, DEFAULT_EMAIL_READ_LIMIT, type EmailMessage, type EmailReadAdapter, type EmailReadBatch, type EmailReadOptions, type EmailReadStart } from '../EmailRead';
+import { attachmentMaxBytes, DEFAULT_EMAIL_READ_LIMIT, rangeOf, type EmailMessage, type EmailReadRangeBatch, type EmailReadRangeOptions, type EmailReadAdapter, type EmailReadBatch, type EmailReadOptions, type EmailReadStart } from '../EmailRead';
 import { bytesFromBase64Url, fromBase64Url, GMAIL_API, gmailAccessToken, gmailAttachmentParts, gmailConfigurationState, PROVIDER, toEmailMessage, type GmailApiMessage, type GmailAuth } from './gmailApi';
 
 export type GmailEmailReaderConfig = {
@@ -100,30 +100,59 @@ export class GmailEmailReader implements EmailReadAdapter {
         }
         const messages: EmailMessage[] = [];
         for (const { id, cursor: after } of taken) {
-            try {
-                const raw = await call<GmailApiMessage>(`/messages/${encodeURIComponent(id)}?format=full`);
-                const message = toEmailMessage(raw, after);
-                // CR-155: the content of each file not above the limit, inline in the part or by its attachment id.
-                if (maxBytes !== null && message.attachments) {
-                    const parts = gmailAttachmentParts(raw.payload);
-                    for (const [i, file] of message.attachments.entries()) {
-                        const part = parts[i];
-                        if (file.size > maxBytes) continue;
-                        const data = part.data ?? (part.attachmentId
-                            ? (await call<{ data?: string }>(`/messages/${encodeURIComponent(id)}/attachments/${encodeURIComponent(part.attachmentId)}`)).data
-                            : undefined);
-                        if (data === undefined) continue;
-                        file.content = bytesFromBase64Url(data);
-                        file.size = file.content.byteLength;
-                    }
-                }
-                messages.push(message);
-            } catch (error) {
-                // Deleted in the meantime.
-                if (!(error instanceof EmailProviderError && error.status === 404)) throw error;
-            }
+            const message = await messageOf(call, id, after, maxBytes);
+            if (message) messages.push(message);
         }
         return { messages, cursor: next };
+    }
+
+    /**
+     * CR-156: the mails of the label received in a period, newest first, a page at a time: `messages.list` with
+     * `after:`/`before:` in seconds, its page token as `next`.
+     */
+    async readRange({ from, to, page, limit = DEFAULT_EMAIL_READ_LIMIT, attachments }: EmailReadRangeOptions): Promise<EmailReadRangeBatch> {
+        const range = rangeOf({ from, to });
+        if (!range) throw new EmailProviderError('invalid-message', PROVIDER, 'The period needs a start before its end');
+        const { call, label } = await this.session();
+        const maxBytes = attachmentMaxBytes(attachments);
+        const seconds = (date: Date) => Math.floor(date.getTime() / 1000);
+        const params = new URLSearchParams({ q: `after:${seconds(range.from)} before:${seconds(range.to)}`, labelIds: label, maxResults: String(limit) });
+        if (page) params.set('pageToken', page);
+        const list = await call<{ messages?: { id: string }[]; nextPageToken?: string }>(`/messages?${params}`);
+        const messages: EmailMessage[] = [];
+        for (const { id } of list.messages ?? []) {
+            const message = await messageOf(call, id, '', maxBytes);
+            if (message) messages.push(message);
+        }
+        return { messages, ...(list.nextPageToken ? { next: list.nextPageToken } : {}) };
+    }
+}
+
+/**
+ * A message by its id, with the content of its files up to `maxBytes` (CR-155: inline in the part or by its
+ * attachment id); null when it was deleted in the meantime.
+ */
+async function messageOf(call: <T>(path: string) => Promise<T>, id: string, cursor: string, maxBytes: number | null): Promise<EmailMessage | null> {
+    try {
+        const raw = await call<GmailApiMessage>(`/messages/${encodeURIComponent(id)}?format=full`);
+        const message = toEmailMessage(raw, cursor);
+        if (maxBytes !== null && message.attachments) {
+            const parts = gmailAttachmentParts(raw.payload);
+            for (const [i, file] of message.attachments.entries()) {
+                const part = parts[i];
+                if (file.size > maxBytes) continue;
+                const data = part.data ?? (part.attachmentId
+                    ? (await call<{ data?: string }>(`/messages/${encodeURIComponent(id)}/attachments/${encodeURIComponent(part.attachmentId)}`)).data
+                    : undefined);
+                if (data === undefined) continue;
+                file.content = bytesFromBase64Url(data);
+                file.size = file.content.byteLength;
+            }
+        }
+        return message;
+    } catch (error) {
+        if (error instanceof EmailProviderError && error.status === 404) return null;
+        throw error;
     }
 }
 

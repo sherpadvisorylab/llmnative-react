@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.21.0] - 2026-11-25
+
+### Added
+- `emailRead` reads the mails of a period (CR-156): `readRange({ from, to, page?, limit?, attachments? })` gives the mails received from `from` (included) to `to` (excluded), a page at a time (`next`, absent on the last page), for an app that connects a mailbox late or reads a past period again. `GmailEmailReader` lists the label with `after:`/`before:`; `ImapEmailReader` searches the days with `SEARCH SINCE/BEFORE` and keeps the exact period. Optional in `EmailReadAdapter`; new types `EmailReadRangeOptions`, `EmailReadRangeBatch`.
+
 ## [3.20.0] - 2026-11-25
 
 ### Added
