@@ -1,6 +1,6 @@
 import { createConfigurationState, getMissingKeys, type ProviderConfigurationState } from '../../ProviderConfiguration';
 import { EmailProviderError } from '../EmailError';
-import { DEFAULT_EMAIL_READ_LIMIT, type EmailMessage, type EmailReadAdapter, type EmailReadBatch, type EmailReadOptions, type EmailReadStart } from '../EmailRead';
+import { attachmentMaxBytes, DEFAULT_EMAIL_READ_LIMIT, type EmailMessage, type EmailReadAttachment, type EmailReadAdapter, type EmailReadBatch, type EmailReadOptions, type EmailReadStart } from '../EmailRead';
 
 export type ImapEmailReaderConfig = {
     host: string;
@@ -39,6 +39,7 @@ type ParsedMail = {
     date?: Date;
     text?: string;
     html?: string | false;
+    attachments?: { filename?: string; contentType?: string; size?: number; contentDisposition?: string; related?: boolean; content?: Uint8Array }[];
 };
 
 const PROVIDER = 'IMAP';
@@ -111,7 +112,8 @@ export class ImapEmailReader implements EmailReadAdapter {
         return this.withMailbox(async (_client, box) => ({ cursor: cursorOf(box.uidValidity, box.lastUid) }));
     }
 
-    async read(cursor: string, { limit = DEFAULT_EMAIL_READ_LIMIT }: EmailReadOptions = {}): Promise<EmailReadBatch> {
+    async read(cursor: string, { limit = DEFAULT_EMAIL_READ_LIMIT, attachments }: EmailReadOptions = {}): Promise<EmailReadBatch> {
+        const maxBytes = attachmentMaxBytes(attachments);
         return this.withMailbox(async (client, box, { simpleParser }) => {
             const from = parseCursor(cursor);
             if (!from || from.uidValidity !== box.uidValidity) return { messages: [], cursor: cursorOf(box.uidValidity, box.lastUid) };
@@ -123,6 +125,17 @@ export class ImapEmailReader implements EmailReadAdapter {
                     if (item.uid <= from.lastUid || !item.source) continue;
                     const mail = await simpleParser(item.source);
                     const id = `${box.uidValidity}-${item.uid}`;
+                    // CR-155: the parts with a file name; their bytes when asked for and not above the limit.
+                    const files: EmailReadAttachment[] = (mail.attachments ?? []).filter((a) => a.filename).map((a) => {
+                        const size = Number(a.size ?? a.content?.byteLength ?? 0);
+                        return {
+                            filename: String(a.filename),
+                            contentType: a.contentType || 'application/octet-stream',
+                            size,
+                            ...(a.contentDisposition === 'inline' || a.related ? { inline: true } : {}),
+                            ...(maxBytes !== null && a.content && size <= maxBytes ? { content: new Uint8Array(a.content) } : {}),
+                        };
+                    });
                     const text = (mail.text ?? (typeof mail.html === 'string' ? mail.html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ') : '')).trim();
                     messages.push({
                         id,
@@ -137,6 +150,7 @@ export class ImapEmailReader implements EmailReadAdapter {
                         text,
                         direction: 'inbound',
                         cursor: cursorOf(box.uidValidity, item.uid),
+                        ...(files.length ? { attachments: files } : {}),
                     });
                     lastUid = Math.max(lastUid, item.uid);
                     if (messages.length >= limit) break;

@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.20.0] - 2026-11-25
+
+### Added
+- The files of the messages read by `emailRead` (CR-155): `EmailMessage.attachments` lists them (`EmailReadAttachment`: `filename`, `contentType`, `size`, `inline` for a part shown in the body) when a message has any; `read(cursor, { attachments: true | { maxBytes } })` also gives the `content` of each one up to `maxBytes` (default 10 MB). `GmailEmailReader` takes it inline from the part or from `messages.attachments.get`, `ImapEmailReader` from the parsed mail.
+
 ## [3.19.0] - 2026-11-25
 
 ### Added

@@ -391,3 +391,87 @@ describe('attachments and reply headers (CR-146)', () => {
         expect(batch.messages[0]).toMatchObject({ messageId: '<r9@mail.example.com>', inReplyTo: '<c1.p42@crm.acme.it>', references: '<c0.p42@crm.acme.it> <c1.p42@crm.acme.it>' });
     });
 });
+
+// CR-155: the files of the messages read.
+describe('attachments of the messages read (CR-155)', () => {
+    const PDF = '%PDF-1.4 visura';
+    const withFiles = gmailMessage('m7', { payload: {
+        mimeType: 'multipart/mixed',
+        headers: [{ name: 'From', value: 'banca@example.com' }, { name: 'Subject', value: 'Delibera' }],
+        parts: [
+            { mimeType: 'text/plain', body: { data: base64Url('In allegato') } },
+            { mimeType: 'application/pdf', filename: 'delibera.pdf', headers: [{ name: 'Content-Disposition', value: 'attachment; filename="delibera.pdf"' }], body: { attachmentId: 'att-1', size: PDF.length } },
+            { mimeType: 'multipart/related', parts: [
+                { mimeType: 'image/png', filename: 'logo.png', headers: [{ name: 'Content-Disposition', value: 'inline; filename="logo.png"' }], body: { data: base64Url('png'), size: 3 } },
+            ] },
+            { mimeType: 'application/zip', filename: 'grande.zip', body: { attachmentId: 'att-2', size: 50_000_000 } },
+        ],
+    } });
+    const routes = (): Parameters<typeof fakeFetch>[0] => [
+        [TOKEN_URL, () => ({ body: { access_token: 'a' } })],
+        [`${GMAIL}/history`, () => ({ body: { history: [{ id: '301', messagesAdded: [{ message: { id: 'm7' } }] }], historyId: '301' } })],
+        [`${GMAIL}/messages/m7/attachments/att-1`, () => ({ body: { data: base64Url(PDF), size: PDF.length } })],
+        [`${GMAIL}/messages/m7`, () => ({ body: withFiles })],
+    ];
+
+    it('Gmail lists the files of a message, without reading them unless asked', async () => {
+        const { http, calls } = fakeFetch(routes());
+        const [message] = (await new GmailEmailReader({ auth: SERVER_AUTH, fetch: http }).read('300')).messages;
+        expect(message.text).toBe('In allegato');
+        expect(message.attachments).toEqual([
+            { filename: 'delibera.pdf', contentType: 'application/pdf', size: PDF.length },
+            { filename: 'logo.png', contentType: 'image/png', size: 3, inline: true },
+            { filename: 'grande.zip', contentType: 'application/zip', size: 50_000_000 },
+        ]);
+        expect(calls.some((c) => c.url.includes('/attachments/'))).toBe(false);
+    });
+
+    it('Gmail reads the content of each file up to maxBytes: by its id or inline in the part', async () => {
+        const { http, calls } = fakeFetch(routes());
+        const [message] = (await new GmailEmailReader({ auth: SERVER_AUTH, fetch: http }).read('300', { attachments: true })).messages;
+        const [pdf, logo, zip] = message.attachments ?? [];
+        expect(new TextDecoder().decode(pdf.content)).toBe(PDF);
+        expect(new TextDecoder().decode(logo.content)).toBe('png');
+        expect(zip.content).toBeUndefined();
+        expect(calls.filter((c) => c.url.includes('/attachments/')).map((c) => c.url.split('/attachments/')[1])).toEqual(['att-1']);
+        const small = fakeFetch(routes());
+        const [limited] = (await new GmailEmailReader({ auth: SERVER_AUTH, fetch: small.http }).read('300', { attachments: { maxBytes: 5 } })).messages;
+        expect(limited.attachments?.map((a) => a.content !== undefined)).toEqual([false, true, false]);
+    });
+
+    it('a message without files has no attachments', async () => {
+        const { http } = fakeFetch([
+            [TOKEN_URL, () => ({ body: { access_token: 'a' } })],
+            [`${GMAIL}/history`, () => ({ body: { history: [{ id: '101', messagesAdded: [{ message: { id: 'm1' } }] }], historyId: '101' } })],
+            [`${GMAIL}/messages/m1`, () => ({ body: gmailMessage('m1') })],
+        ]);
+        const [message] = (await new GmailEmailReader({ auth: SERVER_AUTH, fetch: http }).read('100', { attachments: true })).messages;
+        expect('attachments' in message).toBe(false);
+    });
+
+    it('IMAP gives the files of the parsed mail, their content when asked and not above maxBytes', async () => {
+        const imap = fakeImap({ uidValidity: 7, mails: [{ uid: 1, raw: 'a|x' }, { uid: 2, raw: 'b|y' }] });
+        const modules = async (): Promise<ImapModules> => ({
+            ...(await imap.modules()),
+            simpleParser: async () => ({
+                subject: 'Delibera', text: 'In allegato', from: { text: 'banca@example.com' }, date: new Date('2026-11-15T10:00:00Z'),
+                attachments: [
+                    { filename: 'delibera.pdf', contentType: 'application/pdf', size: PDF.length, contentDisposition: 'attachment', content: Buffer.from(PDF) },
+                    { filename: 'logo.png', contentType: 'image/png', size: 3, contentDisposition: 'inline', related: true, content: Buffer.from('png') },
+                    { contentType: 'text/calendar', size: 10, content: Buffer.from('BEGIN:VCAL') },
+                ],
+            }),
+        });
+        const listed = await new ImapEmailReader(CONFIG_IMAP, { modules }).read('7:1');
+        expect(listed.messages[0].attachments).toEqual([
+            { filename: 'delibera.pdf', contentType: 'application/pdf', size: PDF.length },
+            { filename: 'logo.png', contentType: 'image/png', size: 3, inline: true },
+        ]);
+        const read = await new ImapEmailReader(CONFIG_IMAP, { modules }).read('7:1', { attachments: { maxBytes: 5 } });
+        const [pdf, logo] = read.messages[0].attachments ?? [];
+        expect(pdf.content).toBeUndefined();
+        expect(new TextDecoder().decode(logo.content)).toBe('png');
+    });
+});
+
+const CONFIG_IMAP = { host: 'imap.acme.it', user: 'info@acme.it', password: 'app-pass' };

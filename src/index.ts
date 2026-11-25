@@ -206,7 +206,7 @@ export type { CredentialsAdapter } from './providers/credentials/CredentialsProv
 export { useCredentialsProvider } from './providers/credentials/CredentialsProviderContext';
 export { GoogleServiceAccountProvider } from './providers/credentials/google/GoogleServiceAccountProvider';
 export type { EmailSendAdapter, EmailSendParams, EmailSendResult, EmailAddress, EmailRecipient, EmailAttachment } from './providers/email/EmailSend';
-export type { EmailReadAdapter, EmailMessage, EmailReadStart, EmailReadBatch, EmailReadOptions } from './providers/email/EmailRead';
+export type { EmailReadAdapter, EmailMessage, EmailReadAttachment, EmailReadStart, EmailReadBatch, EmailReadOptions } from './providers/email/EmailRead';
 export { EmailProviderError } from './providers/email/EmailError';
 export type { EmailProviderErrorCode } from './providers/email/EmailError';
 export type { EmailSendProviderId, EmailReadProviderId } from './providers/email/definitions';

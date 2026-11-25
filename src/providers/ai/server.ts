@@ -69,7 +69,7 @@ export async function resolveServerCredentials(request: ServerCredentialRequest,
 export { EmailProviderError } from '../email/EmailError';
 export type { EmailProviderErrorCode } from '../email/EmailError';
 export type { EmailSendAdapter, EmailSendParams, EmailSendResult, EmailAddress, EmailRecipient, EmailAttachment } from '../email/EmailSend';
-export type { EmailReadAdapter, EmailMessage, EmailReadStart, EmailReadBatch, EmailReadOptions } from '../email/EmailRead';
+export type { EmailReadAdapter, EmailMessage, EmailReadAttachment, EmailReadStart, EmailReadBatch, EmailReadOptions } from '../email/EmailRead';
 export { EMAIL_SEND_PROVIDER_DEFINITIONS, EMAIL_READ_PROVIDER_DEFINITIONS } from '../email/definitions';
 export type { EmailSendProviderId, EmailReadProviderId } from '../email/definitions';
 export { ResendEmailSender } from '../email/resend/ResendEmailSender';

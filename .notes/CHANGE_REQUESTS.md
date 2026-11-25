@@ -160,6 +160,34 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
+## CR-155 — Allegati dei messaggi letti da `emailRead` (Gmail, IMAP)
+
+**Stato:** ✅ done (3.20.0)
+**Issue:** [#136](https://github.com/sherpadvisorylab/llmnative-react/issues/136)
+**Priorità:** Alta
+**Dipende da:** CR-130, CR-146
+
+### Motivazione
+I lettori di `emailRead` (Gmail, IMAP, CR-130) danno il testo di un messaggio e scartano gli allegati. Un'app che archivia la
+posta in arrivo (per esempio nei documenti di una pratica) non può tenere i file che il mittente ha allegato.
+
+### Scope
+- `EmailMessage.attachments?: EmailReadAttachment[]` (`filename`, `contentType`, `size`, `inline?`, `content?`): le parti con un nome
+  di file, elencate per ogni messaggio che ne ha.
+- `EmailReadOptions.attachments?: boolean | { maxBytes?: number }`: con l'opzione il lettore dà anche `content` (`Uint8Array`) di ogni
+  file fino a `maxBytes` (predefinito 10 MB); un file più grande resta elencato senza `content`.
+- Gmail: le parti con `filename`; il contenuto da `messages.attachments.get` o dal `body.data` della parte.
+- IMAP: gli `attachments` di `mailparser`.
+- Nessun cambiamento per chi non chiede il contenuto: i file sono elencati, i byte non si leggono.
+
+### Criteri di accettazione
+- [x] AC1: Gmail elenca i file di un messaggio e, con l'opzione, ne legge il contenuto (per id e inline), saltando quello di un file
+  sopra `maxBytes`. Test in `tests/unit/providers/EmailProviders.test.ts`.
+- [x] AC2: IMAP fa lo stesso dalla mail analizzata. Stesso file di test.
+- [x] AC3: tipi esportati (`EmailReadAttachment` da `@llmnative/react` e `@llmnative/react/server`), `llms-full.txt`, release minor 3.20.0. Verifica nel consumer: il CRM che archivia la posta in arrivo legge gli allegati e li mette nei documenti delle pratiche.
+
+---
+
 ## CR-154 — Peer opzionali Firebase e provider di icone non caricati all'import
 
 **Stato:** ✅ done (3.19.0)

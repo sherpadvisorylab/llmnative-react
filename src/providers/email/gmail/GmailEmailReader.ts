@@ -1,7 +1,7 @@
 import type { ProviderConfigurationState } from '../../ProviderConfiguration';
 import { callEmailApi, EmailProviderError } from '../EmailError';
-import { DEFAULT_EMAIL_READ_LIMIT, type EmailMessage, type EmailReadAdapter, type EmailReadBatch, type EmailReadOptions, type EmailReadStart } from '../EmailRead';
-import { fromBase64Url, GMAIL_API, gmailAccessToken, gmailConfigurationState, PROVIDER, toEmailMessage, type GmailApiMessage, type GmailAuth } from './gmailApi';
+import { attachmentMaxBytes, DEFAULT_EMAIL_READ_LIMIT, type EmailMessage, type EmailReadAdapter, type EmailReadBatch, type EmailReadOptions, type EmailReadStart } from '../EmailRead';
+import { bytesFromBase64Url, fromBase64Url, GMAIL_API, gmailAccessToken, gmailAttachmentParts, gmailConfigurationState, PROVIDER, toEmailMessage, type GmailApiMessage, type GmailAuth } from './gmailApi';
 
 export type GmailEmailReaderConfig = {
     auth: GmailAuth;
@@ -64,7 +64,8 @@ export class GmailEmailReader implements EmailReadAdapter {
         };
     }
 
-    async read(cursor: string, { limit = DEFAULT_EMAIL_READ_LIMIT }: EmailReadOptions = {}): Promise<EmailReadBatch> {
+    async read(cursor: string, { limit = DEFAULT_EMAIL_READ_LIMIT, attachments }: EmailReadOptions = {}): Promise<EmailReadBatch> {
+        const maxBytes = attachmentMaxBytes(attachments);
         const { call, label } = await this.session();
         // Each message with the cursor after it: its record's id when it is the record's last message, else the
         // cursor before the record (reading from there gives the rest of the record again).
@@ -100,7 +101,23 @@ export class GmailEmailReader implements EmailReadAdapter {
         const messages: EmailMessage[] = [];
         for (const { id, cursor: after } of taken) {
             try {
-                messages.push(toEmailMessage(await call<GmailApiMessage>(`/messages/${encodeURIComponent(id)}?format=full`), after));
+                const raw = await call<GmailApiMessage>(`/messages/${encodeURIComponent(id)}?format=full`);
+                const message = toEmailMessage(raw, after);
+                // CR-155: the content of each file not above the limit, inline in the part or by its attachment id.
+                if (maxBytes !== null && message.attachments) {
+                    const parts = gmailAttachmentParts(raw.payload);
+                    for (const [i, file] of message.attachments.entries()) {
+                        const part = parts[i];
+                        if (file.size > maxBytes) continue;
+                        const data = part.data ?? (part.attachmentId
+                            ? (await call<{ data?: string }>(`/messages/${encodeURIComponent(id)}/attachments/${encodeURIComponent(part.attachmentId)}`)).data
+                            : undefined);
+                        if (data === undefined) continue;
+                        file.content = bytesFromBase64Url(data);
+                        file.size = file.content.byteLength;
+                    }
+                }
+                messages.push(message);
             } catch (error) {
                 // Deleted in the meantime.
                 if (!(error instanceof EmailProviderError && error.status === 404)) throw error;

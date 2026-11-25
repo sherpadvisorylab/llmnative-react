@@ -214,11 +214,15 @@ const reader = new GmailEmailReader({ auth: { clientId, clientSecret, refreshTok
 // o new ImapEmailReader({ host, port: 993, secure: true, user, password })  — peer opzionali imapflow + mailparser
 const { cursor, expiresAt } = await reader.start()    // da adesso; Gmail: watch su Pub/Sub, rinnovare prima di expiresAt
 const batch = await reader.read(cursor, { limit: 50 }) // { messages: EmailMessage[], cursor } — cursore scaduto: riparte da adesso
+await reader.read(cursor, { attachments: { maxBytes: 10_000_000 } })  // CR-155: anche il contenuto dei file (true = 10 MB)
 decodeGmailPushNotification(pubsubData)                // { emailAddress, historyId } | null
 createGmailOAuth({ clientId, clientSecret, redirectUri })  // authorizationUrl({ state, scopes }), exchangeCode(code) → { email, refreshToken }
 ```
 
-`EmailMessage`: `{ id, threadId, from, to, subject, messageId?, inReplyTo?, references?, date (ISO), text, direction: 'inbound' | 'outbound', cursor }`
+`EmailMessage`: `{ id, threadId, from, to, subject, messageId?, inReplyTo?, references?, date (ISO), text, direction: 'inbound' | 'outbound', cursor, attachments? }`
+— `attachments` (CR-155, solo se il messaggio ha file): `EmailReadAttachment[]` = `{ filename, contentType, size, inline?, content?: Uint8Array }`,
+le parti con un nome di file; `inline` per una parte mostrata nel corpo (immagine della firma); `content` solo se la lettura lo
+chiede con `attachments` e il file non supera `maxBytes` (un file più grande resta elencato senza `content`).
 (CR-146: gli header di risposta, per riconoscere la risposta a una mail mandata). `headers` accetta solo
 `Message-ID`, `In-Reply-To`, `References` e header `X-…`, senza a capo nel valore; altrimenti `invalid-message`. — `cursor` è dove riprendere dopo quel messaggio (se un gestore fallisce, si salva il cursore dell'ultimo gestito).
 Errori: `EmailProviderError` con `code` (`not-configured`, `invalid-message`, `unauthorized`, `rejected`,

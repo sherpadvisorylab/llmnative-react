@@ -1,7 +1,7 @@
 import { createConfigurationState, getMissingKeys, type ProviderConfigurationState } from '../../ProviderConfiguration';
 import { callEmailApi, EmailProviderError } from '../EmailError';
 import { formatEmailAddress, type PreparedEmail } from '../EmailSend';
-import type { EmailMessage } from '../EmailRead';
+import type { EmailMessage, EmailReadAttachment } from '../EmailRead';
 
 // The Gmail REST API as the Gmail adapters use it (CR-130): only `fetch`, `TextEncoder` and `btoa`/`atob`,
 // so the same code runs in a browser and on a server.
@@ -60,10 +60,11 @@ const base64 = (text: string): string => bytesToBase64(new TextEncoder().encode(
 
 export const base64Url = (text: string): string => base64(text).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 
-export const fromBase64Url = (data: string): string => {
-    const binary = atob(data.replace(/-/g, '+').replace(/_/g, '/'));
-    return new TextDecoder().decode(Uint8Array.from(binary, (char) => char.charCodeAt(0)));
-};
+/** The bytes of base64url data (CR-155: the content of an attachment). */
+export const bytesFromBase64Url = (data: string): Uint8Array =>
+    Uint8Array.from(atob(data.replace(/-/g, '+').replace(/_/g, '/')), (char) => char.charCodeAt(0));
+
+export const fromBase64Url = (data: string): string => new TextDecoder().decode(bytesFromBase64Url(data));
 
 // ── The message Gmail sends ───────────────────────────────────────────────────
 
@@ -123,7 +124,38 @@ export function gmailRawMessage(mail: PreparedEmail): string {
 
 // ── The messages Gmail reads ──────────────────────────────────────────────────
 
-type GmailPart = { mimeType?: string; body?: { data?: string }; parts?: GmailPart[] };
+type GmailPart = {
+    mimeType?: string;
+    filename?: string;
+    headers?: { name: string; value: string }[];
+    body?: { data?: string; attachmentId?: string; size?: number };
+    parts?: GmailPart[];
+};
+
+/** CR-155 — a file of a message as Gmail gives it: the listing, and where its content is. */
+export type GmailAttachmentPart = EmailReadAttachment & { attachmentId?: string; data?: string };
+
+/** The parts of the tree with a file name, in order. */
+export function gmailAttachmentParts(payload: GmailPart | undefined): GmailAttachmentPart[] {
+    if (!payload) return [];
+    const found: GmailAttachmentPart[] = [];
+    const visit = (part: GmailPart) => {
+        if (part.filename) {
+            const disposition = String(part.headers?.find((h) => h.name.toLowerCase() === 'content-disposition')?.value ?? '');
+            found.push({
+                filename: part.filename,
+                contentType: part.mimeType || 'application/octet-stream',
+                size: Number(part.body?.size ?? 0),
+                ...(/^\s*inline/i.test(disposition) ? { inline: true } : {}),
+                ...(part.body?.attachmentId ? { attachmentId: part.body.attachmentId } : {}),
+                ...(part.body?.data ? { data: part.body.data } : {}),
+            });
+        }
+        for (const child of part.parts ?? []) visit(child);
+    };
+    visit(payload);
+    return found;
+}
 
 /** The first part of the tree with this MIME type and a body, decoded. */
 function partOf(payload: GmailPart | undefined, mime: string): string | undefined {
@@ -149,12 +181,13 @@ export type GmailApiMessage = {
     labelIds?: string[];
     snippet?: string;
     internalDate?: string;
-    payload?: GmailPart & { headers?: { name: string; value: string }[] };
+    payload?: GmailPart;
 };
 
 /** A message of the API (`format=full`) as an `EmailMessage`, with the cursor after it. */
 export function toEmailMessage(message: GmailApiMessage, cursor: string): EmailMessage {
     const header = (name: string) => String(message.payload?.headers?.find((h) => h.name.toLowerCase() === name)?.value ?? '');
+    const files = gmailAttachmentParts(message.payload);
     const arrived = message.internalDate ? new Date(Number(message.internalDate)) : new Date(header('date'));
     return {
         id: String(message.id),
@@ -169,5 +202,6 @@ export function toEmailMessage(message: GmailApiMessage, cursor: string): EmailM
         text: (textOf(message.payload) || String(message.snippet ?? '')).trim(),
         direction: (message.labelIds ?? []).includes('SENT') ? 'outbound' : 'inbound',
         cursor,
+        ...(files.length ? { attachments: files.map(({ filename, contentType, size, inline }) => ({ filename, contentType, size, ...(inline ? { inline } : {}) })) } : {}),
     };
 }

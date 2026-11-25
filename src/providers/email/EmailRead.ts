@@ -23,11 +23,28 @@ export interface EmailMessage {
     /** `outbound` for a message the mailbox sent itself (Gmail's SENT). */
     direction: 'inbound' | 'outbound';
     /**
+     * CR-155 — the files of the message (the parts with a file name), when it has any. Their `content` is there
+     * only when the reading asks for it (`EmailReadOptions.attachments`).
+     */
+    attachments?: EmailReadAttachment[];
+    /**
      * Where to read on from once this message is handled: when the app stops at a message (its handler
      * failed), it keeps the `cursor` of the last one handled and the next reading starts with the rest.
      * With Gmail the next reading may give again the messages of the same history record handled before it.
      */
     cursor: string;
+}
+
+/** CR-155 — a file of a message read. */
+export interface EmailReadAttachment {
+    filename: string;
+    contentType: string;
+    /** Bytes. */
+    size: number;
+    /** A part shown inside the body (an image of the signature) rather than a file the sender attached. */
+    inline?: boolean;
+    /** The bytes, when the reading asked for them and the file is not above `maxBytes`. */
+    content?: Uint8Array;
 }
 
 export interface EmailReadStart {
@@ -46,6 +63,11 @@ export interface EmailReadBatch {
 export interface EmailReadOptions {
     /** At most this many messages (default 50): the returned cursor goes on from the last one. */
     limit?: number;
+    /**
+     * CR-155 — also the content of the files: `true`, or the largest file read (`maxBytes`, default
+     * `DEFAULT_EMAIL_ATTACHMENT_MAX_BYTES`). A larger file stays listed without `content`.
+     */
+    attachments?: boolean | { maxBytes?: number };
 }
 
 export interface EmailReadAdapter extends ProviderConfigurable {
@@ -59,3 +81,12 @@ export interface EmailReadAdapter extends ProviderConfigurable {
 }
 
 export const DEFAULT_EMAIL_READ_LIMIT = 50;
+
+/** CR-155 — 10 MB. */
+export const DEFAULT_EMAIL_ATTACHMENT_MAX_BYTES = 10 * 1024 * 1024;
+
+/** The largest file whose content a reading takes, or `null` when it takes none. */
+export function attachmentMaxBytes(options: EmailReadOptions['attachments']): number | null {
+    if (!options) return null;
+    return options === true ? DEFAULT_EMAIL_ATTACHMENT_MAX_BYTES : options.maxBytes ?? DEFAULT_EMAIL_ATTACHMENT_MAX_BYTES;
+}
