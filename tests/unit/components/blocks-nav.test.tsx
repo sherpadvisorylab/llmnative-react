@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 
@@ -34,6 +34,28 @@ describe('ListCard', () => {
         );
         expect(screen.getByText('Settings')).toBeInTheDocument();
         expect(screen.getByText('Manage your account')).toBeInTheDocument();
+    });
+
+    it('a clickable card with actions is a button that holds them without nesting buttons', () => {
+        const opened = vi.fn();
+        const deleted = vi.fn();
+        const { container } = render(
+            <MemoryRouter>
+                <ListCard title="Chat" onClick={opened} trailing={<button type="button" onClick={(event) => { event.stopPropagation(); deleted(); }}>Delete</button>} />
+            </MemoryRouter>
+        );
+        expect(container.querySelector('button button')).toBeNull();
+        const card = screen.getByRole('button', { name: /Chat/ });
+        expect(card.tagName).toBe('DIV');
+        fireEvent.keyDown(card, { key: 'Enter' });
+        fireEvent.keyDown(card, { key: ' ' });
+        expect(opened).toHaveBeenCalledTimes(2);
+        fireEvent.click(screen.getByText('Delete'));
+        expect(deleted).toHaveBeenCalledTimes(1);
+        expect(opened).toHaveBeenCalledTimes(2);
+        // Without actions it stays a real button.
+        render(<MemoryRouter><ListCard title="Plain" onClick={opened} /></MemoryRouter>);
+        expect(screen.getByRole('button', { name: /Plain/ }).tagName).toBe('BUTTON');
     });
 });
 

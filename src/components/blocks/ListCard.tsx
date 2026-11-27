@@ -193,6 +193,28 @@ export default function ListCard({
                 {content}
             </Link>
         );
+    } else if (isInteractive && trailing) {
+        // Its actions are buttons of their own: a button cannot hold them (invalid HTML), so the card is an element
+        // with the role of a button, reached with Tab and pressed with Enter or Space as a button is.
+        root = (
+            <div
+                role="button"
+                tabIndex={disabled ? -1 : 0}
+                aria-disabled={disabled || undefined}
+                className={rootClassName}
+                style={motion.style}
+                {...motion.pressHandlers}
+                onClick={handleClick}
+                onKeyDown={(event) => {
+                    // Only the card itself: a key pressed on one of its actions is that action's.
+                    if (event.target !== event.currentTarget || (event.key !== 'Enter' && event.key !== ' ')) return;
+                    event.preventDefault();
+                    handleClick(event as unknown as React.MouseEvent<HTMLElement>);
+                }}
+            >
+                {content}
+            </div>
+        );
     } else if (isInteractive) {
         root = (
             <button
