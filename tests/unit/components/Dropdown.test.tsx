@@ -21,6 +21,18 @@ describe('Dropdown', () => {
         expect(badge).toHaveClass('badge-danger');
     });
 
+    it('keeps the icon of a trigger at its size in a narrow trigger: the text is what gets cut', () => {
+        render(
+            <Dropdown trigger={{ icon: 'cpu', text: 'deepseek-v4.1-flash' }} triggerClassName="max-w-[140px] truncate">
+                <DropdownItem>Edit</DropdownItem>
+            </Dropdown>
+        );
+        const button = screen.getByRole('button');
+        const icon = button.querySelector('svg, i, [data-icon], span[class*="icon"]');
+        expect(icon?.getAttribute('class') ?? '').toContain('shrink-0');
+        expect(screen.getByText('deepseek-v4.1-flash')).toHaveClass('truncate');
+    });
+
     it('can render as an always-visible static menu without a toggle button', () => {
         render(
             <Dropdown staticOpen header="Quick actions">

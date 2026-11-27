@@ -247,8 +247,9 @@ export const Dropdown = ({
     const Button = renderToggle ? <DropdownButton className={triggerClassName} badge={badge} badgeClassName={badgeClassName} motion={motionConfig} title={isDropdownToggler(trigger) ? trigger.title : undefined} onToggle={() => updateOpen(!open)} open={open} menuId={menuId} buttonRef={triggerRef}>
         {isDropdownToggler(trigger)
             ? <>
-                {trigger.icon && <Icon name={trigger.icon} className={trigger.text ? "mr-2" : undefined} />}
-                {trigger.text}
+                {/* The icon keeps its size in a narrow trigger: the text is what gets cut. */}
+                {trigger.icon && <Icon name={trigger.icon} className={trigger.text ? "mr-2 shrink-0" : "shrink-0"} />}
+                {trigger.text !== undefined && trigger.text !== null && trigger.text !== '' ? <span className="min-w-0 truncate">{trigger.text}</span> : trigger.text}
             </>
             : trigger
         }

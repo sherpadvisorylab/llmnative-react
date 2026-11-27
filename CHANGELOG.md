@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.21.1] - 2026-11-27
+
+### Fixed
+- The icon of a `Dropdown` / `AsyncDropdown` trigger keeps its size in a narrow trigger: the text is what gets cut
+  (the model picker of `Chatbot` with a long model name squeezed its icon to a dot).
+
 ## [3.21.0] - 2026-11-25
 
 ### Added
