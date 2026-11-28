@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.22.0] - 2026-11-28
+
+### Added
+- CR-157 (#138): `ConnectionBoard` (the connections as boxes, by group, each with how many connections it has) and
+  `ConnectionList` (the connections of one provider in the order they are used: add with the flow of the caller, rename,
+  order, revoke). i18n `connections` in 6 languages.
+- `AIConnectionStore.renameAccount?` and `AIConnector.count?`.
+
+### Changed
+- `AIConnections` is built on them: the box always says how many keys a provider has ("1 connection", "To connect"
+  in place of "Connected"); its modal lists the keys also with one, and revoking the last one disconnects the provider.
+  With a store that keeps several keys, the keys are only in that list (the form keeps what is not a key).
+
 ## [3.21.2] - 2026-11-27
 
 ### Fixed

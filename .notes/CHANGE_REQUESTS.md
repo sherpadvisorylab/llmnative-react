@@ -160,6 +160,44 @@ Richiesto dal consumer `llmnative-cms`.
 
 ---
 
+## CR-157 — Connessioni a box: `ConnectionBoard` e `ConnectionList`, le stesse per il Cloud e per il runner
+
+**Stato:** ✅ done (3.22.0)
+**Issue:** [#138](https://github.com/sherpadvisorylab/llmnative-react/issues/138)
+**Priorità:** Alta
+**Dipende da:** CR-134
+
+### Motivazione
+Emersa il 28/11/2026 dai consumer (Playbook, Agentico): il Cloud (`AIConnections`, a box con una modale per provider) e gli
+abbonamenti del runner (`RunnerAccounts` di `@llmnative/runner`, a sezioni una sotto l'altra) hanno due forme diverse per
+la stessa cosa. Si vuole la stessa forma: ogni connessione, abbonamento o a consumo, è un box con il numero delle
+connessioni configurate; il box apre la sua modale con le connessioni unite, da revocare o da aggiungere (OAuth per un
+abbonamento, la chiave API secondo le regole del provider per uno a consumo), quante se ne vuole, usate in ordine con la
+successiva come riserva. Nel Cloud il box dice il numero solo da due chiavi in su, e la modale mostra l'elenco delle chiavi
+solo da due in su.
+
+### Scope
+- **`ConnectionBoard`** (blocco): i provider come box (`ListCard`) raggruppati in Abbonamenti e A consumo; su ogni box il
+  numero delle connessioni (o "Da collegare") e uno stato del chiamante (es. senza credito); il box chiama `onOpen`.
+- **`ConnectionList`** (blocco): le connessioni di un provider nel loro ordine (`SortableList`, numerate da due in su),
+  ciascuna con nome, data, stato (pronta, senza credito fino a); rinomina, revoca e ordine quando il chiamante li dà;
+  "Aggiungi" apre il flusso del chiamante (`renderAdd`), una chiave o un accesso OAuth. Nessun dato del provider dentro.
+- **`AIConnections`** costruito su di loro: il conteggio sempre sul box; nella modale l'elenco delle chiavi anche con una
+  sola, con "Aggiungi" quando lo store sa `addAccount`; revocare l'ultima scollega il provider.
+  `AIConnectionStore.renameAccount?(provider, accountId, label)` opzionale.
+- i18n (6 lingue), docs (`llms-full.txt`), test.
+
+### Criteri di accettazione
+- [x] AC1: un consumer mostra i suoi provider come box con il conteggio e apre la modale di uno.
+- [x] AC2: nella modale si aggiungono, rinominano (se il chiamante lo sa), ordinano e revocano più connessioni.
+- [x] AC3: `AIConnections` ha la stessa forma; nessuna regressione dei test esistenti.
+- [x] AC4: release minor; il runner (`RunnerAccounts`) e Agentico lo adottano subito dopo.
+
+### Verifica
+`tests/unit/components/Connections.test.tsx` (5: box con conteggio e stato, lista con aggiungi/rinomina/revoca, sola lettura, `AIConnections` con più chiavi, revoca dell'ultima che scollega); `AIConnections.test.tsx` aggiornato; suite intera 106 file / 1202 test. Prova con i pacchetti locali nel consumer `@llmnative/runner` (`RunnerAccounts` a box, 55 test) e in Agentico (147 test).
+
+---
+
 ## CR-156 — Le mail di un periodo con `emailRead` (Gmail, IMAP)
 
 **Stato:** ✅ done (3.21.0)

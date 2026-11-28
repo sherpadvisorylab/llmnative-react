@@ -43,7 +43,9 @@ describe('AIConnections', () => {
         expect(screen.getByText('Subscriptions')).toBeInTheDocument();
         expect(screen.getByText('Pay as you go')).toBeInTheDocument();
         expect(screen.queryByText('OpenAI')).not.toBeInTheDocument();
-        await waitFor(() => expect(screen.getAllByText('Connected')).toHaveLength(1));
+        // CR-157: on each box how many connections it has.
+        await waitFor(() => expect(screen.getAllByText('1 connection')).toHaveLength(1));
+        expect(screen.getAllByText('To connect')).toHaveLength(2);
     });
 
     it('connects a provider through the store, shows the refusal, and never puts the key back on the page', async () => {
@@ -59,7 +61,7 @@ describe('AIConnections', () => {
         fireEvent.click(within(dialog).getByRole('button', { name: 'Connect' }));
         await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
         expect(store.secrets.gemini).toEqual({ apiKey: 'AIza-secret' });
-        expect(await screen.findByText('Connected')).toBeInTheDocument();
+        expect(await screen.findByText('1 connection')).toBeInTheDocument();
         // Open again: the key field is empty, the dots say it is saved.
         fireEvent.click(screen.getByText('Gemini'));
         const again = await screen.findByRole('dialog');

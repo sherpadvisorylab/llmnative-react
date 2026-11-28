@@ -31,6 +31,7 @@
 
 | CR | State | Evidence |
 |----|-------|----------|
+| CR-157 | Done | `ConnectionBoard` (box per gruppo con il numero delle connessioni) e `ConnectionList` (connessioni in ordine d'uso: aggiungi col flusso del chiamante, rinomina, ordina, revoca; `unnamed`, `onStack`); `AIConnections` costruito su di loro; `AIConnectionStore.renameAccount?`, `AIConnector.count?`; i18n `connections` (6 lingue). Test: 5 nuovi. Released in 3.22.0. Issue #138. |
 | CR-156 | Done | `emailRead.readRange`: le mail di un periodo, a pagine, Gmail (`after:`/`before:`) e IMAP (`SEARCH SINCE/BEFORE`, periodo esatto). Test: 2. Released in 3.21.0. Issue #137. |
 | CR-155 | Done | Allegati dei messaggi letti da `emailRead`: `EmailMessage.attachments` (`EmailReadAttachment`: nome, tipo, dimensione, `inline`), contenuto su richiesta con `read(cursor, { attachments: true \| { maxBytes } })` (predefinito 10 MB); Gmail dalla parte o da `messages.attachments.get`, IMAP da `mailparser`. Test: 4 nuovi. Released in 3.20.0. Issue #136. |
 | CR-154 | Done | `firebase`, `lucide-react` e `@phosphor-icons/react` caricati all'uso con import dinamici (`libs/lazyModule`, `providers/firebase-sdk`): l'import del pacchetto in Node non li richiede più (verificato su `dist`, ESM e CJS). Provider Firebase invariati quando l'SDK è caricato; `IconProvider` aspetta il provider attivo al primo render, `Icon` tiene il posto; `IconProviderAdapter.isReady/load`. Test: 4 nuovi (1189 verdi), integrazione con gli emulatori sui provider (4), scaffold 8/8, showcase. Released in 3.19.0. Issue #135. |

@@ -418,6 +418,39 @@ An empty secret field of a connected provider means "keep the saved one". `readO
 code; `allow`/`hide` choose the providers; `renderProvider(id)` adds what the app sets on a connected provider.
 `AIModelRegionBadge` and `isModelInRegion(model, rule)` serve the model pickers of an app.
 
+### Connections as boxes (CR-157)
+
+The page is built on two blocks an app can use for any connections of its own (e.g. the subscriptions on a runner),
+so they all look the same: `ConnectionBoard`, a box per provider with how many connections it has, and
+`ConnectionList`, the connections of one provider in the order they are used, to add, rename, order and revoke.
+
+```tsx
+import { ConnectionBoard, ConnectionList, Modal } from '@llmnative/react';
+
+<ConnectionBoard
+  items={[
+    { id: 'claude-code', label: 'Claude Code', group: 'subscription', count: accounts.length },
+    { id: 'openai', label: 'OpenAI', group: 'usage', count: 0 },     // "To connect"
+  ]}
+  onOpen={setOpen}
+/>
+
+{open && (
+  <Modal title="Claude Code" position="right" onClose={() => setOpen(undefined)}>
+    <ConnectionList
+      items={accounts.map((a) => ({ id: a.id, label: a.label, at: a.at, exhaustedUntil: a.noCreditUntil }))}
+      onReorder={(ids) => api.order(ids)}
+      onRename={(id, label) => api.rename(id, label)}
+      onRemove={(id) => api.remove(id)}
+      renderAdd={(done) => <SignIn onDone={done} />}   // a key by the rules of the provider, or an OAuth sign-in
+    />
+  </Modal>
+)}
+```
+
+In `AIConnections` the box always says how many keys a provider has; its modal lists them also with one, adds one
+when the store has `addAccount`, renames when it has `renameAccount`, and revoking the last one disconnects it.
+
 ## Access the provider directly
 
 Use hooks when you need direct provider access or diagnostics.

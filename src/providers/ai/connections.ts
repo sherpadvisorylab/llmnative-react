@@ -54,6 +54,8 @@ export interface AIConnectionStore {
     addAccount?(provider: string, fields: Record<string, string>): Promise<AIConnectionResult>;
     removeAccount?(provider: string, accountId: string): Promise<void>;
     orderAccounts?(provider: string, accountIds: string[]): Promise<void>;
+    /** CR-157: a new name for an account (absent: the accounts cannot be renamed). */
+    renameAccount?(provider: string, accountId: string, label: string): Promise<void>;
     /** `null`: back to the automatic order. */
     setOrder?(order: string[] | null): Promise<void>;
     /** The models of a connected provider, with their data region and price. */
@@ -73,6 +75,8 @@ export interface AIConnector {
     /** Listed with the subscriptions (default) or with the providers paid by use. */
     group?: 'subscription' | 'usage';
     connected: boolean;
+    /** CR-157: how many connections it has, for its box (default 1 when connected). */
+    count?: number;
     fields?: ProviderCredentialField[];
     /** The saved values of the fields that are not secret, shown again. */
     values?: Record<string, string>;

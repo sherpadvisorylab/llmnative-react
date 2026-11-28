@@ -20,8 +20,7 @@ import Modal, { ModalYesNo } from '../ui/Modal';
 import Table from '../ui/Table';
 import Form from '../widgets/Form';
 import { useFormController } from '../widgets/form-controller';
-import ListCard from './ListCard';
-import SortableList from './SortableList';
+import { ConnectionBoard, ConnectionList, type ConnectionBoxItem, type ConnectionListItem } from './Connections';
 
 // CR-134 — the page where an app connects its AI providers: the providers the framework knows (their fields,
 // their check, their models), the accounts of each, the order the agents try them, the data region of each
@@ -130,48 +129,45 @@ export default function AIConnections({
     const connected = new Map((snapshot?.providers ?? []).map((provider) => [provider.id, provider]));
     const isSubscription = (id: string) => subscriptions.includes(id);
 
-    const providerCard = (descriptor: ProviderDescriptor) => (
-        <ListCard
-            key={descriptor.id}
-            icon="bot"
-            title={descriptor.label}
-            description={descriptor.description}
-            badge={connected.has(descriptor.id) && <Badge variant="success">{t.connected}</Badge>}
-            onClick={() => setOpen(descriptor)}
-        />
-    );
-    const connectorCard = (connector: AIConnector) => (
-        <ListCard
-            key={connector.id}
-            icon={connector.icon ?? 'terminal'}
-            title={connector.label}
-            description={connector.description}
-            badge={connector.connected && <Badge variant="success">{t.connected}</Badge>}
-            onClick={() => setOpenConnector(connector)}
-        />
-    );
-    const subscriptionCards = [
-        ...descriptors.filter((descriptor) => isSubscription(descriptor.id)).map(providerCard),
-        ...connectors.filter((connector) => (connector.group ?? 'subscription') === 'subscription').map(connectorCard),
+    // CR-157: a box per provider and connector, with how many connections it has; out of credit when all its keys are.
+    const exhaustedNow = snapshot?.exhausted ?? [];
+    const countOf = (id: string) => (connected.has(id) ? Math.max(1, connected.get(id)?.accounts?.length ?? 0) : 0);
+    const statusOf = (id: string) => {
+        const out = exhaustedNow.filter((entry) => entry.provider === id);
+        return countOf(id) > 0 && out.length >= countOf(id)
+            ? <Badge variant="warning">{interpolate(t.exhausted, { time: timeOf(out.map((entry) => entry.until).sort()[0]) })}</Badge>
+            : undefined;
+    };
+    const boxes: ConnectionBoxItem[] = [
+        ...descriptors.map((descriptor): ConnectionBoxItem => ({
+            id: descriptor.id,
+            label: descriptor.label,
+            description: descriptor.description,
+            group: isSubscription(descriptor.id) ? 'subscription' : 'usage',
+            count: countOf(descriptor.id),
+            status: statusOf(descriptor.id),
+        })),
+        ...connectors.map((connector): ConnectionBoxItem => ({
+            id: connector.id,
+            label: connector.label,
+            description: connector.description,
+            icon: connector.icon ?? 'terminal',
+            group: connector.group ?? 'subscription',
+            count: connector.connected ? connector.count ?? 1 : 0,
+        })),
     ];
-    const usageCards = [
-        ...descriptors.filter((descriptor) => !isSubscription(descriptor.id)).map(providerCard),
-        ...connectors.filter((connector) => connector.group === 'usage').map(connectorCard),
-    ];
-    const section = (title: string, cards: React.ReactNode[]) => cards.length > 0 && (
-        <div className="space-y-2">
-            <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{title}</h4>
-            <div className="grid gap-3 sm:grid-cols-2">{cards}</div>
-        </div>
-    );
+    const openBox = (id: string) => {
+        const connector = connectors.find((item) => item.id === id);
+        if (connector) setOpenConnector(connector);
+        else setOpen(descriptors.find((descriptor) => descriptor.id === id));
+    };
 
     return (
         <div className={className ?? 'space-y-4'}>
             {intro ?? <p className="text-sm text-muted-foreground">{t.intro}</p>}
             {readOnly && <Alert variant="info">{t.readOnly}</Alert>}
             {error && <Alert variant="danger">{error}</Alert>}
-            {section(t.subscriptions, subscriptionCards)}
-            {section(t.usage, usageCards)}
+            <ConnectionBoard items={boxes} onOpen={openBox} titles={{ subscription: t.subscriptions, usage: t.usage }} />
             {snapshot?.order && store.setOrder && (
                 <ProviderOrder
                     store={store}
@@ -311,64 +307,54 @@ function ProviderModels({ store, provider, region }: { store: AIConnectionStore;
     );
 }
 
-/** The accounts of a connected provider, in the order they are tried; dragged to reorder. */
-function ProviderAccounts({ store, provider, accounts, exhausted, readOnly, descriptor, onChange }: {
+/** The single key of a provider connected without accounts, as one connection of the list. */
+const SINGLE_KEY = '__key';
+
+/**
+ * CR-157: the keys of a connected provider as `ConnectionList`, also with one: in the order they are tried, added
+ * (when the store can), renamed (when it can), ordered, revoked; revoking the last one disconnects the provider.
+ */
+function ProviderAccounts({ store, provider, current, exhausted, readOnly, descriptor, onChange, onDisconnected }: {
     store: AIConnectionStore;
     provider: string;
-    accounts: NonNullable<AIProviderConnectionView['accounts']>;
+    current: AIProviderConnectionView;
     exhausted: AIConnectionsSnapshot['exhausted'];
     readOnly: boolean;
     descriptor: ProviderDescriptor;
     onChange: () => Promise<void>;
+    onDisconnected: () => void;
 }) {
     const t = useI18n('aiConnections');
-    const [adding, setAdding] = useState(false);
-    const [removing, setRemoving] = useState<{ id: string; name: string }>();
-    const nameOf = (label: string | undefined, index: number) => label || interpolate(t.accountUnnamed, { n: index + 1 });
+    const accounts = current.accounts?.length ? current.accounts : undefined;
+    const items: ConnectionListItem[] = (accounts ?? [{ id: SINGLE_KEY, at: current.at }]).map((account) => ({
+        id: account.id,
+        label: 'label' in account ? account.label : undefined,
+        at: account.at,
+        exhaustedUntil: exhausted?.find((entry) => entry.provider === provider && (entry.account === account.id || (!accounts && !entry.account)))?.until,
+    }));
     return (
-        <section className="space-y-3">
-            <div className="flex items-center justify-between gap-3">
-                <h5 className="text-sm font-semibold">{interpolate(t.accounts, { count: accounts.length })}</h5>
-                {!adding && !readOnly && store.addAccount && <ActionButton icon="plus" variant="outline-primary" label={t.addAccount} onClick={() => setAdding(true)} />}
-            </div>
-            <SortableList
-                items={accounts}
-                getKey={(account) => account.id}
-                label={interpolate(t.accounts, { count: accounts.length })}
-                numbered={accounts.length > 1}
-                onReorder={readOnly || !store.orderAccounts ? undefined : (next) => void store.orderAccounts!(provider, next.map((account) => account.id)).then(onChange)}
-                renderItem={(account, index) => {
-                    const until = exhausted?.find((entry) => entry.provider === provider && entry.account === account.id)?.until;
-                    return {
-                        icon: 'key-round',
-                        title: nameOf(account.label, index),
-                        meta: account.at ? interpolate(t.accountAddedOn, { date: new Date(account.at).toLocaleDateString() }) : undefined,
-                        badge: until
-                            ? <Badge variant="warning">{interpolate(t.exhausted, { time: timeOf(until) })}</Badge>
-                            : <Badge variant="success">{t.ready}</Badge>,
-                        trailing: !readOnly && store.removeAccount && accounts.length > 1 ? (
-                            <ActionButton icon="trash-2" variant="link" ariaLabel={t.removeAccount} onClick={() => setRemoving({ id: account.id, name: nameOf(account.label, index) })} />
-                        ) : undefined,
-                    };
-                }}
-            />
-            {accounts.length > 1 && <p className="text-xs text-muted-foreground">{t.accountsOrderHint}</p>}
-            {adding && <AddAccount store={store} descriptor={descriptor} onDone={async (added) => { setAdding(false); if (added) await onChange(); }} />}
-            {removing && (
-                <ModalYesNo
-                    title={t.removeAccount}
-                    danger
-                    onClose={() => setRemoving(undefined)}
-                    onYes={async () => {
-                        await store.removeAccount!(provider, removing.id);
-                        await onChange();
-                        return true;
-                    }}
-                >
-                    {interpolate(t.removeAccountConfirm, { account: removing.name })}
-                </ModalYesNo>
-            )}
-        </section>
+        <ConnectionList
+            items={items}
+            title={interpolate(t.accounts, { count: items.length })}
+            readOnly={readOnly}
+            addLabel={t.addAccount}
+            unnamed={t.accountUnnamed}
+            orderHint={t.accountsOrderHint}
+            onReorder={accounts && accounts.length > 1 && store.orderAccounts ? async (ids) => { await store.orderAccounts!(provider, ids); await onChange(); } : undefined}
+            onRename={accounts && store.renameAccount ? async (id, label) => { await store.renameAccount!(provider, id, label); await onChange(); } : undefined}
+            onRemove={async (id) => {
+                // The last one: the provider is disconnected.
+                if (items.length === 1) {
+                    await store.disconnect(provider);
+                    await onChange();
+                    onDisconnected();
+                    return;
+                }
+                await store.removeAccount?.(provider, id);
+                await onChange();
+            }}
+            renderAdd={store.addAccount ? (done) => <AddAccount store={store} descriptor={descriptor} onDone={async (added) => { done(); if (added) await onChange(); }} /> : undefined}
+        />
     );
 }
 
@@ -429,9 +415,9 @@ function ProviderModal({ store, descriptor, current, exhausted, readOnly, region
     const form = useFormController();
     const [error, setError] = useState<string>();
     const [confirmRemove, setConfirmRemove] = useState(false);
-    // Connected with several accounts: its keys are its accounts; the form stays for what is not a key.
-    const accounts = current?.accounts;
-    const fields = accounts?.length && store.addAccount
+    // Connected, with a store that keeps several keys: its keys are the list above (CR-157); the form stays for what is
+    // not a key.
+    const fields = current && store.addAccount
         ? descriptor.credentialFields.filter((field) => field.type !== 'password')
         : descriptor.credentialFields;
     const editing = !readOnly && (!current || fields.length > 0);
@@ -456,8 +442,8 @@ function ProviderModal({ store, descriptor, current, exhausted, readOnly, region
         >
             <div className="space-y-5">
                 <p className="text-sm text-muted-foreground">{descriptor.description}</p>
-                {current && accounts && accounts.length > 0 && (
-                    <ProviderAccounts store={store} provider={descriptor.id} accounts={accounts} exhausted={exhausted} readOnly={readOnly} descriptor={descriptor} onChange={onChange} />
+                {current && (
+                    <ProviderAccounts store={store} provider={descriptor.id} current={current} exhausted={exhausted} readOnly={readOnly} descriptor={descriptor} onChange={onChange} onDisconnected={onClose} />
                 )}
                 {extra}
                 {error && <Alert variant="danger">{error}</Alert>}

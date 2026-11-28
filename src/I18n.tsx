@@ -578,6 +578,30 @@ export interface I18nDict {
         structuredPrompted: string;
         price: string;
     };
+    /** CR-157 — the connections as boxes (`ConnectionBoard`, `ConnectionList`). */
+    connections: {
+        subscriptions: string;
+        usage: string;
+        countOne: string;
+        countMany: string;
+        none: string;
+        title: string;
+        add: string;
+        empty: string;
+        unnamed: string;
+        addedOn: string;
+        ready: string;
+        exhausted: string;
+        renameAria: string;
+        removeAria: string;
+        orderHint: string;
+        renameTitle: string;
+        name: string;
+        save: string;
+        cancel: string;
+        remove: string;
+        removeConfirm: string;
+    };
     /** CR-112 — the charts: empty state, totals, the scale of the heatmaps, the data table. */
     charts: {
         noData:    string;

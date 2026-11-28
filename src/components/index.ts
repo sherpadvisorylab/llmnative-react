@@ -78,6 +78,8 @@ export type { DangerZoneProps, DangerZoneAction, DangerZoneConfirm } from './blo
 export type { SectionNavItem, SectionNavProps, SectionLayoutProps, PageSectionProps, UseActiveSectionOptions } from './blocks/SectionNav';
 export { default as AIConnections, AIModelRegionBadge, useRegionLabel } from './blocks/AIConnections';
 export type { AIConnectionsProps } from './blocks/AIConnections';
+export { ConnectionBoard, ConnectionList } from './blocks/Connections';
+export type { ConnectionBoardProps, ConnectionBoxItem, ConnectionListItem, ConnectionListProps } from './blocks/Connections';
 export type { SortableListProps, SortableListCard, SortableListReorderMeta } from './blocks/SortableList';
 export { default as SideNav } from './blocks/SideNav';
 export type { SideNavProps, SideNavItemDef, SideNavSlot, SideNavSlotContext } from './blocks/SideNav';

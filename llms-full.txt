@@ -1730,6 +1730,21 @@ nome, valore e gruppo, con i gruppi, il loro `groupBadge` e i prezzi; il raggrup
 `AIConnector`: connettore dell'app (es. abbonamento su un runner) con `fields` + `connect`/`disconnect`, o `render({ close })`.
 `AIModelRegionBadge`, `isModelInRegion` per i selettori di modello. i18n `aiConnections` (6 lingue).
 
+### Connessioni a box (CR-157)
+
+```tsx
+<ConnectionBoard items={[{ id, label, description?, icon?, group: 'subscription' | 'usage', count, status? }]} onOpen={(id) => …} />
+<ConnectionList items={[{ id, label?, at?, exhaustedUntil?, meta?, icon? }]} onReorder={(ids) => …} onRename={(id, label) => …}
+  onRemove={(id) => …} renderAdd={(done) => <MyKeyOrOAuthForm onDone={done} />} onStack={(open) => …} readOnly />
+```
+
+`ConnectionBoard`: i provider come box per gruppo (Abbonamenti, A consumo) con il numero delle connessioni ("Da collegare"
+senza); `status` al posto del numero (es. senza credito). `ConnectionList`: le connessioni di un provider nell'ordine d'uso
+(la successiva quando una finisce il credito o è rifiutata), con stato, rinomina, revoca e "Aggiungi" col flusso del
+chiamante (chiave o OAuth); `onStack` quando apre una sua modale sopra quella del chiamante. Nessun dato di provider dentro.
+`AIConnections` è costruito su di loro: conteggio sempre sul box, elenco delle chiavi anche con una sola, revocare l'ultima
+scollega; `AIConnectionStore.renameAccount?(provider, accountId, label)`, `AIConnector.count?`. i18n `connections` (6 lingue).
+
 ### Vertex AI (CR-133)
 
 ```ts
